@@ -33,7 +33,7 @@ class MenuManager
   #   * `label` The {String} menu label.
   #   * `submenu` An optional {Array} of sub menu items.
   #   * `command` An optional {String} command to trigger when the item is
-  #               clicked.
+  #     clicked.
   add: (items) ->
     @merge(@template, item) for item in items
     @update()

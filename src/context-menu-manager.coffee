@@ -28,7 +28,7 @@ class ContextMenuManager
   # * `object` The 'context-menu' object specified in the menu JSON API.
   # * `options` An optional {Object} with the following keys:
   #   * `devMode` Determines whether the entries should only be shown when
-  #               the window is in dev mode.
+  #     the window is in dev mode.
   add: (name, object, {devMode}={}) ->
     for selector, items of object
       for label, commandOrSubmenu of items
@@ -53,11 +53,11 @@ class ContextMenuManager
   # clicked.
   #
   # * `selector` The css selector for the active element which should include
-  #              the given command in its context menu.
+  #   the given command in its context menu.
   # * `definition` The object containing keys which match the menu template API.
   # * `options` An optional {Object} with the following keys:
   #   * `devMode` Indicates whether this command should only appear while the
-  #               editor is in dev mode.
+  #     editor is in dev mode.
   addBySelector: (selector, definition, {devMode}={}) ->
     definitions = if devMode then @devModeDefinitions else @definitions
     if not _.findWhere(definitions[selector], definition) or _.isEqual(definition, {type: 'separator'})

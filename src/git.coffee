@@ -47,7 +47,7 @@ class Git
   # * `path` The {String} path to the Git repository to open.
   # * `options` An optinal {Object} with the following keys:
   #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
-  #                            statuses when the window is focused.
+  #     statuses when the window is focused.
   #
   # Returns a {Git} instance or `null` if the repository could not be opened.
   @open: (path, options) ->
@@ -199,7 +199,7 @@ class Git
   # characters.
   #
   # * `path` An optional {String} path in the repository to get this information
-  #          for, only needed if the repository contains submodules.
+  #   for, only needed if the repository contains submodules.
   #
   # Returns a {String}.
   getShortHead: (path) -> @getRepo(path).getShortHead()
@@ -227,7 +227,7 @@ class Git
   #
   # * `reference` The {String} reference to checkout.
   # * `create`    A {Boolean} value which, if true creates the new reference if
-  #               it doesn't exist.
+  #   it doesn't exist.
   #
   # Returns a Boolean that's true if the method was successful.
   checkoutReference: (reference, create) ->
@@ -296,20 +296,20 @@ class Git
   # Public: Returns the git configuration value specified by the key.
   #
   # * `path` An optional {String} path in the repository to get this information
-  #          for, only needed if the repository has submodules.
+  #   for, only needed if the repository has submodules.
   getConfigValue: (key, path) -> @getRepo(path).getConfigValue(key)
 
   # Public: Returns the origin url of the repository.
   #
   # * `path` An optional {String} path in the repository to get this information
-  #          for, only needed if the repository has submodules.
+  #   for, only needed if the repository has submodules.
   getOriginUrl: (path) -> @getConfigValue('remote.origin.url', path)
 
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
   #
   # * `path` An optional {String} path in the repo to get this information for,
-  #          only needed if the repository contains submodules.
+  #   only needed if the repository contains submodules.
   #
   # Returns a {String} branch name such as `refs/remotes/origin/master`.
   getUpstreamBranch: (path) -> @getRepo(path).getUpstreamBranch()
@@ -318,14 +318,14 @@ class Git
   #
   # * `reference` The {String} reference to get the target of.
   # * `path` An optional {String} path in the repo to get the reference target
-  #          for. Only needed if the repository contains submodules.
+  #   for. Only needed if the repository contains submodules.
   getReferenceTarget: (reference, path) ->
     @getRepo(path).getReferenceTarget(reference)
 
   # Public: Gets all the local and remote references.
   #
   # * `path` An optional {String} path in the repository to get this information
-  #          for, only needed if the repository has submodules.
+  #   for, only needed if the repository has submodules.
   #
   # Returns an {Object} with the following keys:
   #  * `heads`   An {Array} of head reference names.
@@ -338,7 +338,7 @@ class Git
   #
   # * `reference` The {String} branch reference name.
   # * `path`      The {String} path in the repository to get this information for,
-  #               only needed if the repository contains submodules.
+  #   only needed if the repository contains submodules.
   getAheadBehindCount: (reference, path) ->
     @getRepo(path).getAheadBehindCount(reference)
 
@@ -346,7 +346,7 @@ class Git
   # upstream branch.
   #
   # * `path` An optional {String} path in the repository to get this information
-  #          for, only needed if the repository has submodules.
+  #   for, only needed if the repository has submodules.
   #
   # Returns an {Object} with the following keys:
   #   * `ahead`  The {Number} of commits ahead.

@@ -38,7 +38,7 @@ class DeserializerManager
   #
   # * `state` The state {Object} to deserialize.
   # * `params` The params {Object} to pass as the second arguments to the
-  #            deserialize method of the deserializer.
+  #   deserialize method of the deserializer.
   deserialize: (state, params) ->
     return unless state?
 
