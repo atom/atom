@@ -3,7 +3,6 @@
 #exit if any return !=0
 if [[ $(id -u) != 0 && $(uname -s) != [Dd]arwin]]; then
     echo "please run me as root"
-    exit 1
 fi
 
 if [ -z $BASH ] || [ $BASH = "/bin/sh" ]; then
@@ -91,7 +90,7 @@ case $OS in
                     pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
 
                 else
-                    echo 'Sorry, we only currently support version of Fedora past 17'
+                    echo "Sorry, we currently don\'t support versions older than Fedora 17"
                 fi
                 ;;
             [Uu]buntu | [Dd]ebian | [Mm]int)
@@ -108,7 +107,7 @@ case $OS in
                     fi
                     if [[ $NODE_LOCATION = 'which: no' ]]; then
                         apt-get install nodejs
-                        $NODE_LOCATION=$(which nodejs)
+                        NODE_LOCATION=$(which nodejs)
                         $NODEJS_LOCATION=${NODE_LOCATION:0:-5}node
                         ln -s $NODE_LOCATION $NODEJS_LOCATION
                         wget https://www.npmjs.org/install.sh
@@ -139,7 +138,7 @@ case $OS in
                 fi
                 ;;
             *)
-                echo 'Sorry, we currently dont support this distribution'
+                echo "Sorry, we currently don\'t support this distribution"
                 ;;
             esac
             source ~/.bashrc
@@ -186,7 +185,7 @@ case $OS in
         ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv2.so cv2.so
         ;;
     *)
-        echo 'sorry we currently dont support this OS'
+        echo "Sorry, we currently don\'t support this OS"
     source ~/.bash_profile
     ;;
     esac
