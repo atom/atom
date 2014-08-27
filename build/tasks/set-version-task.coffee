@@ -38,7 +38,7 @@ module.exports = (grunt) ->
       if process.platform is 'darwin'
         cmd = 'script/set-version'
         args = [grunt.config.get('atom.buildDir'), version]
-        spawn {cmd, args}, (error, result, code) -> done(error)
+        spawn {cmd, args}, (error, result, code) -> done()
       else if process.platform is 'win32'
         shellAppDir = grunt.config.get('atom.shellAppDir')
         shellExePath = path.join(shellAppDir, 'atom.exe')

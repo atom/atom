@@ -183,8 +183,10 @@ case $OS in
         brew install --with-openblas scipy
         brew install matplotlib
         sudo pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
-        sudo ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv.py cv.py
-        sudo ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv2.so cv2.so
+        RETURN=$(pwd)
+        cd ~/.indico/pypackages/lib/python2.7/site-packages/
+        sudo ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv* ./
+        cd $RETURN
         ;;
     *)
         echo "Sorry, we currently don\'t support this OS"
