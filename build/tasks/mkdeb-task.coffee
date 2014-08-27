@@ -17,7 +17,7 @@ module.exports = (grunt) ->
     cmd = 'du'
     args = ['-sk', path.join(buildDir, 'Atom')]
     spawn {cmd, args}, (error, {stdout}) ->
-      installedSize = stdout.split(' ')?[0] or '200000' # default to 200MB
+      installedSize = stdout.split(/\s+/)?[0] or '200000' # default to 200MB
       callback(null, installedSize)
 
   grunt.registerTask 'mkdeb', 'Create debian package', ->
