@@ -1,8 +1,10 @@
 #! /usr/bin/env bash
 
 #exit if any return !=0
-if [[ $(id -u) != 0 && $(uname -s) != [Dd]arwin]]; then
+if [[ $(id -u) != 0 && $(uname -s) != 'Darwin' ]]
+then
     echo "please run me as root"
+    exit 1
 fi
 
 if [ -z $BASH ] || [ $BASH = "/bin/sh" ]; then
@@ -37,10 +39,10 @@ else
 fi
 if ! which wget 2> /dev/null; then
     WGET_LOCATION='which: no'
-else
+fi
 
 OS=$(uname -s)
-REQ=`pwd`
+REQ=$(pwd)
 
 cd ~
 mkdir .indico
@@ -48,7 +50,7 @@ cd .indico
 mkdir pypackages
 
 PY_INSTALL_DIR=~/.indico/pypackages/
-PYTHONPATH=$PY_INSTALL_DIR\/lib/python2.7/site-packages:$PYTHONPATH
+PYTHONPATH=$PY_INSTALL_DIR\lib/python2.7/site-packages:$PYTHONPATH
 set -e
 case $OS in
     [Ll]inux)
@@ -80,7 +82,7 @@ case $OS in
                         npm install node-gyp
                     fi
                     yum install freetype
-                    yum isntall libpng-dev
+                    yum install libpng-dev
                     yum install libxml2
                     yum install libxslt
                     yum install scipy
