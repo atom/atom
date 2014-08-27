@@ -68,7 +68,7 @@ class Pane extends Model
     @emitter = new Emitter
 
     @items = Sequence.fromArray(compact(params?.items ? []))
-    @activeItem ?= @items[0]
+    @setActiveItem(@items[0]) unless @getActiveItem()?
 
     @subscribe @items.onEach (item) =>
       if typeof item.on is 'function'
@@ -214,7 +214,7 @@ class Pane extends Model
     @items.splice(index, 0, item)
     @emit 'item-added', item, index
     @emitter.emit 'did-add-item', {item, index}
-    @activeItem ?= item
+    @setActiveItem(item) unless @getActiveItem()?
     item
 
   # Public: Adds the given items to the pane.
@@ -236,7 +236,7 @@ class Pane extends Model
     return if index is -1
     if item is @activeItem
       if @items.length is 1
-        @activeItem = undefined
+        @setActiveItem(undefined)
       else if index is 0
         @activateNextItem()
       else
