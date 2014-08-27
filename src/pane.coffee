@@ -1,5 +1,6 @@
 {find, compact, extend, last} = require 'underscore-plus'
 {Model, Sequence} = require 'theorist'
+{Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 PaneAxis = require './pane-axis'
 Editor = require './editor'
@@ -64,6 +65,8 @@ class Pane extends Model
   constructor: (params) ->
     super
 
+    @emitter = new Emitter
+
     @items = Sequence.fromArray(compact(params?.items ? []))
     @activeItem ?= @items[0]
 
@@ -90,6 +93,15 @@ class Pane extends Model
 
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
+
+  onDidAddItem: (fn) ->
+    @emitter.on 'did-add-item', fn
+
+  onDidRemoveItem: (fn) ->
+    @emitter.on 'did-remove-item', fn
+
+  onDidChangeActiveItem: (fn) ->
+    @emitter.on 'did-change-active-item', fn
 
   isActive: -> @active
 
@@ -121,6 +133,10 @@ class Pane extends Model
   #
   # Returns a pane item.
   getActiveItem: ->
+    @activeItem
+
+  setActiveItem: (@activeItem) ->
+    @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
 
   # Public: Returns an {Editor} if the pane item is an {Editor}, or null
@@ -160,7 +176,7 @@ class Pane extends Model
   activateItem: (item) ->
     if item?
       @addItem(item)
-      @activeItem = item
+      @setActiveItem(item)
 
   # Public: Adds the item to the pane.
   #
@@ -174,6 +190,7 @@ class Pane extends Model
 
     @items.splice(index, 0, item)
     @emit 'item-added', item, index
+    @emitter.emit 'did-add-item', {item, index}
     @activeItem ?= item
     item
 
@@ -191,7 +208,7 @@ class Pane extends Model
     @addItem(item, index + i) for item, i in items
     items
 
-  removeItem: (item, destroying) ->
+  removeItem: (item, destroyed) ->
     index = @items.indexOf(item)
     return if index is -1
     if item is @activeItem
@@ -202,8 +219,9 @@ class Pane extends Model
       else
         @activatePreviousItem()
     @items.splice(index, 1)
-    @emit 'item-removed', item, index, destroying
-    @container?.itemDestroyed(item) if destroying
+    @emit 'item-removed', item, index, destroyed
+    @emitter.emit 'did-remove-item', {item, index, destroyed}
+    @container?.itemDestroyed(item) if destroyed
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Moves the given item to the specified index.

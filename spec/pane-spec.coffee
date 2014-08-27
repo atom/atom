@@ -36,7 +36,7 @@ describe "Pane", ->
       pane.addItem(item3, 1)
       expect(pane.getItems()).toEqual [item1, item3, item2]
 
-    it "adds the item after the active item ", ->
+    it "adds the item after the active item if no index is provided", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
       [item1, item2, item3] = pane.getItems()
       pane.activateItem(item2)
@@ -47,13 +47,17 @@ describe "Pane", ->
     it "sets the active item after adding the first item", ->
       pane = new Pane
       item = new Item("A")
-      events = []
-      pane.on 'item-added', -> events.push('item-added')
-      pane.$activeItem.changes.onValue -> events.push('active-item-changed')
-
       pane.addItem(item)
       expect(pane.getActiveItem()).toBe item
-      expect(events).toEqual ['item-added', 'active-item-changed']
+
+    it "invokes ::onDidAddItem() observers", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      events = []
+      pane.onDidAddItem (event) -> events.push(event)
+
+      item = new Item("C")
+      pane.addItem(item, 1)
+      expect(events).toEqual [{item, index: 1}]
 
   describe "::activateItem(item)", ->
     pane = null
@@ -71,6 +75,12 @@ describe "Pane", ->
       pane.activateItem(item)
       expect(item in pane.getItems()).toBe true
       expect(pane.getActiveItem()).toBe item
+
+    it "invokes ::onDidChangeActiveItem() observers", ->
+      observed = []
+      pane.onDidChangeActiveItem (item) -> observed.push(item)
+      pane.activateItem(pane.itemAtIndex(1))
+      expect(observed).toEqual [pane.itemAtIndex(1)]
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
@@ -135,10 +145,11 @@ describe "Pane", ->
         pane.destroyItem(item2)
         expect(pane.getActiveItem()).toBe item1
 
-    it "emits 'item-removed' with the item, its index, and true indicating the item is being destroyed", ->
-      pane.on 'item-removed', itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
+    it "invokes ::onDidRemoveItem() observers", ->
+      events = []
+      pane.onDidRemoveItem (event) -> events.push(event)
       pane.destroyItem(item2)
-      expect(itemRemovedHandler).toHaveBeenCalledWith(item2, 1, true)
+      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
 
     describe "if the item is modified", ->
       itemUri = null
