@@ -1,5 +1,6 @@
 {find} = require 'underscore-plus'
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 Pane = require './pane'
 
@@ -23,6 +24,9 @@ class PaneContainer extends Model
 
   constructor: (params) ->
     super
+
+    @emitter = new Emitter
+
     @subscribe @$root, @onRootChanged
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
@@ -36,6 +40,9 @@ class PaneContainer extends Model
     root: @root?.serialize()
     activePaneId: @activePane.id
 
+  onDidChangeActivePane: (fn) ->
+    @emitter.on 'did-change-active-pane', fn
+
   getRoot: -> @root
 
   replaceChild: (oldChild, newChild) ->
@@ -46,6 +53,12 @@ class PaneContainer extends Model
     @root?.getPanes() ? []
 
   getActivePane: ->
+    @activePane
+
+  setActivePane: (pane) ->
+    if pane isnt @activePane
+      @activePane = pane
+      @emitter.emit 'did-change-active-pane', @activePane
     @activePane
 
   paneForUri: (uri) ->
@@ -80,7 +93,7 @@ class PaneContainer extends Model
     @previousRoot = root
 
     unless root?
-      @activePane = null
+      @setActivePane(null)
       return
 
     root.parent = this

@@ -127,7 +127,7 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus
   # immediately.
   activate: ->
-    @container?.activePane = this
+    @container?.setActivePane(this)
     @emit 'activated'
     @emitter.emit 'did-activate'
 
