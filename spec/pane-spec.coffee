@@ -366,6 +366,13 @@ describe "Pane", ->
       expect(pane1.getItems()).toEqual [item1, item3]
       expect(pane2.getItems()).toEqual [item4, item2, item5]
 
+    it "invokes ::onDidRemoveItem() observers", ->
+      events = []
+      pane1.onDidRemoveItem (event) -> events.push(event)
+      pane1.moveItemToPane(item2, pane2, 1)
+
+      expect(events).toEqual [{item: item2, index: 1, destroyed: false}]
+
     describe "when the moved item the last item in the source pane", ->
       beforeEach ->
         item5.destroy()

@@ -211,7 +211,7 @@ class Pane extends Model
     @addItem(item, index + i) for item, i in items
     items
 
-  removeItem: (item, destroyed) ->
+  removeItem: (item, destroyed=false) ->
     index = @items.indexOf(item)
     return if index is -1
     if item is @activeItem
