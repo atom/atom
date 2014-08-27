@@ -10,7 +10,9 @@ EditorComponent = require './editor-component'
 #
 # The EditorView manages the {Editor}, which manages the file buffers.
 #
-# ## Requiring in packages
+# ## Examples
+#
+# Requiring in packages
 #
 # ```coffee
 # {EditorView} = require 'atom'
@@ -18,14 +20,14 @@ EditorComponent = require './editor-component'
 # miniEditorView = new EditorView(mini: true)
 # ```
 #
-# ## Iterating over the open editor views
+# Iterating over the open editor views
 #
 # ```coffee
 # for editorView in atom.workspaceView.getEditorViews()
 #   console.log(editorView.getModel().getPath())
 # ```
 #
-# ## Subscribing to every current and future editor
+# Subscribing to every current and future editor
 #
 # ```coffee
 # atom.workspace.eachEditorView (editorView) ->
@@ -67,7 +69,7 @@ class EditorView extends View
 
   # The constructor for setting up an `EditorView` instance.
   #
-  # editorOrParams - Either an {Editor}, or an object with one property, `mini`.
+  # * `editorOrParams` Either an {Editor}, or an object with one property, `mini`.
   #                  If `mini` is `true`, a "miniature" `Editor` is constructed.
   #                  Typically, this is ideal for scenarios where you need an Atom editor,
   #                  but without all the chrome, like scrollbars, gutter, _e.t.c._.
@@ -125,7 +127,7 @@ class EditorView extends View
 
   # Public: Get the underlying editor model for this view.
   #
-  # Returns an {Editor}.
+  # Returns an {Editor}
   getModel: -> @editor
 
   getEditor: -> @editor
@@ -173,17 +175,17 @@ class EditorView extends View
 
   # Public: Scrolls the editor to the given screen position.
   #
-  # screenPosition - An object that represents a buffer position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - A hash matching the options available to {::scrollToScreenPosition}
+  # * `screenPosition` An object that represents a buffer position. It can be either
+  #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `options` (optional) {Object} matching the options available to {::scrollToScreenPosition}
   scrollToScreenPosition: (screenPosition, options) ->
     @editor.scrollToScreenPosition(screenPosition, options)
 
   # Public: Scrolls the editor to the given buffer position.
   #
-  # bufferPosition - An object that represents a buffer position. It can be either
-  #                  an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # options - A hash matching the options available to {::scrollToBufferPosition}
+  # * `bufferPosition` An object that represents a buffer position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `options` (optional) {Object} matching the options available to {::scrollToBufferPosition}
   scrollToBufferPosition: (bufferPosition, options) ->
     @editor.scrollToBufferPosition(bufferPosition, options)
 
@@ -192,17 +194,17 @@ class EditorView extends View
 
   # Public: Converts a buffer position to a pixel position.
   #
-  # position - An object that represents a buffer position. It can be either
-  #            an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `bufferPosition` An object that represents a buffer position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   #
-  # Returns an object with two values: `top` and `left`, representing the pixel positions.
+  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForBufferPosition: (bufferPosition) ->
     @editor.pixelPositionForBufferPosition(bufferPosition)
 
   # Public: Converts a screen position to a pixel position.
   #
-  # position - An object that represents a screen position. It can be either
-  #            an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `screenPosition` An object that represents a screen position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   #
   # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (screenPosition) ->
@@ -283,7 +285,7 @@ class EditorView extends View
 
   # Public: Sets the font family for the editor.
   #
-  # fontFamily - A {String} identifying the CSS `font-family`.
+  # * `fontFamily` A {String} identifying the CSS `font-family`.
   setFontFamily: (fontFamily) ->
     @component?.setFontFamily(fontFamily)
 
@@ -295,7 +297,7 @@ class EditorView extends View
 
   # Public: Sets the font size for the editor.
   #
-  # fontSize - A {Number} indicating the font size in pixels.
+  # * `fontSize` A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
     @component?.setFontSize(fontSize)
 
@@ -306,27 +308,26 @@ class EditorView extends View
   #
   # Calling this method has no effect when called on a mini editor.
   #
-  # lineHeight - A {Number} without a unit suffix identifying the CSS
-  # `line-height`.
+  # * `lineHeight` A {Number} without a unit suffix identifying the CSS `line-height`.
   setLineHeight: (lineHeight) ->
     @component.setLineHeight(lineHeight)
 
   # Public: Sets whether you want to show the indentation guides.
   #
-  # showIndentGuide - A {Boolean} you can set to `true` if you want to see the
-  #                   indentation guides.
+  # * `showIndentGuide` A {Boolean} you can set to `true` if you want to see the
+  #   indentation guides.
   setShowIndentGuide: (showIndentGuide) ->
     @component.setShowIndentGuide(showIndentGuide)
 
   # Public: Enables/disables soft wrap on the editor.
   #
-  # softWrap - A {Boolean} which, if `true`, enables soft wrap
+  # * `softWrap` A {Boolean} which, if `true`, enables soft wrap
   setSoftWrap: (softWrap) ->
     @editor.setSoftWrap(softWrap)
 
   # Public: Set whether invisible characters are shown.
   #
-  # showInvisibles - A {Boolean} which, if `true`, show invisible characters.
+  # * `showInvisibles` A {Boolean} which, if `true`, show invisible characters.
   setShowInvisibles: (showInvisibles) ->
     @component.setShowInvisibles(showInvisibles)
 
@@ -361,7 +362,7 @@ class EditorView extends View
   #
   # This only affects mini editors.
   #
-  # placeholderText - A {String} of text to display when empty.
+  # * `placeholderText` A {String} of text to display when empty.
   setPlaceholderText: (placeholderText) ->
     if @component?
       @component.setProps({placeholderText})

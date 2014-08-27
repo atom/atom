@@ -15,15 +15,30 @@ Editor = require './editor'
 Task = require './task'
 Git = require './git'
 
-# Public: Represents a project that's opened in Atom.
+# Extended: Represents a project that's opened in Atom.
 #
 # An instance of this class is always available as the `atom.project` global.
+#
+# ## Events
+#
+# ### path-changed
+#
+# Extended: Emit when the project's path has changed. Use {::getPath} to get the new path
+#
+# ### buffer-created
+#
+# Extended: Emit when a buffer is created. For example, when {::open} is called, this is fired.
+#
+# * `buffer` {TextBuffer} the new buffer that was created.
+#
 module.exports =
 class Project extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
   # Public: Find the local path for the given repository URL.
+  #
+  # * `repoUrl` {String} url to a git repository
   @pathForRepositoryUrl: (repoUrl) ->
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')
@@ -61,11 +76,13 @@ class Project extends Model
   # Public: Returns the {Git} repository if available.
   getRepo: -> @repo
 
-  # Public: Returns the project's fullpath.
+  # Public: Returns the project's {String} fullpath.
   getPath: ->
     @rootDirectory?.path
 
   # Public: Sets the project's fullpath.
+  #
+  # * `projectPath` {String} path
   setPath: (projectPath) ->
     @path = projectPath
     @rootDirectory?.off()
@@ -90,7 +107,7 @@ class Project extends Model
   # the path is already absolute or if it is prefixed with a scheme, it is
   # returned unchanged.
   #
-  # uri - The {String} name of the path to convert.
+  # * `uri` The {String} name of the path to convert.
   #
   # Returns a {String} or undefined if the uri is not missing or empty.
   resolve: (uri) ->
@@ -107,19 +124,23 @@ class Project extends Model
         undefined
 
   # Public: Make the given path relative to the project directory.
+  #
+  # * `fullPath` {String} full path
   relativize: (fullPath) ->
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     @rootDirectory?.relativize(fullPath) ? fullPath
 
   # Public: Returns whether the given path is inside this project.
+  #
+  # * `pathToCheck` {String} path
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
 
   # Given a path to a file, this constructs and associates a new
   # {Editor}, showing the file.
   #
-  # filePath - The {String} path of the file to associate with.
-  # options  - Options that you can pass to the {Editor} constructor.
+  # * `filePath` The {String} path of the file to associate with.
+  # * `options` Options that you can pass to the {Editor} constructor.
   #
   # Returns a promise that resolves to an {Editor}.
   open: (filePath, options={}) ->
@@ -158,7 +179,7 @@ class Project extends Model
   # If the `filePath` already has a `buffer`, that value is used instead. Otherwise,
   # `text` is used as the contents of the new buffer.
   #
-  # filePath - A {String} representing a path. If `null`, an "Untitled" buffer is created.
+  # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
   # Returns a promise that resolves to the {TextBuffer}.
   bufferForPath: (filePath) ->
@@ -178,8 +199,8 @@ class Project extends Model
 
   # Given a file path, this sets its {TextBuffer}.
   #
-  # absoluteFilePath - A {String} representing a path.
-  # text - The {String} text to use as a buffer.
+  # * `absoluteFilePath` A {String} representing a path.
+  # * `text` The {String} text to use as a buffer.
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
@@ -215,10 +236,10 @@ class Project extends Model
 
   # Public: Performs a search across all the files in the project.
   #
-  # regex - A {RegExp} to search with.
-  # options - An optional options {Object} (default: {}):
-  #   :paths - An {Array} of glob patterns to search within
-  # iterator - A {Function} callback on each file found
+  # * `regex` {RegExp} to search with.
+  # * `options` (optional) {Object} (default: {})
+  #   * `paths` An {Array} of glob patterns to search within
+  # * `iterator` {Function} callback on each file found
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
       iterator = options
@@ -261,11 +282,11 @@ class Project extends Model
 
   # Public: Performs a replace across all the specified files in the project.
   #
-  # regex - A {RegExp} to search with.
-  # replacementText - Text to replace all matches of regex with
-  # filePaths - List of file path strings to run the replace on.
-  # iterator - A {Function} callback on each file with replacements:
-  #            `({filePath, replacements}) ->`.
+  # * `regex` A {RegExp} to search with.
+  # * `replacementText` Text to replace all matches of regex with
+  # * `filePaths` List of file path strings to run the replace on.
+  # * `iterator` A {Function} callback on each file with replacements:
+  #   * `options` {Object} with keys `filePath` and `replacements`
   replace: (regex, replacementText, filePaths, iterator) ->
     deferred = Q.defer()
 

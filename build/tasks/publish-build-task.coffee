@@ -17,6 +17,7 @@ defaultHeaders =
 
 module.exports = (gruntObject) ->
   grunt = gruntObject
+  {cp} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
@@ -24,8 +25,10 @@ module.exports = (gruntObject) ->
     tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
     grunt.task.run(tasks)
 
-  grunt.registerTask 'prepare-docs', 'Move the build docs to the build dir', ->
-    fs.copySync(grunt.config.get('docsOutputDir'), path.join(grunt.config.get('atom.buildDir'), 'atom-docs'))
+  grunt.registerTask 'prepare-docs', 'Move api.json to atom-api.json', ->
+    docsOutputDir = grunt.config.get('docsOutputDir')
+    buildDir = grunt.config.get('atom.buildDir')
+    cp  path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
     done = @async()
@@ -46,7 +49,7 @@ getAssets = ->
     [
       {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
       {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
-      {assetName: 'atom-docs.zip', sourcePath: 'atom-docs'}
+      {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
     ]
   else
     [
@@ -70,7 +73,7 @@ zipAssets = (buildDir, assets, callback) ->
       callback(error)
 
   tasks = []
-  for {assetName, sourcePath} in assets
+  for {assetName, sourcePath} in assets when path.extname(assetName) is '.zip'
     fs.removeSync(path.join(buildDir, assetName))
     tasks.push(zip.bind(this, buildDir, sourcePath, assetName))
   async.parallel(tasks, callback)

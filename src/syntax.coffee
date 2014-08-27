@@ -14,7 +14,7 @@ Token = require './token'
 # An instance of this class is always available as the `atom.syntax` global.
 #
 # The Syntax class also contains properties for things such as the
-# language-specific comment regexes.
+# language-specific comment regexes. See {::getProperty} for more details.
 module.exports =
 class Syntax extends GrammarRegistry
   PropertyAccessors.includeInto(this)
@@ -55,14 +55,15 @@ class Syntax extends GrammarRegistry
 
   # Public: Get a property for the given scope and key path.
   #
-  # ## Example
+  # ## Examples
+  #
   # ```coffee
   # comment = atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')
   # console.log(comment) # '# '
   # ```
   #
-  # scope - An {Array} of {String} scopes.
-  # keyPath - A {String} key path.
+  # * `scope` An {Array} of {String} scopes.
+  # * `keyPath` A {String} key path.
   #
   # Returns a {String} property value or undefined.
   getProperty: (scope, keyPath) ->

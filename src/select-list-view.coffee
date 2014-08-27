@@ -2,7 +2,7 @@
 EditorView = require './editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
-# Public: Provides a view that renders a list of items with an editor that
+# Essential: Provides a view that renders a list of items with an editor that
 # filters the items. Used by many packages such as the fuzzy-finder,
 # command-palette, symbols-view and autocomplete.
 #
@@ -96,14 +96,14 @@ class SelectListView extends View
   # This should be model items not actual views. {::viewForItem} will be
   # called to render the item when it is being appended to the list view.
   #
-  # items - The {Array} of model items to display in the list (default: []).
+  # * `items` The {Array} of model items to display in the list (default: []).
   setItems: (@items=[]) ->
     @populateList()
     @setLoading()
 
   # Public: Set the error message to display.
   #
-  # message - The {String} error message (default: '').
+  # * `message` The {String} error message (default: '').
   setError: (message='') ->
     if message.length is 0
       @error.text('').hide()
@@ -113,7 +113,7 @@ class SelectListView extends View
 
   # Public: Set the loading message to display.
   #
-  # message - The {String} loading message (default: '').
+  # * `message` The {String} loading message (default: '').
   setLoading: (message='') ->
     if message.length is 0
       @loading.text("")
@@ -165,15 +165,15 @@ class SelectListView extends View
   #
   # Subclasses may override this method to customize the message.
   #
-  # itemCount - The {Number} of items in the array specified to {::setItems}
-  # filteredItemCount - The {Number} of items that pass the fuzzy filter test.
+  # * `itemCount` The {Number} of items in the array specified to {::setItems}
+  # * `filteredItemCount` The {Number} of items that pass the fuzzy filter test.
   #
   # Returns a {String} message (default: 'No matches found').
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
   # Public: Set the maximum numbers of items to display in the list.
   #
-  # maxItems - The maximum {Number} of items to display.
+  # * `maxItems` The maximum {Number} of items to display.
   setMaxItems: (@maxItems) ->
 
   selectPreviousItemView: ->
@@ -224,8 +224,8 @@ class SelectListView extends View
   #
   # This is called when the item is about to appended to the list view.
   #
-  # item - The model item being rendered. This will always be one of the items
-  #        previously passed to {::setItems}.
+  # * `item` The model item being rendered. This will always be one of the items
+  #   previously passed to {::setItems}.
   #
   # Returns a String of HTML, DOM element, jQuery object, or View.
   viewForItem: (item) ->
@@ -235,8 +235,8 @@ class SelectListView extends View
   #
   # This method must be overridden by subclasses.
   #
-  # item - The selected model item. This will always be one of the items
-  #        previously passed to {::setItems}.
+  # * `item` The selected model item. This will always be one of the items
+  #   previously passed to {::setItems}.
   #
   # Returns a DOM element, jQuery object, or {View}.
   confirmed: (item) ->

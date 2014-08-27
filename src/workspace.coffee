@@ -15,6 +15,20 @@ Pane = require './pane'
 # Interact with this object to open files, be notified of current and future
 # editors, and manipulate panes. To add panels, you'll need to use the
 # {WorkspaceView} class for now until we establish APIs at the model layer.
+#
+# ## Events
+#
+# ### uri-opened
+#
+# Extended: Emit when something has been opened. This can be anything, from an
+# editor to the settings view. You can get the new item via {::getActivePaneItem}
+#
+# ### editor-created
+#
+# Extended: Emit when an editor is created (a file opened).
+#
+# * `editor` {Editor} the new editor
+#
 module.exports =
 class Workspace extends Model
   atom.deserializers.add(this)
@@ -78,7 +92,7 @@ class Workspace extends Model
   # Public: Register a function to be called for every current and future
   # {Editor} in the workspace.
   #
-  # callback - A {Function} with an {Editor} as its only argument.
+  # * `callback` A {Function} with an {Editor} as its only argument.
   #
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
@@ -98,22 +112,21 @@ class Workspace extends Model
 
   # Public: Open a given a URI in Atom asynchronously.
   #
-  # uri - A {String} containing a URI.
-  # options  - An optional options {Object}
-  #   :initialLine - A {Number} indicating which row to move the cursor to
-  #                  initially. Defaults to `0`.
-  #   :initialColumn - A {Number} indicating which column to move the cursor to
-  #                    initially. Defaults to `0`.
-  #   :split - Either 'left' or 'right'. If 'left', the item will be opened in
-  #            leftmost pane of the current active pane's row. If 'right', the
-  #            item will be opened in the rightmost pane of the current active
-  #            pane's row.
-  #   :activatePane - A {Boolean} indicating whether to call {Pane::activate} on
-  #                   the containing pane. Defaults to `true`.
-  #   :searchAllPanes - A {Boolean}. If `true`, the workspace will attempt to
-  #                     activate an existing item for the given URI on any pane.
-  #                     If `false`, only the active pane will be searched for
-  #                     an existing item for the same URI. Defaults to `false`.
+  # * `uri` A {String} containing a URI.
+  # * `options` (optional) {Object}
+  #   * `initialLine` A {Number} indicating which row to move the cursor to
+  #     initially. Defaults to `0`.
+  #   * `initialColumn` A {Number} indicating which column to move the cursor to
+  #     initially. Defaults to `0`.
+  #   * `split` Either 'left' or 'right'. If 'left', the item will be opened in
+  #     leftmost pane of the current active pane's row. If 'right', the
+  #     item will be opened in the rightmost pane of the current active pane's row.
+  #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
+  #     containing pane. Defaults to `true`.
+  #   * `searchAllPanes` A {Boolean}. If `true`, the workspace will attempt to
+  #     activate an existing item for the given URI on any pane.
+  #     If `false`, only the active pane will be searched for
+  #     an existing item for the same URI. Defaults to `false`.
   #
   # Returns a promise that resolves to the {Editor} for the file URI.
   open: (uri, options={}) ->
@@ -132,7 +145,7 @@ class Workspace extends Model
 
     @openUriInPane(uri, pane, options)
 
-  # Public: Open Atom's license in the active pane.
+  # Open Atom's license in the active pane.
   openLicense: ->
     @open(join(atom.getLoadSettings().resourcePath, 'LICENSE.md'))
 
@@ -140,14 +153,14 @@ class Workspace extends Model
   # in specs. Calling this in production code will block the UI thread and
   # everyone will be mad at you.**
   #
-  # uri - A {String} containing a URI.
-  # options  - An optional options {Object}
-  #   :initialLine - A {Number} indicating which row to move the cursor to
-  #                  initially. Defaults to `0`.
-  #   :initialColumn - A {Number} indicating which column to move the cursor to
-  #                    initially. Defaults to `0`.
-  #   :activatePane - A {Boolean} indicating whether to call {Pane::activate} on
-  #                   the containing pane. Defaults to `true`.
+  # * `uri` A {String} containing a URI.
+  # * `options` An optional options {Object}
+  #   * `initialLine` A {Number} indicating which row to move the cursor to
+  #     initially. Defaults to `0`.
+  #   * `initialColumn` A {Number} indicating which column to move the cursor to
+  #     initially. Defaults to `0`.
+  #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
+  #     the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
     deprecate("Don't use the `changeFocus` option") if options.changeFocus?
 
@@ -207,14 +220,15 @@ class Workspace extends Model
   #
   # An {Editor} will be used if no openers return a value.
   #
-  # ## Example
-  # ```coffeescript
-  #   atom.project.registerOpener (uri) ->
-  #     if path.extname(uri) is '.toml'
-  #       return new TomlEditor(uri)
+  # ## Examples
+  #
+  # ```coffee
+  # atom.project.registerOpener (uri) ->
+  #   if path.extname(uri) is '.toml'
+  #     return new TomlEditor(uri)
   # ```
   #
-  # opener - A {Function} to be called when a path is being opened.
+  # * `opener` A {Function} to be called when a path is being opened.
   registerOpener: (opener) ->
     @openers.push(opener)
 
@@ -250,6 +264,8 @@ class Workspace extends Model
     @paneContainer.activatePreviousPane()
 
   # Public: Get the first pane {Pane} with an item for the given URI.
+  #
+  # * `uri` {String} uri
   #
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForUri: (uri) ->
