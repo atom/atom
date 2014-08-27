@@ -156,8 +156,10 @@ class Pane extends Model
   getActiveItem: ->
     @activeItem
 
-  setActiveItem: (@activeItem) ->
-    @emitter.emit 'did-change-active-item', @activeItem
+  setActiveItem: (activeItem) ->
+    unless activeItem is @activeItem
+      @activeItem = activeItem
+      @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
 
   # Public: Returns an {Editor} if the pane item is an {Editor}, or null
