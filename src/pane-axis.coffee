@@ -1,5 +1,5 @@
 {Model} = require 'theorist'
-{Emitter} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 {flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
 
@@ -13,6 +13,8 @@ class PaneAxis extends Model
 
   constructor: ({@container, @orientation, children}) ->
     @emitter = new Emitter
+    @subscriptionsByChild = new WeakMap
+    @subscriptions = new CompositeDisposable
     @children = []
     if children?
       @addChild(child) for child in children
@@ -46,26 +48,34 @@ class PaneAxis extends Model
   onDidReplaceChild: (fn) ->
     @emitter.on 'did-replace-child', fn
 
+  onDidDestroy: (fn) ->
+    @emitter.on 'did-destroy'
+
   addChild: (child, index=@children.length) ->
     child.parent = this
     child.container = @container
-    @subscribe child, 'destroyed', => @removeChild(child)
+
+    @subscribeToChild(child)
+
     @children.splice(index, 0, child)
     @emitter.emit 'did-add-child', {child, index}
 
   removeChild: (child, replacing=false) ->
     index = @children.indexOf(child)
     throw new Error("Removing non-existent child") if index is -1
-    @unsubscribe child
+
+    @unsubscribeFromChild(child)
+
     @children.splice(index, 1)
     @emitter.emit 'did-remove-child', {child, index}
     @reparentLastChild() if not replacing and @children.length < 2
 
   replaceChild: (oldChild, newChild) ->
-    @unsubscribe oldChild
+    @unsubscribeFromChild(oldChild)
+    @subscribeToChild(newChild)
+
     newChild.parent = this
     newChild.container = @container
-    @subscribe newChild, 'destroyed', => @removeChild(newChild)
 
     index = @children.indexOf(oldChild)
     @children.splice(index, 1, newChild)
@@ -82,3 +92,17 @@ class PaneAxis extends Model
   reparentLastChild: ->
     @parent.replaceChild(this, @children[0])
     @destroy()
+
+  subscribeToChild: (child) ->
+    subscription = child.onDidDestroy => @removeChild(child)
+    @subscriptionsByChild.set(child, subscription)
+    @subscriptions.add(child)
+
+  unsubscribeFromChild: (child) ->
+    subscription = @subscriptionsByChild.get(child)
+    @subscriptions.remove(child)
+    subscription.dispose()
+
+  destroyed: ->
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
