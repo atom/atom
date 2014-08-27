@@ -1,4 +1,5 @@
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 {flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
 
@@ -11,6 +12,7 @@ class PaneAxis extends Model
   Serializable.includeInto(this)
 
   constructor: ({@container, @orientation, children}) ->
+    @emitter = new Emitter
     @children = []
     if children?
       @addChild(child) for child in children
@@ -30,45 +32,53 @@ class PaneAxis extends Model
     else
       PaneRowView ?= require './pane-row-view'
 
+  getChildren: -> @children.slice()
+
   getPanes: ->
     flatten(@children.map (child) -> child.getPanes())
 
-  addChild: (child, index=@children.length) ->
-    @children.splice(index, 0, child)
-    @childAdded(child)
+  onDidAddChild: (fn) ->
+    @emitter.on 'did-add-child', fn
 
-  removeChild: (child) ->
+  onDidRemoveChild: (fn) ->
+    @emitter.on 'did-remove-child', fn
+
+  onDidReplaceChild: (fn) ->
+    @emitter.on 'did-replace-child', fn
+
+  addChild: (child, index=@children.length) ->
+    child.parent = this
+    child.container = @container
+    @subscribe child, 'destroyed', => @removeChild(child)
+    @children.splice(index, 0, child)
+    @emitter.emit 'did-add-child', {child, index}
+
+  removeChild: (child, replacing=false) ->
     index = @children.indexOf(child)
     throw new Error("Removing non-existent child") if index is -1
+    @unsubscribe child
     @children.splice(index, 1)
-    @childRemoved(child)
-    @reparentLastChild() if @children.length < 2
+    @emitter.emit 'did-remove-child', {child, index}
+    @reparentLastChild() if not replacing and @children.length < 2
 
   replaceChild: (oldChild, newChild) ->
+    @unsubscribe oldChild
+    newChild.parent = this
+    newChild.container = @container
+    @subscribe newChild, 'destroyed', => @removeChild(newChild)
+
     index = @children.indexOf(oldChild)
-    throw new Error("Replacing non-existent child") if index is -1
     @children.splice(index, 1, newChild)
-    @childRemoved(oldChild)
-    @childAdded(newChild)
+    @emitter.emit 'did-replace-child', {oldChild, newChild, index}
 
   insertChildBefore: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
-    @children.splice(index, 0, newChild)
-    @childAdded(newChild)
+    @addChild(newChild, index)
 
   insertChildAfter: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
-    @children.splice(index + 1, 0, newChild)
-    @childAdded(newChild)
+    @addChild(newChild, index + 1)
 
   reparentLastChild: ->
     @parent.replaceChild(this, @children[0])
     @destroy()
-
-  childAdded: (child) ->
-    child.parent = this
-    child.container = @container
-    @subscribe child, 'destroyed', => @removeChild(child)
-
-  childRemoved: (child) ->
-    @unsubscribe child
