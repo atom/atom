@@ -28,6 +28,29 @@ describe "Pane", ->
       expect(pane.getItems().length).toBe 2
       expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
+  describe "::activate()", ->
+    [container, pane1, pane2] = []
+
+    beforeEach ->
+      container = new PaneContainer(root: new Pane)
+      container.getRoot().splitRight()
+      [pane1, pane2] = container.getPanes()
+
+    it "changes the active pane on the container", ->
+      expect(container.getActivePane()).toBe pane2
+      pane1.activate()
+      expect(container.getActivePane()).toBe pane1
+      pane2.activate()
+      expect(container.getActivePane()).toBe pane2
+
+    it "invokes ::onDidActivate() observers", ->
+      eventCount = 0
+      pane1.onDidActivate -> eventCount++
+      pane1.activate()
+      pane1.activate()
+      pane2.activate()
+      expect(eventCount).toBe 2
+
   describe "::addItem(item, index)", ->
     it "adds the item at the given index", ->
       pane = new Pane(items: [new Item("A"), new Item("B")])

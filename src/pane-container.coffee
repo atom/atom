@@ -36,6 +36,8 @@ class PaneContainer extends Model
     root: @root?.serialize()
     activePaneId: @activePane.id
 
+  getRoot: -> @root
+
   replaceChild: (oldChild, newChild) ->
     throw new Error("Replacing non-existent child") if oldChild isnt @root
     @root = newChild
