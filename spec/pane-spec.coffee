@@ -144,14 +144,32 @@ describe "Pane", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
       [item1, item2, item3] = pane.getItems()
 
-    it "removes the item from the items list", ->
+    it "removes the item from the items list and destroyes it", ->
       expect(pane.getActiveItem()).toBe item1
       pane.destroyItem(item2)
       expect(item2 in pane.getItems()).toBe false
+      expect(item2.isDestroyed()).toBe true
       expect(pane.getActiveItem()).toBe item1
 
       pane.destroyItem(item1)
       expect(item1 in pane.getItems()).toBe false
+      expect(item1.isDestroyed()).toBe true
+
+    it "invokes ::onWillDestroyItem() observers before destroying the item", ->
+      events = []
+      pane.onWillDestroyItem (event) ->
+        expect(item2.isDestroyed()).toBe false
+        events.push(event)
+
+      pane.destroyItem(item2)
+      expect(item2.isDestroyed()).toBe true
+      expect(events).toEqual [{item: item2, index: 1}]
+
+    it "invokes ::onDidRemoveItem() observers", ->
+      events = []
+      pane.onDidRemoveItem (event) -> events.push(event)
+      pane.destroyItem(item2)
+      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
 
     describe "when the destroyed item is the active item and is the first item", ->
       it "activates the next item", ->
@@ -167,12 +185,6 @@ describe "Pane", ->
         expect(pane.getActiveItem()).toBe item2
         pane.destroyItem(item2)
         expect(pane.getActiveItem()).toBe item1
-
-    it "invokes ::onDidRemoveItem() observers", ->
-      events = []
-      pane.onDidRemoveItem (event) -> events.push(event)
-      pane.destroyItem(item2)
-      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
 
     describe "if the item is modified", ->
       itemUri = null

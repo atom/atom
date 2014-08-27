@@ -109,6 +109,9 @@ class Pane extends Model
   onDidChangeActiveItem: (fn) ->
     @emitter.on 'did-change-active-item', fn
 
+  onWillDestroyItem: (fn) ->
+    @emitter.on 'will-destroy-item', fn
+
   isActive: -> @active
 
   # Called by the view layer to indicate that the pane has gained focus.
@@ -252,8 +255,10 @@ class Pane extends Model
   # Public: Destroys the given item. If it is the active item, activate the next
   # one. If this is the last item, also destroys the pane.
   destroyItem: (item) ->
-    if item?
+    index = @items.indexOf(item)
+    if index isnt -1
       @emit 'before-item-destroyed', item
+      @emitter.emit 'will-destroy-item', {item, index}
       if @promptToSaveItem(item)
         @removeItem(item, true)
         item.destroy?()
