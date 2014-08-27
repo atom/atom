@@ -10,6 +10,17 @@ wordwrap = require 'wordwrap'
 config = require './config'
 fs = require './fs'
 
+setupTempDirectory = ->
+  temp = require 'temp'
+  tempDirectory = require('os').tmpdir()
+  # Resolve ~ in tmp dir atom/atom#2271
+  tempDirectory = path.resolve(fs.absolute(tempDirectory))
+  temp.dir = tempDirectory
+  try
+    fs.makeTreeSync(temp.dir)
+
+setupTempDirectory()
+
 commandClasses = [
   require './clean'
   require './dedupe'
