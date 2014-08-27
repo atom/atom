@@ -146,7 +146,7 @@ case $OS in
             source ~/.bashrc
             ;;
     [Dd]arwin)
-        echo 'export PYTHONPATH='$PYTHONPATH >> ~/.bashrc
+        sudo echo 'export PYTHONPATH='$PYTHONPATH >> ~/.bash_profile
         if [[ $BREW_LOCATION = 'which: no' ]]
         then
             command -v brew &>/dev/null || {
@@ -175,22 +175,22 @@ case $OS in
         fi
         brew update
         brew install -v cmake
-        brew install gfortran
+        brew install gcc
         brew tap homebrew/science
         brew install opencv
         brew tap Homebrew/python
         brew install --with-openblas numpy
         brew install --with-openblas scipy
         brew install matplotlib
-        pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
-        ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv.py cv.py
-        ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv2.so cv2.so
+        sudo pip install --install-option="--prefix=$PY_INSTALL_DIR" -r $REQ/requirements.txt
+        sudo ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv.py cv.py
+        sudo ln -s /usr/local/Cellar/opencv/2.4.9/lib/python2.7/site-packages/cv2.so cv2.so
         ;;
     *)
         echo "Sorry, we currently don\'t support this OS"
     source ~/.bash_profile
     ;;
     esac
-
-$REQ/script/build
-$REQ/script/grunt install
+cd $REQ
+sudo script/build
+sudo script/grunt install
