@@ -169,3 +169,9 @@
     ]
   }
 ]
+
+'context-menu':
+  '.overlayer':
+    'Cut': 'core:cut'
+    'Copy': 'core:copy'
+    'Paste': 'core:paste'
