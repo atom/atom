@@ -60,7 +60,7 @@ module.exports = (grunt) ->
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir ?= process.env.INSTALL_PREFIX ? '/usr/local'
-    killCommand ='pkill -9 Atom'
+    killCommand ='pkill -9 atom'
 
   coffeeConfig =
     glob_to_multiple:
