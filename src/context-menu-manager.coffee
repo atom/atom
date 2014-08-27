@@ -1,6 +1,9 @@
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 remote = require 'remote'
+path = require 'path'
+CSON = require 'season'
+fs = require 'fs-plus'
 
 # Public: Provides a registry for commands that you'd like to appear in the
 # context menu.
@@ -9,7 +12,7 @@ remote = require 'remote'
 # global.
 module.exports =
 class ContextMenuManager
-  constructor: (@devMode=false) ->
+  constructor: ({@resourcePath, @devMode}) ->
     @definitions = {}
     @devModeDefinitions = {}
     @activeElement = null
@@ -20,6 +23,14 @@ class ContextMenuManager
       executeAtBuild: (e) ->
         @commandOptions = x: e.pageX, y: e.pageY
     ]
+
+    atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
+
+  loadPlatformItems: ->
+    menusDirPath = path.join(@resourcePath, 'menus')
+    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+    map = CSON.readFileSync(platformMenuPath)
+    atom.contextMenu.add(platformMenuPath, map['context-menu'])
 
   # Public: Creates menu definitions from the object specified by the menu
   # cson API.
