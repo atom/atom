@@ -55,9 +55,9 @@ class PaneContainer extends Model
   getActivePane: ->
     @activePane
 
-  setActivePane: (pane) ->
-    if pane isnt @activePane
-      @activePane = pane
+  setActivePane: (activePane) ->
+    if activePane isnt @activePane
+      @activePane = activePane
       @emitter.emit 'did-change-active-pane', @activePane
     @activePane
 
