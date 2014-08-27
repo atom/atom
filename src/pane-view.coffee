@@ -34,7 +34,7 @@ class PaneView extends View
   previousActiveItem: null
 
   initialize: (args...) ->
-    @disposables = new CompositeDisposable
+    @subscriptions = new CompositeDisposable
 
     if args[0] instanceof Pane
       @model = args[0]
@@ -47,13 +47,13 @@ class PaneView extends View
     @handleEvents()
 
   handleEvents: ->
-    @disposables.add @model.observeActiveItem(@onActiveItemChanged)
-    @disposables.add @model.onDidAddItem(@onItemAdded)
-    @disposables.add @model.onDidRemoveItem(@onItemRemoved)
-    @disposables.add @model.onDidMoveItem(@onItemMoved)
-    @disposables.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
-    @disposables.add @model.onDidActivate(@onActivated)
-    @disposables.add @model.observeActive(@onActiveStatusChanged)
+    @subscriptions.add @model.observeActiveItem(@onActiveItemChanged)
+    @subscriptions.add @model.onDidAddItem(@onItemAdded)
+    @subscriptions.add @model.onDidRemoveItem(@onItemRemoved)
+    @subscriptions.add @model.onDidMoveItem(@onItemMoved)
+    @subscriptions.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
+    @subscriptions.add @model.onDidActivate(@onActivated)
+    @subscriptions.add @model.observeActive(@onActiveStatusChanged)
 
     @subscribe this, 'focusin', => @model.focus()
     @subscribe this, 'focusout', => @model.blur()
@@ -222,7 +222,7 @@ class PaneView extends View
     @closest('.panes').view()
 
   beforeRemove: ->
-    @disposables.dispose()
+    @subscriptions.dispose()
     @model.destroy() unless @model.isDestroyed()
 
   remove: (selector, keepData) ->
