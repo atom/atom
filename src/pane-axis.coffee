@@ -1,4 +1,4 @@
-{Model, Sequence} = require 'theorist'
+{Model} = require 'theorist'
 {flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
 
@@ -11,14 +11,9 @@ class PaneAxis extends Model
   Serializable.includeInto(this)
 
   constructor: ({@container, @orientation, children}) ->
-    @children = Sequence.fromArray(children ? [])
-
-    @subscribe @children.onEach (child) =>
-      child.parent = this
-      child.container = @container
-      @subscribe child, 'destroyed', => @removeChild(child)
-
-    @subscribe @children.onRemoval (child) => @unsubscribe(child)
+    @children = []
+    if children?
+      @addChild(child) for child in children
 
   deserializeParams: (params) ->
     {container} = params
@@ -40,27 +35,40 @@ class PaneAxis extends Model
 
   addChild: (child, index=@children.length) ->
     @children.splice(index, 0, child)
+    @childAdded(child)
 
   removeChild: (child) ->
     index = @children.indexOf(child)
     throw new Error("Removing non-existent child") if index is -1
     @children.splice(index, 1)
+    @childRemoved(child)
     @reparentLastChild() if @children.length < 2
-
 
   replaceChild: (oldChild, newChild) ->
     index = @children.indexOf(oldChild)
     throw new Error("Replacing non-existent child") if index is -1
     @children.splice(index, 1, newChild)
+    @childRemoved(oldChild)
+    @childAdded(newChild)
 
   insertChildBefore: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
     @children.splice(index, 0, newChild)
+    @childAdded(newChild)
 
   insertChildAfter: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
     @children.splice(index + 1, 0, newChild)
+    @childAdded(newChild)
 
   reparentLastChild: ->
     @parent.replaceChild(this, @children[0])
     @destroy()
+
+  childAdded: (child) ->
+    child.parent = this
+    child.container = @container
+    @subscribe child, 'destroyed', => @removeChild(child)
+
+  childRemoved: (child) ->
+    @unsubscribe child
