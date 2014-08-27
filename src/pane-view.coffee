@@ -166,7 +166,7 @@ class PaneView extends View
   onItemAdded: (item, index) =>
     @trigger 'pane:item-added', [item, index]
 
-  onItemRemoved: (item, index, destroyed) =>
+  onItemRemoved: ({item, index, destroyed}) =>
     if item instanceof $
       viewToRemove = item
     else if viewToRemove = @viewsByItem.get(item)
@@ -180,7 +180,7 @@ class PaneView extends View
 
     @trigger 'pane:item-removed', [item, index]
 
-  onItemMoved: (item, newIndex) =>
+  onItemMoved: ({item, newIndex}) =>
     @trigger 'pane:item-moved', [item, newIndex]
 
   onBeforeItemDestroyed: (item) =>
