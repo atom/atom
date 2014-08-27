@@ -47,13 +47,13 @@ class PaneView extends View
     @handleEvents()
 
   handleEvents: ->
-    @disposables.add @model.onDidChangeActiveItem(@onActiveItemChanged)
+    @disposables.add @model.observeActiveItem(@onActiveItemChanged)
     @disposables.add @model.onDidAddItem(@onItemAdded)
     @disposables.add @model.onDidRemoveItem(@onItemRemoved)
     @disposables.add @model.onDidMoveItem(@onItemMoved)
     @disposables.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
     @disposables.add @model.onDidActivate(@onActivated)
-    @disposables.add @model.onDidChangeActive(@onActiveStatusChanged)
+    @disposables.add @model.observeActive(@onActiveStatusChanged)
 
     @subscribe this, 'focusin', => @model.focus()
     @subscribe this, 'focusout', => @model.blur()

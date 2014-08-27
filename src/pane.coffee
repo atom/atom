@@ -100,6 +100,10 @@ class Pane extends Model
   onDidChangeActive: (fn) ->
     @container.onDidChangeActivePane (activePane) => fn(this is activePane)
 
+  observeActive: (fn) ->
+    fn(@isActive())
+    @onDidChangeActive(fn)
+
   onDidAddItem: (fn) ->
     @emitter.on 'did-add-item', fn
 
@@ -111,6 +115,10 @@ class Pane extends Model
 
   onDidChangeActiveItem: (fn) ->
     @emitter.on 'did-change-active-item', fn
+
+  observeActiveItem: (fn) ->
+    fn(@getActiveItem())
+    @onDidChangeActiveItem(fn)
 
   onWillDestroyItem: (fn) ->
     @emitter.on 'will-destroy-item', fn
