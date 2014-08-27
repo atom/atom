@@ -3,6 +3,6 @@ Version: <%= version %>
 Section: <%= section %>
 Priority: optional
 Architecture: <%= arch %>
-Installed-Size: `du -ks usr|cut -f 1`
+Installed-Size: <%= installedSize %>
 Maintainer: <%= maintainer %>
 Description: <%= description %>
