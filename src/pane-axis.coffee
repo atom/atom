@@ -104,5 +104,6 @@ class PaneAxis extends Model
     subscription.dispose()
 
   destroyed: ->
+    @subscriptions.dispose()
     @emitter.emit 'did-destroy'
     @emitter.dispose()
