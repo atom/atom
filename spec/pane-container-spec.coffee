@@ -27,42 +27,42 @@ describe "PaneContainer", ->
 
     it "preserves the active pane across serialization, independent of focus", ->
       pane3A.activate()
-      expect(containerA.activePane).toBe pane3A
+      expect(containerA.getActivePane()).toBe pane3A
 
       containerB = containerA.testSerialization()
       [pane1B, pane2B, pane3B] = containerB.getPanes()
-      expect(containerB.activePane).toBe pane3B
+      expect(containerB.getActivePane()).toBe pane3B
 
-  describe "::activePane", ->
+  it "does not allow the root pane to be destroyed", ->
+    pane1.destroy()
+    expect(container.getRoot()).toBe pane1
+    expect(pane1.isDestroyed()).toBe false
+
+  describe "::getActivePane()", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
       container = new PaneContainer
-      pane1 = container.root
+      pane1 = container.getRoot()
 
-    it "references the first pane if no pane has been made active", ->
-      expect(container.activePane).toBe pane1
-      expect(pane1.active).toBe true
+    it "returns the first pane if no pane has been made active", ->
+      expect(container.getActivePane()).toBe pane1
+      expect(pane1.isActive()).toBe true
 
-    it "references the most pane on which ::activate was most recently called", ->
+    it "returns the most pane on which ::activate() was most recently called", ->
       pane2 = pane1.splitRight()
       pane2.activate()
-      expect(container.activePane).toBe pane2
-      expect(pane1.active).toBe false
-      expect(pane2.active).toBe true
+      expect(container.getActivePane()).toBe pane2
+      expect(pane1.isActive()).toBe false
+      expect(pane2.isActive()).toBe true
       pane1.activate()
-      expect(container.activePane).toBe pane1
-      expect(pane1.active).toBe true
-      expect(pane2.active).toBe false
+      expect(container.getActivePane()).toBe pane1
+      expect(pane1.isActive()).toBe true
+      expect(pane2.isActive()).toBe false
 
-    it "is reassigned to the next pane if the current active pane is destroyed", ->
+    it "returns the next pane if the current active pane is destroyed", ->
       pane2 = pane1.splitRight()
       pane2.activate()
       pane2.destroy()
-      expect(container.activePane).toBe pane1
-      expect(pane1.active).toBe true
-
-    it "does not allow the root pane to be destroyed", ->
-      pane1.destroy()
-      expect(container.root).toBe pane1
-      expect(pane1.isDestroyed()).toBe false
+      expect(container.getActivePane()).toBe pane1
+      expect(pane1.isActive()).toBe true
