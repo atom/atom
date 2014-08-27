@@ -1,6 +1,6 @@
 {find} = require 'underscore-plus'
 {Model} = require 'theorist'
-{Emitter} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
 Pane = require './pane'
 
@@ -26,9 +26,12 @@ class PaneContainer extends Model
     super
 
     @emitter = new Emitter
+    @subscriptions = new CompositeDisposable
 
     @subscribe @$root, @onRootChanged
     @destroyEmptyPanes() if params?.destroyEmptyPanes
+
+    @monitorActivePaneItem()
 
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
@@ -42,6 +45,17 @@ class PaneContainer extends Model
 
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
+
+  observeActivePane: (fn) ->
+    fn(@getActivePane())
+    @onDidChangeActivePane(fn)
+
+  onDidChangeActivePaneItem: (fn) ->
+    @emitter.on 'did-change-active-pane-item', fn
+
+  observeActivePaneItem: (fn) ->
+    fn(@getActivePaneItem())
+    @onDidChangeActivePaneItem(fn)
 
   getRoot: -> @root
 
@@ -60,6 +74,9 @@ class PaneContainer extends Model
       @activePane = activePane
       @emitter.emit 'did-change-active-pane', @activePane
     @activePane
+
+  getActivePaneItem: ->
+    @getActivePane().getActiveItem()
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
@@ -99,7 +116,6 @@ class PaneContainer extends Model
     root.parent = this
     root.container = this
 
-
     @activePane ?= root if root instanceof Pane
 
   destroyEmptyPanes: ->
@@ -111,3 +127,17 @@ class PaneContainer extends Model
   # Called by Model superclass when destroyed
   destroyed: ->
     pane.destroy() for pane in @getPanes()
+    @subscriptions.dispose()
+    @emitter.dispose()
+
+  monitorActivePaneItem: ->
+    childSubscription = null
+    @subscriptions.add @observeActivePane (activePane) =>
+      if childSubscription?
+        @subscriptions.remove(childSubscription)
+        childSubscription.dispose()
+
+      childSubscription = activePane.observeActiveItem (activeItem) =>
+        @emitter.emit 'did-change-active-pane-item', activeItem
+
+      @subscriptions.add(childSubscription)
