@@ -153,8 +153,7 @@ class Pane extends Model
   # Public: Get the active pane item in this pane.
   #
   # Returns a pane item.
-  getActiveItem: ->
-    @activeItem
+  getActiveItem: -> @activeItem
 
   setActiveItem: (activeItem) ->
     unless activeItem is @activeItem
