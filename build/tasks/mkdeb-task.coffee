@@ -37,4 +37,9 @@ module.exports = (grunt) ->
 
     cmd = path.join('script', 'mkdeb')
     args = [version, arch, controlFilePath, desktopFilePath, icon, buildDir]
-    spawn({cmd, args}, done)
+    spawn {cmd, args}, (error) ->
+      if error?
+        done(error)
+      else
+        grunt.log.ok "Created #{buildDir}/atom-#{version}-#{arch}.deb"
+        done()
