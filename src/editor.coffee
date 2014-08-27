@@ -28,9 +28,9 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # be called with all current editor instances and also when any editor is
 # created in the future.
 #
-# ```coffeescript
-#   atom.workspace.eachEditor (editor) ->
-#     editor.insertText('Hello World')
+# ```coffee
+# atom.workspace.eachEditor (editor) ->
+#   editor.insertText('Hello World')
 # ```
 #
 # ## Buffer vs. Screen Coordinates
