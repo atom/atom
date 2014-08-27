@@ -323,24 +323,32 @@ describe "Pane", ->
       expect(pane.itemForUri("bogus")).toBeUndefined()
 
   describe "::moveItem(item, index)", ->
-    it "moves the item to the given index and emits an 'item-moved' event with the item and its new index", ->
+    [pane, item1, item2, item3, item4] = []
+
+    beforeEach ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
       [item1, item2, item3, item4] = pane.getItems()
-      pane.on 'item-moved', itemMovedHandler = jasmine.createSpy("itemMovedHandler")
 
+    it "moves the item to the given index and invokes ::onDidMoveItem observers", ->
       pane.moveItem(item1, 2)
       expect(pane.getItems()).toEqual [item2, item3, item1, item4]
-      expect(itemMovedHandler).toHaveBeenCalledWith(item1, 2)
-      itemMovedHandler.reset()
 
       pane.moveItem(item2, 3)
       expect(pane.getItems()).toEqual [item3, item1, item4, item2]
-      expect(itemMovedHandler).toHaveBeenCalledWith(item2, 3)
-      itemMovedHandler.reset()
 
       pane.moveItem(item2, 1)
       expect(pane.getItems()).toEqual [item3, item2, item1, item4]
-      expect(itemMovedHandler).toHaveBeenCalledWith(item2, 1)
+
+    it "invokes ::onDidMoveItem() observers", ->
+      events = []
+      pane.onDidMoveItem (event) -> events.push(event)
+
+      pane.moveItem(item1, 2)
+      pane.moveItem(item2, 3)
+      expect(events).toEqual [
+        {item: item1, oldIndex: 0, newIndex: 2}
+        {item: item2, oldIndex: 0, newIndex: 3}
+      ]
 
   describe "::moveItemToPane(item, pane, index)", ->
     [container, pane1, pane2] = []

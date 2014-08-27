@@ -100,6 +100,9 @@ class Pane extends Model
   onDidRemoveItem: (fn) ->
     @emitter.on 'did-remove-item', fn
 
+  onDidMoveItem: (fn) ->
+    @emitter.on 'did-move-item', fn
+
   onDidChangeActiveItem: (fn) ->
     @emitter.on 'did-change-active-item', fn
 
@@ -230,6 +233,7 @@ class Pane extends Model
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
     @emit 'item-moved', item, newIndex
+    @emitter.emit 'did-move-item', {item, oldIndex, newIndex}
 
   # Public: Moves the given item to the given index at another pane.
   moveItemToPane: (item, pane, index) ->
