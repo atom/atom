@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 #exit if any return !=0
-if [[ $(id -u) != 0 ]]; then
+if [[ $(id -u) != 0 && $(uname -s) != [Dd]arwin]]; then
     echo "please run me as root"
     exit 1
 fi
@@ -36,6 +36,9 @@ if ! which npm 2> /dev/null; then
 else
     NPM_LOCATION=$(which npm)
 fi
+if ! which wget 2> /dev/null; then
+    WGET_LOCATION='which: no'
+else
 
 OS=$(uname -s)
 REQ=`pwd`
@@ -152,7 +155,15 @@ case $OS in
         fi
         if [[ $PIP_LOCATION = 'which: no' ]]
         then
-            wget https://bootstrap.pypa.io/get-pip.py
+            if [[ $WGET_LOCATION = 'which: no' ]]; then
+                sudo curl -O http://ftp.gnu.org/gnu/wget/wget-1.15.tar.gz 
+                sudo tar -xzf wget-1.15.tar.gz
+                sudo ./configure --with-ssl=openssl 
+                make
+                sudo make install
+                cd .. && rm -rf wget*
+            fi
+            sudo wget https://bootstrap.pypa.io/get-pip.py
             python get-pip.py
         fi
         if [[ $NODE_LOCATION = 'which: no' ]]
