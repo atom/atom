@@ -20,9 +20,6 @@ class PaneAxis extends Model
 
     @subscribe @children.onRemoval (child) => @unsubscribe(child)
 
-    @when @children.$length.becomesLessThan(2), 'reparentLastChild'
-    @when @children.$length.becomesLessThan(1), 'destroy'
-
   deserializeParams: (params) ->
     {container} = params
     params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState, {container})
@@ -48,6 +45,8 @@ class PaneAxis extends Model
     index = @children.indexOf(child)
     throw new Error("Removing non-existent child") if index is -1
     @children.splice(index, 1)
+    @reparentLastChild() if @children.length < 2
+
 
   replaceChild: (oldChild, newChild) ->
     index = @children.indexOf(oldChild)
@@ -64,3 +63,4 @@ class PaneAxis extends Model
 
   reparentLastChild: ->
     @parent.replaceChild(this, @children[0])
+    @destroy()
