@@ -1,6 +1,7 @@
 {$, View} = require './space-pen-extensions'
 Delegator = require 'delegato'
 {deprecate} = require 'grim'
+{CompositeDisposable} = require 'event-kit'
 PropertyAccessors = require 'property-accessors'
 
 Pane = require './pane'
@@ -33,6 +34,8 @@ class PaneView extends View
   previousActiveItem: null
 
   initialize: (args...) ->
+    @disposables = new CompositeDisposable
+
     if args[0] instanceof Pane
       @model = args[0]
     else
@@ -44,13 +47,13 @@ class PaneView extends View
     @handleEvents()
 
   handleEvents: ->
-    @subscribe @model.$activeItem, @onActiveItemChanged
-    @subscribe @model, 'item-added', @onItemAdded
-    @subscribe @model, 'item-removed', @onItemRemoved
-    @subscribe @model, 'item-moved', @onItemMoved
-    @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
-    @subscribe @model, 'activated', @onActivated
-    @subscribe @model.$active, @onActiveStatusChanged
+    @disposables.add @model.onDidChangeActiveItem(@onActiveItemChanged)
+    @disposables.add @model.onDidAddItem(@onItemAdded)
+    @disposables.add @model.onDidRemoveItem(@onItemRemoved)
+    @disposables.add @model.onDidMoveItem(@onItemMoved)
+    @disposables.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
+    @disposables.add @model.onDidActivate(@onActivated)
+    @disposables.add @model.onDidChangeActive(@onActiveStatusChanged)
 
     @subscribe this, 'focusin', => @model.focus()
     @subscribe this, 'focusout', => @model.blur()
@@ -219,6 +222,7 @@ class PaneView extends View
     @closest('.panes').view()
 
   beforeRemove: ->
+    @disposables.dispose()
     @model.destroy() unless @model.isDestroyed()
 
   remove: (selector, keepData) ->
