@@ -1,5 +1,5 @@
 {find, compact, extend, last} = require 'underscore-plus'
-{Model, Sequence} = require 'theorist'
+{Model} = require 'theorist'
 {Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 PaneAxis = require './pane-axis'
@@ -66,16 +66,10 @@ class Pane extends Model
     super
 
     @emitter = new Emitter
+    @items = []
 
-    @items = Sequence.fromArray(compact(params?.items ? []))
+    @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
-
-    @subscribe @items.onEach (item) =>
-      if typeof item.on is 'function'
-        @subscribe item, 'destroyed', => @removeItem(item, true)
-
-    @subscribe @items.onRemoval (item, index) =>
-      @unsubscribe item if typeof item.on is 'function'
 
   # Called by the Serializable mixin during serialization.
   serializeParams: ->
@@ -210,6 +204,9 @@ class Pane extends Model
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
+    if typeof item.on is 'function'
+      @subscribe item, 'destroyed', => @removeItem(item, true)
+
     @items.splice(index, 0, item)
     @emit 'item-added', item, index
     @emitter.emit 'did-add-item', {item, index}
@@ -233,6 +230,10 @@ class Pane extends Model
   removeItem: (item, destroyed=false) ->
     index = @items.indexOf(item)
     return if index is -1
+
+    if typeof item.on is 'function'
+      @unsubscribe item
+
     if item is @activeItem
       if @items.length is 1
         @setActiveItem(undefined)
