@@ -97,6 +97,9 @@ class Pane extends Model
   onDidActivate: (fn) ->
     @emitter.on 'did-activate', fn
 
+  onDidChangeActive: (fn) ->
+    @container.onDidChangeActivePane (activePane) => fn(this is activePane)
+
   onDidAddItem: (fn) ->
     @emitter.on 'did-add-item', fn
 

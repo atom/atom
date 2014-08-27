@@ -53,6 +53,13 @@ describe "Pane", ->
       pane1.activate()
       expect(observed).toEqual [pane1, pane2, pane1]
 
+    it "invokes ::onDidChangeActive observers on the relevant panes", ->
+      observed = []
+      pane1.onDidChangeActive (active) -> observed.push(active)
+      pane1.activate()
+      pane2.activate()
+      expect(observed).toEqual [true, false]
+
     it "invokes ::onDidActivate() observers", ->
       eventCount = 0
       pane1.onDidActivate -> eventCount++
