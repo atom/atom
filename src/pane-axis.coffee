@@ -51,6 +51,9 @@ class PaneAxis extends Model
   getPanes: ->
     flatten(@children.map (child) -> child.getPanes())
 
+  getItems: ->
+    flatten(@children.map (child) -> child.getItems())
+
   onDidAddChild: (fn) ->
     @emitter.on 'did-add-child', fn
 

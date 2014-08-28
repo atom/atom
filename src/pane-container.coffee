@@ -1,4 +1,4 @@
-{find} = require 'underscore-plus'
+{find, flatten} = require 'underscore-plus'
 {Model} = require 'theorist'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
@@ -31,6 +31,7 @@ class PaneContainer extends Model
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
     @monitorActivePaneItem()
+    @monitorPaneItems()
 
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
@@ -63,6 +64,13 @@ class PaneContainer extends Model
     fn(@getActivePane())
     @onDidChangeActivePane(fn)
 
+  onDidAddPaneItem: (fn) ->
+    @emitter.on 'did-add-pane-item', fn
+
+  observePaneItems: (fn) ->
+    fn(item) for item in @getPaneItems()
+    @onDidAddPaneItem ({item}) -> fn(item)
+
   onDidChangeActivePaneItem: (fn) ->
     @emitter.on 'did-change-active-pane-item', fn
 
@@ -88,6 +96,9 @@ class PaneContainer extends Model
 
   getPanes: ->
     @getRoot().getPanes()
+
+  getPaneItems: ->
+    @getRoot().getItems()
 
   getActivePane: ->
     @activePane
@@ -154,3 +165,11 @@ class PaneContainer extends Model
         @emitter.emit 'did-change-active-pane-item', activeItem
 
       @subscriptions.add(childSubscription)
+
+  monitorPaneItems: ->
+    @subscriptions.add @observePanes (pane) =>
+      for item, index in pane.getItems()
+        @emitter.emit 'did-add-pane-item', {item, pane, index}
+
+      pane.onDidAddItem ({item, index}) =>
+        @emitter.emit 'did-add-pane-item', {item, pane, index}

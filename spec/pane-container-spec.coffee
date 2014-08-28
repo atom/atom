@@ -102,3 +102,16 @@ describe "PaneContainer", ->
       pane4 = pane2.splitRight()
 
       expect(observed).toEqual [pane1, pane2, pane3, pane4]
+
+  describe "::observePaneItems()", ->
+    it "invokes observers with all current and future pane items", ->
+      container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
+      container.getRoot().splitRight(items: [new Object])
+      [pane1, pane2] = container.getPanes()
+      observed = []
+      container.observePaneItems (pane) -> observed.push(pane)
+
+      pane3 = pane2.splitDown(items: [new Object])
+      pane3.addItems([new Object, new Object])
+
+      expect(observed).toEqual container.getPaneItems()
