@@ -710,7 +710,7 @@ describe "EditorComponent", ->
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       # Stop blinking after moving the cursor
-      editor.moveCursorRight()
+      editor.moveRight()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       advanceClock(component.props.cursorBlinkResumeDelay)

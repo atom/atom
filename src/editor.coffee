@@ -733,7 +733,7 @@ class Editor extends Model
   # Public: For each cursor, insert a newline at beginning the following line.
   insertNewlineBelow: ->
     @transact =>
-      @moveCursorToEndOfLine()
+      @moveToEndOfLine()
       @insertNewline()
 
   # Public: For each cursor, insert a newline at the end of the preceding line.
@@ -743,16 +743,16 @@ class Editor extends Model
       indentLevel = @indentationForBufferRow(bufferRow)
       onFirstLine = bufferRow is 0
 
-      @moveCursorToBeginningOfLine()
-      @moveCursorLeft()
+      @moveToBeginningOfLine()
+      @moveLeft()
       @insertNewline()
 
       if @shouldAutoIndent() and @indentationForBufferRow(bufferRow) < indentLevel
         @setIndentationForBufferRow(bufferRow, indentLevel)
 
       if onFirstLine
-        @moveCursorUp()
-        @moveCursorToEndOfLine()
+        @moveUp()
+        @moveToEndOfLine()
 
   ###
   Section: Removing Text
@@ -1572,82 +1572,140 @@ class Editor extends Model
     @getLastSelection().cursor
 
   # Essential: Move every cursor up one row in screen coordinates.
-  moveCursorUp: (lineCount) ->
+  #
+  # * `lineCount` {Number} number of lines to move
+  moveUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
+  moveCursorUp: (lineCount) ->
+    deprecate("Use Editor::moveUp() instead")
+    @moveUp(lineCount)
 
   # Essential: Move every cursor down one row in screen coordinates.
-  moveCursorDown: (lineCount) ->
+  #
+  # * `lineCount` {Number} number of lines to move
+  moveDown: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
+  moveCursorDown: (lineCount) ->
+    deprecate("Use Editor::moveDown() instead")
+    @moveDown(lineCount)
 
   # Essential: Move every cursor left one column.
-  moveCursorLeft: ->
+  moveLeft: ->
     @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
+  moveCursorLeft: ->
+    deprecate("Use Editor::moveLeft() instead")
+    @moveLeft()
 
   # Essential: Move every cursor right one column.
-  moveCursorRight: ->
+  moveRight: ->
     @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
+  moveCursorRight: ->
+    deprecate("Use Editor::moveRight() instead")
+    @moveRight()
 
   # Essential: Move every cursor to the beginning of its line in buffer coordinates.
-  moveCursorToBeginningOfLine: ->
+  moveToBeginningOfLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
+  moveCursorToBeginningOfLine: ->
+    deprecate("Use Editor::moveToBeginningOfLine() instead")
+    @moveToBeginningOfLine()
 
   # Essential: Move every cursor to the beginning of its line in screen coordinates.
-  moveCursorToBeginningOfScreenLine: ->
+  moveToBeginningOfScreenLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
+  moveCursorToBeginningOfScreenLine: ->
+    deprecate("Use Editor::moveToBeginningOfScreenLine() instead")
+    @moveToBeginningOfScreenLine()
 
   # Essential: Move every cursor to the first non-whitespace character of its line.
-  moveCursorToFirstCharacterOfLine: ->
+  moveToFirstCharacterOfLine: ->
     @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+  moveCursorToFirstCharacterOfLine: ->
+    deprecate("Use Editor::moveToFirstCharacterOfLine() instead")
+    @moveToFirstCharacterOfLine()
 
   # Essential: Move every cursor to the end of its line in buffer coordinates.
-  moveCursorToEndOfLine: ->
+  moveToEndOfLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfLine()
+  moveCursorToEndOfLine: ->
+    deprecate("Use Editor::moveToEndOfLine() instead")
+    @moveToEndOfLine()
 
   # Essential: Move every cursor to the end of its line in screen coordinates.
-  moveCursorToEndOfScreenLine: ->
+  moveToEndOfScreenLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfScreenLine()
+  moveCursorToEndOfScreenLine: ->
+    deprecate("Use Editor::moveToEndOfScreenLine() instead")
+    @moveToEndOfScreenLine()
 
   # Essential: Move every cursor to the beginning of its surrounding word.
-  moveCursorToBeginningOfWord: ->
+  moveToBeginningOfWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
+  moveCursorToBeginningOfWord: ->
+    deprecate("Use Editor::moveToBeginningOfWord() instead")
+    @moveToBeginningOfWord()
 
   # Essential: Move every cursor to the end of its surrounding word.
-  moveCursorToEndOfWord: ->
+  moveToEndOfWord: ->
     @moveCursors (cursor) -> cursor.moveToEndOfWord()
+  moveCursorToEndOfWord: ->
+    deprecate("Use Editor::moveToEndOfWord() instead")
+    @moveToEndOfWord()
 
   # Cursor Extended
 
   # Extended: Move every cursor to the top of the buffer.
   #
   # If there are multiple cursors, they will be merged into a single cursor.
-  moveCursorToTop: ->
+  moveToTop: ->
     @moveCursors (cursor) -> cursor.moveToTop()
+  moveCursorToTop: ->
+    deprecate("Use Editor::moveToTop() instead")
+    @moveToTop()
 
   # Extended: Move every cursor to the bottom of the buffer.
   #
   # If there are multiple cursors, they will be merged into a single cursor.
-  moveCursorToBottom: ->
+  moveToBottom: ->
     @moveCursors (cursor) -> cursor.moveToBottom()
+  moveCursorToBottom: ->
+    deprecate("Use Editor::moveToBottom() instead")
+    @moveToBottom()
 
   # Extended: Move every cursor to the beginning of the next word.
-  moveCursorToBeginningOfNextWord: ->
+  moveToBeginningOfNextWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
+  moveCursorToBeginningOfNextWord: ->
+    deprecate("Use Editor::moveToBeginningOfNextWord() instead")
+    @moveToBeginningOfNextWord()
 
   # Extended: Move every cursor to the previous word boundary.
-  moveCursorToPreviousWordBoundary: ->
+  moveToPreviousWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
+  moveCursorToPreviousWordBoundary: ->
+    deprecate("Use Editor::moveToPreviousWordBoundary() instead")
+    @moveToPreviousWordBoundary()
 
   # Extended: Move every cursor to the next word boundary.
-  moveCursorToNextWordBoundary: ->
+  moveToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
+  moveCursorToNextWordBoundary: ->
+    deprecate("Use Editor::moveToNextWordBoundary() instead")
+    @moveToNextWordBoundary()
 
   # Extended: Move every cursor to the beginning of the next paragraph.
-  moveCursorToBeginningOfNextParagraph: ->
+  moveToBeginningOfNextParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
+  moveCursorToBeginningOfNextParagraph: ->
+    deprecate("Use Editor::moveToBeginningOfNextParagraph() instead")
+    @moveToBeginningOfNextParagraph()
 
   # Extended: Move every cursor to the beginning of the previous paragraph.
-  moveCursorToBeginningOfPreviousParagraph: ->
+  moveToBeginningOfPreviousParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
+  moveCursorToBeginningOfPreviousParagraph: ->
+    deprecate("Use Editor::moveToBeginningOfPreviousParagraph() instead")
+    @moveToBeginningOfPreviousParagraph()
 
   # Extended: Returns the word surrounding the most recently added cursor.
   #
@@ -2123,12 +2181,12 @@ class Editor extends Model
 
   pageUp: ->
     newScrollTop = @getScrollTop() - @getHeight()
-    @moveCursorUp(@getRowsPerPage())
+    @moveUp(@getRowsPerPage())
     @setScrollTop(newScrollTop)
 
   pageDown: ->
     newScrollTop = @getScrollTop() + @getHeight()
-    @moveCursorDown(@getRowsPerPage())
+    @moveDown(@getRowsPerPage())
     @setScrollTop(newScrollTop)
 
   selectPageUp: ->
