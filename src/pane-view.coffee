@@ -163,7 +163,7 @@ class PaneView extends View
 
     @trigger 'pane:active-item-changed', [item]
 
-  onItemAdded: (item, index) =>
+  onItemAdded: ({item, index}) =>
     @trigger 'pane:item-added', [item, index]
 
   onItemRemoved: ({item, index, destroyed}) =>
