@@ -6,7 +6,8 @@ describe "ContextMenuManager", ->
   [contextMenu] = []
 
   beforeEach ->
-    contextMenu = new ContextMenuManager
+    {resourcePath} = atom.getLoadSettings()
+    contextMenu = new ContextMenuManager({resourcePath})
 
   describe "adding definitions", ->
     it 'loads',  ->

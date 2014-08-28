@@ -192,3 +192,13 @@
     ]
   }
 ]
+
+'context-menu':
+  '.overlayer':
+    'Undo': 'core:undo'
+    'Redo': 'core:redo'
+    'Cut': 'core:cut'
+    'Copy': 'core:copy'
+    'Paste': 'core:paste'
+    'Delete': 'core:delete'
+    'Select All': 'core:select-all'
