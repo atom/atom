@@ -46,7 +46,7 @@ fi
 
 if [ $OS == 'Mac' ]; then
   ATOM_PATH=${ATOM_PATH:-/Applications} # Set ATOM_PATH unless it is already set
-  ATOM_APP_NAME=Atom.app
+  ATOM_APP_NAME=Arcus.app
 
   # If ATOM_PATH isn't a executable file, use spotlight to search for Atom
   if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then

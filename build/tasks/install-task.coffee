@@ -18,19 +18,19 @@ module.exports = (grunt) ->
         grunt.log.error("Failed to copy #{shellAppDir} to #{installDir}")
 
       createShortcut = path.resolve 'script', 'create-shortcut.cmd'
-      runas('cmd', ['/c', createShortcut, path.join(installDir, 'atom.exe'), 'Atom'])
+      runas('cmd', ['/c', createShortcut, path.join(installDir, 'arcus.exe'), 'Atom'])
     else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)
       cp shellAppDir, installDir
     else
       binDir = path.join(installDir, 'bin')
-      shareDir = path.join(installDir, 'share', 'atom')
+      shareDir = path.join(installDir, 'share', 'arcus')
 
       iconName = path.join(shareDir,'resources','app','resources','indico.png')
 
       mkdir binDir
-      cp 'atom.sh', path.join(binDir, 'atom')
+      cp 'atom.sh', path.join(binDir, 'arcus')
       rm shareDir
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir

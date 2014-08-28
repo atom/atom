@@ -1,8 +1,8 @@
 {
-  "name": "atom",
-  "productName": "Atom",
-  "version": "0.124.0",
-  "description": "A hackable text editor for the 21st Century.",
+  "name": "arcus",
+  "productName": "Arcus",
+  "version": "0.1.0",
+  "description": "The worlds first IDE for machine learning",
   "main": "./src/browser/main.js",
   "repository": {
     "type": "git",
