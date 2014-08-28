@@ -90,6 +90,43 @@ class Workspace extends Model
   editorAdded: (editor) ->
     @emit 'editor-created', editor
 
+  # Public: Invoke the given callback when a pane is added to the workspace.
+  #
+  # * `callback` {Function} to be called panes are added.
+  #   * `event` {Object} with the following keys:
+  #     * `pane` The added pane.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddPane: (callback) -> @paneContainer.onDidAddPane(callback)
+
+  # Public: Invoke the given callback with all current and future panes in the
+  # workspace.
+  #
+  # * `callback` {Function} to be called with current and future panes.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observePanes: (callback) -> @paneContainer.observePanes(callback)
+
+  # Public: Invoke the given callback when a pane item is added to the
+  # workspace.
+  #
+  # * `callback` {Function} to be called panes are added.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The added pane item.
+  #     * `pane` {Pane} containing the added item.
+  #     * `index` {Number} indicating the index of the added item in its pane.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
+
+  # Public: Invoke the given callback with all current and future panes items in
+  # the workspace.
+  #
+  # * `callback` {Function} to be called with current and future pane items.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
+
   # Public: Register a function to be called for every current and future
   # {Editor} in the workspace.
   #
