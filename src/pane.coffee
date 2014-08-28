@@ -1,8 +1,10 @@
 {find, compact, extend, last} = require 'underscore-plus'
 {Model, Sequence} = require 'theorist'
 Serializable = require 'serializable'
+Rx = require 'rx'
 PaneAxis = require './pane-axis'
 Editor = require './editor'
+ArraySubject = require './array-subject'
 PaneView = null
 
 # Extended: A container for multiple items, one of which is *active* at a given
@@ -48,9 +50,19 @@ class Pane extends Model
   Serializable.includeInto(this)
 
   @properties
-    container: undefined
+    container: null
     activeItem: undefined
     focused: false
+
+  parent: null
+
+  onDidAddItemSubject: null
+  onDidRemoveItemSubject: null
+  onDidMoveItemSubject: null
+  onWillDestroyItemSubject: null
+  activeItemSubject: null
+  itemsSubject: null
+  activeObservable: null
 
   # Public: Only one pane is considered *active* at a time. A pane is activated
   # when it is focused, and when focus returns to the pane container after
@@ -91,7 +103,24 @@ class Pane extends Model
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
-  isActive: -> @active
+  getParent: -> @parent
+
+  setParent: (@parent) -> @parent
+
+  getContainer: -> @container
+
+  setContainer: (@container) -> @container
+
+  isActive: -> @container?.getActivePane() is this
+
+  observeActive: (fn) ->
+    @activeObservable ?= @container.observeActivePane().map (activePane) => activePane is this
+    if fn?
+      @activeObservable.subscribe(fn)
+    else
+      @activeObservable
+
+  isFocused: -> @focused
 
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
@@ -106,8 +135,9 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus
   # immediately.
   activate: ->
-    @container?.activePane = this
+    @container?.setActivePane(this)
     @emit 'activated'
+    @onDidActivateSubject?.onNext()
 
   getPanes: -> [this]
 
@@ -117,10 +147,21 @@ class Pane extends Model
   getItems: ->
     @items.slice()
 
+  observeItems: (fn) ->
+    @itemsSubject ?= new ArraySubject(@items)
+    if fn?
+      @itemsSubject.subscribe(fn)
+    else
+      @itemsSubject
+
   # Public: Get the active pane item in this pane.
   #
   # Returns a pane item.
   getActiveItem: ->
+    @activeItem
+
+  setActiveItem: (@activeItem) ->
+    @activeItemSubject?.onNext(@activeItem)
     @activeItem
 
   # Public: Returns an {Editor} if the pane item is an {Editor}, or null
@@ -160,7 +201,7 @@ class Pane extends Model
   activateItem: (item) ->
     if item?
       @addItem(item)
-      @activeItem = item
+      @setActiveItem(item)
 
   # Public: Adds the item to the pane.
   #
@@ -173,8 +214,10 @@ class Pane extends Model
     return if item in @items
 
     @items.splice(index, 0, item)
+    @onDidAddItemSubject?.onNext({item, index})
+    @itemsSubject?.onNext(item)
     @emit 'item-added', item, index
-    @activeItem ?= item
+    @setActiveItem(item) unless @getActiveItem()?
     item
 
   # Public: Adds the given items to the pane.
@@ -191,7 +234,7 @@ class Pane extends Model
     @addItem(item, index + i) for item, i in items
     items
 
-  removeItem: (item, destroying) ->
+  removeItem: (item, destroyed) ->
     index = @items.indexOf(item)
     return if index is -1
     if item is @activeItem
@@ -202,8 +245,9 @@ class Pane extends Model
       else
         @activatePreviousItem()
     @items.splice(index, 1)
-    @emit 'item-removed', item, index, destroying
-    @container?.itemDestroyed(item) if destroying
+    @emit 'item-removed', item, index, destroyed
+    @onDidRemoveItemSubject?.onNext {item, index, destroyed}
+    @container?.itemDestroyed(item) if destroyed
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Moves the given item to the specified index.
@@ -212,6 +256,7 @@ class Pane extends Model
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
     @emit 'item-moved', item, newIndex
+    @onDidMoveItemSubject?.onNext({item, oldIndex, newIndex})
 
   # Public: Moves the given item to the given index at another pane.
   moveItemToPane: (item, pane, index) ->
@@ -228,6 +273,7 @@ class Pane extends Model
   destroyItem: (item) ->
     if item?
       @emit 'before-item-destroyed', item
+      @onWillDestroyItemSubject?.onNext({item})
       if @promptToSaveItem(item)
         @removeItem(item, true)
         item.destroy?()
@@ -395,3 +441,45 @@ class Pane extends Model
         rightmostSibling
     else
       @splitRight()
+
+  onDidActivate: (fn) ->
+    @onDidActivateSubject ?= new Rx.Subject
+    if fn?
+      @onDidActivateSubject.subscribe(fn)
+    else
+      @onDidActivateSubject
+
+  onDidAddItem: (fn) ->
+    @onDidAddItemSubject ?= new Rx.Subject
+    if fn?
+      @onDidAddItemSubject.subscribe(fn)
+    else
+      @onDidAddItemSubject
+
+  onDidRemoveItem: (fn) ->
+    @onDidRemoveItemSubject ?= new Rx.Subject
+    if fn?
+      @onDidRemoveItemSubject.subscribe(fn)
+    else
+      @onDidRemoveItemSubject
+
+  onDidMoveItem: (fn) ->
+    @onDidMoveItemSubject ?= new Rx.Subject
+    if fn?
+      @onDidMoveItemSubject.subscribe(fn)
+    else
+      @onDidMoveItemSubject
+
+  onWillDestroyItem: (fn) ->
+    @onWillDestroyItemSubject ?= new Rx.Subject
+    if fn?
+      @onWillDestroyItemSubject.subscribe(fn)
+    else
+      @onWillDestroyItemSubject
+
+  observeActiveItem: (fn) ->
+    @activeItemSubject ?= new Rx.BehaviorSubject(@getActiveItem())
+    if fn?
+      @activeItemSubject.subscribe(fn)
+    else
+      @activeItemSubject

@@ -10,12 +10,15 @@ class PaneAxis extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
+  parent: null
+  container: null
+
   constructor: ({@container, @orientation, children}) ->
     @children = Sequence.fromArray(children ? [])
 
     @subscribe @children.onEach (child) =>
-      child.parent = this
-      child.container = @container
+      child.setParent(this)
+      child.setContainer(@container)
       @subscribe child, 'destroyed', => @removeChild(child)
 
     @subscribe @children.onRemoval (child) => @unsubscribe(child)
@@ -32,6 +35,20 @@ class PaneAxis extends Model
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
 
+  getParent: -> @parent
+
+  setParent: (@parent) -> @parent
+
+  getContainer: -> @container
+
+  setContainer: (@container) -> @container
+
+  getOrientation: -> @orientation
+
+  getChildren: -> @children.slice()
+
+  childAtIndex: (index) -> @children[index]
+
   getViewClass: ->
     if @orientation is 'vertical'
       PaneColumnView ?= require './pane-column-view'
@@ -40,9 +57,6 @@ class PaneAxis extends Model
 
   getPanes: ->
     flatten(@children.map (child) -> child.getPanes())
-
-  addChild: (child, index=@children.length) ->
-    @children.splice(index, 0, child)
 
   removeChild: (child) ->
     index = @children.indexOf(child)

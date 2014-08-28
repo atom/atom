@@ -1,6 +1,7 @@
 {find} = require 'underscore-plus'
 {Model} = require 'theorist'
 Serializable = require 'serializable'
+Rx = require 'rx'
 Pane = require './pane'
 
 module.exports =
@@ -15,6 +16,7 @@ class PaneContainer extends Model
     activePane: null
 
   previousRoot: null
+  activePaneItemObservable: null
 
   @behavior 'activePaneItem', ->
     @$activePane
@@ -36,6 +38,8 @@ class PaneContainer extends Model
     root: @root?.serialize()
     activePaneId: @activePane.id
 
+  getRoot: -> @root
+
   replaceChild: (oldChild, newChild) ->
     throw new Error("Replacing non-existent child") if oldChild isnt @root
     @root = newChild
@@ -43,8 +47,27 @@ class PaneContainer extends Model
   getPanes: ->
     @root?.getPanes() ? []
 
+  setActivePane: (@activePane) ->
+    @activePaneSubject?.onNext(@activePane)
+    @activePane
+
   getActivePane: ->
     @activePane
+
+  observeActivePane: (fn) ->
+    @activePaneSubject ?= new Rx.BehaviorSubject(@getActivePane())
+    if fn?
+      @activePaneSubject.subscribe(fn)
+    else
+      @activePaneSubject
+
+  observeActivePaneItem: (fn) ->
+    @activePaneItemObservable ?=
+      @observeActivePane().flatMapLatest (activePane) -> activePane.observeActiveItem()
+    if fn?
+      @activePaneItemObservable.subscribe(fn)
+    else
+      @activePaneItemObservable
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
@@ -78,14 +101,13 @@ class PaneContainer extends Model
     @previousRoot = root
 
     unless root?
-      @activePane = null
+      @setActivePane(null)
       return
 
-    root.parent = this
-    root.container = this
+    root.setParent(this)
+    root.setContainer(this)
 
-
-    @activePane ?= root if root instanceof Pane
+    @setActivePane(root) if not @activePane? and root instanceof Pane
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
