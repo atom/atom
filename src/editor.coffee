@@ -1514,20 +1514,6 @@ class Editor extends Model
   hasMultipleCursors: ->
     @getCursors().length > 1
 
-  # Essential: Add a cursor at the given position in buffer coordinates.
-  #
-  # Returns a {Cursor}.
-  addCursorAtBufferPosition: (bufferPosition) ->
-    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
-    @getLastSelection().cursor
-
-  # Essential: Add a cursor at the position in screen coordinates.
-  #
-  # Returns a {Cursor}.
-  addCursorAtScreenPosition: (screenPosition) ->
-    @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
-    @getLastSelection().cursor
-
   # Essential: Get the position of the most recently added cursor in buffer
   # coordinates.
   #
@@ -1570,6 +1556,20 @@ class Editor extends Model
   #     position. Defaults to true.
   setCursorScreenPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
+
+  # Essential: Add a cursor at the given position in buffer coordinates.
+  #
+  # Returns a {Cursor}.
+  addCursorAtBufferPosition: (bufferPosition) ->
+    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor
+
+  # Essential: Add a cursor at the position in screen coordinates.
+  #
+  # Returns a {Cursor}.
+  addCursorAtScreenPosition: (screenPosition) ->
+    @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor
 
   # Essential: Move every cursor up one row in screen coordinates.
   moveCursorUp: (lineCount) ->
