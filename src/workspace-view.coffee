@@ -9,14 +9,13 @@ scrollbarStyle = require 'scrollbar-style'
 fs = require 'fs-plus'
 Workspace = require './workspace'
 CommandInstaller = require './command-installer'
-EditorView = require './editor-view'
 PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
 PaneRowView = require './pane-row-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
 
-# Public: The top-level view for the entire window. An instance of this class is
+# Essential: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
 #
 # It is backed by a model object, an instance of {Workspace}, which is available
@@ -45,7 +44,7 @@ Editor = require './editor'
 # the built-in `atom` module.
 #
 # ```coffee
-#   {WorkspaceView} = require 'atom'
+# {WorkspaceView} = require 'atom'
 # ```
 #
 # You can assign it to the `atom.workspaceView` global in the spec or just use
@@ -71,8 +70,6 @@ class WorkspaceView extends View
     projectHome: path.join(fs.getHomeDirectory(), 'github')
     audioBeep: true
     destroyEmptyPanes: true
-    useReactEditor: true
-    useReactMiniEditors: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
@@ -247,40 +244,56 @@ class WorkspaceView extends View
 
   # Public: Prepend an element or view to the panels at the top of the
   # workspace.
+  #
+  # * `element` jQuery object or DOM element
   prependToTop: (element) ->
     @vertical.prepend(element)
 
   # Public: Append an element or view to the panels at the top of the workspace.
+  #
+  # * `element` jQuery object or DOM element
   appendToTop: (element) ->
     @panes.before(element)
 
   # Public: Prepend an element or view to the panels at the bottom of the
   # workspace.
+  #
+  # * `element` jQuery object or DOM element
   prependToBottom: (element) ->
     @panes.after(element)
 
   # Public: Append an element or view to the panels at the bottom of the
   # workspace.
+  #
+  # * `element` jQuery object or DOM element
   appendToBottom: (element) ->
     @vertical.append(element)
 
   # Public: Prepend an element or view to the panels at the left of the
   # workspace.
+  #
+  # * `element` jQuery object or DOM element
   prependToLeft: (element) ->
     @horizontal.prepend(element)
 
   # Public: Append an element or view to the panels at the left of the
   # workspace.
+  #
+  # * `element` jQuery object or DOM element
   appendToLeft: (element) ->
     @vertical.before(element)
 
   # Public: Prepend an element or view to the panels at the right of the
   # workspace.
+  #
+  # * `element` jQuery object or DOM element
   prependToRight: (element) ->
     @vertical.after(element)
 
   # Public: Append an element or view to the panels at the right of the
   # workspace.
+  #
+  # * `element` jQuery object or DOM element
   appendToRight: (element) ->
     @horizontal.append(element)
 
@@ -320,7 +333,8 @@ class WorkspaceView extends View
   # Public: Register a function to be called for every current and future
   # pane view in the workspace.
   #
-  # callback - A {Function} with a {PaneView} as its only argument.
+  # * `callback` A {Function} with a {PaneView} as its only argument.
+  #   * `paneView` {PaneView}
   #
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
@@ -341,7 +355,8 @@ class WorkspaceView extends View
   # editor view in the workspace (only includes {EditorView}s that are pane
   # items).
   #
-  # callback - A {Function} with an {EditorView} as its only argument.
+  # * `callback` A {Function} with an {EditorView} as its only argument.
+  #   * `editorView` {EditorView}
   #
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.

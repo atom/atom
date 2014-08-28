@@ -25,9 +25,9 @@ class AtomWindow
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
 
+    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
     global.atomApplication.addWindow(this)
 
-    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
     @handleEvents()
 
     loadSettings = _.extend({}, settings)
@@ -49,6 +49,8 @@ class AtomWindow
       @emit 'window:loaded'
       @loaded = true
 
+    @browserWindow.on 'project-path-changed', (@projectPath) =>
+
     @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
@@ -65,6 +67,8 @@ class AtomWindow
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
       query: {loadSettings: JSON.stringify(loadSettings)}
+
+  hasProjectPath: -> @projectPath?.length > 0
 
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
@@ -168,6 +172,8 @@ class AtomWindow
     not @isSpecWindow() and @isWebViewFocused()
 
   isFocused: -> @browserWindow.isFocused()
+
+  isMinimized: -> @browserWindow.isMinimized()
 
   isWebViewFocused: -> @browserWindow.isWebViewFocused()
 

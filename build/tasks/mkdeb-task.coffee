@@ -13,8 +13,16 @@ module.exports = (grunt) ->
     grunt.file.write(outputPath, filled)
     outputPath
 
+  getInstalledSize = (buildDir, callback) ->
+    cmd = 'du'
+    args = ['-sk', path.join(buildDir, 'Atom')]
+    spawn {cmd, args}, (error, {stdout}) ->
+      installedSize = stdout.split(/\s+/)?[0] or '200000' # default to 200MB
+      callback(null, installedSize)
+
   grunt.registerTask 'mkdeb', 'Create debian package', ->
     done = @async()
+    buildDir = grunt.config.get('atom.buildDir')
 
     if process.arch is 'ia32'
       arch = 'i386'
@@ -28,13 +36,17 @@ module.exports = (grunt) ->
     maintainer = 'GitHub <atom@github.com>'
     installDir = '/usr'
     iconName = 'atom'
-    data = {name, version, description, section, arch, maintainer, installDir, iconName}
+    getInstalledSize buildDir, (error, installedSize) ->
+      data = {name, version, description, section, arch, maintainer, installDir, iconName, installedSize}
+      controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
+      desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
+      icon = path.join('resources', 'atom.png')
 
-    controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
-    desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
-    icon = path.join('resources', 'atom.png')
-    buildDir = grunt.config.get('atom.buildDir')
-
-    cmd = path.join('script', 'mkdeb')
-    args = [version, arch, controlFilePath, desktopFilePath, icon, buildDir]
-    spawn({cmd, args}, done)
+      cmd = path.join('script', 'mkdeb')
+      args = [version, arch, controlFilePath, desktopFilePath, icon, buildDir]
+      spawn {cmd, args}, (error) ->
+        if error?
+          done(error)
+        else
+          grunt.log.ok "Created #{buildDir}/atom-#{version}-#{arch}.deb"
+          done()

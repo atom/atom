@@ -59,6 +59,8 @@ EditorComponent = React.createClass
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorPixelRects = @getCursorPixelRects(renderedRowRange)
 
+      tokenizedLines = editor.linesForScreenRows(renderedStartRow, renderedEndRow - 1)
+
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
       lineDecorations = @getLineDecorations(decorations)
@@ -107,7 +109,7 @@ EditorComponent = React.createClass
 
         LinesComponent {
           ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, lineDecorations, highlightDecorations,
+          editor, lineHeightInPixels, defaultCharWidth, tokenizedLines, lineDecorations, highlightDecorations,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
@@ -191,11 +193,6 @@ EditorComponent = React.createClass
   componentWillReceiveProps: (newProps) ->
     @props.editor.setMini(newProps.mini)
 
-  componentWillUpdate: ->
-    @updatesPaused = true
-    @checkForVisibilityChange()
-    @updatesPaused = false
-
   componentDidUpdate: (prevProps, prevState) ->
     cursorsMoved = @cursorsMoved
     selectionChanged = @selectionChanged
@@ -211,6 +208,7 @@ EditorComponent = React.createClass
       @props.parentView.trigger 'editor:display-updated'
 
   becameVisible: ->
+    @updatesPaused = true
     @sampleFontStyling()
     @sampleBackgroundColors()
     @measureHeightAndWidth()
@@ -219,6 +217,8 @@ EditorComponent = React.createClass
     @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @props.editor.setVisible(true)
     @performedInitialMeasurement = true
+    @updatesPaused = false
+    @forceUpdate() if @updateRequestedWhilePaused
 
   requestUpdate: ->
     return unless @isMounted()
@@ -610,6 +610,10 @@ EditorComponent = React.createClass
 
     {editor} = @props
     {detail, shiftKey, metaKey, ctrlKey} = event
+
+    # CTRL+click brings up the context menu on OSX, so don't handle those either
+    return if ctrlKey and process.platform is 'darwin'
+
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
