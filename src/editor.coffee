@@ -834,7 +834,7 @@ class Editor extends Model
   usesSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
-      if match = @buffer.lineForRow(bufferRow).match(/^\s/)
+      if match = @buffer.lineForRow(bufferRow).match(/^[ \t]/)
         return match[0][0] == ' '
     undefined
 
