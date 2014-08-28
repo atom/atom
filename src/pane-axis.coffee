@@ -11,6 +11,10 @@ class PaneAxis extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
+  parent: null
+  container: null
+  orientation: null
+
   constructor: ({@container, @orientation, children}) ->
     @emitter = new Emitter
     @subscriptionsByChild = new WeakMap
@@ -27,6 +31,14 @@ class PaneAxis extends Model
   serializeParams: ->
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
+
+  getParent: -> @parent
+
+  setParent: (@parent) -> @parent
+
+  getContainer: -> @container
+
+  setContainer: (@container) -> @container
 
   getViewClass: ->
     if @orientation is 'vertical'
@@ -52,8 +64,8 @@ class PaneAxis extends Model
     @emitter.on 'did-destroy', fn
 
   addChild: (child, index=@children.length) ->
-    child.parent = this
-    child.container = @container
+    child.setParent(this)
+    child.setContainer(@container)
 
     @subscribeToChild(child)
 
@@ -74,8 +86,8 @@ class PaneAxis extends Model
     @unsubscribeFromChild(oldChild)
     @subscribeToChild(newChild)
 
-    newChild.parent = this
-    newChild.container = @container
+    newChild.setParent(this)
+    newChild.setContainer(@container)
 
     index = @children.indexOf(oldChild)
     @children.splice(index, 1, newChild)

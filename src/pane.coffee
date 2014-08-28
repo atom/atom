@@ -55,6 +55,16 @@ class Pane extends Model
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
+  getParent: -> @parent
+
+  setParent: (@parent) -> @parent
+
+  getContainer: -> @container
+
+  setContainer: (container) ->
+    container.didAddPane({pane: this}) unless container is @container
+    @container = container
+
   ###
   Section: Event Subscription
   ###

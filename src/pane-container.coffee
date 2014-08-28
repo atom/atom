@@ -49,6 +49,13 @@ class PaneContainer extends Model
     fn(@getRoot())
     @onDidChangeRoot(fn)
 
+  onDidAddPane: (fn) ->
+    @emitter.on 'did-add-pane', fn
+
+  observePanes: (fn) ->
+    fn(pane) for pane in @getPanes()
+    @onDidAddPane ({pane}) -> fn(pane)
+
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
 
@@ -69,8 +76,8 @@ class PaneContainer extends Model
   getRoot: -> @root
 
   setRoot: (@root) ->
-    @root.parent = this
-    @root.container = this
+    @root.setParent(this)
+    @root.setContainer(this)
     @emitter.emit 'did-change-root', @root
     if not @getActivePane()? and @root instanceof Pane
       @setActivePane(@root)
@@ -126,6 +133,9 @@ class PaneContainer extends Model
 
   paneItemDestroyed: (item) ->
     @emitter.emit 'did-destroy-pane-item', item
+
+  didAddPane: (pane) ->
+    @emitter.emit 'did-add-pane', pane
 
   # Called by Model superclass when destroyed
   destroyed: ->
