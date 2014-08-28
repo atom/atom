@@ -2084,7 +2084,7 @@ class Editor extends Model
 
   # Selections Private
 
-  # Public: Add a similarly-shaped selection to the next eligible line below
+  # Add a similarly-shaped selection to the next eligible line below
   # each selection.
   #
   # Operates on all selections. If the selection is empty, adds an empty
@@ -2095,7 +2095,7 @@ class Editor extends Model
   addSelectionBelow: ->
     @expandSelectionsForward (selection) -> selection.addSelectionBelow()
 
-  # Public: Add a similarly-shaped selection to the next eligible line above
+  # Add a similarly-shaped selection to the next eligible line above
   # each selection.
   #
   # Operates on all selections. If the selection is empty, adds an empty
