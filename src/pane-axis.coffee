@@ -49,7 +49,7 @@ class PaneAxis extends Model
     @emitter.on 'did-replace-child', fn
 
   onDidDestroy: (fn) ->
-    @emitter.on 'did-destroy'
+    @emitter.on 'did-destroy', fn
 
   addChild: (child, index=@children.length) ->
     child.parent = this
