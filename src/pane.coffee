@@ -9,40 +9,6 @@ PaneView = null
 # Extended: A container for multiple items, one of which is *active* at a given
 # time. With the default packages, a tab is displayed for each item and the
 # active item's view is displayed.
-#
-# ## Events
-# ### activated
-#
-# Extended: Emit when this pane as been activated
-#
-# ### item-added
-#
-# Extended: Emit when an item was added to the pane
-#
-# * `item` The pane item that has been added
-# * `index` {Number} Index in the pane
-#
-# ### before-item-destroyed
-#
-# Extended: Emit before the item is destroyed
-#
-# * `item` The pane item that will be destoryed
-#
-# ### item-removed
-#
-# Extended: Emit when the item was removed from the pane
-#
-# * `item` The pane item that was removed
-# * `index` {Number} Index in the pane
-# * `destroying` {Boolean} `true` when the item is being removed because of destruction
-#
-# ### item-moved
-#
-# Extended: Emit when an item was moved within the pane
-#
-# * `item` The pane item that was moved
-# * `newIndex` {Number} Index that the item was moved to
-#
 module.exports =
 class Pane extends Model
   atom.deserializers.add(this)
