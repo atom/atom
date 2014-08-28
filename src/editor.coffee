@@ -1510,10 +1510,6 @@ class Editor extends Model
   Section: Cursors
   ###
 
-  # Essential: Determine if there are multiple cursors.
-  hasMultipleCursors: ->
-    @getCursors().length > 1
-
   # Essential: Get the position of the most recently added cursor in buffer
   # coordinates.
   #
@@ -1574,6 +1570,10 @@ class Editor extends Model
   addCursorAtScreenPosition: (screenPosition) ->
     @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor
+
+  # Essential: Returns {Boolean} indicating whether or not there are multiple cursors.
+  hasMultipleCursors: ->
+    @getCursors().length > 1
 
   # Essential: Move every cursor up one row in screen coordinates.
   #
