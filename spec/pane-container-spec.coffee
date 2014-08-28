@@ -90,7 +90,7 @@ describe "PaneContainer", ->
       expect(observed).toEqual [pane1.itemAtIndex(0), pane2.itemAtIndex(0)]
 
   describe "::observePanes()", ->
-    it "invokes with subscribers with all current and future panes", ->
+    it "invokes observers with all current and future panes", ->
       container = new PaneContainer
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()

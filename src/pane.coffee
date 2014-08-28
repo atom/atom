@@ -479,8 +479,8 @@ class Pane extends Model
 
   # Called by model superclass.
   destroyed: ->
-    @emitter.emit 'did-destroy'
     @container.activateNextPane() if @isActive()
+    @emitter.emit 'did-destroy'
     item.destroy?() for item in @items.slice()
 
   ###
