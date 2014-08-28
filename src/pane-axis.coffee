@@ -96,11 +96,11 @@ class PaneAxis extends Model
   subscribeToChild: (child) ->
     subscription = child.onDidDestroy => @removeChild(child)
     @subscriptionsByChild.set(child, subscription)
-    @subscriptions.add(child)
+    @subscriptions.add(subscription)
 
   unsubscribeFromChild: (child) ->
     subscription = @subscriptionsByChild.get(child)
-    @subscriptions.remove(child)
+    @subscriptions.remove(subscription)
     subscription.dispose()
 
   destroyed: ->
