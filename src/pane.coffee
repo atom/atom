@@ -93,6 +93,8 @@ class Pane extends Model
 
   onDidChangeActive: (fn) ->
     @container.onDidChangeActivePane (activePane) => fn(this is activePane)
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
 
   observeActive: (fn) ->
     fn(@isActive())
@@ -296,6 +298,7 @@ class Pane extends Model
 
   # Called by model superclass.
   destroyed: ->
+    @emitter.emit 'did-destroy'
     @container.activateNextPane() if @isActive()
     item.destroy?() for item in @items.slice()
 
