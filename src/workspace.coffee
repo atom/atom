@@ -243,7 +243,13 @@ class Workspace extends Model
   #
   # Returns a {Pane}.
   getActivePane: ->
-    @paneContainer.activePane
+    @paneContainer.getActivePane()
+
+  # Public: Get the active {Pane}'s active item.
+  #
+  # Returns an pane item {Object}.
+  getActivePaneItem: ->
+    @paneContainer.getActivePaneItem()
 
   # Public: Get all {Pane}s.
   #
@@ -270,12 +276,6 @@ class Workspace extends Model
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
-
-  # Public: Get the active {Pane}'s active item.
-  #
-  # Returns an pane item {Object}.
-  getActivePaneItem: ->
-    @paneContainer.getActivePane().getActiveItem()
 
   # Public: Save the active pane item.
   #
