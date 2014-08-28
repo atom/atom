@@ -30,6 +30,9 @@ class WindowEventHandler
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
       if fs.isDirectorySync(pathToOpen)
         atom.project.setPath(pathToOpen) unless atom.project.getPath()
+        treeView = atom.workspaceView?.find(".tree-view").view()
+        if not treeView? or treeView.is(':hidden')
+          atom.workspaceView.trigger 'tree-view:toggle'
       else
         atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
