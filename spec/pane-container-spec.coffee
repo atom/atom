@@ -34,9 +34,10 @@ describe "PaneContainer", ->
       expect(containerB.getActivePane()).toBe pane3B
 
   it "does not allow the root pane to be destroyed", ->
-    pane1.destroy()
-    expect(container.getRoot()).toBe pane1
-    expect(pane1.isDestroyed()).toBe false
+    container = new PaneContainer
+    container.getRoot().destroy()
+    expect(container.getRoot()).toBeDefined()
+    expect(container.getRoot().isDestroyed()).toBe false
 
   describe "::getActivePane()", ->
     [container, pane1, pane2] = []
