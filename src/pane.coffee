@@ -88,36 +88,115 @@ class Pane extends Model
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
-  onDidActivate: (fn) ->
-    @emitter.on 'did-activate', fn
+  # Public: Invoke the given callback when the pane is activated.
+  #
+  # The given callback will be invoked whenever {::activate} is called on the
+  # pane, even if it is already active at the time.
+  #
+  # * `callback` {Function} to be called when the pane is activated.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidActivate: (callback) ->
+    @emitter.on 'did-activate', callback
 
-  onDidChangeActive: (fn) ->
-    @container.onDidChangeActivePane (activePane) => fn(this is activePane)
+  # Public: Invoke the given callback when the pane is destroyed.
+  #
+  # * `callback` {Function} to be called when the pane is destroyed.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
-  observeActive: (fn) ->
-    fn(@isActive())
-    @onDidChangeActive(fn)
+  # Public: Invoke the given callback when the value of the {::isActive}
+  # property changes.
+  #
+  # * `callback` {Function} to be called when the value of the {::isActive}
+  #   property changes.
+  #   * `active` {Boolean} indicating whether the pane is active.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActive: (callback) ->
+    @container.onDidChangeActivePane (activePane) =>
+      callback(this is activePane)
 
-  onDidAddItem: (fn) ->
-    @emitter.on 'did-add-item', fn
+  # Public: Invoke the given callback with the current and future values of the
+  # {::isActive} property.
+  #
+  # * `callback` {Function} to be called with the current and future values of
+  #   the {::isActive} property.
+  #   * `active` {Boolean} indicating whether the pane is active.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActive: (callback) ->
+    callback(@isActive())
+    @onDidChangeActive(callback)
 
-  onDidRemoveItem: (fn) ->
-    @emitter.on 'did-remove-item', fn
+  # Public: Invoke the given callback when an item is added to the pane.
+  #
+  # * `callback` {Function} to be called with when items are added.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The added pane item.
+  #     * `index` {Number} indicating where the item is located.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddItem: (callback) ->
+    @emitter.on 'did-add-item', callback
 
-  onDidMoveItem: (fn) ->
-    @emitter.on 'did-move-item', fn
+  # Public: Invoke the given callback when an item is removed from the pane.
+  #
+  # * `callback` {Function} to be called with when items are removed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The removed pane item.
+  #     * `index` {Number} indicating where the item was located.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidRemoveItem: (callback) ->
+    @emitter.on 'did-remove-item', callback
 
-  onDidChangeActiveItem: (fn) ->
-    @emitter.on 'did-change-active-item', fn
+  # Public: Invoke the given callback when an item is moved within the pane.
+  #
+  # * `callback` {Function} to be called with when items are moved.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The removed pane item.
+  #     * `oldIndex` {Number} indicating where the item was located.
+  #     * `newIndex` {Number} indicating where the item is now located.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidMoveItem: (callback) ->
+    @emitter.on 'did-move-item', callback
 
-  observeActiveItem: (fn) ->
-    fn(@getActiveItem())
-    @onDidChangeActiveItem(fn)
+  # Public: Invoke the given callback when the value of {::getActiveItem}
+  # changes.
+  #
+  # * `callback` {Function} to be called with when the active item
+  #   changes.
+  #   * `activeItem` The current active item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActiveItem: (callback) ->
+    @emitter.on 'did-change-active-item', callback
 
-  onWillDestroyItem: (fn) ->
-    @emitter.on 'will-destroy-item', fn
+  # Public: Invoke the given callback with the current and future values of
+  # {::getActiveItem}.
+  #
+  # * `callback` {Function} to be called with the current and future active
+  #   items.
+  #   * `activeItem` The current active item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActiveItem: (callback) ->
+    callback(@getActiveItem())
+    @onDidChangeActiveItem(callback)
+
+  # Public: Invoke the given callback before items are destroyed.
+  #
+  # * `callback` {Function} to be called before items are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The item that will be destroyed.
+  #     * `index` The location of the item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to
+  # unsubscribe.
+  onWillDestroyItem: (callback) ->
+    @emitter.on 'will-destroy-item', callback
 
   isActive: ->
     @container?.getActivePane() is this
