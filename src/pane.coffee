@@ -253,8 +253,8 @@ class Pane extends Model
   #
   # * `item` The item to add. It can be a model with an associated view or a
   #   view.
-  # * `index` (optional) {Number} at which to add the item. If omitted, the item
-  #   is added after the current active item.
+  # * `index` (optional) {Number} indicating the index at which to add the item.
+  #   If omitted, the item is added after the current active item.
   #
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1) ->
