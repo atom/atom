@@ -2066,12 +2066,6 @@ class Editor extends Model
   getSelectionsOrderedByBufferPosition: ->
     @getSelections().sort (a, b) -> a.compare(b)
 
-  # Extended: Get the last {Selection} based on its position in the buffer.
-  #
-  # Returns a {Selection}.
-  getLastSelectionInBuffer: ->
-    _.last(@getSelectionsOrderedByBufferPosition())
-
   # Extended: Determine if a given range in buffer coordinates intersects a
   # selection.
   #
