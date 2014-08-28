@@ -1528,23 +1528,12 @@ class Editor extends Model
     @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor
 
-  # Essential: Move the cursor to the given position in screen coordinates.
-  #
-  # If there are multiple cursors, they will be consolidated to a single cursor.
-  #
-  # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
-  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
-  #     position. Defaults to true.
-  setCursorScreenPosition: (position, options) ->
-    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
-
-  # Essential: Get the position of the most recently added cursor in screen
+  # Essential: Get the position of the most recently added cursor in buffer
   # coordinates.
   #
   # Returns a {Point}.
-  getCursorScreenPosition: ->
-    @getCursor().getScreenPosition()
+  getCursorBufferPosition: ->
+    @getCursor().getBufferPosition()
 
   # Essential: Move the cursor to the given position in buffer coordinates.
   #
@@ -1557,12 +1546,23 @@ class Editor extends Model
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
-  # Essential: Get the position of the most recently added cursor in buffer
+  # Essential: Get the position of the most recently added cursor in screen
   # coordinates.
   #
   # Returns a {Point}.
-  getCursorBufferPosition: ->
-    @getCursor().getBufferPosition()
+  getCursorScreenPosition: ->
+    @getCursor().getScreenPosition()
+
+  # Essential: Move the cursor to the given position in screen coordinates.
+  #
+  # If there are multiple cursors, they will be consolidated to a single cursor.
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`
+  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
+  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
+  #     position. Defaults to true.
+  setCursorScreenPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
   # Essential: Move every cursor up one row in screen coordinates.
   moveCursorUp: (lineCount) ->
