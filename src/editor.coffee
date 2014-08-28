@@ -1791,20 +1791,20 @@ class Editor extends Model
   Section: Selections
   ###
 
-  # Public: Get the selected text of the most recently added selection.
+  # Essential: Get the selected text of the most recently added selection.
   #
   # Returns a {String}.
   getSelectedText: ->
     @getLastSelection().getText()
 
-  # Public: Get the {Range} of the most recently added selection in buffer
+  # Essential: Get the {Range} of the most recently added selection in buffer
   # coordinates.
   #
   # Returns a {Range}.
   getSelectedBufferRange: ->
     @getLastSelection().getBufferRange()
 
-  # Public: Get the {Range}s of all selections in buffer coordinates.
+  # Essential: Get the {Range}s of all selections in buffer coordinates.
   #
   # The ranges are sorted by their position in the buffer.
   #
@@ -1812,7 +1812,7 @@ class Editor extends Model
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
 
-  # Public: Set the selected range in buffer coordinates. If there are multiple
+  # Essential: Set the selected range in buffer coordinates. If there are multiple
   # selections, they are reduced to a single selection with the given range.
   #
   # * `bufferRange` A {Range} or range-compatible {Array}.
@@ -1822,7 +1822,7 @@ class Editor extends Model
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
-  # Public: Set the selected ranges in buffer coordinates. If there are multiple
+  # Essential: Set the selected ranges in buffer coordinates. If there are multiple
   # selections, they are replaced by new selections with the given ranges.
   #
   # * `bufferRanges` An {Array} of {Range}s or range-compatible {Array}s.
@@ -1843,14 +1843,14 @@ class Editor extends Model
         else
           @addSelectionForBufferRange(bufferRange, options)
 
-  # Public: Get the {Range} of the most recently added selection in screen
+  # Essential: Get the {Range} of the most recently added selection in screen
   # coordinates.
   #
   # Returns a {Range}.
   getSelectedScreenRange: ->
     @getLastSelection().getScreenRange()
 
-  # Public: Get the {Range}s of all selections in screen coordinates.
+  # Essential: Get the {Range}s of all selections in screen coordinates.
   #
   # The ranges are sorted by their position in the buffer.
   #
@@ -1858,7 +1858,7 @@ class Editor extends Model
   getSelectedScreenRanges: ->
     selection.getScreenRange() for selection in @getSelectionsOrderedByBufferPosition()
 
-  # Public: Set the selected range in screen coordinates. If there are multiple
+  # Essential: Set the selected range in screen coordinates. If there are multiple
   # selections, they are reduced to a single selection with the given range.
   #
   # * `screenRange` A {Range} or range-compatible {Array}.
@@ -1868,7 +1868,7 @@ class Editor extends Model
   setSelectedScreenRange: (screenRange, options) ->
     @setSelectedBufferRange(@bufferRangeForScreenRange(screenRange, options), options)
 
-  # Public: Add a selection for the given range in buffer coordinates.
+  # Essential: Add a selection for the given range in buffer coordinates.
   #
   # * `bufferRange` A {Range}
   # * `options` (optional) An options {Object}:
@@ -1882,7 +1882,7 @@ class Editor extends Model
     selection.autoscroll() if @manageScrollPosition
     selection
 
-  # Public: Select from the current cursor position to the given position in
+  # Essential: Select from the current cursor position to the given position in
   # screen coordinates.
   #
   # This method may merge selections that end up intesecting.
@@ -1893,62 +1893,62 @@ class Editor extends Model
     lastSelection.selectToScreenPosition(position)
     @mergeIntersectingSelections(reversed: lastSelection.isReversed())
 
-  # Public: Move the cursor of each selection one character upward while
+  # Essential: Move the cursor of each selection one character upward while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectUp: (rowCount) ->
     @expandSelectionsBackward (selection) -> selection.selectUp(rowCount)
 
-  # Public: Move the cursor of each selection one character downward while
+  # Essential: Move the cursor of each selection one character downward while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectDown: (rowCount) ->
     @expandSelectionsForward (selection) -> selection.selectDown(rowCount)
 
-  # Public: Move the cursor of each selection one character leftward while
+  # Essential: Move the cursor of each selection one character leftward while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectLeft: ->
     @expandSelectionsBackward (selection) -> selection.selectLeft()
 
-  # Public: Move the cursor of each selection one character rightward while
+  # Essential: Move the cursor of each selection one character rightward while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectRight: ->
     @expandSelectionsForward (selection) -> selection.selectRight()
 
-  # Public: Select from the top of the buffer to the end of the last selection
+  # Essential: Select from the top of the buffer to the end of the last selection
   # in the buffer.
   #
   # This method merges multiple selections into a single selection.
   selectToTop: ->
     @expandSelectionsBackward (selection) -> selection.selectToTop()
 
-  # Public: Select all text in the buffer.
+  # Essential: Select all text in the buffer.
   #
   # This method merges multiple selections into a single selection.
   selectAll: ->
     @expandSelectionsForward (selection) -> selection.selectAll()
 
-  # Public: Selects from the top of the first selection in the buffer to the end
+  # Essential: Selects from the top of the first selection in the buffer to the end
   # of the buffer.
   #
   # This method merges multiple selections into a single selection.
   selectToBottom: ->
     @expandSelectionsForward (selection) -> selection.selectToBottom()
 
-  # Public: Move the cursor of each selection to the beginning of its line
+  # Essential: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
   #
   # This method may merge selections that end up intesecting.
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfLine()
 
-  # Public: Move the cursor of each selection to the first non-whitespace
+  # Essential: Move the cursor of each selection to the first non-whitespace
   # character of its line while preserving the selection's tail position. If the
   # cursor is already on the first character of the line, move it to the
   # beginning of the line.
@@ -1957,75 +1957,75 @@ class Editor extends Model
   selectToFirstCharacterOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfLine()
 
-  # Public: Move the cursor of each selection to the end of its line while
+  # Essential: Move the cursor of each selection to the end of its line while
   # preserving the selection's tail position.
   #
   # This method may merge selections that end up intersecting.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) -> selection.selectToEndOfLine()
 
-  # Public: Expand selections to the beginning of their containing word.
+  # Essential: Expand selections to the beginning of their containing word.
   #
   # Operates on all selections. Moves the cursor to the beginning of the
   # containing word while preserving the selection's tail position.
   selectToBeginningOfWord: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfWord()
 
-  # Public: Expand selections to the end of their containing word.
+  # Essential: Expand selections to the end of their containing word.
   #
   # Operates on all selections. Moves the cursor to the end of the containing
   # word while preserving the selection's tail position.
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) -> selection.selectToEndOfWord()
 
-  # Public: For each cursor, select the containing line.
+  # Essential: For each cursor, select the containing line.
   #
   # This method merges selections on successive lines.
   selectLine: ->
     @expandSelectionsForward (selection) -> selection.selectLine()
 
-  # Public: Select the word containing each cursor.
+  # Essential: Select the word containing each cursor.
   selectWord: ->
     @expandSelectionsForward (selection) -> selection.selectWord()
 
   # Selection Extended
 
-  # Public: For each selection, move its cursor to the preceding word boundary
+  # Extended: For each selection, move its cursor to the preceding word boundary
   # while maintaining the selection's tail position.
   #
   # This method may merge selections that end up intersecting.
   selectToPreviousWordBoundary: ->
     @expandSelectionsBackward (selection) -> selection.selectToPreviousWordBoundary()
 
-  # Public: For each selection, move its cursor to the next word boundary while
+  # Extended: For each selection, move its cursor to the next word boundary while
   # maintaining the selection's tail position.
   #
   # This method may merge selections that end up intersecting.
   selectToNextWordBoundary: ->
     @expandSelectionsForward (selection) -> selection.selectToNextWordBoundary()
 
-  # Public: Expand selections to the beginning of the next word.
+  # Extended: Expand selections to the beginning of the next word.
   #
   # Operates on all selections. Moves the cursor to the beginning of the next
   # word while preserving the selection's tail position.
   selectToBeginningOfNextWord: ->
     @expandSelectionsForward (selection) -> selection.selectToBeginningOfNextWord()
 
-  # Public: Expand selections to the beginning of the next paragraph.
+  # Extended: Expand selections to the beginning of the next paragraph.
   #
   # Operates on all selections. Moves the cursor to the beginning of the next
   # paragraph while preserving the selection's tail position.
   selectToBeginningOfNextParagraph: ->
     @expandSelectionsForward (selection) -> selection.selectToBeginningOfNextParagraph()
 
-  # Public: Expand selections to the beginning of the next paragraph.
+  # Extended: Expand selections to the beginning of the next paragraph.
   #
   # Operates on all selections. Moves the cursor to the beginning of the next
   # paragraph while preserving the selection's tail position.
   selectToBeginningOfPreviousParagraph: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfPreviousParagraph()
 
-  # Public: Select the range of the given marker if it is valid.
+  # Extended: Select the range of the given marker if it is valid.
   #
   # * `marker` A {DisplayBufferMarker}
   #
@@ -2036,13 +2036,13 @@ class Editor extends Model
       @setSelectedBufferRange(range)
       range
 
-  # Public: Get the most recently added {Selection}.
+  # Extended: Get the most recently added {Selection}.
   #
   # Returns a {Selection}.
   getLastSelection: ->
     _.last(@selections)
 
-  # Public: Get the most recent {Selection} or the selection at the given
+  # Extended: Get the most recent {Selection} or the selection at the given
   # index.
   #
   # * `index` (optional) The index of the selection to return, based on the order
@@ -2054,25 +2054,25 @@ class Editor extends Model
     index ?= @selections.length - 1
     @selections[index]
 
-  # Public: Get current {Selection}s.
+  # Extended: Get current {Selection}s.
   #
   # Returns: An {Array} of {Selection}s.
   getSelections: -> new Array(@selections...)
 
-  # Public: Get all {Selection}s, ordered by their position in the buffer
+  # Extended: Get all {Selection}s, ordered by their position in the buffer
   # instead of the order in which they were added.
   #
   # Returns an {Array} of {Selection}s.
   getSelectionsOrderedByBufferPosition: ->
     @getSelections().sort (a, b) -> a.compare(b)
 
-  # Public: Get the last {Selection} based on its position in the buffer.
+  # Extended: Get the last {Selection} based on its position in the buffer.
   #
   # Returns a {Selection}.
   getLastSelectionInBuffer: ->
     _.last(@getSelectionsOrderedByBufferPosition())
 
-  # Public: Determine if a given range in buffer coordinates intersects a
+  # Extended: Determine if a given range in buffer coordinates intersects a
   # selection.
   #
   # * `bufferRange` A {Range} or range-compatible {Array}.
