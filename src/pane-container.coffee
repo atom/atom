@@ -12,10 +12,9 @@ class PaneContainer extends Model
   @version: 1
 
   @properties
-    root: -> new Pane
     activePane: null
 
-  previousRoot: null
+  root: null
 
   @behavior 'activePaneItem', ->
     @$activePane
@@ -28,7 +27,7 @@ class PaneContainer extends Model
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
-    @subscribe @$root, @onRootChanged
+    @setRoot(params?.root ? new Pane)
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
     @monitorActivePaneItem()
@@ -42,6 +41,13 @@ class PaneContainer extends Model
   serializeParams: (params) ->
     root: @root?.serialize()
     activePaneId: @activePane.id
+
+  onDidChangeRoot: (fn) ->
+    @emitter.on 'did-change-root', fn
+
+  observeRoot: (fn) ->
+    fn(@getRoot())
+    @onDidChangeRoot(fn)
 
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
@@ -59,12 +65,19 @@ class PaneContainer extends Model
 
   getRoot: -> @root
 
+  setRoot: (@root) ->
+    @root.parent = this
+    @root.container = this
+    @emitter.emit 'did-change-root', @root
+    if not @getActivePane()? and @root instanceof Pane
+      @setActivePane(@root)
+
   replaceChild: (oldChild, newChild) ->
     throw new Error("Replacing non-existent child") if oldChild isnt @root
-    @root = newChild
+    @setRoot(newChild)
 
   getPanes: ->
-    @root?.getPanes() ? []
+    @getRoot().getPanes()
 
   getActivePane: ->
     @activePane
@@ -104,19 +117,6 @@ class PaneContainer extends Model
       true
     else
       false
-
-  onRootChanged: (root) =>
-    @unsubscribe(@previousRoot) if @previousRoot?
-    @previousRoot = root
-
-    unless root?
-      @setActivePane(null)
-      return
-
-    root.parent = this
-    root.container = this
-
-    @activePane ?= root if root instanceof Pane
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
