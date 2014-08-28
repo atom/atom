@@ -117,7 +117,8 @@ class Pane extends Model
   onWillDestroyItem: (fn) ->
     @emitter.on 'will-destroy-item', fn
 
-  isActive: -> @active
+  isActive: ->
+    @container?.getActivePane() is this
 
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
