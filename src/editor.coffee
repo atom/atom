@@ -1559,12 +1559,16 @@ class Editor extends Model
 
   # Essential: Add a cursor at the given position in buffer coordinates.
   #
+  # * `bufferPosition` A {Point} or {Array} of `[row, column]`
+  #
   # Returns a {Cursor}.
   addCursorAtBufferPosition: (bufferPosition) ->
     @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor
 
   # Essential: Add a cursor at the position in screen coordinates.
+  #
+  # * `screenPosition` A {Point} or {Array} of `[row, column]`
   #
   # Returns a {Cursor}.
   addCursorAtScreenPosition: (screenPosition) ->
