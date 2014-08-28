@@ -642,7 +642,7 @@ class Editor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
-  # Public: Split multi-line selections into one selection per line.
+  # Split multi-line selections into one selection per line.
   #
   # Operates on all selections. This method breaks apart all multi-line
   # selections to create multiple single-line selections that cumulatively cover
