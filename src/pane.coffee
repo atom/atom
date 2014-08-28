@@ -134,6 +134,15 @@ class Pane extends Model
   onDidMoveItem: (callback) ->
     @emitter.on 'did-move-item', callback
 
+  # Public: Invoke the given callback with all current and future items.
+  #
+  # * `callback` {Function} to be called with current and future items.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeItems: (callback) ->
+    callback(item) for item in @getItems()
+    @onDidAddItem ({item}) -> callback(item)
+
   # Public: Invoke the given callback when the value of {::getActiveItem}
   # changes.
   #

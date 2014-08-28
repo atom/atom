@@ -292,6 +292,19 @@ describe "Pane", ->
       expect(item3.isDestroyed()).toBe true
       expect(pane.getItems()).toEqual []
 
+  describe "::observeItems()", ->
+    it "invokes the observer with all current and future items", ->
+      pane = new Pane(items: [new Item, new Item])
+      [item1, item2] = pane.getItems()
+
+      observed = []
+      pane.observeItems (item) -> observed.push(item)
+
+      item3 = new Item
+      pane.addItem(item3)
+
+      expect(observed).toEqual [item1, item2, item3]
+
   describe "when an item emits a destroyed event", ->
     it "removes it from the list of items", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
