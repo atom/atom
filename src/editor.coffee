@@ -1330,7 +1330,7 @@ class Editor extends Model
   #
   # Returns a {Boolean}.
   isFoldedAtCursorRow: ->
-    @isFoldedAtScreenRow(@getCursorScreenRow())
+    @isFoldedAtScreenRow(@getCursorScreenPosition().row)
 
   # Public: Determine whether the given row in buffer coordinates is folded.
   #
@@ -1553,6 +1553,13 @@ class Editor extends Model
   getCursorScreenPosition: ->
     @getCursor().getScreenPosition()
 
+  # Get the row of the most recently added cursor in screen coordinates.
+  #
+  # Returns the screen row {Number}.
+  getCursorScreenRow: ->
+    deprecate('Use `editor.getCursorScreenPosition().row` instead')
+    @getCursorScreenPosition().row
+
   # Essential: Move the cursor to the given position in screen coordinates.
   #
   # If there are multiple cursors, they will be consolidated to a single cursor.
@@ -1641,12 +1648,6 @@ class Editor extends Model
   # Extended: Move every cursor to the beginning of the previous paragraph.
   moveCursorToBeginningOfPreviousParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
-
-  # Extended: Get the row of the most recently added cursor in screen coordinates.
-  #
-  # Returns the screen row {Number}.
-  getCursorScreenRow: ->
-    @getCursor().getScreenRow()
 
   # Extended: Returns the word surrounding the most recently added cursor.
   #
