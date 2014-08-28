@@ -1513,9 +1513,15 @@ class Editor extends Model
   # Essential: Get the position of the most recently added cursor in buffer
   # coordinates.
   #
-  # Returns a {Point}.
+  # Returns a {Point}
   getCursorBufferPosition: ->
     @getCursor().getBufferPosition()
+
+  # Essential: Get the position of all the cursor positions in buffer coordinates.
+  #
+  # Returns {Array} of {Point}s
+  getCursorBufferPositions: ->
+    cursor.getBufferPosition() for cursor in @getCursorsOrderedByBufferPosition()
 
   # Essential: Move the cursor to the given position in buffer coordinates.
   #
@@ -1534,6 +1540,12 @@ class Editor extends Model
   # Returns a {Point}.
   getCursorScreenPosition: ->
     @getCursor().getScreenPosition()
+
+  # Essential: Get the position of all the cursor positions in screen coordinates.
+  #
+  # Returns {Array} of {Point}s
+  getCursorScreenPositions: ->
+    cursor.getScreenPosition() for cursor in @getCursorsOrderedByBufferPosition()
 
   # Get the row of the most recently added cursor in screen coordinates.
   #
@@ -1717,12 +1729,19 @@ class Editor extends Model
   getWordUnderCursor: (options) ->
     @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
 
-  # Extended: Get an Array of all {Cursor}s.
-  getCursors: -> new Array(@cursors...)
-
   # Extended: Get the most recently added {Cursor}.
   getCursor: ->
     _.last(@cursors)
+
+  # Extended: Get an Array of all {Cursor}s.
+  getCursors: -> new Array(@cursors...)
+
+  # Extended: Get all {Cursors}s, ordered by their position in the buffer
+  # instead of the order in which they were added.
+  #
+  # Returns an {Array} of {Selection}s.
+  getCursorsOrderedByBufferPosition: ->
+    @getCursors().sort (a, b) -> a.compare(b)
 
   # Add a cursor based on the given {DisplayBufferMarker}.
   addCursor: (marker) ->

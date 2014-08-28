@@ -569,3 +569,11 @@ class Cursor extends Model
       false
     else
       bufferPosition.column > firstCharacterColumn
+
+  # Public: Compare this cursor's buffer position to another cursor's buffer position.
+  #
+  # See {Point::compare} for more details.
+  #
+  # * `otherCursor`{Cursor} to compare against
+  compare: (otherCursor) ->
+    @getBufferPosition().compare(otherCursor.getBufferPosition())
