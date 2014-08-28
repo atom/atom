@@ -63,6 +63,9 @@ class PaneContainer extends Model
     fn(@getActivePaneItem())
     @onDidChangeActivePaneItem(fn)
 
+  onDidDestroyPaneItem: (fn) ->
+    @emitter.on 'did-destroy-pane-item', fn
+
   getRoot: -> @root
 
   setRoot: (@root) ->
@@ -121,8 +124,8 @@ class PaneContainer extends Model
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
 
-  itemDestroyed: (item) ->
-    @emit 'item-destroyed', item
+  paneItemDestroyed: (item) ->
+    @emitter.emit 'did-destroy-pane-item', item
 
   # Called by Model superclass when destroyed
   destroyed: ->

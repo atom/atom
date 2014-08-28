@@ -46,7 +46,8 @@ class Workspace extends Model
 
     @openers = []
 
-    @subscribe @paneContainer, 'item-destroyed', @onPaneItemDestroyed
+    @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
+
     @registerOpener (filePath) =>
       switch filePath
         when 'atom://.atom/stylesheet'
