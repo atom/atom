@@ -55,6 +55,10 @@ class Pane extends Model
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
+  ###
+  Section: Event Subscription
+  ###
+
   # Public: Invoke the given callback when the pane is activated.
   #
   # The given callback will be invoked whenever {::activate} is called on the
@@ -165,12 +169,6 @@ class Pane extends Model
   onWillDestroyItem: (callback) ->
     @emitter.on 'will-destroy-item', callback
 
-  # Public: Determine whether the pane is active.
-  #
-  # Returns a {Boolean}.
-  isActive: ->
-    @container?.getActivePane() is this
-
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
@@ -181,13 +179,11 @@ class Pane extends Model
     @focused = false
     true # if this is called from an event handler, don't cancel it
 
-  # Public: Makes this pane the *active* pane, causing it to gain focus.
-  activate: ->
-    @container?.setActivePane(this)
-    @emit 'activated'
-    @emitter.emit 'did-activate'
-
   getPanes: -> [this]
+
+  ###
+  Section: Items
+  ###
 
   # Public: Get the items in this pane.
   #
@@ -358,22 +354,6 @@ class Pane extends Model
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
-  # Public: Destroy the pane and all its items.
-  #
-  # If this is the last pane, all the items will be destroyed but the pane
-  # itself will not be destroyed.
-  destroy: ->
-    if @container?.isAlive() and @container.getPanes().length is 1
-      @destroyItems()
-    else
-      super
-
-  # Called by model superclass.
-  destroyed: ->
-    @emitter.emit 'did-destroy'
-    @container.activateNextPane() if @isActive()
-    item.destroy?() for item in @items.slice()
-
   promptToSaveItem: (item) ->
     return true unless item.shouldPromptToSave?()
 
@@ -451,6 +431,42 @@ class Pane extends Model
   copyActiveItem: ->
     if @activeItem?
       @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
+
+  ###
+  Section: Lifecycle
+  ###
+
+  # Public: Determine whether the pane is active.
+  #
+  # Returns a {Boolean}.
+  isActive: ->
+    @container?.getActivePane() is this
+
+  # Public: Makes this pane the *active* pane, causing it to gain focus.
+  activate: ->
+    @container?.setActivePane(this)
+    @emit 'activated'
+    @emitter.emit 'did-activate'
+
+  # Public: Close the pane and destroy all its items.
+  #
+  # If this is the last pane, all the items will be destroyed but the pane
+  # itself will not be destroyed.
+  destroy: ->
+    if @container?.isAlive() and @container.getPanes().length is 1
+      @destroyItems()
+    else
+      super
+
+  # Called by model superclass.
+  destroyed: ->
+    @emitter.emit 'did-destroy'
+    @container.activateNextPane() if @isActive()
+    item.destroy?() for item in @items.slice()
+
+  ###
+  Section: Splitting
+  ###
 
   # Public: Create a new pane to the left of this pane.
   #
