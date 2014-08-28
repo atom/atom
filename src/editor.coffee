@@ -1510,30 +1510,156 @@ class Editor extends Model
   Section: Cursors
   ###
 
-  # Public: Determine if there are multiple cursors.
+  # Essential: Determine if there are multiple cursors.
   hasMultipleCursors: ->
     @getCursors().length > 1
 
-  # Public: Get an Array of all {Cursor}s.
-  getCursors: -> new Array(@cursors...)
+  # Essential: Add a cursor at the given position in buffer coordinates.
+  #
+  # Returns a {Cursor}.
+  addCursorAtBufferPosition: (bufferPosition) ->
+    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor
 
-  # Public: Get the most recently added {Cursor}.
-  getCursor: ->
-    _.last(@cursors)
-
-  # Public: Add a cursor at the position in screen coordinates.
+  # Essential: Add a cursor at the position in screen coordinates.
   #
   # Returns a {Cursor}.
   addCursorAtScreenPosition: (screenPosition) ->
     @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor
 
-  # Public: Add a cursor at the given position in buffer coordinates.
+  # Essential: Move the cursor to the given position in screen coordinates.
   #
-  # Returns a {Cursor}.
-  addCursorAtBufferPosition: (bufferPosition) ->
-    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
-    @getLastSelection().cursor
+  # If there are multiple cursors, they will be consolidated to a single cursor.
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`
+  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
+  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
+  #     position. Defaults to true.
+  setCursorScreenPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
+
+  # Essential: Get the position of the most recently added cursor in screen
+  # coordinates.
+  #
+  # Returns a {Point}.
+  getCursorScreenPosition: ->
+    @getCursor().getScreenPosition()
+
+  # Essential: Move the cursor to the given position in buffer coordinates.
+  #
+  # If there are multiple cursors, they will be consolidated to a single cursor.
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`
+  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
+  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
+  #     position. Defaults to true.
+  setCursorBufferPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
+
+  # Essential: Get the position of the most recently added cursor in buffer
+  # coordinates.
+  #
+  # Returns a {Point}.
+  getCursorBufferPosition: ->
+    @getCursor().getBufferPosition()
+
+  # Essential: Move every cursor up one row in screen coordinates.
+  moveCursorUp: (lineCount) ->
+    @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
+
+  # Essential: Move every cursor down one row in screen coordinates.
+  moveCursorDown: (lineCount) ->
+    @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
+
+  # Essential: Move every cursor left one column.
+  moveCursorLeft: ->
+    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
+
+  # Essential: Move every cursor right one column.
+  moveCursorRight: ->
+    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
+
+  # Essential: Move every cursor to the beginning of its line in buffer coordinates.
+  moveCursorToBeginningOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
+
+  # Essential: Move every cursor to the beginning of its line in screen coordinates.
+  moveCursorToBeginningOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
+
+  # Essential: Move every cursor to the first non-whitespace character of its line.
+  moveCursorToFirstCharacterOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+
+  # Essential: Move every cursor to the end of its line in buffer coordinates.
+  moveCursorToEndOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfLine()
+
+  # Essential: Move every cursor to the end of its line in screen coordinates.
+  moveCursorToEndOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfScreenLine()
+
+  # Essential: Move every cursor to the beginning of its surrounding word.
+  moveCursorToBeginningOfWord: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
+
+  # Essential: Move every cursor to the end of its surrounding word.
+  moveCursorToEndOfWord: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfWord()
+
+  # Cursor Extended
+
+  # Extended: Move every cursor to the top of the buffer.
+  #
+  # If there are multiple cursors, they will be merged into a single cursor.
+  moveCursorToTop: ->
+    @moveCursors (cursor) -> cursor.moveToTop()
+
+  # Extended: Move every cursor to the bottom of the buffer.
+  #
+  # If there are multiple cursors, they will be merged into a single cursor.
+  moveCursorToBottom: ->
+    @moveCursors (cursor) -> cursor.moveToBottom()
+
+  # Extended: Move every cursor to the beginning of the next word.
+  moveCursorToBeginningOfNextWord: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
+
+  # Extended: Move every cursor to the previous word boundary.
+  moveCursorToPreviousWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
+
+  # Extended: Move every cursor to the next word boundary.
+  moveCursorToNextWordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
+
+  # Extended: Move every cursor to the beginning of the next paragraph.
+  moveCursorToBeginningOfNextParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
+
+  # Extended: Move every cursor to the beginning of the previous paragraph.
+  moveCursorToBeginningOfPreviousParagraph: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
+
+  # Extended: Get the row of the most recently added cursor in screen coordinates.
+  #
+  # Returns the screen row {Number}.
+  getCursorScreenRow: ->
+    @getCursor().getScreenRow()
+
+  # Extended: Returns the word surrounding the most recently added cursor.
+  #
+  # * `options` (optional) See {Cursor::getBeginningOfCurrentWordBufferPosition}.
+  getWordUnderCursor: (options) ->
+    @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
+
+  # Extended: Get an Array of all {Cursor}s.
+  getCursors: -> new Array(@cursors...)
+
+  # Extended: Get the most recently added {Cursor}.
+  getCursor: ->
+    _.last(@cursors)
 
   # Add a cursor based on the given {DisplayBufferMarker}.
   addCursor: (marker) ->
@@ -1549,130 +1675,6 @@ class Editor extends Model
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
     @emit 'cursor-removed', cursor
-
-  # Public: Move the cursor to the given position in screen coordinates.
-  #
-  # If there are multiple cursors, they will be consolidated to a single cursor.
-  #
-  # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
-  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
-  #     position. Defaults to true.
-  setCursorScreenPosition: (position, options) ->
-    @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
-
-  # Public: Get the position of the most recently added cursor in screen
-  # coordinates.
-  #
-  # Returns a {Point}.
-  getCursorScreenPosition: ->
-    @getCursor().getScreenPosition()
-
-  # Public: Get the row of the most recently added cursor in screen coordinates.
-  #
-  # Returns the screen row {Number}.
-  getCursorScreenRow: ->
-    @getCursor().getScreenRow()
-
-  # Public: Move the cursor to the given position in buffer coordinates.
-  #
-  # If there are multiple cursors, they will be consolidated to a single cursor.
-  #
-  # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
-  #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
-  #     position. Defaults to true.
-  setCursorBufferPosition: (position, options) ->
-    @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
-
-  # Public: Get the position of the most recently added cursor in buffer
-  # coordinates.
-  #
-  # Returns a {Point}.
-  getCursorBufferPosition: ->
-    @getCursor().getBufferPosition()
-
-  # Public: Returns the word surrounding the most recently added cursor.
-  #
-  # * `options` (optional) See {Cursor::getBeginningOfCurrentWordBufferPosition}.
-  getWordUnderCursor: (options) ->
-    @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
-
-  # Public: Move every cursor up one row in screen coordinates.
-  moveCursorUp: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
-
-  # Public: Move every cursor down one row in screen coordinates.
-  moveCursorDown: (lineCount) ->
-    @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
-
-  # Public: Move every cursor left one column.
-  moveCursorLeft: ->
-    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
-
-  # Public: Move every cursor right one column.
-  moveCursorRight: ->
-    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
-
-  # Public: Move every cursor to the top of the buffer.
-  #
-  # If there are multiple cursors, they will be merged into a single cursor.
-  moveCursorToTop: ->
-    @moveCursors (cursor) -> cursor.moveToTop()
-
-  # Public: Move every cursor to the bottom of the buffer.
-  #
-  # If there are multiple cursors, they will be merged into a single cursor.
-  moveCursorToBottom: ->
-    @moveCursors (cursor) -> cursor.moveToBottom()
-
-  # Public: Move every cursor to the beginning of its line in screen coordinates.
-  moveCursorToBeginningOfScreenLine: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
-
-  # Public: Move every cursor to the beginning of its line in buffer coordinates.
-  moveCursorToBeginningOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
-
-  # Public: Move every cursor to the first non-whitespace character of its line.
-  moveCursorToFirstCharacterOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
-
-  # Public: Move every cursor to the end of its line in screen coordinates.
-  moveCursorToEndOfScreenLine: ->
-    @moveCursors (cursor) -> cursor.moveToEndOfScreenLine()
-
-  # Public: Move every cursor to the end of its line in buffer coordinates.
-  moveCursorToEndOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToEndOfLine()
-
-  # Public: Move every cursor to the beginning of its surrounding word.
-  moveCursorToBeginningOfWord: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
-
-  # Public: Move every cursor to the end of its surrounding word.
-  moveCursorToEndOfWord: ->
-    @moveCursors (cursor) -> cursor.moveToEndOfWord()
-
-  # Public: Move every cursor to the beginning of the next word.
-  moveCursorToBeginningOfNextWord: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
-
-  # Public: Move every cursor to the previous word boundary.
-  moveCursorToPreviousWordBoundary: ->
-    @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
-
-  # Public: Move every cursor to the next word boundary.
-  moveCursorToNextWordBoundary: ->
-    @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
-
-  # Public: Move every cursor to the beginning of the next paragraph.
-  moveCursorToBeginningOfNextParagraph: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
-
-  # Public: Move every cursor to the beginning of the previous paragraph.
-  moveCursorToBeginningOfPreviousParagraph: ->
-    @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
 
   moveCursors: (fn) ->
     @movingCursors = true
@@ -1702,7 +1704,6 @@ class Editor extends Model
     @subscribe @buffer, "reloaded", =>
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
-
 
   ###
   Section: Selections
