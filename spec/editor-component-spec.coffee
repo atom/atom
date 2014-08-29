@@ -814,8 +814,8 @@ describe "EditorComponent", ->
     it "does not render empty selections", ->
       editor.addSelectionForBufferRange([[2, 2], [2, 2]])
       nextAnimationFrame()
-      expect(editor.getSelectionAtIndex(0).isEmpty()).toBe true
-      expect(editor.getSelectionAtIndex(1).isEmpty()).toBe true
+      expect(editor.getSelections()[0].isEmpty()).toBe true
+      expect(editor.getSelections()[1].isEmpty()).toBe true
 
       expect(componentNode.querySelectorAll('.selection').length).toBe 0
 

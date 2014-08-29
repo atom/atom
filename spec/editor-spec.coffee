@@ -30,7 +30,7 @@ describe "Editor", ->
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
       expect(editor2.getSelectedBufferRanges()).toEqual [[[1, 2], [3, 4]], [[5, 6], [7, 5]]]
-      expect(editor2.getSelectionAtIndex(1).isReversed()).toBeTruthy()
+      expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
 
@@ -88,7 +88,7 @@ describe "Editor", ->
       editor2 = editor.copy()
       expect(editor2.id).not.toBe editor.id
       expect(editor2.getSelectedBufferRanges()).toEqual editor.getSelectedBufferRanges()
-      expect(editor2.getSelectionAtIndex(1).isReversed()).toBeTruthy()
+      expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
 
       # editor2 can now diverge from its origin edit session

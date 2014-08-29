@@ -2083,19 +2083,10 @@ class Editor extends Model
   getLastSelection: ->
     _.last(@selections)
 
-  # Extended: Gets the selection at the given index.
-  #
-  # * `index` The index of the selection to return, based on the order in which
-  #   the selections were added.
-  #
-  # Returns a {Selection}.
-  getSelectionAtIndex: (index) ->
-    @selections[index]
-
   # Deprecated:
   getSelection: (index) ->
     if index?
-      deprecate("Use Editor::getSelectionAtIndex(index) instead when getting a specific selection at an index")
+      deprecate("Use Editor::getSelections()[index] instead when getting a specific selection")
       @getSelectionAtIndex(index)
     else
       deprecate("Use Editor::getLastSelection() instead")
