@@ -277,11 +277,23 @@ class Workspace extends Model
   getOpeners: ->
     @openers
 
+  # Public: Get all panes in the workspace.
+  #
+  # Returns an {Array} of {Pane}s.
+  getPanes: ->
+    @paneContainer.getPanes()
+
   # Public: Get the active {Pane}.
   #
   # Returns a {Pane}.
   getActivePane: ->
     @paneContainer.getActivePane()
+
+  # Public: Get all pane items in the workspace.
+  #
+  # Returns an {Array} of items.
+  getPaneItems: ->
+    @paneContainer.getPaneItems()
 
   # Public: Get the active {Pane}'s active item.
   #
