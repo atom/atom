@@ -6,7 +6,7 @@ describe "Selection", ->
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
     editor = new Editor(buffer: buffer, tabLength: 2)
-    selection = editor.getSelection()
+    selection = editor.getLastSelection()
 
   afterEach ->
     buffer.destroy()

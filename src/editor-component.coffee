@@ -51,7 +51,7 @@ EditorComponent = React.createClass
     {focused, showIndentGuide, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
-    hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
+    hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
 
     if @performedInitialMeasurement
@@ -661,7 +661,7 @@ EditorComponent = React.createClass
   onGutterShiftClick: (event) ->
     {editor} = @props
     clickedRow = @screenPositionForMouseEvent(event).row
-    tailPosition = editor.getSelection().getTailScreenPosition()
+    tailPosition = editor.getLastSelection().getTailScreenPosition()
 
     if clickedRow < tailPosition.row
       editor.selectToScreenPosition([clickedRow, 0])

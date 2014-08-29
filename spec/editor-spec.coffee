@@ -30,7 +30,7 @@ describe "Editor", ->
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
       expect(editor2.getSelectedBufferRanges()).toEqual [[[1, 2], [3, 4]], [[5, 6], [7, 5]]]
-      expect(editor2.getSelection(1).isReversed()).toBeTruthy()
+      expect(editor2.getSelectionAtIndex(1).isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
 
@@ -88,11 +88,11 @@ describe "Editor", ->
       editor2 = editor.copy()
       expect(editor2.id).not.toBe editor.id
       expect(editor2.getSelectedBufferRanges()).toEqual editor.getSelectedBufferRanges()
-      expect(editor2.getSelection(1).isReversed()).toBeTruthy()
+      expect(editor2.getSelectionAtIndex(1).isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
 
       # editor2 can now diverge from its origin edit session
-      editor2.getSelection().setBufferRange([[2, 1], [4, 3]])
+      editor2.getLastSelection().setBufferRange([[2, 1], [4, 3]])
       expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
       editor2.unfoldBufferRow(4)
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
@@ -863,7 +863,7 @@ describe "Editor", ->
     selection = null
 
     beforeEach ->
-      selection = editor.getSelection()
+      selection = editor.getLastSelection()
 
     describe ".selectUp/Down/Left/Right()", ->
       it "expands each selection to its cursor's new location", ->
@@ -989,8 +989,8 @@ describe "Editor", ->
         editor.selectToTop()
         expect(editor.getCursors().length).toBe 1
         expect(editor.getCursorBufferPosition()).toEqual [0,0]
-        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [11,2]]
-        expect(editor.getSelection().isReversed()).toBeTruthy()
+        expect(editor.getLastSelection().getBufferRange()).toEqual [[0,0], [11,2]]
+        expect(editor.getLastSelection().isReversed()).toBeTruthy()
 
     describe ".selectToBottom()", ->
       it "selects text from cusor position to the bottom of the buffer", ->
@@ -999,13 +999,13 @@ describe "Editor", ->
         editor.selectToBottom()
         expect(editor.getCursors().length).toBe 1
         expect(editor.getCursorBufferPosition()).toEqual [12,2]
-        expect(editor.getSelection().getBufferRange()).toEqual [[9,3], [12,2]]
-        expect(editor.getSelection().isReversed()).toBeFalsy()
+        expect(editor.getLastSelection().getBufferRange()).toEqual [[9,3], [12,2]]
+        expect(editor.getLastSelection().isReversed()).toBeFalsy()
 
     describe ".selectAll()", ->
       it "selects the entire buffer", ->
         editor.selectAll()
-        expect(editor.getSelection().getBufferRange()).toEqual buffer.getRange()
+        expect(editor.getLastSelection().getBufferRange()).toEqual buffer.getRange()
 
     describe ".selectToBeginningOfLine()", ->
       it "selects text from cusor position to beginning of line", ->
@@ -1231,7 +1231,7 @@ describe "Editor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
 
       it "recyles existing selection instances", ->
-        selection = editor.getSelection()
+        selection = editor.getLastSelection()
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
 
         [selection1, selection2] = editor.getSelections()
@@ -1277,7 +1277,7 @@ describe "Editor", ->
         expect(editor.getSelectedScreenRanges()).toEqual [[[2, 2], [8, 5]]]
 
       it "recyles existing selection instances", ->
-        selection = editor.getSelection()
+        selection = editor.getLastSelection()
         editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
 
         [selection1, selection2] = editor.getSelections()
@@ -1507,7 +1507,7 @@ describe "Editor", ->
     describe ".consolidateSelections()", ->
       it "destroys all selections but the most recent, returning true if any selections were destroyed", ->
         editor.setSelectedBufferRange([[3, 16], [3, 21]])
-        selection1 = editor.getSelection()
+        selection1 = editor.getLastSelection()
         selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
         selection3 = editor.addSelectionForBufferRange([[8, 4], [8, 10]])
 
@@ -2172,7 +2172,7 @@ describe "Editor", ->
           editor.delete()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
-          expect(editor.getSelection().isEmpty()).toBeTruthy()
+          expect(editor.getLastSelection().isEmpty()).toBeTruthy()
 
       describe "when there are multiple selections", ->
         describe "when selections are on the same line", ->
@@ -2295,7 +2295,7 @@ describe "Editor", ->
       describe "when the selection is not empty", ->
         it "indents the selected lines", ->
           editor.setSelectedBufferRange([[0, 0], [10, 0]])
-          selection = editor.getSelection()
+          selection = editor.getLastSelection()
           spyOn(selection, "indentSelectedRows")
           editor.indent()
           expect(selection.indentSelectedRows).toHaveBeenCalled()
@@ -2588,7 +2588,7 @@ describe "Editor", ->
       it "preserves selection emptiness", ->
         editor.setCursorBufferPosition([4, 0])
         editor.toggleLineCommentsInSelection()
-        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect(editor.getLastSelection().isEmpty()).toBeTruthy()
 
       it "does not explode if the current language mode has no comment regex", ->
         editor.destroy()
@@ -2979,7 +2979,7 @@ describe "Editor", ->
       editor.insertText(text)
       numberOfNewlines = text.match(/\n/g)?.length
       endColumn = text.match(/[^\n]*$/)[0]?.length
-      editor.getSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
+      editor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
       editor.cutSelectedText()
 
     describe "editor.autoIndent", ->
@@ -3139,7 +3139,7 @@ describe "Editor", ->
     it "autoIndentSelectedRows auto-indents the selection", ->
       editor.setCursorBufferPosition([2, 0])
       editor.insertText("function() {\ninside=true\n}\n  i=1\n")
-      editor.getSelection().setBufferRange([[2,0], [6,0]])
+      editor.getLastSelection().setBufferRange([[2,0], [6,0]])
       editor.autoIndentSelectedRows()
 
       expect(editor.lineForBufferRow(2)).toBe "    function() {"

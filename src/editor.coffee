@@ -2077,22 +2077,29 @@ class Editor extends Model
   getLastSelection: ->
     _.last(@selections)
 
-  # Extended: Get the most recent {Selection} or the selection at the given
-  # index.
+  # Extended: Gets the selection at the given index.
   #
-  # * `index` (optional) The index of the selection to return, based on the order
-  #   in which the selections were added.
+  # * `index` The index of the selection to return, based on the order in which
+  #   the selections were added.
   #
   # Returns a {Selection}.
-  # or the  at the specified index.
-  getSelection: (index) ->
-    index ?= @selections.length - 1
+  getSelectionAtIndex: (index) ->
     @selections[index]
+
+  # Deprecated:
+  getSelection: (index) ->
+    if index?
+      deprecate("Use Editor::getSelectionAtIndex(index) instead when getting a specific selection at an index")
+      @getSelectionAtIndex(index)
+    else
+      deprecate("Use Editor::getLastSelection() instead")
+      @getLastSelection()
 
   # Extended: Get current {Selection}s.
   #
   # Returns: An {Array} of {Selection}s.
-  getSelections: -> new Array(@selections...)
+  getSelections: ->
+    selection for selection in @selections
 
   # Extended: Get all {Selection}s, ordered by their position in the buffer
   # instead of the order in which they were added.
@@ -2207,7 +2214,7 @@ class Editor extends Model
   # recently added cursor.
   clearSelections: ->
     @consolidateSelections()
-    @getSelection().clear()
+    @getLastSelection().clear()
 
   # Reduce multiple selections to the most recently added selection.
   consolidateSelections: ->
