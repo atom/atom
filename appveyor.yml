@@ -12,6 +12,8 @@ install:
   - cinst git.install
   - cinst nodejs.install
   - cinst python -Version 2.7.2
+  - cinst VisualStudioExpress2013WindowsDesktop
+  - cinst githubforwindows
   - git clone http://github.com/batjko/atom
   - cd atom
   - script/build
