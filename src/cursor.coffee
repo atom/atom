@@ -251,9 +251,9 @@ class Cursor extends Model
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row + rowCount, column: column})
     @goalColumn = column
-  moveCursorUp: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveUp() instead. `Cursor` has been removed from these methods.")
-    @moveUp(rowCount, options)
+  moveCursorDown: (rowCount=1, options) ->
+    deprecate("Use Cursor::moveDown() instead. `Cursor` has been removed from these methods.")
+    @moveDown(rowCount, options)
 
   # Public: Moves the cursor left one screen column.
   #
@@ -268,9 +268,9 @@ class Cursor extends Model
       {row, column} = @getScreenPosition()
       [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
       @setScreenPosition({row, column})
-  moveCursorUp: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveUp() instead. `Cursor` has been removed from these methods.")
-    @moveUp(rowCount, options)
+  moveCursorLeft: (rowCount=1, options) ->
+    deprecate("Use Cursor::moveLeft() instead. `Cursor` has been removed from these methods.")
+    @moveLeft(rowCount, options)
 
   # Public: Moves the cursor right one screen column.
   #
