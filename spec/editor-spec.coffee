@@ -3279,7 +3279,7 @@ describe "Editor", ->
 
   describe ".setIndentationForBufferRow", ->
     describe "when the editor uses soft tabs but the row has hard tabs", ->
-      it "only replaces whitespace charachters", ->
+      it "only replaces whitespace characters", ->
         editor.setSoftWrap(true)
         editor.setText("\t1\n\t2")
         editor.setCursorBufferPosition([0, 0])

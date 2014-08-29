@@ -835,7 +835,7 @@ class Editor extends Model
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
       if match = @buffer.lineForRow(bufferRow).match(/^[ \t]/)
-        return match[0][0] == ' '
+        return match[0][0] is ' '
     undefined
 
   # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
@@ -970,7 +970,6 @@ class Editor extends Model
       _.multiplyString(" ", Math.floor(number * @getTabLength()) - tabStopViolation)
     else
       _.multiplyString("\t", Math.floor(number))
-
 
   ###
   Section: Undo Operations
