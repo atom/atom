@@ -830,7 +830,8 @@ class Editor extends Model
   # Returns `true` if the first non-comment line with leading whitespace starts
   # with a space character. Returns `false` if it starts with a hard tab (`\t`).
   #
-  # Returns a {Boolean}
+  # Returns a {Boolean} or undefined if no non-comment lines had leading
+  # whitespace.
   usesSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
