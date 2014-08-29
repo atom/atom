@@ -1261,6 +1261,29 @@ describe "Editor", ->
           expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
           expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
 
+    describe ".setSelectedScreenRanges(ranges)", ->
+      beforeEach ->
+        editor.foldBufferRow(4)
+
+      it "clears existing selections and creates selections for each of the given ranges", ->
+        editor.setSelectedScreenRanges([[[3, 4], [3, 7]], [[5, 4], [5, 7]]])
+        expect(editor.getSelectedBufferRanges()).toEqual [[[3, 4], [3, 7]], [[8, 4], [8, 7]]]
+
+        editor.setSelectedScreenRanges([[[6, 2], [6, 4]]])
+        expect(editor.getSelectedScreenRanges()).toEqual [[[6, 2], [6, 4]]]
+
+      it "merges intersecting selections and unfolds the fold", ->
+        editor.setSelectedScreenRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
+        expect(editor.getSelectedScreenRanges()).toEqual [[[2, 2], [8, 5]]]
+
+      it "recyles existing selection instances", ->
+        selection = editor.getSelection()
+        editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
+
+        [selection1, selection2] = editor.getSelections()
+        expect(selection1).toBe selection
+        expect(selection1.getScreenRange()).toEqual [[2, 2], [3, 4]]
+
     describe ".setSelectedBufferRange(range)", ->
       describe "when the 'autoscroll' option is true", ->
         it "autoscrolls to the selection", ->

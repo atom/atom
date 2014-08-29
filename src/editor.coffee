@@ -1868,6 +1868,27 @@ class Editor extends Model
   setSelectedScreenRange: (screenRange, options) ->
     @setSelectedBufferRange(@bufferRangeForScreenRange(screenRange, options), options)
 
+  # Essential: Set the selected ranges in screen coordinates. If there are multiple
+  # selections, they are replaced by new selections with the given ranges.
+  #
+  # * `screenRanges` An {Array} of {Range}s or range-compatible {Array}s.
+  # * `options` (optional) An options {Object}:
+  #   * `reversed` A {Boolean} indicating whether to create the selection in a
+  #     reversed orientation.
+  setSelectedScreenRanges: (screenRanges, options={}) ->
+    throw new Error("Passed an empty array to setSelectedScreenRanges") unless screenRanges.length
+
+    selections = @getSelections()
+    selection.destroy() for selection in selections[screenRanges.length...]
+
+    @mergeIntersectingSelections options, =>
+      for screenRange, i in screenRanges
+        screenRange = Range.fromObject(screenRange)
+        if selections[i]
+          selections[i].setScreenRange(screenRange, options)
+        else
+          @addSelectionForScreenRange(screenRange, options)
+
   # Essential: Add a selection for the given range in buffer coordinates.
   #
   # * `bufferRange` A {Range}
@@ -1878,6 +1899,20 @@ class Editor extends Model
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
     @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    selection = @getLastSelection()
+    selection.autoscroll() if @manageScrollPosition
+    selection
+
+  # Essential: Add a selection for the given range in screen coordinates.
+  #
+  # * `screenRange` A {Range}
+  # * `options` (optional) An options {Object}:
+  #   * `reversed` A {Boolean} indicating whether to create the selection in a
+  #     reversed orientation.
+  #
+  # Returns the added {Selection}.
+  addSelectionForScreenRange: (screenRange, options={}) ->
+    @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
     selection = @getLastSelection()
     selection.autoscroll() if @manageScrollPosition
     selection
