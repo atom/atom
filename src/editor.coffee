@@ -836,7 +836,7 @@ class Editor extends Model
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
       if match = @buffer.lineForRow(bufferRow).match(/^[ \t]/)
         return match[0][0] is ' '
-    false
+    undefined
 
   # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
   # editor.
@@ -871,8 +871,6 @@ class Editor extends Model
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @getSoftTabs()
     @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
-
-
 
   ###
   Section: Soft Wrap Behavior
