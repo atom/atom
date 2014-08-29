@@ -2087,7 +2087,7 @@ class Editor extends Model
   getSelection: (index) ->
     if index?
       deprecate("Use Editor::getSelections()[index] instead when getting a specific selection")
-      @getSelectionAtIndex(index)
+      @getSelections()[index]
     else
       deprecate("Use Editor::getLastSelection() instead")
       @getLastSelection()
