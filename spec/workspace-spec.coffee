@@ -284,6 +284,21 @@ describe "Workspace", ->
       waitsForPromise -> workspace.openLicense()
       runs -> expect(workspace.activePaneItem.getText()).toMatch /Copyright/
 
+  describe "::observeTextEditors()", ->
+    it "invokes the observer with current and future text editors", ->
+      observed = []
+
+      waitsForPromise -> workspace.open()
+      waitsForPromise -> workspace.open()
+      waitsForPromise -> workspace.openLicense()
+
+      runs ->
+        workspace.observeTextEditors (editor) -> observed.push(editor)
+
+      waitsForPromise -> workspace.open()
+
+      expect(observed).toEqual workspace.getTextEditors()
+
   describe "when an editor is destroyed", ->
     it "removes the editor", ->
       editor = null

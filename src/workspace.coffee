@@ -127,7 +127,32 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
 
-  # Public: Register a function to be called for every current and future
+  # Public: Invoke the given callback when a text editor is added to the
+  # workspace.
+  #
+  # * `callback` {Function} to be called panes are added.
+  #   * `event` {Object} with the following keys:
+  #     * `textEditor` {Editor} that was added.
+  #     * `pane` {Pane} containing the added text editor.
+  #     * `index` {Number} indicating the index of the added text editor in its
+  #        pane.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddTextEditor: (callback) ->
+    @onDidAddPaneItem ({item, pane, index}) ->
+      callback({textEditor: item, pane, index}) if item instanceof Editor
+
+  # Public: Invoke the given callback with all current and future text editors
+  # in the workspace.
+  #
+  # * `callback` {Function} to be called with current and future text editors.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeTextEditors: (callback) ->
+    callback(textEditor) for textEditor in @getTextEditors()
+    @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
+
+  # Deprecated: Register a function to be called for every current and future
   # {Editor} in the workspace.
   #
   # * `callback` A {Function} with an {Editor} as its only argument.
@@ -138,7 +163,7 @@ class Workspace extends Model
     callback(editor) for editor in @getEditors()
     @subscribe this, 'editor-created', (editor) -> callback(editor)
 
-  # Public: Get all current editors in the workspace.
+  # Deprecated: Get all current editors in the workspace.
   #
   # Returns an {Array} of {Editor}s.
   getEditors: ->
@@ -147,6 +172,12 @@ class Workspace extends Model
       editors.push(item) for item in pane.getItems() when item instanceof Editor
 
     editors
+
+  # Public: Get all text editors in the workspace.
+  #
+  # Returns an {Array} of {Editor}s.
+  getTextEditors: ->
+    @getPaneItems().filter (item) -> item instanceof Editor
 
   # Public: Open a given a URI in Atom asynchronously.
   #
