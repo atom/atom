@@ -834,8 +834,8 @@ class Editor extends Model
   usesSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
-      if match = @buffer.lineForRow(bufferRow).match(/^\s/)
-        return match[0][0] != '\t'
+      if match = @buffer.lineForRow(bufferRow).match(/^[ \t]/)
+        return match[0][0] == ' '
     undefined
 
   # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
@@ -975,8 +975,8 @@ class Editor extends Model
   ###
   Section: Undo Operations
   ###
-
   # Public: Undo the last change.
+
   undo: ->
     @getCursor().needsAutoscroll = true
     @buffer.undo(this)
