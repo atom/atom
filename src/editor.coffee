@@ -836,7 +836,7 @@ class Editor extends Model
       continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
       if match = @buffer.lineForRow(bufferRow).match(/^[ \t]/)
         return match[0][0] is ' '
-    undefined
+    false
 
   # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
   # editor.
