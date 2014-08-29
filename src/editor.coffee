@@ -462,7 +462,7 @@ class Editor extends Model
   #
   # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
-    @getCursor().getCurrentParagraphBufferRange()
+    @getLastCursor().getCurrentParagraphBufferRange()
 
 
   ###
@@ -978,12 +978,12 @@ class Editor extends Model
 
   # Public: Undo the last change.
   undo: ->
-    @getCursor().needsAutoscroll = true
+    @getLastCursor().needsAutoscroll = true
     @buffer.undo(this)
 
   # Public: Redo the last change.
   redo: ->
-    @getCursor().needsAutoscroll = true
+    @getLastCursor().needsAutoscroll = true
     @buffer.redo(this)
 
   ###
@@ -1159,7 +1159,7 @@ class Editor extends Model
   # position. See {::scopesForBufferPosition} for more information.
   #
   # Returns an {Array} of {String}s.
-  getCursorScopes: -> @getCursor().getScopes()
+  getCursorScopes: -> @getLastCursor().getScopes()
 
   logCursorScope: ->
     console.log @getCursorScopes()
@@ -1217,7 +1217,7 @@ class Editor extends Model
       return
 
     else if atom.config.get("editor.normalizeIndentOnPaste") and metadata?.indentBasis?
-      if !@getCursor().hasPrecedingCharactersOnLine() or containsNewlines
+      if !@getLastCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)
@@ -1515,7 +1515,7 @@ class Editor extends Model
   #
   # Returns a {Point}
   getCursorBufferPosition: ->
-    @getCursor().getBufferPosition()
+    @getLastCursor().getBufferPosition()
 
   # Essential: Get the position of all the cursor positions in buffer coordinates.
   #
@@ -1539,7 +1539,7 @@ class Editor extends Model
   #
   # Returns a {Point}.
   getCursorScreenPosition: ->
-    @getCursor().getScreenPosition()
+    @getLastCursor().getScreenPosition()
 
   # Essential: Get the position of all the cursor positions in screen coordinates.
   #
@@ -1723,18 +1723,24 @@ class Editor extends Model
     deprecate("Use Editor::moveToBeginningOfPreviousParagraph() instead")
     @moveToBeginningOfPreviousParagraph()
 
-  # Extended: Get the most recently added {Cursor}.
-  getCursor: ->
+  # Extended: Returns the most recently added {Cursor}
+  getLastCursor: ->
     _.last(@cursors)
+
+  # Deprecated:
+  getCursor: ->
+    deprecate("Use Editor::getLastCursor() instead")
+    @getLastCursor()
 
   # Extended: Returns the word surrounding the most recently added cursor.
   #
   # * `options` (optional) See {Cursor::getBeginningOfCurrentWordBufferPosition}.
   getWordUnderCursor: (options) ->
-    @getTextInBufferRange(@getCursor().getCurrentWordBufferRange(options))
+    @getTextInBufferRange(@getLastCursor().getCurrentWordBufferRange(options))
 
   # Extended: Get an Array of all {Cursor}s.
-  getCursors: -> new Array(@cursors...)
+  getCursors: ->
+    cursor for cursor in @cursors
 
   # Extended: Get all {Cursors}s, ordered by their position in the buffer
   # instead of the order in which they were added.
@@ -2239,7 +2245,7 @@ class Editor extends Model
   # * `options` (optional) {Object}
   #   * `center` Center the editor around the cursor if possible. Defauls to true.
   scrollToCursorPosition: (options) ->
-    @getCursor().autoscroll(center: options?.center ? true)
+    @getLastCursor().autoscroll(center: options?.center ? true)
 
   pageUp: ->
     newScrollTop = @getScrollTop() - @getHeight()

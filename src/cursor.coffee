@@ -158,7 +158,7 @@ class Cursor extends Model
   #
   # Returns a {Boolean}.
   isLastCursor: ->
-    this == @editor.getCursor()
+    this == @editor.getLastCursor()
 
   # Public: Identifies if the cursor is surrounded by whitespace.
   #

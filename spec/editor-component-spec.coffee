@@ -601,7 +601,7 @@ describe "EditorComponent", ->
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
-      cursor1 = editor.getCursor()
+      cursor1 = editor.getLastCursor()
       cursor1.setScreenPosition([0, 5])
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -1437,7 +1437,7 @@ describe "EditorComponent", ->
     cursor = null
 
     beforeEach ->
-      cursor = editor.getCursor()
+      cursor = editor.getLastCursor()
       cursor.setScreenPosition([0, 0])
 
     it "adds the 'has-selection' class to the editor when there is a selection", ->

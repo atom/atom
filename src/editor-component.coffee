@@ -258,9 +258,9 @@ EditorComponent = React.createClass
   getHiddenInputPosition: ->
     {editor} = @props
     {focused} = @state
-    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
+    return {top: 0, left: 0} unless @isMounted() and focused and editor.getLastCursor()?
 
-    {top, left, height, width} = editor.getCursor().getPixelRect()
+    {top, left, height, width} = editor.getLastCursor().getPixelRect()
     width = 2 if width is 0 # Prevent autoscroll at the end of longest line
     top -= editor.getScrollTop()
     left -= editor.getScrollLeft()
