@@ -11,8 +11,7 @@ init:
 install:
   - cinst nodejs.install
   - cinst python -Version 2.7.2
-  - cinst githubforwindows
-  - cd C:\Projects\Atom
+  - cd C:\Projects\Atom\atom
   - script/build
 
 build_script:
