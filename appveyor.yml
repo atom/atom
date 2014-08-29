@@ -14,8 +14,7 @@ install:
   - cinst python -Version 2.7.2
   - cinst VisualStudioExpress2013WindowsDesktop
   - cinst githubforwindows
-  - git clone http://github.com/batjko/atom
-  - cd atom
+  - cd C:\Projects\Atom
   - script/build
 
 build_script:
