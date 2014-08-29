@@ -16,17 +16,6 @@ Pane = require './pane'
 # editors, and manipulate panes. To add panels, you'll need to use the
 # {WorkspaceView} class for now until we establish APIs at the model layer.
 #
-# ## Events
-#
-# ### uri-opened
-#
-# Extended: Emit when something has been opened. This can be anything, from an
-# editor to the settings view. You can get the new item via {::getActivePaneItem}
-#
-# ### editor-created
-#
-# Extended: Emit when an editor is created (a file opened).
-#
 # * `editor` {Editor} the new editor
 #
 module.exports =
@@ -90,7 +79,11 @@ class Workspace extends Model
   editorAdded: (editor) ->
     @emit 'editor-created', editor
 
-  # Public: Invoke the given callback when a pane is added to the workspace.
+  ###
+  Section: Event Subscription
+  ###
+
+  # Extended: Invoke the given callback when a pane is added to the workspace.
   #
   # * `callback` {Function} to be called panes are added.
   #   * `event` {Object} with the following keys:
@@ -99,7 +92,7 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPane: (callback) -> @paneContainer.onDidAddPane(callback)
 
-  # Public: Invoke the given callback with all current and future panes in the
+  # Extended: Invoke the given callback with all current and future panes in the
   # workspace.
   #
   # * `callback` {Function} to be called with current and future panes.
@@ -107,7 +100,7 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePanes: (callback) -> @paneContainer.observePanes(callback)
 
-  # Public: Invoke the given callback when a pane item is added to the
+  # Extended: Invoke the given callback when a pane item is added to the
   # workspace.
   #
   # * `callback` {Function} to be called panes are added.
@@ -119,7 +112,7 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
 
-  # Public: Invoke the given callback with all current and future panes items in
+  # Extended: Invoke the given callback with all current and future panes items in
   # the workspace.
   #
   # * `callback` {Function} to be called with current and future pane items.
@@ -127,7 +120,7 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
 
-  # Public: Invoke the given callback when a text editor is added to the
+  # Extended: Invoke the given callback when a text editor is added to the
   # workspace.
   #
   # * `callback` {Function} to be called panes are added.
@@ -142,8 +135,8 @@ class Workspace extends Model
     @onDidAddPaneItem ({item, pane, index}) ->
       callback({textEditor: item, pane, index}) if item instanceof Editor
 
-  # Public: Invoke the given callback with all current and future text editors
-  # in the workspace.
+  # Essential: Invoke the given callback with all current and future text
+  # editors in the workspace.
   #
   # * `callback` {Function} to be called with current and future text editors.
   #
@@ -173,13 +166,11 @@ class Workspace extends Model
 
     editors
 
-  # Public: Get all text editors in the workspace.
-  #
-  # Returns an {Array} of {Editor}s.
-  getTextEditors: ->
-    @getPaneItems().filter (item) -> item instanceof Editor
+  ###
+  Section: Opening
+  ###
 
-  # Public: Open a given a URI in Atom asynchronously.
+  # Essential: Open a given a URI in Atom asynchronously.
   #
   # * `uri` A {String} containing a URI.
   # * `options` (optional) {Object}
@@ -269,7 +260,7 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
+  # Extended: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
   #
   # Returns a promise that is resolved when the item is opened
@@ -285,7 +276,7 @@ class Workspace extends Model
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
 
-  # Public: Register an opener for a uri.
+  # Extended: Register an opener for a uri.
   #
   # An {Editor} will be used if no openers return a value.
   #
@@ -301,64 +292,52 @@ class Workspace extends Model
   registerOpener: (opener) ->
     @openers.push(opener)
 
-  # Public: Unregister an opener registered with {::registerOpener}.
+  # Extended: Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
     _.remove(@openers, opener)
 
   getOpeners: ->
     @openers
 
-  # Public: Get all panes in the workspace.
-  #
-  # Returns an {Array} of {Pane}s.
-  getPanes: ->
-    @paneContainer.getPanes()
+  ###
+  Section: Pane Items
+  ###
 
-  # Public: Get the active {Pane}.
-  #
-  # Returns a {Pane}.
-  getActivePane: ->
-    @paneContainer.getActivePane()
-
-  # Public: Get all pane items in the workspace.
+  # Essential: Get all pane items in the workspace.
   #
   # Returns an {Array} of items.
   getPaneItems: ->
     @paneContainer.getPaneItems()
 
-  # Public: Get the active {Pane}'s active item.
+  # Essential: Get the active {Pane}'s active item.
   #
   # Returns an pane item {Object}.
   getActivePaneItem: ->
     @paneContainer.getActivePaneItem()
 
-  # Public: Get all {Pane}s.
+  # Essential: Get all text editors in the workspace.
   #
-  # Returns an {Array} of {Pane}s.
-  getPanes: ->
-    @paneContainer.getPanes()
+  # Returns an {Array} of {Editor}s.
+  getTextEditors: ->
+    @getPaneItems().filter (item) -> item instanceof Editor
 
-  # Public: Save all pane items.
+  # Essential: Get the active item if it is an {Editor}.
+  #
+  # Returns an {Editor} or `undefined` if the current active item is not an
+  # {Editor}.
+  getActiveTextEditor: ->
+    activeItem = @getActiveItem()
+    activeItem if activeItem instanceof Editor
+
+  # Deprecated:
+  getActiveEditor: ->
+    @activePane?.getActiveEditor()
+
+  # Extended: Save all pane items.
   saveAll: ->
     @paneContainer.saveAll()
 
-  # Public: Make the next pane active.
-  activateNextPane: ->
-    @paneContainer.activateNextPane()
-
-  # Public: Make the previous pane active.
-  activatePreviousPane: ->
-    @paneContainer.activatePreviousPane()
-
-  # Public: Get the first pane {Pane} with an item for the given URI.
-  #
-  # * `uri` {String} uri
-  #
-  # Returns a {Pane} or `undefined` if no pane exists for the given URI.
-  paneForUri: (uri) ->
-    @paneContainer.paneForUri(uri)
-
-  # Public: Save the active pane item.
+  # Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's
   # `.getUri` method, calls `.save` on the item. Otherwise
@@ -367,7 +346,7 @@ class Workspace extends Model
   saveActivePaneItem: ->
     @activePane?.saveActiveItem()
 
-  # Public: Prompt the user for a path and save the active pane item to it.
+  # Prompt the user for a path and save the active pane item to it.
   #
   # Opens a native dialog where the user selects a path on disk, then calls
   # `.saveAs` on the item with the selected path. This method does nothing if
@@ -375,34 +354,59 @@ class Workspace extends Model
   saveActivePaneItemAs: ->
     @activePane?.saveActiveItemAs()
 
-  # Public: Destroy (close) the active pane item.
+  # Destroy (close) the active pane item.
   #
   # Removes the active pane item and calls the `.destroy` method on it if one is
   # defined.
   destroyActivePaneItem: ->
     @activePane?.destroyActiveItem()
 
-  # Public: Destroy (close) the active pane.
+  ###
+  Section: Panes
+  ###
+
+  # Extended: Get all panes in the workspace.
+  #
+  # Returns an {Array} of {Pane}s.
+  getPanes: ->
+    @paneContainer.getPanes()
+
+  # Extended: Get the active {Pane}.
+  #
+  # Returns a {Pane}.
+  getActivePane: ->
+    @paneContainer.getActivePane()
+
+  # Extended: Make the next pane active.
+  activateNextPane: ->
+    @paneContainer.activateNextPane()
+
+  # Extended: Make the previous pane active.
+  activatePreviousPane: ->
+    @paneContainer.activatePreviousPane()
+
+  # Extended: Get the first pane {Pane} with an item for the given URI.
+  #
+  # * `uri` {String} uri
+  #
+  # Returns a {Pane} or `undefined` if no pane exists for the given URI.
+  paneForUri: (uri) ->
+    @paneContainer.paneForUri(uri)
+
+  # Destroy (close) the active pane.
   destroyActivePane: ->
     @activePane?.destroy()
 
-  # Public: Get the active item if it is an {Editor}.
-  #
-  # Returns an {Editor} or `undefined` if the current active item is not an
-  # {Editor}.
-  getActiveEditor: ->
-    @activePane?.getActiveEditor()
-
-  # Public: Increase the editor font size by 1px.
+  # Increase the editor font size by 1px.
   increaseFontSize: ->
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
-  # Public: Decrease the editor font size by 1px.
+  # Decrease the editor font size by 1px.
   decreaseFontSize: ->
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
-  # Public: Restore to a default editor font size.
+  # Restore to a default editor font size.
   resetFontSize: ->
     atom.config.restoreDefault("editor.fontSize")
 
