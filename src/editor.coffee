@@ -975,8 +975,8 @@ class Editor extends Model
   ###
   Section: Undo Operations
   ###
-  # Public: Undo the last change.
 
+  # Public: Undo the last change.
   undo: ->
     @getCursor().needsAutoscroll = true
     @buffer.undo(this)
