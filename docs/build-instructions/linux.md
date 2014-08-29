@@ -1,17 +1,10 @@
 # Linux
 
-Ubuntu LTS 12.04 64-bit is the recommended platform.
-
-## Requirements
-
-  * C++ toolchain
-  * [Git](http://git-scm.com/)
-  * [Node.js](http://nodejs.org/download/) v0.10.x
-  * [npm](http://www.npmjs.org/) v1.4.x (bundled with Node.js)
-    * `npm -v` to check the version.
-    * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
-      * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
-  * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
+Arcus supports most common distributions built on top of either apt or yum. This includes:
+* Ubuntu
+* Mint
+* Debian
+* Fedora
 
 ### Ubuntu / Debian
 
@@ -20,11 +13,6 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ### Fedora
 
 * `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel`
-
-### Arch
-
-* `sudo pacman -S base-devel git libgnome-keyring`
-* `export PYTHON=/usr/bin/python2` before building Atom.
 
 ## Instructions
 
@@ -39,52 +27,7 @@ From the cloned repository directory:
 	$ ./setup.sh
 	```
 
- 2. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
-
-	```sh
-	$ script/grunt mkdeb
-	```
-
-Use the newly installed atom by restarting any running atom instances.
-
-## Advanced Options
-
-### Custom install directory
-
-```sh
-sudo script/grunt install --install-dir /install/atom/here
-```
-
-### Custom build directory
-
-```sh
-script/build --build-dir /build/atom/here
-```
-
 ## Troubleshooting
-
-### Exception: "TypeError: Unable to watch path"
-
-If you get following error with a big traceback right after Atom starts:
-
-  ```
-  TypeError: Unable to watch path
-  ```
-
-you have to increase number of watched files by inotify.  For testing if
-this is the reason for this error you can issue
-
-  ```sh
-  sudo sysctl fs.inotify.max_user_watches=32768
-  ```
-
-and restart Atom.  If Atom now works fine, you can make this setting permanent:
-
-  ```sh
-  echo 32768 > /proc/sys/fs/inotify/max_user_watches
-  ```
-
-See also https://github.com/atom/atom/issues/2082.
 
 ### /usr/bin/env: node: No such file or directory
 
@@ -94,5 +37,6 @@ If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
 
 ### Linux build error reports in atom/atom
+Arcus is built on top of atom, if you have any issues with the install script, they may well be answered by the atom debugging page 
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)
   to get a list of reports about build errors on Linux.
