@@ -9,7 +9,6 @@ init:
   - ps: iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
 
 install:
-  - cinst git.install
   - cinst nodejs.install
   - cinst python -Version 2.7.2
   - cinst VisualStudioExpress2013WindowsDesktop
