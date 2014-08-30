@@ -1331,9 +1331,9 @@ describe "EditorComponent", ->
       gutterNode = componentNode.querySelector('.gutter')
 
     describe "when the gutter is clicked", ->
-      it "moves the cursor to the beginning of the clicked row", ->
+      it "selects the clicked row", ->
         gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(4)))
-        expect(editor.getCursorScreenPosition()).toEqual [4, 0]
+        expect(editor.getSelectedScreenRange()).toEqual [[4, 0], [5, 0]]
 
     describe "when the gutter is shift-clicked", ->
       beforeEach ->

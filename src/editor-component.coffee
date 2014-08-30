@@ -649,7 +649,7 @@ EditorComponent = React.createClass
     {editor} = @props
     clickedRow = @screenPositionForMouseEvent(event).row
 
-    editor.setCursorScreenPosition([clickedRow, 0])
+    editor.setSelectedScreenRange([[clickedRow, 0], [clickedRow + 1, 0]])
 
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
