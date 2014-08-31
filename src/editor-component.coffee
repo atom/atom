@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
 {debounce, defaults, isEqualForProperties} = require 'underscore-plus'
@@ -640,8 +641,12 @@ EditorComponent = React.createClass
   onGutterMouseDown: (event) ->
     return unless event.button is 0 # only handle the left mouse button
 
-    if event.shiftKey
+    {shiftKey, metaKey, ctrlKey} = event
+
+    if shiftKey
       @onGutterShiftClick(event)
+    else if metaKey or (ctrlKey and process.platform isnt 'darwin')
+      @onGutterMetaClick(event)
     else
       @onGutterClick(event)
 
@@ -657,6 +662,30 @@ EditorComponent = React.createClass
         editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
       else
         editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+
+  onGutterMetaClick: (event) ->
+    {editor} = @props
+    clickedRow = @screenPositionForMouseEvent(event).row
+
+    bufferRange = editor.bufferRangeForScreenRange([[clickedRow, 0], [clickedRow + 1, 0]])
+    rowSelection = editor.addSelectionForBufferRange(bufferRange)
+
+    @handleDragUntilMouseUp event, (screenPosition) ->
+      dragRow = screenPosition.row
+
+      if dragRow < clickedRow # dragging up
+        rowSelection.setScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
+      else
+        rowSelection.setScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+
+      # After updating the selected screen range, merge overlapping selections
+      editor.mergeIntersectingSelections()
+
+      # The merge process will possibly destroy the current selection because
+      # it will be merged into another one. Therefore, we need to obtain a
+      # reference to the new selection that contains the originally selected row
+      rowSelection = _.find editor.getSelections(), (selection) ->
+                       selection.intersectsBufferRange(bufferRange)
 
   onGutterShiftClick: (event) ->
     {editor} = @props
