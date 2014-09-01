@@ -685,7 +685,7 @@ EditorComponent = React.createClass
       # it will be merged into another one. Therefore, we need to obtain a
       # reference to the new selection that contains the originally selected row
       rowSelection = _.find editor.getSelections(), (selection) ->
-                       selection.intersectsBufferRange(bufferRange)
+        selection.intersectsBufferRange(bufferRange)
 
   onGutterShiftClick: (event) ->
     {editor} = @props
