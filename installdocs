@@ -1,29 +1,29 @@
 This script sets up the environment associated with the indico IDE. Following is a breakdown of ther operations it performs on your computer. In the case of one or more of these failing, you can use this as a guide to manually make them. 
 
-first it check to make sure that you have both pip and python, as well as brew on osx. If any of these are missing they will be installed. 
+First it checks to make sure that you have both pip and python, as well as brew on osx. If any of these are missing they will be installed. 
 
-next, a directory is created in your home directory called .indico, which itself contains the subdirectory pypackages. This is where pip will install packages. The exact path to where they are installed can be found will be added to your python path in your bashrc in linux or your bash_profile in osx. There is currently no support for windows. If you use windows, consider not doing that. 
+Next, a directory is created in your home directory called .indico, which itself contains the subdirectory pypackages. This is where pip will install packages. The exact path to where they are installed can be found will be added to your python path in your bashrc in linux or your bash_profile in osx. There is currently no support for windows. If you use windows, consider not doing that. 
 
-the libraries installed are:
+The libraries installed are:
     indico
         our own machine learning api
     opencv
-        powerful industry standard for image processing
+       	powerful industry standard for image processing
     sk-learn
-        enormously featured machine learning library containing many general purpose tools
+        fully featured machine learning library containing many general purpose tools
     sk-image
-        a more specialized computer vision library focused on providing scientific computing and machine learning tools
+        more specialized computer vision library focused on providing scientific computing and machine learning tools
     numpy
         blazing fast linear algebra and n-dimensional matrix math library
     scipy
         powerful scientific computing tools built on top of, and fully compatible with numpy
     pandas
-        a powerful tool for working with datasets, particularly CSVs, it replicates, and integrates some of R's functionality
+        powerful tool for working with datasets (particularly CSVs)
     (g)requests
-        a tool for headless interactions with websites very useful for scraping. grequests is an asynchronous version of requests
+        tool for headless interactions with websites
     lxml
-        absurdly fast xml parser, also useful for 
+        absurdly fast xml parser
     matplotlib
-        powerful data visualization and graphing utility. plays nice with numpy and opencv. 
+        powerful data visualization and graphing utility that plays nice with numpy and opencv
 
-in addition all of these will have their dependencies installed
+In addition, all of these libraries will have their dependencies installed.
