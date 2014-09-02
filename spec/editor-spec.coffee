@@ -881,14 +881,13 @@ describe "Editor", ->
         [selection1, selection2] = editor.getSelections()
 
         editor.selectUp()
-
         expect(editor.getSelections().length).toBe 1
         expect(editor.getSelections()).toEqual [selection1]
         expect(selection1.getScreenRange()).toEqual([[0, 0], [1, 20]])
         expect(selection1.isReversed()).toBeTruthy()
 
       it "merges selections when they intersect when moving left", ->
-        editor.setSelectedBufferRanges([[[0,9], [0,13]], [[0,14], [1,20]]], reversed: true)
+        editor.setSelectedBufferRanges([[[0,9], [0,13]], [[0,13], [1,20]]], reversed: true)
         [selection1, selection2] = editor.getSelections()
 
         editor.selectLeft()
@@ -897,7 +896,7 @@ describe "Editor", ->
         expect(selection1.isReversed()).toBeTruthy()
 
       it "merges selections when they intersect when moving right", ->
-        editor.setSelectedBufferRanges([[[0,9], [0,13]], [[0,14], [1,20]]])
+        editor.setSelectedBufferRanges([[[0,9], [0,14]], [[0,14], [1,20]]])
         [selection1, selection2] = editor.getSelections()
 
         editor.selectRight()
@@ -1209,6 +1208,10 @@ describe "Editor", ->
       it "merges intersecting selections", ->
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
         expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
+
+      it "does not merge non-empty adjacent selections", ->
+        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 3], [5, 5]]])
+        expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [3, 3]], [[3, 3], [5, 5]]]
 
       it "recyles existing selection instances", ->
         selection = editor.getSelection()

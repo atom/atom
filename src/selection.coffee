@@ -629,8 +629,8 @@ class Selection extends Model
   # * `otherSelection` A {Selection} to check against.
   #
   # Returns a {Boolean}
-  intersectsWith: (otherSelection) ->
-    @getBufferRange().intersectsWith(otherSelection.getBufferRange())
+  intersectsWith: (otherSelection, exclusive) ->
+    @getBufferRange().intersectsWith(otherSelection.getBufferRange(), exclusive)
 
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.
