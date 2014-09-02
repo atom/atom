@@ -1,7 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
 _ = require 'underscore-plus'
-{deprecate} = require 'grim'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
