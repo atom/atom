@@ -1431,17 +1431,17 @@ describe "Editor", ->
             [[10, 0], [10, 0]]
           ]
 
-    describe ".addSelectionAbove()", ->
+    fdescribe ".addSelectionAbove()", ->
       describe "when the selection is non-empty", ->
         it "selects the same region of the line above current selections if possible", ->
           editor.setSelectedBufferRange([[3, 16], [3, 21]])
           editor.addSelectionForBufferRange([[3, 37], [3, 44]])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[2, 16], [2, 21]]
-            [[2, 37], [2, 40]]
             [[3, 16], [3, 21]]
             [[3, 37], [3, 44]]
+            [[2, 16], [2, 21]]
+            [[2, 37], [2, 40]]
           ]
           for cursor in editor.getCursors()
             expect(cursor.isVisible()).toBeFalsy()
@@ -1450,8 +1450,8 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[6, 31], [6, 38]])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[3, 31], [3, 38]]
             [[6, 31], [6, 38]]
+            [[3, 31], [3, 38]]
           ]
 
         it "honors the original selection's range (goal range) when adding across shorter lines", ->
@@ -1460,10 +1460,10 @@ describe "Editor", ->
           editor.addSelectionAbove()
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[3, 22], [3, 38]]
-            [[4, 22], [4, 29]]
-            [[5, 22], [5, 30]]
             [[6, 22], [6, 38]]
+            [[5, 22], [5, 30]]
+            [[4, 22], [4, 29]]
+            [[3, 22], [3, 38]]
           ]
 
       describe "when the selection is empty", ->
@@ -1473,26 +1473,26 @@ describe "Editor", ->
           editor.addSelectionAbove()
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[3, 36], [3, 36]]
-            [[4, 29], [4, 29]]
-            [[5, 30], [5, 30]]
             [[6, 36], [6, 36]]
+            [[5, 30], [5, 30]]
+            [[4, 29], [4, 29]]
+            [[3, 36], [3, 36]]
           ]
 
         it "skips empty lines when the column is non-zero", ->
           editor.setCursorBufferPosition([11, 4])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[9, 4], [9, 4]]
             [[11, 4], [11, 4]]
+            [[9, 4], [9, 4]]
           ]
 
         it "does not skip empty lines when the column is zero", ->
           editor.setCursorBufferPosition([10, 0])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[9, 0], [9, 0]]
             [[10, 0], [10, 0]]
+            [[9, 0], [9, 0]]
           ]
 
     describe ".splitSelectionsIntoLines()", ->
