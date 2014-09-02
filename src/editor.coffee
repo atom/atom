@@ -2022,8 +2022,11 @@ class Editor extends Model
   # Essential: For each cursor, select the containing line.
   #
   # This method merges selections on successive lines.
-  selectLine: ->
+  selectLinesContainingCursors: ->
     @expandSelectionsForward (selection) -> selection.selectLine()
+  selectLine: ->
+    deprecate('Use Editor::selectLinesContainingCursors instead')
+    @selectLinesContainingCursors()
 
   # Essential: Select the word containing each cursor.
   selectWord: ->

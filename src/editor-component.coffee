@@ -446,7 +446,7 @@ EditorComponent = React.createClass
       'editor:select-to-next-word-boundary': -> editor.selectToNextWordBoundary()
       'editor:select-to-previous-word-boundary': -> editor.selectToPreviousWordBoundary()
       'editor:select-to-first-character-of-line': -> editor.selectToFirstCharacterOfLine()
-      'editor:select-line': -> editor.selectLine()
+      'editor:select-line': -> editor.selectLinesContainingCursors()
       'editor:transpose': -> editor.transpose()
       'editor:upper-case': -> editor.upperCase()
       'editor:lower-case': -> editor.lowerCase()

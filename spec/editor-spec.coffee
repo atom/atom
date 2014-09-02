@@ -1045,20 +1045,20 @@ describe "Editor", ->
         expect(selection2.getBufferRange()).toEqual [[11,3], [11,44]]
         expect(selection2.isReversed()).toBeFalsy()
 
-    describe ".selectLine()", ->
+    describe ".selectLinesContainingCursors()", ->
       it "selects the entire line (including newlines) at given row", ->
         editor.setCursorScreenPosition([1, 2])
-        editor.selectLine()
+        editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[1,0], [2,0]]
         expect(editor.getSelectedText()).toBe "  var sort = function(items) {\n"
 
         editor.setCursorScreenPosition([12, 2])
-        editor.selectLine()
+        editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[12,0], [12,2]]
 
         editor.setCursorBufferPosition([0, 2])
-        editor.selectLine()
-        editor.selectLine()
+        editor.selectLinesContainingCursors()
+        editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[0,0], [2,0]]
 
     describe ".selectToBeginningOfWord()", ->
