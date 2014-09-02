@@ -1948,12 +1948,16 @@ class Editor extends Model
   # Essential: Move the cursor of each selection one character upward while
   # preserving the selection's tail position.
   #
+  # * `rowCount` {Number} of rows to select up
+  #
   # This method may merge selections that end up intesecting.
   selectUp: (rowCount) ->
     @expandSelectionsBackward (selection) -> selection.selectUp(rowCount)
 
   # Essential: Move the cursor of each selection one character downward while
   # preserving the selection's tail position.
+  #
+  # * `rowCount` {Number} of rows to select down
   #
   # This method may merge selections that end up intesecting.
   selectDown: (rowCount) ->
