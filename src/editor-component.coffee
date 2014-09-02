@@ -416,7 +416,7 @@ EditorComponent = React.createClass
       'core:copy': -> editor.copySelectedText()
       'core:paste': -> editor.pasteText()
       'editor:move-to-previous-word': -> editor.moveToPreviousWord()
-      'editor:select-word': -> editor.selectWord()
+      'editor:select-word': -> editor.selectWordsContainingCursors()
       'editor:consolidate-selections': @consolidateSelections
       'editor:delete-to-beginning-of-word': -> editor.deleteToBeginningOfWord()
       'editor:delete-to-beginning-of-line': -> editor.deleteToBeginningOfLine()

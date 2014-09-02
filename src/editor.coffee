@@ -2028,9 +2028,12 @@ class Editor extends Model
     deprecate('Use Editor::selectLinesContainingCursors instead')
     @selectLinesContainingCursors()
 
-  # Essential: Select the word containing each cursor.
-  selectWord: ->
+  # Essential: Select the word surrounding each cursor.
+  selectWordsContainingCursors: ->
     @expandSelectionsForward (selection) -> selection.selectWord()
+  selectWord: ->
+    deprecate('Use Editor::selectWordsContainingCursors instead')
+    @selectWordsContainingCursors()
 
   # Selection Extended
 

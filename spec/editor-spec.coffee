@@ -1158,39 +1158,39 @@ describe "Editor", ->
         expect(selection4.getBufferRange()).toEqual [[3,30], [3,31]]
         expect(selection4.isReversed()).toBeFalsy()
 
-    describe ".selectWord()", ->
+    describe ".selectWordsContainingCursors()", ->
       describe "when the cursor is inside a word", ->
         it "selects the entire word", ->
           editor.setCursorScreenPosition([0, 8])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'quicksort'
 
       describe "when the cursor is between two words", ->
         it "selects the word the cursor is on", ->
           editor.setCursorScreenPosition([0, 4])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'quicksort'
 
           editor.setCursorScreenPosition([0, 3])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'var'
 
 
       describe "when the cursor is inside a region of whitespace", ->
         it "selects the whitespace region", ->
           editor.setCursorScreenPosition([5, 2])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[5, 0], [5, 6]]
 
           editor.setCursorScreenPosition([5, 0])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[5, 0], [5, 6]]
 
       describe "when the cursor is at the end of the text", ->
         it "select the previous word", ->
           editor.buffer.append 'word'
           editor.moveToBottom()
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
 
     describe ".selectToFirstCharacterOfLine()", ->
