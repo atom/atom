@@ -751,17 +751,17 @@ describe "Editor", ->
           expect(cursorMovedHandler).not.toHaveBeenCalled()
 
     describe "::getCursorBufferPositions()", ->
-      it "returns the existing cursor", ->
+      it "returns the cursor positions in the order they were added", ->
         cursor1 = editor.addCursorAtBufferPosition([8, 5])
         cursor2 = editor.addCursorAtBufferPosition([4, 5])
-        expect(editor.getCursorBufferPositions()).toEqual [[0, 0], [4, 5], [8, 5]]
+        expect(editor.getCursorBufferPositions()).toEqual [[0, 0], [8, 5], [4, 5]]
 
     describe "::getCursorScreenPositions()", ->
-      it "returns the existing cursor", ->
+      it "returns the cursor positions in the order they were added", ->
         editor.foldBufferRow(4)
         cursor1 = editor.addCursorAtBufferPosition([8, 5])
         cursor2 = editor.addCursorAtBufferPosition([3, 5])
-        expect(editor.getCursorScreenPositions()).toEqual [[0, 0], [3, 5], [5, 5]]
+        expect(editor.getCursorScreenPositions()).toEqual [[0, 0], [5, 5], [3, 5]]
 
     describe "::getCursorsOrderedByBufferPosition()", ->
       it "returns all cursors ordered by buffer positions", ->

@@ -1519,9 +1519,9 @@ class Editor extends Model
 
   # Essential: Get the position of all the cursor positions in buffer coordinates.
   #
-  # Returns {Array} of {Point}s
+  # Returns {Array} of {Point}s in the order they were added
   getCursorBufferPositions: ->
-    cursor.getBufferPosition() for cursor in @getCursorsOrderedByBufferPosition()
+    cursor.getBufferPosition() for cursor in @getCursors()
 
   # Essential: Move the cursor to the given position in buffer coordinates.
   #
@@ -1543,9 +1543,9 @@ class Editor extends Model
 
   # Essential: Get the position of all the cursor positions in screen coordinates.
   #
-  # Returns {Array} of {Point}s
+  # Returns {Array} of {Point}s in the order the cursors were added
   getCursorScreenPositions: ->
-    cursor.getScreenPosition() for cursor in @getCursorsOrderedByBufferPosition()
+    cursor.getScreenPosition() for cursor in @getCursors()
 
   # Get the row of the most recently added cursor in screen coordinates.
   #
@@ -1816,7 +1816,7 @@ class Editor extends Model
   #
   # Returns an {Array} of {Range}s.
   getSelectedBufferRanges: ->
-    selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
+    selection.getBufferRange() for selection in @getSelections()
 
   # Essential: Set the selected range in buffer coordinates. If there are multiple
   # selections, they are reduced to a single selection with the given range.
@@ -1862,7 +1862,7 @@ class Editor extends Model
   #
   # Returns an {Array} of {Range}s.
   getSelectedScreenRanges: ->
-    selection.getScreenRange() for selection in @getSelectionsOrderedByBufferPosition()
+    selection.getScreenRange() for selection in @getSelections()
 
   # Essential: Set the selected range in screen coordinates. If there are multiple
   # selections, they are reduced to a single selection with the given range.
