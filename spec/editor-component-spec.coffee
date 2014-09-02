@@ -601,7 +601,7 @@ describe "EditorComponent", ->
 
   describe "cursor rendering", ->
     it "renders the currently visible cursors, translated relative to the scroll position", ->
-      cursor1 = editor.getCursor()
+      cursor1 = editor.getLastCursor()
       cursor1.setScreenPosition([0, 5])
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -710,7 +710,7 @@ describe "EditorComponent", ->
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       # Stop blinking after moving the cursor
-      editor.moveCursorRight()
+      editor.moveRight()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       advanceClock(component.props.cursorBlinkResumeDelay)
@@ -814,8 +814,8 @@ describe "EditorComponent", ->
     it "does not render empty selections", ->
       editor.addSelectionForBufferRange([[2, 2], [2, 2]])
       nextAnimationFrame()
-      expect(editor.getSelection(0).isEmpty()).toBe true
-      expect(editor.getSelection(1).isEmpty()).toBe true
+      expect(editor.getSelections()[0].isEmpty()).toBe true
+      expect(editor.getSelections()[1].isEmpty()).toBe true
 
       expect(componentNode.querySelectorAll('.selection').length).toBe 0
 
@@ -1437,7 +1437,7 @@ describe "EditorComponent", ->
     cursor = null
 
     beforeEach ->
-      cursor = editor.getCursor()
+      cursor = editor.getLastCursor()
       cursor.setScreenPosition([0, 0])
 
     it "adds the 'has-selection' class to the editor when there is a selection", ->

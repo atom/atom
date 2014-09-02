@@ -51,7 +51,7 @@ EditorComponent = React.createClass
     {focused, showIndentGuide, showLineNumbers, visible} = @state
     {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
-    hasSelection = editor.getSelection()? and !editor.getSelection().isEmpty()
+    hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
 
     if @performedInitialMeasurement
@@ -258,9 +258,9 @@ EditorComponent = React.createClass
   getHiddenInputPosition: ->
     {editor} = @props
     {focused} = @state
-    return {top: 0, left: 0} unless @isMounted() and focused and editor.getCursor()?
+    return {top: 0, left: 0} unless @isMounted() and focused and editor.getLastCursor()?
 
-    {top, left, height, width} = editor.getCursor().getPixelRect()
+    {top, left, height, width} = editor.getLastCursor().getPixelRect()
     width = 2 if width is 0 # Prevent autoscroll at the end of longest line
     top -= editor.getScrollTop()
     left -= editor.getScrollLeft()
@@ -403,8 +403,8 @@ EditorComponent = React.createClass
     {parentView, editor, mini} = @props
 
     @addCommandListeners
-      'core:move-left': -> editor.moveCursorLeft()
-      'core:move-right': -> editor.moveCursorRight()
+      'core:move-left': -> editor.moveLeft()
+      'core:move-right': -> editor.moveRight()
       'core:select-left': -> editor.selectLeft()
       'core:select-right': -> editor.selectRight()
       'core:select-all': -> editor.selectAll()
@@ -415,8 +415,8 @@ EditorComponent = React.createClass
       'core:cut': -> editor.cutSelectedText()
       'core:copy': -> editor.copySelectedText()
       'core:paste': -> editor.pasteText()
-      'editor:move-to-previous-word': -> editor.moveCursorToPreviousWord()
-      'editor:select-word': -> editor.selectWord()
+      'editor:move-to-previous-word': -> editor.moveToPreviousWord()
+      'editor:select-word': -> editor.selectWordsContainingCursors()
       'editor:consolidate-selections': @consolidateSelections
       'editor:delete-to-beginning-of-word': -> editor.deleteToBeginningOfWord()
       'editor:delete-to-beginning-of-line': -> editor.deleteToBeginningOfLine()
@@ -424,18 +424,18 @@ EditorComponent = React.createClass
       'editor:delete-to-end-of-word': -> editor.deleteToEndOfWord()
       'editor:delete-line': -> editor.deleteLine()
       'editor:cut-to-end-of-line': -> editor.cutToEndOfLine()
-      'editor:move-to-beginning-of-next-paragraph': -> editor.moveCursorToBeginningOfNextParagraph()
-      'editor:move-to-beginning-of-previous-paragraph': -> editor.moveCursorToBeginningOfPreviousParagraph()
-      'editor:move-to-beginning-of-screen-line': -> editor.moveCursorToBeginningOfScreenLine()
-      'editor:move-to-beginning-of-line': -> editor.moveCursorToBeginningOfLine()
-      'editor:move-to-end-of-screen-line': -> editor.moveCursorToEndOfScreenLine()
-      'editor:move-to-end-of-line': -> editor.moveCursorToEndOfLine()
-      'editor:move-to-first-character-of-line': -> editor.moveCursorToFirstCharacterOfLine()
-      'editor:move-to-beginning-of-word': -> editor.moveCursorToBeginningOfWord()
-      'editor:move-to-end-of-word': -> editor.moveCursorToEndOfWord()
-      'editor:move-to-beginning-of-next-word': -> editor.moveCursorToBeginningOfNextWord()
-      'editor:move-to-previous-word-boundary': -> editor.moveCursorToPreviousWordBoundary()
-      'editor:move-to-next-word-boundary': -> editor.moveCursorToNextWordBoundary()
+      'editor:move-to-beginning-of-next-paragraph': -> editor.moveToBeginningOfNextParagraph()
+      'editor:move-to-beginning-of-previous-paragraph': -> editor.moveToBeginningOfPreviousParagraph()
+      'editor:move-to-beginning-of-screen-line': -> editor.moveToBeginningOfScreenLine()
+      'editor:move-to-beginning-of-line': -> editor.moveToBeginningOfLine()
+      'editor:move-to-end-of-screen-line': -> editor.moveToEndOfScreenLine()
+      'editor:move-to-end-of-line': -> editor.moveToEndOfLine()
+      'editor:move-to-first-character-of-line': -> editor.moveToFirstCharacterOfLine()
+      'editor:move-to-beginning-of-word': -> editor.moveToBeginningOfWord()
+      'editor:move-to-end-of-word': -> editor.moveToEndOfWord()
+      'editor:move-to-beginning-of-next-word': -> editor.moveToBeginningOfNextWord()
+      'editor:move-to-previous-word-boundary': -> editor.moveToPreviousWordBoundary()
+      'editor:move-to-next-word-boundary': -> editor.moveToNextWordBoundary()
       'editor:select-to-beginning-of-next-paragraph': -> editor.selectToBeginningOfNextParagraph()
       'editor:select-to-beginning-of-previous-paragraph': -> editor.selectToBeginningOfPreviousParagraph()
       'editor:select-to-end-of-line': -> editor.selectToEndOfLine()
@@ -446,17 +446,17 @@ EditorComponent = React.createClass
       'editor:select-to-next-word-boundary': -> editor.selectToNextWordBoundary()
       'editor:select-to-previous-word-boundary': -> editor.selectToPreviousWordBoundary()
       'editor:select-to-first-character-of-line': -> editor.selectToFirstCharacterOfLine()
-      'editor:select-line': -> editor.selectLine()
+      'editor:select-line': -> editor.selectLinesContainingCursors()
       'editor:transpose': -> editor.transpose()
       'editor:upper-case': -> editor.upperCase()
       'editor:lower-case': -> editor.lowerCase()
 
     unless mini
       @addCommandListeners
-        'core:move-up': -> editor.moveCursorUp()
-        'core:move-down': -> editor.moveCursorDown()
-        'core:move-to-top': -> editor.moveCursorToTop()
-        'core:move-to-bottom': -> editor.moveCursorToBottom()
+        'core:move-up': -> editor.moveUp()
+        'core:move-down': -> editor.moveDown()
+        'core:move-to-top': -> editor.moveToTop()
+        'core:move-to-bottom': -> editor.moveToBottom()
         'core:page-up': -> editor.pageUp()
         'core:page-down': -> editor.pageDown()
         'core:select-up': -> editor.selectUp()
@@ -664,7 +664,7 @@ EditorComponent = React.createClass
   onGutterShiftClick: (event) ->
     {editor} = @props
     clickedRow = @screenPositionForMouseEvent(event).row
-    tailPosition = editor.getSelection().getTailScreenPosition()
+    tailPosition = editor.getLastSelection().getTailScreenPosition()
 
     if clickedRow < tailPosition.row
       editor.selectToScreenPosition([clickedRow, 0])

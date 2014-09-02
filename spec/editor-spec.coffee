@@ -30,7 +30,7 @@ describe "Editor", ->
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
       expect(editor2.getSelectedBufferRanges()).toEqual [[[1, 2], [3, 4]], [[5, 6], [7, 5]]]
-      expect(editor2.getSelection(1).isReversed()).toBeTruthy()
+      expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
 
@@ -63,8 +63,8 @@ describe "Editor", ->
 
       runs ->
         buffer = editor.buffer
-        expect(editor.getCursor().getBufferPosition().row).toEqual 5
-        expect(editor.getCursor().getBufferPosition().column).toEqual 0
+        expect(editor.getLastCursor().getBufferPosition().row).toEqual 5
+        expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
 
   describe "when the editor is constructed with an initialColumn option", ->
     it "positions the cursor on the specified column", ->
@@ -75,8 +75,8 @@ describe "Editor", ->
 
       runs ->
         buffer = editor.buffer
-        expect(editor.getCursor().getBufferPosition().row).toEqual 0
-        expect(editor.getCursor().getBufferPosition().column).toEqual 8
+        expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
+        expect(editor.getLastCursor().getBufferPosition().column).toEqual 8
 
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
@@ -88,11 +88,11 @@ describe "Editor", ->
       editor2 = editor.copy()
       expect(editor2.id).not.toBe editor.id
       expect(editor2.getSelectedBufferRanges()).toEqual editor.getSelectedBufferRanges()
-      expect(editor2.getSelection(1).isReversed()).toBeTruthy()
+      expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
 
       # editor2 can now diverge from its origin edit session
-      editor2.getSelection().setBufferRange([[2, 1], [4, 3]])
+      editor2.getLastSelection().setBufferRange([[2, 1], [4, 3]])
       expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
       editor2.unfoldBufferRow(4)
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
@@ -147,49 +147,49 @@ describe "Editor", ->
       expect(titleChangedHandler.callCount).toBe 2
 
   describe "cursor", ->
-    describe ".getCursor()", ->
+    describe ".getLastCursor()", ->
       it "returns the most recently created cursor", ->
         editor.addCursorAtScreenPosition([1, 0])
         lastCursor = editor.addCursorAtScreenPosition([2, 0])
-        expect(editor.getCursor()).toBe lastCursor
+        expect(editor.getLastCursor()).toBe lastCursor
 
     describe "when the cursor moves", ->
       it "clears a goal column established by vertical movement", ->
         editor.setText('b')
         editor.setCursorBufferPosition([0,0])
         editor.insertNewline()
-        editor.moveCursorUp()
+        editor.moveUp()
         editor.insertText('a')
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursorBufferPosition()).toEqual [1, 1]
 
       it "emits a single 'cursors-moved' event for all moved cursors", ->
         editor.on 'cursors-moved', cursorsMovedHandler = jasmine.createSpy("cursorsMovedHandler")
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(cursorsMovedHandler.callCount).toBe 1
 
         cursorsMovedHandler.reset()
         editor.addCursorAtScreenPosition([3, 0])
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(cursorsMovedHandler.callCount).toBe 1
 
         cursorsMovedHandler.reset()
-        editor.getCursor().moveDown()
+        editor.getLastCursor().moveDown()
         expect(cursorsMovedHandler.callCount).toBe 1
 
     describe ".setCursorScreenPosition(screenPosition)", ->
       it "clears a goal column established by vertical movement", ->
         # set a goal column by moving down
         editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursorScreenPosition().column).not.toBe 6
 
         # clear the goal column by explicitly setting the cursor position
         editor.setCursorScreenPosition([4,6])
         expect(editor.getCursorScreenPosition().column).toBe 6
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursorScreenPosition().column).toBe 6
 
       it "merges multiple cursors", ->
@@ -211,32 +211,32 @@ describe "Editor", ->
           editor.setCursorScreenPosition([9, 0])
           expect(editor.getCursorBufferPosition()).toEqual [8, 11]
 
-    describe ".moveCursorUp()", ->
+    describe ".moveUp()", ->
       it "moves the cursor up", ->
         editor.setCursorScreenPosition([2, 2])
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getCursorScreenPosition()).toEqual [1, 2]
 
       it "retains the goal column across lines of differing length", ->
         expect(lineLengths[6]).toBeGreaterThan(32)
         editor.setCursorScreenPosition(row: 6, column: 32)
 
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
 
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
 
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getCursorScreenPosition().column).toBe 32
 
       describe "when the cursor is on the first line", ->
         it "moves the cursor to the beginning of the line, but retains the goal column", ->
           editor.setCursorScreenPosition([0, 4])
-          editor.moveCursorUp()
+          editor.moveUp()
           expect(editor.getCursorScreenPosition()).toEqual([0, 0])
 
-          editor.moveCursorDown()
+          editor.moveDown()
           expect(editor.getCursorScreenPosition()).toEqual([1, 4])
 
       describe "when there is a selection", ->
@@ -244,34 +244,34 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[4, 9],[5, 10]])
 
         it "moves above the selection", ->
-          cursor = editor.getCursor()
-          editor.moveCursorUp()
+          cursor = editor.getLastCursor()
+          editor.moveUp()
           expect(cursor.getBufferPosition()).toEqual [3, 9]
 
       it "merges cursors when they overlap", ->
         editor.addCursorAtScreenPosition([1, 0])
         [cursor1, cursor2] = editor.getCursors()
 
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
 
-    describe ".moveCursorDown()", ->
+    describe ".moveDown()", ->
       it "moves the cursor down", ->
         editor.setCursorScreenPosition([2, 2])
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursorScreenPosition()).toEqual [3, 2]
 
       it "retains the goal column across lines of differing length", ->
         editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursorScreenPosition().column).toBe lineLengths[3]
 
       describe "when the cursor is on the last line", ->
@@ -281,10 +281,10 @@ describe "Editor", ->
           expect(lastLine.length).toBeGreaterThan(0)
 
           editor.setCursorScreenPosition(row: lastLineIndex, column: editor.getTabLength())
-          editor.moveCursorDown()
+          editor.moveDown()
           expect(editor.getCursorScreenPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
 
-          editor.moveCursorUp()
+          editor.moveUp()
           expect(editor.getCursorScreenPosition().column).toBe editor.getTabLength()
 
         it "retains a goal column of 0 when moving back up", ->
@@ -293,8 +293,8 @@ describe "Editor", ->
           expect(lastLine.length).toBeGreaterThan(0)
 
           editor.setCursorScreenPosition(row: lastLineIndex, column: 0)
-          editor.moveCursorDown()
-          editor.moveCursorUp()
+          editor.moveDown()
+          editor.moveUp()
           expect(editor.getCursorScreenPosition().column).toBe 0
 
       describe "when there is a selection", ->
@@ -302,8 +302,8 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[4, 9],[5, 10]])
 
         it "moves below the selection", ->
-          cursor = editor.getCursor()
-          editor.moveCursorDown()
+          cursor = editor.getLastCursor()
+          editor.moveDown()
           expect(cursor.getBufferPosition()).toEqual [6, 10]
 
       it "merges cursors when they overlap", ->
@@ -311,34 +311,34 @@ describe "Editor", ->
         editor.addCursorAtScreenPosition([11, 2])
         [cursor1, cursor2] = editor.getCursors()
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [12,2]
 
-    describe ".moveCursorLeft()", ->
+    describe ".moveLeft()", ->
       it "moves the cursor by one column to the left", ->
         editor.setCursorScreenPosition([1, 8])
-        editor.moveCursorLeft()
+        editor.moveLeft()
         expect(editor.getCursorScreenPosition()).toEqual [1, 7]
 
       describe "when the cursor is in the first column", ->
         describe "when there is a previous line", ->
           it "wraps to the end of the previous line", ->
             editor.setCursorScreenPosition(row: 1, column: 0)
-            editor.moveCursorLeft()
+            editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.lineForRow(0).length)
 
         describe "when the cursor is on the first line", ->
           it "remains in the same position (0,0)", ->
             editor.setCursorScreenPosition(row: 0, column: 0)
-            editor.moveCursorLeft()
+            editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
       describe "when softTabs is enabled and the cursor is preceded by leading whitespace", ->
         it "skips tabLength worth of whitespace at a time", ->
           editor.setCursorBufferPosition([5, 6])
 
-          editor.moveCursorLeft()
+          editor.moveLeft()
           expect(editor.getCursorBufferPosition()).toEqual [5, 4]
 
       describe "when there is a selection", ->
@@ -346,11 +346,11 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[5, 22],[5, 27]])
 
         it "moves to the left of the selection", ->
-          cursor = editor.getCursor()
-          editor.moveCursorLeft()
+          cursor = editor.getLastCursor()
+          editor.moveLeft()
           expect(cursor.getBufferPosition()).toEqual [5, 22]
 
-          editor.moveCursorLeft()
+          editor.moveLeft()
           expect(cursor.getBufferPosition()).toEqual [5, 21]
 
       it "merges cursors when they overlap", ->
@@ -358,21 +358,21 @@ describe "Editor", ->
         editor.addCursorAtScreenPosition([0, 1])
 
         [cursor1, cursor2] = editor.getCursors()
-        editor.moveCursorLeft()
+        editor.moveLeft()
         expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
 
-    describe ".moveCursorRight()", ->
+    describe ".moveRight()", ->
       it "moves the cursor by one column to the right", ->
         editor.setCursorScreenPosition([3, 3])
-        editor.moveCursorRight()
+        editor.moveRight()
         expect(editor.getCursorScreenPosition()).toEqual [3, 4]
 
       describe "when the cursor is on the last column of a line", ->
         describe "when there is a subsequent line", ->
           it "wraps to the beginning of the next line", ->
             editor.setCursorScreenPosition([0, buffer.lineForRow(0).length])
-            editor.moveCursorRight()
+            editor.moveRight()
             expect(editor.getCursorScreenPosition()).toEqual [1, 0]
 
         describe "when the cursor is on the last line", ->
@@ -383,7 +383,7 @@ describe "Editor", ->
 
             lastPosition = { row: lastLineIndex, column: lastLine.length }
             editor.setCursorScreenPosition(lastPosition)
-            editor.moveCursorRight()
+            editor.moveRight()
 
             expect(editor.getCursorScreenPosition()).toEqual(lastPosition)
 
@@ -392,11 +392,11 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[5, 22],[5, 27]])
 
         it "moves to the left of the selection", ->
-          cursor = editor.getCursor()
-          editor.moveCursorRight()
+          cursor = editor.getLastCursor()
+          editor.moveRight()
           expect(cursor.getBufferPosition()).toEqual [5, 27]
 
-          editor.moveCursorRight()
+          editor.moveRight()
           expect(cursor.getBufferPosition()).toEqual [5, 28]
 
       it "merges cursors when they overlap", ->
@@ -404,85 +404,85 @@ describe "Editor", ->
         editor.addCursorAtScreenPosition([12, 1])
         [cursor1, cursor2] = editor.getCursors()
 
-        editor.moveCursorRight()
+        editor.moveRight()
         expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [12,2]
 
-    describe ".moveCursorToTop()", ->
+    describe ".moveToTop()", ->
       it "moves the cursor to the top of the buffer", ->
         editor.setCursorScreenPosition [11,1]
         editor.addCursorAtScreenPosition [12,0]
-        editor.moveCursorToTop()
+        editor.moveToTop()
         expect(editor.getCursors().length).toBe 1
         expect(editor.getCursorBufferPosition()).toEqual [0,0]
 
-    describe ".moveCursorToBottom()", ->
+    describe ".moveToBottom()", ->
       it "moves the cusor to the bottom of the buffer", ->
         editor.setCursorScreenPosition [0,0]
         editor.addCursorAtScreenPosition [1,0]
-        editor.moveCursorToBottom()
+        editor.moveToBottom()
         expect(editor.getCursors().length).toBe 1
         expect(editor.getCursorBufferPosition()).toEqual [12,2]
 
-    describe ".moveCursorToBeginningOfScreenLine()", ->
+    describe ".moveToBeginningOfScreenLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
           editor.setSoftWrap(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
-          editor.moveCursorToBeginningOfScreenLine()
-          cursor = editor.getCursor()
+          editor.moveToBeginningOfScreenLine()
+          cursor = editor.getLastCursor()
           expect(cursor.getScreenPosition()).toEqual [1, 0]
 
       describe "when soft wrap is off", ->
         it "moves cursor to the beginning of then line", ->
           editor.setCursorScreenPosition [0,5]
           editor.addCursorAtScreenPosition [1,7]
-          editor.moveCursorToBeginningOfScreenLine()
+          editor.moveToBeginningOfScreenLine()
           expect(editor.getCursors().length).toBe 2
           [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getBufferPosition()).toEqual [0,0]
           expect(cursor2.getBufferPosition()).toEqual [1,0]
 
-    describe ".moveCursorToEndOfScreenLine()", ->
+    describe ".moveToEndOfScreenLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
           editor.setSoftWrap(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
-          editor.moveCursorToEndOfScreenLine()
-          cursor = editor.getCursor()
+          editor.moveToEndOfScreenLine()
+          cursor = editor.getLastCursor()
           expect(cursor.getScreenPosition()).toEqual [1, 9]
 
       describe "when soft wrap is off", ->
         it "moves cursor to the end of line", ->
           editor.setCursorScreenPosition [0,0]
           editor.addCursorAtScreenPosition [1,0]
-          editor.moveCursorToEndOfScreenLine()
+          editor.moveToEndOfScreenLine()
           expect(editor.getCursors().length).toBe 2
           [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getBufferPosition()).toEqual [0,29]
           expect(cursor2.getBufferPosition()).toEqual [1,30]
 
-    describe ".moveCursorToBeginningOfLine()", ->
+    describe ".moveToBeginningOfLine()", ->
       it "moves cursor to the beginning of the buffer line", ->
         editor.setSoftWrap(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([1, 2])
-        editor.moveCursorToBeginningOfLine()
-        cursor = editor.getCursor()
+        editor.moveToBeginningOfLine()
+        cursor = editor.getLastCursor()
         expect(cursor.getScreenPosition()).toEqual [0, 0]
 
-    describe ".moveCursorToEndOfLine()", ->
+    describe ".moveToEndOfLine()", ->
       it "moves cursor to the end of the buffer line", ->
         editor.setSoftWrap(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([0, 2])
-        editor.moveCursorToEndOfLine()
-        cursor = editor.getCursor()
+        editor.moveToEndOfLine()
+        cursor = editor.getLastCursor()
         expect(cursor.getScreenPosition()).toEqual [3, 4]
 
-    describe ".moveCursorToFirstCharacterOfLine()", ->
+    describe ".moveToFirstCharacterOfLine()", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
           editor.setSoftWrap(true)
@@ -490,12 +490,12 @@ describe "Editor", ->
           editor.setCursorScreenPosition [2,5]
           editor.addCursorAtScreenPosition [8,7]
 
-          editor.moveCursorToFirstCharacterOfLine()
+          editor.moveToFirstCharacterOfLine()
           [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getScreenPosition()).toEqual [2,0]
           expect(cursor2.getScreenPosition()).toEqual [8,4]
 
-          editor.moveCursorToFirstCharacterOfLine()
+          editor.moveToFirstCharacterOfLine()
           expect(cursor1.getScreenPosition()).toEqual [2,0]
           expect(cursor2.getScreenPosition()).toEqual [8,0]
 
@@ -504,29 +504,29 @@ describe "Editor", ->
           editor.setCursorScreenPosition [0,5]
           editor.addCursorAtScreenPosition [1,7]
 
-          editor.moveCursorToFirstCharacterOfLine()
+          editor.moveToFirstCharacterOfLine()
           [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getBufferPosition()).toEqual [0,0]
           expect(cursor2.getBufferPosition()).toEqual [1,2]
 
-          editor.moveCursorToFirstCharacterOfLine()
+          editor.moveToFirstCharacterOfLine()
           expect(cursor1.getBufferPosition()).toEqual [0,0]
           expect(cursor2.getBufferPosition()).toEqual [1,0]
 
         it "moves to the beginning of the line if it only contains whitespace ", ->
           editor.setText("first\n    \nthird")
           editor.setCursorScreenPosition [1,2]
-          editor.moveCursorToFirstCharacterOfLine()
-          cursor = editor.getCursor()
+          editor.moveToFirstCharacterOfLine()
+          cursor = editor.getLastCursor()
           expect(cursor.getBufferPosition()).toEqual [1,0]
 
         describe "when invisible characters are enabled with soft tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
             atom.config.set('editor.showInvisibles', true)
             editor.setCursorScreenPosition [1,7]
-            editor.moveCursorToFirstCharacterOfLine()
+            editor.moveToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1,2]
-            editor.moveCursorToFirstCharacterOfLine()
+            editor.moveToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1,0]
 
         describe "when invisible characters are enabled with hard tabs", ->
@@ -535,19 +535,19 @@ describe "Editor", ->
             buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', false)
 
             editor.setCursorScreenPosition [1,7]
-            editor.moveCursorToFirstCharacterOfLine()
+            editor.moveToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1,3]
-            editor.moveCursorToFirstCharacterOfLine()
+            editor.moveToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1,0]
 
-    describe ".moveCursorToBeginningOfWord()", ->
+    describe ".moveToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
         editor.setCursorBufferPosition [0, 8]
         editor.addCursorAtBufferPosition [1, 12]
         editor.addCursorAtBufferPosition [3, 0]
         [cursor1, cursor2, cursor3] = editor.getCursors()
 
-        editor.moveCursorToBeginningOfWord()
+        editor.moveToBeginningOfWord()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 4]
         expect(cursor2.getBufferPosition()).toEqual [1, 11]
@@ -555,19 +555,19 @@ describe "Editor", ->
 
       it "does not fail at position [0, 0]", ->
         editor.setCursorBufferPosition([0, 0])
-        editor.moveCursorToBeginningOfWord()
+        editor.moveToBeginningOfWord()
 
       it "treats lines with only whitespace as a word", ->
         editor.setCursorBufferPosition([11, 0])
-        editor.moveCursorToBeginningOfWord()
+        editor.moveToBeginningOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [10, 0]
 
       it "works when the current line is blank", ->
         editor.setCursorBufferPosition([10, 0])
-        editor.moveCursorToBeginningOfWord()
+        editor.moveToBeginningOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [9, 2]
 
-    describe ".moveCursorToPreviousWordBoundary()", ->
+    describe ".moveToPreviousWordBoundary()", ->
       it "moves the cursor to the previous word boundary", ->
         editor.setCursorBufferPosition [0, 8]
         editor.addCursorAtBufferPosition [2, 0]
@@ -575,14 +575,14 @@ describe "Editor", ->
         editor.addCursorAtBufferPosition [3, 14]
         [cursor1, cursor2, cursor3, cursor4] = editor.getCursors()
 
-        editor.moveCursorToPreviousWordBoundary()
+        editor.moveToPreviousWordBoundary()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 4]
         expect(cursor2.getBufferPosition()).toEqual [1, 30]
         expect(cursor3.getBufferPosition()).toEqual [2, 0]
         expect(cursor4.getBufferPosition()).toEqual [3, 13]
 
-    describe ".moveCursorToNextWordBoundary()", ->
+    describe ".moveToNextWordBoundary()", ->
       it "moves the cursor to the previous word boundary", ->
         editor.setCursorBufferPosition [0, 8]
         editor.addCursorAtBufferPosition [2, 40]
@@ -590,21 +590,21 @@ describe "Editor", ->
         editor.addCursorAtBufferPosition [3, 30]
         [cursor1, cursor2, cursor3, cursor4] = editor.getCursors()
 
-        editor.moveCursorToNextWordBoundary()
+        editor.moveToNextWordBoundary()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 13]
         expect(cursor2.getBufferPosition()).toEqual [3, 0]
         expect(cursor3.getBufferPosition()).toEqual [3, 4]
         expect(cursor4.getBufferPosition()).toEqual [3, 31]
 
-    describe ".moveCursorToEndOfWord()", ->
+    describe ".moveToEndOfWord()", ->
       it "moves the cursor to the end of the word", ->
         editor.setCursorBufferPosition [0, 6]
         editor.addCursorAtBufferPosition [1, 10]
         editor.addCursorAtBufferPosition [2, 40]
         [cursor1, cursor2, cursor3] = editor.getCursors()
 
-        editor.moveCursorToEndOfWord()
+        editor.moveToEndOfWord()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 13]
         expect(cursor2.getBufferPosition()).toEqual [1, 12]
@@ -613,27 +613,27 @@ describe "Editor", ->
       it "does not blow up when there is no next word", ->
         editor.setCursorBufferPosition [Infinity, Infinity]
         endPosition = editor.getCursorBufferPosition()
-        editor.moveCursorToEndOfWord()
+        editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual endPosition
 
       it "treats lines with only whitespace as a word", ->
         editor.setCursorBufferPosition([9, 4])
-        editor.moveCursorToEndOfWord()
+        editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [10, 0]
 
       it "works when the current line is blank", ->
         editor.setCursorBufferPosition([10, 0])
-        editor.moveCursorToEndOfWord()
+        editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [11, 8]
 
-    describe ".moveCursorToBeginningOfNextWord()", ->
+    describe ".moveToBeginningOfNextWord()", ->
       it "moves the cursor before the first character of the next word", ->
         editor.setCursorBufferPosition [0,6]
         editor.addCursorAtBufferPosition [1,11]
         editor.addCursorAtBufferPosition [2,0]
         [cursor1, cursor2, cursor3] = editor.getCursors()
 
-        editor.moveCursorToBeginningOfNextWord()
+        editor.moveToBeginningOfNextWord()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 14]
         expect(cursor2.getBufferPosition()).toEqual [1, 13]
@@ -642,56 +642,56 @@ describe "Editor", ->
         # When the cursor is on whitespace
         editor.setText("ab cde- ")
         editor.setCursorBufferPosition [0,2]
-        cursor = editor.getCursor()
-        editor.moveCursorToBeginningOfNextWord()
+        cursor = editor.getLastCursor()
+        editor.moveToBeginningOfNextWord()
 
         expect(cursor.getBufferPosition()).toEqual [0, 3]
 
       it "does not blow up when there is no next word", ->
         editor.setCursorBufferPosition [Infinity, Infinity]
         endPosition = editor.getCursorBufferPosition()
-        editor.moveCursorToBeginningOfNextWord()
+        editor.moveToBeginningOfNextWord()
         expect(editor.getCursorBufferPosition()).toEqual endPosition
 
       it "treats lines with only whitespace as a word", ->
         editor.setCursorBufferPosition([9, 4])
-        editor.moveCursorToBeginningOfNextWord()
+        editor.moveToBeginningOfNextWord()
         expect(editor.getCursorBufferPosition()).toEqual [10, 0]
 
       it "works when the current line is blank", ->
         editor.setCursorBufferPosition([10, 0])
-        editor.moveCursorToBeginningOfNextWord()
+        editor.moveToBeginningOfNextWord()
         expect(editor.getCursorBufferPosition()).toEqual [11, 9]
 
-    describe ".moveCursorToBeginningOfNextParagraph()", ->
+    describe ".moveToBeginningOfNextParagraph()", ->
       it "moves the cursor before the first line of the next paragraph", ->
         editor.setCursorBufferPosition [0,6]
-        cursor = editor.getCursor()
+        cursor = editor.getLastCursor()
 
-        editor.moveCursorToBeginningOfNextParagraph()
+        editor.moveToBeginningOfNextParagraph()
 
         expect(cursor.getBufferPosition()).toEqual  { row : 10, column : 0 }
 
         editor.setText("")
         editor.setCursorBufferPosition [0,0]
-        cursor = editor.getCursor()
-        editor.moveCursorToBeginningOfNextParagraph()
+        cursor = editor.getLastCursor()
+        editor.moveToBeginningOfNextParagraph()
 
         expect(cursor.getBufferPosition()).toEqual [0, 0]
 
-    describe ".moveCursorToBeginningOfPreviousParagraph()", ->
+    describe ".moveToBeginningOfPreviousParagraph()", ->
       it "moves the cursor before the first line of the pevious paragraph", ->
         editor.setCursorBufferPosition [10,0]
-        cursor = editor.getCursor()
+        cursor = editor.getLastCursor()
 
-        editor.moveCursorToBeginningOfPreviousParagraph()
+        editor.moveToBeginningOfPreviousParagraph()
 
         expect(cursor.getBufferPosition()).toEqual  { row : 0, column : 0 }
 
         editor.setText("")
         editor.setCursorBufferPosition [0,0]
-        cursor = editor.getCursor()
-        editor.moveCursorToBeginningOfPreviousParagraph()
+        cursor = editor.getLastCursor()
+        editor.moveToBeginningOfPreviousParagraph()
 
         expect(cursor.getBufferPosition()).toEqual [0, 0]
 
@@ -750,6 +750,26 @@ describe "Editor", ->
           buffer.insert([8, 0], '...')
           expect(cursorMovedHandler).not.toHaveBeenCalled()
 
+    describe "::getCursorBufferPositions()", ->
+      it "returns the cursor positions in the order they were added", ->
+        cursor1 = editor.addCursorAtBufferPosition([8, 5])
+        cursor2 = editor.addCursorAtBufferPosition([4, 5])
+        expect(editor.getCursorBufferPositions()).toEqual [[0, 0], [8, 5], [4, 5]]
+
+    describe "::getCursorScreenPositions()", ->
+      it "returns the cursor positions in the order they were added", ->
+        editor.foldBufferRow(4)
+        cursor1 = editor.addCursorAtBufferPosition([8, 5])
+        cursor2 = editor.addCursorAtBufferPosition([3, 5])
+        expect(editor.getCursorScreenPositions()).toEqual [[0, 0], [5, 5], [3, 5]]
+
+    describe "::getCursorsOrderedByBufferPosition()", ->
+      it "returns all cursors ordered by buffer positions", ->
+        originalCursor = editor.getLastCursor()
+        cursor1 = editor.addCursorAtBufferPosition([8, 5])
+        cursor2 = editor.addCursorAtBufferPosition([4, 5])
+        expect(editor.getCursorsOrderedByBufferPosition()).toEqual [originalCursor, cursor2, cursor1]
+
     describe "addCursorAtScreenPosition(screenPosition)", ->
       describe "when a cursor already exists at the position", ->
         it "returns the existing cursor", ->
@@ -782,23 +802,23 @@ describe "Editor", ->
         editor.setCursorScreenPosition([2, 0])
         expect(editor.getScrollBottom()).toBe 5.5 * 10
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getScrollBottom()).toBe 6 * 10
 
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(editor.getScrollBottom()).toBe 7 * 10
 
       it "scrolls up when the last cursor gets closer than ::verticalScrollMargin to the top of the editor", ->
         editor.setCursorScreenPosition([11, 0])
         editor.setScrollBottom(editor.getScrollHeight())
 
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getScrollBottom()).toBe editor.getScrollHeight()
 
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getScrollTop()).toBe 7 * 10
 
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(editor.getScrollTop()).toBe 6 * 10
 
       it "scrolls right when the last cursor gets closer than ::horizontalScrollMargin to the right of the editor", ->
@@ -808,10 +828,10 @@ describe "Editor", ->
         editor.setCursorScreenPosition([0, 2])
         expect(editor.getScrollRight()).toBe 5.5 * 10
 
-        editor.moveCursorRight()
+        editor.moveRight()
         expect(editor.getScrollRight()).toBe 6 * 10
 
-        editor.moveCursorRight()
+        editor.moveRight()
         expect(editor.getScrollRight()).toBe 7 * 10
 
       it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
@@ -820,10 +840,10 @@ describe "Editor", ->
 
         expect(editor.getScrollRight()).toBe editor.getScrollWidth()
 
-        editor.moveCursorLeft()
+        editor.moveLeft()
         expect(editor.getScrollLeft()).toBe 59 * 10
 
-        editor.moveCursorLeft()
+        editor.moveLeft()
         expect(editor.getScrollLeft()).toBe 58 * 10
 
       it "scrolls down when inserting lines makes the document longer than the editor's height", ->
@@ -843,7 +863,7 @@ describe "Editor", ->
     selection = null
 
     beforeEach ->
-      selection = editor.getSelection()
+      selection = editor.getLastSelection()
 
     describe ".selectUp/Down/Left/Right()", ->
       it "expands each selection to its cursor's new location", ->
@@ -904,6 +924,18 @@ describe "Editor", ->
         expect(editor.getSelections()).toEqual [selection1]
         expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
         expect(selection1.isReversed()).toBeFalsy()
+
+    describe ".selectToBufferPosition(bufferPosition)", ->
+      it "expands the last selection to the given position", ->
+        editor.setSelectedBufferRange([[3, 0], [4, 5]])
+        editor.addCursorAtBufferPosition([5, 6])
+        editor.selectToBufferPosition([6, 2])
+
+        selections = editor.getSelections()
+        expect(selections.length).toBe 2
+        [selection1, selection2] = selections
+        expect(selection1.getBufferRange()).toEqual [[3, 0], [4, 5]]
+        expect(selection2.getBufferRange()).toEqual [[5, 6], [6, 2]]
 
     describe ".selectToScreenPosition(screenPosition)", ->
       it "expands the last selection to the given position", ->
@@ -969,8 +1001,8 @@ describe "Editor", ->
         editor.selectToTop()
         expect(editor.getCursors().length).toBe 1
         expect(editor.getCursorBufferPosition()).toEqual [0,0]
-        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [11,2]]
-        expect(editor.getSelection().isReversed()).toBeTruthy()
+        expect(editor.getLastSelection().getBufferRange()).toEqual [[0,0], [11,2]]
+        expect(editor.getLastSelection().isReversed()).toBeTruthy()
 
     describe ".selectToBottom()", ->
       it "selects text from cusor position to the bottom of the buffer", ->
@@ -979,13 +1011,13 @@ describe "Editor", ->
         editor.selectToBottom()
         expect(editor.getCursors().length).toBe 1
         expect(editor.getCursorBufferPosition()).toEqual [12,2]
-        expect(editor.getSelection().getBufferRange()).toEqual [[9,3], [12,2]]
-        expect(editor.getSelection().isReversed()).toBeFalsy()
+        expect(editor.getLastSelection().getBufferRange()).toEqual [[9,3], [12,2]]
+        expect(editor.getLastSelection().isReversed()).toBeFalsy()
 
     describe ".selectAll()", ->
       it "selects the entire buffer", ->
         editor.selectAll()
-        expect(editor.getSelection().getBufferRange()).toEqual buffer.getRange()
+        expect(editor.getLastSelection().getBufferRange()).toEqual buffer.getRange()
 
     describe ".selectToBeginningOfLine()", ->
       it "selects text from cusor position to beginning of line", ->
@@ -1025,20 +1057,20 @@ describe "Editor", ->
         expect(selection2.getBufferRange()).toEqual [[11,3], [11,44]]
         expect(selection2.isReversed()).toBeFalsy()
 
-    describe ".selectLine()", ->
+    describe ".selectLinesContainingCursors()", ->
       it "selects the entire line (including newlines) at given row", ->
         editor.setCursorScreenPosition([1, 2])
-        editor.selectLine()
+        editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[1,0], [2,0]]
         expect(editor.getSelectedText()).toBe "  var sort = function(items) {\n"
 
         editor.setCursorScreenPosition([12, 2])
-        editor.selectLine()
+        editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[12,0], [12,2]]
 
         editor.setCursorBufferPosition([0, 2])
-        editor.selectLine()
-        editor.selectLine()
+        editor.selectLinesContainingCursors()
+        editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[0,0], [2,0]]
 
     describe ".selectToBeginningOfWord()", ->
@@ -1138,39 +1170,39 @@ describe "Editor", ->
         expect(selection4.getBufferRange()).toEqual [[3,30], [3,31]]
         expect(selection4.isReversed()).toBeFalsy()
 
-    describe ".selectWord()", ->
+    describe ".selectWordsContainingCursors()", ->
       describe "when the cursor is inside a word", ->
         it "selects the entire word", ->
           editor.setCursorScreenPosition([0, 8])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'quicksort'
 
       describe "when the cursor is between two words", ->
         it "selects the word the cursor is on", ->
           editor.setCursorScreenPosition([0, 4])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'quicksort'
 
           editor.setCursorScreenPosition([0, 3])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'var'
 
 
       describe "when the cursor is inside a region of whitespace", ->
         it "selects the whitespace region", ->
           editor.setCursorScreenPosition([5, 2])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[5, 0], [5, 6]]
 
           editor.setCursorScreenPosition([5, 0])
-          editor.selectWord()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[5, 0], [5, 6]]
 
       describe "when the cursor is at the end of the text", ->
         it "select the previous word", ->
           editor.buffer.append 'word'
-          editor.moveCursorToBottom()
-          editor.selectWord()
+          editor.moveToBottom()
+          editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
 
     describe ".selectToFirstCharacterOfLine()", ->
@@ -1211,7 +1243,7 @@ describe "Editor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
 
       it "recyles existing selection instances", ->
-        selection = editor.getSelection()
+        selection = editor.getLastSelection()
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
 
         [selection1, selection2] = editor.getSelections()
@@ -1240,6 +1272,29 @@ describe "Editor", ->
           editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], preserveFolds: true)
           expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
           expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+
+    describe ".setSelectedScreenRanges(ranges)", ->
+      beforeEach ->
+        editor.foldBufferRow(4)
+
+      it "clears existing selections and creates selections for each of the given ranges", ->
+        editor.setSelectedScreenRanges([[[3, 4], [3, 7]], [[5, 4], [5, 7]]])
+        expect(editor.getSelectedBufferRanges()).toEqual [[[3, 4], [3, 7]], [[8, 4], [8, 7]]]
+
+        editor.setSelectedScreenRanges([[[6, 2], [6, 4]]])
+        expect(editor.getSelectedScreenRanges()).toEqual [[[6, 2], [6, 4]]]
+
+      it "merges intersecting selections and unfolds the fold", ->
+        editor.setSelectedScreenRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
+        expect(editor.getSelectedScreenRanges()).toEqual [[[2, 2], [8, 5]]]
+
+      it "recyles existing selection instances", ->
+        selection = editor.getLastSelection()
+        editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
+
+        [selection1, selection2] = editor.getSelections()
+        expect(selection1).toBe selection
+        expect(selection1.getScreenRange()).toEqual [[2, 2], [3, 4]]
 
     describe ".setSelectedBufferRange(range)", ->
       describe "when the 'autoscroll' option is true", ->
@@ -1376,17 +1431,17 @@ describe "Editor", ->
             [[10, 0], [10, 0]]
           ]
 
-    describe ".addSelectionAbove()", ->
+    fdescribe ".addSelectionAbove()", ->
       describe "when the selection is non-empty", ->
         it "selects the same region of the line above current selections if possible", ->
           editor.setSelectedBufferRange([[3, 16], [3, 21]])
           editor.addSelectionForBufferRange([[3, 37], [3, 44]])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[2, 16], [2, 21]]
-            [[2, 37], [2, 40]]
             [[3, 16], [3, 21]]
             [[3, 37], [3, 44]]
+            [[2, 16], [2, 21]]
+            [[2, 37], [2, 40]]
           ]
           for cursor in editor.getCursors()
             expect(cursor.isVisible()).toBeFalsy()
@@ -1395,8 +1450,8 @@ describe "Editor", ->
           editor.setSelectedBufferRange([[6, 31], [6, 38]])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[3, 31], [3, 38]]
             [[6, 31], [6, 38]]
+            [[3, 31], [3, 38]]
           ]
 
         it "honors the original selection's range (goal range) when adding across shorter lines", ->
@@ -1405,10 +1460,10 @@ describe "Editor", ->
           editor.addSelectionAbove()
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[3, 22], [3, 38]]
-            [[4, 22], [4, 29]]
-            [[5, 22], [5, 30]]
             [[6, 22], [6, 38]]
+            [[5, 22], [5, 30]]
+            [[4, 22], [4, 29]]
+            [[3, 22], [3, 38]]
           ]
 
       describe "when the selection is empty", ->
@@ -1418,26 +1473,26 @@ describe "Editor", ->
           editor.addSelectionAbove()
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[3, 36], [3, 36]]
-            [[4, 29], [4, 29]]
-            [[5, 30], [5, 30]]
             [[6, 36], [6, 36]]
+            [[5, 30], [5, 30]]
+            [[4, 29], [4, 29]]
+            [[3, 36], [3, 36]]
           ]
 
         it "skips empty lines when the column is non-zero", ->
           editor.setCursorBufferPosition([11, 4])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[9, 4], [9, 4]]
             [[11, 4], [11, 4]]
+            [[9, 4], [9, 4]]
           ]
 
         it "does not skip empty lines when the column is zero", ->
           editor.setCursorBufferPosition([10, 0])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual [
-            [[9, 0], [9, 0]]
             [[10, 0], [10, 0]]
+            [[9, 0], [9, 0]]
           ]
 
     describe ".splitSelectionsIntoLines()", ->
@@ -1464,7 +1519,7 @@ describe "Editor", ->
     describe ".consolidateSelections()", ->
       it "destroys all selections but the most recent, returning true if any selections were destroyed", ->
         editor.setSelectedBufferRange([[3, 16], [3, 21]])
-        selection1 = editor.getSelection()
+        selection1 = editor.getLastSelection()
         selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
         selection3 = editor.addSelectionForBufferRange([[8, 4], [8, 10]])
 
@@ -1480,19 +1535,19 @@ describe "Editor", ->
 
       it "clears the selection", ->
         makeSelection()
-        editor.moveCursorDown()
+        editor.moveDown()
         expect(selection.isEmpty()).toBeTruthy()
 
         makeSelection()
-        editor.moveCursorUp()
+        editor.moveUp()
         expect(selection.isEmpty()).toBeTruthy()
 
         makeSelection()
-        editor.moveCursorLeft()
+        editor.moveLeft()
         expect(selection.isEmpty()).toBeTruthy()
 
         makeSelection()
-        editor.moveCursorRight()
+        editor.moveRight()
         expect(selection.isEmpty()).toBeTruthy()
 
         makeSelection()
@@ -1801,7 +1856,7 @@ describe "Editor", ->
             expect(line).toBe "  var ort = function(items) {"
             expect(editor.getCursorScreenPosition()).toEqual {row: 1, column: 6}
             expect(changeScreenRangeHandler).toHaveBeenCalled()
-            expect(editor.getCursor().isVisible()).toBeTruthy()
+            expect(editor.getLastCursor().isVisible()).toBeTruthy()
 
         describe "when the cursor is at the beginning of a line", ->
           it "joins it with the line above", ->
@@ -2129,7 +2184,7 @@ describe "Editor", ->
           editor.delete()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
-          expect(editor.getSelection().isEmpty()).toBeTruthy()
+          expect(editor.getLastSelection().isEmpty()).toBeTruthy()
 
       describe "when there are multiple selections", ->
         describe "when selections are on the same line", ->
@@ -2252,7 +2307,7 @@ describe "Editor", ->
       describe "when the selection is not empty", ->
         it "indents the selected lines", ->
           editor.setSelectedBufferRange([[0, 0], [10, 0]])
-          selection = editor.getSelection()
+          selection = editor.getLastSelection()
           spyOn(selection, "indentSelectedRows")
           editor.indent()
           expect(selection.indentSelectedRows).toHaveBeenCalled()
@@ -2545,7 +2600,7 @@ describe "Editor", ->
       it "preserves selection emptiness", ->
         editor.setCursorBufferPosition([4, 0])
         editor.toggleLineCommentsInSelection()
-        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect(editor.getLastSelection().isEmpty()).toBeTruthy()
 
       it "does not explode if the current language mode has no comment regex", ->
         editor.destroy()
@@ -2576,7 +2631,7 @@ describe "Editor", ->
         editor.toggleLineCommentsInSelection()
 
         expect(buffer.lineForRow(10)).toBe "// "
-        editor.moveCursorToBeginningOfLine()
+        editor.moveToBeginningOfLine()
         editor.insertText("  ")
         editor.setSelectedBufferRange([[10, 0], [10, 0]])
         editor.toggleLineCommentsInSelection()
@@ -2660,7 +2715,7 @@ describe "Editor", ->
         editor.beginTransaction()
 
         editor.delete()
-        editor.moveCursorToEndOfLine()
+        editor.moveToEndOfLine()
         editor.insertText('5')
         expect(buffer.getText()).toBe '145'
 
@@ -2688,7 +2743,7 @@ describe "Editor", ->
         expect(cursor3.getScreenPosition()).toEqual [1, 0]
 
       it "does not destroy cursors or selections when a change encompasses them", ->
-        cursor = editor.getCursor()
+        cursor = editor.getLastCursor()
         cursor.setBufferPosition [3, 3]
         editor.buffer.delete([[3, 1], [3, 5]])
         expect(cursor.getBufferPosition()).toEqual [3, 1]
@@ -2717,7 +2772,7 @@ describe "Editor", ->
 
   describe ".deleteLine()", ->
     it "deletes the first line when the cursor is there", ->
-      editor.getCursor().moveToTop()
+      editor.getLastCursor().moveToTop()
       line1 = buffer.lineForRow(1)
       count = buffer.getLineCount()
       expect(buffer.lineForRow(0)).not.toBe(line1)
@@ -2729,7 +2784,7 @@ describe "Editor", ->
       count = buffer.getLineCount()
       secondToLastLine = buffer.lineForRow(count - 2)
       expect(buffer.lineForRow(count - 1)).not.toBe(secondToLastLine)
-      editor.getCursor().moveToBottom()
+      editor.getLastCursor().moveToBottom()
       editor.deleteLine()
       newCount = buffer.getLineCount()
       expect(buffer.lineForRow(newCount - 1)).toBe(secondToLastLine)
@@ -2756,8 +2811,8 @@ describe "Editor", ->
 
     it "deletes the entire region when invoke on a folded region", ->
       editor.foldBufferRow(1)
-      editor.getCursor().moveToTop()
-      editor.getCursor().moveDown()
+      editor.getLastCursor().moveToTop()
+      editor.getLastCursor().moveDown()
       expect(buffer.getLineCount()).toBe(13)
       editor.deleteLine()
       expect(buffer.getLineCount()).toBe(4)
@@ -2766,7 +2821,7 @@ describe "Editor", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
       for line in [0...count]
-        editor.getCursor().moveToBottom()
+        editor.getLastCursor().moveToBottom()
         editor.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
@@ -2775,7 +2830,7 @@ describe "Editor", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
       for line in [0...count]
-        editor.getCursor().moveToTop()
+        editor.getLastCursor().moveToTop()
         editor.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
@@ -2936,7 +2991,7 @@ describe "Editor", ->
       editor.insertText(text)
       numberOfNewlines = text.match(/\n/g)?.length
       endColumn = text.match(/[^\n]*$/)[0]?.length
-      editor.getSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
+      editor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
       editor.cutSelectedText()
 
     describe "editor.autoIndent", ->
@@ -3096,7 +3151,7 @@ describe "Editor", ->
     it "autoIndentSelectedRows auto-indents the selection", ->
       editor.setCursorBufferPosition([2, 0])
       editor.insertText("function() {\ninside=true\n}\n  i=1\n")
-      editor.getSelection().setBufferRange([[2,0], [6,0]])
+      editor.getLastSelection().setBufferRange([[2,0], [6,0]])
       editor.autoIndentSelectedRows()
 
       expect(editor.lineForBufferRow(2)).toBe "    function() {"
@@ -3239,7 +3294,7 @@ describe "Editor", ->
   describe "when the edit session contains surrogate pair characters", ->
     it "correctly backspaces over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97')
-      editor.moveCursorToBottom()
+      editor.moveToBottom()
       editor.backspace()
       expect(editor.getText()).toBe '\uD835\uDF97\uD835\uDF97'
       editor.backspace()
@@ -3249,7 +3304,7 @@ describe "Editor", ->
 
     it "correctly deletes over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97')
-      editor.moveCursorToTop()
+      editor.moveToTop()
       editor.delete()
       expect(editor.getText()).toBe '\uD835\uDF97\uD835\uDF97'
       editor.delete()
@@ -3259,22 +3314,22 @@ describe "Editor", ->
 
     it "correctly moves over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97\n')
-      editor.moveCursorToTop()
-      editor.moveCursorRight()
+      editor.moveToTop()
+      editor.moveRight()
       expect(editor.getCursorBufferPosition()).toEqual [0, 2]
-      editor.moveCursorRight()
+      editor.moveRight()
       expect(editor.getCursorBufferPosition()).toEqual [0, 4]
-      editor.moveCursorRight()
+      editor.moveRight()
       expect(editor.getCursorBufferPosition()).toEqual [0, 6]
-      editor.moveCursorRight()
+      editor.moveRight()
       expect(editor.getCursorBufferPosition()).toEqual [1, 0]
-      editor.moveCursorLeft()
+      editor.moveLeft()
       expect(editor.getCursorBufferPosition()).toEqual [0, 6]
-      editor.moveCursorLeft()
+      editor.moveLeft()
       expect(editor.getCursorBufferPosition()).toEqual [0, 4]
-      editor.moveCursorLeft()
+      editor.moveLeft()
       expect(editor.getCursorBufferPosition()).toEqual [0, 2]
-      editor.moveCursorLeft()
+      editor.moveLeft()
       expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
   describe ".setIndentationForBufferRow", ->
@@ -3458,7 +3513,7 @@ describe "Editor", ->
       expect(editor.getScrollTop()).toBe 80
       expect(editor.getSelectedBufferRanges()).toEqual [[[0,0], [12,2]]]
 
-      editor.moveCursorToBottom()
+      editor.moveToBottom()
       editor.selectPageUp()
       expect(editor.getScrollTop()).toBe 50
       expect(editor.getSelectedBufferRanges()).toEqual [[[7,0], [12,2]]]

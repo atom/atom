@@ -53,7 +53,7 @@ describe "editorView.", ->
 
     describe "at-end.", ->
       beforeEach ->
-        editorView.moveCursorToBottom()
+        editorView.moveToBottom()
 
       benchmark "insert-delete", ->
         editorView.insertText('"')
@@ -178,7 +178,7 @@ describe "editorView.", ->
         atom.workspaceView.openSync('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
-        editorView.moveCursorToBottom()
+        editorView.moveToBottom()
 
       describe "on-first-line.", ->
         benchmark "inserting-newline", 5, ->
@@ -195,11 +195,11 @@ describe "editorView.", ->
         endPosition = null
 
         beforeEach ->
-          editorView.moveCursorToBottom()
+          editorView.moveToBottom()
           endPosition = editorView.getCursorScreenPosition()
 
         benchmark "move-to-beginning-of-word", ->
-          editorView.moveCursorToBeginningOfWord()
+          editorView.moveToBeginningOfWord()
           editorView.setCursorScreenPosition(endPosition)
 
         benchmark "insert", ->

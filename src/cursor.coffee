@@ -157,7 +157,7 @@ class Cursor extends Model
   #
   # Returns a {Boolean}.
   isLastCursor: ->
-    this == @editor.getCursor()
+    this == @editor.getLastCursor()
 
   # Public: Identifies if the cursor is surrounded by whitespace.
   #
@@ -225,7 +225,7 @@ class Cursor extends Model
     @editor.lineForBufferRow(@getBufferRow())
 
   # Public: Moves the cursor up one screen row.
-  moveUp: (rowCount = 1, {moveToEndOfSelection}={}) ->
+  moveUp: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       { row, column } = range.start
@@ -309,17 +309,6 @@ class Cursor extends Model
 
     @setBufferPosition([lineBufferRange.start.row, targetBufferColumn])
 
-  # Public: Moves the cursor to the beginning of the buffer line, skipping all
-  # whitespace.
-  skipLeadingWhitespace: ->
-    position = @getBufferPosition()
-    scanRange = @getCurrentLineBufferRange()
-    endOfLeadingWhitespace = null
-    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) ->
-      endOfLeadingWhitespace = range.end
-
-    @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
-
   # Public: Moves the cursor to the end of the line.
   moveToEndOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), Infinity])
@@ -351,6 +340,17 @@ class Cursor extends Model
   moveToNextWordBoundary: ->
     if position = @getMoveNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
+
+  # Public: Moves the cursor to the beginning of the buffer line, skipping all
+  # whitespace.
+  skipLeadingWhitespace: ->
+    position = @getBufferPosition()
+    scanRange = @getCurrentLineBufferRange()
+    endOfLeadingWhitespace = null
+    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) ->
+      endOfLeadingWhitespace = range.end
+
+    @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
 
   # Public: Retrieves the buffer position of where the current word starts.
   #
@@ -569,3 +569,11 @@ class Cursor extends Model
       false
     else
       bufferPosition.column > firstCharacterColumn
+
+  # Public: Compare this cursor's buffer position to another cursor's buffer position.
+  #
+  # See {Point::compare} for more details.
+  #
+  # * `otherCursor`{Cursor} to compare against
+  compare: (otherCursor) ->
+    @getBufferPosition().compare(otherCursor.getBufferPosition())
