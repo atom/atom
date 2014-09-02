@@ -1985,18 +1985,18 @@ class Editor extends Model
   selectToTop: ->
     @expandSelectionsBackward (selection) -> selection.selectToTop()
 
-  # Essential: Select all text in the buffer.
-  #
-  # This method merges multiple selections into a single selection.
-  selectAll: ->
-    @expandSelectionsForward (selection) -> selection.selectAll()
-
   # Essential: Selects from the top of the first selection in the buffer to the end
   # of the buffer.
   #
   # This method merges multiple selections into a single selection.
   selectToBottom: ->
     @expandSelectionsForward (selection) -> selection.selectToBottom()
+
+  # Essential: Select all text in the buffer.
+  #
+  # This method merges multiple selections into a single selection.
+  selectAll: ->
+    @expandSelectionsForward (selection) -> selection.selectAll()
 
   # Essential: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
