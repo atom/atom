@@ -236,9 +236,6 @@ class Cursor extends Model
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row - rowCount, column: column})
     @goalColumn = column
-  moveCursorUp: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveUp() instead. `Cursor` has been removed from these methods.")
-    @moveUp(rowCount, options)
 
   # Public: Moves the cursor down one screen row.
   moveDown: (rowCount = 1, {moveToEndOfSelection}={}) ->
@@ -251,9 +248,6 @@ class Cursor extends Model
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row + rowCount, column: column})
     @goalColumn = column
-  moveCursorDown: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveDown() instead. `Cursor` has been removed from these methods.")
-    @moveDown(rowCount, options)
 
   # Public: Moves the cursor left one screen column.
   #
@@ -268,9 +262,6 @@ class Cursor extends Model
       {row, column} = @getScreenPosition()
       [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
       @setScreenPosition({row, column})
-  moveCursorLeft: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveLeft() instead. `Cursor` has been removed from these methods.")
-    @moveLeft(rowCount, options)
 
   # Public: Moves the cursor right one screen column.
   #
@@ -284,37 +275,22 @@ class Cursor extends Model
     else
       { row, column } = @getScreenPosition()
       @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
-  moveCursorRight: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveRight() instead. `Cursor` has been removed from these methods.")
-    @moveRight(rowCount, options)
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
     @setBufferPosition([0,0])
-  moveCursorToTop: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToTop() instead. `Cursor` has been removed from these methods.")
-    @moveToTop(rowCount, options)
 
   # Public: Moves the cursor to the bottom of the buffer.
   moveToBottom: ->
     @setBufferPosition(@editor.getEofBufferPosition())
-  moveCursorToBottom: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToBottom() instead. `Cursor` has been removed from these methods.")
-    @moveToBottom(rowCount, options)
 
   # Public: Moves the cursor to the beginning of the line.
   moveToBeginningOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), 0])
-  moveCursorToBeginningOfScreenLine: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToBeginningOfScreenLine() instead. `Cursor` has been removed from these methods.")
-    @moveToBeginningOfScreenLine(rowCount, options)
 
   # Public: Moves the cursor to the beginning of the buffer line.
   moveToBeginningOfLine: ->
     @setBufferPosition([@getBufferRow(), 0])
-  moveCursorToBeginningOfLine: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToBeginningOfLine() instead. `Cursor` has been removed from these methods.")
-    @moveToBeginningOfLine(rowCount, options)
 
   # Public: Moves the cursor to the beginning of the first character in the
   # line.
@@ -333,62 +309,38 @@ class Cursor extends Model
       targetBufferColumn = lineBufferRange.start.column
 
     @setBufferPosition([lineBufferRange.start.row, targetBufferColumn])
-  moveCursorToFirstCharacterOfLine: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToFirstCharacterOfLine() instead. `Cursor` has been removed from these methods.")
-    @moveToFirstCharacterOfLine(rowCount, options)
 
   # Public: Moves the cursor to the end of the line.
   moveToEndOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), Infinity])
-  moveCursorToEndOfScreenLine: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToEndOfScreenLine() instead. `Cursor` has been removed from these methods.")
-    @moveToEndOfScreenLine(rowCount, options)
 
   # Public: Moves the cursor to the end of the buffer line.
   moveToEndOfLine: ->
     @setBufferPosition([@getBufferRow(), Infinity])
-  moveCursorToEndOfLine: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToEndOfLine() instead. `Cursor` has been removed from these methods.")
-    @moveToEndOfLine(rowCount, options)
 
   # Public: Moves the cursor to the beginning of the word.
   moveToBeginningOfWord: ->
     @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
-  moveCursorToBeginningOfWord: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToBeginningOfWord() instead. `Cursor` has been removed from these methods.")
-    @moveToBeginningOfWord(rowCount, options)
 
   # Public: Moves the cursor to the end of the word.
   moveToEndOfWord: ->
     if position = @getEndOfCurrentWordBufferPosition()
       @setBufferPosition(position)
-  moveCursorToEndOfWord: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToEndOfWord() instead. `Cursor` has been removed from these methods.")
-    @moveToEndOfWord(rowCount, options)
 
   # Public: Moves the cursor to the beginning of the next word.
   moveToBeginningOfNextWord: ->
     if position = @getBeginningOfNextWordBufferPosition()
       @setBufferPosition(position)
-  moveCursorToBeginningOfNextWord: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToBeginningOfNextWord() instead. `Cursor` has been removed from these methods.")
-    @moveToBeginningOfNextWord(rowCount, options)
 
   # Public: Moves the cursor to the previous word boundary.
   moveToPreviousWordBoundary: ->
     if position = @getPreviousWordBoundaryBufferPosition()
       @setBufferPosition(position)
-  moveCursorToPreviousWordBoundary: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToPreviousWordBoundary() instead. `Cursor` has been removed from these methods.")
-    @moveToPreviousWordBoundary(rowCount, options)
 
   # Public: Moves the cursor to the next word boundary.
   moveToNextWordBoundary: ->
     if position = @getMoveNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
-  moveCursorToNextWordBoundary: (rowCount=1, options) ->
-    deprecate("Use Cursor::moveToNextWordBoundary() instead. `Cursor` has been removed from these methods.")
-    @moveToNextWordBoundary(rowCount, options)
 
   # Public: Moves the cursor to the beginning of the buffer line, skipping all
   # whitespace.
