@@ -614,6 +614,9 @@ EditorComponent = React.createClass
     # CTRL+click brings up the context menu on OSX, so don't handle those either
     return if ctrlKey and process.platform is 'darwin'
 
+    # Prevent focusout event on hidden input if editor is already focused
+    event.preventDefault() if @state.focused
+
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
