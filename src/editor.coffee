@@ -1924,6 +1924,17 @@ class Editor extends Model
     selection
 
   # Essential: Select from the current cursor position to the given position in
+  # buffer coordinates.
+  #
+  # This method may merge selections that end up intesecting.
+  #
+  # * `position` An instance of {Point}, with a given `row` and `column`.
+  selectToBufferPosition: (position) ->
+    lastSelection = @getLastSelection()
+    lastSelection.selectToBufferPosition(position)
+    @mergeIntersectingSelections(reversed: lastSelection.isReversed())
+
+  # Essential: Select from the current cursor position to the given position in
   # screen coordinates.
   #
   # This method may merge selections that end up intesecting.
