@@ -47,8 +47,8 @@ class Clipboard
   # associated metadata.
   #
   # Returns an {Object} with the following keys:
-  #   * `text` The {String} clipboard text.
-  #   * `metadata` The metadata stored by an earlier call to {::write}.
+  # * `text` The {String} clipboard text.
+  # * `metadata` The metadata stored by an earlier call to {::write}.
   readWithMetadata: ->
     text = @read()
     if @signatureForMetadata is @md5(text)
