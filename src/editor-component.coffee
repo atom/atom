@@ -654,32 +654,32 @@ EditorComponent = React.createClass
     {editor} = @props
     clickedRow = @screenPositionForMouseEvent(event).row
 
-    editor.setSelectedScreenRange([[clickedRow, 0], [clickedRow + 1, 0]])
+    editor.setSelectedScreenRange([[clickedRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
 
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
       if dragRow < clickedRow # dragging up
-        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
+        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
       else
-        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
 
   onGutterMetaClick: (event) ->
     {editor} = @props
     clickedRow = @screenPositionForMouseEvent(event).row
 
     bufferRange = editor.bufferRangeForScreenRange([[clickedRow, 0], [clickedRow + 1, 0]])
-    rowSelection = editor.addSelectionForBufferRange(bufferRange)
+    rowSelection = editor.addSelectionForBufferRange(bufferRange, preserveFolds: true)
 
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
 
       if dragRow < clickedRow # dragging up
-        rowSelection.setScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
+        rowSelection.setScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
       else
-        rowSelection.setScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+        rowSelection.setScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
 
       # After updating the selected screen range, merge overlapping selections
-      editor.mergeIntersectingSelections()
+      editor.mergeIntersectingSelections(preserveFolds: true)
 
       # The merge process will possibly destroy the current selection because
       # it will be merged into another one. Therefore, we need to obtain a
@@ -700,9 +700,9 @@ EditorComponent = React.createClass
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
       if dragRow < tailPosition.row # dragging up
-        editor.setSelectedScreenRange([[dragRow, 0], tailPosition])
+        editor.setSelectedScreenRange([[dragRow, 0], tailPosition], preserveFolds: true)
       else
-        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]], preserveFolds: true)
 
   onStylesheetsChanged: (stylesheet) ->
     return unless @performedInitialMeasurement
