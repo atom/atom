@@ -412,20 +412,41 @@ class Editor extends Model
   # Public: Returns a {String} representing the contents of the line at the
   # given buffer row.
   #
-  # * `row` A {Number} representing a zero-indexed buffer row.
-  lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  # * `bufferRow` A {Number} representing a zero-indexed buffer row.
+  lineTextForBufferRow: (bufferRow) -> @buffer.lineForRow(bufferRow)
+  lineForBufferRow: (bufferRow) ->
+    deprecate 'Use Editor::lineTextForBufferRow(bufferRow) instead'
+    @lineTextForBufferRow(bufferRow)
 
-  # {Delegates to: DisplayBuffer.lineForRow}
-  lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
+  # Public: Returns a {String} representing the contents of the line at the
+  # given screen row.
+  #
+  # * `screenRow` A {Number} representing a zero-indexed screen row.
+  lineTextForScreenRow: (screenRow) -> @displayBuffer.tokenizedLineForScreenRow(screenRow)?.text
 
-  # {Delegates to: DisplayBuffer.linesForRows}
-  linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
+  # Gets the screen line for the given screen row.
+  #
+  # * `screenRow` - A {Number} indicating the screen row.
+  #
+  # Returns {TokenizedLine}
+  tokenizedLineForScreenRow: (screenRow) -> @displayBuffer.tokenizedLineForScreenRow(screenRow)
+  lineForScreenRow: (screenRow) ->
+    deprecate "Editor::tokenizedLineForScreenRow(bufferRow) is the new name. But it's private. Try to use Editor::lineTextForScreenRow instead"
+    @tokenizedLineForScreenRow(screenRow)
 
-  # Public: Returns a {Number} representing the line length for the given
+  # {Delegates to: DisplayBuffer.tokenizedLinesForScreenRows}
+  tokenizedLinesForScreenRows: (start, end) -> @displayBuffer.tokenizedLinesForScreenRows(start, end)
+  linesForScreenRows: (start, end) ->
+    deprecate "Use Editor::tokenizedLinesForScreenRows instead"
+    @tokenizedLinesForScreenRows(start, end)
+
+  # Returns a {Number} representing the line length for the given
   # buffer row, exclusive of its line-ending character(s).
   #
   # * `row` A {Number} indicating the buffer row.
-  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+  lineLengthForBufferRow: (row) ->
+    deprecate "Use editor.lineTextForBufferRow(row).length instead"
+    @lineTextForBufferRow(row).length
 
   bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
 
@@ -834,7 +855,7 @@ class Editor extends Model
   # whitespace.
   usesSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
-      continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+      continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
       line = @buffer.lineForRow(bufferRow)
       return true  if line[0] is ' '
@@ -911,7 +932,7 @@ class Editor extends Model
   #
   # Returns a {Number}.
   indentationForBufferRow: (bufferRow) ->
-    @indentLevelForLine(@lineForBufferRow(bufferRow))
+    @indentLevelForLine(@lineTextForBufferRow(bufferRow))
 
   # Public: Set the indentation level for the given buffer row.
   #
@@ -929,7 +950,7 @@ class Editor extends Model
     if preserveLeadingWhitespace
       endColumn = 0
     else
-      endColumn = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
+      endColumn = @lineTextForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
     @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
 
@@ -1176,7 +1197,7 @@ class Editor extends Model
 
   # Public: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
-    if match = @lineForBufferRow(bufferRow).match(/\S/)
+    if match = @lineTextForBufferRow(bufferRow).match(/\S/)
       scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
       new TextMateScopeSelector('comment.*').matches(scopes)
 

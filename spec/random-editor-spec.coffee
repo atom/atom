@@ -35,7 +35,7 @@ describe "Editor", ->
         logLines()
         throw new Error("Invalid buffer row #{actualBufferRow} for screen row #{screenRow}", )
 
-      actualScreenLine = editor.lineForScreenRow(screenRow)
+      actualScreenLine = editor.tokenizedLineForScreenRow(screenRow)
       unless actualScreenLine.text is referenceScreenLine.text
         logLines()
         throw new Error("Invalid line text at screen row #{screenRow}")
@@ -83,7 +83,7 @@ describe "Editor", ->
       screenLines = []
       bufferRows = []
       for bufferRow in [0..tokenizedBuffer.getLastRow()]
-        for screenLine in softWrapLine(tokenizedBuffer.lineForScreenRow(bufferRow))
+        for screenLine in softWrapLine(tokenizedBuffer.tokenizedLineForRow(bufferRow))
           screenLines.push(screenLine)
           bufferRows.push(bufferRow)
     else

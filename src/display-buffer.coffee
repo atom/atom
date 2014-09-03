@@ -377,25 +377,25 @@ class DisplayBuffer extends Model
 
   # Gets the screen line for the given screen row.
   #
-  # screenRow - A {Number} indicating the screen row.
+  # * `screenRow` - A {Number} indicating the screen row.
   #
-  # Returns a {ScreenLine}.
-  lineForRow: (row) ->
-    @screenLines[row]
+  # Returns {TokenizedLine}
+  tokenizedLineForScreenRow: (screenRow) ->
+    @screenLines[screenRow]
 
   # Gets the screen lines for the given screen row range.
   #
   # startRow - A {Number} indicating the beginning screen row.
   # endRow - A {Number} indicating the ending screen row.
   #
-  # Returns an {Array} of {ScreenLine}s.
-  linesForRows: (startRow, endRow) ->
+  # Returns an {Array} of {TokenizedLine}s.
+  tokenizedLinesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
   # Gets all the screen lines.
   #
-  # Returns an {Array} of {ScreenLines}s.
-  getLines: ->
+  # Returns an {Array} of {TokenizedLine}s.
+  getTokenizedLines: ->
     new Array(@screenLines...)
 
   indentLevelForLine: (line) ->
@@ -555,7 +555,7 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    for token in @lineForRow(targetRow).tokens
+    for token in @tokenizedLineForScreenRow(targetRow).tokens
       charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         return {top, left} if column is targetColumn
@@ -573,7 +573,7 @@ class DisplayBuffer extends Model
 
     left = 0
     column = 0
-    for token in @lineForRow(row).tokens
+    for token in @tokenizedLineForScreenRow(row).tokens
       charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         charWidth = charWidths[char] ? defaultCharWidth
@@ -983,7 +983,7 @@ class DisplayBuffer extends Model
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]
-      line = @lineForRow(row).text
+      line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
@@ -1024,7 +1024,7 @@ class DisplayBuffer extends Model
 
     bufferRow = startBufferRow
     while bufferRow < endBufferRow
-      tokenizedLine = @tokenizedBuffer.lineForScreenRow(bufferRow)
+      tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(bufferRow)
 
       if fold = @largestFoldStartingAtBufferRow(bufferRow)
         foldLine = tokenizedLine.copy()
