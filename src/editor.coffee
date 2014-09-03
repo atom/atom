@@ -422,7 +422,7 @@ class Editor extends Model
   # given screen row.
   #
   # * `screenRow` A {Number} representing a zero-indexed screen row.
-  lineTextForScreenRow: (screenRow) -> @displayBuffer.tokenizedLineForScreenRow(screenRow).text
+  lineTextForScreenRow: (screenRow) -> @displayBuffer.tokenizedLineForScreenRow(screenRow)?.text
 
   # Gets the screen line for the given screen row.
   #

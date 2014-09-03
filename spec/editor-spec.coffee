@@ -2777,6 +2777,7 @@ describe "Editor", ->
     it '.lineTextForScreenRow(row)', ->
       editor.foldBufferRow(4)
       expect(editor.lineTextForScreenRow(5)).toEqual '    return sort(left).concat(pivot).concat(sort(right));'
+      expect(editor.lineTextForScreenRow(100)).not.toBeDefined()
 
   describe ".deleteLine()", ->
     it "deletes the first line when the cursor is there", ->
