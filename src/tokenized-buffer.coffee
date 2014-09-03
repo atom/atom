@@ -224,16 +224,15 @@ class TokenizedBuffer extends Model
   tokenizedLineForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]
 
+  stackForRow: (bufferRow) ->
+    @tokenizedLines[bufferRow]?.ruleStack
 
-  stackForRow: (row) ->
-    @tokenizedLines[row]?.ruleStack
-
-  indentLevelForRow: (row) ->
-    line = @buffer.lineForRow(row)
+  indentLevelForRow: (bufferRow) ->
+    line = @buffer.lineForRow(bufferRow)
     indentLevel = 0
 
     if line is ''
-      nextRow = row + 1
+      nextRow = bufferRow + 1
       lineCount = @getLineCount()
       while nextRow < lineCount
         nextLine = @buffer.lineForRow(nextRow)
@@ -242,7 +241,7 @@ class TokenizedBuffer extends Model
           break
         nextRow++
 
-      previousRow = row - 1
+      previousRow = bufferRow - 1
       while previousRow >= 0
         previousLine = @buffer.lineForRow(previousRow)
         unless previousLine is ''
