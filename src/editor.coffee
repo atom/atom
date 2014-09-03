@@ -421,8 +421,8 @@ class Editor extends Model
   # {Delegates to: DisplayBuffer.lineForRow}
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
 
-  # {Delegates to: DisplayBuffer.linesForRows}
-  linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
+  # {Delegates to: DisplayBuffer.tokenizedLinesForScreenRows}
+  linesForScreenRows: (start, end) -> @displayBuffer.tokenizedLinesForScreenRows(start, end)
 
   # Public: Returns a {Number} representing the line length for the given
   # buffer row, exclusive of its line-ending character(s).

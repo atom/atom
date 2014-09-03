@@ -389,7 +389,7 @@ class DisplayBuffer extends Model
   # endRow - A {Number} indicating the ending screen row.
   #
   # Returns an {Array} of {TokenizedLine}s.
-  linesForRows: (startRow, endRow) ->
+  tokenizedLinesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
   # Gets all the screen lines.

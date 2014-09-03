@@ -242,7 +242,7 @@ describe "DisplayBuffer", ->
           fold = displayBuffer.createFold(4, 7)
           expect(fold).toBeDefined()
 
-          [line4, line5] = displayBuffer.linesForRows(4, 5)
+          [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBe fold
           expect(line4.text).toMatch /^4-+/
           expect(line5.text).toBe '8'
@@ -251,7 +251,7 @@ describe "DisplayBuffer", ->
           changeHandler.reset()
 
           fold.destroy()
-          [line4, line5] = displayBuffer.linesForRows(4, 5)
+          [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
           expect(line5.text).toBe '5'
@@ -262,7 +262,7 @@ describe "DisplayBuffer", ->
         it "renders a fold placeholder for the folded line but does not skip any lines", ->
           fold = displayBuffer.createFold(4, 4)
 
-          [line4, line5] = displayBuffer.linesForRows(4, 5)
+          [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBe fold
           expect(line4.text).toMatch /^4-+/
           expect(line5.text).toBe '5'
@@ -275,7 +275,7 @@ describe "DisplayBuffer", ->
 
           fold.destroy()
 
-          [line4, line5] = displayBuffer.linesForRows(4, 5)
+          [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
           expect(line5.text).toBe '5'
@@ -287,13 +287,13 @@ describe "DisplayBuffer", ->
           innerFold = displayBuffer.createFold(6, 7)
           outerFold = displayBuffer.createFold(4, 8)
 
-          [line4, line5] = displayBuffer.linesForRows(4, 5)
+          [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBe outerFold
           expect(line4.text).toMatch /4-+/
           expect(line5.text).toMatch /9-+/
 
           outerFold.destroy()
-          [line4, line5, line6, line7] = displayBuffer.linesForRows(4, 7)
+          [line4, line5, line6, line7] = displayBuffer.tokenizedLinesForScreenRows(4, 7)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
           expect(line5.text).toBe '5'
@@ -305,7 +305,7 @@ describe "DisplayBuffer", ->
           innerFold = displayBuffer.createFold(4, 6)
           outerFold = displayBuffer.createFold(4, 8)
 
-          [line4, line5] = displayBuffer.linesForRows(4, 5)
+          [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBe outerFold
           expect(line4.text).toMatch /4-+/
           expect(line5.text).toMatch /9-+/
@@ -326,14 +326,14 @@ describe "DisplayBuffer", ->
 
           innerFold = displayBuffer.createFold(2, 5)
           expect(changeHandler).not.toHaveBeenCalled()
-          [line0, line1] = displayBuffer.linesForRows(0, 1)
+          [line0, line1] = displayBuffer.tokenizedLinesForScreenRows(0, 1)
           expect(line0.fold).toBe outerFold
           expect(line1.fold).toBeUndefined()
 
           changeHandler.reset()
           innerFold.destroy()
           expect(changeHandler).not.toHaveBeenCalled()
-          [line0, line1] = displayBuffer.linesForRows(0, 1)
+          [line0, line1] = displayBuffer.tokenizedLinesForScreenRows(0, 1)
           expect(line0.fold).toBe outerFold
           expect(line1.fold).toBeUndefined()
 
