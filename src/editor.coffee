@@ -1047,10 +1047,14 @@ class Editor extends Model
 
   # Public: Convert a range in buffer-coordinates to screen-coordinates.
   #
+  # * `bufferRange` {Range} in buffer coordinates to translate into screen coordinates.
+  #
   # Returns a {Range}.
   screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
 
   # Public: Convert a range in screen-coordinates to buffer-coordinates.
+  #
+  # * `screenRange` {Range} in screen coordinates to translate into buffer coordinates.
   #
   # Returns a {Range}.
   bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
@@ -1100,7 +1104,11 @@ class Editor extends Model
   # editor.clipScreenPosition([2, Infinity]) # -> `[2, 10]`
   # ```
   #
-  # * `bufferPosition` The {Point} representing the position to clip.
+  # * `screenPosition` The {Point} representing the position to clip.
+  # * `options` (optional) {Object}
+  #   * `wrapBeyondNewlines` {Boolean} if `true`, continues wrapping past newlines
+  #   * `wrapAtSoftNewlines` {Boolean} if `true`, continues wrapping past soft newlines
+  #   * `screenLine` {Boolean} if `true`, indicates that you're using a line number, not a row number
   #
   # Returns a {Point}.
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
