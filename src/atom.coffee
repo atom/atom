@@ -24,7 +24,7 @@ class Atom extends Model
   # Public: Load or create the Atom environment in the given mode.
   #
   # * `mode` A {String} mode that is either 'editor' or 'spec' depending on the
-  #          kind of environment you want to build.
+  #   kind of environment you want to build.
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
