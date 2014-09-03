@@ -1783,28 +1783,28 @@ describe "EditorComponent", ->
     it "inserts the newest character in the input's value into the buffer", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       nextAnimationFrame()
-      expect(editor.lineForBufferRow(0)).toBe 'xvar quicksort = function () {'
+      expect(editor.lineTextForBufferRow(0)).toBe 'xvar quicksort = function () {'
 
       componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
       nextAnimationFrame()
-      expect(editor.lineForBufferRow(0)).toBe 'xyvar quicksort = function () {'
+      expect(editor.lineTextForBufferRow(0)).toBe 'xyvar quicksort = function () {'
 
     it "replaces the last character if the length of the input's value doesn't increase, as occurs with the accented character menu", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'u', target: inputNode))
       nextAnimationFrame()
-      expect(editor.lineForBufferRow(0)).toBe 'uvar quicksort = function () {'
+      expect(editor.lineTextForBufferRow(0)).toBe 'uvar quicksort = function () {'
 
       # simulate the accented character suggestion's selection of the previous character
       inputNode.setSelectionRange(0, 1)
       componentNode.dispatchEvent(buildTextInputEvent(data: 'ü', target: inputNode))
       nextAnimationFrame()
-      expect(editor.lineForBufferRow(0)).toBe 'üvar quicksort = function () {'
+      expect(editor.lineTextForBufferRow(0)).toBe 'üvar quicksort = function () {'
 
     it "does not handle input events when input is disabled", ->
       component.setInputEnabled(false)
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       expect(nextAnimationFrame).toBe noAnimationFrame
-      expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
+      expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
 
     describe "when IME composition is used to insert international characters", ->
       inputNode = null
@@ -1822,46 +1822,46 @@ describe "EditorComponent", ->
         it "inserts the chosen completion", ->
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'svar quicksort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'svar quicksort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'sdvar quicksort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'sdvar quicksort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           componentNode.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe '速度var quicksort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe '速度var quicksort = function () {'
 
         it "reverts back to the original text when the completion helper is dismissed", ->
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'svar quicksort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'svar quicksort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'sdvar quicksort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'sdvar quicksort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
 
         it "allows multiple accented character to be inserted with the ' on a US international layout", ->
           inputNode.value = "'"
           inputNode.setSelectionRange(0, 1)
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: "'", target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe "'var quicksort = function () {"
+          expect(editor.lineTextForBufferRow(0)).toBe "'var quicksort = function () {"
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           componentNode.dispatchEvent(buildTextInputEvent(data: 'á', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe "ávar quicksort = function () {"
+          expect(editor.lineTextForBufferRow(0)).toBe "ávar quicksort = function () {"
 
           inputNode.value = "'"
           inputNode.setSelectionRange(0, 1)
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: "'", target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe "á'var quicksort = function () {"
+          expect(editor.lineTextForBufferRow(0)).toBe "á'var quicksort = function () {"
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           componentNode.dispatchEvent(buildTextInputEvent(data: 'á', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe "áávar quicksort = function () {"
+          expect(editor.lineTextForBufferRow(0)).toBe "áávar quicksort = function () {"
 
       describe "when a string is selected", ->
         beforeEach ->
@@ -1870,25 +1870,25 @@ describe "EditorComponent", ->
         it "inserts the chosen completion", ->
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'var ssort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'var sdsort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           componentNode.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'var 速度sort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var 速度sort = function () {'
 
         it "reverts back to the original text when the completion helper is dismissed", ->
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'var ssort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'var sdsort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = function () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
-          expect(editor.lineForBufferRow(0)).toBe 'var quicksort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
 
   describe "commands", ->
     describe "editor:consolidate-selections", ->

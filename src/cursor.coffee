@@ -222,7 +222,7 @@ class Cursor extends Model
   # Public: Returns the cursor's current buffer row of text excluding its line
   # ending.
   getCurrentBufferLine: ->
-    @editor.lineForBufferRow(@getBufferRow())
+    @editor.lineTextForBufferRow(@getBufferRow())
 
   # Public: Moves the cursor up one screen row.
   moveUp: (rowCount=1, {moveToEndOfSelection}={}) ->
@@ -562,7 +562,7 @@ class Cursor extends Model
   # its current position.
   hasPrecedingCharactersOnLine: ->
     bufferPosition = @getBufferPosition()
-    line = @editor.lineForBufferRow(bufferPosition.row)
+    line = @editor.lineTextForBufferRow(bufferPosition.row)
     firstCharacterColumn = line.search(/\S/)
 
     if firstCharacterColumn is -1

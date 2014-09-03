@@ -412,14 +412,12 @@ class Editor extends Model
   # Public: Returns a {String} representing the contents of the line at the
   # given buffer row.
   #
-  # * `row` A {Number} representing a zero-indexed buffer row.
-  lineTextForBufferRow: (row) -> @buffer.lineForRow(row)
-  lineForBufferRow: (row) ->
-    deprecate 'Use Editor::lineTextForBufferRow(row) instead'
-    @lineTextForBufferRow(row)
+  # * `bufferRow` A {Number} representing a zero-indexed buffer row.
+  lineTextForBufferRow: (bufferRow) -> @buffer.lineForRow(bufferRow)
+  lineForBufferRow: (bufferRow) ->
+    deprecate 'Use Editor::lineTextForBufferRow(bufferRow) instead'
+    @lineTextForBufferRow(bufferRow)
 
-  # {Delegates to: DisplayBuffer.lineForRow}
-  lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
   # Gets the screen line for the given screen row.
   #
   # * `screenRow` - A {Number} indicating the screen row.
@@ -923,7 +921,7 @@ class Editor extends Model
   #
   # Returns a {Number}.
   indentationForBufferRow: (bufferRow) ->
-    @indentLevelForLine(@lineForBufferRow(bufferRow))
+    @indentLevelForLine(@lineTextForBufferRow(bufferRow))
 
   # Public: Set the indentation level for the given buffer row.
   #
@@ -941,7 +939,7 @@ class Editor extends Model
     if preserveLeadingWhitespace
       endColumn = 0
     else
-      endColumn = @lineForBufferRow(bufferRow).match(/^\s*/)[0].length
+      endColumn = @lineTextForBufferRow(bufferRow).match(/^\s*/)[0].length
     newIndentString = @buildIndentString(newLevel)
     @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
 
@@ -1188,7 +1186,7 @@ class Editor extends Model
 
   # Public: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
-    if match = @lineForBufferRow(bufferRow).match(/\S/)
+    if match = @lineTextForBufferRow(bufferRow).match(/\S/)
       scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
       new TextMateScopeSelector('comment.*').matches(scopes)
 
