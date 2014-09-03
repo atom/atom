@@ -225,6 +225,11 @@ class Cursor extends Model
     @editor.lineTextForBufferRow(@getBufferRow())
 
   # Public: Moves the cursor up one screen row.
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
   moveUp: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
@@ -237,7 +242,12 @@ class Cursor extends Model
     @goalColumn = column
 
   # Public: Moves the cursor down one screen row.
-  moveDown: (rowCount = 1, {moveToEndOfSelection}={}) ->
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
+  moveDown: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       { row, column } = range.end
