@@ -207,6 +207,21 @@ class Pane extends Model
         Grim.deprecate("Subscribing via ::on is deprecated. Use event subscription methods instead.")
     super
 
+  behavior: (behaviorName) ->
+    switch behaviorName
+      when 'active'
+        Grim.deprecate("The $active behavior property is deprecated. Use ::observeActive or ::onDidChangeActive instead.")
+      when 'container'
+        Grim.deprecate("The $container behavior property is deprecated.")
+      when 'activeItem'
+        Grim.deprecate("The $activeItem behavior property is deprecated. Use ::observeActiveItem or ::onDidChangeActiveItem instead.")
+      when 'focused'
+        Grim.deprecate("The $focused behavior property is deprecated.")
+      else
+        Grim.deprecate("Pane::behavior is deprecated. Use event subscription methods instead.")
+
+    super
+
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
