@@ -183,12 +183,13 @@ EditorComponent = React.createClass
     @checkForVisibilityChange()
 
   componentWillUnmount: ->
-    @props.parentView.trigger 'editor:will-be-removed', [@props.parentView]
+    {editor, parentView} = @props
+
+    parentView.trigger 'editor:will-be-removed', [parentView]
     @unsubscribe()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
-    @props.editor.destroy()
 
   componentWillReceiveProps: (newProps) ->
     @props.editor.setMini(newProps.mini)

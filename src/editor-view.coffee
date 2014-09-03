@@ -215,11 +215,21 @@ class EditorView extends View
     view.css('z-index', 1)
     @find('.lines').prepend(view)
 
+  detach: ->
+    return unless @attached
+    super
+    @attached = false
+    @unmountComponent()
+
   beforeRemove: ->
     return unless @attached
     @attached = false
-    React.unmountComponentAtNode(@element) if @component.isMounted()
+    @unmountComponent()
+    @editor.destroy()
     @trigger 'editor:detached', this
+
+  unmountComponent: ->
+    React.unmountComponentAtNode(@element) if @component.isMounted()
 
   # Public: Split the editor view left.
   splitLeft: ->
