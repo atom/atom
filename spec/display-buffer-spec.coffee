@@ -67,48 +67,48 @@ describe "DisplayBuffer", ->
         it "uses the preferred line length as the soft wrap column when it is less than the configured soft wrap column", ->
           atom.config.set('editor.preferredLineLength', 100)
           atom.config.set('editor.softWrapAtPreferredLineLength', true)
-          expect(displayBuffer.lineForRow(10).text).toBe '    return '
+          expect(displayBuffer.tokenizedLineForRow(10).text).toBe '    return '
 
           atom.config.set('editor.preferredLineLength', 5)
-          expect(displayBuffer.lineForRow(10).text).toBe 'funct'
+          expect(displayBuffer.tokenizedLineForRow(10).text).toBe 'funct'
 
           atom.config.set('editor.softWrapAtPreferredLineLength', false)
-          expect(displayBuffer.lineForRow(10).text).toBe '    return '
+          expect(displayBuffer.tokenizedLineForRow(10).text).toBe '    return '
 
       describe "when the line is shorter than the max line length", ->
         it "renders the line unchanged", ->
-          expect(displayBuffer.lineForRow(0).text).toBe buffer.lineForRow(0)
+          expect(displayBuffer.tokenizedLineForRow(0).text).toBe buffer.lineForRow(0)
 
       describe "when the line is empty", ->
         it "renders the empty line", ->
-          expect(displayBuffer.lineForRow(13).text).toBe ''
+          expect(displayBuffer.tokenizedLineForRow(13).text).toBe ''
 
       describe "when there is a non-whitespace character at the max length boundary", ->
         describe "when there is whitespace before the boundary", ->
           it "wraps the line at the end of the first whitespace preceding the boundary", ->
-            expect(displayBuffer.lineForRow(10).text).toBe '    return '
-            expect(displayBuffer.lineForRow(11).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
+            expect(displayBuffer.tokenizedLineForRow(10).text).toBe '    return '
+            expect(displayBuffer.tokenizedLineForRow(11).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
 
         describe "when there is no whitespace before the boundary", ->
           it "wraps the line exactly at the boundary since there's no more graceful place to wrap it", ->
             buffer.setTextInRange([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
             displayBuffer.setEditorWidthInChars(10)
-            expect(displayBuffer.lineForRow(0).text).toBe 'abcdefghij'
-            expect(displayBuffer.lineForRow(1).text).toBe 'klmnopqrst'
-            expect(displayBuffer.lineForRow(2).text).toBe 'uvwxyz'
+            expect(displayBuffer.tokenizedLineForRow(0).text).toBe 'abcdefghij'
+            expect(displayBuffer.tokenizedLineForRow(1).text).toBe 'klmnopqrst'
+            expect(displayBuffer.tokenizedLineForRow(2).text).toBe 'uvwxyz'
 
       describe "when there is a whitespace character at the max length boundary", ->
         it "wraps the line at the first non-whitespace character following the boundary", ->
-          expect(displayBuffer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
-          expect(displayBuffer.lineForRow(4).text).toBe 'right = [];'
+          expect(displayBuffer.tokenizedLineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
+          expect(displayBuffer.tokenizedLineForRow(4).text).toBe 'right = [];'
 
       describe "when there are hard tabs", ->
         beforeEach ->
           buffer.setText(buffer.getText().replace(new RegExp('  ', 'g'), '\t'))
 
         it "correctly tokenizes the hard tabs", ->
-          expect(displayBuffer.lineForRow(3).tokens[0].isHardTab).toBeTruthy()
-          expect(displayBuffer.lineForRow(3).tokens[1].isHardTab).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForRow(3).tokens[0].isHardTab).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForRow(3).tokens[1].isHardTab).toBeTruthy()
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
@@ -121,8 +121,8 @@ describe "DisplayBuffer", ->
         describe "when the update makes a soft-wrapped line shorter than the max line length", ->
           it "rewraps the line and emits a change event", ->
             buffer.delete([[6, 24], [6, 42]])
-            expect(displayBuffer.lineForRow(7).text).toBe '      current < pivot ?  : right.push(current);'
-            expect(displayBuffer.lineForRow(8).text).toBe '    }'
+            expect(displayBuffer.tokenizedLineForRow(7).text).toBe '      current < pivot ?  : right.push(current);'
+            expect(displayBuffer.tokenizedLineForRow(8).text).toBe '    }'
 
             expect(changeHandler).toHaveBeenCalled()
             [[event]]= changeHandler.argsForCall
@@ -132,30 +132,30 @@ describe "DisplayBuffer", ->
         describe "when the update causes a line to softwrap an additional time", ->
           it "rewraps the line and emits a change event", ->
             buffer.insert([6, 28], '1234567890')
-            expect(displayBuffer.lineForRow(7).text).toBe '      current < pivot ? '
-            expect(displayBuffer.lineForRow(8).text).toBe 'left1234567890.push(current) : '
-            expect(displayBuffer.lineForRow(9).text).toBe 'right.push(current);'
-            expect(displayBuffer.lineForRow(10).text).toBe '    }'
+            expect(displayBuffer.tokenizedLineForRow(7).text).toBe '      current < pivot ? '
+            expect(displayBuffer.tokenizedLineForRow(8).text).toBe 'left1234567890.push(current) : '
+            expect(displayBuffer.tokenizedLineForRow(9).text).toBe 'right.push(current);'
+            expect(displayBuffer.tokenizedLineForRow(10).text).toBe '    }'
 
             expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 8, screenDelta: 1, bufferDelta: 0)
 
       describe "when buffer lines are inserted", ->
         it "inserts / updates wrapped lines and emits a change event", ->
           buffer.insert([6, 21], '1234567890 abcdefghij 1234567890\nabcdefghij')
-          expect(displayBuffer.lineForRow(7).text).toBe '      current < pivot1234567890 abcdefghij '
-          expect(displayBuffer.lineForRow(8).text).toBe '1234567890'
-          expect(displayBuffer.lineForRow(9).text).toBe 'abcdefghij ? left.push(current) : '
-          expect(displayBuffer.lineForRow(10).text).toBe 'right.push(current);'
+          expect(displayBuffer.tokenizedLineForRow(7).text).toBe '      current < pivot1234567890 abcdefghij '
+          expect(displayBuffer.tokenizedLineForRow(8).text).toBe '1234567890'
+          expect(displayBuffer.tokenizedLineForRow(9).text).toBe 'abcdefghij ? left.push(current) : '
+          expect(displayBuffer.tokenizedLineForRow(10).text).toBe 'right.push(current);'
 
           expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 8, screenDelta: 2, bufferDelta: 1)
 
       describe "when buffer lines are removed", ->
         it "removes lines and emits a change event", ->
           buffer.setTextInRange([[3, 21], [7, 5]], ';')
-          expect(displayBuffer.lineForRow(3).text).toBe '    var pivot = items;'
-          expect(displayBuffer.lineForRow(4).text).toBe '    return '
-          expect(displayBuffer.lineForRow(5).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
-          expect(displayBuffer.lineForRow(6).text).toBe '  };'
+          expect(displayBuffer.tokenizedLineForRow(3).text).toBe '    var pivot = items;'
+          expect(displayBuffer.tokenizedLineForRow(4).text).toBe '    return '
+          expect(displayBuffer.tokenizedLineForRow(5).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
+          expect(displayBuffer.tokenizedLineForRow(6).text).toBe '  };'
 
           expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 9, screenDelta: -6, bufferDelta: -4)
 
@@ -169,9 +169,9 @@ describe "DisplayBuffer", ->
           buffer.delete([[0, Infinity], [1, 0]])
           buffer.insert([0, Infinity], '\n')
 
-          expect(displayBuffer.lineForRow(0).text).toBe "the quick brown fox jumps over "
-          expect(displayBuffer.lineForRow(1).text).toBe "the lazy dog."
-          expect(displayBuffer.lineForRow(2).text).toBe ""
+          expect(displayBuffer.tokenizedLineForRow(0).text).toBe "the quick brown fox jumps over "
+          expect(displayBuffer.tokenizedLineForRow(1).text).toBe "the lazy dog."
+          expect(displayBuffer.tokenizedLineForRow(2).text).toBe ""
 
     describe "position translation", ->
       it "translates positions accounting for wrapped lines", ->
@@ -204,9 +204,9 @@ describe "DisplayBuffer", ->
     describe ".setEditorWidthInChars(length)", ->
       it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
         displayBuffer.setEditorWidthInChars(40)
-        expect(tokensText displayBuffer.lineForRow(4).tokens).toBe 'left = [], right = [];'
-        expect(tokensText displayBuffer.lineForRow(5).tokens).toBe '    while(items.length > 0) {'
-        expect(tokensText displayBuffer.lineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
+        expect(tokensText displayBuffer.tokenizedLineForRow(4).tokens).toBe 'left = [], right = [];'
+        expect(tokensText displayBuffer.tokenizedLineForRow(5).tokens).toBe '    while(items.length > 0) {'
+        expect(tokensText displayBuffer.tokenizedLineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
         expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 15, screenDelta: 3, bufferDelta: 0)
 
       it "only allows positive widths to be assigned", ->
@@ -342,8 +342,8 @@ describe "DisplayBuffer", ->
           fold2 = displayBuffer.createFold(4, 9)
           fold1 = displayBuffer.createFold(0, 4)
 
-          expect(displayBuffer.lineForRow(0).text).toMatch /^0/
-          expect(displayBuffer.lineForRow(1).text).toMatch /^10/
+          expect(displayBuffer.tokenizedLineForRow(0).text).toMatch /^0/
+          expect(displayBuffer.tokenizedLineForRow(1).text).toMatch /^10/
 
       describe "when there is another display buffer pointing to the same buffer", ->
         it "does not create folds in the other display buffer", ->
@@ -363,19 +363,19 @@ describe "DisplayBuffer", ->
           buffer.setTextInRange([[1, 0], [5, 1]], 'party!')
 
         it "removes the fold and replaces the selection with the new text", ->
-          expect(displayBuffer.lineForRow(0).text).toBe "0"
-          expect(displayBuffer.lineForRow(1).text).toBe "party!"
-          expect(displayBuffer.lineForRow(2).fold).toBe fold2
-          expect(displayBuffer.lineForRow(3).text).toMatch /^9-+/
+          expect(displayBuffer.tokenizedLineForRow(0).text).toBe "0"
+          expect(displayBuffer.tokenizedLineForRow(1).text).toBe "party!"
+          expect(displayBuffer.tokenizedLineForRow(2).fold).toBe fold2
+          expect(displayBuffer.tokenizedLineForRow(3).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 3, screenDelta: -2, bufferDelta: -4)
 
         describe "when the changes is subsequently undone", ->
           xit "restores destroyed folds", ->
             buffer.undo()
-            expect(displayBuffer.lineForRow(2).text).toBe '2'
-            expect(displayBuffer.lineForRow(2).fold).toBe fold1
-            expect(displayBuffer.lineForRow(3).text).toBe '5'
+            expect(displayBuffer.tokenizedLineForRow(2).text).toBe '2'
+            expect(displayBuffer.tokenizedLineForRow(2).fold).toBe fold1
+            expect(displayBuffer.tokenizedLineForRow(3).text).toBe '5'
 
       describe "when the old range surrounds two nested folds", ->
         it "removes both folds and replaces the selection with the new text", ->
@@ -384,9 +384,9 @@ describe "DisplayBuffer", ->
 
           buffer.setTextInRange([[1, 0], [10, 0]], 'goodbye')
 
-          expect(displayBuffer.lineForRow(0).text).toBe "0"
-          expect(displayBuffer.lineForRow(1).text).toBe "goodbye10"
-          expect(displayBuffer.lineForRow(2).text).toBe "11"
+          expect(displayBuffer.tokenizedLineForRow(0).text).toBe "0"
+          expect(displayBuffer.tokenizedLineForRow(1).text).toBe "goodbye10"
+          expect(displayBuffer.tokenizedLineForRow(2).text).toBe "11"
 
           expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 3, screenDelta: -2, bufferDelta: -9)
 
@@ -403,42 +403,42 @@ describe "DisplayBuffer", ->
           it "updates the buffer and re-positions subsequent folds", ->
             buffer.setTextInRange([[0, 0], [1, 1]], 'abc')
 
-            expect(displayBuffer.lineForRow(0).text).toBe "abc"
-            expect(displayBuffer.lineForRow(1).fold).toBe fold1
-            expect(displayBuffer.lineForRow(2).text).toBe "5"
-            expect(displayBuffer.lineForRow(3).fold).toBe fold2
-            expect(displayBuffer.lineForRow(4).text).toMatch /^9-+/
+            expect(displayBuffer.tokenizedLineForRow(0).text).toBe "abc"
+            expect(displayBuffer.tokenizedLineForRow(1).fold).toBe fold1
+            expect(displayBuffer.tokenizedLineForRow(2).text).toBe "5"
+            expect(displayBuffer.tokenizedLineForRow(3).fold).toBe fold2
+            expect(displayBuffer.tokenizedLineForRow(4).text).toMatch /^9-+/
 
             expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 1, screenDelta: -1, bufferDelta: -1)
             changeHandler.reset()
 
             fold1.destroy()
-            expect(displayBuffer.lineForRow(0).text).toBe "abc"
-            expect(displayBuffer.lineForRow(1).text).toBe "2"
-            expect(displayBuffer.lineForRow(3).text).toMatch /^4-+/
-            expect(displayBuffer.lineForRow(4).text).toBe "5"
-            expect(displayBuffer.lineForRow(5).fold).toBe fold2
-            expect(displayBuffer.lineForRow(6).text).toMatch /^9-+/
+            expect(displayBuffer.tokenizedLineForRow(0).text).toBe "abc"
+            expect(displayBuffer.tokenizedLineForRow(1).text).toBe "2"
+            expect(displayBuffer.tokenizedLineForRow(3).text).toMatch /^4-+/
+            expect(displayBuffer.tokenizedLineForRow(4).text).toBe "5"
+            expect(displayBuffer.tokenizedLineForRow(5).fold).toBe fold2
+            expect(displayBuffer.tokenizedLineForRow(6).text).toMatch /^9-+/
 
             expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 1, screenDelta: 2, bufferDelta: 0)
 
       describe "when the old range straddles the beginning of a fold", ->
         it "destroys the fold", ->
           buffer.setTextInRange([[1, 1], [3, 0]], "a\nb\nc\nd\n")
-          expect(displayBuffer.lineForRow(1).text).toBe '1a'
-          expect(displayBuffer.lineForRow(2).text).toBe 'b'
-          expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
-          expect(displayBuffer.lineForRow(3).text).toBe 'c'
+          expect(displayBuffer.tokenizedLineForRow(1).text).toBe '1a'
+          expect(displayBuffer.tokenizedLineForRow(2).text).toBe 'b'
+          expect(displayBuffer.tokenizedLineForRow(2).fold).toBeUndefined()
+          expect(displayBuffer.tokenizedLineForRow(3).text).toBe 'c'
 
       describe "when the old range follows a fold", ->
         it "re-positions the screen ranges for the change event based on the preceding fold", ->
           buffer.setTextInRange([[10, 0], [11, 0]], 'abc')
 
-          expect(displayBuffer.lineForRow(1).text).toBe "1"
-          expect(displayBuffer.lineForRow(2).fold).toBe fold1
-          expect(displayBuffer.lineForRow(3).text).toBe "5"
-          expect(displayBuffer.lineForRow(4).fold).toBe fold2
-          expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
+          expect(displayBuffer.tokenizedLineForRow(1).text).toBe "1"
+          expect(displayBuffer.tokenizedLineForRow(2).fold).toBe fold1
+          expect(displayBuffer.tokenizedLineForRow(3).text).toBe "5"
+          expect(displayBuffer.tokenizedLineForRow(4).fold).toBe fold2
+          expect(displayBuffer.tokenizedLineForRow(5).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalledWith(start: 6, end: 7, screenDelta: -1, bufferDelta: -1)
 
@@ -449,12 +449,12 @@ describe "DisplayBuffer", ->
             expect(fold1.getStartRow()).toBe 2
             expect(fold1.getEndRow()).toBe 5
 
-            expect(displayBuffer.lineForRow(1).text).toBe "1"
-            expect(displayBuffer.lineForRow(2).text).toBe "2"
-            expect(displayBuffer.lineForRow(2).fold).toBe fold1
-            expect(displayBuffer.lineForRow(3).text).toMatch "5"
-            expect(displayBuffer.lineForRow(4).fold).toBe fold2
-            expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
+            expect(displayBuffer.tokenizedLineForRow(1).text).toBe "1"
+            expect(displayBuffer.tokenizedLineForRow(2).text).toBe "2"
+            expect(displayBuffer.tokenizedLineForRow(2).fold).toBe fold1
+            expect(displayBuffer.tokenizedLineForRow(3).text).toMatch "5"
+            expect(displayBuffer.tokenizedLineForRow(4).fold).toBe fold2
+            expect(displayBuffer.tokenizedLineForRow(5).text).toMatch /^9-+/
 
             expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 2, screenDelta: 0, bufferDelta: 1)
 
@@ -464,12 +464,12 @@ describe "DisplayBuffer", ->
             expect(fold1.getStartRow()).toBe 2
             expect(fold1.getEndRow()).toBe 7
 
-            expect(displayBuffer.lineForRow(1).text).toBe "1"
-            expect(displayBuffer.lineForRow(2).text).toBe "2"
-            expect(displayBuffer.lineForRow(2).fold).toBe fold1
-            expect(displayBuffer.lineForRow(3).text).toMatch "5"
-            expect(displayBuffer.lineForRow(4).fold).toBe fold2
-            expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
+            expect(displayBuffer.tokenizedLineForRow(1).text).toBe "1"
+            expect(displayBuffer.tokenizedLineForRow(2).text).toBe "2"
+            expect(displayBuffer.tokenizedLineForRow(2).fold).toBe fold1
+            expect(displayBuffer.tokenizedLineForRow(3).text).toMatch "5"
+            expect(displayBuffer.tokenizedLineForRow(4).fold).toBe fold2
+            expect(displayBuffer.tokenizedLineForRow(5).text).toMatch /^9-+/
 
             expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 2, screenDelta: 0, bufferDelta: 3)
 
@@ -478,21 +478,21 @@ describe "DisplayBuffer", ->
           it "destroys the fold", ->
             fold2.destroy()
             buffer.setTextInRange([[3, 0], [6, 0]], 'a\n')
-            expect(displayBuffer.lineForRow(2).text).toBe '2'
-            expect(displayBuffer.lineForRow(2).fold).toBeUndefined()
-            expect(displayBuffer.lineForRow(3).text).toBe 'a'
-            expect(displayBuffer.lineForRow(4).text).toBe '6'
+            expect(displayBuffer.tokenizedLineForRow(2).text).toBe '2'
+            expect(displayBuffer.tokenizedLineForRow(2).fold).toBeUndefined()
+            expect(displayBuffer.tokenizedLineForRow(3).text).toBe 'a'
+            expect(displayBuffer.tokenizedLineForRow(4).text).toBe '6'
 
       describe "when the old range is contained to a single line in-between two folds", ->
         it "re-renders the line with the placeholder and re-positions the second fold", ->
           buffer.insert([5, 0], 'abc\n')
 
-          expect(displayBuffer.lineForRow(1).text).toBe "1"
-          expect(displayBuffer.lineForRow(2).fold).toBe fold1
-          expect(displayBuffer.lineForRow(3).text).toMatch "abc"
-          expect(displayBuffer.lineForRow(4).text).toBe "5"
-          expect(displayBuffer.lineForRow(5).fold).toBe fold2
-          expect(displayBuffer.lineForRow(6).text).toMatch /^9-+/
+          expect(displayBuffer.tokenizedLineForRow(1).text).toBe "1"
+          expect(displayBuffer.tokenizedLineForRow(2).fold).toBe fold1
+          expect(displayBuffer.tokenizedLineForRow(3).text).toMatch "abc"
+          expect(displayBuffer.tokenizedLineForRow(4).text).toBe "5"
+          expect(displayBuffer.tokenizedLineForRow(5).fold).toBe fold2
+          expect(displayBuffer.tokenizedLineForRow(6).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 3, screenDelta: 1, bufferDelta: 1)
 
@@ -545,15 +545,15 @@ describe "DisplayBuffer", ->
         displayBuffer.createFold(1, 9)
         displayBuffer.createFold(11, 12)
 
-        expect(displayBuffer.lineForRow(1).text).toBe '1'
-        expect(displayBuffer.lineForRow(2).text).toBe '10'
+        expect(displayBuffer.tokenizedLineForRow(1).text).toBe '1'
+        expect(displayBuffer.tokenizedLineForRow(2).text).toBe '10'
 
         displayBuffer.unfoldBufferRow(2)
-        expect(displayBuffer.lineForRow(1).text).toBe '1'
-        expect(displayBuffer.lineForRow(2).text).toBe '2'
-        expect(displayBuffer.lineForRow(7).fold).toBeDefined()
-        expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
-        expect(displayBuffer.lineForRow(10).fold).toBeDefined()
+        expect(displayBuffer.tokenizedLineForRow(1).text).toBe '1'
+        expect(displayBuffer.tokenizedLineForRow(2).text).toBe '2'
+        expect(displayBuffer.tokenizedLineForRow(7).fold).toBeDefined()
+        expect(displayBuffer.tokenizedLineForRow(8).text).toMatch /^9-+/
+        expect(displayBuffer.tokenizedLineForRow(10).fold).toBeDefined()
 
     describe ".outermostFoldsInBufferRowRange(startRow, endRow)", ->
       it "returns the outermost folds entirely contained in the given row range, exclusive of end row", ->

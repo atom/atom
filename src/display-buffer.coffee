@@ -377,10 +377,10 @@ class DisplayBuffer extends Model
 
   # Gets the screen line for the given screen row.
   #
-  # screenRow - A {Number} indicating the screen row.
+  # * `row` - A {Number} indicating the screen row.
   #
-  # Returns a {ScreenLine}.
-  lineForRow: (row) ->
+  # Returns {TokenizedLine}
+  tokenizedLineForRow: (row) ->
     @screenLines[row]
 
   # Gets the screen lines for the given screen row range.
@@ -388,13 +388,13 @@ class DisplayBuffer extends Model
   # startRow - A {Number} indicating the beginning screen row.
   # endRow - A {Number} indicating the ending screen row.
   #
-  # Returns an {Array} of {ScreenLine}s.
+  # Returns an {Array} of {TokenizedLine}s.
   linesForRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
   # Gets all the screen lines.
   #
-  # Returns an {Array} of {ScreenLines}s.
+  # Returns an {Array} of {TokenizedLine}s.
   getLines: ->
     new Array(@screenLines...)
 
@@ -555,7 +555,7 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    for token in @lineForRow(targetRow).tokens
+    for token in @tokenizedLineForRow(targetRow).tokens
       charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         return {top, left} if column is targetColumn
@@ -573,7 +573,7 @@ class DisplayBuffer extends Model
 
     left = 0
     column = 0
-    for token in @lineForRow(row).tokens
+    for token in @tokenizedLineForRow(row).tokens
       charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         charWidth = charWidths[char] ? defaultCharWidth
@@ -983,7 +983,7 @@ class DisplayBuffer extends Model
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]
-      line = @lineForRow(row).text
+      line = @tokenizedLineForRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
