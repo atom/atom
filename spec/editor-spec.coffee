@@ -343,7 +343,7 @@ describe "Editor", ->
             editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.lineForRow(0).length)
 
-          it "moves the cursor by one row up columns to the left", ->
+          it "moves the cursor by one row up and n columns to the left", ->
             editor.setCursorScreenPosition([1, 0])
             editor.moveLeft(4)
             expect(editor.getCursorScreenPosition()).toEqual [0, 26]
@@ -393,12 +393,32 @@ describe "Editor", ->
         editor.moveRight()
         expect(editor.getCursorScreenPosition()).toEqual [3, 4]
 
+      it "moves the cursor by n columns to the right", ->
+        editor.setCursorScreenPosition([3, 7])
+        editor.moveRight(4)
+        expect(editor.getCursorScreenPosition()).toEqual [3, 11]
+
+      it "moves the cursor by two rows down when the columnCount is longer than an entire line", ->
+        editor.setCursorScreenPosition([0, 28])
+        editor.moveRight(32)
+        expect(editor.getCursorScreenPosition()).toEqual [2, 0]
+
+      it "moves the cursor to the end of the buffer when columnCount is longer than the number of characters following the cursor position", ->
+        editor.setCursorScreenPosition([11, 5])
+        editor.moveRight(100)
+        expect(editor.getCursorScreenPosition()).toEqual [12, 2]
+
       describe "when the cursor is on the last column of a line", ->
         describe "when there is a subsequent line", ->
           it "wraps to the beginning of the next line", ->
             editor.setCursorScreenPosition([0, buffer.lineForRow(0).length])
             editor.moveRight()
             expect(editor.getCursorScreenPosition()).toEqual [1, 0]
+
+          it "moves the cursor by one row down and n columns to the right", ->
+            editor.setCursorScreenPosition([0, buffer.lineForRow(0).length])
+            editor.moveRight(4)
+            expect(editor.getCursorScreenPosition()).toEqual [1, 3]
 
         describe "when the cursor is on the last line", ->
           it "remains in the same position", ->

@@ -1643,8 +1643,8 @@ class Editor extends Model
     @moveLeft()
 
   # Essential: Move every cursor right one column.
-  moveRight: ->
-    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
+  moveRight: (columnCount) ->
+    @moveCursors (cursor) -> cursor.moveRight(columnCount, moveToEndOfSelection: true)
   moveCursorRight: ->
     deprecate("Use Editor::moveRight() instead")
     @moveRight()

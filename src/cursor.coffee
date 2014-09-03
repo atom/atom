@@ -290,13 +290,27 @@ class Cursor extends Model
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the right of the selection if a
   #     selection exists.
-  moveRight: ({moveToEndOfSelection}={}) ->
+  moveRight: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.end)
     else
       { row, column } = @getScreenPosition()
-      @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      newColumn = column + columnCount
+      rowLength = @editor.lineTextForScreenRow(row).length
+
+      if newColumn <= rowLength
+        column = newColumn
+      else
+        columnDelta = newColumn - rowLength - 1
+        maxLines = @editor.getScreenLineCount()
+        while columnDelta >= 0 and row < maxLines - 1
+          row++
+          rowLength = @editor.lineTextForScreenRow(row).length
+          column = columnDelta
+          columnDelta -= rowLength
+
+      @setScreenPosition({row, column}, skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
