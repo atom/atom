@@ -230,7 +230,7 @@ class LanguageMode
       break unless /\w/.test(@editor.lineTextForBufferRow(endRow + 1))
       endRow++
 
-    new Range([startRow, 0], [endRow, @editor.lineLengthForBufferRow(endRow)])
+    new Range([startRow, 0], [endRow, @editor.lineTextForBufferRow(endRow).length])
 
   # Given a buffer row, this returns a suggested indentation level.
   #

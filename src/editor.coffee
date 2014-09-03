@@ -434,11 +434,13 @@ class Editor extends Model
     deprecate "Use Editor::tokenizedLinesForScreenRows instead"
     @tokenizedLinesForScreenRows(start, end)
 
-  # Public: Returns a {Number} representing the line length for the given
+  # Returns a {Number} representing the line length for the given
   # buffer row, exclusive of its line-ending character(s).
   #
   # * `row` A {Number} indicating the buffer row.
-  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+  lineLengthForBufferRow: (row) ->
+    deprecate "Use editor.lineTextForBufferRow(row).length instead"
+    @lineTextForBufferRow(row).length
 
   bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
 

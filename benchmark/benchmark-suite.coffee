@@ -103,7 +103,7 @@ describe "editorView.", ->
         benchmark "cache-entire-visible-area", 100, ->
           for i in [firstRow..lastRow]
             line = editorView.lineElementForScreenRow(i)[0]
-            editorView.positionLeftForLineAndColumn(line, i, Math.max(0, editorView.lineLengthForBufferRow(i)))
+            editorView.positionLeftForLineAndColumn(line, i, Math.max(0, editorView.getModel().lineTextForBufferRow(i).length))
 
     describe "text-rendering.", ->
       beforeEach ->
