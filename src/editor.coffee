@@ -413,7 +413,10 @@ class Editor extends Model
   # given buffer row.
   #
   # * `row` A {Number} representing a zero-indexed buffer row.
-  lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  lineTextForBufferRow: (row) -> @buffer.lineForRow(row)
+  lineForBufferRow: (row) ->
+    deprecate 'Use Editor::lineTextForBufferRow(row) instead'
+    @lineTextForBufferRow(row)
 
   # {Delegates to: DisplayBuffer.lineForRow}
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
