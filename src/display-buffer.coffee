@@ -395,7 +395,7 @@ class DisplayBuffer extends Model
   # Gets all the screen lines.
   #
   # Returns an {Array} of {TokenizedLine}s.
-  getLines: ->
+  getTokenizedLines: ->
     new Array(@screenLines...)
 
   indentLevelForLine: (line) ->
