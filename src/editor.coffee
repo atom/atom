@@ -1636,8 +1636,8 @@ class Editor extends Model
     @moveDown(lineCount)
 
   # Essential: Move every cursor left one column.
-  moveLeft: ->
-    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
+  moveLeft: (columnCount) ->
+    @moveCursors (cursor) -> cursor.moveLeft(columnCount, moveToEndOfSelection: true)
   moveCursorLeft: ->
     deprecate("Use Editor::moveLeft() instead")
     @moveLeft()

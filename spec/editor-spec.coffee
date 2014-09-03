@@ -333,11 +333,21 @@ describe "Editor", ->
             editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.lineForRow(0).length)
 
+          it "moves the cursor by n columns to the left", ->
+            editor.setCursorScreenPosition([1, 0])
+            editor.moveLeft(4)
+            expect(editor.getCursorScreenPosition()).toEqual [0, 26]
+
         describe "when the cursor is on the first line", ->
           it "remains in the same position (0,0)", ->
             editor.setCursorScreenPosition(row: 0, column: 0)
             editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+          it "moves the cursor by n columns to the left", ->
+            editor.setCursorScreenPosition([0, 0])
+            editor.moveLeft(4)
+            expect(editor.getCursorScreenPosition()).toEqual [0, 0]
 
       describe "when softTabs is enabled and the cursor is preceded by leading whitespace", ->
         it "skips tabLength worth of whitespace at a time", ->

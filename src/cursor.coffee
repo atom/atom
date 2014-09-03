@@ -270,7 +270,14 @@ class Cursor extends Model
       @setScreenPosition(range.start)
     else
       {row, column} = @getScreenPosition()
-      [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
+      newColumn = column - columnCount
+
+      if newColumn >= 0
+        column = newColumn
+      else if row > 0
+        row--
+        column = @editor.lineTextForScreenRow(row).length + newColumn + 1
+
       @setScreenPosition({row, column})
 
   # Public: Moves the cursor right one screen column.
