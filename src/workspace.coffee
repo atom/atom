@@ -96,6 +96,8 @@ class Workspace extends Model
   # workspace.
   #
   # * `callback` {Function} to be called with current and future panes.
+  #   * `pane` A {Pane} that is present in {::getPanes} at the time of
+  #      subscription or that is added at some later time.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePanes: (callback) -> @paneContainer.observePanes(callback)
@@ -116,6 +118,8 @@ class Workspace extends Model
   # the workspace.
   #
   # * `callback` {Function} to be called with current and future pane items.
+  #   * `item` An item that is present in {::getPaneItems} at the time of
+  #      subscription or that is added at some later time.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
@@ -139,28 +143,20 @@ class Workspace extends Model
   # editors in the workspace.
   #
   # * `callback` {Function} to be called with current and future text editors.
+  #   * `editor` An {Editor} that is present in {::getTextEditors} at the time
+  #     of subscription or that is added at some later time.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeTextEditors: (callback) ->
     callback(textEditor) for textEditor in @getTextEditors()
     @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
 
-  # Deprecated: Register a function to be called for every current and future
-  # {Editor} in the workspace.
-  #
-  # * `callback` A {Function} with an {Editor} as its only argument.
-  #
-  # Returns a subscription object with an `.off` method that you can call to
-  # unregister the callback.
   eachEditor: (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
 
     callback(editor) for editor in @getEditors()
     @subscribe this, 'editor-created', (editor) -> callback(editor)
 
-  # Deprecated: Get all current editors in the workspace.
-  #
-  # Returns an {Array} of {Editor}s.
   getEditors: ->
     deprecate("Use Workspace::getTextEditors instead")
 

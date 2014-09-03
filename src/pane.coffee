@@ -84,6 +84,8 @@ class Pane extends Model
   # Public: Invoke the given callback when the pane is destroyed.
   #
   # * `callback` {Function} to be called when the pane is destroyed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
@@ -148,6 +150,8 @@ class Pane extends Model
   # Public: Invoke the given callback with all current and future items.
   #
   # * `callback` {Function} to be called with current and future items.
+  #   * `item` An item that is present in {::getItems} at the time of
+  #     subscription or that is added at some later time.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeItems: (callback) ->
@@ -157,8 +161,7 @@ class Pane extends Model
   # Public: Invoke the given callback when the value of {::getActiveItem}
   # changes.
   #
-  # * `callback` {Function} to be called with when the active item
-  #   changes.
+  # * `callback` {Function} to be called with when the active item changes.
   #   * `activeItem` The current active item.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
