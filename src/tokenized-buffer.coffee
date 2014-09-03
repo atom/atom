@@ -224,10 +224,6 @@ class TokenizedBuffer extends Model
   tokenizedLineForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]
 
-  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
-  # accounted for in @tokenizedLines
-  linesForScreenRows: (startRow, endRow) ->
-    @tokenizedLines[startRow..endRow]
 
   stackForRow: (row) ->
     @tokenizedLines[row]?.ruleStack
