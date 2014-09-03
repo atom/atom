@@ -837,7 +837,7 @@ class Editor extends Model
   # whitespace.
   usesSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
-      continue if @displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+      continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
       line = @buffer.lineForRow(bufferRow)
       return true  if line[0] is ' '

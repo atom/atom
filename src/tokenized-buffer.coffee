@@ -221,10 +221,8 @@ class TokenizedBuffer extends Model
     {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
     new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
-  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
-  # accounted for in @tokenizedLines
-  lineForScreenRow: (row) ->
-    @linesForScreenRows(row, row)[0]
+  tokenizedLineForRow: (bufferRow) ->
+    @tokenizedLines[bufferRow]
 
   # FIXME: benogle says: These are actually buffer rows as all buffer rows are
   # accounted for in @tokenizedLines

@@ -1024,7 +1024,7 @@ class DisplayBuffer extends Model
 
     bufferRow = startBufferRow
     while bufferRow < endBufferRow
-      tokenizedLine = @tokenizedBuffer.lineForScreenRow(bufferRow)
+      tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(bufferRow)
 
       if fold = @largestFoldStartingAtBufferRow(bufferRow)
         foldLine = tokenizedLine.copy()

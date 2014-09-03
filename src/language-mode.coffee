@@ -145,17 +145,17 @@ class LanguageMode
     rowRange
 
   rowRangeForCommentAtBufferRow: (bufferRow) ->
-    return unless @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+    return unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
     startRow = bufferRow
     for currentRow in [bufferRow-1..0]
       break if @buffer.isRowBlank(currentRow)
-      break unless @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
       startRow = currentRow
     endRow = bufferRow
     for currentRow in [bufferRow+1..@buffer.getLastRow()]
       break if @buffer.isRowBlank(currentRow)
-      break unless @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
       endRow = currentRow
     return [startRow, endRow] if startRow isnt endRow
 
@@ -201,7 +201,7 @@ class LanguageMode
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
-    @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+    @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
   # Find a row range for a 'paragraph' around specified bufferRow.
   # Right now, a paragraph is a block of text bounded by and empty line or a

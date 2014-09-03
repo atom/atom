@@ -83,7 +83,7 @@ describe "Editor", ->
       screenLines = []
       bufferRows = []
       for bufferRow in [0..tokenizedBuffer.getLastRow()]
-        for screenLine in softWrapLine(tokenizedBuffer.lineForScreenRow(bufferRow))
+        for screenLine in softWrapLine(tokenizedBuffer.tokenizedLineForRow(bufferRow))
           screenLines.push(screenLine)
           bufferRows.push(bufferRow)
     else
