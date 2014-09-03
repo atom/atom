@@ -377,11 +377,11 @@ class DisplayBuffer extends Model
 
   # Gets the screen line for the given screen row.
   #
-  # * `row` - A {Number} indicating the screen row.
+  # * `screenRow` - A {Number} indicating the screen row.
   #
   # Returns {TokenizedLine}
-  tokenizedLineForRow: (row) ->
-    @screenLines[row]
+  tokenizedLineForScreenRow: (screenRow) ->
+    @screenLines[screenRow]
 
   # Gets the screen lines for the given screen row range.
   #
@@ -555,7 +555,7 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    for token in @tokenizedLineForRow(targetRow).tokens
+    for token in @tokenizedLineForScreenRow(targetRow).tokens
       charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         return {top, left} if column is targetColumn
@@ -573,7 +573,7 @@ class DisplayBuffer extends Model
 
     left = 0
     column = 0
-    for token in @tokenizedLineForRow(row).tokens
+    for token in @tokenizedLineForScreenRow(row).tokens
       charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         charWidth = charWidths[char] ? defaultCharWidth
@@ -983,7 +983,7 @@ class DisplayBuffer extends Model
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]
-      line = @tokenizedLineForRow(row).text
+      line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
