@@ -321,6 +321,11 @@ describe "Editor", ->
         editor.moveLeft()
         expect(editor.getCursorScreenPosition()).toEqual [1, 7]
 
+      it "moves the cursor by n columns to the left", ->
+        editor.setCursorScreenPosition([1, 8])
+        editor.moveLeft(4)
+        expect(editor.getCursorScreenPosition()).toEqual [1, 4]
+
       describe "when the cursor is in the first column", ->
         describe "when there is a previous line", ->
           it "wraps to the end of the previous line", ->

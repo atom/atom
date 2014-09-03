@@ -260,10 +260,11 @@ class Cursor extends Model
 
   # Public: Moves the cursor left one screen column.
   #
+  # * `columnCount` (optional) {Number} number of rows to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the left of the selection if a
   #     selection exists.
-  moveLeft: ({moveToEndOfSelection}={}) ->
+  moveLeft: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.start)
