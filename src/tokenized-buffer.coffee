@@ -366,5 +366,5 @@ class TokenizedBuffer extends Model
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]
-      line = @lineForScreenRow(row).text
+      line = @tokenizedLineForRow(row).text
       console.log row, line, line.length

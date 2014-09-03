@@ -420,6 +420,15 @@ class Editor extends Model
 
   # {Delegates to: DisplayBuffer.lineForRow}
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
+  # Gets the screen line for the given screen row.
+  #
+  # * `screenRow` - A {Number} indicating the screen row.
+  #
+  # Returns {TokenizedLine}
+  tokenizedLineForScreenRow: (screenRow) -> @displayBuffer.tokenizedLineForScreenRow(screenRow)
+  lineForScreenRow: (screenRow) ->
+    deprecate "Editor::tokenizedLineForScreenRow(bufferRow) is the new name. But it's private. Try to use Editor::lineTextForScreenRow instead"
+    @tokenizedLineForScreenRow(screenRow)
 
   # {Delegates to: DisplayBuffer.tokenizedLinesForScreenRows}
   linesForScreenRows: (start, end) -> @displayBuffer.tokenizedLinesForScreenRows(start, end)

@@ -65,9 +65,9 @@ describe "EditorComponent", ->
       linesNode = componentNode.querySelector('.lines')
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expect(componentNode.querySelectorAll('.line').length).toBe 6 + 2 # no margin above
-      expect(component.lineNodeForScreenRow(0).textContent).toBe editor.lineForScreenRow(0).text
+      expect(component.lineNodeForScreenRow(0).textContent).toBe editor.tokenizedLineForScreenRow(0).text
       expect(component.lineNodeForScreenRow(0).offsetTop).toBe 0
-      expect(component.lineNodeForScreenRow(5).textContent).toBe editor.lineForScreenRow(5).text
+      expect(component.lineNodeForScreenRow(5).textContent).toBe editor.tokenizedLineForScreenRow(5).text
       expect(component.lineNodeForScreenRow(5).offsetTop).toBe 5 * lineHeightInPixels
 
       verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
@@ -77,9 +77,9 @@ describe "EditorComponent", ->
       expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, #{-4.5 * lineHeightInPixels}px, 0px)"
       expect(componentNode.querySelectorAll('.line').length).toBe 6 + 4 # margin above and below
       expect(component.lineNodeForScreenRow(2).offsetTop).toBe 2 * lineHeightInPixels
-      expect(component.lineNodeForScreenRow(2).textContent).toBe editor.lineForScreenRow(2).text
+      expect(component.lineNodeForScreenRow(2).textContent).toBe editor.tokenizedLineForScreenRow(2).text
       expect(component.lineNodeForScreenRow(9).offsetTop).toBe 9 * lineHeightInPixels
-      expect(component.lineNodeForScreenRow(9).textContent).toBe editor.lineForScreenRow(9).text
+      expect(component.lineNodeForScreenRow(9).textContent).toBe editor.tokenizedLineForScreenRow(9).text
 
     it "updates the top position of subsequent lines when lines are inserted or removed", ->
       editor.getBuffer().deleteRows(0, 1)
@@ -111,11 +111,11 @@ describe "EditorComponent", ->
 
       buffer.insert([0, 0], '\n\n')
       nextAnimationFrame()
-      expect(component.lineNodeForScreenRow(3).textContent).toBe editor.lineForScreenRow(3).text
+      expect(component.lineNodeForScreenRow(3).textContent).toBe editor.tokenizedLineForScreenRow(3).text
 
       buffer.delete([[0, 0], [3, 0]])
       nextAnimationFrame()
-      expect(component.lineNodeForScreenRow(3).textContent).toBe editor.lineForScreenRow(3).text
+      expect(component.lineNodeForScreenRow(3).textContent).toBe editor.tokenizedLineForScreenRow(3).text
 
     it "updates the top position of lines when the line height changes", ->
       initialLineHeightInPixels = editor.getLineHeightInPixels()

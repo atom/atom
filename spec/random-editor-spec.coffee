@@ -35,7 +35,7 @@ describe "Editor", ->
         logLines()
         throw new Error("Invalid buffer row #{actualBufferRow} for screen row #{screenRow}", )
 
-      actualScreenLine = editor.lineForScreenRow(screenRow)
+      actualScreenLine = editor.tokenizedLineForScreenRow(screenRow)
       unless actualScreenLine.text is referenceScreenLine.text
         logLines()
         throw new Error("Invalid line text at screen row #{screenRow}")

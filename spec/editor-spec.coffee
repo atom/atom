@@ -1262,10 +1262,10 @@ describe "Editor", ->
           editor.createFold(10, 11)
 
           editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]])
-          expect(editor.lineForScreenRow(1).fold).toBeUndefined()
-          expect(editor.lineForScreenRow(2).fold).toBeUndefined()
-          expect(editor.lineForScreenRow(6).fold).toBeUndefined()
-          expect(editor.lineForScreenRow(10).fold).toBeDefined()
+          expect(editor.tokenizedLineForScreenRow(1).fold).toBeUndefined()
+          expect(editor.tokenizedLineForScreenRow(2).fold).toBeUndefined()
+          expect(editor.tokenizedLineForScreenRow(6).fold).toBeUndefined()
+          expect(editor.tokenizedLineForScreenRow(10).fold).toBeDefined()
 
       describe "when the 'preserveFolds' option is true", ->
         it "does not remove folds that contain the selections", ->
@@ -1653,7 +1653,7 @@ describe "Editor", ->
           editor.createFold(2,4)
           editor.setSelectedBufferRange([[1,0], [2,0]])
           editor.insertText('holy cow')
-          expect(editor.lineForScreenRow(2).fold).toBeUndefined()
+          expect(editor.tokenizedLineForScreenRow(2).fold).toBeUndefined()
 
       describe "when will-insert-text and did-insert-text events are used", ->
         beforeEach ->
@@ -1978,7 +1978,7 @@ describe "Editor", ->
             editor.backspace()
 
             expect(buffer.lineForRow(3)).toBe "    while(items.length > 0) {"
-            expect(editor.lineForScreenRow(3).fold).toBeDefined()
+            expect(editor.tokenizedLineForScreenRow(3).fold).toBeDefined()
 
       describe "when there are multiple selections", ->
         it "removes all selected text", ->
@@ -2116,7 +2116,7 @@ describe "Editor", ->
             editor.delete()
 
             expect(buffer.lineForRow(3)).toBe "    ar pivot = items.shift(), current, left = [], right = [];"
-            expect(editor.lineForScreenRow(4).fold).toBeDefined()
+            expect(editor.tokenizedLineForScreenRow(4).fold).toBeDefined()
             expect(editor.getCursorScreenPosition()).toEqual [3, 4]
 
         describe "when the cursor is on a folded line", ->
@@ -2128,8 +2128,8 @@ describe "Editor", ->
             oldLine8 = buffer.lineForRow(8)
 
             editor.delete()
-            expect(editor.lineForScreenRow(2).text).toBe oldLine7
-            expect(editor.lineForScreenRow(3).text).toBe oldLine8
+            expect(editor.tokenizedLineForScreenRow(2).text).toBe oldLine7
+            expect(editor.tokenizedLineForScreenRow(3).text).toBe oldLine8
 
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->
@@ -2348,7 +2348,7 @@ describe "Editor", ->
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([2, 2])
             editor.cutToEndOfLine()
-            expect(editor.lineForScreenRow(2).text).toBe '=  () {'
+            expect(editor.tokenizedLineForScreenRow(2).text).toBe '=  () {'
 
         describe "when soft wrap is off", ->
           describe "when nothing is selected", ->
@@ -2981,11 +2981,11 @@ describe "Editor", ->
 
       runs ->
         expect(editor.getGrammar()).toBe atom.syntax.nullGrammar
-        expect(editor.lineForScreenRow(0).tokens.length).toBe 1
+        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
 
         atom.syntax.addGrammar(jsGrammar)
         expect(editor.getGrammar()).toBe jsGrammar
-        expect(editor.lineForScreenRow(0).tokens.length).toBeGreaterThan 1
+        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
     copyText = (text, {startColumn}={}) ->
@@ -3242,10 +3242,10 @@ describe "Editor", ->
       expect(editor.getSelectedBufferRanges()).toEqual [[[3, 5], [3, 5]], [[9, 0], [14, 0]]]
 
       # folds are also duplicated
-      expect(editor.lineForScreenRow(5).fold).toBeDefined()
-      expect(editor.lineForScreenRow(7).fold).toBeDefined()
-      expect(editor.lineForScreenRow(7).text).toBe "    while(items.length > 0) {"
-      expect(editor.lineForScreenRow(8).text).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+      expect(editor.tokenizedLineForScreenRow(5).fold).toBeDefined()
+      expect(editor.tokenizedLineForScreenRow(7).fold).toBeDefined()
+      expect(editor.tokenizedLineForScreenRow(7).text).toBe "    while(items.length > 0) {"
+      expect(editor.tokenizedLineForScreenRow(8).text).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
     it "duplicates all folded lines for empty selections on folded lines", ->
       editor.foldBufferRow(4)
@@ -3394,7 +3394,7 @@ describe "Editor", ->
         runs ->
           editor.setText("// http://github.com")
 
-          {tokens} = editor.lineForScreenRow(0)
+          {tokens} = editor.tokenizedLineForScreenRow(0)
           expect(tokens[1].value).toBe " http://github.com"
           expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
@@ -3402,7 +3402,7 @@ describe "Editor", ->
           atom.packages.activatePackage('language-hyperlink')
 
         runs ->
-          {tokens} = editor.lineForScreenRow(0)
+          {tokens} = editor.tokenizedLineForScreenRow(0)
           expect(tokens[2].value).toBe "http://github.com"
           expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
 
@@ -3414,7 +3414,7 @@ describe "Editor", ->
           runs ->
             editor.setText("// SELECT * FROM OCTOCATS")
 
-            {tokens} = editor.lineForScreenRow(0)
+            {tokens} = editor.tokenizedLineForScreenRow(0)
             expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
             expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
@@ -3422,7 +3422,7 @@ describe "Editor", ->
             atom.packages.activatePackage('package-with-injection-selector')
 
           runs ->
-            {tokens} = editor.lineForScreenRow(0)
+            {tokens} = editor.tokenizedLineForScreenRow(0)
             expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
             expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
 
@@ -3430,7 +3430,7 @@ describe "Editor", ->
             atom.packages.activatePackage('language-sql')
 
           runs ->
-            {tokens} = editor.lineForScreenRow(0)
+            {tokens} = editor.tokenizedLineForScreenRow(0)
             expect(tokens[2].value).toBe "SELECT"
             expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
 
