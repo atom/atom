@@ -1431,7 +1431,7 @@ describe "Editor", ->
             [[10, 0], [10, 0]]
           ]
 
-    fdescribe ".addSelectionAbove()", ->
+    describe ".addSelectionAbove()", ->
       describe "when the selection is non-empty", ->
         it "selects the same region of the line above current selections if possible", ->
           editor.setSelectedBufferRange([[3, 16], [3, 21]])
