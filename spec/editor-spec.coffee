@@ -969,6 +969,27 @@ describe "Editor", ->
         expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
         expect(selection1.isReversed()).toBeFalsy()
 
+      describe "when counts are passed into the selection functions", ->
+        it "expands each selection to its cursor's new location", ->
+          editor.setSelectedBufferRanges([[[0,9], [0,13]], [[3,16], [3,21]]])
+          [selection1, selection2] = editor.getSelections()
+
+          editor.selectRight(2)
+          expect(selection1.getBufferRange()).toEqual [[0,9], [0,15]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [3,23]]
+
+          editor.selectLeft(3)
+          expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
+
+          editor.selectDown(3)
+          expect(selection1.getBufferRange()).toEqual [[0,9], [3,12]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [6,20]]
+
+          editor.selectUp(2)
+          expect(selection1.getBufferRange()).toEqual [[0,9], [1,12]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [4,20]]
+
     describe ".selectToBufferPosition(bufferPosition)", ->
       it "expands the last selection to the given position", ->
         editor.setSelectedBufferRange([[3, 0], [4, 5]])
