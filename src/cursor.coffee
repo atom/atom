@@ -260,7 +260,7 @@ class Cursor extends Model
 
   # Public: Moves the cursor left one screen column.
   #
-  # * `columnCount` (optional) {Number} number of rows to move (default: 1)
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the left of the selection if a
   #     selection exists.
@@ -286,6 +286,7 @@ class Cursor extends Model
 
   # Public: Moves the cursor right one screen column.
   #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the right of the selection if a
   #     selection exists.

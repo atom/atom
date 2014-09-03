@@ -1619,7 +1619,7 @@ class Editor extends Model
 
   # Essential: Move every cursor up one row in screen coordinates.
   #
-  # * `lineCount` {Number} number of lines to move
+  # * `lineCount` (optional) {Number} number of lines to move
   moveUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
   moveCursorUp: (lineCount) ->
@@ -1628,7 +1628,7 @@ class Editor extends Model
 
   # Essential: Move every cursor down one row in screen coordinates.
   #
-  # * `lineCount` {Number} number of lines to move
+  # * `lineCount` (optional) {Number} number of lines to move
   moveDown: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
   moveCursorDown: (lineCount) ->
@@ -1636,6 +1636,8 @@ class Editor extends Model
     @moveDown(lineCount)
 
   # Essential: Move every cursor left one column.
+  #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   moveLeft: (columnCount) ->
     @moveCursors (cursor) -> cursor.moveLeft(columnCount, moveToEndOfSelection: true)
   moveCursorLeft: ->
@@ -1643,6 +1645,8 @@ class Editor extends Model
     @moveLeft()
 
   # Essential: Move every cursor right one column.
+  #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   moveRight: (columnCount) ->
     @moveCursors (cursor) -> cursor.moveRight(columnCount, moveToEndOfSelection: true)
   moveCursorRight: ->
