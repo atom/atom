@@ -153,6 +153,8 @@ class Workspace extends Model
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
   eachEditor: (callback) ->
+    deprecate("Use Workspace::observeTextEditors instead")
+
     callback(editor) for editor in @getEditors()
     @subscribe this, 'editor-created', (editor) -> callback(editor)
 
@@ -160,11 +162,24 @@ class Workspace extends Model
   #
   # Returns an {Array} of {Editor}s.
   getEditors: ->
+    deprecate("Use Workspace::getTextEditors instead")
+
     editors = []
     for pane in @paneContainer.getPanes()
       editors.push(item) for item in pane.getItems() when item instanceof Editor
 
     editors
+
+  on: (eventName) ->
+    switch eventName
+      when 'editor-created'
+        deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
+      when 'uri-opened'
+        deprecate("Use Workspace::onDidAddPaneItem instead.")
+      else
+        deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
+
+    super
 
   ###
   Section: Opening
