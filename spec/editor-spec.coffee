@@ -2773,6 +2773,11 @@ describe "Editor", ->
         expect(cursor1.getBufferPosition()).toEqual [0,0]
         expect(cursor3.getBufferPosition()).toEqual [1,2]
 
+  describe 'reading text', ->
+    it '.lineTextForScreenRow(row)', ->
+      editor.foldBufferRow(4)
+      expect(editor.lineTextForScreenRow(5)).toEqual '    return sort(left).concat(pivot).concat(sort(right));'
+
   describe ".deleteLine()", ->
     it "deletes the first line when the cursor is there", ->
       editor.getLastCursor().moveToTop()

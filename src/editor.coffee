@@ -418,6 +418,12 @@ class Editor extends Model
     deprecate 'Use Editor::lineTextForBufferRow(bufferRow) instead'
     @lineTextForBufferRow(bufferRow)
 
+  # Public: Returns a {String} representing the contents of the line at the
+  # given screen row.
+  #
+  # * `screenRow` A {Number} representing a zero-indexed screen row.
+  lineTextForScreenRow: (screenRow) -> @displayBuffer.tokenizedLineForScreenRow(screenRow).text
+
   # Gets the screen line for the given screen row.
   #
   # * `screenRow` - A {Number} indicating the screen row.
