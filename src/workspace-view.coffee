@@ -84,7 +84,7 @@ class WorkspaceView extends View
     @panes.replaceWith(panes)
     @panes = panes
 
-    @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
+    @subscribe @model.onDidAddPaneItem => @trigger 'uri-opened'
 
     @subscribe scrollbarStyle, (style) =>
       @removeClass('scrollbars-visible-always scrollbars-visible-when-scrolling')
