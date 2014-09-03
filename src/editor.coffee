@@ -429,7 +429,10 @@ class Editor extends Model
     @tokenizedLineForScreenRow(screenRow)
 
   # {Delegates to: DisplayBuffer.tokenizedLinesForScreenRows}
-  linesForScreenRows: (start, end) -> @displayBuffer.tokenizedLinesForScreenRows(start, end)
+  tokenizedLinesForScreenRows: (start, end) -> @displayBuffer.tokenizedLinesForScreenRows(start, end)
+  linesForScreenRows: (start, end) ->
+    deprecate "Use Editor::tokenizedLinesForScreenRows instead"
+    @tokenizedLinesForScreenRows(start, end)
 
   # Public: Returns a {Number} representing the line length for the given
   # buffer row, exclusive of its line-ending character(s).

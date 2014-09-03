@@ -59,7 +59,7 @@ EditorComponent = React.createClass
       [renderedStartRow, renderedEndRow] = renderedRowRange
       cursorPixelRects = @getCursorPixelRects(renderedRowRange)
 
-      tokenizedLines = editor.linesForScreenRows(renderedStartRow, renderedEndRow - 1)
+      tokenizedLines = editor.tokenizedLinesForScreenRows(renderedStartRow, renderedEndRow - 1)
 
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
