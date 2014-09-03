@@ -2,6 +2,7 @@
 {Model} = require 'theorist'
 {Emitter} = require 'event-kit'
 Serializable = require 'serializable'
+Grim = require 'grim'
 PaneAxis = require './pane-axis'
 Editor = require './editor'
 PaneView = null
@@ -187,6 +188,24 @@ class Pane extends Model
   # unsubscribe.
   onWillDestroyItem: (callback) ->
     @emitter.on 'will-destroy-item', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'activated'
+        Grim.deprecate("Use Pane::onDidActivate instead")
+      when 'destroyed'
+        Grim.deprecate("Use Pane::onDidDestroy instead")
+      when 'item-added'
+        Grim.deprecate("Use Pane::onDidAddItem instead")
+      when 'item-removed'
+        Grim.deprecate("Use Pane::onDidRemoveItem instead")
+      when 'item-moved'
+        Grim.deprecate("Use Pane::onDidMoveItem instead")
+      when 'before-item-destroyed'
+        Grim.deprecate("Use Pane::onWillDestroyItem instead")
+      else
+        Grim.deprecate("Subscribing via ::on is deprecated. Use event subscription methods instead.")
+    super
 
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
