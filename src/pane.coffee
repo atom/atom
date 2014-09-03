@@ -204,7 +204,7 @@ class Pane extends Model
       when 'before-item-destroyed'
         Grim.deprecate("Use Pane::onWillDestroyItem instead")
       else
-        Grim.deprecate("Subscribing via ::on is deprecated. Use event subscription methods instead.")
+        Grim.deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
     super
 
   behavior: (behaviorName) ->
