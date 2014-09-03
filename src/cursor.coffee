@@ -281,7 +281,6 @@ class Cursor extends Model
           rowLength = @editor.lineTextForScreenRow(row).length
           column = rowLength - columnDelta
           columnDelta -= rowLength
-        column = Math.max(column, 0)
 
       @setScreenPosition({row, column})
 
