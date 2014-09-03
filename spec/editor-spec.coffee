@@ -326,6 +326,16 @@ describe "Editor", ->
         editor.moveLeft(4)
         expect(editor.getCursorScreenPosition()).toEqual [1, 4]
 
+      it "moves the cursor by two rows up when the columnCount is longer than an entire line", ->
+        editor.setCursorScreenPosition([2, 2])
+        editor.moveLeft(34)
+        expect(editor.getCursorScreenPosition()).toEqual [0, 28]
+
+      it "moves the cursor to the beginning columnCount is longer than the position in the buffer", ->
+        editor.setCursorScreenPosition([1, 0])
+        editor.moveLeft(100)
+        expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+
       describe "when the cursor is in the first column", ->
         describe "when there is a previous line", ->
           it "wraps to the end of the previous line", ->
@@ -333,7 +343,7 @@ describe "Editor", ->
             editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.lineForRow(0).length)
 
-          it "moves the cursor by n columns to the left", ->
+          it "moves the cursor by one row up columns to the left", ->
             editor.setCursorScreenPosition([1, 0])
             editor.moveLeft(4)
             expect(editor.getCursorScreenPosition()).toEqual [0, 26]
@@ -344,7 +354,7 @@ describe "Editor", ->
             editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
-          it "moves the cursor by n columns to the left", ->
+          it "remains in the same position (0,0) when columnCount is specified", ->
             editor.setCursorScreenPosition([0, 0])
             editor.moveLeft(4)
             expect(editor.getCursorScreenPosition()).toEqual [0, 0]

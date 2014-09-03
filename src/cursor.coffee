@@ -274,9 +274,14 @@ class Cursor extends Model
 
       if newColumn >= 0
         column = newColumn
-      else if row > 0
-        row--
-        column = @editor.lineTextForScreenRow(row).length + newColumn + 1
+      else
+        columnDelta = -(newColumn + 1)
+        while columnDelta >= 0 and row > 0
+          row--
+          rowLength = @editor.lineTextForScreenRow(row).length
+          column = rowLength - columnDelta
+          columnDelta -= rowLength
+        column = Math.max(column, 0)
 
       @setScreenPosition({row, column})
 
