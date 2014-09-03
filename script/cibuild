@@ -24,7 +24,7 @@ function loadEnvironmentVariables(filePath) {
 function readEnvironmentVariables() {
   if (process.platform === 'win32')
     loadEnvironmentVariables(path.resolve('/jenkins/config/atomcredentials'));
-  else {
+  else if (process.platform === 'darwin') {
     loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
     loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
   }
