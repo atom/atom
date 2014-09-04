@@ -36,7 +36,7 @@
     "grim": "0.12.0",
     "guid": "0.0.10",
     "jasmine-tagged": "^1.1.2",
-    "less-cache": "0.13.0",
+    "less-cache": "0.14.0",
     "mixto": "^1",
     "mkdirp": "0.3.5",
     "nslog": "^1.0.1",
