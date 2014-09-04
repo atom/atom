@@ -70,9 +70,9 @@ class EditorView extends View
   # The constructor for setting up an `EditorView` instance.
   #
   # * `editorOrParams` Either an {Editor}, or an object with one property, `mini`.
-  #                  If `mini` is `true`, a "miniature" `Editor` is constructed.
-  #                  Typically, this is ideal for scenarios where you need an Atom editor,
-  #                  but without all the chrome, like scrollbars, gutter, _e.t.c._.
+  #    If `mini` is `true`, a "miniature" `Editor` is constructed.
+  #    Typically, this is ideal for scenarios where you need an Atom editor,
+  #    but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
   constructor: (editorOrParams, props) ->
     super

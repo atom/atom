@@ -20,9 +20,9 @@ Task = require './task'
 # For a repository with submodules this would have the following outcome:
 #
 # ```coffee
-#   repo = atom.project.getRepo()
-#   repo.getShortHead() # 'master'
-#   repo.getShortHead('vendor/path/to/a/submodule') # 'dead1234'
+# repo = atom.project.getRepo()
+# repo.getShortHead() # 'master'
+# repo.getShortHead('vendor/path/to/a/submodule') # 'dead1234'
 # ```
 #
 # ## Examples
@@ -30,14 +30,14 @@ Task = require './task'
 # ### Logging the URL of the origin remote
 #
 # ```coffee
-#   git = atom.project.getRepo()
-#   console.log git.getOriginUrl()
+# git = atom.project.getRepo()
+# console.log git.getOriginUrl()
 # ```
 #
 # ### Requiring in packages
 #
 # ```coffee
-#   {Git} = require 'atom'
+# {Git} = require 'atom'
 # ```
 module.exports =
 class Git
