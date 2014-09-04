@@ -261,6 +261,7 @@ class Editor extends Model
       @emit "title-changed"
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
+      @emitter.emit 'did-change-path', @getPath()
     @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
     @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
     @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
@@ -292,6 +293,9 @@ class Editor extends Model
 
   onDidChangeTitle: (callback) ->
     @emitter.on 'did-change-title', callback
+
+  onDidChangePath: (callback) ->
+    @emitter.on 'did-change-path', callback
 
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer

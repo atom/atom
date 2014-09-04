@@ -147,6 +147,16 @@ describe "Editor", ->
 
       expect(observed).toEqual ['baz.txt', 'untitled']
 
+  describe "path", ->
+    it "notifies ::onDidChangePath observers when the underlying buffer path changes", ->
+       observed = []
+       editor.onDidChangePath (filePath) -> observed.push(filePath)
+
+       buffer.setPath('/foo/bar/baz.txt')
+       buffer.setPath(undefined)
+
+       expect(observed).toEqual ['/foo/bar/baz.txt', undefined]
+
   describe "cursor", ->
     describe ".getLastCursor()", ->
       it "returns the most recently created cursor", ->
