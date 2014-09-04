@@ -347,13 +347,18 @@ describe "Workspace", ->
       atom.packages.activatePackage('language-coffee-script')
 
     waitsForPromise ->
+      atom.packages.activatePackage('language-todo')
+
+    waitsForPromise ->
       atom.workspace.open('sample.coffee')
 
     runs ->
-      atom.workspace.getActiveEditor().setText('i = /test/;')
+      atom.workspace.getActiveEditor().setText """
+        i = /test/; #FIXME
+      """
 
       state = atom.workspace.serialize()
-      expect(state.packagesWithActiveGrammars).toEqual ['language-coffee-script', 'language-javascript']
+      expect(state.packagesWithActiveGrammars).toEqual ['language-coffee-script', 'language-javascript', 'language-todo']
 
       jsPackage = atom.packages.getLoadedPackage('language-javascript')
       coffeePackage = atom.packages.getLoadedPackage('language-coffee-script')

@@ -75,7 +75,13 @@ class Workspace extends Model
       for scopeName in includedGrammarScopes ? []
         addGrammar(atom.syntax.grammarForScopeName(scopeName))
 
-    addGrammar(editor.getGrammar()) for editor in @getTextEditors()
+    editors = @getTextEditors()
+    addGrammar(editor.getGrammar()) for editor in editors
+
+    if editors.length > 0
+      for grammar in atom.syntax.grammars when grammar.injectionSelector
+        addGrammar(grammar)
+
     _.uniq(packageNames)
 
   editorAdded: (editor) ->
