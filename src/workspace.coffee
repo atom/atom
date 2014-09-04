@@ -79,7 +79,7 @@ class Workspace extends Model
     addGrammar(editor.getGrammar()) for editor in editors
 
     if editors.length > 0
-      for grammar in atom.syntax.grammars when grammar.injectionSelector
+      for grammar in atom.syntax.getGrammars() when grammar.injectionSelector
         addGrammar(grammar)
 
     _.uniq(packageNames)
