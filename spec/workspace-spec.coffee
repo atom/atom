@@ -203,17 +203,17 @@ describe "Workspace", ->
           workspace.open("bar://baz").then (item) ->
             expect(item).toEqual { bar: "bar://baz" }
 
-    it "emits an 'editor-created' event", ->
+    it "notifies ::onDidAddTextEditor observers", ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newEditorHandler = jasmine.createSpy('newEditorHandler')
-      workspace.on 'editor-created', newEditorHandler
+      workspace.onDidAddTextEditor newEditorHandler
 
       editor = null
       waitsForPromise ->
         workspace.open(absolutePath).then (e) -> editor = e
 
       runs ->
-        expect(newEditorHandler).toHaveBeenCalledWith editor
+        expect(newEditorHandler.argsForCall[0][0].textEditor).toBe editor
 
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
