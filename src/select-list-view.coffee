@@ -51,7 +51,7 @@ class SelectListView extends View
   # This method can be overridden by subclasses but `super` should always
   # be called.
   initialize: ->
-    @filterEditorView.getEditor().getBuffer().on 'changed', =>
+    @filterEditorView.getEditor().getBuffer().onDidChange =>
       @schedulePopulateList()
     @filterEditorView.hiddenInput.on 'focusout', =>
       @cancel() unless @cancelling

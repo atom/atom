@@ -14,8 +14,8 @@ class Fold
     @id = @marker.id
     @displayBuffer.foldsByMarkerId[@marker.id] = this
     @updateDisplayBuffer()
-    @marker.on 'destroyed', => @destroyed()
-    @marker.on 'changed', ({isValid}) => @destroy() unless isValid
+    @marker.onDidDestroy => @destroyed()
+    @marker.onDidChange ({isValid}) => @destroy() unless isValid
 
   # Returns whether this fold is contained within another fold
   isInsideLargerFold: ->
