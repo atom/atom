@@ -44,7 +44,7 @@ class Cursor extends Model
   constructor: ({@editor, @marker, id}) ->
     @assignId(id)
     @updateVisibility()
-    @marker.on 'changed', (e) =>
+    @marker.onDidChange (e) =>
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
@@ -66,7 +66,7 @@ class Cursor extends Model
 
       @emit 'moved', movedEvent
       @editor.cursorMoved(this, movedEvent)
-    @marker.on 'destroyed', =>
+    @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeCursor(this)
       @emit 'destroyed'

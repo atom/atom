@@ -30,8 +30,8 @@ class Selection extends Model
     @cursor.selection = this
     @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
-    @marker.on 'changed', => @screenRangeChanged()
-    @marker.on 'destroyed', =>
+    @marker.onDidChange => @screenRangeChanged()
+    @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeSelection(this)
       @emit 'destroyed' unless @editor.isDestroyed()

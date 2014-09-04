@@ -1,10 +1,12 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 
 module.exports =
 class DisplayBufferMarker
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
 
   bufferMarkerSubscription: null
@@ -15,6 +17,7 @@ class DisplayBufferMarker
   wasValid: true
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
+    @emitter = new Emitter
     @id = @bufferMarker.id
     @oldHeadBufferPosition = @getHeadBufferPosition()
     @oldHeadScreenPosition = @getHeadScreenPosition()
@@ -24,6 +27,12 @@ class DisplayBufferMarker
 
     @subscribe @bufferMarker.onDidDestroy => @destroyed()
     @subscribe @bufferMarker.onDidChange (event) => @notifyObservers(event)
+
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
 
   copy: (attributes) ->
     @displayBuffer.getMarker(@bufferMarker.copy(attributes).id)
@@ -199,6 +208,8 @@ class DisplayBufferMarker
   destroyed: ->
     delete @displayBuffer.markers[@id]
     @emit 'destroyed'
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
 
   notifyObservers: ({textChanged}) ->
     textChanged ?= false
@@ -215,7 +226,7 @@ class DisplayBufferMarker
       _.isEqual(newTailBufferPosition, @oldTailBufferPosition) and
       _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
 
-    @emit 'changed', {
+    changeEvent = {
       @oldHeadScreenPosition, newHeadScreenPosition,
       @oldTailScreenPosition, newTailScreenPosition,
       @oldHeadBufferPosition, newHeadBufferPosition,
@@ -223,6 +234,8 @@ class DisplayBufferMarker
       textChanged,
       isValid
     }
+    @emit 'changed', changeEvent
+    @emitter.emit 'did-change', changeEvent
 
     @oldHeadBufferPosition = newHeadBufferPosition
     @oldHeadScreenPosition = newHeadScreenPosition
