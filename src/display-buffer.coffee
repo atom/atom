@@ -56,7 +56,7 @@ class DisplayBuffer extends Model
     @decorationMarkerDestroyedSubscriptions = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
-    @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
+    @subscribe @tokenizedBuffer.onDidChangeGrammar (grammar) => @emit 'grammar-changed', grammar
     @subscribe @tokenizedBuffer, 'tokenized', => @emit 'tokenized'
     @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
@@ -100,6 +100,9 @@ class DisplayBuffer extends Model
 
   onDidChangeSoftWrapped: (callback) ->
     @emitter.on 'did-change-soft-wrapped', callback
+
+  onDidChangeGrammar: (callback) ->
+    @tokenizedBuffer.onDidChangeGrammar(callback)
 
   emitChanged: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers

@@ -272,7 +272,7 @@ class Editor extends Model
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
     @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
-    @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
+    @subscribe @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
     @subscribe @displayBuffer, 'tokenized', => @handleTokenization()
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
     @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
@@ -302,6 +302,9 @@ class Editor extends Model
 
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
+
+  onDidChangeGrammar: (callback)->
+    @displayBuffer.onDidChangeGrammar(callback)
 
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer

@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
@@ -20,6 +21,8 @@ class TokenizedBuffer extends Model
   visible: false
 
   constructor: ({@buffer, @tabLength, @invisibles}) ->
+    @emitter = new Emitter
+
     @tabLength ?= atom.config.getPositiveInt('editor.tabLength', 2)
 
     @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
@@ -29,7 +32,6 @@ class TokenizedBuffer extends Model
         newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
         @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
-    @on 'grammar-changed grammar-updated', => @retokenizeLines()
     @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
@@ -49,13 +51,18 @@ class TokenizedBuffer extends Model
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
     params
 
+  onDidChangeGrammar: (callback) ->
+    @emitter.on 'did-change-grammar', callback
+
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar, 'grammar-updated', => @retokenizeLines()
+    @retokenizeLines()
     @emit 'grammar-changed', grammar
+    @emitter.emit 'did-change-grammar', grammar
 
   reloadGrammar: ->
     if grammar = atom.syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
