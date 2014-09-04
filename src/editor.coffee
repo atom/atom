@@ -1619,7 +1619,7 @@ class Editor extends Model
 
   # Essential: Move every cursor up one row in screen coordinates.
   #
-  # * `lineCount` {Number} number of lines to move
+  # * `lineCount` (optional) {Number} number of lines to move
   moveUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
   moveCursorUp: (lineCount) ->
@@ -1628,7 +1628,7 @@ class Editor extends Model
 
   # Essential: Move every cursor down one row in screen coordinates.
   #
-  # * `lineCount` {Number} number of lines to move
+  # * `lineCount` (optional) {Number} number of lines to move
   moveDown: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
   moveCursorDown: (lineCount) ->
@@ -1636,15 +1636,19 @@ class Editor extends Model
     @moveDown(lineCount)
 
   # Essential: Move every cursor left one column.
-  moveLeft: ->
-    @moveCursors (cursor) -> cursor.moveLeft(moveToEndOfSelection: true)
+  #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
+  moveLeft: (columnCount) ->
+    @moveCursors (cursor) -> cursor.moveLeft(columnCount, moveToEndOfSelection: true)
   moveCursorLeft: ->
     deprecate("Use Editor::moveLeft() instead")
     @moveLeft()
 
   # Essential: Move every cursor right one column.
-  moveRight: ->
-    @moveCursors (cursor) -> cursor.moveRight(moveToEndOfSelection: true)
+  #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
+  moveRight: (columnCount) ->
+    @moveCursors (cursor) -> cursor.moveRight(columnCount, moveToEndOfSelection: true)
   moveCursorRight: ->
     deprecate("Use Editor::moveRight() instead")
     @moveRight()
@@ -1978,7 +1982,7 @@ class Editor extends Model
   # Essential: Move the cursor of each selection one character upward while
   # preserving the selection's tail position.
   #
-  # * `rowCount` {Number} of rows to select up
+  # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
   # This method may merge selections that end up intesecting.
   selectUp: (rowCount) ->
@@ -1987,7 +1991,7 @@ class Editor extends Model
   # Essential: Move the cursor of each selection one character downward while
   # preserving the selection's tail position.
   #
-  # * `rowCount` {Number} of rows to select down
+  # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   #
   # This method may merge selections that end up intesecting.
   selectDown: (rowCount) ->
@@ -1996,16 +2000,20 @@ class Editor extends Model
   # Essential: Move the cursor of each selection one character leftward while
   # preserving the selection's tail position.
   #
+  # * `columnCount` (optional) {Number} number of columns to select (default: 1)
+  #
   # This method may merge selections that end up intesecting.
-  selectLeft: ->
-    @expandSelectionsBackward (selection) -> selection.selectLeft()
+  selectLeft: (columnCount) ->
+    @expandSelectionsBackward (selection) -> selection.selectLeft(columnCount)
 
   # Essential: Move the cursor of each selection one character rightward while
   # preserving the selection's tail position.
   #
+  # * `columnCount` (optional) {Number} number of columns to select (default: 1)
+  #
   # This method may merge selections that end up intesecting.
-  selectRight: ->
-    @expandSelectionsForward (selection) -> selection.selectRight()
+  selectRight: (columnCount) ->
+    @expandSelectionsForward (selection) -> selection.selectRight(columnCount)
 
   # Essential: Select from the top of the buffer to the end of the last selection
   # in the buffer.
