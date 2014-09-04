@@ -9,7 +9,7 @@ describe "Workspace", ->
 
   describe "::open(uri, options)", ->
     beforeEach ->
-      spyOn(workspace.activePane, 'activate').andCallThrough()
+      spyOn(workspace.getActivePane(), 'activate').andCallThrough()
 
     describe "when the 'searchAllPanes' option is false (default)", ->
       describe "when called without a uri", ->
@@ -21,18 +21,18 @@ describe "Workspace", ->
 
           runs ->
             expect(editor1.getPath()).toBeUndefined()
-            expect(workspace.activePane.items).toEqual [editor1]
+            expect(workspace.getActivePane().items).toEqual [editor1]
             expect(workspace.getActivePaneItem()).toBe editor1
-            expect(workspace.activePane.activate).toHaveBeenCalled()
+            expect(workspace.getActivePane().activate).toHaveBeenCalled()
 
           waitsForPromise ->
             workspace.open().then (editor) -> editor2 = editor
 
           runs ->
             expect(editor2.getPath()).toBeUndefined()
-            expect(workspace.activePane.items).toEqual [editor1, editor2]
+            expect(workspace.getActivePane().items).toEqual [editor1, editor2]
             expect(workspace.getActivePaneItem()).toBe editor2
-            expect(workspace.activePane.activate).toHaveBeenCalled()
+            expect(workspace.getActivePane().activate).toHaveBeenCalled()
 
       describe "when called with a uri", ->
         describe "when the active pane already has an editor for the given uri", ->
@@ -52,7 +52,7 @@ describe "Workspace", ->
             runs ->
               expect(editor).toBe editor1
               expect(workspace.getActivePaneItem()).toBe editor
-              expect(workspace.activePane.activate).toHaveBeenCalled()
+              expect(workspace.getActivePane().activate).toHaveBeenCalled()
 
         describe "when the active pane does not have an editor for the given uri", ->
           it "adds and activates a new editor for the given path on the active pane", ->
@@ -63,8 +63,8 @@ describe "Workspace", ->
             runs ->
               expect(editor.getUri()).toBe atom.project.resolve('a')
               expect(workspace.getActivePaneItem()).toBe editor
-              expect(workspace.activePane.items).toEqual [editor]
-              expect(workspace.activePane.activate).toHaveBeenCalled()
+              expect(workspace.getActivePane().items).toEqual [editor]
+              expect(workspace.getActivePane().activate).toHaveBeenCalled()
 
     describe "when the 'searchAllPanes' option is true", ->
       describe "when an editor for the given uri is already open on an inactive pane", ->
@@ -89,7 +89,7 @@ describe "Workspace", ->
             workspace.open('a', searchAllPanes: true)
 
           runs ->
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             expect(workspace.getActivePaneItem()).toBe editor1
 
       describe "when no editor for the given uri is open in any pane", ->
@@ -104,16 +104,16 @@ describe "Workspace", ->
     describe "when the 'split' option is set", ->
       describe "when the 'split' option is 'left'", ->
         it "opens the editor in the leftmost pane of the current pane axis", ->
-          pane1 = workspace.activePane
+          pane1 = workspace.getActivePane()
           pane2 = pane1.splitRight()
-          expect(workspace.activePane).toBe pane2
+          expect(workspace.getActivePane()).toBe pane2
 
           editor = null
           waitsForPromise ->
             workspace.open('a', split: 'left').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             expect(pane1.items).toEqual [editor]
             expect(pane2.items).toEqual []
 
@@ -123,37 +123,37 @@ describe "Workspace", ->
             workspace.open('a', split: 'left').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             expect(pane1.items).toEqual [editor]
             expect(pane2.items).toEqual []
 
       describe "when a pane axis is the leftmost sibling of the current pane", ->
         it "opens the new item in the current pane", ->
           editor = null
-          pane1 = workspace.activePane
+          pane1 = workspace.getActivePane()
           pane2 = pane1.splitLeft()
           pane3 = pane2.splitDown()
           pane1.activate()
-          expect(workspace.activePane).toBe pane1
+          expect(workspace.getActivePane()).toBe pane1
 
           waitsForPromise ->
             workspace.open('a', split: 'left').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             expect(pane1.items).toEqual [editor]
 
       describe "when the 'split' option is 'right'", ->
         it "opens the editor in the rightmost pane of the current pane axis", ->
           editor = null
-          pane1 = workspace.activePane
+          pane1 = workspace.getActivePane()
           pane2 = null
           waitsForPromise ->
             workspace.open('a', split: 'right').then (o) -> editor = o
 
           runs ->
             pane2 = workspace.getPanes().filter((p) -> p != pane1)[0]
-            expect(workspace.activePane).toBe pane2
+            expect(workspace.getActivePane()).toBe pane2
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
 
@@ -163,18 +163,18 @@ describe "Workspace", ->
             workspace.open('a', split: 'right').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane2
+            expect(workspace.getActivePane()).toBe pane2
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
 
         describe "when a pane axis is the rightmost sibling of the current pane", ->
           it "opens the new item in a new pane split to the right of the current pane", ->
             editor = null
-            pane1 = workspace.activePane
+            pane1 = workspace.getActivePane()
             pane2 = pane1.splitRight()
             pane3 = pane2.splitDown()
             pane1.activate()
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             pane4 = null
 
             waitsForPromise ->
@@ -182,7 +182,7 @@ describe "Workspace", ->
 
             runs ->
               pane4 = workspace.getPanes().filter((p) -> p != pane1)[0]
-              expect(workspace.activePane).toBe pane4
+              expect(workspace.getActivePane()).toBe pane4
               expect(pane4.items).toEqual [editor]
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
@@ -217,7 +217,7 @@ describe "Workspace", ->
 
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
-      pane = workspace.activePane
+      pane = workspace.getActivePane()
       waitsForPromise ->
         workspace.open('a').then ->
           workspace.open('b').then ->
