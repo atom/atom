@@ -459,22 +459,27 @@ describe "Pane", ->
     [pane1, container] = []
 
     beforeEach ->
-      pane1 = new Pane(items: ["A"])
+      pane1 = new Pane(items: [new Item("A")])
       container = new PaneContainer(root: pane1)
 
     describe "::splitLeft(params)", ->
       describe "when the parent is the container root", ->
         it "replaces itself with a row and inserts a new pane to the left of itself", ->
-          pane2 = pane1.splitLeft(items: ["B"])
-          pane3 = pane1.splitLeft(items: ["C"])
+          pane2 = pane1.splitLeft(items: [new Item("B")])
+          pane3 = pane1.splitLeft(items: [new Item("C")])
           expect(container.root.orientation).toBe 'horizontal'
           expect(container.root.children).toEqual [pane2, pane3, pane1]
+
+      describe "when `copyActiveItem: true` is passed in the params", ->
+        it "duplicates the active item", ->
+          pane2 = pane1.splitLeft(copyActiveItem: true)
+          expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
 
       describe "when the parent is a column", ->
         it "replaces itself with a row and inserts a new pane to the left of itself", ->
           pane1.splitDown()
-          pane2 = pane1.splitLeft(items: ["B"])
-          pane3 = pane1.splitLeft(items: ["C"])
+          pane2 = pane1.splitLeft(items: [new Item("B")])
+          pane3 = pane1.splitLeft(items: [new Item("C")])
           row = container.root.children[0]
           expect(row.orientation).toBe 'horizontal'
           expect(row.children).toEqual [pane2, pane3, pane1]
@@ -482,16 +487,21 @@ describe "Pane", ->
     describe "::splitRight(params)", ->
       describe "when the parent is the container root", ->
         it "replaces itself with a row and inserts a new pane to the right of itself", ->
-          pane2 = pane1.splitRight(items: ["B"])
-          pane3 = pane1.splitRight(items: ["C"])
+          pane2 = pane1.splitRight(items: [new Item("B")])
+          pane3 = pane1.splitRight(items: [new Item("C")])
           expect(container.root.orientation).toBe 'horizontal'
           expect(container.root.children).toEqual [pane1, pane3, pane2]
+
+      describe "when `copyActiveItem: true` is passed in the params", ->
+        it "duplicates the active item", ->
+          pane2 = pane1.splitRight(copyActiveItem: true)
+          expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
 
       describe "when the parent is a column", ->
         it "replaces itself with a row and inserts a new pane to the right of itself", ->
           pane1.splitDown()
-          pane2 = pane1.splitRight(items: ["B"])
-          pane3 = pane1.splitRight(items: ["C"])
+          pane2 = pane1.splitRight(items: [new Item("B")])
+          pane3 = pane1.splitRight(items: [new Item("C")])
           row = container.root.children[0]
           expect(row.orientation).toBe 'horizontal'
           expect(row.children).toEqual [pane1, pane3, pane2]
@@ -499,16 +509,21 @@ describe "Pane", ->
     describe "::splitUp(params)", ->
       describe "when the parent is the container root", ->
         it "replaces itself with a column and inserts a new pane above itself", ->
-          pane2 = pane1.splitUp(items: ["B"])
-          pane3 = pane1.splitUp(items: ["C"])
+          pane2 = pane1.splitUp(items: [new Item("B")])
+          pane3 = pane1.splitUp(items: [new Item("C")])
           expect(container.root.orientation).toBe 'vertical'
           expect(container.root.children).toEqual [pane2, pane3, pane1]
+
+      describe "when `copyActiveItem: true` is passed in the params", ->
+        it "duplicates the active item", ->
+          pane2 = pane1.splitUp(copyActiveItem: true)
+          expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
 
       describe "when the parent is a row", ->
         it "replaces itself with a column and inserts a new pane above itself", ->
           pane1.splitRight()
-          pane2 = pane1.splitUp(items: ["B"])
-          pane3 = pane1.splitUp(items: ["C"])
+          pane2 = pane1.splitUp(items: [new Item("B")])
+          pane3 = pane1.splitUp(items: [new Item("C")])
           column = container.root.children[0]
           expect(column.orientation).toBe 'vertical'
           expect(column.children).toEqual [pane2, pane3, pane1]
@@ -516,16 +531,21 @@ describe "Pane", ->
     describe "::splitDown(params)", ->
       describe "when the parent is the container root", ->
         it "replaces itself with a column and inserts a new pane below itself", ->
-          pane2 = pane1.splitDown(items: ["B"])
-          pane3 = pane1.splitDown(items: ["C"])
+          pane2 = pane1.splitDown(items: [new Item("B")])
+          pane3 = pane1.splitDown(items: [new Item("C")])
           expect(container.root.orientation).toBe 'vertical'
           expect(container.root.children).toEqual [pane1, pane3, pane2]
+
+      describe "when `copyActiveItem: true` is passed in the params", ->
+        it "duplicates the active item", ->
+          pane2 = pane1.splitDown(copyActiveItem: true)
+          expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
 
       describe "when the parent is a row", ->
         it "replaces itself with a column and inserts a new pane below itself", ->
           pane1.splitRight()
-          pane2 = pane1.splitDown(items: ["B"])
-          pane3 = pane1.splitDown(items: ["C"])
+          pane2 = pane1.splitDown(items: [new Item("B")])
+          pane3 = pane1.splitDown(items: [new Item("C")])
           column = container.root.children[0]
           expect(column.orientation).toBe 'vertical'
           expect(column.children).toEqual [pane1, pane3, pane2]

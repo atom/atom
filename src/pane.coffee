@@ -528,6 +528,7 @@ class Pane extends Model
   #
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
+  #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
   #
   # Returns the new {Pane}.
   splitLeft: (params) ->
@@ -537,6 +538,7 @@ class Pane extends Model
   #
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
+  #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
   #
   # Returns the new {Pane}.
   splitRight: (params) ->
@@ -546,6 +548,7 @@ class Pane extends Model
   #
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
+  #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
   #
   # Returns the new {Pane}.
   splitUp: (params) ->
@@ -555,12 +558,17 @@ class Pane extends Model
   #
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
+  #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
   #
   # Returns the new {Pane}.
   splitDown: (params) ->
     @split('vertical', 'after', params)
 
   split: (orientation, side, params) ->
+    if params?.copyActiveItem
+      params.items ?= []
+      params.items.push(@copyActiveItem())
+
     if @parent.orientation isnt orientation
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
 
