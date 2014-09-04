@@ -1850,16 +1850,12 @@ class Editor extends Model
     @emit 'cursor-removed', cursor
 
   moveCursors: (fn) ->
-    @movingCursors = true
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
-    @movingCursors = false
-    @emit 'cursors-moved'
 
   cursorMoved: (cursor, event) ->
     @emit 'cursor-moved', event
     @emitter.emit 'did-move-cursor', _.extend({cursor}, event)
-    @emit 'cursors-moved' unless @movingCursors
 
   # Merge cursors that have the same screen position
   mergeCursors: ->

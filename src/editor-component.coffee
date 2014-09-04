@@ -31,7 +31,7 @@ EditorComponent = React.createClass
   updateRequested: false
   updatesPaused: false
   updateRequestedWhilePaused: false
-  cursorsMoved: false
+  cursorMoved: false
   selectionChanged: false
   selectionAdded: false
   scrollingVertically: false
@@ -196,16 +196,16 @@ EditorComponent = React.createClass
     @props.editor.setMini(newProps.mini)
 
   componentDidUpdate: (prevProps, prevState) ->
-    cursorsMoved = @cursorsMoved
+    cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
     @pendingChanges.length = 0
-    @cursorsMoved = false
+    @cursorMoved = false
     @selectionChanged = false
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
       @updateParentViewMiniClassIfNeeded(prevState)
-      @props.parentView.trigger 'cursor:moved' if cursorsMoved
+      @props.parentView.trigger 'cursor:moved' if cursorMoved
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
 
@@ -346,7 +346,7 @@ EditorComponent = React.createClass
   observeEditor: ->
     {editor} = @props
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
-    @subscribe editor, 'cursors-moved', @onCursorsMoved
+    @subscribe editor.onDidMoveCursor(@onCursorMoved)
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'decoration-added', @onDecorationChanged
@@ -749,8 +749,8 @@ EditorComponent = React.createClass
 
   onStoppedScrollingAfterDelay: null # created lazily
 
-  onCursorsMoved: ->
-    @cursorsMoved = true
+  onCursorMoved: ->
+    @cursorMoved = true
     @requestUpdate()
 
   onDecorationChanged: ->
