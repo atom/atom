@@ -101,7 +101,6 @@ class EditorView extends View
     @overlayer = $(node).find('.lines').addClass('overlayer')
     @hiddenInput = $(node).find('.hidden-input')
 
-    # FIXME: there should be a better way to deal with the gutter element
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
       @gutter = $(node).find('.gutter')
 
