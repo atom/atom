@@ -138,7 +138,6 @@ afterEach ->
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   atom.syntax.off()
-  ensureNoDeprecatedFunctionsCalled() if isCoreSpec
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
