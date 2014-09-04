@@ -24,12 +24,12 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # ## Accessing Editor Instances
 #
 # The easiest way to get hold of `Editor` objects is by registering a callback
-# with `::eachEditor` on the `atom.workspace` global. Your callback will then
-# be called with all current editor instances and also when any editor is
+# with `::observeTextEditors` on the `atom.workspace` global. Your callback will
+# then be called with all current editor instances and also when any editor is
 # created in the future.
 #
 # ```coffee
-# atom.workspace.eachEditor (editor) ->
+# atom.workspace.observeTextEditors (editor) ->
 #   editor.insertText('Hello World')
 # ```
 #
