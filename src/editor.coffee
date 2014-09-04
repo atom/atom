@@ -318,9 +318,6 @@ class Editor extends Model
   onDidInsertText: (callback) ->
     @emitter.on 'did-insert-text', callback
 
-  onDidMoveCursor: (callback) ->
-    @emitter.on 'did-move-cursor', callback
-
   onDidAddCursor: (callback) ->
     @emitter.on 'did-add-cursor', callback
 
@@ -1863,7 +1860,6 @@ class Editor extends Model
 
   cursorMoved: (cursor, event) ->
     @emit 'cursor-moved', event
-    @emitter.emit 'did-move-cursor', _.extend({cursor}, event)
 
   # Merge cursors that have the same screen position
   mergeCursors: ->

@@ -346,7 +346,7 @@ EditorComponent = React.createClass
   observeEditor: ->
     {editor} = @props
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
-    @subscribe editor.onDidMoveCursor(@onCursorMoved)
+    @subscribe editor.onDidAddCursor(@onCursorAdded)
     @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
     @subscribe editor, 'selection-added', @onSelectionAdded
     @subscribe editor, 'decoration-added', @onDecorationChanged
@@ -748,6 +748,10 @@ EditorComponent = React.createClass
     @requestUpdate()
 
   onStoppedScrollingAfterDelay: null # created lazily
+
+  onCursorAdded: (cursor) ->
+    @subscribe cursor, 'moved', @onCursorMoved
+    @subscribe cursor, 'destroyed', => @unsubscribe(cursor)
 
   onCursorMoved: ->
     @cursorMoved = true
