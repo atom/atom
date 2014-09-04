@@ -106,10 +106,10 @@ class DisplayBuffer extends Model
 
   emitChanged: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers
-      @pauseMarkerObservers()
+      @pauseMarkerChangeEvents()
       @refreshMarkerScreenPositions()
     @emit 'changed', eventProperties
-    @resumeMarkerObservers()
+    @resumeMarkerChangeEvents()
 
   updateWrappedScreenLines: ->
     start = 0
@@ -788,10 +788,10 @@ class DisplayBuffer extends Model
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
 
-    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', =>
+    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker.onDidDestroy =>
       @removeAllDecorationsForMarker(marker)
 
-    @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker, 'changed', (event) =>
+    @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker.onDidChange (event) =>
       decorations = @decorationsByMarkerId[marker.id]
 
       # Why check existence? Markers may get destroyed or decorations removed
@@ -825,8 +825,8 @@ class DisplayBuffer extends Model
     @removedAllMarkerDecorations(marker)
 
   removedAllMarkerDecorations: (marker) ->
-    @decorationMarkerChangedSubscriptions[marker.id].off()
-    @decorationMarkerDestroyedSubscriptions[marker.id].off()
+    @decorationMarkerChangedSubscriptions[marker.id].dispose()
+    @decorationMarkerDestroyedSubscriptions[marker.id].dispose()
 
     delete @decorationsByMarkerId[marker.id]
     delete @decorationMarkerChangedSubscriptions[marker.id]
@@ -977,11 +977,11 @@ class DisplayBuffer extends Model
   getFoldMarkerAttributes: (attributes={}) ->
     _.extend(attributes, class: 'fold', displayBufferId: @id)
 
-  pauseMarkerObservers: ->
-    marker.pauseEvents() for marker in @getMarkers()
+  pauseMarkerChangeEvents: ->
+    marker.pauseChangeEvents() for marker in @getMarkers()
 
-  resumeMarkerObservers: ->
-    marker.resumeEvents() for marker in @getMarkers()
+  resumeMarkerChangeEvents: ->
+    marker.resumeChangeEvents() for marker in @getMarkers()
     @emit 'markers-updated'
 
   refreshMarkerScreenPositions: ->
@@ -1024,7 +1024,7 @@ class DisplayBuffer extends Model
       bufferDelta: bufferDelta
 
     if options.delayChangeEvent
-      @pauseMarkerObservers()
+      @pauseMarkerChangeEvents()
       @pendingChangeEvent = changeEvent
     else
       @emitChanged(changeEvent, options.refreshMarkers)

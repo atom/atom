@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 {Subscriber} = require 'emissary'
 EmitterMixin = require('emissary').Emitter
 {Emitter} = require 'event-kit'
+Grim = require 'grim'
 
 module.exports =
 class DisplayBufferMarker
@@ -15,6 +16,7 @@ class DisplayBufferMarker
   oldTailBufferPosition: null
   oldTailScreenPosition: null
   wasValid: true
+  deferredChangeEvents: null
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @emitter = new Emitter
@@ -33,6 +35,15 @@ class DisplayBufferMarker
 
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use DisplayBufferMarker::onDidChange instead")
+      when 'destroyed'
+        Grim.deprecate("Use DisplayBufferMarker::onDidDestroy instead")
+
+    EmitterMixin::on.apply(this, arguments)
 
   copy: (attributes) ->
     @displayBuffer.getMarker(@bufferMarker.copy(attributes).id)
@@ -234,11 +245,26 @@ class DisplayBufferMarker
       textChanged,
       isValid
     }
-    @emit 'changed', changeEvent
-    @emitter.emit 'did-change', changeEvent
+
+    if @deferredChangeEvents?
+      @deferredChangeEvents.push(changeEvent)
+    else
+      @emit 'changed', changeEvent
+      @emitter.emit 'did-change', changeEvent
 
     @oldHeadBufferPosition = newHeadBufferPosition
     @oldHeadScreenPosition = newHeadScreenPosition
     @oldTailBufferPosition = newTailBufferPosition
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
+
+  pauseChangeEvents: ->
+    @deferredChangeEvents = []
+
+  resumeChangeEvents: ->
+    if deferredChangeEvents = @deferredChangeEvents
+      @deferredChangeEvents = null
+
+      for event in deferredChangeEvents
+        @emit 'changed', event
+        @emitter.emit 'did-change', event
