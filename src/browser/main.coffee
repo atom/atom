@@ -61,7 +61,7 @@ setupCoffeeScript = ->
   require.extensions['.coffee'] = (module, filePath) ->
     CoffeeScript ?= require('coffee-script')
     coffee = fs.readFileSync(filePath, 'utf8')
-    {js} = CoffeeScript.compile(coffee, filename: filePath)
+    js = CoffeeScript.compile(coffee, filename: filePath)
     module._compile(js, filePath)
 
 parseCommandLine = ->
