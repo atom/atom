@@ -5,6 +5,7 @@ _ = require 'underscore-plus'
 Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
+{Emitter} = require 'event-kit'
 Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -33,6 +34,7 @@ class Workspace extends Model
   constructor: ->
     super
 
+    @emitter = new Emitter
     @openers = []
 
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
@@ -151,6 +153,9 @@ class Workspace extends Model
     callback(textEditor) for textEditor in @getTextEditors()
     @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
 
+  onDidOpen: (callback) ->
+    @emitter.on 'did-open', callback
+
   eachEditor: (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
 
@@ -208,11 +213,11 @@ class Workspace extends Model
     pane = @paneContainer.paneForUri(uri) if searchAllPanes
     pane ?= switch split
       when 'left'
-        @activePane.findLeftmostSibling()
+        @getActivePane().findLeftmostSibling()
       when 'right'
-        @activePane.findOrCreateRightmostSibling()
+        @getActivePane().findOrCreateRightmostSibling()
       else
-        @activePane
+        @getActivePane()
 
     @openUriInPane(uri, pane, options)
 
@@ -266,7 +271,9 @@ class Workspace extends Model
         @itemOpened(item)
         pane.activateItem(item)
         pane.activate() if changeFocus
+        index = pane.getActiveItemIndex()
         @emit "uri-opened"
+        @emitter.emit 'did-open', {uri, pane, item, index}
         item
       .catch (error) ->
         console.error(error.stack ? error)

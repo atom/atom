@@ -8,7 +8,11 @@ describe "Workspace", ->
     atom.workspace = workspace = new Workspace
 
   describe "::open(uri, options)", ->
+    openEvents = null
+
     beforeEach ->
+      openEvents = []
+      workspace.onDidOpen (event) -> openEvents.push(event)
       spyOn(workspace.getActivePane(), 'activate').andCallThrough()
 
     describe "when the 'searchAllPanes' option is false (default)", ->
@@ -24,6 +28,8 @@ describe "Workspace", ->
             expect(workspace.getActivePane().items).toEqual [editor1]
             expect(workspace.getActivePaneItem()).toBe editor1
             expect(workspace.getActivePane().activate).toHaveBeenCalled()
+            expect(openEvents).toEqual [{uri: undefined, pane: workspace.getActivePane(), item: editor1, index: 0}]
+            openEvents = []
 
           waitsForPromise ->
             workspace.open().then (editor) -> editor2 = editor
@@ -33,6 +39,7 @@ describe "Workspace", ->
             expect(workspace.getActivePane().items).toEqual [editor1, editor2]
             expect(workspace.getActivePaneItem()).toBe editor2
             expect(workspace.getActivePane().activate).toHaveBeenCalled()
+            expect(openEvents).toEqual [{uri: undefined, pane: workspace.getActivePane(), item: editor2, index: 1}]
 
       describe "when called with a uri", ->
         describe "when the active pane already has an editor for the given uri", ->
@@ -53,6 +60,27 @@ describe "Workspace", ->
               expect(editor).toBe editor1
               expect(workspace.getActivePaneItem()).toBe editor
               expect(workspace.getActivePane().activate).toHaveBeenCalled()
+
+              expect(openEvents).toEqual [
+                {
+                  uri: atom.project.resolve('a')
+                  item: editor1
+                  pane: atom.workspace.getActivePane()
+                  index: 0
+                }
+                {
+                  uri: atom.project.resolve('b')
+                  item: editor2
+                  pane: atom.workspace.getActivePane()
+                  index: 1
+                }
+                {
+                  uri: atom.project.resolve('a')
+                  item: editor1
+                  pane: atom.workspace.getActivePane()
+                  index: 0
+                }
+              ]
 
         describe "when the active pane does not have an editor for the given uri", ->
           it "adds and activates a new editor for the given path on the active pane", ->
