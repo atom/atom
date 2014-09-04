@@ -256,19 +256,13 @@ class EditorView extends View
     deprecate('Use editorView.getModel().pageUp()')
     @editor.pageUp()
 
-  # Public: Retrieves the number of the row that is visible and currently at the
-  # top of the editor.
-  #
-  # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    @editor.getVisibleRowRange()[0]
+    deprecate 'Use Editor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    @editor.getFirstVisibleScreenRow()
 
-  # Public: Retrieves the number of the row that is visible and currently at the
-  # bottom of the editor.
-  #
-  # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    @editor.getVisibleRowRange()[1]
+    deprecate 'Use Editor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    @editor.getLastVisibleScreenRow()
 
   # Public: Gets the font family for the editor.
   #

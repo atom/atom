@@ -2396,7 +2396,21 @@ class Editor extends Model
   Section: Editor Rendering
   ###
 
-  # Public: Converts a buffer position to a pixel position.
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # top of the editor.
+  #
+  # Returns a {Number}.
+  getFirstVisibleScreenRow: ->
+    @getVisibleRowRange()[0]
+
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # bottom of the editor.
+  #
+  # Returns a {Number}.
+  getLastVisibleScreenRow: ->
+    @getVisibleRowRange()[1]
+
+  # Extended: Converts a buffer position to a pixel position.
   #
   # * `bufferPosition` An object that represents a buffer position. It can be either
   #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
