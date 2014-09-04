@@ -24,7 +24,7 @@ class Atom extends Model
   # Public: Load or create the Atom environment in the given mode.
   #
   # * `mode` A {String} mode that is either 'editor' or 'spec' depending on the
-  #          kind of environment you want to build.
+  #   kind of environment you want to build.
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
@@ -321,8 +321,9 @@ class Atom extends Model
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
+    {resourcePath, safeMode} = @getLoadSettings()
+
     CommandInstaller = require './command-installer'
-    resourcePath = atom.getLoadSettings().resourcePath
     CommandInstaller.installAtomCommand resourcePath, false, (error) ->
       console.warn error.message if error?
     CommandInstaller.installApmCommand resourcePath, false, (error) ->
@@ -341,7 +342,7 @@ class Atom extends Model
 
     @packages.activate()
     @keymaps.loadUserKeymap()
-    @requireUserInitScript()
+    @requireUserInitScript() unless safeMode
     @menu.update()
 
     maximize = dimensions?.maximized and process.platform isnt 'darwin'

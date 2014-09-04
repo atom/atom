@@ -221,25 +221,18 @@ class TokenizedBuffer extends Model
     {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
     new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
-  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
-  # accounted for in @tokenizedLines
-  lineForScreenRow: (row) ->
-    @linesForScreenRows(row, row)[0]
+  tokenizedLineForRow: (bufferRow) ->
+    @tokenizedLines[bufferRow]
 
-  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
-  # accounted for in @tokenizedLines
-  linesForScreenRows: (startRow, endRow) ->
-    @tokenizedLines[startRow..endRow]
+  stackForRow: (bufferRow) ->
+    @tokenizedLines[bufferRow]?.ruleStack
 
-  stackForRow: (row) ->
-    @tokenizedLines[row]?.ruleStack
-
-  indentLevelForRow: (row) ->
-    line = @buffer.lineForRow(row)
+  indentLevelForRow: (bufferRow) ->
+    line = @buffer.lineForRow(bufferRow)
     indentLevel = 0
 
     if line is ''
-      nextRow = row + 1
+      nextRow = bufferRow + 1
       lineCount = @getLineCount()
       while nextRow < lineCount
         nextLine = @buffer.lineForRow(nextRow)
@@ -248,7 +241,7 @@ class TokenizedBuffer extends Model
           break
         nextRow++
 
-      previousRow = row - 1
+      previousRow = bufferRow - 1
       while previousRow >= 0
         previousLine = @buffer.lineForRow(previousRow)
         unless previousLine is ''
@@ -373,5 +366,5 @@ class TokenizedBuffer extends Model
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]
-      line = @lineForScreenRow(row).text
+      line = @tokenizedLineForRow(row).text
       console.log row, line, line.length

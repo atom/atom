@@ -1,5 +1,6 @@
 {deprecate} = require 'grim'
 Delegator = require 'delegato'
+{CompositeDisposable} = require 'event-kit'
 {$, View} = require './space-pen-extensions'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
@@ -15,13 +16,15 @@ class PaneContainerView extends View
     @div class: 'panes'
 
   initialize: (params) ->
+    @subscriptions = new CompositeDisposable
+
     if params instanceof PaneContainer
       @model = params
     else
       @model = new PaneContainer({root: params?.root?.model})
 
-    @subscribe @model.$root, @onRootChanged
-    @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged
+    @subscriptions.add @model.observeRoot(@onRootChanged)
+    @subscriptions.add @model.onDidChangeActivePaneItem(@onActivePaneItemChanged)
 
   viewForModel: (model) ->
     if model?
@@ -88,7 +91,7 @@ class PaneContainerView extends View
     @viewForModel(@model.activePane)
 
   getActivePaneItem: ->
-    @model.activePaneItem
+    @model.getActivePaneItem()
 
   getActiveView: ->
     @getActivePaneView()?.activeView
@@ -153,3 +156,6 @@ class PaneContainerView extends View
   getPanes: ->
     deprecate("Use PaneContainerView::getPaneViews() instead")
     @getPaneViews()
+
+  beforeRemove: ->
+    @subscriptions.dispose()

@@ -198,18 +198,26 @@ class Selection extends Model
     @modifySelection => @cursor.setBufferPosition(position)
 
   # Public: Selects the text one position right of the cursor.
-  selectRight: ->
-    @modifySelection => @cursor.moveRight()
+  #
+  # * `columnCount` (optional) {Number} number of columns to select (default: 1)
+  selectRight: (columnCount) ->
+    @modifySelection => @cursor.moveRight(columnCount)
 
   # Public: Selects the text one position left of the cursor.
-  selectLeft: ->
-    @modifySelection => @cursor.moveLeft()
+  #
+  # * `columnCount` (optional) {Number} number of columns to select (default: 1)
+  selectLeft: (columnCount) ->
+    @modifySelection => @cursor.moveLeft(columnCount)
 
   # Public: Selects all the text one position above the cursor.
+  #
+  # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   selectUp: (rowCount) ->
     @modifySelection => @cursor.moveUp(rowCount)
 
   # Public: Selects all the text one position below the cursor.
+  #
+  # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   selectDown: (rowCount) ->
     @modifySelection => @cursor.moveDown(rowCount)
 
@@ -629,8 +637,8 @@ class Selection extends Model
   # * `otherSelection` A {Selection} to check against.
   #
   # Returns a {Boolean}
-  intersectsWith: (otherSelection) ->
-    @getBufferRange().intersectsWith(otherSelection.getBufferRange())
+  intersectsWith: (otherSelection, exclusive) ->
+    @getBufferRange().intersectsWith(otherSelection.getBufferRange(), exclusive)
 
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.

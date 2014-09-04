@@ -84,6 +84,7 @@ class Project extends Model
   #
   # * `projectPath` {String} path
   setPath: (projectPath) ->
+    projectPath = path.normalize(projectPath) if projectPath
     @path = projectPath
     @rootDirectory?.off()
 

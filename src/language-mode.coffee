@@ -145,17 +145,17 @@ class LanguageMode
     rowRange
 
   rowRangeForCommentAtBufferRow: (bufferRow) ->
-    return unless @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+    return unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
     startRow = bufferRow
     for currentRow in [bufferRow-1..0]
       break if @buffer.isRowBlank(currentRow)
-      break unless @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
       startRow = currentRow
     endRow = bufferRow
     for currentRow in [bufferRow+1..@buffer.getLastRow()]
       break if @buffer.isRowBlank(currentRow)
-      break unless @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(currentRow).isComment()
+      break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
       endRow = currentRow
     return [startRow, endRow] if startRow isnt endRow
 
@@ -168,7 +168,7 @@ class LanguageMode
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.searchSync(@editor.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.searchSync(@editor.lineTextForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -201,13 +201,13 @@ class LanguageMode
   # row is a comment.
   isLineCommentedAtBufferRow: (bufferRow) ->
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
-    @editor.displayBuffer.tokenizedBuffer.lineForScreenRow(bufferRow).isComment()
+    @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
   # Find a row range for a 'paragraph' around specified bufferRow.
   # Right now, a paragraph is a block of text bounded by and empty line or a
   # block of text that is not the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
-    return unless /\w/.test(@editor.lineForBufferRow(bufferRow))
+    return unless /\w/.test(@editor.lineTextForBufferRow(bufferRow))
 
     if @isLineCommentedAtBufferRow(bufferRow)
       isOriginalRowComment = true
@@ -220,17 +220,17 @@ class LanguageMode
     startRow = bufferRow
     while startRow > firstRow
       break if @isLineCommentedAtBufferRow(startRow - 1) != isOriginalRowComment
-      break unless /\w/.test(@editor.lineForBufferRow(startRow - 1))
+      break unless /\w/.test(@editor.lineTextForBufferRow(startRow - 1))
       startRow--
 
     endRow = bufferRow
     lastRow = @editor.getLastBufferRow()
     while endRow < lastRow
       break if @isLineCommentedAtBufferRow(endRow + 1) != isOriginalRowComment
-      break unless /\w/.test(@editor.lineForBufferRow(endRow + 1))
+      break unless /\w/.test(@editor.lineTextForBufferRow(endRow + 1))
       endRow++
 
-    new Range([startRow, 0], [endRow, @editor.lineLengthForBufferRow(endRow)])
+    new Range([startRow, 0], [endRow, @editor.lineTextForBufferRow(endRow).length])
 
   # Given a buffer row, this returns a suggested indentation level.
   #
