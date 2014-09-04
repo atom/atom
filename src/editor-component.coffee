@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
 {debounce, defaults, isEqualForProperties} = require 'underscore-plus'
@@ -644,8 +645,12 @@ EditorComponent = React.createClass
   onGutterMouseDown: (event) ->
     return unless event.button is 0 # only handle the left mouse button
 
-    if event.shiftKey
+    {shiftKey, metaKey, ctrlKey} = event
+
+    if shiftKey
       @onGutterShiftClick(event)
+    else if metaKey or (ctrlKey and process.platform isnt 'darwin')
+      @onGutterMetaClick(event)
     else
       @onGutterClick(event)
 
@@ -653,14 +658,38 @@ EditorComponent = React.createClass
     {editor} = @props
     clickedRow = @screenPositionForMouseEvent(event).row
 
-    editor.setCursorScreenPosition([clickedRow, 0])
+    editor.setSelectedScreenRange([[clickedRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
 
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
       if dragRow < clickedRow # dragging up
-        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
+        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
       else
-        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
+
+  onGutterMetaClick: (event) ->
+    {editor} = @props
+    clickedRow = @screenPositionForMouseEvent(event).row
+
+    bufferRange = editor.bufferRangeForScreenRange([[clickedRow, 0], [clickedRow + 1, 0]])
+    rowSelection = editor.addSelectionForBufferRange(bufferRange, preserveFolds: true)
+
+    @handleDragUntilMouseUp event, (screenPosition) ->
+      dragRow = screenPosition.row
+
+      if dragRow < clickedRow # dragging up
+        rowSelection.setScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
+      else
+        rowSelection.setScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
+
+      # After updating the selected screen range, merge overlapping selections
+      editor.mergeIntersectingSelections(preserveFolds: true)
+
+      # The merge process will possibly destroy the current selection because
+      # it will be merged into another one. Therefore, we need to obtain a
+      # reference to the new selection that contains the originally selected row
+      rowSelection = _.find editor.getSelections(), (selection) ->
+        selection.intersectsBufferRange(bufferRange)
 
   onGutterShiftClick: (event) ->
     {editor} = @props
@@ -675,9 +704,9 @@ EditorComponent = React.createClass
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
       if dragRow < tailPosition.row # dragging up
-        editor.setSelectedScreenRange([[dragRow, 0], tailPosition])
+        editor.setSelectedScreenRange([[dragRow, 0], tailPosition], preserveFolds: true)
       else
-        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]], preserveFolds: true)
 
   onStylesheetsChanged: (stylesheet) ->
     return unless @performedInitialMeasurement

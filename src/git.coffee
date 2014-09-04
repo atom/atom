@@ -27,12 +27,14 @@ Task = require './task'
 #
 # ## Examples
 #
+# ### Logging the URL of the origin remote
+#
 # ```coffee
 #   git = atom.project.getRepo()
 #   console.log git.getOriginUrl()
 # ```
 #
-# ## Requiring in packages
+# ### Requiring in packages
 #
 # ```coffee
 #   {Git} = require 'atom'
