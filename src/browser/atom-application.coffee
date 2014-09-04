@@ -10,7 +10,6 @@ ipc = require 'ipc'
 path = require 'path'
 os = require 'os'
 net = require 'net'
-shell = require 'shell'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
@@ -154,8 +153,8 @@ class AtomApplication
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
 
-    @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
-    @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
+    @on 'application:open-documentation', -> require('shell').openExternal('https://atom.io/docs/latest/?app')
+    @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
     @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
