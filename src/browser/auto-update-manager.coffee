@@ -71,7 +71,7 @@ class AutoUpdateManager
       atomWindow.sendCommand('window:update-available', [@releaseVersion, @releaseNotes])
 
   setState: (state) ->
-    return unless @state != state
+    return if @state is state
     @state = state
     @emit 'state-changed', @state
 
