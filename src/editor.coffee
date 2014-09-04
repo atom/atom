@@ -309,6 +309,9 @@ class Editor extends Model
   onDidStopChanging: (callback) ->
     @getBuffer().onDidStopChanging(callback)
 
+  onDidConflict: (callback) ->
+    @getBuffer().onDidConflict(callback)
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
