@@ -138,13 +138,14 @@ describe "Editor", ->
         buffer.setPath(undefined)
         expect(editor.getLongTitle()).toBe 'untitled'
 
-    it "emits 'title-changed' events when the underlying buffer path", ->
-      titleChangedHandler = jasmine.createSpy("titleChangedHandler")
-      editor.on 'title-changed', titleChangedHandler
+    it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
+      observed = []
+      editor.onDidChangeTitle (title) -> observed.push(title)
 
       buffer.setPath('/foo/bar/baz.txt')
       buffer.setPath(undefined)
-      expect(titleChangedHandler.callCount).toBe 2
+
+      expect(observed).toEqual ['baz.txt', 'untitled']
 
   describe "cursor", ->
     describe ".getLastCursor()", ->

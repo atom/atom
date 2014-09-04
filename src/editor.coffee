@@ -4,6 +4,7 @@ Serializable = require 'serializable'
 Delegator = require 'delegato'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
@@ -206,6 +207,7 @@ class Editor extends Model
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
     super
 
+    @emitter = new Emitter
     @cursors = []
     @selections = []
 
@@ -257,6 +259,7 @@ class Editor extends Model
       unless atom.project.getPath()?
         atom.project.setPath(path.dirname(@getPath()))
       @emit "title-changed"
+      @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
     @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
     @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
@@ -286,6 +289,9 @@ class Editor extends Model
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
+
+  onDidChangeTitle: (callback) ->
+    @emitter.on 'did-change-title', callback
 
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
