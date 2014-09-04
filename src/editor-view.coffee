@@ -169,8 +169,8 @@ class EditorView extends View
     else
       @editor.getScrollLeft()
 
-  # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
+    deprecate 'Use Editor::scrollToBottom instead. You can get the editor via editorView.getModel()'
     @editor.setScrollBottom(Infinity)
 
   scrollToScreenPosition: (screenPosition, options) ->
