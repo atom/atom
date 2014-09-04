@@ -57,10 +57,10 @@ describe "Selection", ->
       expect(selection.isReversed()).toBeFalsy()
 
   describe "when only the selection's tail is moved (regression)", ->
-    it "emits the 'screen-range-changed' event", ->
+    it "notifies ::onDidChangeRange observers", ->
       selection.setBufferRange([[2, 0], [2, 10]], reversed: true)
       changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
-      selection.on 'screen-range-changed', changeScreenRangeHandler
+      selection.onDidChangeRange changeScreenRangeHandler
 
       buffer.insert([2, 5], 'abc')
       expect(changeScreenRangeHandler).toHaveBeenCalled()

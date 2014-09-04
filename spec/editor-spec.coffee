@@ -1889,7 +1889,7 @@ describe "Editor", ->
         beforeEach ->
           selection = editor.getLastSelection()
           changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
-          selection.on 'screen-range-changed', changeScreenRangeHandler
+          selection.onDidChangeRange changeScreenRangeHandler
 
         describe "when the cursor is on the middle of the line", ->
           it "removes the character before the cursor", ->

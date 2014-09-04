@@ -722,8 +722,8 @@ EditorComponent = React.createClass
   onSelectionAdded: (selection) ->
     {editor} = @props
 
-    @subscribe selection, 'screen-range-changed', => @onSelectionChanged(selection)
-    @subscribe selection, 'destroyed', =>
+    @subscribe selection.onDidChangeRange => @onSelectionChanged(selection)
+    @subscribe selection.onDidDestroy =>
       @onSelectionChanged(selection)
       @unsubscribe(selection)
 

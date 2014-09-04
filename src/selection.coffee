@@ -1,6 +1,8 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
 {pick} = require 'underscore-plus'
+{Emitter} = require 'event-kit'
+Grim = require 'grim'
 
 # Extended: Represents a selection in the {Editor}.
 #
@@ -26,15 +28,35 @@ class Selection extends Model
   needsAutoscroll: null
 
   constructor: ({@cursor, @marker, @editor, id}) ->
+    @emitter = new Emitter
+
     @assignId(id)
     @cursor.selection = this
     @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
     @marker.onDidChange => @screenRangeChanged()
     @marker.onDidDestroy =>
-      @destroyed = true
-      @editor.removeSelection(this)
-      @emit 'destroyed' unless @editor.isDestroyed()
+      unless @editor.isDestroyed()
+        @destroyed = true
+        @editor.removeSelection(this)
+        @emit 'destroyed'
+        @emitter.emit 'did-destroy'
+        @emitter.dispose()
+
+  onDidChangeRange: (callback) ->
+    @emitter.on 'did-change-range', callback
+
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'screen-range-changed'
+        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
+      when 'destroyed'
+        Grim.deprecate("Use Selection::onDidDestroy instead.")
+
+    super
 
   destroy: ->
     @marker.destroy()
@@ -665,6 +687,6 @@ class Selection extends Model
     @getBufferRange().compare(otherSelection.getBufferRange())
 
   screenRangeChanged: ->
-    screenRange = @getScreenRange()
-    @emit 'screen-range-changed', screenRange
+    @emit 'screen-range-changed', @getScreenRange()
+    @emitter.emit 'did-change-range'
     @editor.selectionScreenRangeChanged(this)
