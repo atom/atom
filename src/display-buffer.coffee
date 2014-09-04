@@ -55,8 +55,8 @@ class DisplayBuffer extends Model
     @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
     @subscribe @tokenizedBuffer, 'tokenized', => @emit 'tokenized'
     @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
-    @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
-    @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
+    @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
+    @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
     @subscribe @$softWrap, (softWrap) =>
       @emit 'soft-wrap-changed', softWrap

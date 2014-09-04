@@ -22,8 +22,8 @@ class DisplayBufferMarker
     @oldTailScreenPosition = @getTailScreenPosition()
     @wasValid = @isValid()
 
-    @subscribe @bufferMarker, 'destroyed', => @destroyed()
-    @subscribe @bufferMarker, 'changed', (event) => @notifyObservers(event)
+    @subscribe @bufferMarker.onDidDestroy => @destroyed()
+    @subscribe @bufferMarker.onDidChange (event) => @notifyObservers(event)
 
   copy: (attributes) ->
     @displayBuffer.getMarker(@bufferMarker.copy(attributes).id)

@@ -90,10 +90,14 @@ class Git
 
   # Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
-    @subscribe buffer, 'saved reloaded path-changed', =>
+    getBufferPathStatus = =>
       if path = buffer.getPath()
         @getPathStatus(path)
-    @subscribe buffer, 'destroyed', => @unsubscribe(buffer)
+
+    @subscribe buffer.onDidSave(getBufferPathStatus)
+    @subscribe buffer.onDidReload(getBufferPathStatus)
+    @subscribe buffer.onDidChangePath(getBufferPathStatus)
+    @subscribe buffer.onDidDestroy => @unsubscribe(buffer)
 
   # Subscribes to editor view event.
   checkoutHeadForEditor: (editor) ->

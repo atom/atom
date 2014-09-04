@@ -253,15 +253,15 @@ class Editor extends Model
 
   subscribeToBuffer: ->
     @buffer.retain()
-    @subscribe @buffer, "path-changed", =>
+    @subscribe @buffer.onDidChangePath =>
       unless atom.project.getPath()?
         atom.project.setPath(path.dirname(@getPath()))
       @emit "title-changed"
       @emit "path-changed"
-    @subscribe @buffer, "contents-modified", => @emit "contents-modified"
-    @subscribe @buffer, "contents-conflicted", => @emit "contents-conflicted"
-    @subscribe @buffer, "modified-status-changed", => @emit "modified-status-changed"
-    @subscribe @buffer, "destroyed", => @destroy()
+    @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
+    @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
+    @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
+    @subscribe @buffer.onDidDestroy => @destroy()
     @preserveCursorPositionOnBufferReload()
 
   subscribeToDisplayBuffer: ->
@@ -1821,9 +1821,9 @@ class Editor extends Model
 
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
-    @subscribe @buffer, "will-reload", =>
+    @subscribe @buffer.onWillReload =>
       cursorPosition = @getCursorBufferPosition()
-    @subscribe @buffer, "reloaded", =>
+    @subscribe @buffer.onDidReload =>
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 

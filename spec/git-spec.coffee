@@ -253,10 +253,10 @@ describe "Git", ->
 
       statusHandler = jasmine.createSpy('statusHandler')
       atom.project.getRepo().on 'status-changed', statusHandler
-      editor.getBuffer().emit 'path-changed'
+      editor.getBuffer().emitter.emit 'did-change-path'
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
-      editor.getBuffer().emit 'path-changed'
+      editor.getBuffer().emitter.emit 'did-change-path'
       expect(statusHandler.callCount).toBe 1
 
   describe "when a project is deserialized", ->

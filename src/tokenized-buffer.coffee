@@ -30,10 +30,8 @@ class TokenizedBuffer extends Model
         @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
     @on 'grammar-changed grammar-updated', => @retokenizeLines()
-    @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
-    @subscribe @buffer, "path-changed", =>
-      @bufferPath = @buffer.getPath()
-      @reloadGrammar()
+    @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
+    @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
     @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
 
