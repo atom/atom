@@ -233,11 +233,14 @@ class EditorView extends View
     pane = @getPane()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
-  # Public: Get this view's pane.
+  # Public: Get this {EditorView}'s {PaneView}.
   #
-  # Returns a {Pane}.
-  getPane: ->
+  # Returns a {PaneView}
+  getPaneView: ->
     @parent('.item-views').parents('.pane').view()
+  getPane: ->
+    deprecate 'Use EditorView::getPaneView() instead'
+    @getPaneView()
 
   show: ->
     super
