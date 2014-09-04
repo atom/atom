@@ -1,6 +1,8 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
+Grim = require 'grim'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
@@ -42,6 +44,8 @@ class Cursor extends Model
 
   # Instantiated by an {Editor}
   constructor: ({@editor, @marker, id}) ->
+    @emitter = new Emitter
+
     @assignId(id)
     @updateVisibility()
     @marker.onDidChange (e) =>
@@ -65,12 +69,30 @@ class Cursor extends Model
         textChanged: textChanged
 
       @emit 'moved', movedEvent
+      @emitter.emit 'did-change-position'
       @editor.cursorMoved(this, movedEvent)
     @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeCursor(this)
       @emit 'destroyed'
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
     @needsAutoscroll = true
+
+  onDidChangePosition: (callback) ->
+    @emitter.on 'did-change-position', callback
+
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'moved'
+        Grim.deprecate("Use Cursor::onDidChangePosition instead")
+      when 'destroyed'
+        Grim.deprecate("Use Cursor::onDidDestroy instead")
+
+    super
 
   destroy: ->
     @marker.destroy()

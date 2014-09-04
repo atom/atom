@@ -753,8 +753,7 @@ EditorComponent = React.createClass
   onStoppedScrollingAfterDelay: null # created lazily
 
   onCursorAdded: (cursor) ->
-    @subscribe cursor, 'moved', @onCursorMoved
-    @subscribe cursor, 'destroyed', => @unsubscribe(cursor)
+    @subscribe cursor.onDidChangePosition @onCursorMoved
 
   onCursorMoved: ->
     @cursorMoved = true
