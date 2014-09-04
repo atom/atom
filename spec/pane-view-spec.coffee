@@ -37,7 +37,7 @@ describe "PaneView", ->
 
   describe "when the active pane item changes", ->
     it "hides all item views except the active one", ->
-      expect(pane.activeItem).toBe view1
+      expect(pane.getActiveItem()).toBe view1
       expect(view1.css('display')).not.toBe 'none'
 
       pane.activateItem(view2)
@@ -48,7 +48,7 @@ describe "PaneView", ->
       itemChangedHandler = jasmine.createSpy("itemChangedHandler")
       container.on 'pane:active-item-changed', itemChangedHandler
 
-      expect(pane.activeItem).toBe view1
+      expect(pane.getActiveItem()).toBe view1
       paneModel.activateItem(view2)
       paneModel.activateItem(view2)
 
@@ -149,7 +149,7 @@ describe "PaneView", ->
       activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
       pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
 
-      expect(pane.activeItem).toBe view1
+      expect(pane.getActiveItem()).toBe view1
 
       view2.trigger 'title-changed'
       expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
@@ -246,7 +246,7 @@ describe "PaneView", ->
 
     it "transfers focus to the active view", ->
       focusHandler = jasmine.createSpy("focusHandler")
-      pane.activeItem.on 'focus', focusHandler
+      pane.getActiveItem().on 'focus', focusHandler
       pane.focus()
       expect(focusHandler).toHaveBeenCalled()
 

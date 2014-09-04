@@ -84,7 +84,7 @@ class WorkspaceView extends View
     @panes.replaceWith(panes)
     @panes = panes
 
-    @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
+    @subscribe @model.onDidOpen => @trigger 'uri-opened'
 
     @subscribe scrollbarStyle, (style) =>
       @removeClass('scrollbars-visible-always scrollbars-visible-when-scrolling')
@@ -409,4 +409,4 @@ class WorkspaceView extends View
   # Deprecated: Call {Workspace::getActivePaneItem} instead.
   getActivePaneItem: ->
     deprecate("Use Workspace::getActivePaneItem instead")
-    @model.activePaneItem
+    @model.getActivePaneItem()
