@@ -1,4 +1,3 @@
-https = require 'https'
 autoUpdater = require 'auto-updater'
 dialog = require 'dialog'
 _ = require 'underscore-plus'
