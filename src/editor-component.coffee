@@ -33,7 +33,6 @@ EditorComponent = React.createClass
   updateRequestedWhilePaused: false
   cursorMoved: false
   selectionChanged: false
-  selectionAdded: false
   scrollingVertically: false
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
@@ -347,8 +346,7 @@ EditorComponent = React.createClass
     {editor} = @props
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor.onDidAddCursor(@onCursorAdded)
-    @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
-    @subscribe editor, 'selection-added', @onSelectionAdded
+    @subscribe editor.onDidAddSelection(@onSelectionAdded)
     @subscribe editor, 'decoration-added', @onDecorationChanged
     @subscribe editor, 'decoration-removed', @onDecorationChanged
     @subscribe editor, 'decoration-changed', @onDecorationChanged
@@ -721,17 +719,22 @@ EditorComponent = React.createClass
     @pendingChanges.push(change)
     @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
 
-  onSelectionChanged: (selection) ->
+  onSelectionAdded: (selection) ->
     {editor} = @props
+
+    @subscribe selection, 'screen-range-changed', => @onSelectionChanged(selection)
+    @subscribe selection, 'destroyed', =>
+      @onSelectionChanged(selection)
+      @unsubscribe(selection)
+
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
       @requestUpdate()
 
-  onSelectionAdded: (selection) ->
+  onSelectionChanged: (selection) ->
     {editor} = @props
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
-      @selectionAdded = true
       @requestUpdate()
 
   onScrollTopChanged: ->

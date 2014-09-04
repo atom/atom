@@ -324,6 +324,12 @@ class Editor extends Model
   onDidRemoveCursor: (callback) ->
     @emitter.on 'did-remove-cursor', callback
 
+  onDidAddSelection: (callback) ->
+    @emitter.on 'did-add-selection', callback
+
+  onDidRemoveSelection: (callback) ->
+    @emitter.on 'did-remove-selection', callback
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -2315,12 +2321,14 @@ class Editor extends Model
           return selection
     else
       @emit 'selection-added', selection
+      @emitter.emit 'did-add-selection', selection
       selection
 
   # Remove the given selection.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
     @emit 'selection-removed', selection
+    @emitter.emit 'did-remove-selection', selection
 
   # Reduce one or more selections to a single empty selection based on the most
   # recently added cursor.
