@@ -321,6 +321,9 @@ class Editor extends Model
   onDidMoveCursor: (callback) ->
     @emitter.on 'did-move-cursor', callback
 
+  onDidAddCursor: (callback) ->
+    @emitter.on 'did-add-cursor', callback
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -1842,6 +1845,7 @@ class Editor extends Model
     @decorateMarker(marker, type: 'gutter', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
     @emit 'cursor-added', cursor
+    @emitter.emit 'did-add-cursor', cursor
     cursor
 
   # Remove the given cursor from this editor.
