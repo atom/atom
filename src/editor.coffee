@@ -306,6 +306,9 @@ class Editor extends Model
   onDidChangeGrammar: (callback)->
     @displayBuffer.onDidChangeGrammar(callback)
 
+  onDidStopChanging: (callback) ->
+    @getBuffer().onDidStopChanging(callback)
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
