@@ -311,20 +311,6 @@ describe "Workspace", ->
         editor.destroy()
         expect(workspace.getEditors()).toHaveLength 0
 
-  describe "when an editor is copied", ->
-    it "emits an 'editor-created' event", ->
-      editor = null
-      handler = jasmine.createSpy('editorCreatedHandler')
-      workspace.on 'editor-created', handler
-
-      waitsForPromise ->
-        workspace.open("a").then (o) -> editor = o
-
-      runs ->
-        expect(handler.callCount).toBe 1
-        editorCopy = editor.copy()
-        expect(handler.callCount).toBe 2
-
   it "stores the active grammars used by all the open editors", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
