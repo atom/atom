@@ -190,6 +190,11 @@ describe "Project", ->
         expect(atom.project.getPath()?).toBeFalsy()
         expect(atom.project.getRootDirectory()?).toBeFalsy()
 
+    it "normalizes the path to remove consecutive slashes, ., and .. segments", ->
+      atom.project.setPath("#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}..")
+      expect(atom.project.getPath()).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+      expect(atom.project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+
   describe ".replace()", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
 

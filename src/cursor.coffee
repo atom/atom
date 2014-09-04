@@ -157,7 +157,7 @@ class Cursor extends Model
   #
   # Returns a {Boolean}.
   isLastCursor: ->
-    this == @editor.getCursor()
+    this == @editor.getLastCursor()
 
   # Public: Identifies if the cursor is surrounded by whitespace.
   #
@@ -222,10 +222,15 @@ class Cursor extends Model
   # Public: Returns the cursor's current buffer row of text excluding its line
   # ending.
   getCurrentBufferLine: ->
-    @editor.lineForBufferRow(@getBufferRow())
+    @editor.lineTextForBufferRow(@getBufferRow())
 
   # Public: Moves the cursor up one screen row.
-  moveUp: (rowCount = 1, {moveToEndOfSelection}={}) ->
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
+  moveUp: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       { row, column } = range.start
@@ -237,7 +242,12 @@ class Cursor extends Model
     @goalColumn = column
 
   # Public: Moves the cursor down one screen row.
-  moveDown: (rowCount = 1, {moveToEndOfSelection}={}) ->
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
+  moveDown: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       { row, column } = range.end
@@ -250,30 +260,51 @@ class Cursor extends Model
 
   # Public: Moves the cursor left one screen column.
   #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the left of the selection if a
   #     selection exists.
-  moveLeft: ({moveToEndOfSelection}={}) ->
+  moveLeft: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.start)
     else
       {row, column} = @getScreenPosition()
-      [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
+
+      while columnCount > column and row > 0
+        columnCount -= column
+        column = @editor.lineTextForScreenRow(--row).length
+        columnCount-- # subtract 1 for the row move
+
+      column = column - columnCount
       @setScreenPosition({row, column})
 
   # Public: Moves the cursor right one screen column.
   #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the right of the selection if a
   #     selection exists.
-  moveRight: ({moveToEndOfSelection}={}) ->
+  moveRight: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.end)
     else
       { row, column } = @getScreenPosition()
-      @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      maxLines = @editor.getScreenLineCount()
+      rowLength = @editor.lineTextForScreenRow(row).length
+      columnsRemainingInLine = rowLength - column
+
+      while columnCount > columnsRemainingInLine and row < maxLines - 1
+        columnCount -= columnsRemainingInLine
+        columnCount-- # subtract 1 for the row move
+
+        column = 0
+        rowLength = @editor.lineTextForScreenRow(++row).length
+        columnsRemainingInLine = rowLength
+
+      column = column + columnCount
+      @setScreenPosition({row, column}, skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
@@ -309,17 +340,6 @@ class Cursor extends Model
 
     @setBufferPosition([lineBufferRange.start.row, targetBufferColumn])
 
-  # Public: Moves the cursor to the beginning of the buffer line, skipping all
-  # whitespace.
-  skipLeadingWhitespace: ->
-    position = @getBufferPosition()
-    scanRange = @getCurrentLineBufferRange()
-    endOfLeadingWhitespace = null
-    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) ->
-      endOfLeadingWhitespace = range.end
-
-    @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
-
   # Public: Moves the cursor to the end of the line.
   moveToEndOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), Infinity])
@@ -351,6 +371,17 @@ class Cursor extends Model
   moveToNextWordBoundary: ->
     if position = @getMoveNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
+
+  # Public: Moves the cursor to the beginning of the buffer line, skipping all
+  # whitespace.
+  skipLeadingWhitespace: ->
+    position = @getBufferPosition()
+    scanRange = @getCurrentLineBufferRange()
+    endOfLeadingWhitespace = null
+    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) ->
+      endOfLeadingWhitespace = range.end
+
+    @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
 
   # Public: Retrieves the buffer position of where the current word starts.
   #
@@ -562,10 +593,18 @@ class Cursor extends Model
   # its current position.
   hasPrecedingCharactersOnLine: ->
     bufferPosition = @getBufferPosition()
-    line = @editor.lineForBufferRow(bufferPosition.row)
+    line = @editor.lineTextForBufferRow(bufferPosition.row)
     firstCharacterColumn = line.search(/\S/)
 
     if firstCharacterColumn is -1
       false
     else
       bufferPosition.column > firstCharacterColumn
+
+  # Public: Compare this cursor's buffer position to another cursor's buffer position.
+  #
+  # See {Point::compare} for more details.
+  #
+  # * `otherCursor`{Cursor} to compare against
+  compare: (otherCursor) ->
+    @getBufferPosition().compare(otherCursor.getBufferPosition())

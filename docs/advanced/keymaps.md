@@ -56,7 +56,7 @@ character of the current line:
 class EditorView
   listenForEvents: ->
     @command 'editor:move-to-first-character-of-line', =>
-      @editor.moveCursorToFirstCharacterOfLine()
+      @editor.moveToFirstCharacterOfLine()
 ```
 
 The `::command` method is basically an enhanced version of jQuery's `::on`

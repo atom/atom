@@ -132,7 +132,7 @@ inserting 'Hello, World!' convert the selected text to ASCII art.
 convert: ->
   # This assumes the active pane item is an editor
   editor = atom.workspace.getActivePaneItem()
-  selection = editor.getSelection()
+  selection = editor.getLastSelection()
 
   figlet = require 'figlet'
   figlet selection.getText(), {font: "Larry 3D 2"}, (error, asciiArt) ->
