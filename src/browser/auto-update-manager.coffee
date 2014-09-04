@@ -3,19 +3,19 @@ dialog = require 'dialog'
 _ = require 'underscore-plus'
 {EventEmitter} = require 'events'
 
-IDLE_STATE='idle'
-CHECKING_STATE='checking'
-DOWNLOADING_STATE='downloading'
-UPDATE_AVAILABLE_STATE='update-available'
-NO_UPDATE_AVAILABLE_STATE='no-update-available'
-ERROR_STATE='error'
+IdleState = 'idle'
+CheckingState = 'checking'
+DownladingState = 'downloading'
+UpdateAvailableState = 'update-available'
+NoUpdateAvailableState = 'no-update-available'
+ErrorState = 'error'
 
 module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
   constructor: (@version) ->
-    @state = IDLE_STATE
+    @state = IdleState
     @feedUrl = "https://atom.io/api/updates?version=#{@version}"
 
     if process.platform is 'win32'
@@ -24,20 +24,20 @@ class AutoUpdateManager
     autoUpdater.setFeedUrl @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
-      @setState(CHECKING_STATE)
+      @setState(CheckingState)
 
     autoUpdater.on 'update-not-available', =>
-      @setState(NO_UPDATE_AVAILABLE_STATE)
+      @setState(NoUpdateAvailableState)
 
     autoUpdater.on 'update-available', =>
-      @setState(DOWNLOADING_STATE)
+      @setState(DownladingState)
 
     autoUpdater.on 'error', (event, message) =>
-      @setState(ERROR_STATE)
+      @setState(ErrorState)
       console.error "Error Downloading Update: #{message}"
 
     autoUpdater.on 'update-downloaded', (event, @releaseNotes, @releaseVersion) =>
-      @setState(UPDATE_AVAILABLE_STATE)
+      @setState(UpdateAvailableState)
       @emitUpdateAvailableEvent(@getWindows()...)
 
     # Only released versions should check for updates.
