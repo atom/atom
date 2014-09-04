@@ -324,6 +324,9 @@ class Editor extends Model
   onDidAddCursor: (callback) ->
     @emitter.on 'did-add-cursor', callback
 
+  onDidRemoveCursor: (callback) ->
+    @emitter.on 'did-remove-cursor', callback
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -1852,6 +1855,7 @@ class Editor extends Model
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
     @emit 'cursor-removed', cursor
+    @emitter.emit 'did-remove-cursor', cursor
 
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
