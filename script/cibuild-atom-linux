@@ -2,6 +2,8 @@
 
 set -e
 
+echo "HERE?"
+
 if [ -d /usr/local/share/nodenv ]; then
   export NODENV_ROOT=/usr/local/share/nodenv
   export PATH=/usr/local/share/nodenv/bin:/usr/local/share/nodenv/shims:$PATH
