@@ -21,7 +21,7 @@ GutterComponent = React.createClass
     if gutterBackgroundColor isnt 'rbga(0, 0, 0, 0)'
       backgroundColor = gutterBackgroundColor
 
-    div className: 'gutter', onClick: @onClick, onMouseDown: onMouseDown,
+    div className: 'gutter', onClick: @onClick, onMouseDown: @onMouseDown,
       div className: 'line-numbers', ref: 'lineNumbers', style:
         height: Math.max(scrollHeight, scrollViewHeight)
         WebkitTransform: @getTransform()
@@ -214,6 +214,14 @@ GutterComponent = React.createClass
 
   lineNumberNodeForScreenRow: (screenRow) ->
     @lineNumberNodesById[@lineNumberIdsByScreenRow[screenRow]]
+
+  onMouseDown: (event) ->
+    {editor} = @props
+    {target} = event
+    lineNumber = target.parentNode
+
+    unless target.classList.contains('icon-right') and lineNumber.classList.contains('foldable')
+      @props.onMouseDown(event)
 
   onClick: (event) ->
     {editor} = @props

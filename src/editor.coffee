@@ -2256,7 +2256,7 @@ class Editor extends Model
     selection = new Selection(_.extend({editor: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections(preserveFolds: marker.getAttributes().preserveFolds)
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)
