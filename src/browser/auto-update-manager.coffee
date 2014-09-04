@@ -20,7 +20,7 @@ class AutoUpdateManager
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
-    autoUpdater ?= require 'auto-updater'
+    autoUpdater = require 'auto-updater'
 
     if process.platform is 'win32'
       autoUpdater.checkForUpdates = => @checkForUpdatesShim()
