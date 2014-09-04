@@ -2293,13 +2293,43 @@ class Editor extends Model
   Section: Scrolling the Editor
   ###
 
-  # Public: Scroll the editor to reveal the most recently added cursor if it is
+  # Essential: Scroll the editor to reveal the most recently added cursor if it is
   # off-screen.
   #
   # * `options` (optional) {Object}
-  #   * `center` Center the editor around the cursor if possible. Defauls to true.
+  #   * `center` Center the editor around the cursor if possible. (default: true)
   scrollToCursorPosition: (options) ->
     @getLastCursor().autoscroll(center: options?.center ? true)
+
+  # Essential: Scrolls the editor to the given buffer position.
+  #
+  # * `bufferPosition` An object that represents a buffer position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `options` (optional) {Object}
+  #   * `center` Center the editor around the position if possible. (default: false)
+  scrollToBufferPosition: (bufferPosition, options) ->
+    @displayBuffer.scrollToBufferPosition(bufferPosition, options)
+
+  # Essential: Scrolls the editor to the given screen position.
+  #
+  # * `screenPosition` An object that represents a buffer position. It can be either
+  #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `options` (optional) {Object}
+  #   * `center` Center the editor around the position if possible. (default: false)
+  scrollToScreenPosition: (screenPosition, options) ->
+    @displayBuffer.scrollToScreenPosition(screenPosition, options)
+
+  scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
+
+  horizontallyScrollable: -> @displayBuffer.horizontallyScrollable()
+
+  verticallyScrollable: -> @displayBuffer.verticallyScrollable()
+
+  getHorizontalScrollbarHeight: -> @displayBuffer.getHorizontalScrollbarHeight()
+  setHorizontalScrollbarHeight: (height) -> @displayBuffer.setHorizontalScrollbarHeight(height)
+
+  getVerticalScrollbarWidth: -> @displayBuffer.getVerticalScrollbarWidth()
+  setVerticalScrollbarWidth: (width) -> @displayBuffer.setVerticalScrollbarWidth(width)
 
   pageUp: ->
     newScrollTop = @getScrollTop() - @getHeight()
@@ -2418,22 +2448,6 @@ class Editor extends Model
   screenPositionForPixelPosition: (pixelPosition) -> @displayBuffer.screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
-
-  scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
-
-  scrollToScreenPosition: (screenPosition, options) -> @displayBuffer.scrollToScreenPosition(screenPosition, options)
-
-  scrollToBufferPosition: (bufferPosition, options) -> @displayBuffer.scrollToBufferPosition(bufferPosition, options)
-
-  horizontallyScrollable: -> @displayBuffer.horizontallyScrollable()
-
-  verticallyScrollable: -> @displayBuffer.verticallyScrollable()
-
-  getHorizontalScrollbarHeight: -> @displayBuffer.getHorizontalScrollbarHeight()
-  setHorizontalScrollbarHeight: (height) -> @displayBuffer.setHorizontalScrollbarHeight(height)
-
-  getVerticalScrollbarWidth: -> @displayBuffer.getVerticalScrollbarWidth()
-  setVerticalScrollbarWidth: (width) -> @displayBuffer.setVerticalScrollbarWidth(width)
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->

@@ -173,23 +173,16 @@ class EditorView extends View
   scrollToBottom: ->
     @editor.setScrollBottom(Infinity)
 
-  # Public: Scrolls the editor to the given screen position.
-  #
-  # * `screenPosition` An object that represents a buffer position. It can be either
-  #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # * `options` (optional) {Object} matching the options available to {::scrollToScreenPosition}
   scrollToScreenPosition: (screenPosition, options) ->
+    deprecate 'Use Editor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToScreenPosition(screenPosition, options)
 
-  # Public: Scrolls the editor to the given buffer position.
-  #
-  # * `bufferPosition` An object that represents a buffer position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # * `options` (optional) {Object} matching the options available to {::scrollToBufferPosition}
   scrollToBufferPosition: (bufferPosition, options) ->
+    deprecate 'Use Editor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToBufferPosition(bufferPosition, options)
 
   scrollToCursorPosition: ->
+    deprecate 'Use Editor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToCursorPosition()
 
   # Public: Converts a buffer position to a pixel position.
