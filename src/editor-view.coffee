@@ -213,23 +213,23 @@ class EditorView extends View
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()
 
-  # Public: Split the editor view left.
   splitLeft: ->
+    deprecate 'Use Pane::splitLeft instead. To duplicate this editor into the split use: editorView.getPane().splitLeft(editorView.getPane().copyActiveItem())'
     pane = @getPane()
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view right.
   splitRight: ->
+    deprecate 'Use Pane::splitRight instead. To duplicate this editor into the split use: editorView.getPane().splitRight(editorView.getPane().copyActiveItem())'
     pane = @getPane()
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view up.
   splitUp: ->
+    deprecate 'Use Pane::splitUp instead. To duplicate this editor into the split use: editorView.getPane().splitUp(editorView.getPane().copyActiveItem())'
     pane = @getPane()
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view down.
   splitDown: ->
+    deprecate 'Use Pane::splitDown instead. To duplicate this editor into the split use: editorView.getPane().splitDown(editorView.getPane().copyActiveItem())'
     pane = @getPane()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
