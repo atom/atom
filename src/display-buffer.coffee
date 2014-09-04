@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
@@ -40,6 +41,9 @@ class DisplayBuffer extends Model
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
+
+    @emitter = new Emitter
+
     @softWrapped ?= atom.config.get('editor.softWrapped') ? false
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
@@ -58,15 +62,13 @@ class DisplayBuffer extends Model
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
-    @subscribe @$softWrapped, (softWrapped) =>
-      @emit 'soft-wrap-changed', softWrapped
-      @updateWrappedScreenLines()
-
     @subscribe atom.config.observe 'editor.preferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength')
 
     @subscribe atom.config.observe 'editor.softWrapAtPreferredLineLength', callNow: false, =>
       @updateWrappedScreenLines() if @isSoftWrapped()
+
+    @updateAllScreenLines()
 
   serializeParams: ->
     id: @id
@@ -95,6 +97,9 @@ class DisplayBuffer extends Model
     @screenLines = []
     @rowMap = new RowMap
     @updateScreenLines(0, @buffer.getLineCount(), null, suppressChangeEvent: true)
+
+  onDidChangeSoftWrapped: (callback) ->
+    @emitter.on 'did-change-soft-wrapped', callback
 
   emitChanged: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers
@@ -344,7 +349,13 @@ class DisplayBuffer extends Model
   setInvisibles: (@invisibles) ->
     @tokenizedBuffer.setInvisibles(@invisibles)
 
-  setSoftWrapped: (@softWrapped) -> @softWrapped
+  setSoftWrapped: (softWrapped) ->
+    if softWrapped isnt @softWrapped
+      @softWrapped = softWrapped
+      @updateWrappedScreenLines()
+      @emit 'soft-wrap-changed', @softWrapped
+      @emitter.emit 'did-change-soft-wrapped', @softWrapped
+    @softWrapped
 
   isSoftWrapped: -> @softWrapped
 

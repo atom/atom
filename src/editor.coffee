@@ -300,6 +300,9 @@ class Editor extends Model
   onDidChangeModified: (callback) ->
     @getBuffer().onDidChangeModified(callback)
 
+  onDidChangeSoftWrapped: (callback) ->
+    @displayBuffer.onDidChangeSoftWrapped(callback)
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
