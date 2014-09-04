@@ -47,7 +47,7 @@ class EditorView extends View
     nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
     preferredLineLength: 80
     tabLength: 2
-    softWrap: false
+    softWrapped: false
     softTabs: true
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
@@ -86,7 +86,7 @@ class EditorView extends View
       props.placeholderText = placeholderText
       @editor ?= new Editor
         buffer: new TextBuffer
-        softWrap: false
+        softWrapped: false
         tabLength: 2
         softTabs: true
         mini: mini
@@ -324,9 +324,9 @@ class EditorView extends View
   setShowIndentGuide: (showIndentGuide) ->
     @component.setShowIndentGuide(showIndentGuide)
 
-  setSoftWrap: (softWrap) ->
-    deprecate 'Use Editor::setSoftWrap instead. You can get the editor via editorView.getModel()'
-    @editor.setSoftWrap(softWrap)
+  setSoftWrap: (softWrapped) ->
+    deprecate 'Use Editor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
+    @editor.setSoftWrapped(softWrapped)
 
   # Public: Set whether invisible characters are shown.
   #

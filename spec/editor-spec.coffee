@@ -98,11 +98,11 @@ describe "Editor", ->
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
 
   describe "config defaults", ->
-    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
+    it "uses the `editor.tabLength`, `editor.softWrapped`, and `editor.softTabs` config values", ->
       editor1 = null
       editor2 = null
       atom.config.set('editor.tabLength', 4)
-      atom.config.set('editor.softWrap', true)
+      atom.config.set('editor.softWrapped', true)
       atom.config.set('editor.softTabs', false)
 
       waitsForPromise ->
@@ -110,11 +110,11 @@ describe "Editor", ->
 
       runs ->
         expect(editor1.getTabLength()).toBe 4
-        expect(editor1.getSoftWrap()).toBe true
+        expect(editor1.isSoftWrapped()).toBe true
         expect(editor1.getSoftTabs()).toBe false
 
         atom.config.set('editor.tabLength', 100)
-        atom.config.set('editor.softWrap', false)
+        atom.config.set('editor.softWrapped', false)
         atom.config.set('editor.softTabs', true)
 
       waitsForPromise ->
@@ -122,7 +122,7 @@ describe "Editor", ->
 
       runs ->
         expect(editor2.getTabLength()).toBe 100
-        expect(editor2.getSoftWrap()).toBe false
+        expect(editor2.isSoftWrapped()).toBe false
         expect(editor2.getSoftTabs()).toBe true
 
   describe "title", ->
@@ -214,7 +214,7 @@ describe "Editor", ->
 
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
           editor.createFold(2, 3)
 
@@ -495,7 +495,7 @@ describe "Editor", ->
     describe ".moveToBeginningOfScreenLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
           editor.moveToBeginningOfScreenLine()
@@ -515,7 +515,7 @@ describe "Editor", ->
     describe ".moveToEndOfScreenLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
           editor.moveToEndOfScreenLine()
@@ -534,7 +534,7 @@ describe "Editor", ->
 
     describe ".moveToBeginningOfLine()", ->
       it "moves cursor to the beginning of the buffer line", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([1, 2])
         editor.moveToBeginningOfLine()
@@ -543,7 +543,7 @@ describe "Editor", ->
 
     describe ".moveToEndOfLine()", ->
       it "moves cursor to the end of the buffer line", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([0, 2])
         editor.moveToEndOfLine()
@@ -553,7 +553,7 @@ describe "Editor", ->
     describe ".moveToFirstCharacterOfLine()", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition [2,5]
           editor.addCursorAtScreenPosition [8,7]
@@ -2433,7 +2433,7 @@ describe "Editor", ->
       describe ".cutToEndOfLine()", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
-            editor.setSoftWrap(true)
+            editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([2, 2])
             editor.cutToEndOfLine()
@@ -2935,7 +2935,7 @@ describe "Editor", ->
 
     describe "when soft wrap is enabled", ->
       it "deletes the entire line that the cursor is on", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorBufferPosition([6])
 
@@ -3433,7 +3433,7 @@ describe "Editor", ->
   describe ".setIndentationForBufferRow", ->
     describe "when the editor uses soft tabs but the row has hard tabs", ->
       it "only replaces whitespace characters", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setText("\t1\n\t2")
         editor.setCursorBufferPosition([0, 0])
         editor.setIndentationForBufferRow(0, 2)
@@ -3441,7 +3441,7 @@ describe "Editor", ->
 
     describe "when the indentation level is a non-integer", ->
       it "does not throw an exception", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setText("\t1\n\t2")
         editor.setCursorBufferPosition([0, 0])
         editor.setIndentationForBufferRow(0, 2.1)

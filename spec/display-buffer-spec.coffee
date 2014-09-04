@@ -58,7 +58,7 @@ describe "DisplayBuffer", ->
 
   describe "soft wrapping", ->
     beforeEach ->
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
       changeHandler.reset()
 
@@ -129,7 +129,7 @@ describe "DisplayBuffer", ->
 
             expect(event).toEqual(start: 7, end: 8, screenDelta: -1, bufferDelta: 0)
 
-        describe "when the update causes a line to softwrap an additional time", ->
+        describe "when the update causes a line to soft wrap an additional time", ->
           it "rewraps the line and emits a change event", ->
             buffer.insert([6, 28], '1234567890')
             expect(displayBuffer.tokenizedLineForScreenRow(7).text).toBe '      current < pivot ? '
@@ -162,7 +162,7 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = atom.project.buildBufferSync(null, '')
-          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true})
+          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrapped: true})
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
           buffer.insert([0, Infinity], '\n')
@@ -220,10 +220,10 @@ describe "DisplayBuffer", ->
       displayBuffer.setWidth(50)
       displayBuffer.manageScrollPosition = true
 
-      displayBuffer.setSoftWrap(false)
+      displayBuffer.setSoftWrapped(false)
       displayBuffer.setScrollLeft(Infinity)
       expect(displayBuffer.getScrollLeft()).toBeGreaterThan 0
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       expect(displayBuffer.getScrollLeft()).toBe 0
       displayBuffer.setScrollLeft(10)
       expect(displayBuffer.getScrollLeft()).toBe 0
@@ -568,7 +568,7 @@ describe "DisplayBuffer", ->
 
   describe "::clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
 
     it "allows valid positions", ->
@@ -643,7 +643,7 @@ describe "DisplayBuffer", ->
 
     it "correctly translates positions on soft wrapped lines containing tabs", ->
       buffer.setText('\t\taa  bb  cc  dd  ee  ff  gg')
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(10)
       expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 0]
       expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 10]

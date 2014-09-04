@@ -22,7 +22,7 @@ class DisplayBuffer extends Model
 
   @properties
     manageScrollPosition: false
-    softWrap: null
+    softWrapped: null
     editorWidthInChars: null
     lineHeightInPixels: null
     defaultCharWidth: null
@@ -40,7 +40,7 @@ class DisplayBuffer extends Model
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
-    @softWrap ?= atom.config.get('editor.softWrap') ? false
+    @softWrapped ?= atom.config.get('editor.softWrapped') ? false
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
@@ -58,19 +58,19 @@ class DisplayBuffer extends Model
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
-    @subscribe @$softWrap, (softWrap) =>
-      @emit 'soft-wrap-changed', softWrap
+    @subscribe @$softWrapped, (softWrapped) =>
+      @emit 'soft-wrap-changed', softWrapped
       @updateWrappedScreenLines()
 
     @subscribe atom.config.observe 'editor.preferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
+      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength')
 
     @subscribe atom.config.observe 'editor.softWrapAtPreferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @softWrap
+      @updateWrappedScreenLines() if @isSoftWrapped()
 
   serializeParams: ->
     id: @id
-    softWrap: @softWrap
+    softWrapped: @isSoftWrapped()
     editorWidthInChars: @editorWidthInChars
     scrollTop: @scrollTop
     scrollLeft: @scrollLeft
@@ -153,7 +153,7 @@ class DisplayBuffer extends Model
 
   horizontallyScrollable: (reentrant) ->
     return false unless @width?
-    return false if @getSoftWrap()
+    return false if @isSoftWrapped()
     if reentrant
       @getScrollWidth() > @getWidth()
     else
@@ -178,7 +178,7 @@ class DisplayBuffer extends Model
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
-    @updateWrappedScreenLines() if newWidth isnt oldWidth and @softWrap
+    @updateWrappedScreenLines() if newWidth isnt oldWidth and @isSoftWrapped()
     @setScrollTop(@getScrollTop()) # Ensure scrollTop is still valid in case horizontal scrollbar disappeared
     @width
 
@@ -344,11 +344,9 @@ class DisplayBuffer extends Model
   setInvisibles: (@invisibles) ->
     @tokenizedBuffer.setInvisibles(@invisibles)
 
-  # Deprecated: Use the softWrap property directly
-  setSoftWrap: (@softWrap) -> @softWrap
+  setSoftWrapped: (@softWrapped) -> @softWrapped
 
-  # Deprecated: Use the softWrap property directly
-  getSoftWrap: -> @softWrap
+  isSoftWrapped: -> @softWrapped
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -357,7 +355,7 @@ class DisplayBuffer extends Model
     if editorWidthInChars > 0
       previousWidthInChars = @editorWidthInChars
       @editorWidthInChars = editorWidthInChars
-      if editorWidthInChars isnt previousWidthInChars and @softWrap
+      if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
         @updateWrappedScreenLines()
 
   # Returns the editor width in characters for soft wrap.
@@ -627,7 +625,7 @@ class DisplayBuffer extends Model
 
       unless screenLine?
         throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
-          softWrapEnabled: @getSoftWrap()
+          softWrapEnabled: @isSoftWrapped()
           foldCount: @findFoldMarkers().length
           lastBufferRow: @buffer.getLastRow()
           lastScreenRow: @getLastRow()
@@ -743,7 +741,7 @@ class DisplayBuffer extends Model
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @softWrap
+    return unless @isSoftWrapped()
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])
@@ -1087,7 +1085,7 @@ class DisplayBuffer extends Model
 
   computeScrollWidth: ->
     @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
-    @scrollWidth += 1 unless @getSoftWrap()
+    @scrollWidth += 1 unless @isSoftWrapped()
     @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
 
   handleBufferMarkersUpdated: =>

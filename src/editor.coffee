@@ -70,7 +70,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # Extended: Emit when soft wrap was enabled or disabled.
 #
-# * `softWrap` {Boolean} indicating whether soft wrap is enabled or disabled.
+# * `softWrapped` {Boolean} indicating whether soft wrap is enabled or disabled.
 #
 # ### grammar-changed
 #
@@ -204,7 +204,7 @@ class Editor extends Model
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
     'manageScrollPosition', toProperty: 'displayBuffer'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
     super
 
     @emitter = new Emitter
@@ -215,7 +215,7 @@ class Editor extends Model
       invisibles = atom.config.get('editor.invisibles')
 
     @displayBuffer?.setInvisibles(invisibles)
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap, invisibles})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, invisibles})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
@@ -917,18 +917,31 @@ class Editor extends Model
   # Public: Sets the column at which column will soft wrap
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
-  # Public: Get whether soft wrap is enabled for this editor.
-  getSoftWrap: -> @displayBuffer.getSoftWrap()
-
-  # Public: Enable or disable soft wrap for this editor.
+  # Public: Determine whether lines in this editor are soft-wrapped.
   #
-  # * `softWrap` A {Boolean}
-  setSoftWrap: (softWrap) -> @displayBuffer.setSoftWrap(softWrap)
+  # Returns a {Boolean}.
+  isSoftWrapped: (softWrapped) -> @displayBuffer.isSoftWrapped()
+  getSoftWrapped: ->
+    deprecate("Use Editor::isSoftWrapped instead")
+    @displayBuffer.isSoftWrapped()
 
-  # Public: Toggle soft wrap for this editor
-  toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
+  # Public: Enable or disable soft wrapping for this editor.
+  #
+  # * `softWrapped` A {Boolean}
+  #
+  # Returns a {Boolean}.
+  setSoftWrapped: (softWrapped) -> @displayBuffer.setSoftWrapped(softWrapped)
+  setSoftWrap: (softWrapped) ->
+    deprecate("Use Editor::setSoftWrapped instead")
+    @setSoftWrapped(softWrapped)
 
-
+  # Public: Toggle soft wrapping for this editor
+  #
+  # Returns a {Boolean}.
+  toggleSoftWrapped: -> @setSoftWrapped(not @isSoftWrapped())
+  toggleSoftWrap: ->
+    deprecate("Use Editor::toggleSoftWrapped instead")
+    @toggleSoftWrapped()
 
   ###
   Section: Indentation
