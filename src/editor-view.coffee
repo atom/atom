@@ -101,7 +101,6 @@ class EditorView extends View
     @overlayer = $(node).find('.lines').addClass('overlayer')
     @hiddenInput = $(node).find('.hidden-input')
 
-    # FIXME: there should be a better way to deal with the gutter element
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
       @gutter = $(node).find('.gutter')
 
@@ -169,45 +168,28 @@ class EditorView extends View
     else
       @editor.getScrollLeft()
 
-  # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
+    deprecate 'Use Editor::scrollToBottom instead. You can get the editor via editorView.getModel()'
     @editor.setScrollBottom(Infinity)
 
-  # Public: Scrolls the editor to the given screen position.
-  #
-  # * `screenPosition` An object that represents a buffer position. It can be either
-  #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # * `options` (optional) {Object} matching the options available to {::scrollToScreenPosition}
   scrollToScreenPosition: (screenPosition, options) ->
+    deprecate 'Use Editor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToScreenPosition(screenPosition, options)
 
-  # Public: Scrolls the editor to the given buffer position.
-  #
-  # * `bufferPosition` An object that represents a buffer position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # * `options` (optional) {Object} matching the options available to {::scrollToBufferPosition}
   scrollToBufferPosition: (bufferPosition, options) ->
+    deprecate 'Use Editor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToBufferPosition(bufferPosition, options)
 
   scrollToCursorPosition: ->
+    deprecate 'Use Editor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToCursorPosition()
 
-  # Public: Converts a buffer position to a pixel position.
-  #
-  # * `bufferPosition` An object that represents a buffer position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  #
-  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForBufferPosition: (bufferPosition) ->
+    deprecate 'Use Editor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
     @editor.pixelPositionForBufferPosition(bufferPosition)
 
-  # Public: Converts a screen position to a pixel position.
-  #
-  # * `screenPosition` An object that represents a screen position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  #
-  # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (screenPosition) ->
+    deprecate 'Use Editor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
     @editor.pixelPositionForScreenPosition(screenPosition)
 
   appendToLinesView: (view) ->
@@ -273,19 +255,13 @@ class EditorView extends View
     deprecate('Use editorView.getModel().pageUp()')
     @editor.pageUp()
 
-  # Public: Retrieves the number of the row that is visible and currently at the
-  # top of the editor.
-  #
-  # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    @editor.getVisibleRowRange()[0]
+    deprecate 'Use Editor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    @editor.getFirstVisibleScreenRow()
 
-  # Public: Retrieves the number of the row that is visible and currently at the
-  # bottom of the editor.
-  #
-  # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    @editor.getVisibleRowRange()[1]
+    deprecate 'Use Editor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    @editor.getLastVisibleScreenRow()
 
   # Public: Gets the font family for the editor.
   #
@@ -329,10 +305,8 @@ class EditorView extends View
   setShowIndentGuide: (showIndentGuide) ->
     @component.setShowIndentGuide(showIndentGuide)
 
-  # Public: Enables/disables soft wrap on the editor.
-  #
-  # * `softWrap` A {Boolean} which, if `true`, enables soft wrap
   setSoftWrap: (softWrap) ->
+    deprecate 'Use Editor::setSoftWrap instead. You can get the editor via editorView.getModel()'
     @editor.setSoftWrap(softWrap)
 
   # Public: Set whether invisible characters are shown.

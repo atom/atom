@@ -62,8 +62,8 @@ describe "editorView.", ->
     describe "empty-vs-set-innerHTML.", ->
       [firstRow, lastRow] = []
       beforeEach ->
-        firstRow = editorView.getFirstVisibleScreenRow()
-        lastRow = editorView.getLastVisibleScreenRow()
+        firstRow = editorView.getModel().getFirstVisibleScreenRow()
+        lastRow = editorView.getModel().getLastVisibleScreenRow()
 
       benchmark "build-gutter-html.", 1000, ->
         editorView.gutter.renderLineNumbers(null, firstRow, lastRow)
@@ -97,8 +97,8 @@ describe "editorView.", ->
       describe "multiple-lines.", ->
         [firstRow, lastRow] = []
         beforeEach ->
-          firstRow = editorView.getFirstVisibleScreenRow()
-          lastRow = editorView.getLastVisibleScreenRow()
+          firstRow = editorView.getModel().getFirstVisibleScreenRow()
+          lastRow = editorView.getModel().getLastVisibleScreenRow()
 
         benchmark "cache-entire-visible-area", 100, ->
           for i in [firstRow..lastRow]

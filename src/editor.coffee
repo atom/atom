@@ -2293,13 +2293,51 @@ class Editor extends Model
   Section: Scrolling the Editor
   ###
 
-  # Public: Scroll the editor to reveal the most recently added cursor if it is
+  # Essential: Scroll the editor to reveal the most recently added cursor if it is
   # off-screen.
   #
   # * `options` (optional) {Object}
-  #   * `center` Center the editor around the cursor if possible. Defauls to true.
+  #   * `center` Center the editor around the cursor if possible. (default: true)
   scrollToCursorPosition: (options) ->
     @getLastCursor().autoscroll(center: options?.center ? true)
+
+  # Essential: Scrolls the editor to the given buffer position.
+  #
+  # * `bufferPosition` An object that represents a buffer position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `options` (optional) {Object}
+  #   * `center` Center the editor around the position if possible. (default: false)
+  scrollToBufferPosition: (bufferPosition, options) ->
+    @displayBuffer.scrollToBufferPosition(bufferPosition, options)
+
+  # Essential: Scrolls the editor to the given screen position.
+  #
+  # * `screenPosition` An object that represents a buffer position. It can be either
+  #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  # * `options` (optional) {Object}
+  #   * `center` Center the editor around the position if possible. (default: false)
+  scrollToScreenPosition: (screenPosition, options) ->
+    @displayBuffer.scrollToScreenPosition(screenPosition, options)
+
+  # Essential: Scrolls the editor to the top
+  scrollToTop: ->
+    @setScrollTop(0)
+
+  # Essential: Scrolls the editor to the bottom
+  scrollToBottom: ->
+    @setScrollBottom(Infinity)
+
+  scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
+
+  horizontallyScrollable: -> @displayBuffer.horizontallyScrollable()
+
+  verticallyScrollable: -> @displayBuffer.verticallyScrollable()
+
+  getHorizontalScrollbarHeight: -> @displayBuffer.getHorizontalScrollbarHeight()
+  setHorizontalScrollbarHeight: (height) -> @displayBuffer.setHorizontalScrollbarHeight(height)
+
+  getVerticalScrollbarWidth: -> @displayBuffer.getVerticalScrollbarWidth()
+  setVerticalScrollbarWidth: (width) -> @displayBuffer.setVerticalScrollbarWidth(width)
 
   pageUp: ->
     newScrollTop = @getScrollTop() - @getHeight()
@@ -2358,6 +2396,36 @@ class Editor extends Model
   Section: Editor Rendering
   ###
 
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # top of the editor.
+  #
+  # Returns a {Number}.
+  getFirstVisibleScreenRow: ->
+    @getVisibleRowRange()[0]
+
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # bottom of the editor.
+  #
+  # Returns a {Number}.
+  getLastVisibleScreenRow: ->
+    @getVisibleRowRange()[1]
+
+  # Extended: Converts a buffer position to a pixel position.
+  #
+  # * `bufferPosition` An object that represents a buffer position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
+  pixelPositionForBufferPosition: (bufferPosition) -> @displayBuffer.pixelPositionForBufferPosition(bufferPosition)
+
+  # Extended: Converts a screen position to a pixel position.
+  #
+  # * `screenPosition` An object that represents a screen position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
+  pixelPositionForScreenPosition: (screenPosition) -> @displayBuffer.pixelPositionForScreenPosition(screenPosition)
+
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
 
@@ -2411,29 +2479,9 @@ class Editor extends Model
 
   selectionIntersectsVisibleRowRange: (selection) -> @displayBuffer.selectionIntersectsVisibleRowRange(selection)
 
-  pixelPositionForScreenPosition: (screenPosition) -> @displayBuffer.pixelPositionForScreenPosition(screenPosition)
-
-  pixelPositionForBufferPosition: (bufferPosition) -> @displayBuffer.pixelPositionForBufferPosition(bufferPosition)
-
   screenPositionForPixelPosition: (pixelPosition) -> @displayBuffer.screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
-
-  scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
-
-  scrollToScreenPosition: (screenPosition, options) -> @displayBuffer.scrollToScreenPosition(screenPosition, options)
-
-  scrollToBufferPosition: (bufferPosition, options) -> @displayBuffer.scrollToBufferPosition(bufferPosition, options)
-
-  horizontallyScrollable: -> @displayBuffer.horizontallyScrollable()
-
-  verticallyScrollable: -> @displayBuffer.verticallyScrollable()
-
-  getHorizontalScrollbarHeight: -> @displayBuffer.getHorizontalScrollbarHeight()
-  setHorizontalScrollbarHeight: (height) -> @displayBuffer.setHorizontalScrollbarHeight(height)
-
-  getVerticalScrollbarWidth: -> @displayBuffer.getVerticalScrollbarWidth()
-  setVerticalScrollbarWidth: (width) -> @displayBuffer.setVerticalScrollbarWidth(width)
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
