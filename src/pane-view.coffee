@@ -84,6 +84,9 @@ class PaneView extends View
       @model.destroy()
     @command 'pane:close-other-items', => @destroyInactiveItems()
 
+  # Essential: Returns the {Pane} model underlying this pane view
+  getModel: -> @model
+
   # Deprecated: Use ::destroyItem
   removeItem: (item) ->
     deprecate("Use PaneView::destroyItem instead")

@@ -29,7 +29,7 @@ describe "PaneView", ->
 
     runs ->
       pane = container.getRoot()
-      paneModel = pane.model
+      paneModel = pane.getModel()
       paneModel.addItems([view1, editor1, view2, editor2])
 
   afterEach ->
@@ -259,7 +259,7 @@ describe "PaneView", ->
   describe "when a pane is split", ->
     it "builds the appropriate pane-row and pane-column views", ->
       pane1 = pane
-      pane1Model = pane.model
+      pane1Model = pane.getModel()
       pane.activateItem(editor1)
 
       pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])
