@@ -2319,6 +2319,10 @@ class Editor extends Model
   scrollToScreenPosition: (screenPosition, options) ->
     @displayBuffer.scrollToScreenPosition(screenPosition, options)
 
+  # Essential: Scrolls the editor to the top
+  scrollToTop: ->
+    @setScrollTop(0)
+
   # Essential: Scrolls the editor to the bottom
   scrollToBottom: ->
     @setScrollBottom(Infinity)
