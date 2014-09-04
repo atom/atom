@@ -329,7 +329,7 @@ describe "Editor", ->
       it "moves the cursor by two rows up when the columnCount is longer than an entire line", ->
         editor.setCursorScreenPosition([2, 2])
         editor.moveLeft(34)
-        expect(editor.getCursorScreenPosition()).toEqual [0, 28]
+        expect(editor.getCursorScreenPosition()).toEqual [0, 29]
 
       it "moves the cursor to the beginning columnCount is longer than the position in the buffer", ->
         editor.setCursorScreenPosition([1, 0])
@@ -347,6 +347,12 @@ describe "Editor", ->
             editor.setCursorScreenPosition([1, 0])
             editor.moveLeft(4)
             expect(editor.getCursorScreenPosition()).toEqual [0, 26]
+
+        describe "when the next line is empty", ->
+          it "wraps to the beginning of the previous line", ->
+            editor.setCursorScreenPosition([11, 0])
+            editor.moveLeft()
+            expect(editor.getCursorScreenPosition()).toEqual [10, 0]
 
         describe "when the cursor is on the first line", ->
           it "remains in the same position (0,0)", ->
@@ -399,9 +405,9 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual [3, 11]
 
       it "moves the cursor by two rows down when the columnCount is longer than an entire line", ->
-        editor.setCursorScreenPosition([0, 28])
-        editor.moveRight(32)
-        expect(editor.getCursorScreenPosition()).toEqual [2, 0]
+        editor.setCursorScreenPosition([0, 29])
+        editor.moveRight(34)
+        expect(editor.getCursorScreenPosition()).toEqual [2, 2]
 
       it "moves the cursor to the end of the buffer when columnCount is longer than the number of characters following the cursor position", ->
         editor.setCursorScreenPosition([11, 5])
@@ -419,6 +425,12 @@ describe "Editor", ->
             editor.setCursorScreenPosition([0, buffer.lineForRow(0).length])
             editor.moveRight(4)
             expect(editor.getCursorScreenPosition()).toEqual [1, 3]
+
+        describe "when the next line is empty", ->
+          it "wraps to the beginning of the next line", ->
+            editor.setCursorScreenPosition([9, 4])
+            editor.moveRight()
+            expect(editor.getCursorScreenPosition()).toEqual [10, 0]
 
         describe "when the cursor is on the last line", ->
           it "remains in the same position", ->

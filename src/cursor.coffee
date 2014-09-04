@@ -270,18 +270,13 @@ class Cursor extends Model
       @setScreenPosition(range.start)
     else
       {row, column} = @getScreenPosition()
-      newColumn = column - columnCount
 
-      if newColumn >= 0
-        column = newColumn
-      else
-        columnDelta = -(newColumn + 1)
-        while columnDelta >= 0 and row > 0
-          row--
-          rowLength = @editor.lineTextForScreenRow(row).length
-          column = rowLength - columnDelta
-          columnDelta -= rowLength
+      while columnCount > column and row > 0
+        columnCount -= column
+        column = @editor.lineTextForScreenRow(--row).length
+        columnCount-- # subtract 1 for the row move
 
+      column = column - columnCount
       @setScreenPosition({row, column})
 
   # Public: Moves the cursor right one screen column.
@@ -296,20 +291,19 @@ class Cursor extends Model
       @setScreenPosition(range.end)
     else
       { row, column } = @getScreenPosition()
-      newColumn = column + columnCount
+      maxLines = @editor.getScreenLineCount()
       rowLength = @editor.lineTextForScreenRow(row).length
+      columnsRemainingInLine = rowLength - column
 
-      if newColumn <= rowLength
-        column = newColumn
-      else
-        columnDelta = newColumn - rowLength - 1
-        maxLines = @editor.getScreenLineCount()
-        while columnDelta >= 0 and row < maxLines - 1
-          row++
-          rowLength = @editor.lineTextForScreenRow(row).length
-          column = columnDelta
-          columnDelta -= rowLength
+      while columnCount > columnsRemainingInLine and row < maxLines - 1
+        columnCount -= columnsRemainingInLine
+        columnCount-- # subtract 1 for the row move
 
+        column = 0
+        rowLength = @editor.lineTextForScreenRow(++row).length
+        columnsRemainingInLine = rowLength
+
+      column = column + columnCount
       @setScreenPosition({row, column}, skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Public: Moves the cursor to the top of the buffer.
