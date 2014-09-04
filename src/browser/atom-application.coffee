@@ -5,7 +5,6 @@ AutoUpdateManager = require './auto-update-manager'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 app = require 'app'
-dialog = require 'dialog'
 fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
@@ -484,5 +483,7 @@ class AtomApplication
         when 'folder' then ['openDirectory']
         when 'all' then ['openFile', 'openDirectory']
         else throw new Error("#{type} is an invalid type for promptForPath")
+
+    dialog = require 'dialog'
     dialog.showOpenDialog title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
       @openPaths({pathsToOpen, devMode, safeMode, window})

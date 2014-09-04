@@ -1,6 +1,5 @@
 BrowserWindow = require 'browser-window'
 app = require 'app'
-dialog = require 'dialog'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -101,6 +100,7 @@ class AtomWindow
     @browserWindow.on 'unresponsive', =>
       return if @isSpec
 
+      dialog = require 'dialog'
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
@@ -111,6 +111,7 @@ class AtomWindow
     @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @exitWhenDone
 
+      dialog = require 'dialog'
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']
