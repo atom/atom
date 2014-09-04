@@ -91,7 +91,7 @@ class PaneContainerView extends View
     @viewForModel(@model.activePane)
 
   getActivePaneItem: ->
-    @model.activePaneItem
+    @model.getActivePaneItem()
 
   getActiveView: ->
     @getActivePaneView()?.activeView

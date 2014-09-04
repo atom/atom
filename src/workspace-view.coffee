@@ -409,4 +409,4 @@ class WorkspaceView extends View
   # Deprecated: Call {Workspace::getActivePaneItem} instead.
   getActivePaneItem: ->
     deprecate("Use Workspace::getActivePaneItem instead")
-    @model.activePaneItem
+    @model.getActivePaneItem()

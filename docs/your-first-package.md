@@ -53,7 +53,7 @@ module.exports =
 
   convert: ->
     # This assumes the active pane item is an editor
-    editor = atom.workspace.activePaneItem
+    editor = atom.workspace.getActivePaneItem()
     editor.insertText('Hello, World!')
 ```
 
@@ -131,7 +131,7 @@ inserting 'Hello, World!' convert the selected text to ASCII art.
 ```coffeescript
 convert: ->
   # This assumes the active pane item is an editor
-  editor = atom.workspace.activePaneItem
+  editor = atom.workspace.getActivePaneItem()
   selection = editor.getSelection()
 
   figlet = require 'figlet'
