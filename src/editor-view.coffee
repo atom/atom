@@ -306,10 +306,8 @@ class EditorView extends View
   setShowIndentGuide: (showIndentGuide) ->
     @component.setShowIndentGuide(showIndentGuide)
 
-  # Public: Enables/disables soft wrap on the editor.
-  #
-  # * `softWrap` A {Boolean} which, if `true`, enables soft wrap
   setSoftWrap: (softWrap) ->
+    deprecate 'Use Editor::setSoftWrap instead. You can get the editor via editorView.getModel()'
     @editor.setSoftWrap(softWrap)
 
   # Public: Set whether invisible characters are shown.
