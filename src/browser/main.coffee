@@ -3,11 +3,9 @@ global.shellStartTime = Date.now()
 crashReporter = require 'crash-reporter'
 app = require 'app'
 fs = require 'fs'
-module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
-dialog = require 'dialog'
 
 console.log = nslog
 
