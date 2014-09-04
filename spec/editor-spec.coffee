@@ -793,19 +793,20 @@ describe "Editor", ->
         editor.setCursorBufferPosition([3, 1])
         expect(editor.getCurrentParagraphBufferRange()).toBeUndefined()
 
-    describe "cursor-moved events", ->
+    describe "::onDidMoveCursor", ->
       cursorMovedHandler = null
 
       beforeEach ->
         editor.foldBufferRow(4)
         editor.setSelectedBufferRange([[8, 1], [9, 0]])
         cursorMovedHandler = jasmine.createSpy("cursorMovedHandler")
-        editor.on 'cursor-moved', cursorMovedHandler
+        editor.onDidMoveCursor(cursorMovedHandler)
 
       describe "when the position of the cursor changes", ->
-        it "emits a cursor-moved event", ->
+        it "notifies observers", ->
           buffer.insert([9, 0], '...')
           expect(cursorMovedHandler).toHaveBeenCalledWith(
+            cursor: editor.getLastCursor()
             oldBufferPosition: [9, 0]
             oldScreenPosition: [6, 0]
             newBufferPosition: [9, 3]
@@ -814,7 +815,7 @@ describe "Editor", ->
           )
 
       describe "when the position of the associated selection's tail changes, but not the cursor's position", ->
-        it "does not emit a cursor-moved event", ->
+        it "does not notify observers", ->
           buffer.insert([8, 0], '...')
           expect(cursorMovedHandler).not.toHaveBeenCalled()
 

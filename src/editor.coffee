@@ -318,6 +318,9 @@ class Editor extends Model
   onDidInsertText: (callback) ->
     @emitter.on 'did-insert-text', callback
 
+  onDidMoveCursor: (callback) ->
+    @emitter.on 'did-move-cursor', callback
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -1853,8 +1856,9 @@ class Editor extends Model
     @movingCursors = false
     @emit 'cursors-moved'
 
-  cursorMoved: (event) ->
+  cursorMoved: (cursor, event) ->
     @emit 'cursor-moved', event
+    @emitter.emit 'did-move-cursor', _.extend({cursor}, event)
     @emit 'cursors-moved' unless @movingCursors
 
   # Merge cursors that have the same screen position

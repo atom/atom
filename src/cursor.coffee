@@ -65,7 +65,7 @@ class Cursor extends Model
         textChanged: textChanged
 
       @emit 'moved', movedEvent
-      @editor.cursorMoved(movedEvent)
+      @editor.cursorMoved(this, movedEvent)
     @marker.on 'destroyed', =>
       @destroyed = true
       @editor.removeCursor(this)
