@@ -297,6 +297,9 @@ class Editor extends Model
   onDidChangePath: (callback) ->
     @emitter.on 'did-change-path', callback
 
+  onDidChangeModified: (callback) ->
+    @getBuffer().onDidChangeModified(callback)
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
