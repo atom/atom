@@ -1,5 +1,5 @@
 app = require 'app'
-fs = require 'fs-plus'
+fs = require 'fs'
 path = require 'path'
 protocol = require 'protocol'
 
@@ -24,5 +24,5 @@ class AtomProtocolHandler
       relativePath = path.normalize(request.url.substr(7))
       for loadPath in @loadPaths
         filePath = path.join(loadPath, relativePath)
-        break if fs.isFileSync(filePath)
+        break if fs.statSyncNoException(filePath).isFile?()
       return new protocol.RequestFileJob(filePath)
