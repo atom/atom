@@ -38,7 +38,7 @@ start = ->
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen.toString())
 
-    require('coffee-script').register()
+    setupCoffeeScript()
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
       AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
@@ -54,6 +54,15 @@ global.devResourcePath = path.normalize(global.devResourcePath) if global.devRes
 
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
+
+setupCoffeeScript = ->
+  CoffeeScript = null
+
+  require.extensions['.coffee'] = (module, filePath) ->
+    CoffeeScript ?= require('coffee-script')
+    coffee = fs.readFileSync(filePath, 'utf8')
+    {js} = CoffeeScript.compile(coffee, filename: filePath)
+    module._compile(js, filePath)
 
 parseCommandLine = ->
   version = app.getVersion()
