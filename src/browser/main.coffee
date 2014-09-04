@@ -116,9 +116,7 @@ parseCommandLine = ->
   else if devMode
     resourcePath = global.devResourcePath
 
-  try
-    fs.statSync resourcePath
-  catch
+  unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
