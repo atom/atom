@@ -214,22 +214,38 @@ class EditorView extends View
     React.unmountComponentAtNode(@element) if @component.isMounted()
 
   splitLeft: ->
-    deprecate 'Use Pane::splitLeft instead. To duplicate this editor into the split use: editorView.getPane().splitLeft(editorView.getPane().copyActiveItem())'
+    deprecate """
+      Use Pane::splitLeft instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
   splitRight: ->
-    deprecate 'Use Pane::splitRight instead. To duplicate this editor into the split use: editorView.getPane().splitRight(editorView.getPane().copyActiveItem())'
+    deprecate """
+      Use Pane::splitRight instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitRight(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
   splitUp: ->
-    deprecate 'Use Pane::splitUp instead. To duplicate this editor into the split use: editorView.getPane().splitUp(editorView.getPane().copyActiveItem())'
+    deprecate """
+      Use Pane::splitUp instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitUp(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
   splitDown: ->
-    deprecate 'Use Pane::splitDown instead. To duplicate this editor into the split use: editorView.getPane().splitDown(editorView.getPane().copyActiveItem())'
+    deprecate """
+      Use Pane::splitDown instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitDown(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
