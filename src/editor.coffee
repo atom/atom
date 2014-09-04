@@ -312,6 +312,12 @@ class Editor extends Model
   onDidConflict: (callback) ->
     @getBuffer().onDidConflict(callback)
 
+  onWillInsertText: (callback) ->
+    @emitter.on 'will-insert-text', callback
+
+  onDidInsertText: (callback) ->
+    @emitter.on 'did-insert-text', callback
+
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -760,14 +766,18 @@ class Editor extends Model
   insertText: (text, options={}) ->
     willInsert = true
     cancel = -> willInsert = false
-    @emit('will-insert-text', {cancel, text})
+    willInsertEvent = {cancel, text}
+    @emit('will-insert-text', willInsertEvent)
+    @emitter.emit 'will-insert-text', willInsertEvent
 
     if willInsert
       options.autoIndentNewline ?= @shouldAutoIndent()
       options.autoDecreaseIndent ?= @shouldAutoIndent()
       @mutateSelectedText (selection) =>
         range = selection.insertText(text, options)
-        @emit('did-insert-text', {text, range})
+        didInsertEvent = {text, range}
+        @emit('did-insert-text', didInsertEvent)
+        @emitter.emit 'did-insert-text', didInsertEvent
         range
     else
       false

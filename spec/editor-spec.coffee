@@ -1662,7 +1662,7 @@ describe "Editor", ->
         beforeEach ->
           editor.setSelectedBufferRange([[1, 0], [1, 2]])
 
-        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+        it "replaces the selection with the given text", ->
           range = editor.insertText('xxx')
           expect(range).toEqual [ [[1, 0], [1, 3]] ]
           expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
@@ -1744,19 +1744,19 @@ describe "Editor", ->
           editor.insertText('holy cow')
           expect(editor.tokenizedLineForScreenRow(2).fold).toBeUndefined()
 
-      describe "when will-insert-text and did-insert-text events are used", ->
+      describe "when there are ::onWillInsertText and ::onDidInsertText observers", ->
         beforeEach ->
           editor.setSelectedBufferRange([[1, 0], [1, 2]])
 
-        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+        it "notifies the observers when inserting text", ->
           willInsertSpy = jasmine.createSpy().andCallFake ->
             expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
 
           didInsertSpy = jasmine.createSpy().andCallFake ->
             expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
 
-          editor.on('will-insert-text', willInsertSpy)
-          editor.on('did-insert-text', didInsertSpy)
+          editor.onWillInsertText(willInsertSpy)
+          editor.onDidInsertText(didInsertSpy)
 
           expect(editor.insertText('xxx')).toBeTruthy()
           expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
@@ -1771,14 +1771,14 @@ describe "Editor", ->
           options = didInsertSpy.mostRecentCall.args[0]
           expect(options.text).toBe 'xxx'
 
-        it "text insertion is prevented when cancel is called from a will-insert-text handler", ->
+        it "cancels text insertion when an ::onWillInsertText observer calls cancel on an event", ->
           willInsertSpy = jasmine.createSpy().andCallFake ({cancel}) ->
             cancel()
 
           didInsertSpy = jasmine.createSpy()
 
-          editor.on('will-insert-text', willInsertSpy)
-          editor.on('did-insert-text', didInsertSpy)
+          editor.onWillInsertText(willInsertSpy)
+          editor.onDidInsertText(didInsertSpy)
 
           expect(editor.insertText('xxx')).toBe false
           expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
