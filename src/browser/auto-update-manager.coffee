@@ -1,5 +1,4 @@
 autoUpdater = require 'auto-updater'
-dialog = require 'dialog'
 _ = require 'underscore-plus'
 {EventEmitter} = require 'events'
 
@@ -91,10 +90,12 @@ class AutoUpdateManager
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
+    dialog = require 'dialog'
     dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'No update available.', detail: "Version #{@version} is the latest version."
 
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
+    dialog = require 'dialog'
     dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
 
   getWindows: ->
