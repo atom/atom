@@ -28,3 +28,20 @@ describe "CommandRegistry", ->
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(called).toBe true
+
+  it "invokes callbacks with selectors matching ancestors of the target", ->
+    calls = []
+    registry.add 'command', '.child', (event) ->
+      expect(this).toBe child
+      expect(event.target).toBe grandchild
+      expect(event.currentTarget).toBe child
+      calls.push('child')
+
+    registry.add 'command', '.parent', (event) ->
+      expect(this).toBe parent
+      expect(event.target).toBe grandchild
+      expect(event.currentTarget).toBe parent
+      calls.push('parent')
+
+    grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+    expect(calls).toEqual ['child', 'parent']

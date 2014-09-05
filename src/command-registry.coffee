@@ -16,6 +16,10 @@ class CommandRegistry
       currentTarget: get: -> currentTarget
 
     currentTarget = event.target
-    for listener in @listenersByCommandName[event.type]
-      if event.target.webkitMatchesSelector(listener.selector)
-        listener.callback.call(currentTarget, syntheticEvent)
+    loop
+      for listener in @listenersByCommandName[event.type]
+        if currentTarget.webkitMatchesSelector(listener.selector)
+          listener.callback.call(currentTarget, syntheticEvent)
+
+      break if currentTarget is @rootNode
+      currentTarget = currentTarget.parentNode
