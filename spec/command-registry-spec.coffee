@@ -31,6 +31,7 @@ describe "CommandRegistry", ->
 
   it "invokes callbacks with selectors matching ancestors of the target", ->
     calls = []
+
     registry.add 'command', '.child', (event) ->
       expect(this).toBe child
       expect(event.target).toBe grandchild
@@ -45,3 +46,14 @@ describe "CommandRegistry", ->
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual ['child', 'parent']
+
+  it "orders multiple matching listeners for an element by selector specificity", ->
+    child.classList.add('foo', 'bar')
+    calls = []
+
+    registry.add 'command', '.foo.bar', -> calls.push('.foo.bar')
+    registry.add 'command', '.foo', -> calls.push('.foo')
+    registry.add 'command', '.bar', -> calls.push('.bar') # specificity ties favor commands added later, like CSS
+
+    grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+    expect(calls).toEqual ['.foo.bar', '.bar', '.foo']
