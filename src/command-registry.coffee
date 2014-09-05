@@ -1,4 +1,4 @@
-{Disposable} = require 'event-kit'
+{Disposable, CompositeDisposable} = require 'event-kit'
 {specificity} = require 'clear-cut'
 
 SequenceCount = 0
@@ -10,6 +10,13 @@ class CommandRegistry
     @listenersByCommandName = {}
 
   add: (selector, commandName, callback) ->
+    if typeof commandName is 'object'
+      commands = commandName
+      disposable = new CompositeDisposable
+      for commandName, callback of commands
+        disposable.add @add(selector, commandName, callback)
+      return disposable
+
     unless @listenersByCommandName[commandName]?
       @rootNode.addEventListener(commandName, @dispatchCommand, true)
       @listenersByCommandName[commandName] = []

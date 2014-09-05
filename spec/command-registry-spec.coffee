@@ -92,3 +92,21 @@ describe "CommandRegistry", ->
     disposable2.dispose()
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual []
+
+  it "allows multiple commands to be registered under one selector when called with an object", ->
+    calls = []
+
+    disposable = registry.add '.child',
+      'command-1': -> calls.push('command-1')
+      'command-2': -> calls.push('command-2')
+
+    grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+    grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
+
+    expect(calls).toEqual ['command-1', 'command-2']
+
+    calls = []
+    disposable.dispose()
+    grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+    grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
+    expect(calls).toEqual []
