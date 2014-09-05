@@ -75,14 +75,17 @@ class PaneView extends View
     @command 'pane:show-item-8', => @activateItemAtIndex(7)
     @command 'pane:show-item-9', => @activateItemAtIndex(8)
 
-    @command 'pane:split-left', => @splitLeft(@copyActiveItem())
-    @command 'pane:split-right', => @splitRight(@copyActiveItem())
-    @command 'pane:split-up', => @splitUp(@copyActiveItem())
-    @command 'pane:split-down', => @splitDown(@copyActiveItem())
+    @command 'pane:split-left', => @model.splitLeft(copyActiveItem: true)
+    @command 'pane:split-right', => @model.splitRight(copyActiveItem: true)
+    @command 'pane:split-up', => @model.splitUp(copyActiveItem: true)
+    @command 'pane:split-down', => @model.splitDown(copyActiveItem: true)
     @command 'pane:close', =>
       @model.destroyItems()
       @model.destroy()
     @command 'pane:close-other-items', => @destroyInactiveItems()
+
+  # Essential: Returns the {Pane} model underlying this pane view
+  getModel: -> @model
 
   # Deprecated: Use ::destroyItem
   removeItem: (item) ->

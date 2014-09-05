@@ -213,31 +213,50 @@ class EditorView extends View
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()
 
-  # Public: Split the editor view left.
   splitLeft: ->
+    deprecate """
+      Use Pane::splitLeft instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view right.
   splitRight: ->
+    deprecate """
+      Use Pane::splitRight instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitRight(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view up.
   splitUp: ->
+    deprecate """
+      Use Pane::splitUp instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitUp(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view down.
   splitDown: ->
+    deprecate """
+      Use Pane::splitDown instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitDown(copyActiveItem: true)
+    """
     pane = @getPane()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
-  # Public: Get this view's pane.
+  # Public: Get this {EditorView}'s {PaneView}.
   #
-  # Returns a {Pane}.
-  getPane: ->
+  # Returns a {PaneView}
+  getPaneView: ->
     @parent('.item-views').parents('.pane').view()
+  getPane: ->
+    deprecate 'Use EditorView::getPaneView() instead'
+    @getPaneView()
 
   show: ->
     super
