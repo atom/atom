@@ -17,12 +17,17 @@ class CommandRegistry
 
   dispatchCommand: (event) =>
     propagationStopped = false
+    immediatePropagationStopped = false
     currentTarget = event.target
 
     syntheticEvent = Object.create event,
       eventPhase: value: Event.BUBBLING_PHASE
       currentTarget: get: -> currentTarget
-      stopPropagation: value: -> propagationStopped = true
+      stopPropagation: value: ->
+        propagationStopped = true
+      stopImmediatePropagation: value: ->
+        propagationStopped = true
+        immediatePropagationStopped = true
 
     loop
       matchingListeners =
@@ -31,6 +36,7 @@ class CommandRegistry
           .sort (a, b) -> a.compare(b)
 
       for listener in matchingListeners
+        break if immediatePropagationStopped
         listener.callback.call(currentTarget, syntheticEvent)
 
       break if propagationStopped

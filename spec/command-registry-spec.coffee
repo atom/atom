@@ -67,3 +67,13 @@ describe "CommandRegistry", ->
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual ['child-1', 'child-2']
+
+  it "stops invoking callbacks when .stopImmediatePropagation() is called on the event", ->
+    calls = []
+
+    registry.add 'command', '.parent', -> calls.push('parent')
+    registry.add 'command', '.child', -> calls.push('child-2')
+    registry.add 'command', '.child', (event) -> calls.push('child-1'); event.stopImmediatePropagation()
+
+    grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+    expect(calls).toEqual ['child-1']
