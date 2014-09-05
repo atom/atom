@@ -165,14 +165,6 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # * `decoration` {Decoration} that was removed
 #
-# ### decoration-changed
-#
-# Extended: Emit when a {Decoration}'s underlying marker changes. Say the user
-# inserts newlines above a decoration. That action will move the marker down,
-# and fire this event.
-#
-# * `decoration` {Decoration} that was added
-#
 # ### decoration-updated
 #
 # Extended: Emit when a {Decoration} is updated via the {Decoration::update} method.
@@ -277,7 +269,6 @@ class Editor extends Model
     @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
     @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
     @subscribe @displayBuffer, "decoration-removed", (args...) => @emit 'decoration-removed', args...
-    @subscribe @displayBuffer, "decoration-changed", (args...) => @emit 'decoration-changed', args...
     @subscribe @displayBuffer, "decoration-updated", (args...) => @emit 'decoration-updated', args...
     @subscribe @displayBuffer, "character-widths-changed", (changeCount) => @emit 'character-widths-changed', changeCount
 

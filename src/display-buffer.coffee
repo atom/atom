@@ -799,13 +799,13 @@ class DisplayBuffer extends Model
       # in the change handler. Bookmarks does this.
       if decorations?
         for decoration in decorations
-          @emit 'decoration-changed', marker, decoration, event
+          @emit 'decoration-updated', decoration
 
     decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
-    @emit 'decoration-added', marker, decoration
+    @emit 'decoration-added', decoration
     decoration
 
   removeDecoration: (decoration) ->
@@ -816,13 +816,13 @@ class DisplayBuffer extends Model
     if index > -1
       decorations.splice(index, 1)
       delete @decorationsById[decoration.id]
-      @emit 'decoration-removed', marker, decoration
+      @emit 'decoration-removed', decoration
       @removedAllMarkerDecorations(marker) if decorations.length is 0
 
   removeAllDecorationsForMarker: (marker) ->
     decorations = @decorationsByMarkerId[marker.id].slice()
     for decoration in decorations
-      @emit 'decoration-removed', marker, decoration
+      @emit 'decoration-removed', decoration
     @removedAllMarkerDecorations(marker)
 
   removedAllMarkerDecorations: (marker) ->

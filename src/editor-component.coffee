@@ -349,7 +349,6 @@ EditorComponent = React.createClass
     @subscribe editor.onDidAddSelection(@onSelectionAdded)
     @subscribe editor, 'decoration-added', @onDecorationChanged
     @subscribe editor, 'decoration-removed', @onDecorationChanged
-    @subscribe editor, 'decoration-changed', @onDecorationChanged
     @subscribe editor, 'decoration-updated', @onDecorationChanged
     @subscribe editor, 'character-widths-changed', @onCharacterWidthsChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
