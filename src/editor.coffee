@@ -270,7 +270,6 @@ class Editor extends Model
     @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
     @subscribe @displayBuffer, "decoration-removed", (args...) => @emit 'decoration-removed', args...
     @subscribe @displayBuffer, "decoration-updated", (args...) => @emit 'decoration-updated', args...
-    @subscribe @displayBuffer, "character-widths-changed", (changeCount) => @emit 'character-widths-changed', changeCount
 
   getViewClass: ->
     require './editor-view'
@@ -296,6 +295,9 @@ class Editor extends Model
 
   onDidChangeGrammar: (callback) ->
     @displayBuffer.onDidChangeGrammar(callback)
+
+  onDidChangeCharacterWidths: (callback) ->
+    @displayBuffer.onDidChangeCharacterWidths(callback)
 
   onDidStopChanging: (callback) ->
     @getBuffer().onDidStopChanging(callback)

@@ -1172,7 +1172,7 @@ describe "DisplayBuffer", ->
     it "recomputes the scroll width when the scoped character widths change in a batch", ->
       operatorWidth = 20
 
-      displayBuffer.on 'character-widths-changed', changedSpy = jasmine.createSpy()
+      displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
 
       displayBuffer.batchCharacterMeasurement ->
         displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)

@@ -109,6 +109,9 @@ class DisplayBuffer extends Model
   onDidChange: (callback) ->
     @emitter.on 'did-change', callback
 
+  onDidChangeCharacterWidths: (callback) ->
+    @emitter.on 'did-change-character-widths', callback
+
   on: (eventName) ->
     switch eventName
       when 'changed'
@@ -117,6 +120,8 @@ class DisplayBuffer extends Model
         Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
       when 'soft-wrap-changed'
         Grim.deprecate("Use DisplayBuffer::onDidChangeSoftWrap instead")
+      when 'character-widths-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeCharacterWidths instead")
       # else
       #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
 
@@ -278,6 +283,7 @@ class DisplayBuffer extends Model
   characterWidthsChanged: ->
     @computeScrollWidth()
     @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount
+    @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
