@@ -294,7 +294,7 @@ class Editor extends Model
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
 
-  onDidChangeGrammar: (callback)->
+  onDidChangeGrammar: (callback) ->
     @displayBuffer.onDidChangeGrammar(callback)
 
   onDidStopChanging: (callback) ->
