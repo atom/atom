@@ -1051,15 +1051,15 @@ describe "DisplayBuffer", ->
           expect(markerCreated2).not.toHaveBeenCalled()
 
   describe "decorations", ->
-    [marker, decoration, decorationParams] = []
+    [marker, decoration, decorationProperties] = []
     beforeEach ->
       marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
-      decorationParams = {type: 'gutter', class: 'one'}
-      decoration = displayBuffer.decorateMarker(marker, decorationParams)
+      decorationProperties = {type: 'gutter', class: 'one'}
+      decoration = displayBuffer.decorateMarker(marker, decorationProperties)
 
     it "can add decorations associated with markers and remove them", ->
       expect(decoration).toBeDefined()
-      expect(decoration.getParams()).toBe decorationParams
+      expect(decoration.getProperties()).toBe decorationProperties
       expect(displayBuffer.decorationForId(decoration.id)).toBe decoration
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
 
@@ -1074,12 +1074,12 @@ describe "DisplayBuffer", ->
 
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
-        decoration.onDidChange updatedSpy = jasmine.createSpy()
-        decoration.update type: 'gutter', class: 'two'
+        decoration.onDidChangeProperties updatedSpy = jasmine.createSpy()
+        decoration.setProperties type: 'gutter', class: 'two'
 
-        {oldParams, newParams} = updatedSpy.mostRecentCall.args[0]
-        expect(oldParams).toEqual decorationParams
-        expect(newParams).toEqual type: 'gutter', class: 'two', id: decoration.id
+        {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
+        expect(oldProperties).toEqual decorationProperties
+        expect(newProperties).toEqual type: 'gutter', class: 'two', id: decoration.id
 
   describe "::setScrollTop", ->
     beforeEach ->

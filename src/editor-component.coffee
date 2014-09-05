@@ -305,7 +305,7 @@ EditorComponent = React.createClass
       if marker.isValid()
         for decoration in decorations
           if decoration.isType('gutter') or decoration.isType('line')
-            decorationParams = decoration.getParams()
+            decorationParams = decoration.getProperties()
             screenRange ?= marker.getScreenRange()
             headScreenRow ?= marker.getHeadScreenPosition().row
             startRow = screenRange.start.row
@@ -332,7 +332,7 @@ EditorComponent = React.createClass
       if marker.isValid() and not screenRange.isEmpty()
         for decoration in decorations
           if decoration.isType('highlight')
-            decorationParams = decoration.getParams()
+            decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
               startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)

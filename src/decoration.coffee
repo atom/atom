@@ -32,24 +32,24 @@ module.exports =
 class Decoration
   EmitterMixin.includeInto(this)
 
-  # Extended: Check if the `decorationParams.type` matches `type`
+  # Extended: Check if the `decorationProperties.type` matches `type`
   #
-  # * `decorationParams` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
+  # * `decorationProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
   # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
   #   be an {Array} of {String}s, where it will return true if the decoration's
   #   type matches any in the array.
   #
   # Returns {Boolean}
-  @isType: (decorationParams, type) ->
-    if _.isArray(decorationParams.type)
-      type in decorationParams.type
+  @isType: (decorationProperties, type) ->
+    if _.isArray(decorationProperties.type)
+      type in decorationProperties.type
     else
-      type is decorationParams.type
+      type is decorationProperties.type
 
-  constructor: (@marker, @displayBuffer, @params) ->
+  constructor: (@marker, @displayBuffer, @properties) ->
     @emitter = new Emitter
     @id = nextId()
-    @params.id = @id
+    @properties.id = @id
     @flashQueue = null
     @isDestroyed = false
 
@@ -59,9 +59,6 @@ class Decoration
   # Essential: Returns the marker associated with this {Decoration}
   getMarker: -> @marker
 
-  # Essential: Returns the {Decoration}'s params.
-  getParams: -> @params
-
   # Public: Check if this decoration is of type `type`
   #
   # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
@@ -70,17 +67,24 @@ class Decoration
   #
   # Returns {Boolean}
   isType: (type) ->
-    Decoration.isType(@params, type)
+    Decoration.isType(@properties, type)
 
   # Essential: When the {Decoration} is updated via {Decoration::update}.
   #
   # * `event` {Object}
-  #   * `oldParams` {Object} the old parameters the decoration used to have
-  #   * `newParams` {Object} the new parameters the decoration now has
-  onDidChange: (callback) ->
-    @emitter.on 'did-change', callback
+  #   * `oldProperties` {Object} the old parameters the decoration used to have
+  #   * `newProperties` {Object} the new parameters the decoration now has
+  onDidChangeProperties: (callback) ->
+    @emitter.on 'did-change-properties', callback
 
-  # Essential: Update the marker with new params. Allows you to change the decoration's class.
+  # Essential: Returns the {Decoration}'s properties.
+  getProperties: ->
+    @properties
+  getParams: ->
+    Grim.deprecate 'Use Decoration::getProperties instead'
+    @getProperties()
+
+  # Essential: Update the marker with new Properties. Allows you to change the decoration's class.
   #
   # ## Examples
   #
@@ -88,15 +92,17 @@ class Decoration
   # decoration.update({type: 'gutter', class: 'my-new-class'})
   # ```
   #
-  # * `newParams` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
-  update: (newParams) ->
+  # * `newProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
+  setProperties: (newProperties) ->
     return if @isDestroyed
-    oldParams = @params
-    @params = newParams
-    @params.id = @id
-    @displayBuffer.decorationChanged(this)
-    @emit 'updated', {oldParams, newParams}
-    @emitter.emit 'did-change', {oldParams, newParams}
+    oldProperties = @properties
+    @properties = newProperties
+    @properties.id = @id
+    @emit 'updated', {oldParams: oldProperties, newParams: newProperties}
+    @emitter.emit 'did-change-properties', {oldProperties, newProperties}
+  update: (newProperties) ->
+    Grim.deprecate 'Use Decoration::setProperties instead'
+    @setProperties(newProperties)
 
   # Essential: Invoke the given callback when the {Decoration} is destroyed
   onDidDestroy: (callback) ->
@@ -117,7 +123,7 @@ class Decoration
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?
     for key, value of decorationPattern
-      return false if @params[key] != value
+      return false if @properties[key] != value
     true
 
   onDidFlash: (callback) ->
@@ -137,12 +143,12 @@ class Decoration
   on: (eventName) ->
     switch eventName
       when 'updated'
-        Grim.deprecate("Use Decoration::onDidChange instead")
+        Grim.deprecate 'Use Decoration::onDidChangeProperties instead'
       when 'destroyed'
-        Grim.deprecate("Use Decoration::onDidDestroy instead")
+        Grim.deprecate 'Use Decoration::onDidDestroy instead'
       when 'flash'
-        Grim.deprecate("Use Decoration::onDidFlash instead")
+        Grim.deprecate 'Use Decoration::onDidFlash instead'
       else
-        Grim.deprecate("Decoration::on is deprecated. Use event subscription methods instead.")
+        Grim.deprecate 'Decoration::on is deprecated. Use event subscription methods instead.'
 
     EmitterMixin::on.apply(this, arguments)
