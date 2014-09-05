@@ -18,7 +18,7 @@ describe "CommandRegistry", ->
 
   it "invokes callbacks with selectors matching the target", ->
     called = false
-    registry.add 'command', '.grandchild', (event) ->
+    registry.add '.grandchild', 'command', (event) ->
       expect(this).toBe grandchild
       expect(event.type).toBe 'command'
       expect(event.eventPhase).toBe Event.BUBBLING_PHASE
@@ -32,13 +32,13 @@ describe "CommandRegistry", ->
   it "invokes callbacks with selectors matching ancestors of the target", ->
     calls = []
 
-    registry.add 'command', '.child', (event) ->
+    registry.add '.child', 'command', (event) ->
       expect(this).toBe child
       expect(event.target).toBe grandchild
       expect(event.currentTarget).toBe child
       calls.push('child')
 
-    registry.add 'command', '.parent', (event) ->
+    registry.add '.parent', 'command', (event) ->
       expect(this).toBe parent
       expect(event.target).toBe grandchild
       expect(event.currentTarget).toBe parent
@@ -51,9 +51,9 @@ describe "CommandRegistry", ->
     child.classList.add('foo', 'bar')
     calls = []
 
-    registry.add 'command', '.foo.bar', -> calls.push('.foo.bar')
-    registry.add 'command', '.foo', -> calls.push('.foo')
-    registry.add 'command', '.bar', -> calls.push('.bar') # specificity ties favor commands added later, like CSS
+    registry.add '.foo.bar', 'command', -> calls.push('.foo.bar')
+    registry.add '.foo', 'command', -> calls.push('.foo')
+    registry.add '.bar', 'command', -> calls.push('.bar') # specificity ties favor commands added later, like CSS
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual ['.foo.bar', '.bar', '.foo']
@@ -61,9 +61,9 @@ describe "CommandRegistry", ->
   it "stops bubbling through ancestors when .stopPropagation() is called on the event", ->
     calls = []
 
-    registry.add 'command', '.parent', -> calls.push('parent')
-    registry.add 'command', '.child', -> calls.push('child-2')
-    registry.add 'command', '.child', (event) -> calls.push('child-1'); event.stopPropagation()
+    registry.add '.parent', 'command', -> calls.push('parent')
+    registry.add '.child', 'command', -> calls.push('child-2')
+    registry.add '.child', 'command', (event) -> calls.push('child-1'); event.stopPropagation()
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual ['child-1', 'child-2']
@@ -71,9 +71,9 @@ describe "CommandRegistry", ->
   it "stops invoking callbacks when .stopImmediatePropagation() is called on the event", ->
     calls = []
 
-    registry.add 'command', '.parent', -> calls.push('parent')
-    registry.add 'command', '.child', -> calls.push('child-2')
-    registry.add 'command', '.child', (event) -> calls.push('child-1'); event.stopImmediatePropagation()
+    registry.add '.parent', 'command', -> calls.push('parent')
+    registry.add '.child', 'command', -> calls.push('child-2')
+    registry.add '.child', 'command', (event) -> calls.push('child-1'); event.stopImmediatePropagation()
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual ['child-1']
@@ -81,8 +81,8 @@ describe "CommandRegistry", ->
   it "allows listeners to be removed via a disposable returned by ::add", ->
     calls = []
 
-    disposable1 = registry.add 'command', '.parent', -> calls.push('parent')
-    disposable2 = registry.add 'command', '.child', -> calls.push('child')
+    disposable1 = registry.add '.parent', 'command', -> calls.push('parent')
+    disposable2 = registry.add '.child', 'command', -> calls.push('child')
 
     disposable1.dispose()
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))

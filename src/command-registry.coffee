@@ -9,7 +9,7 @@ class CommandRegistry
   constructor: (@rootNode) ->
     @listenersByCommandName = {}
 
-  add: (commandName, selector, callback) ->
+  add: (selector, commandName, callback) ->
     unless @listenersByCommandName[commandName]?
       @rootNode.addEventListener(commandName, @dispatchCommand, true)
       @listenersByCommandName[commandName] = []
