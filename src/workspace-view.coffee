@@ -15,6 +15,11 @@ PaneRowView = require './pane-row-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
 
+atom.commands.add '.workspace',
+  'window:increase-font-size': -> @getModel().increaseFontSize()
+  'window:decrease-font-size': -> @getModel().decreaseFontSize()
+  'window:reset-font-size': -> @getModel().resetFontSize()
+
 # Essential: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
 #
@@ -77,8 +82,9 @@ class WorkspaceView extends View
         @div class: 'vertical', outlet: 'vertical', =>
           @div class: 'panes', outlet: 'panes'
 
-  initialize: (@model) ->
-    @model = atom.workspace ? new Workspace unless @model?
+  initialize: (model) ->
+    @model = model ? atom.workspace ? new Workspace unless @model?
+    @element.getModel = -> model
 
     panes = new PaneContainerView(@model.paneContainer)
     @panes.replaceWith(panes)
@@ -139,9 +145,6 @@ class WorkspaceView extends View
     @command 'window:install-shell-commands', => @installShellCommands()
 
     @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
-    @command 'window:increase-font-size', => @increaseFontSize()
-    @command 'window:decrease-font-size', => @decreaseFontSize()
-    @command 'window:reset-font-size', => @model.resetFontSize()
 
     @command 'window:focus-next-pane', => @focusNextPaneView()
     @command 'window:focus-previous-pane', => @focusPreviousPaneView()
