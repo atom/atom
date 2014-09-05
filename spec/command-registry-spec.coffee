@@ -57,3 +57,13 @@ describe "CommandRegistry", ->
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual ['.foo.bar', '.bar', '.foo']
+
+  it "stops bubbling through ancestors when .stopPropagation() is called on the event", ->
+    calls = []
+
+    registry.add 'command', '.parent', -> calls.push('parent')
+    registry.add 'command', '.child', -> calls.push('child-2')
+    registry.add 'command', '.child', (event) -> calls.push('child-1'); event.stopPropagation()
+
+    grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+    expect(calls).toEqual ['child-1', 'child-2']

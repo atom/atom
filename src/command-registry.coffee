@@ -16,11 +16,14 @@ class CommandRegistry
     @listenersByCommandName[commandName].push(new CommandListener(selector, callback))
 
   dispatchCommand: (event) =>
+    propagationStopped = false
+    currentTarget = event.target
+
     syntheticEvent = Object.create event,
       eventPhase: value: Event.BUBBLING_PHASE
       currentTarget: get: -> currentTarget
+      stopPropagation: value: -> propagationStopped = true
 
-    currentTarget = event.target
     loop
       matchingListeners =
         @listenersByCommandName[event.type]
@@ -30,6 +33,7 @@ class CommandRegistry
       for listener in matchingListeners
         listener.callback.call(currentTarget, syntheticEvent)
 
+      break if propagationStopped
       break if currentTarget is @rootNode
       currentTarget = currentTarget.parentNode
 
