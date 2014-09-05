@@ -9,6 +9,12 @@ class CommandRegistry
   constructor: (@rootNode) ->
     @listenersByCommandName = {}
 
+  setRootNode: (rootNode) ->
+    throw new Error("Already assigned root node.") if @rootNode?
+    @rootNode = rootNode
+    for commandName of @listenersByCommandName
+      @rootNode?.addEventListener(commandName, @dispatchCommand, true)
+
   add: (selector, commandName, callback) ->
     if typeof commandName is 'object'
       commands = commandName
@@ -18,7 +24,7 @@ class CommandRegistry
       return disposable
 
     unless @listenersByCommandName[commandName]?
-      @rootNode.addEventListener(commandName, @dispatchCommand, true)
+      @rootNode?.addEventListener(commandName, @dispatchCommand, true)
       @listenersByCommandName[commandName] = []
 
     listener = new CommandListener(selector, callback)
