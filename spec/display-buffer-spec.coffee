@@ -1074,7 +1074,7 @@ describe "DisplayBuffer", ->
 
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
-        decoration.on 'updated', updatedSpy = jasmine.createSpy()
+        decoration.onDidUpdate updatedSpy = jasmine.createSpy()
         decoration.update type: 'gutter', class: 'two'
 
         {oldParams, newParams} = updatedSpy.mostRecentCall.args[0]
