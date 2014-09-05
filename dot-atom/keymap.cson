@@ -16,3 +16,4 @@
 #   'ctrl-P': 'core:move-up'
 #   'ctrl-p': 'core:move-down'
 #
+# In the example above, 'ctrl-P' is equivalent to 'ctrl-shift-p'.
