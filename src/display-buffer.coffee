@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
 guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
@@ -11,6 +11,7 @@ Fold = require './fold'
 Token = require './token'
 Decoration = require './decoration'
 DisplayBufferMarker = require './display-buffer-marker'
+Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -105,11 +106,28 @@ class DisplayBuffer extends Model
   onDidTokenize: (callback) ->
     @tokenizedBuffer.onDidTokenize(callback)
 
-  emitChanged: (eventProperties, refreshMarkers=true) ->
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChange instead")
+      when 'grammar-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
+      when 'soft-wrap-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeSoftWrap instead")
+      # else
+      #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
+
+  emitDidChange: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers
       @pauseMarkerChangeEvents()
       @refreshMarkerScreenPositions()
     @emit 'changed', eventProperties
+    @emitter.emit 'did-change', eventProperties
     @resumeMarkerChangeEvents()
 
   updateWrappedScreenLines: ->
@@ -118,7 +136,7 @@ class DisplayBuffer extends Model
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @emitChanged({ start, end, screenDelta, bufferDelta })
+    @emitDidChange({ start, end, screenDelta, bufferDelta })
 
   # Sets the visibility of the tokenized buffer.
   #
@@ -1028,7 +1046,7 @@ class DisplayBuffer extends Model
       @pauseMarkerChangeEvents()
       @pendingChangeEvent = changeEvent
     else
-      @emitChanged(changeEvent, options.refreshMarkers)
+      @emitDidChange(changeEvent, options.refreshMarkers)
 
   buildScreenLines: (startBufferRow, endBufferRow) ->
     screenLines = []
@@ -1106,7 +1124,7 @@ class DisplayBuffer extends Model
   handleBufferMarkersUpdated: =>
     if event = @pendingChangeEvent
       @pendingChangeEvent = null
-      @emitChanged(event, false)
+      @emitDidChange(event, false)
 
   handleBufferMarkerCreated: (marker) =>
     @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())

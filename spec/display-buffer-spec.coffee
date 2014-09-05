@@ -9,7 +9,7 @@ describe "DisplayBuffer", ->
     buffer = atom.project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
     changeHandler = jasmine.createSpy 'changeHandler'
-    displayBuffer.on 'changed', changeHandler
+    displayBuffer.onDidChange changeHandler
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
@@ -234,7 +234,7 @@ describe "DisplayBuffer", ->
       buffer.release()
       buffer = atom.project.bufferForPathSync('two-hundred.txt')
       displayBuffer = new DisplayBuffer({buffer, tabLength})
-      displayBuffer.on 'changed', changeHandler
+      displayBuffer.onDidChange changeHandler
 
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
@@ -860,7 +860,7 @@ describe "DisplayBuffer", ->
       it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
         marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]])
         marker2.onDidChange marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
-        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
+        displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
 
         # New change ----
 
@@ -932,7 +932,7 @@ describe "DisplayBuffer", ->
         expect(marker3ChangedHandler).toHaveBeenCalled()
 
       it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
-        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+        displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
           # calls change handler first
           expect(markerChangedHandler).not.toHaveBeenCalled()
           # but still updates the markers

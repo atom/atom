@@ -262,7 +262,7 @@ class Editor extends Model
 
   subscribeToDisplayBuffer: ->
     @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
-    @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
+    @subscribe @displayBuffer.onDidChange (e) => @emit 'screen-lines-changed', e
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
     @subscribe @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
     @subscribe @displayBuffer.onDidTokenize => @handleTokenization()
