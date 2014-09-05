@@ -9,11 +9,13 @@ class CommandRegistry
   constructor: (@rootNode) ->
     @listenersByCommandName = {}
 
-  setRootNode: (rootNode) ->
-    throw new Error("Already assigned root node.") if @rootNode?
-    @rootNode = rootNode
+  setRootNode: (newRootNode) ->
+    oldRootNode = @rootNode
+    @rootNode = newRootNode
+
     for commandName of @listenersByCommandName
-      @rootNode?.addEventListener(commandName, @dispatchCommand, true)
+      oldRootNode?.removeEventListener(commandName, @dispatchCommand, true)
+      newRootNode?.addEventListener(commandName, @dispatchCommand, true)
 
   add: (selector, commandName, callback) ->
     if typeof commandName is 'object'
