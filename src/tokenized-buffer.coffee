@@ -1,10 +1,12 @@
 _ = require 'underscore-plus'
 {Model} = require 'theorist'
+EmitterMixin = require('emissary').Emitter
 {Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
+Grim = require 'grim'
 
 module.exports =
 class TokenizedBuffer extends Model
@@ -54,6 +56,20 @@ class TokenizedBuffer extends Model
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChange instead")
+      when 'grammar-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
+      # else
+      #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
+
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
@@ -82,7 +98,9 @@ class TokenizedBuffer extends Model
     @invalidRows = []
     @invalidateRow(0)
     @fullyTokenized = false
-    @emit "changed", {start: 0, end: lastRow, delta: 0}
+    event = {start: 0, end: lastRow, delta: 0}
+    @emit 'changed', event
+    @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -132,7 +150,9 @@ class TokenizedBuffer extends Model
 
       @validateRow(row)
       @invalidateRow(row + 1) unless filledRegion
-      @emit "changed", { start: invalidRow, end: row, delta: 0 }
+      event = { start: invalidRow, end: row, delta: 0 }
+      @emit 'changed', event
+      @emitter.emit 'did-change', event
 
     if @firstInvalidRow()?
       @tokenizeInBackground()
@@ -178,7 +198,9 @@ class TokenizedBuffer extends Model
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
-    @emit "changed", { start, end, delta, bufferChange: e }
+    event = { start, end, delta, bufferChange: e }
+    @emit 'changed', event
+    @emitter.emit 'did-change', event
 
   retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
     line = @tokenizedLines[row]

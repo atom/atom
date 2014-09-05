@@ -57,7 +57,7 @@ class DisplayBuffer extends Model
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer, 'tokenized', => @emit 'tokenized'
-    @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
+    @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
