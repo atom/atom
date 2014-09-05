@@ -1,0 +1,30 @@
+CommandRegistry = require '../src/command-registry'
+
+describe "CommandRegistry", ->
+  [registry, parent, child, grandchild] = []
+
+  beforeEach ->
+    parent = document.createElement("div")
+    child = document.createElement("div")
+    grandchild = document.createElement("div")
+    parent.classList.add('parent')
+    child.classList.add('child')
+    grandchild.classList.add('grandchild')
+    child.appendChild(grandchild)
+    parent.appendChild(child)
+    document.querySelector('#jasmine-content').appendChild(parent)
+
+    registry = new CommandRegistry(parent)
+
+  it "invokes callbacks with selectors matching the target", ->
+    called = false
+    registry.add 'command', '.grandchild', (event) ->
+      expect(this).toBe grandchild
+      expect(event.type).toBe 'command'
+      expect(event.eventPhase).toBe Event.BUBBLING_PHASE
+      expect(event.target).toBe grandchild
+      expect(event.currentTarget).toBe grandchild
+      called = true
+
+    grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+    expect(called).toBe true
