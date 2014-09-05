@@ -149,13 +149,13 @@ describe "Editor", ->
 
   describe "path", ->
     it "notifies ::onDidChangePath observers when the underlying buffer path changes", ->
-       observed = []
-       editor.onDidChangePath (filePath) -> observed.push(filePath)
+      observed = []
+      editor.onDidChangePath (filePath) -> observed.push(filePath)
 
-       buffer.setPath('/foo/bar/baz.txt')
-       buffer.setPath(undefined)
+      buffer.setPath('/foo/bar/baz.txt')
+      buffer.setPath(undefined)
 
-       expect(observed).toEqual ['/foo/bar/baz.txt', undefined]
+      expect(observed).toEqual ['/foo/bar/baz.txt', undefined]
 
   describe "cursor", ->
     describe ".getLastCursor()", ->
