@@ -59,12 +59,17 @@ class TokenizedBuffer extends Model
   onDidChange: (callback) ->
     @emitter.on 'did-change', callback
 
+  onDidTokenize: (callback) ->
+    @emitter.on 'did-tokenize', callback
+
   on: (eventName) ->
     switch eventName
       when 'changed'
         Grim.deprecate("Use DisplayBuffer::onDidChange instead")
       when 'grammar-changed'
         Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
+      when 'tokenized'
+        Grim.deprecate("Use DisplayBuffer::onDidTokenize instead")
       # else
       #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
 
@@ -157,7 +162,9 @@ class TokenizedBuffer extends Model
     if @firstInvalidRow()?
       @tokenizeInBackground()
     else
-      @emit "tokenized" unless @fullyTokenized
+      unless @fullyTokenized
+        @emit 'tokenized'
+        @emitter.emit 'did-tokenize'
       @fullyTokenized = true
 
   firstInvalidRow: ->

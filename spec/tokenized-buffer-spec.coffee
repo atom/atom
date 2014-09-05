@@ -468,7 +468,7 @@ describe "TokenizedBuffer", ->
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
-        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        tokenizedBuffer.onDidTokenize tokenizedHandler
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler.callCount).toBe(1)
 
@@ -483,7 +483,7 @@ describe "TokenizedBuffer", ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
         fullyTokenize(tokenizedBuffer)
 
-        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        tokenizedBuffer.onDidTokenize tokenizedHandler
         editor.getBuffer().insert([0, 0], "'")
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler).not.toHaveBeenCalled()
@@ -499,7 +499,7 @@ describe "TokenizedBuffer", ->
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
-        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        tokenizedBuffer.onDidTokenize tokenizedHandler
         fullyTokenize(tokenizedBuffer)
         tokenizedHandler.reset()
 
