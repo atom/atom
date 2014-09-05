@@ -1,5 +1,7 @@
 require './benchmark-helper'
-{$, _, WorkspaceView} = require 'atom'
+{$, _, WorkspaceView, Range, Point} = require 'atom'
+{Emitter} = require 'emissary'
+TextBuffer = require 'text-buffer'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editorView.", ->
@@ -28,6 +30,46 @@ describe "editorView.", ->
 
     benchmark "keydown-event-with-no-binding", 10, ->
       keymap.handleKeyEvent(event)
+
+  describe "markers.", ->
+    [editor, buffer, lineCount, editorPromise] = []
+    class EmitterTest
+      Emitter.includeInto(EmitterTest)
+      emitSomething: ->
+        @emit('something')
+
+    beforeEach ->
+      editorPromise = atom.project.open('medium.coffee').then (ed) => editor = ed
+      waitsForPromise -> editorPromise
+      runs ->
+        lineCount = editor.buffer.getLineCount()
+        buffer = new TextBuffer(text:editor.getText())
+
+    fpbenchmark "marker-creation-from-editor", ->
+      for row in [0...lineCount]
+        if length = editor.buffer.lineLengthForRow(row)
+          editor.markBufferRange(new Range(new Point(row, 0), new Point(row, 1)))
+      return
+
+    fpbenchmark "marker-creation-from-text-buffer", ->
+      for row in [0...lineCount]
+        if length = editor.buffer.lineLengthForRow(row)
+          buffer.markRange(new Range(new Point(row, 0), new Point(row, 1)))
+      return
+
+    fpbenchmark "object-creation-and-emit", ->
+      for row in [0...lineCount]
+        if length = editor.buffer.lineLengthForRow(row)
+          et = new EmitterTest()
+          et.on 'something', ->
+          et.emitSomething()
+      return
+
+    fpbenchmark "object-creation", ->
+      for row in [0...lineCount]
+        if length = editor.buffer.lineLengthForRow(row)
+          new EmitterTest()
+      return
 
   describe "opening-buffers.", ->
     benchmark "300-line-file.", ->
