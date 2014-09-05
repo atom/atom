@@ -158,6 +158,7 @@ class Atom extends Model
 
     Config = require './config'
     KeymapManager = require './keymap-extensions'
+    CommandRegistry = require './command-registry'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     Syntax = require './syntax'
@@ -179,6 +180,7 @@ class Atom extends Model
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
+    @commands = new CommandRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
@@ -304,6 +306,7 @@ class Atom extends Model
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
     @workspaceView = new WorkspaceView(@workspace)
+    @commands.setRootNode(@workspaceView[0])
     @deserializeTimings.workspace = Date.now() - startTime
 
     @keymaps.defaultTarget = @workspaceView[0]
