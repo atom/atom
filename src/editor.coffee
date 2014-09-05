@@ -271,7 +271,6 @@ class Editor extends Model
     @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
     @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
-    @subscribe @displayBuffer.onDidChangeDecoration (decoration) => @emit 'decoration-changed', decoration
 
   getViewClass: ->
     require './editor-view'
@@ -333,9 +332,6 @@ class Editor extends Model
 
   onDidRemoveDecoration: (callback) ->
     @displayBuffer.onDidRemoveDecoration(callback)
-
-  onDidChangeDecoration: (callback) ->
-    @displayBuffer.onDidChangeDecoration(callback)
 
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer

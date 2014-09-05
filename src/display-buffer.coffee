@@ -121,9 +121,6 @@ class DisplayBuffer extends Model
   onDidRemoveDecoration: (callback) ->
     @emitter.on 'did-remove-decoration', callback
 
-  onDidChangeDecoration: (callback) ->
-    @emitter.on 'did-change-decoration', callback
-
   on: (eventName) ->
     switch eventName
       when 'changed'
