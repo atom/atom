@@ -65,13 +65,13 @@ class TokenizedBuffer extends Model
   on: (eventName) ->
     switch eventName
       when 'changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChange instead")
+        Grim.deprecate("Use TokenizedBuffer::onDidChange instead")
       when 'grammar-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
+        Grim.deprecate("Use TokenizedBuffer::onDidChangeGrammar instead")
       when 'tokenized'
-        Grim.deprecate("Use DisplayBuffer::onDidTokenize instead")
-      # else
-      #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
+        Grim.deprecate("Use TokenizedBuffer::onDidTokenize instead")
+      else
+        Grim.deprecate("TokenizedBuffer::on is deprecated. Use event subscription methods instead.")
 
     EmitterMixin::on.apply(this, arguments)
 
