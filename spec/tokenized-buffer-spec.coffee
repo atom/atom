@@ -41,7 +41,7 @@ describe "TokenizedBuffer", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       startTokenizing(tokenizedBuffer)
-      tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+      tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
     afterEach ->
       tokenizedBuffer.destroy()
@@ -753,7 +753,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(10).indentLevel).toBe 3
         expect(tokenizedBuffer.tokenizedLineForRow(11).indentLevel).toBe 2
 
-        tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+        tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
         buffer.setTextInRange([[7, 0], [8, 65]], '        one\n        two\n        three\n        four')
 
@@ -771,7 +771,7 @@ describe "TokenizedBuffer", ->
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
 
-        tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+        tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
         buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
 
