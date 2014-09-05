@@ -56,7 +56,6 @@ class DisplayBuffer extends Model
     @decorationMarkerDestroyedSubscriptions = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
-    @subscribe @tokenizedBuffer.onDidChangeGrammar (grammar) => @emit 'grammar-changed', grammar
     @subscribe @tokenizedBuffer, 'tokenized', => @emit 'tokenized'
     @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
