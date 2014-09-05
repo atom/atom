@@ -53,7 +53,6 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @decorationMarkerDestroyedSubscriptions = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
@@ -136,9 +135,9 @@ class DisplayBuffer extends Model
       when 'decoration-removed'
         Grim.deprecate("Use DisplayBuffer::onDidRemoveDecoration instead")
       when 'decoration-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeDecoration instead")
+        Grim.deprecate("Use decoration.getMarker().onDidChange() instead")
       when 'decoration-updated'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeDecoration instead")
+        Grim.deprecate("Use Decoration::onDidChangeProperties instead")
       # else
       #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
 
@@ -835,11 +834,8 @@ class DisplayBuffer extends Model
 
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
-
-    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker.onDidDestroy =>
-      @removeAllDecorationsForMarker(marker)
-
     decoration = new Decoration(marker, this, decorationParams)
+    @subscribe decoration.onDidDestroy => @removeDecoration(decoration)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
@@ -857,19 +853,7 @@ class DisplayBuffer extends Model
       delete @decorationsById[decoration.id]
       @emit 'decoration-removed', decoration
       @emitter.emit 'did-remove-decoration', decoration
-      @removedAllMarkerDecorations(marker) if decorations.length is 0
-
-  removeAllDecorationsForMarker: (marker) ->
-    decorations = @decorationsByMarkerId[marker.id].slice()
-    for decoration in decorations
-      @emit 'decoration-removed', decoration
-      @emitter.emit 'did-remove-decoration', decoration
-    @removedAllMarkerDecorations(marker)
-
-  removedAllMarkerDecorations: (marker) ->
-    @decorationMarkerDestroyedSubscriptions[marker.id].dispose()
-    delete @decorationsByMarkerId[marker.id]
-    delete @decorationMarkerDestroyedSubscriptions[marker.id]
+      delete @decorationsByMarkerId[marker.id] if decorations.length is 0
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #

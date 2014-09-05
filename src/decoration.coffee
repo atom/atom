@@ -53,6 +53,8 @@ class Decoration
     @flashQueue = null
     @isDestroyed = false
 
+    @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
+
   # Essential: An id unique across all {Decoration} objects
   getId: -> @id
 
@@ -114,8 +116,9 @@ class Decoration
   # this decoration.
   destroy: ->
     return if @isDestroyed
+    @markerDestroyDisposable.dispose()
+    @markerDestroyDisposable = null
     @isDestroyed = true
-    @displayBuffer.removeDecoration(this)
     @emit 'destroyed'
     @emitter.emit 'did-destroy'
     @emitter.dispose()
