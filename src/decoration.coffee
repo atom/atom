@@ -77,8 +77,8 @@ class Decoration
   # * `event` {Object}
   #   * `oldParams` {Object} the old parameters the decoration used to have
   #   * `newParams` {Object} the new parameters the decoration now has
-  onDidUpdate: (callback) ->
-    @emitter.on 'did-update', callback
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
 
   # Essential: Update the marker with new params. Allows you to change the decoration's class.
   #
@@ -94,9 +94,9 @@ class Decoration
     oldParams = @params
     @params = newParams
     @params.id = @id
-    @displayBuffer.decorationUpdated(this)
+    @displayBuffer.decorationChanged(this)
     @emit 'updated', {oldParams, newParams}
-    @emitter.emit 'did-update', {oldParams, newParams}
+    @emitter.emit 'did-change', {oldParams, newParams}
 
   # Essential: Invoke the given callback when the {Decoration} is destroyed
   onDidDestroy: (callback) ->
@@ -137,7 +137,7 @@ class Decoration
   on: (eventName) ->
     switch eventName
       when 'updated'
-        Grim.deprecate("Use Decoration::onDidUpdate instead")
+        Grim.deprecate("Use Decoration::onDidChange instead")
       when 'destroyed'
         Grim.deprecate("Use Decoration::onDidDestroy instead")
       when 'flash'

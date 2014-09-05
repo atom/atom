@@ -266,10 +266,12 @@ class Editor extends Model
     @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
     @subscribe @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
     @subscribe @displayBuffer.onDidTokenize => @handleTokenization()
-    @subscribe @displayBuffer.onDidChangeSoftWrapped (args...) => @emit 'soft-wrap-changed', args...
-    @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
-    @subscribe @displayBuffer, "decoration-removed", (args...) => @emit 'decoration-removed', args...
-    @subscribe @displayBuffer, "decoration-updated", (args...) => @emit 'decoration-updated', args...
+
+    # TODO: remove these when we remove the deprecations. Though, no one is likely using them
+    @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
+    @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
+    @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
+    @subscribe @displayBuffer.onDidChangeDecoration (decoration) => @emit 'decoration-changed', decoration
 
   getViewClass: ->
     require './editor-view'
@@ -322,6 +324,15 @@ class Editor extends Model
 
   onDidRemoveSelection: (callback) ->
     @emitter.on 'did-remove-selection', callback
+
+  onDidAddDecoration: (callback) ->
+    @displayBuffer.onDidAddDecoration(callback)
+
+  onDidRemoveDecoration: (callback) ->
+    @displayBuffer.onDidRemoveDecoration(callback)
+
+  onDidChangeDecoration: (callback) ->
+    @displayBuffer.onDidChangeDecoration(callback)
 
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer

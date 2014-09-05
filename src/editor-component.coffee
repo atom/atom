@@ -347,9 +347,9 @@ EditorComponent = React.createClass
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor.onDidAddCursor(@onCursorAdded)
     @subscribe editor.onDidAddSelection(@onSelectionAdded)
-    @subscribe editor, 'decoration-added', @onDecorationChanged
-    @subscribe editor, 'decoration-removed', @onDecorationChanged
-    @subscribe editor, 'decoration-updated', @onDecorationChanged
+    @subscribe editor.onDidAddDecoration @onDecorationChanged
+    @subscribe editor.onDidRemoveDecoration @onDecorationChanged
+    @subscribe editor.onDidChangeDecoration @onDecorationChanged
     @subscribe editor.onDidChangeCharacterWidths @onCharacterWidthsChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate

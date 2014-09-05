@@ -112,6 +112,15 @@ class DisplayBuffer extends Model
   onDidChangeCharacterWidths: (callback) ->
     @emitter.on 'did-change-character-widths', callback
 
+  onDidAddDecoration: (callback) ->
+    @emitter.on 'did-add-decoration', callback
+
+  onDidRemoveDecoration: (callback) ->
+    @emitter.on 'did-remove-decoration', callback
+
+  onDidChangeDecoration: (callback) ->
+    @emitter.on 'did-change-decoration', callback
+
   on: (eventName) ->
     switch eventName
       when 'changed'
@@ -122,6 +131,14 @@ class DisplayBuffer extends Model
         Grim.deprecate("Use DisplayBuffer::onDidChangeSoftWrap instead")
       when 'character-widths-changed'
         Grim.deprecate("Use DisplayBuffer::onDidChangeCharacterWidths instead")
+      when 'decoration-added'
+        Grim.deprecate("Use DisplayBuffer::onDidAddDecoration instead")
+      when 'decoration-removed'
+        Grim.deprecate("Use DisplayBuffer::onDidRemoveDecoration instead")
+      when 'decoration-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeDecoration instead")
+      when 'decoration-updated'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeDecoration instead")
       # else
       #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
 
@@ -823,13 +840,15 @@ class DisplayBuffer extends Model
       # in the change handler. Bookmarks does this.
       if decorations?
         for decoration in decorations
-          @emit 'decoration-updated', decoration
+          @emit 'decoration-changed', decoration
+          @emitter.emit 'did-change-decoration', decoration
 
     decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
     @emit 'decoration-added', decoration
+    @emitter.emit 'did-add-decoration', decoration
     decoration
 
   removeDecoration: (decoration) ->
@@ -841,12 +860,14 @@ class DisplayBuffer extends Model
       decorations.splice(index, 1)
       delete @decorationsById[decoration.id]
       @emit 'decoration-removed', decoration
+      @emitter.emit 'did-remove-decoration', decoration
       @removedAllMarkerDecorations(marker) if decorations.length is 0
 
   removeAllDecorationsForMarker: (marker) ->
     decorations = @decorationsByMarkerId[marker.id].slice()
     for decoration in decorations
       @emit 'decoration-removed', decoration
+      @emitter.emit 'did-remove-decoration', decoration
     @removedAllMarkerDecorations(marker)
 
   removedAllMarkerDecorations: (marker) ->
@@ -857,8 +878,10 @@ class DisplayBuffer extends Model
     delete @decorationMarkerChangedSubscriptions[marker.id]
     delete @decorationMarkerDestroyedSubscriptions[marker.id]
 
-  decorationUpdated: (decoration) ->
-    @emit 'decoration-updated', decoration
+  # Called by the decoration
+  decorationChanged: (decoration) ->
+    @emit 'decoration-changed', decoration
+    @emitter.emit 'did-change-decoration', decoration
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #
