@@ -325,6 +325,9 @@ class Editor extends Model
   onDidRemoveSelection: (callback) ->
     @emitter.on 'did-remove-selection', callback
 
+  observeDecorations: (callback) ->
+    @displayBuffer.observeDecorations(callback)
+
   onDidAddDecoration: (callback) ->
     @displayBuffer.onDidAddDecoration(callback)
 

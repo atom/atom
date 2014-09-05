@@ -1134,7 +1134,7 @@ describe "EditorComponent", ->
       it "renders the decoration's new params", ->
         expect(componentNode.querySelector('.test-highlight')).toBeTruthy()
 
-        decoration.update(type: 'highlight', class: 'new-test-highlight')
+        decoration.setProperties(type: 'highlight', class: 'new-test-highlight')
         nextAnimationFrame()
 
         expect(componentNode.querySelector('.test-highlight')).toBeFalsy()

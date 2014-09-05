@@ -53,7 +53,6 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @decorationMarkerChangedSubscriptions = {}
     @decorationMarkerDestroyedSubscriptions = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
@@ -111,6 +110,10 @@ class DisplayBuffer extends Model
 
   onDidChangeCharacterWidths: (callback) ->
     @emitter.on 'did-change-character-widths', callback
+
+  observeDecorations: (callback) ->
+    callback(decoration) for decoration in @getDecorations()
+    @onDidAddDecoration(callback)
 
   onDidAddDecoration: (callback) ->
     @emitter.on 'did-add-decoration', callback
@@ -820,6 +823,12 @@ class DisplayBuffer extends Model
   decorationForId: (id) ->
     @decorationsById[id]
 
+  getDecorations: ->
+    allDecorations = []
+    for markerId, decorations of @decorationsByMarkerId
+      allDecorations = allDecorations.concat(decorations) if decorations?
+    allDecorations
+
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
     for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
@@ -832,16 +841,6 @@ class DisplayBuffer extends Model
 
     @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker.onDidDestroy =>
       @removeAllDecorationsForMarker(marker)
-
-    @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker.onDidChange (event) =>
-      decorations = @decorationsByMarkerId[marker.id]
-
-      # Why check existence? Markers may get destroyed or decorations removed
-      # in the change handler. Bookmarks does this.
-      if decorations?
-        for decoration in decorations
-          @emit 'decoration-changed', decoration
-          @emitter.emit 'did-change-decoration', decoration
 
     decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
@@ -871,17 +870,9 @@ class DisplayBuffer extends Model
     @removedAllMarkerDecorations(marker)
 
   removedAllMarkerDecorations: (marker) ->
-    @decorationMarkerChangedSubscriptions[marker.id].dispose()
     @decorationMarkerDestroyedSubscriptions[marker.id].dispose()
-
     delete @decorationsByMarkerId[marker.id]
-    delete @decorationMarkerChangedSubscriptions[marker.id]
     delete @decorationMarkerDestroyedSubscriptions[marker.id]
-
-  # Called by the decoration
-  decorationChanged: (decoration) ->
-    @emit 'decoration-changed', decoration
-    @emitter.emit 'did-change-decoration', decoration
 
   # Retrieves a {DisplayBufferMarker} based on its id.
   #

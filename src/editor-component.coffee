@@ -347,9 +347,8 @@ EditorComponent = React.createClass
     @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
     @subscribe editor.onDidAddCursor(@onCursorAdded)
     @subscribe editor.onDidAddSelection(@onSelectionAdded)
-    @subscribe editor.onDidAddDecoration @onDecorationChanged
-    @subscribe editor.onDidRemoveDecoration @onDecorationChanged
-    @subscribe editor.onDidChangeDecoration @onDecorationChanged
+    @subscribe editor.observeDecorations(@onDecorationAdded)
+    @subscribe editor.onDidRemoveDecoration(@onDecorationRemoved)
     @subscribe editor.onDidChangeCharacterWidths @onCharacterWidthsChanged
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
@@ -758,7 +757,15 @@ EditorComponent = React.createClass
     @cursorMoved = true
     @requestUpdate()
 
+  onDecorationAdded: (decoration) ->
+    @subscribe decoration.onDidChangeProperties(@onDecorationChanged)
+    @subscribe decoration.getMarker().onDidChange(@onDecorationChanged)
+    @requestUpdate()
+
   onDecorationChanged: ->
+    @requestUpdate()
+
+  onDecorationRemoved: ->
     @requestUpdate()
 
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
