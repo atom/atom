@@ -1,5 +1,7 @@
 _ = require 'underscore-plus'
-{Subscriber, Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
+Grim = require 'grim'
 
 idCounter = 0
 nextId = -> idCounter++
@@ -26,24 +28,9 @@ nextId = -> idCounter++
 #
 # You should only use {Decoration::destroy} when you still need or do not own
 # the marker.
-#
-# ## Events
-#
-# ### updated
-#
-# Extended: When the {Decoration} is updated via {Decoration::update}.
-#
-# * `event` {Object}
-#   * `oldParams` {Object} the old parameters the decoration used to have
-#   * `newParams` {Object} the new parameters the decoration now has
-#
-# ### destroyed
-#
-# Extended: When the {Decoration} is destroyed
-#
 module.exports =
 class Decoration
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
   # Extended: Check if the `decorationParams.type` matches `type`
   #
@@ -60,6 +47,7 @@ class Decoration
       type is decorationParams.type
 
   constructor: (@marker, @displayBuffer, @params) ->
+    @emitter = new Emitter
     @id = nextId()
     @params.id = @id
     @flashQueue = null
@@ -84,6 +72,14 @@ class Decoration
   isType: (type) ->
     Decoration.isType(@params, type)
 
+  # Essential: When the {Decoration} is updated via {Decoration::update}.
+  #
+  # * `event` {Object}
+  #   * `oldParams` {Object} the old parameters the decoration used to have
+  #   * `newParams` {Object} the new parameters the decoration now has
+  onDidUpdate: (callback) ->
+    @emitter.on 'did-update', callback
+
   # Essential: Update the marker with new params. Allows you to change the decoration's class.
   #
   # ## Examples
@@ -100,6 +96,11 @@ class Decoration
     @params.id = @id
     @displayBuffer.decorationUpdated(this)
     @emit 'updated', {oldParams, newParams}
+    @emitter.emit 'did-update', {oldParams, newParams}
+
+  # Essential: Invoke the given callback when the {Decoration} is destroyed
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
 
   # Essential: Destroy this marker.
   #
@@ -110,6 +111,8 @@ class Decoration
     @isDestroyed = true
     @displayBuffer.removeDecoration(this)
     @emit 'destroyed'
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
 
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?
@@ -117,12 +120,29 @@ class Decoration
       return false if @params[key] != value
     true
 
+  onDidFlash: (callback) ->
+    @emitter.on 'did-flash', callback
+
   flash: (klass, duration=500) ->
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
     @emit 'flash'
+    @emitter.emit 'did-flash'
 
   consumeNextFlash: ->
     return @flashQueue.shift() if @flashQueue?.length > 0
     null
+
+  on: (eventName) ->
+    switch eventName
+      when 'updated'
+        Grim.deprecate("Use Decoration::onDidUpdate instead")
+      when 'destroyed'
+        Grim.deprecate("Use Decoration::onDidDestroy instead")
+      when 'flash'
+        Grim.deprecate("Use Decoration::onDidFlash instead")
+      else
+        Grim.deprecate("Decoration::on is deprecated. Use event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
