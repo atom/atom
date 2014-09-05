@@ -77,3 +77,18 @@ describe "CommandRegistry", ->
 
     grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
     expect(calls).toEqual ['child-1']
+
+  it "allows listeners to be removed via a disposable returned by ::add", ->
+    calls = []
+
+    disposable1 = registry.add 'command', '.parent', -> calls.push('parent')
+    disposable2 = registry.add 'command', '.child', -> calls.push('child')
+
+    disposable1.dispose()
+    grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+    expect(calls).toEqual ['child']
+
+    calls = []
+    disposable2.dispose()
+    grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+    expect(calls).toEqual []

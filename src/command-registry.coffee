@@ -1,3 +1,4 @@
+{Disposable} = require 'event-kit'
 {specificity} = require 'clear-cut'
 
 SequenceCount = 0
@@ -13,7 +14,15 @@ class CommandRegistry
       @rootNode.addEventListener(commandName, @dispatchCommand, true)
       @listenersByCommandName[commandName] = []
 
-    @listenersByCommandName[commandName].push(new CommandListener(selector, callback))
+    listener = new CommandListener(selector, callback)
+    listenersForCommand = @listenersByCommandName[commandName]
+    listenersForCommand.push(listener)
+
+    new Disposable =>
+      listenersForCommand.splice(listenersForCommand.indexOf(listener), 1)
+      if listenersForCommand.length is 0
+        delete @listenersByCommandName[commandName]
+        @rootNode.removeEventListener(commandName, @dispatchCommand, true)
 
   dispatchCommand: (event) =>
     propagationStopped = false
