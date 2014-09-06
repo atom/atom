@@ -1,4 +1,4 @@
-autoUpdater = null
+autoUpdater = require 'auto-updater'
 _ = require 'underscore-plus'
 {EventEmitter} = require 'events'
 
@@ -16,11 +16,6 @@ class AutoUpdateManager
   constructor: (@version) ->
     @state = IdleState
     @feedUrl = "https://atom.io/api/updates?version=#{@version}"
-
-    process.nextTick => @setupAutoUpdater()
-
-  setupAutoUpdater: ->
-    autoUpdater ?= require 'auto-updater'
 
     if process.platform is 'win32'
       autoUpdater.checkForUpdates = => @checkForUpdatesShim()
@@ -52,19 +47,23 @@ class AutoUpdateManager
   checkForUpdatesShim: ->
     autoUpdater.emit 'checking-for-update'
 
-    https = require 'https'
-    request = https.get @feedUrl, (response) ->
-      if response.statusCode == 200
-        body = ""
-        response.on 'data', (chunk) -> body += chunk
-        response.on 'end', ->
-          {notes, name} = JSON.parse(body)
-          autoUpdater.emit 'update-downloaded', null, notes, name
-      else
-        autoUpdater.emit 'update-not-available'
+    # Do this in a next tick since requiring https can be slow the first time
+    # and this check shouldn't interfere with startup time.
+    process.nextTick =>
+      https = require 'https'
 
-    request.on 'error', (error) ->
-      autoUpdater.emit 'error', null, error.message
+      request = https.get @feedUrl, (response) ->
+        if response.statusCode == 200
+          body = ""
+          response.on 'data', (chunk) -> body += chunk
+          response.on 'end', ->
+            {notes, name} = JSON.parse(body)
+            autoUpdater.emit 'update-downloaded', null, notes, name
+        else
+          autoUpdater.emit 'update-not-available'
+
+      request.on 'error', (error) ->
+        autoUpdater.emit 'error', null, error.message
 
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion? and @releaseNotes
