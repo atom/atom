@@ -582,22 +582,31 @@ EditorComponent = React.createClass
 
   onMouseWheel: (event) ->
     {editor} = @props
-
-    # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
-    if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
-      # Scrolling horizontally
-      previousScrollLeft = editor.getScrollLeft()
-      editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
-      event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
+
+    if event.ctrlKey
+      # Ctrl+MouseWheel adjusts font size.
+      if wheelDeltaY > 0
+        atom.workspaceView.increaseFontSize()
+        e.preventDefault()
+      else if wheelDeltaY < 0
+        atom.workspaceView.decreaseFontSize()
+        e.preventDefault()
     else
-      # Scrolling vertically
-      @mouseWheelScreenRow = @screenRowForNode(event.target)
-      @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
-      @clearMouseWheelScreenRowAfterDelay()
-      previousScrollTop = editor.getScrollTop()
-      editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
-      event.preventDefault() unless previousScrollTop is editor.getScrollTop()
+      # Only scroll in one direction at a time
+      if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
+        # Scrolling horizontally
+        previousScrollLeft = editor.getScrollLeft()
+        editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
+        event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
+      else
+        # Scrolling vertically
+        @mouseWheelScreenRow = @screenRowForNode(event.target)
+        @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
+        @clearMouseWheelScreenRowAfterDelay()
+        previousScrollTop = editor.getScrollTop()
+        editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
+        event.preventDefault() unless previousScrollTop is editor.getScrollTop()
 
   onScrollViewScroll: ->
     if @isMounted()
