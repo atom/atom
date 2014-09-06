@@ -258,8 +258,9 @@ class ThemeManager
     fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
     element = @stylesheetElementForId(@stringToId(fullPath))
     if element?
+      {sheet} = element
       element.remove()
-      @emit 'stylesheet-removed', element.sheet
+      @emit 'stylesheet-removed', sheet
       @emit 'stylesheets-changed'
 
   applyStylesheet: (path, text, type='bundled') ->
