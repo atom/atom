@@ -197,8 +197,8 @@ class ThemeManager
     if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
       @requireStylesheet(nativeStylesheetPath)
 
-  stylesheetElementForId: (id, htmlElement=$('html')) ->
-    htmlElement.find("""head style[id="#{id}"]""")
+  stylesheetElementForId: (id) ->
+    document.head.querySelector("""style[id="#{id}"]""")
 
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
@@ -214,10 +214,10 @@ class ThemeManager
   #   path or a relative path that will be resolved against the load path.
   #
   # Returns the absolute path to the required stylesheet.
-  requireStylesheet: (stylesheetPath, type = 'bundled', htmlElement) ->
+  requireStylesheet: (stylesheetPath, type='bundled') ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content, type = 'bundled', htmlElement)
+      @applyStylesheet(fullPath, content, type)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -257,23 +257,29 @@ class ThemeManager
   removeStylesheet: (stylesheetPath) ->
     fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
     element = @stylesheetElementForId(@stringToId(fullPath))
-    if element.length > 0
-      stylesheet = element[0].sheet
+    if element?
       element.remove()
-      @emit 'stylesheet-removed', stylesheet
+      @emit 'stylesheet-removed', element.sheet
       @emit 'stylesheets-changed'
 
-  applyStylesheet: (path, text, type = 'bundled', htmlElement=$('html')) ->
-    styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
-    if styleElement.length
-      @emit 'stylesheet-removed', styleElement[0].sheet
-      styleElement.text(text)
-    else
-      styleElement = $("<style class='#{type}' id='#{@stringToId(path)}'>#{text}</style>")
-      if htmlElement.find("head style.#{type}").length
-        htmlElement.find("head style.#{type}:last").after(styleElement)
-      else
-        htmlElement.find("head").append(styleElement)
+  applyStylesheet: (path, text, type='bundled') ->
+    styleElement = null
 
-    @emit 'stylesheet-added', styleElement[0].sheet
+    styleId = @stringToId(path)
+    styleElement = @stylesheetElementForId(styleId)
+    if styleElement?
+      @emit 'stylesheet-removed', styleElement.sheet
+      styleElement.textContent = text
+    else
+      styleElement = document.createElement('style')
+      styleElement.setAttribute('class', type)
+      styleElement.setAttribute('id', styleId)
+      styleElement.textContent = text
+      parentElement = _.last(document.head.querySelectorAll("style.#{type}"))?.parentElement
+      if parentElement?
+        parentElement.appendChild(styleElement)
+      else
+        document.head.appendChild(styleElement)
+
+    @emit 'stylesheet-added', styleElement.sheet
     @emit 'stylesheets-changed'
