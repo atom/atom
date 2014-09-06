@@ -686,7 +686,7 @@ describe "DisplayBuffer", ->
         expect(marker2.getScreenRange()).toEqual [[5, 4], [5, 10]]
 
       it "emits a 'marker-created' event on the DisplayBuffer whenever a marker is created", ->
-        displayBuffer.on 'marker-created', markerCreatedHandler = jasmine.createSpy("markerCreatedHandler")
+        displayBuffer.onDidCreateMarker markerCreatedHandler = jasmine.createSpy("markerCreatedHandler")
 
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         expect(markerCreatedHandler).toHaveBeenCalledWith(marker1)
@@ -1041,9 +1041,8 @@ describe "DisplayBuffer", ->
       describe 'when a marker is created', ->
         it 'the second display buffer will not emit a marker-created event when the marker has been deleted in the first marker-created event', ->
           displayBuffer2 = new DisplayBuffer({buffer, tabLength})
-          displayBuffer.on 'marker-created', markerCreated1 = jasmine.createSpy().andCallFake (marker) ->
-            marker.destroy()
-          displayBuffer2.on 'marker-created', markerCreated2 = jasmine.createSpy()
+          displayBuffer.onDidCreateMarker markerCreated1 = jasmine.createSpy().andCallFake (marker) -> marker.destroy()
+          displayBuffer2.onDidCreateMarker markerCreated2 = jasmine.createSpy()
 
           displayBuffer.markBufferRange([[0, 0], [1, 5]], {})
 

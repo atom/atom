@@ -261,9 +261,9 @@ class Editor extends Model
     @preserveCursorPositionOnBufferReload()
 
   subscribeToDisplayBuffer: ->
-    @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
+    @subscribe @displayBuffer.onDidCreateMarker @handleMarkerCreated
     @subscribe @displayBuffer.onDidChange (e) => @emit 'screen-lines-changed', e
-    @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
+    @subscribe @displayBuffer.onDidUpdateMarkers => @mergeIntersectingSelections()
     @subscribe @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
     @subscribe @displayBuffer.onDidTokenize => @handleTokenization()
 

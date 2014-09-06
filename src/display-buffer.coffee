@@ -120,6 +120,12 @@ class DisplayBuffer extends Model
   onDidRemoveDecoration: (callback) ->
     @emitter.on 'did-remove-decoration', callback
 
+  onDidCreateMarker: (callback) ->
+    @emitter.on 'did-create-marker', callback
+
+  onDidUpdateMarkers: (callback) ->
+    @emitter.on 'did-update-markers', callback
+
   on: (eventName) ->
     switch eventName
       when 'changed'
@@ -138,6 +144,10 @@ class DisplayBuffer extends Model
         Grim.deprecate("Use decoration.getMarker().onDidChange() instead")
       when 'decoration-updated'
         Grim.deprecate("Use Decoration::onDidChangeProperties instead")
+      when 'marker-created'
+        Grim.deprecate("Use Decoration::onDidCreateMarker instead")
+      when 'markers-updated'
+        Grim.deprecate("Use Decoration::onDidUpdateMarkers instead")
       # else
       #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
 
@@ -1003,6 +1013,7 @@ class DisplayBuffer extends Model
   resumeMarkerChangeEvents: ->
     marker.resumeChangeEvents() for marker in @getMarkers()
     @emit 'markers-updated'
+    @emitter.emit 'did-update-markers'
 
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
@@ -1133,6 +1144,7 @@ class DisplayBuffer extends Model
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
       @emit 'marker-created', displayBufferMarker
+      @emitter.emit 'did-create-marker', displayBufferMarker
 
   createFoldForMarker: (marker) ->
     @decorateMarker(marker, type: 'gutter', class: 'folded')
