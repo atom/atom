@@ -148,8 +148,8 @@ class DisplayBuffer extends Model
         Grim.deprecate("Use Decoration::onDidCreateMarker instead")
       when 'markers-updated'
         Grim.deprecate("Use Decoration::onDidUpdateMarkers instead")
-      # else
-      #   Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
+      else
+        Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
 
     EmitterMixin::on.apply(this, arguments)
 
