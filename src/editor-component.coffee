@@ -584,7 +584,7 @@ EditorComponent = React.createClass
     {editor} = @props
     {wheelDeltaX, wheelDeltaY} = event
 
-    if event.ctrlKey
+    if event.ctrlKey and atom.config.get("editor.wheelZoom") is true
       # Ctrl+MouseWheel adjusts font size.
       if wheelDeltaY > 0
         atom.workspaceView.increaseFontSize()
