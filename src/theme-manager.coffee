@@ -275,9 +275,10 @@ class ThemeManager
       styleElement.setAttribute('class', type)
       styleElement.setAttribute('id', styleId)
       styleElement.textContent = text
-      parentElement = _.last(document.head.querySelectorAll("style.#{type}"))?.parentElement
-      if parentElement?
-        parentElement.appendChild(styleElement)
+
+      elementToInsertBefore = _.last(document.head.querySelectorAll("style.#{type}"))?.nextElementSibling
+      if elementToInsertBefore?
+        document.head.insertBefore(styleElement, elementToInsertBefore)
       else
         document.head.appendChild(styleElement)
 
