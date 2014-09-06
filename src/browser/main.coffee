@@ -31,7 +31,7 @@ start = ->
   app.on 'will-finish-launching', ->
     setupCrashReporter()
 
-  app.on 'ready', ->
+  app.on 'finish-launching', ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
