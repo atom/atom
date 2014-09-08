@@ -381,9 +381,9 @@ class WorkspaceView extends View
     @setEditorStyle('line-height', lineHeight)
 
   setEditorStyle: (property, value) ->
-    unless styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
+    unless styleNode = atom.themes.stylesheetElementForId('global-editor-styles')
       atom.themes.applyStylesheet('global-editor-styles', '.editor {}')
-      styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
+      styleNode = atom.themes.stylesheetElementForId('global-editor-styles')
 
     {sheet} = styleNode
     editorRule = sheet.cssRules[0]
