@@ -263,10 +263,9 @@ class ThemeManager
       @emit 'stylesheets-changed'
 
   applyStylesheet: (path, text, type='bundled') ->
-    styleElement = null
-
     styleId = @stringToId(path)
     styleElement = @stylesheetElementForId(styleId)
+
     if styleElement?
       @emit 'stylesheet-removed', styleElement.sheet
       styleElement.textContent = text
