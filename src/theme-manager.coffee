@@ -207,7 +207,7 @@ class ThemeManager
 
   # Public: Resolve and apply the stylesheet specified by the path.
   #
-  # This supports both CSS and LESS stylsheets.
+  # This supports both CSS and Less stylsheets.
   #
   # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
   #   path or a relative path that will be resolved against the load path.
@@ -245,7 +245,7 @@ class ThemeManager
         @lessCache.read(lessStylesheetPath)
     catch error
       console.error """
-        Error compiling less stylesheet: #{lessStylesheetPath}
+        Error compiling Less stylesheet: #{lessStylesheetPath}
         Line number: #{error.line}
         #{error.message}
       """
