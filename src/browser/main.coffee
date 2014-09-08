@@ -3,11 +3,9 @@ global.shellStartTime = Date.now()
 crashReporter = require 'crash-reporter'
 app = require 'app'
 fs = require 'fs'
-module = require 'module'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
-dialog = require 'dialog'
 
 console.log = nslog
 
@@ -33,14 +31,14 @@ start = ->
   app.on 'will-finish-launching', ->
     setupCrashReporter()
 
-  app.on 'finish-launching', ->
+  app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen.toString())
 
-    require('coffee-script').register()
+    setupCoffeeScript()
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
       AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
@@ -56,6 +54,15 @@ global.devResourcePath = path.normalize(global.devResourcePath) if global.devRes
 
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
+
+setupCoffeeScript = ->
+  CoffeeScript = null
+
+  require.extensions['.coffee'] = (module, filePath) ->
+    CoffeeScript ?= require('coffee-script')
+    coffee = fs.readFileSync(filePath, 'utf8')
+    js = CoffeeScript.compile(coffee, filename: filePath)
+    module._compile(js, filePath)
 
 parseCommandLine = ->
   version = app.getVersion()
@@ -109,9 +116,7 @@ parseCommandLine = ->
   else if devMode
     resourcePath = global.devResourcePath
 
-  try
-    fs.statSync resourcePath
-  catch
+  unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}

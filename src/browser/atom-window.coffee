@@ -1,7 +1,5 @@
 BrowserWindow = require 'browser-window'
-ContextMenu = require './context-menu'
 app = require 'app'
-dialog = require 'dialog'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -73,6 +71,13 @@ class AtomWindow
   getInitialPath: ->
     @browserWindow.loadSettings.initialPath
 
+  setupContextMenu: ->
+    ContextMenu = null
+
+    @browserWindow.on 'context-menu', (menuTemplate) =>
+      ContextMenu ?= require './context-menu'
+      new ContextMenu(menuTemplate, this)
+
   containsPath: (pathToCheck) ->
     initialPath = @getInitialPath()
     if not initialPath
@@ -95,6 +100,7 @@ class AtomWindow
     @browserWindow.on 'unresponsive', =>
       return if @isSpec
 
+      dialog = require 'dialog'
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
@@ -105,6 +111,7 @@ class AtomWindow
     @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @exitWhenDone
 
+      dialog = require 'dialog'
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']
@@ -114,8 +121,7 @@ class AtomWindow
         when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
 
-    @browserWindow.on 'context-menu', (menuTemplate) =>
-      new ContextMenu(menuTemplate, this)
+    @setupContextMenu()
 
     if @isSpec
       # Workaround for https://github.com/atom/atom-shell/issues/380
