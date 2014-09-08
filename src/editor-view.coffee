@@ -147,8 +147,7 @@ class EditorView extends View
     @focus() if @focusOnAttach
 
     @addGrammarScopeAttribute()
-    @subscribe @editor, 'grammar-changed', =>
-      @addGrammarScopeAttribute()
+    @subscribe @editor.onDidChangeGrammar => @addGrammarScopeAttribute()
 
     @trigger 'editor:attached', [this]
 
