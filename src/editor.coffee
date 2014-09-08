@@ -328,6 +328,9 @@ class Editor extends Model
   onDidRemoveCursor: (callback) ->
     @emitter.on 'did-remove-cursor', callback
 
+  onDidMoveCursor: (callback) ->
+    @emitter.on 'did-move-cursor', callback
+
   onDidAddSelection: (callback) ->
     @emitter.on 'did-add-selection', callback
 
@@ -380,6 +383,8 @@ class Editor extends Model
         deprecate("Use Editor::onDidAddCursor instead")
       when 'cursor-removed'
         deprecate("Use Editor::onDidRemoveCursor instead")
+      when 'cursor-moved'
+        deprecate("Use Editor::onDidMoveCursor instead")
 
       when 'selection-added'
         deprecate("Use Editor::onDidAddSelection instead")
@@ -1941,6 +1946,7 @@ class Editor extends Model
 
   cursorMoved: (cursor, event) ->
     @emit 'cursor-moved', event
+    @emitter.emit 'did-move-cursor', event
 
   # Merge cursors that have the same screen position
   mergeCursors: ->
