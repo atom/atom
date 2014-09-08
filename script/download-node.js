@@ -55,6 +55,16 @@ var copyNodeBinToLocation = function(callback, version, targetFilename, fromDire
   });
 };
 
+var getInstallNodeVersion = function(filename, callback) {
+  require('child_process').exec(filename + ' -v', function(error, stdout) {
+    var version = null;
+    if (stdout != null) {
+      version = stdout.toString().trim();
+    }
+    callback(error, version);
+  });
+}
+
 var downloadNode = function(version, done) {
   var arch, downloadURL, filename;
   if (process.platform === 'win32') {
@@ -69,15 +79,28 @@ var downloadNode = function(version, done) {
     downloadURL = "http://nodejs.org/dist/" + version + "/node-" + version + "-" + process.platform + "-" + arch + ".tar.gz";
     filename = path.join('bin', "node");
   }
+
+  var downloadFile = function() {
+    if (process.platform === 'win32') {
+      downloadFileToLocation(downloadURL, filename, done);
+    } else {
+      var next = copyNodeBinToLocation.bind(this, done, version, filename);
+      downloadTarballAndExtract(downloadURL, filename, next);
+    }
+  };
+
   if (fs.existsSync(filename)) {
-    done();
-    return;
-  }
-  if (process.platform === 'win32') {
-    return downloadFileToLocation(downloadURL, filename, done);
+    getInstallNodeVersion(filename, function(error, installedVersion) {
+      if(error != null) {
+        done(error);
+      } else if (installedVersion !== version) {
+        downloadFile();
+      } else {
+        done();
+      }
+    });
   } else {
-    var next = copyNodeBinToLocation.bind(this, done, version, filename);
-    return downloadTarballAndExtract(downloadURL, filename, next);
+    downloadFile();
   }
 };
 
