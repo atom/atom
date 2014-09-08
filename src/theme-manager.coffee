@@ -5,7 +5,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
 
-{$} = require './space-pen-extensions'
 Package = require './package'
 {File} = require 'pathwatcher'
 
