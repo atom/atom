@@ -305,7 +305,7 @@ class Editor extends Model
     @displayBuffer.onDidChangeSoftWrapped(callback)
 
   onDidChangeGrammar: (callback) ->
-    @displayBuffer.onDidChangeGrammar(callback)
+    @emitter.on 'did-change-grammar', callback
 
   onDidChangeCharacterWidths: (callback) ->
     @displayBuffer.onDidChangeCharacterWidths(callback)
@@ -2534,6 +2534,7 @@ class Editor extends Model
   handleGrammarChange: ->
     @unfoldAll()
     @emit 'grammar-changed'
+    @emitter.emit 'did-change-grammar'
 
   handleMarkerCreated: (marker) =>
     if marker.matchesAttributes(@getSelectionMarkerAttributes())
