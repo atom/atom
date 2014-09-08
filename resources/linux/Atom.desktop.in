@@ -6,3 +6,4 @@ Icon=<%= iconName %>
 Type=Application
 StartupNotify=true
 Categories=GNOME;GTK;Utility;TextEditor;
+MimeType=text/plain;
