@@ -243,11 +243,11 @@ class ThemeManager
         @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
       else
         @lessCache.read(lessStylesheetPath)
-    catch e
+    catch error
       console.error """
         Error compiling less stylesheet: #{lessStylesheetPath}
-        Line number: #{e.line}
-        #{e.message}
+        Line number: #{error.line}
+        #{error.message}
       """
 
   stringToId: (string) ->
