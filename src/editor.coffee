@@ -4,6 +4,7 @@ Serializable = require 'serializable'
 Delegator = require 'delegato'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
+EmitterMixin = require('emissary').Emitter
 {Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
@@ -262,10 +263,12 @@ class Editor extends Model
 
   subscribeToDisplayBuffer: ->
     @subscribe @displayBuffer.onDidCreateMarker @handleMarkerCreated
-    @subscribe @displayBuffer.onDidChange (e) => @emit 'screen-lines-changed', e
     @subscribe @displayBuffer.onDidUpdateMarkers => @mergeIntersectingSelections()
     @subscribe @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
     @subscribe @displayBuffer.onDidTokenize => @handleTokenization()
+    @subscribe @displayBuffer.onDidChange (e) =>
+      @emit 'screen-lines-changed', e
+      @emitter.emit 'did-change-screen-lines', e
 
     # TODO: remove these when we remove the deprecations. Though, no one is likely using them
     @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
@@ -332,6 +335,17 @@ class Editor extends Model
 
   onDidRemoveDecoration: (callback) ->
     @displayBuffer.onDidRemoveDecoration(callback)
+
+  onDidChangeScreenLines: (callback) ->
+    @emitter.on 'did-change-screen-lines', callback
+
+  on: (eventName) ->
+    switch eventName
+
+      when 'screen-lines-changed'
+        deprecate("Use Editor::onDidChangeScreenLines instead")
+
+    EmitterMixin::on.apply(this, arguments)
 
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
