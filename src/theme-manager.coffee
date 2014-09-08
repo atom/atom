@@ -16,23 +16,23 @@ Package = require './package'
 #
 # ### reloaded
 #
-# Extended: Emit when all styles have been reloaded.
+# Extended: Emitted when all styles have been reloaded.
 #
 # ### stylesheet-added
 #
-# Extended: Emit when a stylesheet has been added.
+# Extended: Emitted when a stylesheet has been added.
 #
 # * `stylesheet` {StyleSheet} object that was removed
 #
 # ### stylesheet-removed
 #
-# Extended: Emit when a stylesheet has been removed.
+# Extended: Emitted when a stylesheet has been removed.
 #
 # * `stylesheet` {StyleSheet} object that was removed
 #
 # ### stylesheets-changed
 #
-# Extended: Emit anytime any style sheet is added or removed from the editor
+# Extended: Emitted anytime any style sheet is added or removed from the editor
 #
 module.exports =
 class ThemeManager
