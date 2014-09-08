@@ -2,11 +2,11 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 {Emitter} = require 'emissary'
+{File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
 
 Package = require './package'
-{File} = require 'pathwatcher'
 
 # Extended: Handles loading and activating available themes.
 #
