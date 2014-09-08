@@ -226,8 +226,12 @@ class Editor extends Model
 
     @languageMode = new LanguageMode(this)
 
-    @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
-    @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
+    @subscribe @$scrollTop, (scrollTop) =>
+      @emit 'scroll-top-changed', scrollTop
+      @emitter.emit 'did-change-scroll-top', scrollTop
+    @subscribe @$scrollLeft, (scrollLeft) =>
+      @emit 'scroll-left-changed', scrollLeft
+      @emitter.emit 'did-change-scroll-left', scrollLeft
 
     @subscribe atom.config.observe 'editor.showInvisibles', callNow: false, (show) => @updateInvisibles()
     @subscribe atom.config.observe 'editor.invisibles', callNow: false, => @updateInvisibles()
@@ -255,10 +259,13 @@ class Editor extends Model
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
       @emitter.emit 'did-change-path', @getPath()
+    @subscribe @buffer.onDidDestroy => @destroy()
+
+    # TODO: remove these thwne we remove the deprecations. They are old events.
     @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
     @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
     @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
-    @subscribe @buffer.onDidDestroy => @destroy()
+
     @preserveCursorPositionOnBufferReload()
 
   subscribeToDisplayBuffer: ->
@@ -339,6 +346,12 @@ class Editor extends Model
   onDidChangeScreenLines: (callback) ->
     @emitter.on 'did-change-screen-lines', callback
 
+  onDidChangeScrollTop: (callback) ->
+    @emitter.on 'did-change-scroll-top', callback
+
+  onDidChangeScrollLeft: (callback) ->
+    @emitter.on 'did-change-scroll-left', callback
+
   on: (eventName) ->
     switch eventName
       when 'title-changed'
@@ -384,6 +397,11 @@ class Editor extends Model
 
       when 'screen-lines-changed'
         deprecate("Use Editor::onDidChangeScreenLines instead")
+
+      when 'scroll-top-changed'
+        deprecate("Use Editor::onDidChangeScrollTop instead")
+      when 'scroll-left-changed'
+        deprecate("Use Editor::onDidChangeScrollLeft instead")
 
     EmitterMixin::on.apply(this, arguments)
 
