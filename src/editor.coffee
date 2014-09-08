@@ -337,6 +337,9 @@ class Editor extends Model
   onDidRemoveSelection: (callback) ->
     @emitter.on 'did-remove-selection', callback
 
+  onDidChangeSelectionScreenRange: (callback) ->
+    @emitter.on 'did-change-selection-screen-range', callback
+
   observeDecorations: (callback) ->
     @displayBuffer.observeDecorations(callback)
 
@@ -390,6 +393,8 @@ class Editor extends Model
         deprecate("Use Editor::onDidAddSelection instead")
       when 'selection-removed'
         deprecate("Use Editor::onDidRemoveSelection instead")
+      when 'selection-screen-range-changed'
+        deprecate("Use Editor::onDidChangeSelectionScreenRange instead")
 
       when 'decoration-added'
         deprecate("Use Editor::onDidAddDecoration instead")
@@ -2428,6 +2433,7 @@ class Editor extends Model
 
   selectionScreenRangeChanged: (selection) ->
     @emit 'selection-screen-range-changed', selection
+    @emitter.emit 'did-change-selection-screen-range', selection
 
 
   ###
