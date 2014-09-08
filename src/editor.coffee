@@ -341,6 +341,46 @@ class Editor extends Model
 
   on: (eventName) ->
     switch eventName
+      when 'title-changed'
+        deprecate("Use Editor::onDidChangeTitle instead")
+      when 'path-changed'
+        deprecate("Use Editor::onDidChangePath instead")
+      when 'modified-status-changed'
+        deprecate("Use Editor::onDidChangeModified instead")
+      when 'soft-wrap-changed'
+        deprecate("Use Editor::onDidChangeSoftWrapped instead")
+      when 'grammar-changed'
+        deprecate("Use Editor::onDidChangeGrammar instead")
+      when 'character-widths-changed'
+        deprecate("Use Editor::onDidChangeCharacterWidths instead")
+      when 'contents-modified'
+        deprecate("Use Editor::onDidStopChanging instead")
+      when 'contents-conflicted'
+        deprecate("Use Editor::onDidConflict instead")
+
+      when 'will-insert-text'
+        deprecate("Use Editor::onWillInsertText instead")
+      when 'did-insert-text'
+        deprecate("Use Editor::onDidInsertText instead")
+
+      when 'cursor-added'
+        deprecate("Use Editor::onDidAddCursor instead")
+      when 'cursor-removed'
+        deprecate("Use Editor::onDidRemoveCursor instead")
+
+      when 'selection-added'
+        deprecate("Use Editor::onDidAddSelection instead")
+      when 'selection-removed'
+        deprecate("Use Editor::onDidRemoveSelection instead")
+
+      when 'decoration-added'
+        deprecate("Use Editor::onDidAddDecoration instead")
+      when 'decoration-removed'
+        deprecate("Use Editor::onDidRemoveDecoration instead")
+      when 'decoration-updated'
+        deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `Editor::decorateMarker()`")
+      when 'decoration-changed'
+        deprecate("Use Marker::onDidChange instead. eg. `editor::decorateMarker(...).getMarker().onDidChange()`")
 
       when 'screen-lines-changed'
         deprecate("Use Editor::onDidChangeScreenLines instead")
