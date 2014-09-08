@@ -46,7 +46,7 @@ class Link extends Command
     try
       fs.unlinkSync(targetPath) if fs.isSymbolicLinkSync(targetPath)
       fs.makeTreeSync path.dirname(targetPath)
-      fs.safeSymlinkSync(linkPath, targetPath)
+      fs.symlinkSync(linkPath, targetPath, 'junction')
       console.log "#{targetPath} -> #{linkPath}"
       callback()
     catch error
