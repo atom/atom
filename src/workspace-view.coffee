@@ -240,7 +240,8 @@ class WorkspaceView extends View
   #
   # Returns an {Array} of {EditorView}s.
   getEditorViews: ->
-    @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
+    for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
+      $(editorElement).view()
 
   # Public: Prepend an element or view to the panels at the top of the
   # workspace.
