@@ -1,9 +1,12 @@
 {basename, join} = require 'path'
 
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
+{deprecate} = require 'grim'
 
 Task = require './task'
 
@@ -41,7 +44,7 @@ Task = require './task'
 # ```
 module.exports =
 class Git
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
 
   # Public: Creates a new Git instance.
@@ -67,6 +70,7 @@ class Git
       false
 
   constructor: (path, options={}) ->
+    @emitter = new Emitter
     @repo = GitUtils.open(path)
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
@@ -87,6 +91,32 @@ class Git
 
     if @project?
       @subscribe @project.observeBuffers (buffer) => @subscribeToBuffer(buffer)
+
+  ###
+  Section: Events
+  ###
+
+  # Essential: When the {Decoration} is updated via {Decoration::update}.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `path` {String} the old parameters the decoration used to have
+  #     * `pathStatus` {Number} representing the status. This value can be passed to
+  #       {::isStatusModified} or {::isStatusNew} to get more information.
+  onDidChangeStatus: (callback) ->
+    @emitter.on 'did-change-status', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'status-changed'
+        deprecate 'Use Git::onDidChangeStatus instead'
+      else
+        deprecate 'Git::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Methods
+  ###
 
   # Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
@@ -171,6 +201,8 @@ class Git
       delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
       @emit 'status-changed', path, pathStatus
+      @emitter.emit 'did-change-status', {path, pathStatus}
+
     pathStatus
 
   # Public: Is the given path ignored?
