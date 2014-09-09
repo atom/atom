@@ -55,10 +55,36 @@ class ThemeManager
   onDidReloadAll: (callback) ->
     @emitter.on 'did-reload-all', callback
 
+  # Essential: Invoke `callback` when a stylesheet has been added to the dom.
+  #
+  # * `callback` {Function}
+  #   * `stylesheet` {HTMLElement} the style node
+  onDidAddStylesheet: (callback) ->
+    @emitter.on 'did-add-stylesheet', callback
+
+  # Essential: Invoke `callback` when a stylesheet has been removed from the dom.
+  #
+  # * `callback` {Function}
+  #   * `stylesheet` {HTMLElement} the style node
+  onDidRemoveStylesheet: (callback) ->
+    @emitter.on 'did-remove-stylesheet', callback
+
+  # Essential: Invoke `callback` when any stylesheet has been updated, added, or removed.
+  #
+  # * `callback` {Function}
+  onDidChangeStylesheets: (callback) ->
+    @emitter.on 'did-change-stylesheets', callback
+
   on: (eventName) ->
     switch eventName
       when 'reloaded'
         deprecate 'Use ThemeManager::onDidReloadAll instead'
+      when 'stylesheet-added'
+        deprecate 'Use ThemeManager::onDidAddStylesheet instead'
+      when 'stylesheet-removed'
+        deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
+      when 'stylesheets-changed'
+        deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
       else
         deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
@@ -286,7 +312,9 @@ class ThemeManager
       {sheet} = element
       element.remove()
       @emit 'stylesheet-removed', sheet
+      @emitter.emit 'did-remove-stylesheet', sheet
       @emit 'stylesheets-changed'
+      @emitter.emit 'did-change-stylesheets'
 
   applyStylesheet: (path, text, type='bundled') ->
     styleId = @stringToId(path)
@@ -294,6 +322,7 @@ class ThemeManager
 
     if styleElement?
       @emit 'stylesheet-removed', styleElement.sheet
+      @emitter.emit 'did-remove-stylesheet', styleElement.sheet
       styleElement.textContent = text
     else
       styleElement = document.createElement('style')
@@ -308,4 +337,6 @@ class ThemeManager
         document.head.appendChild(styleElement)
 
     @emit 'stylesheet-added', styleElement.sheet
+    @emitter.emit 'did-add-stylesheet', styleElement.sheet
     @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
