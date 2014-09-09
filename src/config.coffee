@@ -45,7 +45,7 @@ module.exports =
     process.env.ATOM_API_URL ? 'https://atom.io/api'
 
   getNodeVersion: ->
-    process.env.ATOM_NODE_VERSION ? '0.11.13'
+    process.env.ATOM_NODE_VERSION ? '0.16.0'
 
   getNodeArch: ->
     switch process.platform
