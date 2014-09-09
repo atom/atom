@@ -208,7 +208,7 @@ describe "Git", ->
     it "returns status information for all new and modified files", ->
       fs.writeFileSync(modifiedPath, 'making this path modified')
       statusHandler = jasmine.createSpy('statusHandler')
-      repo.on 'statuses-changed', statusHandler
+      repo.onDidChangeStatuses statusHandler
       repo.refreshStatus()
 
       waitsFor ->

@@ -106,10 +106,21 @@ class Git
   onDidChangeStatus: (callback) ->
     @emitter.on 'did-change-status', callback
 
+  # Essential: Invoke the given callback when a multiple files' statuses have
+  # changed. For example, on window focus, the status of all the paths in the
+  # repo is checked. If any of them have changed, this will be fired. Call
+  # {::getPathStatus(path)} to get the status for your path of choice.
+  #
+  # * `callback` {Function}
+  onDidChangeStatuses: (callback) ->
+    @emitter.on 'did-change-statuses', callback
+
   on: (eventName) ->
     switch eventName
       when 'status-changed'
         deprecate 'Use Git::onDidChangeStatus instead'
+      when 'statuses-changed'
+        deprecate 'Use Git::onDidChangeStatuses instead'
       else
         deprecate 'Git::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
@@ -423,4 +434,6 @@ class Git
       for submodulePath, submoduleRepo of @getRepo().submodules
         submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
-      @emit 'statuses-changed' unless statusesUnchanged
+      unless statusesUnchanged
+        @emit 'statuses-changed'
+        @emitter.emit 'did-change-statuses'
