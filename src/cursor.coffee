@@ -9,31 +9,6 @@ Grim = require 'grim'
 #
 # Cursors belong to {Editor}s and have some metadata attached in the form
 # of a {Marker}.
-#
-# ## Events
-#
-# ### moved
-#
-# Extended: Emit when a cursor has been moved. If there are multiple cursors,
-# it will be emit for each cursor.
-#
-# * `event` {Object}
-#   * `oldBufferPosition` {Point}
-#   * `oldScreenPosition` {Point}
-#   * `newBufferPosition` {Point}
-#   * `newScreenPosition` {Point}
-#   * `textChanged` {Boolean}
-#
-# ### destroyed
-#
-# Extended: Emit when the cursor is destroyed
-#
-# ### visibility-changed
-#
-# Extended: Emit when the Cursor is hidden or shown
-#
-# * `visible` {Boolean} true when cursor is visible
-#
 module.exports =
 class Cursor extends Model
   screenPosition: null
@@ -79,11 +54,30 @@ class Cursor extends Model
       @emitter.dispose()
     @needsAutoscroll = true
 
+  # Essential: Calls your `callback` when the cursor has been moved.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldBufferPosition` {Point}
+  #     * `oldScreenPosition` {Point}
+  #     * `newBufferPosition` {Point}
+  #     * `newScreenPosition` {Point}
+  #     * `textChanged` {Boolean}
   onDidChangePosition: (callback) ->
     @emitter.on 'did-change-position', callback
 
+  # Extended: Calls your `callback` when the cursor is destroyed
+  #
+  # * `callback` {Function}
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
+
+  # Extended: Calls your `callback` when the cursor's visibility has changed
+  #
+  # * `callback` {Function}
+  #   * `visibility` {Boolean}
+  onDidChangeVisibility: (callback) ->
+    @emitter.on 'did-change-visibility', callback
 
   on: (eventName) ->
     switch eventName
@@ -91,7 +85,10 @@ class Cursor extends Model
         Grim.deprecate("Use Cursor::onDidChangePosition instead")
       when 'destroyed'
         Grim.deprecate("Use Cursor::onDidDestroy instead")
-
+      when 'destroyed'
+        Grim.deprecate("Use Cursor::onDidDestroy instead")
+      else
+        Grim.deprecate("::on is no longer supported. Use the event subscription methods instead")
     super
 
   destroy: ->
@@ -153,6 +150,7 @@ class Cursor extends Model
       @visible = visible
       @needsAutoscroll ?= true if @visible and @isLastCursor()
       @emit 'visibility-changed', @visible
+      @emitter.emit 'did-change-visibility', @visible
 
   # Public: Returns the visibility of the cursor.
   isVisible: -> @visible
