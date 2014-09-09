@@ -30,6 +30,10 @@ class Selection extends Model
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
+  ###
+  Section: Events
+  ###
+
   # Extended: Calls your `callback` when the selection was moved.
   #
   # * `callback` {Function}
@@ -51,6 +55,10 @@ class Selection extends Model
         Grim.deprecate("Use Selection::onDidDestroy instead.")
 
     super
+
+  ###
+  Section: Methods
+  ###
 
   destroy: ->
     @marker.destroy()

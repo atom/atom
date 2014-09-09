@@ -54,6 +54,10 @@ class Cursor extends Model
       @emitter.dispose()
     @needsAutoscroll = true
 
+  ###
+  Section: Events
+  ###
+
   # Essential: Calls your `callback` when the cursor has been moved.
   #
   # * `callback` {Function}
@@ -90,6 +94,10 @@ class Cursor extends Model
       else
         Grim.deprecate("::on is no longer supported. Use the event subscription methods instead")
     super
+
+  ###
+  Section: Methods
+  ###
 
   destroy: ->
     @marker.destroy()
