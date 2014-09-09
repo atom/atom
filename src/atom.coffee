@@ -408,20 +408,19 @@ class Atom extends Model
   # ## Examples
   #
   # ```coffee
-  #   atom.confirm
-  #     message: 'How you feeling?'
-  #     detailedMessage: 'Be honest.'
-  #     buttons:
-  #       Good: -> window.alert('good to hear')
-  #       Bad:  -> window.alert('bummer')
+  # atom.confirm
+  #   message: 'How you feeling?'
+  #   detailedMessage: 'Be honest.'
+  #   buttons:
+  #     Good: -> window.alert('good to hear')
+  #     Bad:  -> window.alert('bummer')
   # ```
   #
   # * `options` An {Object} with the following keys:
   #   * `message` The {String} message to display.
   #   * `detailedMessage` The {String} detailed message to display.
   #   * `buttons` Either an array of strings or an object where keys are
-  #               button names and the values are callbacks to invoke when
-  #               clicked.
+  #     button names and the values are callbacks to invoke when clicked.
   #
   # Returns the chosen button index {Number} if the buttons option was an array.
   confirm: ({message, detailedMessage, buttons}={}) ->
