@@ -1,5 +1,6 @@
 {Disposable, CompositeDisposable} = require 'event-kit'
 {specificity} = require 'clear-cut'
+_ = require 'underscore-plus'
 
 SequenceCount = 0
 SpecificityCache = {}
@@ -66,6 +67,22 @@ class CommandRegistry
       break if propagationStopped
       break if currentTarget is @rootNode
       currentTarget = currentTarget.parentNode
+
+  findCommands: ({target}) ->
+    commands = []
+    currentTarget = target
+    loop
+      for commandName, listeners of @listenersByCommandName
+        for listener in listeners
+          if currentTarget.webkitMatchesSelector(listener.selector)
+            commands.push
+              name: commandName
+              displayName: _.humanizeEventName(commandName)
+
+      break if currentTarget is @rootNode
+      currentTarget = currentTarget.parentNode
+
+    commands
 
 class CommandListener
   constructor: (@selector, @callback) ->

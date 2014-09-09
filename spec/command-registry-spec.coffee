@@ -111,3 +111,16 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
       grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
       expect(calls).toEqual []
+
+  describe "::findCommands({target})", ->
+    it "returns commands that can be invoked on the target or its ancestors", ->
+      registry.add '.parent', 'namespace:command-1', ->
+      registry.add '.child', 'namespace:command-2', ->
+      registry.add '.grandchild', 'namespace:command-3', ->
+      registry.add '.grandchild.no-match', 'namespace:command-4', ->
+
+      expect(registry.findCommands(target: grandchild)).toEqual [
+        {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
+        {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
+        {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
+      ]
