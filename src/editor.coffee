@@ -262,8 +262,8 @@ class Editor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
-  onDidMoveCursor: (callback) ->
-    @emitter.on 'did-move-cursor', callback
+  onDidChangeCursorPosition: (callback) ->
+    @emitter.on 'did-change-cursor-position', callback
 
   # Extended: Calls your `callback` when a {Selection} is added to the editor.
   #
@@ -349,7 +349,7 @@ class Editor extends Model
       when 'cursor-removed'
         deprecate("Use Editor::onDidRemoveCursor instead")
       when 'cursor-moved'
-        deprecate("Use Editor::onDidMoveCursor instead")
+        deprecate("Use Editor::onDidChangeCursorPosition instead")
 
       when 'selection-added'
         deprecate("Use Editor::onDidAddSelection instead")
@@ -1913,7 +1913,7 @@ class Editor extends Model
 
   cursorMoved: (cursor, event) ->
     @emit 'cursor-moved', event
-    @emitter.emit 'did-move-cursor', event
+    @emitter.emit 'did-change-cursor-position', event
 
   # Merge cursors that have the same screen position
   mergeCursors: ->
