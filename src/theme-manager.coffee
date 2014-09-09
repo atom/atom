@@ -13,29 +13,6 @@ Package = require './package'
 # Extended: Handles loading and activating available themes.
 #
 # An instance of this class is always available as the `atom.themes` global.
-#
-# ## Events
-#
-# ### reloaded
-#
-# Extended: Emitted when all styles have been reloaded.
-#
-# ### stylesheet-added
-#
-# Extended: Emitted when a stylesheet has been added.
-#
-# * `stylesheet` {StyleSheet} object that was removed
-#
-# ### stylesheet-removed
-#
-# Extended: Emitted when a stylesheet has been removed.
-#
-# * `stylesheet` {StyleSheet} object that was removed
-#
-# ### stylesheets-changed
-#
-# Extended: Emitted anytime any style sheet is added or removed from the editor
-#
 module.exports =
 class ThemeManager
   EmitterMixin.includeInto(this)
