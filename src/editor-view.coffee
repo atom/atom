@@ -135,7 +135,7 @@ class EditorView extends View
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
-  Object.defineProperty @::, 'active', get: -> @is(@getPane()?.activeView)
+  Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
   Object.defineProperty @::, 'mini', get: -> @component?.props.mini
 
@@ -218,7 +218,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
   splitRight: ->
@@ -227,7 +227,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitRight(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
   splitUp: ->
@@ -236,7 +236,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitUp(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
   splitDown: ->
@@ -245,7 +245,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitDown(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
   # Public: Get this {EditorView}'s {PaneView}.
