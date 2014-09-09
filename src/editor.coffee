@@ -52,126 +52,6 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # **When in doubt, just default to buffer coordinates**, then experiment with
 # soft wraps and folds to ensure your code interacts with them correctly.
-#
-# ## Events
-#
-# ### path-changed
-#
-# Essential: Emit when the buffer's path, and therefore title, has changed.
-#
-# ### title-changed
-#
-# Essential: Emit when the buffer's path, and therefore title, has changed.
-#
-# ### modified-status-changed
-#
-# Extended: Emit when the result of {::isModified} changes.
-#
-# ### soft-wrap-changed
-#
-# Extended: Emit when soft wrap was enabled or disabled.
-#
-# * `softWrapped` {Boolean} indicating whether soft wrap is enabled or disabled.
-#
-# ### grammar-changed
-#
-# Extended: Emit when the grammar that interprets and colorizes the text has
-# been changed.
-#
-#
-#
-# ### contents-modified
-#
-# Essential: Emit when the buffer's contents change. It is emit asynchronously
-# 300ms after the last buffer change. This is a good place to handle changes to
-# the buffer without compromising typing performance.
-#
-# ### contents-conflicted
-#
-# Extended: Emitted when the buffer's underlying file changes on disk at a
-# moment when the result of {::isModified} is true.
-#
-# ### will-insert-text
-#
-# Extended: Emit before the text has been inserted.
-#
-# * `event` event {Object}
-#   * `text` {String} text to be inserted
-#   * `cancel` {Function} Call to prevent the text from being inserted
-#
-# ### did-insert-text
-#
-# Extended: Emit after the text has been inserted.
-#
-# * `event` event {Object}
-#   * `text` {String} text to be inserted
-#
-#
-#
-# ### cursor-moved
-#
-# Essential: Emit when a cursor has been moved. If there are multiple cursors,
-# it will be emit for each cursor.
-#
-# * `event` {Object}
-#   * `oldBufferPosition` {Point}
-#   * `oldScreenPosition` {Point}
-#   * `newBufferPosition` {Point}
-#   * `newScreenPosition` {Point}
-#   * `textChanged` {Boolean}
-#
-# ### cursor-added
-#
-# Extended: Emit when a cursor has been added.
-#
-# * `cursor` {Cursor} that was added
-#
-# ### cursor-removed
-#
-# Extended: Emit when a cursor has been removed.
-#
-# * `cursor` {Cursor} that was removed
-#
-#
-#
-# ### selection-screen-range-changed
-#
-# Essential: Emit when a selection's screen range changes.
-#
-# * `selection`: {Selection} object that has a changed range
-#
-# ### selection-added
-#
-# Extended: Emit when a selection's was added.
-#
-# * `selection`: {Selection} object that was added
-#
-# ### selection-removed
-#
-# Extended: Emit when a selection's was removed.
-#
-# * `selection`: {Selection} object that was removed
-#
-#
-#
-# ### decoration-added
-#
-# Extended: Emit when a {Decoration} is added to the editor.
-#
-# * `decoration` {Decoration} that was added
-#
-# ### decoration-removed
-#
-# Extended: Emit when a {Decoration} is removed from the editor.
-#
-# * `decoration` {Decoration} that was removed
-#
-# ### decoration-updated
-#
-# Extended: Emit when a {Decoration} is updated via the {Decoration::update} method.
-#
-# * `decoration` {Decoration} that was updated
-#
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
@@ -292,62 +172,144 @@ class Editor extends Model
     @displayBuffer.destroy()
     @languageMode.destroy()
 
+  ###
+  Section: Events
+  ###
+
+  # Essential: Calls your `callback` when the buffer's title has changed.
+  #
+  # * `callback` {Function}
   onDidChangeTitle: (callback) ->
     @emitter.on 'did-change-title', callback
 
+  # Essential: Calls your `callback` when the buffer's path, and therefore title, has changed.
+  #
+  # * `callback` {Function}
   onDidChangePath: (callback) ->
     @emitter.on 'did-change-path', callback
 
-  onDidChangeModified: (callback) ->
-    @getBuffer().onDidChangeModified(callback)
-
+  # Extended: Calls your `callback` when soft wrap was enabled or disabled.
+  #
+  # * `callback` {Function}
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
 
+  # Extended: Calls your `callback` when the grammar that interprets and colorizes the text has
+  # been changed.
+  #
+  # * `callback` {Function}
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 
-  onDidChangeCharacterWidths: (callback) ->
-    @displayBuffer.onDidChangeCharacterWidths(callback)
-
+  # Essential: Calls your `callback` when the buffer's contents change. It is
+  # emit asynchronously 300ms after the last buffer change. This is a good place
+  # to handle changes to the buffer without compromising typing performance.
+  #
+  # * `callback` {Function}
   onDidStopChanging: (callback) ->
     @getBuffer().onDidStopChanging(callback)
 
+  # Extended: Calls your `callback` when the result of {::isModified} changes.
+  #
+  # * `callback` {Function}
+  onDidChangeModified: (callback) ->
+    @getBuffer().onDidChangeModified(callback)
+
+  # Extended: Calls your `callback` when the buffer's underlying file changes on
+  # disk at a moment when the result of {::isModified} is true.
+  #
+  # * `callback` {Function}
   onDidConflict: (callback) ->
     @getBuffer().onDidConflict(callback)
 
+  # Extended: Calls your `callback` before text has been inserted.
+  #
+  # * `callback` {Function}
+  #   * `event` event {Object}
+  #     * `text` {String} text to be inserted
+  #     * `cancel` {Function} Call to prevent the text from being inserted
   onWillInsertText: (callback) ->
     @emitter.on 'will-insert-text', callback
 
+  # Extended: Calls your `callback` adter text has been inserted.
+  #
+  # * `callback` {Function}
+  #   * `event` event {Object}
+  #     * `text` {String} text to be inserted
   onDidInsertText: (callback) ->
     @emitter.on 'did-insert-text', callback
 
+  # Extended: Calls your `callback` when a {Cursor} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `cursor` {Cursor} that was added
   onDidAddCursor: (callback) ->
     @emitter.on 'did-add-cursor', callback
 
+  # Extended: Calls your `callback` when a {Cursor} is removed to the editor.
+  #
+  # * `callback` {Function}
+  #   * `cursor` {Cursor} that was removed
   onDidRemoveCursor: (callback) ->
     @emitter.on 'did-remove-cursor', callback
 
+  # Essential: Calls your `callback` when a {Cursor} is removed to the editor.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldBufferPosition` {Point}
+  #     * `oldScreenPosition` {Point}
+  #     * `newBufferPosition` {Point}
+  #     * `newScreenPosition` {Point}
+  #     * `textChanged` {Boolean}
   onDidMoveCursor: (callback) ->
     @emitter.on 'did-move-cursor', callback
 
+  # Extended: Calls your `callback` when a {Selection} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was added
   onDidAddSelection: (callback) ->
     @emitter.on 'did-add-selection', callback
 
+  # Extended: Calls your `callback` when a {Selection} is removed from the editor.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was removed
   onDidRemoveSelection: (callback) ->
     @emitter.on 'did-remove-selection', callback
 
+  # Essential: Calls your `callback` when a selection's screen range changes.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that moved
   onDidChangeSelectionScreenRange: (callback) ->
     @emitter.on 'did-change-selection-screen-range', callback
 
+  # Extended: Calls your `callback` with each {Decoration} added to the editor.
+  # Calls your `callback` immediately for any existing decorations.
+  #
+  # * `callback` {Function}
+  #   * `decoration` {Decoration}
   observeDecorations: (callback) ->
     @displayBuffer.observeDecorations(callback)
 
+  # Extended: Calls your `callback` when a {Decoration} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `decoration` {Decoration} that was added
   onDidAddDecoration: (callback) ->
     @displayBuffer.onDidAddDecoration(callback)
 
+  # Extended: Calls your `callback` when a {Decoration} is removed from the editor.
+  #
+  # * `callback` {Function}
+  #   * `decoration` {Decoration} that was removed
   onDidRemoveDecoration: (callback) ->
     @displayBuffer.onDidRemoveDecoration(callback)
+
+  onDidChangeCharacterWidths: (callback) ->
+    @displayBuffer.onDidChangeCharacterWidths(callback)
 
   onDidChangeScreenLines: (callback) ->
     @emitter.on 'did-change-screen-lines', callback
