@@ -20,19 +20,6 @@ Git = require './git'
 # Extended: Represents a project that's opened in Atom.
 #
 # An instance of this class is always available as the `atom.project` global.
-#
-# ## Events
-#
-# ### path-changed
-#
-# Extended: Emit when the project's path has changed. Use {::getPath} to get the new path
-#
-# ### buffer-created
-#
-# Extended: Emit when a buffer is created. For example, when {::open} is called, this is fired.
-#
-# * `buffer` {TextBuffer} the new buffer that was created.
-#
 module.exports =
 class Project extends Model
   atom.deserializers.add(this)
@@ -94,6 +81,10 @@ class Project extends Model
       else
         deprecate 'Project::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Methods
+  ###
 
   serializeParams: ->
     path: @path
