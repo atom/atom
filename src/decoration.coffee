@@ -55,6 +55,26 @@ class Decoration
 
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
+  ###
+  Section: Events
+  ###
+
+  # Essential: When the {Decoration} is updated via {Decoration::update}.
+  #
+  # * `event` {Object}
+  #   * `oldProperties` {Object} the old parameters the decoration used to have
+  #   * `newProperties` {Object} the new parameters the decoration now has
+  onDidChangeProperties: (callback) ->
+    @emitter.on 'did-change-properties', callback
+
+  # Essential: Invoke the given callback when the {Decoration} is destroyed
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  ###
+  Section: Methods
+  ###
+
   # Essential: An id unique across all {Decoration} objects
   getId: -> @id
 
@@ -70,14 +90,6 @@ class Decoration
   # Returns {Boolean}
   isType: (type) ->
     Decoration.isType(@properties, type)
-
-  # Essential: When the {Decoration} is updated via {Decoration::update}.
-  #
-  # * `event` {Object}
-  #   * `oldProperties` {Object} the old parameters the decoration used to have
-  #   * `newProperties` {Object} the new parameters the decoration now has
-  onDidChangeProperties: (callback) ->
-    @emitter.on 'did-change-properties', callback
 
   # Essential: Returns the {Decoration}'s properties.
   getProperties: ->
@@ -105,10 +117,6 @@ class Decoration
   update: (newProperties) ->
     Grim.deprecate 'Use Decoration::setProperties instead'
     @setProperties(newProperties)
-
-  # Essential: Invoke the given callback when the {Decoration} is destroyed
-  onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
 
   # Essential: Destroy this marker.
   #
