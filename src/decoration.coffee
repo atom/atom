@@ -51,7 +51,7 @@ class Decoration
     @id = nextId()
     @properties.id = @id
     @flashQueue = null
-    @isDestroyed = false
+    @destroyed = false
 
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
@@ -96,7 +96,7 @@ class Decoration
   #
   # * `newProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
   setProperties: (newProperties) ->
-    return if @isDestroyed
+    return if @destroyed
     oldProperties = @properties
     @properties = newProperties
     @properties.id = @id
@@ -115,10 +115,10 @@ class Decoration
   # If you own the marker, you should use {Marker::destroy} which will destroy
   # this decoration.
   destroy: ->
-    return if @isDestroyed
+    return if @destroyed
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
-    @isDestroyed = true
+    @destroyed = true
     @emit 'destroyed'
     @emitter.emit 'did-destroy'
     @emitter.dispose()
