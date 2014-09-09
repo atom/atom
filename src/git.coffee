@@ -96,7 +96,9 @@ class Git
   Section: Events
   ###
 
-  # Essential: When the {Decoration} is updated via {Decoration::update}.
+  # Essential: Invoke the given callback when a specific file's status has
+  # changed. When a file is updated, reloaded, etc, and the status changes, this
+  # will be fired.
   #
   # * `callback` {Function}
   #   * `event` {Object}
