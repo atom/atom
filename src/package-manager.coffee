@@ -1,14 +1,16 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 Q = require 'q'
+{deprecate} = require 'grim'
 
 Package = require './package'
 ThemePackage = require './theme-package'
 
-# Public: Package manager for coordinating the lifecycle of Atom packages.
+# Extended: Package manager for coordinating the lifecycle of Atom packages.
 #
 # An instance of this class is always available as the `atom.packages` global.
 #
@@ -25,9 +27,10 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
   constructor: ({configDirPath, devMode, safeMode, @resourcePath}) ->
+    @emitter = new Emitter
     @packageDirPaths = []
     unless safeMode
       if devMode
@@ -40,6 +43,26 @@ class PackageManager
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
+
+  # Essential: Invoke the given callback when all packages have been activated.
+  #
+  # * `callback` {Function}
+  onDidActivateAll: (callback) ->
+    @emitter.on 'did-activate-all', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'loaded'
+        deprecate 'Use PackageManager::onDidLoadAll instead'
+      when 'activated'
+        deprecate 'Use PackageManager::onDidActivateAll instead'
+      else
+        deprecate 'PackageManager::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Methods
+  ###
 
   # Extended: Get the path to the apm command.
   #
@@ -83,6 +106,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       activator.activatePackages(packages)
     @emit 'activated'
+    @emitter.emit 'did-activate-all'
 
   # another type of package manager can handle other package types.
   # See ThemeManager
