@@ -1,10 +1,12 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
+{deprecate} = require 'grim'
 
 Package = require './package'
 
@@ -36,11 +38,34 @@ Package = require './package'
 #
 module.exports =
 class ThemeManager
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
   constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
+    @emitter = new Emitter
     @lessCache = null
     @packageManager.registerPackageActivator(this, ['theme'])
+
+  ###
+  Section: Events
+  ###
+
+  # Essential: Invoke `callback` when all styles have been reloaded.
+  #
+  # * `callback` {Function}
+  onDidReloadAll: (callback) ->
+    @emitter.on 'did-reload-all', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'reloaded'
+        deprecate 'Use ThemeManager::onDidReloadAll instead'
+      else
+        deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Methods
+  ###
 
   getAvailableNames: ->
     # TODO: Maybe should change to list all the available themes out there?
@@ -121,6 +146,7 @@ class ThemeManager
         @loadUserStylesheet()
         @reloadBaseStylesheets()
         @emit 'reloaded'
+        @emitter.emit 'did-reload-all'
         deferred.resolve()
 
     deferred.promise
