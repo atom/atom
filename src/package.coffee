@@ -4,8 +4,10 @@ _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 Q = require 'q'
+{deprecate} = require 'grim'
 
 $ = null # Defer require in case this is in the window-less browser process
 ScopedProperties = require './scoped-properties'
@@ -14,7 +16,7 @@ ScopedProperties = require './scoped-properties'
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
   @stylesheetsDir: 'stylesheets'
 
@@ -38,9 +40,32 @@ class Package
   mainModule: null
 
   constructor: (@path, @metadata) ->
+    @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
     @name = @metadata?.name ? path.basename(@path)
     @reset()
+
+  ###
+  Section: Events
+  ###
+
+  # Essential: Invoke the given callback when all packages have been activated.
+  #
+  # * `callback` {Function}
+  onDidDeactivate: (callback) ->
+    @emitter.on 'did-deactivate', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'deactivated'
+        deprecate 'Use Package::onDidDeactivate instead'
+      else
+        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Methods
+  ###
 
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @name)
@@ -243,7 +268,8 @@ class Package
     @deactivateResources()
     @deactivateConfig()
     @mainModule?.deactivate?() if @mainActivated
-    @emit('deactivated')
+    @emit 'deactivated'
+    @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()
