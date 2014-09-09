@@ -58,14 +58,14 @@ class ThemeManager
   # Essential: Invoke `callback` when a stylesheet has been added to the dom.
   #
   # * `callback` {Function}
-  #   * `stylesheet` {HTMLElement} the style node
+  #   * `stylesheet` {StyleSheet} the style node
   onDidAddStylesheet: (callback) ->
     @emitter.on 'did-add-stylesheet', callback
 
   # Essential: Invoke `callback` when a stylesheet has been removed from the dom.
   #
   # * `callback` {Function}
-  #   * `stylesheet` {HTMLElement} the style node
+  #   * `stylesheet` {StyleSheet} the style node
   onDidRemoveStylesheet: (callback) ->
     @emitter.on 'did-remove-stylesheet', callback
 
