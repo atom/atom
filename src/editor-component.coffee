@@ -345,8 +345,8 @@ EditorComponent = React.createClass
   observeEditor: ->
     {editor} = @props
     @subscribe editor.onDidChangeScreenLines(@onScreenLinesChanged)
-    @subscribe editor.onDidAddCursor(@onCursorAdded)
-    @subscribe editor.onDidAddSelection(@onSelectionAdded)
+    @subscribe editor.observeCursors(@onCursorAdded)
+    @subscribe editor.observeSelections(@onSelectionAdded)
     @subscribe editor.observeDecorations(@onDecorationAdded)
     @subscribe editor.onDidRemoveDecoration(@onDecorationRemoved)
     @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)

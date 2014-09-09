@@ -240,6 +240,15 @@ class Editor extends Model
     @emitter.on 'did-insert-text', callback
 
   # Extended: Calls your `callback` when a {Cursor} is added to the editor.
+  # Immediately calls your callback for each existing cursor.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was added
+  observeCursors: (callback) ->
+    callback(cursor) for cursor in @getCursors()
+    @onDidAddCursor(callback)
+
+  # Extended: Calls your `callback` when a {Cursor} is added to the editor.
   #
   # * `callback` {Function}
   #   * `cursor` {Cursor} that was added
@@ -265,6 +274,15 @@ class Editor extends Model
   #     * `textChanged` {Boolean}
   onDidChangeCursorPosition: (callback) ->
     @emitter.on 'did-change-cursor-position', callback
+
+  # Extended: Calls your `callback` when a {Selection} is added to the editor.
+  # Immediately calls your callback for each existing selection.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was added
+  observeSelections: (callback) ->
+    callback(selection) for selection in @getSelections()
+    @onDidAddSelection(callback)
 
   # Extended: Calls your `callback` when a {Selection} is added to the editor.
   #
