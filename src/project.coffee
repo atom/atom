@@ -6,7 +6,9 @@ fs = require 'fs-plus'
 Q = require 'q'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 {Directory} = require 'pathwatcher'
@@ -46,12 +48,32 @@ class Project extends Model
 
   constructor: ({path, @buffers}={}) ->
     @buffers ?= []
+    @emitter = new Emitter
 
     for buffer in @buffers
       do (buffer) =>
         buffer.onDidDestroy => @removeBuffer(buffer)
 
     @setPath(path)
+
+  ###
+  Section: Events
+  ###
+
+  # Essential: Invoke the given callback when the project's path has changed.
+  #
+  # * `callback` {Function}
+  #   * `path` the new path
+  onDidChangePath: (callback) ->
+    @emitter.on 'did-change-path', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'path-changed'
+        deprecate 'Use Project::onDidChangePath instead'
+      else
+        deprecate 'Project::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
 
   serializeParams: ->
     path: @path
@@ -98,7 +120,8 @@ class Project extends Model
     else
       @rootDirectory = null
 
-    @emit "path-changed"
+    @emit 'path-changed'
+    @emitter.emit 'did-change-path', @getPath()
 
   # Public: Returns the root {Directory} object for this project.
   getRootDirectory: ->
