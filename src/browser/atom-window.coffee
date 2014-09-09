@@ -25,7 +25,12 @@ class AtomWindow
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
 
-    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
+    @browserWindow = new BrowserWindow
+      show: false
+      title: 'Atom'
+      icon: @constructor.iconPath
+      'web-preferences':
+        'subpixel-font-scaling': false
     global.atomApplication.addWindow(this)
 
     @handleEvents()
