@@ -44,6 +44,16 @@ class PackageManager
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
 
+  ###
+  Section: Events
+  ###
+
+  # Essential: Invoke the given callback when all packages have been activated.
+  #
+  # * `callback` {Function}
+  onDidLoadAll: (callback) ->
+    @emitter.on 'did-load-all', callback
+
   # Essential: Invoke the given callback when all packages have been activated.
   #
   # * `callback` {Function}
@@ -183,6 +193,7 @@ class PackageManager
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
     @loadPackage(packagePath) for packagePath in packagePaths
     @emit 'loaded'
+    @emitter.emit 'did-load-all'
 
   loadPackage: (nameOrPath) ->
     return pack if pack = @getLoadedPackage(nameOrPath)
