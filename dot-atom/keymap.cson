@@ -13,6 +13,9 @@
 #   'enter': 'editor:newline'
 #
 # '.workspace':
-#   'ctrl-P': 'core:move-up'
+#   'ctrl-shift-p': 'core:move-up'
 #   'ctrl-p': 'core:move-down'
 #
+# You can find more information about keymaps in these guides:
+# * https://atom.io/docs/latest/customizing-atom#customizing-key-bindings
+# * https://atom.io/docs/latest/advanced/keymaps

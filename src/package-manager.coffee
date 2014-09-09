@@ -161,6 +161,8 @@ class PackageManager
     @emit 'loaded'
 
   loadPackage: (nameOrPath) ->
+    return pack if pack = @getLoadedPackage(nameOrPath)
+
     if packagePath = @resolvePackagePath(nameOrPath)
       name = path.basename(nameOrPath)
       return pack if pack = @getLoadedPackage(name)

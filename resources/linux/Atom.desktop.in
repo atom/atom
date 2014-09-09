@@ -5,4 +5,5 @@ Exec=<%= installDir %>/share/atom/atom %U
 Icon=<%= iconName %>
 Type=Application
 StartupNotify=true
-Categories=GNOME;GTK;Utility;TextEditor;
+Categories=GNOME;GTK;Utility;TextEditor;Development;
+MimeType=text/plain;

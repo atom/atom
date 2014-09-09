@@ -1,3 +1,4 @@
+path = require 'path'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 ipc = require 'ipc'
@@ -28,9 +29,11 @@ class WindowEventHandler
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
     @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
-      if fs.isDirectorySync(pathToOpen)
-        atom.project.setPath(pathToOpen) unless atom.project.getPath()
-      else
+      unless atom.project?.getPath()
+        if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
+          atom.project?.setPath(pathToOpen)
+
+      unless fs.isDirectorySync(pathToOpen)
         atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
     @subscribe $(window), 'beforeunload', =>

@@ -240,7 +240,8 @@ class WorkspaceView extends View
   #
   # Returns an {Array} of {EditorView}s.
   getEditorViews: ->
-    @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
+    for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
+      $(editorElement).view()
 
   # Public: Prepend an element or view to the panels at the top of the
   # workspace.
@@ -381,9 +382,9 @@ class WorkspaceView extends View
     @setEditorStyle('line-height', lineHeight)
 
   setEditorStyle: (property, value) ->
-    unless styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
+    unless styleNode = atom.themes.stylesheetElementForId('global-editor-styles')
       atom.themes.applyStylesheet('global-editor-styles', '.editor {}')
-      styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
+      styleNode = atom.themes.stylesheetElementForId('global-editor-styles')
 
     {sheet} = styleNode
     editorRule = sheet.cssRules[0]

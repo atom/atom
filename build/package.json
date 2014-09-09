@@ -27,7 +27,7 @@
     "harmony-collections": "~0.3.8",
     "json-front-matter": "~0.1.3",
     "legal-eagle": "~0.4.0",
-    "minidump": "~0.7",
+    "minidump": "~0.8",
     "normalize-package-data": "0.2.12",
     "npm": "~1.4.5",
     "rcedit": "~0.1.2",

@@ -2,12 +2,11 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 {Emitter} = require 'emissary'
+{File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
 
-{$} = require './space-pen-extensions'
 Package = require './package'
-{File} = require 'pathwatcher'
 
 # Extended: Handles loading and activating available themes.
 #
@@ -17,23 +16,23 @@ Package = require './package'
 #
 # ### reloaded
 #
-# Extended: Emit when all styles have been reloaded.
+# Extended: Emitted when all styles have been reloaded.
 #
 # ### stylesheet-added
 #
-# Extended: Emit when a stylesheet has been added.
+# Extended: Emitted when a stylesheet has been added.
 #
 # * `stylesheet` {StyleSheet} object that was removed
 #
 # ### stylesheet-removed
 #
-# Extended: Emit when a stylesheet has been removed.
+# Extended: Emitted when a stylesheet has been removed.
 #
 # * `stylesheet` {StyleSheet} object that was removed
 #
 # ### stylesheets-changed
 #
-# Extended: Emit anytime any style sheet is added or removed from the editor
+# Extended: Emitted anytime any style sheet is added or removed from the editor
 #
 module.exports =
 class ThemeManager
@@ -197,8 +196,8 @@ class ThemeManager
     if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
       @requireStylesheet(nativeStylesheetPath)
 
-  stylesheetElementForId: (id, htmlElement=$('html')) ->
-    htmlElement.find("""head style[id="#{id}"]""")
+  stylesheetElementForId: (id) ->
+    document.head.querySelector("""style[id="#{id}"]""")
 
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
@@ -208,16 +207,16 @@ class ThemeManager
 
   # Public: Resolve and apply the stylesheet specified by the path.
   #
-  # This supports both CSS and LESS stylsheets.
+  # This supports both CSS and Less stylsheets.
   #
   # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
   #   path or a relative path that will be resolved against the load path.
   #
   # Returns the absolute path to the required stylesheet.
-  requireStylesheet: (stylesheetPath, type = 'bundled', htmlElement) ->
+  requireStylesheet: (stylesheetPath, type='bundled') ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content, type = 'bundled', htmlElement)
+      @applyStylesheet(fullPath, content, type)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -244,11 +243,11 @@ class ThemeManager
         @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
       else
         @lessCache.read(lessStylesheetPath)
-    catch e
+    catch error
       console.error """
-        Error compiling less stylesheet: #{lessStylesheetPath}
-        Line number: #{e.line}
-        #{e.message}
+        Error compiling Less stylesheet: #{lessStylesheetPath}
+        Line number: #{error.line}
+        #{error.message}
       """
 
   stringToId: (string) ->
@@ -257,23 +256,30 @@ class ThemeManager
   removeStylesheet: (stylesheetPath) ->
     fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
     element = @stylesheetElementForId(@stringToId(fullPath))
-    if element.length > 0
-      stylesheet = element[0].sheet
+    if element?
+      {sheet} = element
       element.remove()
-      @emit 'stylesheet-removed', stylesheet
+      @emit 'stylesheet-removed', sheet
       @emit 'stylesheets-changed'
 
-  applyStylesheet: (path, text, type = 'bundled', htmlElement=$('html')) ->
-    styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
-    if styleElement.length
-      @emit 'stylesheet-removed', styleElement[0].sheet
-      styleElement.text(text)
-    else
-      styleElement = $("<style class='#{type}' id='#{@stringToId(path)}'>#{text}</style>")
-      if htmlElement.find("head style.#{type}").length
-        htmlElement.find("head style.#{type}:last").after(styleElement)
-      else
-        htmlElement.find("head").append(styleElement)
+  applyStylesheet: (path, text, type='bundled') ->
+    styleId = @stringToId(path)
+    styleElement = @stylesheetElementForId(styleId)
 
-    @emit 'stylesheet-added', styleElement[0].sheet
+    if styleElement?
+      @emit 'stylesheet-removed', styleElement.sheet
+      styleElement.textContent = text
+    else
+      styleElement = document.createElement('style')
+      styleElement.setAttribute('class', type)
+      styleElement.setAttribute('id', styleId)
+      styleElement.textContent = text
+
+      elementToInsertBefore = _.last(document.head.querySelectorAll("style.#{type}"))?.nextElementSibling
+      if elementToInsertBefore?
+        document.head.insertBefore(styleElement, elementToInsertBefore)
+      else
+        document.head.appendChild(styleElement)
+
+    @emit 'stylesheet-added', styleElement.sheet
     @emit 'stylesheets-changed'
