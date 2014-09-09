@@ -22,11 +22,12 @@ HighlightComponent = React.createClass
     {editor, decoration} = @props
     if decoration.id?
       @decoration = editor.decorationForId(decoration.id)
-      @decoration.on 'flash', @startFlashAnimation
+      @decorationDisposable = @decoration.onDidFlash @startFlashAnimation
       @startFlashAnimation()
 
   componentWillUnmount: ->
-    @decoration?.off 'flash', @startFlashAnimation
+    @decorationDisposable?.dispose()
+    @decorationDisposable = null
 
   startFlashAnimation: ->
     return unless flash = @decoration.consumeNextFlash()

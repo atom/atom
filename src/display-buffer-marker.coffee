@@ -1,10 +1,13 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
+Grim = require 'grim'
 
 module.exports =
 class DisplayBufferMarker
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
 
   bufferMarkerSubscription: null
@@ -13,8 +16,10 @@ class DisplayBufferMarker
   oldTailBufferPosition: null
   oldTailScreenPosition: null
   wasValid: true
+  deferredChangeEvents: null
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
+    @emitter = new Emitter
     @id = @bufferMarker.id
     @oldHeadBufferPosition = @getHeadBufferPosition()
     @oldHeadScreenPosition = @getHeadScreenPosition()
@@ -24,6 +29,21 @@ class DisplayBufferMarker
 
     @subscribe @bufferMarker.onDidDestroy => @destroyed()
     @subscribe @bufferMarker.onDidChange (event) => @notifyObservers(event)
+
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use DisplayBufferMarker::onDidChange instead")
+      when 'destroyed'
+        Grim.deprecate("Use DisplayBufferMarker::onDidDestroy instead")
+
+    EmitterMixin::on.apply(this, arguments)
 
   copy: (attributes) ->
     @displayBuffer.getMarker(@bufferMarker.copy(attributes).id)
@@ -199,6 +219,8 @@ class DisplayBufferMarker
   destroyed: ->
     delete @displayBuffer.markers[@id]
     @emit 'destroyed'
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
 
   notifyObservers: ({textChanged}) ->
     textChanged ?= false
@@ -215,7 +237,7 @@ class DisplayBufferMarker
       _.isEqual(newTailBufferPosition, @oldTailBufferPosition) and
       _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
 
-    @emit 'changed', {
+    changeEvent = {
       @oldHeadScreenPosition, newHeadScreenPosition,
       @oldTailScreenPosition, newTailScreenPosition,
       @oldHeadBufferPosition, newHeadBufferPosition,
@@ -224,8 +246,25 @@ class DisplayBufferMarker
       isValid
     }
 
+    if @deferredChangeEvents?
+      @deferredChangeEvents.push(changeEvent)
+    else
+      @emit 'changed', changeEvent
+      @emitter.emit 'did-change', changeEvent
+
     @oldHeadBufferPosition = newHeadBufferPosition
     @oldHeadScreenPosition = newHeadScreenPosition
     @oldTailBufferPosition = newTailBufferPosition
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
+
+  pauseChangeEvents: ->
+    @deferredChangeEvents = []
+
+  resumeChangeEvents: ->
+    if deferredChangeEvents = @deferredChangeEvents
+      @deferredChangeEvents = null
+
+      for event in deferredChangeEvents
+        @emit 'changed', event
+        @emitter.emit 'did-change', event

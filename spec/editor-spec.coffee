@@ -98,11 +98,11 @@ describe "Editor", ->
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
 
   describe "config defaults", ->
-    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
+    it "uses the `editor.tabLength`, `editor.softWrapped`, and `editor.softTabs` config values", ->
       editor1 = null
       editor2 = null
       atom.config.set('editor.tabLength', 4)
-      atom.config.set('editor.softWrap', true)
+      atom.config.set('editor.softWrapped', true)
       atom.config.set('editor.softTabs', false)
 
       waitsForPromise ->
@@ -110,11 +110,11 @@ describe "Editor", ->
 
       runs ->
         expect(editor1.getTabLength()).toBe 4
-        expect(editor1.getSoftWrap()).toBe true
+        expect(editor1.isSoftWrapped()).toBe true
         expect(editor1.getSoftTabs()).toBe false
 
         atom.config.set('editor.tabLength', 100)
-        atom.config.set('editor.softWrap', false)
+        atom.config.set('editor.softWrapped', false)
         atom.config.set('editor.softTabs', true)
 
       waitsForPromise ->
@@ -122,7 +122,7 @@ describe "Editor", ->
 
       runs ->
         expect(editor2.getTabLength()).toBe 100
-        expect(editor2.getSoftWrap()).toBe false
+        expect(editor2.isSoftWrapped()).toBe false
         expect(editor2.getSoftTabs()).toBe true
 
   describe "title", ->
@@ -138,13 +138,24 @@ describe "Editor", ->
         buffer.setPath(undefined)
         expect(editor.getLongTitle()).toBe 'untitled'
 
-    it "emits 'title-changed' events when the underlying buffer path", ->
-      titleChangedHandler = jasmine.createSpy("titleChangedHandler")
-      editor.on 'title-changed', titleChangedHandler
+    it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
+      observed = []
+      editor.onDidChangeTitle (title) -> observed.push(title)
 
       buffer.setPath('/foo/bar/baz.txt')
       buffer.setPath(undefined)
-      expect(titleChangedHandler.callCount).toBe 2
+
+      expect(observed).toEqual ['baz.txt', 'untitled']
+
+  describe "path", ->
+    it "notifies ::onDidChangePath observers when the underlying buffer path changes", ->
+      observed = []
+      editor.onDidChangePath (filePath) -> observed.push(filePath)
+
+      buffer.setPath('/foo/bar/baz.txt')
+      buffer.setPath(undefined)
+
+      expect(observed).toEqual ['/foo/bar/baz.txt', undefined]
 
   describe "cursor", ->
     describe ".getLastCursor()", ->
@@ -162,21 +173,6 @@ describe "Editor", ->
         editor.insertText('a')
         editor.moveDown()
         expect(editor.getCursorBufferPosition()).toEqual [1, 1]
-
-      it "emits a single 'cursors-moved' event for all moved cursors", ->
-        editor.on 'cursors-moved', cursorsMovedHandler = jasmine.createSpy("cursorsMovedHandler")
-
-        editor.moveDown()
-        expect(cursorsMovedHandler.callCount).toBe 1
-
-        cursorsMovedHandler.reset()
-        editor.addCursorAtScreenPosition([3, 0])
-        editor.moveDown()
-        expect(cursorsMovedHandler.callCount).toBe 1
-
-        cursorsMovedHandler.reset()
-        editor.getLastCursor().moveDown()
-        expect(cursorsMovedHandler.callCount).toBe 1
 
     describe ".setCursorScreenPosition(screenPosition)", ->
       it "clears a goal column established by vertical movement", ->
@@ -203,7 +199,7 @@ describe "Editor", ->
 
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
           editor.createFold(2, 3)
 
@@ -484,7 +480,7 @@ describe "Editor", ->
     describe ".moveToBeginningOfScreenLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
           editor.moveToBeginningOfScreenLine()
@@ -504,7 +500,7 @@ describe "Editor", ->
     describe ".moveToEndOfScreenLine()", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
           editor.moveToEndOfScreenLine()
@@ -523,7 +519,7 @@ describe "Editor", ->
 
     describe ".moveToBeginningOfLine()", ->
       it "moves cursor to the beginning of the buffer line", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([1, 2])
         editor.moveToBeginningOfLine()
@@ -532,7 +528,7 @@ describe "Editor", ->
 
     describe ".moveToEndOfLine()", ->
       it "moves cursor to the end of the buffer line", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([0, 2])
         editor.moveToEndOfLine()
@@ -542,7 +538,7 @@ describe "Editor", ->
     describe ".moveToFirstCharacterOfLine()", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition [2,5]
           editor.addCursorAtScreenPosition [8,7]
@@ -781,37 +777,6 @@ describe "Editor", ->
         # between paragraphs
         editor.setCursorBufferPosition([3, 1])
         expect(editor.getCurrentParagraphBufferRange()).toBeUndefined()
-
-    describe "cursor-moved events", ->
-      cursorMovedHandler = null
-
-      beforeEach ->
-        editor.foldBufferRow(4)
-        editor.setSelectedBufferRange([[8, 1], [9, 0]])
-        cursorMovedHandler = jasmine.createSpy("cursorMovedHandler")
-        editor.on 'cursor-moved', cursorMovedHandler
-
-      describe "when the position of the cursor changes", ->
-        it "emits a cursor-moved event", ->
-          buffer.insert([9, 0], '...')
-          expect(cursorMovedHandler).toHaveBeenCalledWith(
-            oldBufferPosition: [9, 0]
-            oldScreenPosition: [6, 0]
-            newBufferPosition: [9, 3]
-            newScreenPosition: [6, 3]
-            textChanged: true
-          )
-
-      describe "when the position of the associated selection's tail changes, but not the cursor's position", ->
-        it "does not emit a cursor-moved event", ->
-          buffer.insert([8, 0], '...')
-          expect(cursorMovedHandler).not.toHaveBeenCalled()
-
-    describe "::getCursorBufferPositions()", ->
-      it "returns the cursor positions in the order they were added", ->
-        cursor1 = editor.addCursorAtBufferPosition([8, 5])
-        cursor2 = editor.addCursorAtBufferPosition([4, 5])
-        expect(editor.getCursorBufferPositions()).toEqual [[0, 0], [8, 5], [4, 5]]
 
     describe "::getCursorScreenPositions()", ->
       it "returns the cursor positions in the order they were added", ->
@@ -1651,7 +1616,7 @@ describe "Editor", ->
         beforeEach ->
           editor.setSelectedBufferRange([[1, 0], [1, 2]])
 
-        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+        it "replaces the selection with the given text", ->
           range = editor.insertText('xxx')
           expect(range).toEqual [ [[1, 0], [1, 3]] ]
           expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
@@ -1733,19 +1698,19 @@ describe "Editor", ->
           editor.insertText('holy cow')
           expect(editor.tokenizedLineForScreenRow(2).fold).toBeUndefined()
 
-      describe "when will-insert-text and did-insert-text events are used", ->
+      describe "when there are ::onWillInsertText and ::onDidInsertText observers", ->
         beforeEach ->
           editor.setSelectedBufferRange([[1, 0], [1, 2]])
 
-        it "will-insert-text and did-insert-text events are emitted when inserting text", ->
+        it "notifies the observers when inserting text", ->
           willInsertSpy = jasmine.createSpy().andCallFake ->
             expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
 
           didInsertSpy = jasmine.createSpy().andCallFake ->
             expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
 
-          editor.on('will-insert-text', willInsertSpy)
-          editor.on('did-insert-text', didInsertSpy)
+          editor.onWillInsertText(willInsertSpy)
+          editor.onDidInsertText(didInsertSpy)
 
           expect(editor.insertText('xxx')).toBeTruthy()
           expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
@@ -1760,14 +1725,14 @@ describe "Editor", ->
           options = didInsertSpy.mostRecentCall.args[0]
           expect(options.text).toBe 'xxx'
 
-        it "text insertion is prevented when cancel is called from a will-insert-text handler", ->
+        it "cancels text insertion when an ::onWillInsertText observer calls cancel on an event", ->
           willInsertSpy = jasmine.createSpy().andCallFake ({cancel}) ->
             cancel()
 
           didInsertSpy = jasmine.createSpy()
 
-          editor.on('will-insert-text', willInsertSpy)
-          editor.on('did-insert-text', didInsertSpy)
+          editor.onWillInsertText(willInsertSpy)
+          editor.onDidInsertText(didInsertSpy)
 
           expect(editor.insertText('xxx')).toBe false
           expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
@@ -1924,7 +1889,7 @@ describe "Editor", ->
         beforeEach ->
           selection = editor.getLastSelection()
           changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
-          selection.on 'screen-range-changed', changeScreenRangeHandler
+          selection.onDidChangeRange changeScreenRangeHandler
 
         describe "when the cursor is on the middle of the line", ->
           it "removes the character before the cursor", ->
@@ -2422,7 +2387,7 @@ describe "Editor", ->
       describe ".cutToEndOfLine()", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
-            editor.setSoftWrap(true)
+            editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([2, 2])
             editor.cutToEndOfLine()
@@ -2924,7 +2889,7 @@ describe "Editor", ->
 
     describe "when soft wrap is enabled", ->
       it "deletes the entire line that the cursor is on", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setEditorWidthInChars(10)
         editor.setCursorBufferPosition([6])
 
@@ -3422,7 +3387,7 @@ describe "Editor", ->
   describe ".setIndentationForBufferRow", ->
     describe "when the editor uses soft tabs but the row has hard tabs", ->
       it "only replaces whitespace characters", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setText("\t1\n\t2")
         editor.setCursorBufferPosition([0, 0])
         editor.setIndentationForBufferRow(0, 2)
@@ -3430,7 +3395,7 @@ describe "Editor", ->
 
     describe "when the indentation level is a non-integer", ->
       it "does not throw an exception", ->
-        editor.setSoftWrap(true)
+        editor.setSoftWrapped(true)
         editor.setText("\t1\n\t2")
         editor.setCursorBufferPosition([0, 0])
         editor.setIndentationForBufferRow(0, 2.1)

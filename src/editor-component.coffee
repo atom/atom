@@ -31,9 +31,8 @@ EditorComponent = React.createClass
   updateRequested: false
   updatesPaused: false
   updateRequestedWhilePaused: false
-  cursorsMoved: false
+  cursorMoved: false
   selectionChanged: false
-  selectionAdded: false
   scrollingVertically: false
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
@@ -196,16 +195,16 @@ EditorComponent = React.createClass
     @props.editor.setMini(newProps.mini)
 
   componentDidUpdate: (prevProps, prevState) ->
-    cursorsMoved = @cursorsMoved
+    cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
     @pendingChanges.length = 0
-    @cursorsMoved = false
+    @cursorMoved = false
     @selectionChanged = false
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
       @updateParentViewMiniClassIfNeeded(prevState)
-      @props.parentView.trigger 'cursor:moved' if cursorsMoved
+      @props.parentView.trigger 'cursor:moved' if cursorMoved
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
 
@@ -306,7 +305,7 @@ EditorComponent = React.createClass
       if marker.isValid()
         for decoration in decorations
           if decoration.isType('gutter') or decoration.isType('line')
-            decorationParams = decoration.getParams()
+            decorationParams = decoration.getProperties()
             screenRange ?= marker.getScreenRange()
             headScreenRow ?= marker.getHeadScreenPosition().row
             startRow = screenRange.start.row
@@ -333,7 +332,7 @@ EditorComponent = React.createClass
       if marker.isValid() and not screenRange.isEmpty()
         for decoration in decorations
           if decoration.isType('highlight')
-            decorationParams = decoration.getParams()
+            decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
               startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
@@ -345,15 +344,12 @@ EditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
-    @subscribe editor, 'cursors-moved', @onCursorsMoved
-    @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
-    @subscribe editor, 'selection-added', @onSelectionAdded
-    @subscribe editor, 'decoration-added', @onDecorationChanged
-    @subscribe editor, 'decoration-removed', @onDecorationChanged
-    @subscribe editor, 'decoration-changed', @onDecorationChanged
-    @subscribe editor, 'decoration-updated', @onDecorationChanged
-    @subscribe editor, 'character-widths-changed', @onCharacterWidthsChanged
+    @subscribe editor.onDidChangeScreenLines(@onScreenLinesChanged)
+    @subscribe editor.observeCursors(@onCursorAdded)
+    @subscribe editor.observeSelections(@onSelectionAdded)
+    @subscribe editor.observeDecorations(@onDecorationAdded)
+    @subscribe editor.onDidRemoveDecoration(@onDecorationRemoved)
+    @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
@@ -478,7 +474,7 @@ EditorComponent = React.createClass
         'editor:add-selection-above': -> editor.addSelectionAbove()
         'editor:split-selections-into-lines': -> editor.splitSelectionsIntoLines()
         'editor:toggle-soft-tabs': -> editor.toggleSoftTabs()
-        'editor:toggle-soft-wrap': -> editor.toggleSoftWrap()
+        'editor:toggle-soft-wrapped': -> editor.toggleSoftWrapped()
         'editor:fold-all': -> editor.foldAll()
         'editor:unfold-all': -> editor.unfoldAll()
         'editor:fold-current-row': -> editor.foldCurrentRow()
@@ -721,17 +717,22 @@ EditorComponent = React.createClass
     @pendingChanges.push(change)
     @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
 
-  onSelectionChanged: (selection) ->
+  onSelectionAdded: (selection) ->
     {editor} = @props
+
+    @subscribe selection.onDidChangeRange => @onSelectionChanged(selection)
+    @subscribe selection.onDidDestroy =>
+      @onSelectionChanged(selection)
+      @unsubscribe(selection)
+
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
       @requestUpdate()
 
-  onSelectionAdded: (selection) ->
+  onSelectionChanged: (selection) ->
     {editor} = @props
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
-      @selectionAdded = true
       @requestUpdate()
 
   onScrollTopChanged: ->
@@ -749,11 +750,22 @@ EditorComponent = React.createClass
 
   onStoppedScrollingAfterDelay: null # created lazily
 
-  onCursorsMoved: ->
-    @cursorsMoved = true
+  onCursorAdded: (cursor) ->
+    @subscribe cursor.onDidChangePosition @onCursorMoved
+
+  onCursorMoved: ->
+    @cursorMoved = true
+    @requestUpdate()
+
+  onDecorationAdded: (decoration) ->
+    @subscribe decoration.onDidChangeProperties(@onDecorationChanged)
+    @subscribe decoration.getMarker().onDidChange(@onDecorationChanged)
     @requestUpdate()
 
   onDecorationChanged: ->
+    @requestUpdate()
+
+  onDecorationRemoved: ->
     @requestUpdate()
 
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->

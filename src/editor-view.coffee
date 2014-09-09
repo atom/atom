@@ -47,7 +47,7 @@ class EditorView extends View
     nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
     preferredLineLength: 80
     tabLength: 2
-    softWrap: false
+    softWrapped: false
     softTabs: true
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
@@ -86,7 +86,7 @@ class EditorView extends View
       props.placeholderText = placeholderText
       @editor ?= new Editor
         buffer: new TextBuffer
-        softWrap: false
+        softWrapped: false
         tabLength: 2
         softTabs: true
         mini: mini
@@ -135,7 +135,7 @@ class EditorView extends View
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
-  Object.defineProperty @::, 'active', get: -> @is(@getPane()?.activeView)
+  Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
   Object.defineProperty @::, 'mini', get: -> @component?.props.mini
 
@@ -147,8 +147,7 @@ class EditorView extends View
     @focus() if @focusOnAttach
 
     @addGrammarScopeAttribute()
-    @subscribe @editor, 'grammar-changed', =>
-      @addGrammarScopeAttribute()
+    @subscribe @editor.onDidChangeGrammar => @addGrammarScopeAttribute()
 
     @trigger 'editor:attached', [this]
 
@@ -219,7 +218,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
   splitRight: ->
@@ -228,7 +227,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitRight(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
   splitUp: ->
@@ -237,7 +236,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitUp(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
   splitDown: ->
@@ -246,7 +245,7 @@ class EditorView extends View
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitDown(copyActiveItem: true)
     """
-    pane = @getPane()
+    pane = @getPaneView()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
   # Public: Get this {EditorView}'s {PaneView}.
@@ -324,9 +323,9 @@ class EditorView extends View
   setShowIndentGuide: (showIndentGuide) ->
     @component.setShowIndentGuide(showIndentGuide)
 
-  setSoftWrap: (softWrap) ->
-    deprecate 'Use Editor::setSoftWrap instead. You can get the editor via editorView.getModel()'
-    @editor.setSoftWrap(softWrap)
+  setSoftWrap: (softWrapped) ->
+    deprecate 'Use Editor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
+    @editor.setSoftWrapped(softWrapped)
 
   # Public: Set whether invisible characters are shown.
   #

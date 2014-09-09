@@ -123,7 +123,7 @@ You can open this file in an editor from the _Atom > Open Your Config_ menu.
   - `showInvisibles`: Whether to render placeholders for invisible characters (defaults to `false`)
   - `showIndentGuide`: Show/hide indent indicators within the editor
   - `showLineNumbers`: Show/hide line numbers within the gutter
-  - `softWrap`: Enable/disable soft wrapping of text within the editor
+  - `softWrapped`: Enable/disable soft wrapping of text within the editor
   - `softWrapAtPreferredLineLength`: Enable/disable soft line wrapping at `preferredLineLength`
   - `tabLength`: Number of spaces within a tab (defaults to `2`)
 - `fuzzyFinder`

@@ -4,6 +4,8 @@ Serializable = require 'serializable'
 Delegator = require 'delegato'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
@@ -50,134 +52,6 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 #
 # **When in doubt, just default to buffer coordinates**, then experiment with
 # soft wraps and folds to ensure your code interacts with them correctly.
-#
-# ## Events
-#
-# ### path-changed
-#
-# Essential: Emit when the buffer's path, and therefore title, has changed.
-#
-# ### title-changed
-#
-# Essential: Emit when the buffer's path, and therefore title, has changed.
-#
-# ### modified-status-changed
-#
-# Extended: Emit when the result of {::isModified} changes.
-#
-# ### soft-wrap-changed
-#
-# Extended: Emit when soft wrap was enabled or disabled.
-#
-# * `softWrap` {Boolean} indicating whether soft wrap is enabled or disabled.
-#
-# ### grammar-changed
-#
-# Extended: Emit when the grammar that interprets and colorizes the text has
-# been changed.
-#
-#
-#
-# ### contents-modified
-#
-# Essential: Emit when the buffer's contents change. It is emit asynchronously
-# 300ms after the last buffer change. This is a good place to handle changes to
-# the buffer without compromising typing performance.
-#
-# ### contents-conflicted
-#
-# Extended: Emitted when the buffer's underlying file changes on disk at a
-# moment when the result of {::isModified} is true.
-#
-# ### will-insert-text
-#
-# Extended: Emit before the text has been inserted.
-#
-# * `event` event {Object}
-#   * `text` {String} text to be inserted
-#   * `cancel` {Function} Call to prevent the text from being inserted
-#
-# ### did-insert-text
-#
-# Extended: Emit after the text has been inserted.
-#
-# * `event` event {Object}
-#   * `text` {String} text to be inserted
-#
-#
-#
-# ### cursor-moved
-#
-# Essential: Emit when a cursor has been moved. If there are multiple cursors,
-# it will be emit for each cursor.
-#
-# * `event` {Object}
-#   * `oldBufferPosition` {Point}
-#   * `oldScreenPosition` {Point}
-#   * `newBufferPosition` {Point}
-#   * `newScreenPosition` {Point}
-#   * `textChanged` {Boolean}
-#
-# ### cursor-added
-#
-# Extended: Emit when a cursor has been added.
-#
-# * `cursor` {Cursor} that was added
-#
-# ### cursor-removed
-#
-# Extended: Emit when a cursor has been removed.
-#
-# * `cursor` {Cursor} that was removed
-#
-#
-#
-# ### selection-screen-range-changed
-#
-# Essential: Emit when a selection's screen range changes.
-#
-# * `selection`: {Selection} object that has a changed range
-#
-# ### selection-added
-#
-# Extended: Emit when a selection's was added.
-#
-# * `selection`: {Selection} object that was added
-#
-# ### selection-removed
-#
-# Extended: Emit when a selection's was removed.
-#
-# * `selection`: {Selection} object that was removed
-#
-#
-#
-# ### decoration-added
-#
-# Extended: Emit when a {Decoration} is added to the editor.
-#
-# * `decoration` {Decoration} that was added
-#
-# ### decoration-removed
-#
-# Extended: Emit when a {Decoration} is removed from the editor.
-#
-# * `decoration` {Decoration} that was removed
-#
-# ### decoration-changed
-#
-# Extended: Emit when a {Decoration}'s underlying marker changes. Say the user
-# inserts newlines above a decoration. That action will move the marker down,
-# and fire this event.
-#
-# * `decoration` {Decoration} that was added
-#
-# ### decoration-updated
-#
-# Extended: Emit when a {Decoration} is updated via the {Decoration::update} method.
-#
-# * `decoration` {Decoration} that was updated
-#
 module.exports =
 class Editor extends Model
   Serializable.includeInto(this)
@@ -203,9 +77,10 @@ class Editor extends Model
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
     'manageScrollPosition', toProperty: 'displayBuffer'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrap, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
     super
 
+    @emitter = new Emitter
     @cursors = []
     @selections = []
 
@@ -213,7 +88,7 @@ class Editor extends Model
       invisibles = atom.config.get('editor.invisibles')
 
     @displayBuffer?.setInvisibles(invisibles)
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrap, invisibles})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, invisibles})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
@@ -231,8 +106,12 @@ class Editor extends Model
 
     @languageMode = new LanguageMode(this)
 
-    @subscribe @$scrollTop, (scrollTop) => @emit 'scroll-top-changed', scrollTop
-    @subscribe @$scrollLeft, (scrollLeft) => @emit 'scroll-left-changed', scrollLeft
+    @subscribe @$scrollTop, (scrollTop) =>
+      @emit 'scroll-top-changed', scrollTop
+      @emitter.emit 'did-change-scroll-top', scrollTop
+    @subscribe @$scrollLeft, (scrollLeft) =>
+      @emit 'scroll-left-changed', scrollLeft
+      @emitter.emit 'did-change-scroll-left', scrollLeft
 
     @subscribe atom.config.observe 'editor.showInvisibles', callNow: false, (show) => @updateInvisibles()
     @subscribe atom.config.observe 'editor.invisibles', callNow: false, => @updateInvisibles()
@@ -257,25 +136,31 @@ class Editor extends Model
       unless atom.project.getPath()?
         atom.project.setPath(path.dirname(@getPath()))
       @emit "title-changed"
+      @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
+      @emitter.emit 'did-change-path', @getPath()
+    @subscribe @buffer.onDidDestroy => @destroy()
+
+    # TODO: remove these thwne we remove the deprecations. They are old events.
     @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
     @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
     @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
-    @subscribe @buffer.onDidDestroy => @destroy()
+
     @preserveCursorPositionOnBufferReload()
 
   subscribeToDisplayBuffer: ->
-    @subscribe @displayBuffer, 'marker-created', @handleMarkerCreated
-    @subscribe @displayBuffer, "changed", (e) => @emit 'screen-lines-changed', e
-    @subscribe @displayBuffer, "markers-updated", => @mergeIntersectingSelections()
-    @subscribe @displayBuffer, 'grammar-changed', => @handleGrammarChange()
-    @subscribe @displayBuffer, 'tokenized', => @handleTokenization()
-    @subscribe @displayBuffer, 'soft-wrap-changed', (args...) => @emit 'soft-wrap-changed', args...
-    @subscribe @displayBuffer, "decoration-added", (args...) => @emit 'decoration-added', args...
-    @subscribe @displayBuffer, "decoration-removed", (args...) => @emit 'decoration-removed', args...
-    @subscribe @displayBuffer, "decoration-changed", (args...) => @emit 'decoration-changed', args...
-    @subscribe @displayBuffer, "decoration-updated", (args...) => @emit 'decoration-updated', args...
-    @subscribe @displayBuffer, "character-widths-changed", (changeCount) => @emit 'character-widths-changed', changeCount
+    @subscribe @displayBuffer.onDidCreateMarker @handleMarkerCreated
+    @subscribe @displayBuffer.onDidUpdateMarkers => @mergeIntersectingSelections()
+    @subscribe @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
+    @subscribe @displayBuffer.onDidTokenize => @handleTokenization()
+    @subscribe @displayBuffer.onDidChange (e) =>
+      @emit 'screen-lines-changed', e
+      @emitter.emit 'did-change-screen-lines', e
+
+    # TODO: remove these when we remove the deprecations. Though, no one is likely using them
+    @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
+    @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
+    @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
   getViewClass: ->
     require './editor-view'
@@ -286,6 +171,230 @@ class Editor extends Model
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
+
+  ###
+  Section: Events
+  ###
+
+  # Essential: Calls your `callback` when the buffer's title has changed.
+  #
+  # * `callback` {Function}
+  onDidChangeTitle: (callback) ->
+    @emitter.on 'did-change-title', callback
+
+  # Essential: Calls your `callback` when the buffer's path, and therefore title, has changed.
+  #
+  # * `callback` {Function}
+  onDidChangePath: (callback) ->
+    @emitter.on 'did-change-path', callback
+
+  # Extended: Calls your `callback` when soft wrap was enabled or disabled.
+  #
+  # * `callback` {Function}
+  onDidChangeSoftWrapped: (callback) ->
+    @displayBuffer.onDidChangeSoftWrapped(callback)
+
+  # Extended: Calls your `callback` when the grammar that interprets and colorizes the text has
+  # been changed.
+  #
+  # * `callback` {Function}
+  onDidChangeGrammar: (callback) ->
+    @emitter.on 'did-change-grammar', callback
+
+  # Essential: Calls your `callback` when the buffer's contents change. It is
+  # emit asynchronously 300ms after the last buffer change. This is a good place
+  # to handle changes to the buffer without compromising typing performance.
+  #
+  # * `callback` {Function}
+  onDidStopChanging: (callback) ->
+    @getBuffer().onDidStopChanging(callback)
+
+  # Extended: Calls your `callback` when the result of {::isModified} changes.
+  #
+  # * `callback` {Function}
+  onDidChangeModified: (callback) ->
+    @getBuffer().onDidChangeModified(callback)
+
+  # Extended: Calls your `callback` when the buffer's underlying file changes on
+  # disk at a moment when the result of {::isModified} is true.
+  #
+  # * `callback` {Function}
+  onDidConflict: (callback) ->
+    @getBuffer().onDidConflict(callback)
+
+  # Extended: Calls your `callback` before text has been inserted.
+  #
+  # * `callback` {Function}
+  #   * `event` event {Object}
+  #     * `text` {String} text to be inserted
+  #     * `cancel` {Function} Call to prevent the text from being inserted
+  onWillInsertText: (callback) ->
+    @emitter.on 'will-insert-text', callback
+
+  # Extended: Calls your `callback` adter text has been inserted.
+  #
+  # * `callback` {Function}
+  #   * `event` event {Object}
+  #     * `text` {String} text to be inserted
+  onDidInsertText: (callback) ->
+    @emitter.on 'did-insert-text', callback
+
+  # Extended: Calls your `callback` when a {Cursor} is added to the editor.
+  # Immediately calls your callback for each existing cursor.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was added
+  observeCursors: (callback) ->
+    callback(cursor) for cursor in @getCursors()
+    @onDidAddCursor(callback)
+
+  # Extended: Calls your `callback` when a {Cursor} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `cursor` {Cursor} that was added
+  onDidAddCursor: (callback) ->
+    @emitter.on 'did-add-cursor', callback
+
+  # Extended: Calls your `callback` when a {Cursor} is removed from the editor.
+  #
+  # * `callback` {Function}
+  #   * `cursor` {Cursor} that was removed
+  onDidRemoveCursor: (callback) ->
+    @emitter.on 'did-remove-cursor', callback
+
+  # Essential: Calls your `callback` when a {Cursor} is moved. If there are
+  # multiple cursors, your callback will be called for each cursor.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldBufferPosition` {Point}
+  #     * `oldScreenPosition` {Point}
+  #     * `newBufferPosition` {Point}
+  #     * `newScreenPosition` {Point}
+  #     * `textChanged` {Boolean}
+  onDidChangeCursorPosition: (callback) ->
+    @emitter.on 'did-change-cursor-position', callback
+
+  # Extended: Calls your `callback` when a {Selection} is added to the editor.
+  # Immediately calls your callback for each existing selection.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was added
+  observeSelections: (callback) ->
+    callback(selection) for selection in @getSelections()
+    @onDidAddSelection(callback)
+
+  # Extended: Calls your `callback` when a {Selection} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was added
+  onDidAddSelection: (callback) ->
+    @emitter.on 'did-add-selection', callback
+
+  # Extended: Calls your `callback` when a {Selection} is removed from the editor.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that was removed
+  onDidRemoveSelection: (callback) ->
+    @emitter.on 'did-remove-selection', callback
+
+  # Essential: Calls your `callback` when a selection's screen range changes.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that moved
+  onDidChangeSelectionRange: (callback) ->
+    @emitter.on 'did-change-selection-range', callback
+
+  # Extended: Calls your `callback` with each {Decoration} added to the editor.
+  # Calls your `callback` immediately for any existing decorations.
+  #
+  # * `callback` {Function}
+  #   * `decoration` {Decoration}
+  observeDecorations: (callback) ->
+    @displayBuffer.observeDecorations(callback)
+
+  # Extended: Calls your `callback` when a {Decoration} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `decoration` {Decoration} that was added
+  onDidAddDecoration: (callback) ->
+    @displayBuffer.onDidAddDecoration(callback)
+
+  # Extended: Calls your `callback` when a {Decoration} is removed from the editor.
+  #
+  # * `callback` {Function}
+  #   * `decoration` {Decoration} that was removed
+  onDidRemoveDecoration: (callback) ->
+    @displayBuffer.onDidRemoveDecoration(callback)
+
+  onDidChangeCharacterWidths: (callback) ->
+    @displayBuffer.onDidChangeCharacterWidths(callback)
+
+  onDidChangeScreenLines: (callback) ->
+    @emitter.on 'did-change-screen-lines', callback
+
+  onDidChangeScrollTop: (callback) ->
+    @emitter.on 'did-change-scroll-top', callback
+
+  onDidChangeScrollLeft: (callback) ->
+    @emitter.on 'did-change-scroll-left', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'title-changed'
+        deprecate("Use Editor::onDidChangeTitle instead")
+      when 'path-changed'
+        deprecate("Use Editor::onDidChangePath instead")
+      when 'modified-status-changed'
+        deprecate("Use Editor::onDidChangeModified instead")
+      when 'soft-wrap-changed'
+        deprecate("Use Editor::onDidChangeSoftWrapped instead")
+      when 'grammar-changed'
+        deprecate("Use Editor::onDidChangeGrammar instead")
+      when 'character-widths-changed'
+        deprecate("Use Editor::onDidChangeCharacterWidths instead")
+      when 'contents-modified'
+        deprecate("Use Editor::onDidStopChanging instead")
+      when 'contents-conflicted'
+        deprecate("Use Editor::onDidConflict instead")
+
+      when 'will-insert-text'
+        deprecate("Use Editor::onWillInsertText instead")
+      when 'did-insert-text'
+        deprecate("Use Editor::onDidInsertText instead")
+
+      when 'cursor-added'
+        deprecate("Use Editor::onDidAddCursor instead")
+      when 'cursor-removed'
+        deprecate("Use Editor::onDidRemoveCursor instead")
+      when 'cursor-moved'
+        deprecate("Use Editor::onDidChangeCursorPosition instead")
+
+      when 'selection-added'
+        deprecate("Use Editor::onDidAddSelection instead")
+      when 'selection-removed'
+        deprecate("Use Editor::onDidRemoveSelection instead")
+      when 'selection-screen-range-changed'
+        deprecate("Use Editor::onDidChangeSelectionRange instead")
+
+      when 'decoration-added'
+        deprecate("Use Editor::onDidAddDecoration instead")
+      when 'decoration-removed'
+        deprecate("Use Editor::onDidRemoveDecoration instead")
+      when 'decoration-updated'
+        deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `Editor::decorateMarker()`")
+      when 'decoration-changed'
+        deprecate("Use Marker::onDidChange instead. eg. `editor::decorateMarker(...).getMarker().onDidChange()`")
+
+      when 'screen-lines-changed'
+        deprecate("Use Editor::onDidChangeScreenLines instead")
+
+      when 'scroll-top-changed'
+        deprecate("Use Editor::onDidChangeScrollTop instead")
+      when 'scroll-left-changed'
+        deprecate("Use Editor::onDidChangeScrollLeft instead")
+
+    EmitterMixin::on.apply(this, arguments)
 
   # Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
@@ -735,14 +844,18 @@ class Editor extends Model
   insertText: (text, options={}) ->
     willInsert = true
     cancel = -> willInsert = false
-    @emit('will-insert-text', {cancel, text})
+    willInsertEvent = {cancel, text}
+    @emit('will-insert-text', willInsertEvent)
+    @emitter.emit 'will-insert-text', willInsertEvent
 
     if willInsert
       options.autoIndentNewline ?= @shouldAutoIndent()
       options.autoDecreaseIndent ?= @shouldAutoIndent()
       @mutateSelectedText (selection) =>
         range = selection.insertText(text, options)
-        @emit('did-insert-text', {text, range})
+        didInsertEvent = {text, range}
+        @emit('did-insert-text', didInsertEvent)
+        @emitter.emit 'did-insert-text', didInsertEvent
         range
     else
       false
@@ -904,18 +1017,31 @@ class Editor extends Model
   # Public: Sets the column at which column will soft wrap
   getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
-  # Public: Get whether soft wrap is enabled for this editor.
-  getSoftWrap: -> @displayBuffer.getSoftWrap()
-
-  # Public: Enable or disable soft wrap for this editor.
+  # Public: Determine whether lines in this editor are soft-wrapped.
   #
-  # * `softWrap` A {Boolean}
-  setSoftWrap: (softWrap) -> @displayBuffer.setSoftWrap(softWrap)
+  # Returns a {Boolean}.
+  isSoftWrapped: (softWrapped) -> @displayBuffer.isSoftWrapped()
+  getSoftWrapped: ->
+    deprecate("Use Editor::isSoftWrapped instead")
+    @displayBuffer.isSoftWrapped()
 
-  # Public: Toggle soft wrap for this editor
-  toggleSoftWrap: -> @setSoftWrap(not @getSoftWrap())
+  # Public: Enable or disable soft wrapping for this editor.
+  #
+  # * `softWrapped` A {Boolean}
+  #
+  # Returns a {Boolean}.
+  setSoftWrapped: (softWrapped) -> @displayBuffer.setSoftWrapped(softWrapped)
+  setSoftWrap: (softWrapped) ->
+    deprecate("Use Editor::setSoftWrapped instead")
+    @setSoftWrapped(softWrapped)
 
-
+  # Public: Toggle soft wrapping for this editor
+  #
+  # Returns a {Boolean}.
+  toggleSoftWrapped: -> @setSoftWrapped(not @isSoftWrapped())
+  toggleSoftWrap: ->
+    deprecate("Use Editor::toggleSoftWrapped instead")
+    @toggleSoftWrapped()
 
   ###
   Section: Indentation
@@ -1791,23 +1917,22 @@ class Editor extends Model
     @decorateMarker(marker, type: 'gutter', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
     @emit 'cursor-added', cursor
+    @emitter.emit 'did-add-cursor', cursor
     cursor
 
   # Remove the given cursor from this editor.
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
     @emit 'cursor-removed', cursor
+    @emitter.emit 'did-remove-cursor', cursor
 
   moveCursors: (fn) ->
-    @movingCursors = true
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
-    @movingCursors = false
-    @emit 'cursors-moved'
 
-  cursorMoved: (event) ->
+  cursorMoved: (cursor, event) ->
     @emit 'cursor-moved', event
-    @emit 'cursors-moved' unless @movingCursors
+    @emitter.emit 'did-change-cursor-position', event
 
   # Merge cursors that have the same screen position
   mergeCursors: ->
@@ -2263,12 +2388,14 @@ class Editor extends Model
           return selection
     else
       @emit 'selection-added', selection
+      @emitter.emit 'did-add-selection', selection
       selection
 
   # Remove the given selection.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
     @emit 'selection-removed', selection
+    @emitter.emit 'did-remove-selection', selection
 
   # Reduce one or more selections to a single empty selection based on the most
   # recently added cursor.
@@ -2285,8 +2412,10 @@ class Editor extends Model
     else
       false
 
-  selectionScreenRangeChanged: (selection) ->
+  # Called by the selection
+  selectionRangeChanged: (selection) ->
     @emit 'selection-screen-range-changed', selection
+    @emitter.emit 'did-change-selection-range', selection
 
 
   ###
@@ -2387,6 +2516,7 @@ class Editor extends Model
   handleGrammarChange: ->
     @unfoldAll()
     @emit 'grammar-changed'
+    @emitter.emit 'did-change-grammar'
 
   handleMarkerCreated: (marker) =>
     if marker.matchesAttributes(@getSelectionMarkerAttributes())

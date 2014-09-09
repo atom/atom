@@ -278,7 +278,7 @@ describe "EditorComponent", ->
       describe "when soft wrapping is enabled", ->
         beforeEach ->
           editor.setText "a line that wraps \n"
-          editor.setSoftWrap(true)
+          editor.setSoftWrapped(true)
           nextAnimationFrame()
           componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
           component.measureHeightAndWidth()
@@ -457,7 +457,7 @@ describe "EditorComponent", ->
       expect(component.lineNumberNodeForScreenRow(6).offsetTop).toBe 6 * lineHeightInPixels
 
     it "renders • characters for soft-wrapped lines", ->
-      editor.setSoftWrap(true)
+      editor.setSoftWrapped(true)
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 30 * charWidth + 'px'
       component.measureHeightAndWidth()
@@ -893,7 +893,7 @@ describe "EditorComponent", ->
 
     it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
       editor.setText("a line that wraps, ok")
-      editor.setSoftWrap(true)
+      editor.setSoftWrapped(true)
       componentNode.style.width = 16 * charWidth + 'px'
       component.measureHeightAndWidth()
       nextAnimationFrame()
@@ -1134,7 +1134,7 @@ describe "EditorComponent", ->
       it "renders the decoration's new params", ->
         expect(componentNode.querySelector('.test-highlight')).toBeTruthy()
 
-        decoration.update(type: 'highlight', class: 'new-test-highlight')
+        decoration.setProperties(type: 'highlight', class: 'new-test-highlight')
         nextAnimationFrame()
 
         expect(componentNode.querySelector('.test-highlight')).toBeFalsy()
@@ -2066,7 +2066,7 @@ describe "EditorComponent", ->
 
   describe "soft wrapping", ->
     beforeEach ->
-      editor.setSoftWrap(true)
+      editor.setSoftWrapped(true)
       nextAnimationFrame()
 
     it "updates the wrap location when the editor is resized", ->
@@ -2192,10 +2192,10 @@ describe "EditorComponent", ->
 
   describe "legacy editor compatibility", ->
     it "triggers the screen-lines-changed event before the editor:display-update event", ->
-      editor.setSoftWrap(true)
+      editor.setSoftWrapped(true)
 
       callingOrder = []
-      editor.on 'screen-lines-changed', -> callingOrder.push 'screen-lines-changed'
+      editor.onDidChangeScreenLines -> callingOrder.push 'screen-lines-changed'
       wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
       editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
       nextAnimationFrame()
