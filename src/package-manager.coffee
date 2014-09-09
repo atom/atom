@@ -45,7 +45,7 @@ class PackageManager
     @registerPackageActivator(this, ['atom', 'textmate'])
 
   ###
-  Section: Events
+  Section: Event
   ###
 
   # Essential: Invoke the given callback when all packages have been activated.
@@ -71,7 +71,7 @@ class PackageManager
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Methods
+  Section: Instance Methods
   ###
 
   # Extended: Get the path to the apm command.

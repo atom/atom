@@ -56,7 +56,7 @@ class Decoration
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: When the {Decoration} is updated via {Decoration::update}.

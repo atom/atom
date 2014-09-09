@@ -20,6 +20,10 @@ class Package
 
   @stylesheetsDir: 'stylesheets'
 
+  ###
+  Section: Class Methods
+  ###
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
       try
@@ -39,6 +43,10 @@ class Package
   resolvedMainModulePath: false
   mainModule: null
 
+  ###
+  Section: Construction
+  ###
+
   constructor: (@path, @metadata) ->
     @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
@@ -46,7 +54,7 @@ class Package
     @reset()
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: Invoke the given callback when all packages have been activated.
@@ -64,7 +72,7 @@ class Package
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Methods
+  Section: Instance Methods
   ###
 
   enable: ->

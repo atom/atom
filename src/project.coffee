@@ -44,7 +44,7 @@ class Project extends Model
     @setPath(path)
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: Invoke the given callback when the project's path has changed.

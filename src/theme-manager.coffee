@@ -23,7 +23,7 @@ class ThemeManager
     @packageManager.registerPackageActivator(this, ['theme'])
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: Invoke `callback` when all styles have been reloaded.

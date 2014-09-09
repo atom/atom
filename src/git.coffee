@@ -47,6 +47,10 @@ class Git
   EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
 
+  ###
+  Section: Class Methods
+  ###
+
   # Public: Creates a new Git instance.
   #
   # * `path` The {String} path to the Git repository to open.
@@ -68,6 +72,10 @@ class Git
       true
     else
       false
+
+  ###
+  Section: Construction
+  ###
 
   constructor: (path, options={}) ->
     @emitter = new Emitter
@@ -93,7 +101,7 @@ class Git
       @subscribe @project.observeBuffers (buffer) => @subscribeToBuffer(buffer)
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: Invoke the given callback when a specific file's status has
