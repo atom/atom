@@ -366,7 +366,7 @@ class Project extends Model
     message = 'Use Project::observeBuffers instead'
     message += '; Project::observeBuffers no longer accepts a subscriber parameter. Call `subscriber.subscribe(atom.project.observeBuffers(cb))`' if subscriber?
 
-    disposable = observeBuffers(callback)
+    disposable = @observeBuffers(callback)
     subscriber.subscribe(disposable) if subscriber?
     disposable
 
