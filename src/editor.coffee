@@ -246,14 +246,15 @@ class Editor extends Model
   onDidAddCursor: (callback) ->
     @emitter.on 'did-add-cursor', callback
 
-  # Extended: Calls your `callback` when a {Cursor} is removed to the editor.
+  # Extended: Calls your `callback` when a {Cursor} is removed from the editor.
   #
   # * `callback` {Function}
   #   * `cursor` {Cursor} that was removed
   onDidRemoveCursor: (callback) ->
     @emitter.on 'did-remove-cursor', callback
 
-  # Essential: Calls your `callback` when a {Cursor} is removed to the editor.
+  # Essential: Calls your `callback` when a {Cursor} is moved. If there are
+  # multiple cursors, your callback will be called for each cursor.
   #
   # * `callback` {Function}
   #   * `event` {Object}
