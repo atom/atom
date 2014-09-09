@@ -67,6 +67,15 @@ class Project extends Model
   onDidChangePath: (callback) ->
     @emitter.on 'did-change-path', callback
 
+  # Extended: Immediately invoke the given callback for all existing buffers.
+  # Then invoke the given callback when a new buffer has been created. For
+  # example, when {::open} is called, this is fired.
+  #
+  # * `callback` {Function}
+  #   * `buffer` {TextBuffer} the new buffer
+  observeBuffers: (callback) ->
+    callback(buffer) for buffer in @getBuffers()
+    @onDidCreateBuffer(callback)
 
   # Extended: Invoke the given callback when a new buffer has been created. For
   # example, when {::open} is called, this is fired.
@@ -363,11 +372,12 @@ class Project extends Model
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
 
-    callback(buffer) for buffer in @getBuffers()
-    if subscriber
-      subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
-    else
-      @on 'buffer-created', (buffer) -> callback(buffer)
+    message = 'Use Project::observeBuffers instead'
+    message += '; Project::observeBuffers no longer accepts a subscriber parameter. Call `subscriber.subscribe(atom.project.observeBuffers(cb))`' if subscriber?
+
+    disposable = observeBuffers(callback)
+    subscriber.subscribe(disposable) if subscriber?
+    disposable
 
   # Deprecated: delegate
   registerOpener: (opener) ->
