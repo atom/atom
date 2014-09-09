@@ -5,19 +5,6 @@
 Grim = require 'grim'
 
 # Extended: Represents a selection in the {Editor}.
-#
-# ## Events
-#
-# ### screen-range-changed
-#
-# Extended: Emit when the selection was moved.
-#
-# * `screenRange` {Range} indicating the new screenrange
-#
-# ### destroyed
-#
-# Extended: Emit when the selection was destroyed
-#
 module.exports =
 class Selection extends Model
   cursor: null
@@ -43,9 +30,16 @@ class Selection extends Model
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
+  # Extended: Calls your `callback` when the selection was moved.
+  #
+  # * `callback` {Function}
+  #   * `screenRange` {Range} indicating the new screenrange
   onDidChangeRange: (callback) ->
     @emitter.on 'did-change-range', callback
 
+  # Extended: Calls your `callback` when the selection was destroyed
+  #
+  # * `callback` {Function}
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
