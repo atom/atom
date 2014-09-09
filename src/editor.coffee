@@ -284,8 +284,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `selection` {Selection} that moved
-  onDidChangeSelectionScreenRange: (callback) ->
-    @emitter.on 'did-change-selection-screen-range', callback
+  onDidChangeSelectionRange: (callback) ->
+    @emitter.on 'did-change-selection-range', callback
 
   # Extended: Calls your `callback` with each {Decoration} added to the editor.
   # Calls your `callback` immediately for any existing decorations.
@@ -357,7 +357,7 @@ class Editor extends Model
       when 'selection-removed'
         deprecate("Use Editor::onDidRemoveSelection instead")
       when 'selection-screen-range-changed'
-        deprecate("Use Editor::onDidChangeSelectionScreenRange instead")
+        deprecate("Use Editor::onDidChangeSelectionRange instead")
 
       when 'decoration-added'
         deprecate("Use Editor::onDidAddDecoration instead")
@@ -2394,9 +2394,10 @@ class Editor extends Model
     else
       false
 
-  selectionScreenRangeChanged: (selection) ->
+  # Called by the selection
+  selectionRangeChanged: (selection) ->
     @emit 'selection-screen-range-changed', selection
-    @emitter.emit 'did-change-selection-screen-range', selection
+    @emitter.emit 'did-change-selection-range', selection
 
 
   ###

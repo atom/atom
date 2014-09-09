@@ -689,4 +689,4 @@ class Selection extends Model
   screenRangeChanged: ->
     @emit 'screen-range-changed', @getScreenRange()
     @emitter.emit 'did-change-range'
-    @editor.selectionScreenRangeChanged(this)
+    @editor.selectionRangeChanged(this)
