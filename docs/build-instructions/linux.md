@@ -88,7 +88,7 @@ this is the reason for this error you can issue
 and restart Atom.  If Atom now works fine, you can make this setting permanent:
 
   ```sh
-  echo 32768 > /proc/sys/fs/inotify/max_user_watches
+  echo 32768 | sudo tee -a /proc/sys/fs/inotify/max_user_watches
   ```
 
 See also https://github.com/atom/atom/issues/2082.
