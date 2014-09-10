@@ -101,11 +101,12 @@ class AtomApplication
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
-    focusHandler = => @lastFocusedWindow = window
-    window.browserWindow.on 'focus', focusHandler
-    window.browserWindow.once 'closed', =>
-      @lastFocusedWindow = null if window is @lastFocusedWindow
-      window.browserWindow.removeListener 'focus', focusHandler
+    unless window.isSpec
+      focusHandler = => @lastFocusedWindow = window
+      window.browserWindow.on 'focus', focusHandler
+      window.browserWindow.once 'closed', =>
+        @lastFocusedWindow = null if window is @lastFocusedWindow
+        window.browserWindow.removeListener 'focus', focusHandler
 
   # Creates server to listen for additional atom application launches.
   #
