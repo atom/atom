@@ -225,8 +225,13 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson', 'peg'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('ci', ['output-disk-space', 'download-atom-shell', 'build', 'dump-symbols', 'set-version', 'check-licenses', 'lint', 'test', 'codesign', 'publish-build'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
+
+
+  ciTasks = ['output-disk-space', 'download-atom-shell', 'build']
+  ciTasks.push('dump-symbols') unless process.platform is 'win32'
+  ciTasks.push('set-version', 'check-licenses', 'lint', 'test', 'codesign', 'publish-build')
+  grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-atom-shell', 'build', 'set-version']
   defaultTasks.push 'install' unless process.platform is 'linux'
