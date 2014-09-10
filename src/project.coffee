@@ -54,21 +54,10 @@ class Project extends Model
   onDidChangePath: (callback) ->
     @emitter.on 'did-change-path', callback
 
-
-  # Extended: Invoke the given callback when a new buffer has been created. For
-  # example, when {::open} is called, this is fired.
-  #
-  # * `callback` {Function}
-  #   * `buffer` {TextBuffer} the new buffer
-  onDidCreateBuffer: (callback) ->
-    @emitter.on 'did-create-buffer', callback
-
   on: (eventName) ->
     switch eventName
       when 'path-changed'
         deprecate 'Use Project::onDidChangePath instead'
-      when 'buffer-created'
-        deprecate 'Use Project::onDidCreateBuffer instead'
       else
         deprecate 'Project::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
@@ -247,7 +236,6 @@ class Project extends Model
     @buffers.splice(index, 0, buffer)
     buffer.onDidDestroy => @removeBuffer(buffer)
     @emit 'buffer-created', buffer
-    @emitter.emit 'did-create-buffer', buffer
     buffer
 
   # Removes a {TextBuffer} association from the project.
