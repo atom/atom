@@ -27,12 +27,8 @@ class TokenizedBuffer extends Model
 
     @tabLength ?= atom.config.getPositiveInt('editor.tabLength', 2)
 
-    @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
-      if grammar.injectionSelector?
-        @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
-      else
-        newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
-        @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+    @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
+    @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
     @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
@@ -75,12 +71,19 @@ class TokenizedBuffer extends Model
 
     EmitterMixin::on.apply(this, arguments)
 
+  grammarAddedOrUpdated: (grammar) =>
+    if grammar.injectionSelector?
+      @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
+    else
+      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
-    @subscribe @grammar, 'grammar-updated', => @retokenizeLines()
+    @subscribe @grammar.onDidUpdate => @retokenizeLines()
     @retokenizeLines()
     @emit 'grammar-changed', grammar
     @emitter.emit 'did-change-grammar', grammar
