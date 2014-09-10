@@ -102,10 +102,10 @@ your terminal may fix the issue.
 
 #### You can also use Alternatives
 
-On some variants (mostly Debian based Distros) it's preferrable for you to use
-Alternatives so that changes the binary paths can be fixed or alterered easily:
+On some variants (mostly Debian based distros) it's preferable for you to use
+Alternatives so that changes to the binary paths can be fixed or altered easily:
 
-```
+```sh
 sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave /usr/bin/js js /usr/bin/nodejs
 ```
 
