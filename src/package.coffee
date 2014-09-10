@@ -20,10 +20,6 @@ class Package
 
   @stylesheetsDir: 'stylesheets'
 
-  ###
-  Section: Class Methods
-  ###
-
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
       try

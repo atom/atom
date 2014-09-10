@@ -45,7 +45,7 @@ class PackageManager
     @registerPackageActivator(this, ['atom', 'textmate'])
 
   ###
-  Section: Event
+  Section: Event Subscription
   ###
 
   # Essential: Invoke the given callback when all packages have been activated.
