@@ -152,10 +152,10 @@ describe "Editor", ->
       observed = []
       editor.onDidChangePath (filePath) -> observed.push(filePath)
 
-      buffer.setPath('/foo/bar/baz.txt')
+      buffer.setPath(__filename)
       buffer.setPath(undefined)
 
-      expect(observed).toEqual ['/foo/bar/baz.txt', undefined]
+      expect(observed).toEqual [__filename, undefined]
 
   describe "cursor", ->
     describe ".getLastCursor()", ->
