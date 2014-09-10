@@ -136,7 +136,7 @@ class Git
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Methods
+  Section: Instance Methods
   ###
 
   # Subscribes to buffer events.
