@@ -100,14 +100,13 @@ have Node.js installed, or node isn't identified as Node.js on your machine.
 If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
 
-## You can also use Alternatives:
+#### You can also use Alternatives
 
-On some variants it's preferrable for you to use Alternatives so can easily
-rollback and change the binary paths:
+On some variants (mostly Debian based Distros) it's preferrable for you to use
+Alternatives so that changes the binary paths can be fixed or alterered easily:
 
 ```
-sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 \
-  --slave /usr/bin/js js /usr/bin/nodejs
+sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave /usr/bin/js js /usr/bin/nodejs
 ```
 
 ### Linux build error reports in atom/atom
