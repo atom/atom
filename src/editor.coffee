@@ -173,7 +173,7 @@ class Editor extends Model
     @languageMode.destroy()
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: Calls your `callback` when the buffer's title has changed.

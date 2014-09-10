@@ -187,7 +187,7 @@ class Atom extends Model
 
     @syntax = @deserializers.deserialize(@state.syntax) ? new Syntax()
 
-    @subscribe @packages, 'activated', => @watchThemes()
+    @subscribe @packages.onDidActivateAll => @watchThemes()
 
     Project = require './project'
     TextBuffer = require 'text-buffer'

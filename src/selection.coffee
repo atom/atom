@@ -31,7 +31,7 @@ class Selection extends Model
         @emitter.dispose()
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Extended: Calls your `callback` when the selection was moved.

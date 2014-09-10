@@ -55,7 +55,7 @@ class Cursor extends Model
     @needsAutoscroll = true
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: Calls your `callback` when the cursor has been moved.

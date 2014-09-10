@@ -111,10 +111,10 @@ describe "Git", ->
       fs.writeFileSync(filePath, 'ch ch changes')
       repo.getPathStatus(filePath)
       statusHandler = jasmine.createSpy('statusHandler')
-      repo.on 'status-changed', statusHandler
+      repo.onDidChangeStatus statusHandler
       repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler.argsForCall[0][0..1]).toEqual [filePath, 0]
+      expect(statusHandler.argsForCall[0][0]).toEqual {path: filePath, pathStatus: 0}
 
       repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe 1
@@ -167,11 +167,11 @@ describe "Git", ->
 
     it "trigger a status-changed event when the new status differs from the last cached one", ->
       statusHandler = jasmine.createSpy("statusHandler")
-      repo.on 'status-changed', statusHandler
+      repo.onDidChangeStatus statusHandler
       fs.writeFileSync(filePath, '')
       status = repo.getPathStatus(filePath)
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler.argsForCall[0][0..1]).toEqual [filePath, status]
+      expect(statusHandler.argsForCall[0][0]).toEqual {path: filePath, pathStatus: status}
 
       fs.writeFileSync(filePath, 'abc')
       status = repo.getPathStatus(filePath)
@@ -208,7 +208,7 @@ describe "Git", ->
     it "returns status information for all new and modified files", ->
       fs.writeFileSync(modifiedPath, 'making this path modified')
       statusHandler = jasmine.createSpy('statusHandler')
-      repo.on 'statuses-changed', statusHandler
+      repo.onDidChangeStatuses statusHandler
       repo.refreshStatus()
 
       waitsFor ->
@@ -232,19 +232,19 @@ describe "Git", ->
       editor.insertNewline()
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepo().on 'status-changed', statusHandler
+      atom.project.getRepo().onDidChangeStatus statusHandler
       editor.save()
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
+      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
 
     it "emits a status-changed event when a buffer is reloaded", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepo().on 'status-changed', statusHandler
+      atom.project.getRepo().onDidChangeStatus statusHandler
       editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
+      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
       editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
 
@@ -252,10 +252,10 @@ describe "Git", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepo().on 'status-changed', statusHandler
+      atom.project.getRepo().onDidChangeStatus statusHandler
       editor.getBuffer().emitter.emit 'did-change-path'
       expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith editor.getPath(), 256
+      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
       editor.getBuffer().emitter.emit 'did-change-path'
       expect(statusHandler.callCount).toBe 1
 
@@ -283,7 +283,7 @@ describe "Git", ->
         buffer.append('changes')
 
         statusHandler = jasmine.createSpy('statusHandler')
-        project2.getRepo().on 'status-changed', statusHandler
+        project2.getRepo().onDidChangeStatus statusHandler
         buffer.save()
         expect(statusHandler.callCount).toBe 1
-        expect(statusHandler).toHaveBeenCalledWith buffer.getPath(), 256
+        expect(statusHandler).toHaveBeenCalledWith {path: buffer.getPath(), pathStatus: 256}

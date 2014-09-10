@@ -56,18 +56,21 @@ class Decoration
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
   ###
-  Section: Events
+  Section: Event Subscription
   ###
 
   # Essential: When the {Decoration} is updated via {Decoration::update}.
   #
-  # * `event` {Object}
-  #   * `oldProperties` {Object} the old parameters the decoration used to have
-  #   * `newProperties` {Object} the new parameters the decoration now has
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldProperties` {Object} the old parameters the decoration used to have
+  #     * `newProperties` {Object} the new parameters the decoration now has
   onDidChangeProperties: (callback) ->
     @emitter.on 'did-change-properties', callback
 
   # Essential: Invoke the given callback when the {Decoration} is destroyed
+  #
+  # * `callback` {Function}
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 

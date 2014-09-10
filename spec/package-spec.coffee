@@ -102,6 +102,6 @@ describe "Package", ->
         theme.activate()
 
       it "deactivated event fires on .deactivate()", ->
-        theme.on 'deactivated', spy = jasmine.createSpy()
+        theme.onDidDeactivate spy = jasmine.createSpy()
         theme.deactivate()
         expect(spy).toHaveBeenCalled()

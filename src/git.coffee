@@ -1,9 +1,12 @@
 {basename, join} = require 'path'
 
 _ = require 'underscore-plus'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
+{deprecate} = require 'grim'
 
 Task = require './task'
 
@@ -41,8 +44,12 @@ Task = require './task'
 # ```
 module.exports =
 class Git
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
+
+  ###
+  Section: Class Methods
+  ###
 
   # Public: Creates a new Git instance.
   #
@@ -66,7 +73,12 @@ class Git
     else
       false
 
+  ###
+  Section: Construction
+  ###
+
   constructor: (path, options={}) ->
+    @emitter = new Emitter
     @repo = GitUtils.open(path)
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
@@ -87,6 +99,45 @@ class Git
 
     if @project?
       @subscribe @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Essential: Invoke the given callback when a specific file's status has
+  # changed. When a file is updated, reloaded, etc, and the status changes, this
+  # will be fired.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `path` {String} the old parameters the decoration used to have
+  #     * `pathStatus` {Number} representing the status. This value can be passed to
+  #       {::isStatusModified} or {::isStatusNew} to get more information.
+  onDidChangeStatus: (callback) ->
+    @emitter.on 'did-change-status', callback
+
+  # Essential: Invoke the given callback when a multiple files' statuses have
+  # changed. For example, on window focus, the status of all the paths in the
+  # repo is checked. If any of them have changed, this will be fired. Call
+  # {::getPathStatus(path)} to get the status for your path of choice.
+  #
+  # * `callback` {Function}
+  onDidChangeStatuses: (callback) ->
+    @emitter.on 'did-change-statuses', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'status-changed'
+        deprecate 'Use Git::onDidChangeStatus instead'
+      when 'statuses-changed'
+        deprecate 'Use Git::onDidChangeStatuses instead'
+      else
+        deprecate 'Git::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Methods
+  ###
 
   # Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
@@ -171,6 +222,8 @@ class Git
       delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
       @emit 'status-changed', path, pathStatus
+      @emitter.emit 'did-change-status', {path, pathStatus}
+
     pathStatus
 
   # Public: Is the given path ignored?
@@ -391,4 +444,6 @@ class Git
       for submodulePath, submoduleRepo of @getRepo().submodules
         submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
-      @emit 'statuses-changed' unless statusesUnchanged
+      unless statusesUnchanged
+        @emit 'statuses-changed'
+        @emitter.emit 'did-change-statuses'
