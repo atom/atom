@@ -100,6 +100,15 @@ have Node.js installed, or node isn't identified as Node.js on your machine.
 If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
 
+#### You can also use Alternatives
+
+On some variants (mostly Debian based Distros) it's preferrable for you to use
+Alternatives so that changes the binary paths can be fixed or alterered easily:
+
+```
+sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave /usr/bin/js js /usr/bin/nodejs
+```
+
 ### Linux build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)
   to get a list of reports about build errors on Linux.
