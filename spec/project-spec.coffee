@@ -479,7 +479,7 @@ describe "Project", ->
         runs ->
           expect(results).toHaveLength 0
 
-  describe ".observeBuffers(callback)", ->
+  describe ".eachBuffer(callback)", ->
     beforeEach ->
       atom.project.bufferForPathSync('a')
 
@@ -490,7 +490,7 @@ describe "Project", ->
       callback = (buffer) ->
         callbackBuffer = buffer
         count++
-      atom.project.observeBuffers(callback)
+      atom.project.eachBuffer(callback)
       expect(count).toBe 1
       expect(callbackBuffer).toBe atom.project.getBuffers()[0]
 
@@ -501,7 +501,7 @@ describe "Project", ->
         callbackBuffer = buffer
         count++
 
-      atom.project.observeBuffers(callback)
+      atom.project.eachBuffer(callback)
       count = 0
       callbackBuffer = null
       atom.project.bufferForPathSync(require.resolve('./fixtures/sample.txt'))

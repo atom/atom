@@ -98,7 +98,7 @@ class Git
         @refreshStatus()
 
     if @project?
-      @subscribe @project.observeBuffers (buffer) => @subscribeToBuffer(buffer)
+      @subscribe @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
 
   ###
   Section: Event Subscription
