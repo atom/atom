@@ -313,10 +313,8 @@ class EditorView extends View
     deprecate 'Use Editor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
     @editor.setSoftWrapped(softWrapped)
 
-  # Public: Set whether invisible characters are shown.
-  #
-  # * `showInvisibles` A {Boolean} which, if `true`, show invisible characters.
   setShowInvisibles: (showInvisibles) ->
+    deprecate 'This is going away. Use atom.config.set("editor.showInvisibles", true|false) instead'
     @component.setShowInvisibles(showInvisibles)
 
   getText: ->
