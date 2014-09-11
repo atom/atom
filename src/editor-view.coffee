@@ -143,10 +143,6 @@ class EditorView extends View
     return unless onDom
     return if @attached
     @attached = true
-    @component.pollDOM()
-
-    # Ensure that editor measurements like lineHeight are taken here, even if pollDOM() was a no-op
-    # because an update was requested.
     @component.checkForVisibilityChange()
 
     @focus() if @focusOnAttach
