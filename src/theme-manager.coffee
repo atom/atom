@@ -20,6 +20,7 @@ class ThemeManager
   constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
     @emitter = new Emitter
     @lessCache = null
+    @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
 
   ###
@@ -107,7 +108,7 @@ class ThemeManager
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
-  activatePackages: (themePackages) -> @activateThemes()
+  activatePackages: -> @activateThemes()
 
   # Get the enabled theme names from the config.
   #
@@ -165,6 +166,7 @@ class ThemeManager
         @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
         @loadUserStylesheet()
         @reloadBaseStylesheets()
+        @initialLoadComplete = true
         @emit 'reloaded'
         @emitter.emit 'did-reload-all'
         deferred.resolve()
@@ -176,6 +178,8 @@ class ThemeManager
     @unwatchUserStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
+
+  isInitialLoadComplete: -> @initialLoadComplete
 
   addActiveThemeClasses: ->
     for pack in @getActiveThemes()

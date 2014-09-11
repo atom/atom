@@ -21,6 +21,7 @@ clipboard = require 'clipboard'
 
 atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'
+atom.themes.initialLoadComplete = true
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)

@@ -179,6 +179,8 @@ EditorComponent = React.createClass
     @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
     @subscribe atom.themes.onDidUpdateStylesheet @onStylesheetsChanged
     @subscribe atom.themes.onDidRemoveStylesheet @onStylesheetsChanged
+    unless atom.themes.isInitialLoadComplete()
+      @subscribe atom.themes.onDidReloadAll @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
@@ -708,8 +710,9 @@ EditorComponent = React.createClass
 
   onStylesheetsChanged: (stylesheet) ->
     return unless @performedInitialMeasurement
+    return unless atom.themes.isInitialLoadComplete()
 
-    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @refreshScrollbars() if not stylesheet? or @containsScrollbarSelector(stylesheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
