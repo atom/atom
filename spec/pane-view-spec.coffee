@@ -1,6 +1,7 @@
 PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
 fs = require 'fs-plus'
+{Emitter} = require 'event-kit'
 {$, View} = require 'atom'
 path = require 'path'
 temp = require 'temp'
@@ -161,6 +162,38 @@ describe "PaneView", ->
       pane.activateItem(view2)
       view2.trigger 'title-changed'
       expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+
+    describe 'when there is a onDidChangeTitle method', ->
+      beforeEach ->
+        TestView::changeTitle = ->
+          @emitter.emit 'did-change-title', 'title'
+        TestView::onDidChangeTitle = (callback) ->
+          @emitter.on 'did-change-title', callback
+
+        view1.emitter = new Emitter
+        view2.emitter = new Emitter
+
+        view1.id = 1
+        view2.id = 2
+
+        pane.activateItem(view2)
+        pane.activateItem(view1)
+
+      fffit "emits pane:active-item-title-changed", ->
+        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
+        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+
+        expect(pane.getActiveItem()).toBe view1
+        view2.changeTitle()
+        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+
+        view1.changeTitle()
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+        activeItemTitleChangedHandler.reset()
+
+        pane.activateItem(view2)
+        view2.changeTitle()
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
 
   describe "when an unmodifed buffer's path is deleted", ->
     it "removes the pane item", ->

@@ -147,6 +147,9 @@ class PaneView extends View
     @activeItem
 
   onActiveItemChanged: (item) =>
+    @activeItemDisposables.dispose() if @activeItemDisposables?
+    @activeItemDisposables = new CompositeDisposable()
+
     if @previousActiveItem?.off?
       @previousActiveItem.off 'title-changed', @activeItemTitleChanged
       @previousActiveItem.off 'modified-status-changed', @activeItemModifiedChanged
@@ -154,15 +157,29 @@ class PaneView extends View
 
     return unless item?
 
-    hasFocus = @hasFocus()
-    if item.on?
-      item.on 'title-changed', @activeItemTitleChanged
-      item.on 'modified-status-changed', @activeItemModifiedChanged
+    if item.onDidChangeTitle?
+      disposable = item.onDidChangeTitle(@activeItemTitleChanged)
+      deprecate 'Please return a Disposable object from your ::onDidChangeTitle method!' unless disposable?.dispose?
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+    else if item.on?
+      disposable = item.on('title-changed', @activeItemTitleChanged)
+      deprecate 'Please return a Disposable object from your ::on method. Your ::off method will not be called soon!' unless disposable?.dispose?
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+
+    if item.onDidChangeModified?
+      disposable = item.onDidChangeModified(@activeItemModifiedChanged)
+      deprecate 'Please return a Disposable object from your ::onDidChangeModified method!' unless disposable?.dispose?
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+    else if item.on?
+      item.on('modified-status-changed', @activeItemModifiedChanged)
+      deprecate 'Please return a Disposable object from your ::on method. Your ::off method will not be called soon!' unless disposable?.dispose?
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+
     view = @viewForItem(item)
     otherView.hide() for otherView in @itemViews.children().not(view).views()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show() if @attached
-    view.focus() if hasFocus
+    view.focus() if @hasFocus()
 
     @trigger 'pane:active-item-changed', [item]
 
