@@ -179,7 +179,7 @@ describe "PaneView", ->
         pane.activateItem(view2)
         pane.activateItem(view1)
 
-      fffit "emits pane:active-item-title-changed", ->
+      it "emits pane:active-item-title-changed", ->
         activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
         pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
 
