@@ -84,6 +84,9 @@ class CommandRegistry
 
     commands
 
+  clear: ->
+    @listenersByCommandName = {}
+
 class CommandListener
   constructor: (@selector, @callback) ->
     @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
