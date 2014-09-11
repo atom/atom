@@ -13,9 +13,14 @@ describe "PaneView", ->
     @deserialize: ({id, text}) -> new TestView({id, text})
     @content: ({id, text}) -> @div class: 'test-view', id: id, tabindex: -1, text
     initialize: ({@id, @text}) ->
+      @emitter = new Emitter
     serialize: -> { deserializer: 'TestView', @id, @text }
     getUri: -> @id
     isEqual: (other) -> other? and @id == other.id and @text == other.text
+    changeTitle: ->
+      @emitter.emit 'did-change-title', 'title'
+    onDidChangeTitle: (callback) ->
+      @emitter.on 'did-change-title', callback
 
   beforeEach ->
     atom.deserializers.add(TestView)
@@ -146,39 +151,32 @@ describe "PaneView", ->
       expect(view1.data('preservative')).toBe 1234
 
   describe "when the title of the active item changes", ->
-    it "emits pane:active-item-title-changed", ->
-      activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
-      pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
-
-      expect(pane.getActiveItem()).toBe view1
-
-      view2.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
-
-      view1.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-      activeItemTitleChangedHandler.reset()
-
-      pane.activateItem(view2)
-      view2.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-
-    describe 'when there is a onDidChangeTitle method', ->
+    describe 'when there is no onDidChangeTitle method', ->
       beforeEach ->
-        TestView::changeTitle = ->
-          @emitter.emit 'did-change-title', 'title'
-        TestView::onDidChangeTitle = (callback) ->
-          @emitter.on 'did-change-title', callback
-
-        view1.emitter = new Emitter
-        view2.emitter = new Emitter
-
-        view1.id = 1
-        view2.id = 2
+        view1.onDidChangeTitle = null
+        view2.onDidChangeTitle = null
 
         pane.activateItem(view2)
         pane.activateItem(view1)
 
+      it "emits pane:active-item-title-changed", ->
+        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
+        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+
+        expect(pane.getActiveItem()).toBe view1
+
+        view2.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+
+        view1.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+        activeItemTitleChangedHandler.reset()
+
+        pane.activateItem(view2)
+        view2.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+
+    describe 'when there is a onDidChangeTitle method', ->
       it "emits pane:active-item-title-changed", ->
         activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
         pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
