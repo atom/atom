@@ -50,6 +50,15 @@ class ThemeManager
   onDidRemoveStylesheet: (callback) ->
     @emitter.on 'did-remove-stylesheet', callback
 
+  # Essential: Invoke `callback` when a stylesheet has been updated.
+  #
+  # * `callback` {Function}
+  #   * `stylesheet` {StyleSheet} the style node
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidUpdateStylesheet: (callback) ->
+    @emitter.on 'did-update-stylesheet', callback
+
   # Essential: Invoke `callback` when any stylesheet has been updated, added, or removed.
   #
   # * `callback` {Function}
@@ -66,6 +75,8 @@ class ThemeManager
         deprecate 'Use ThemeManager::onDidAddStylesheet instead'
       when 'stylesheet-removed'
         deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
+      when 'stylesheet-updated'
+        deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
       when 'stylesheets-changed'
         deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
       else

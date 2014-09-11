@@ -177,6 +177,7 @@ EditorComponent = React.createClass
     @listenForCommands()
 
     @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
+    @subscribe atom.themes.onDidUpdateStylesheet @onStylesheetsChanged
     @subscribe atom.themes.onDidRemoveStylesheet @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
