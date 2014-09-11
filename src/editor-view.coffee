@@ -305,11 +305,8 @@ class EditorView extends View
   setWidthInChars: (widthInChars) ->
     @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
 
-  # Public: Sets whether you want to show the indentation guides.
-  #
-  # * `showIndentGuide` A {Boolean} you can set to `true` if you want to see the
-  #   indentation guides.
   setShowIndentGuide: (showIndentGuide) ->
+    deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
     @component.setShowIndentGuide(showIndentGuide)
 
   setSoftWrap: (softWrapped) ->
