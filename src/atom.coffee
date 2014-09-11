@@ -306,7 +306,6 @@ class Atom extends Model
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
     @workspaceView = new WorkspaceView(@workspace)
-    @commands.setRootNode(@workspaceView[0])
     @deserializeTimings.workspace = Date.now() - startTime
 
     @keymaps.defaultTarget = @workspaceView[0]
