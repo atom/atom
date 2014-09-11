@@ -520,7 +520,7 @@ describe "the `atom` global", ->
 
             reloadedHandler = jasmine.createSpy('reloadedHandler')
             reloadedHandler.reset()
-            atom.themes.on('reloaded', reloadedHandler)
+            atom.themes.onDidReloadAll reloadedHandler
 
             pack = atom.packages.disablePackage(packageName)
 
