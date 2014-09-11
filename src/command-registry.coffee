@@ -1,6 +1,7 @@
 {Disposable, CompositeDisposable} = require 'event-kit'
 {specificity} = require 'clear-cut'
 _ = require 'underscore-plus'
+{$} = require './space-pen-extensions'
 
 SequenceCount = 0
 SpecificityCache = {}
@@ -70,6 +71,7 @@ class CommandRegistry
 
   findCommands: ({target}) ->
     commands = []
+    target = @rootNode unless @rootNode.contains(target)
     currentTarget = target
     loop
       for commandName, listeners of @listenersByCommandName
@@ -81,6 +83,12 @@ class CommandRegistry
 
       break if currentTarget is @rootNode
       currentTarget = currentTarget.parentNode
+
+    for name, displayName of $(target).events() when displayName
+      commands.push({name, displayName, jQuery: true})
+
+    for name, displayName of $(window).events() when displayName
+      commands.push({name, displayName, jQuery: true})
 
     commands
 
