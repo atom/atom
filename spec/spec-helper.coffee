@@ -63,6 +63,7 @@ beforeEach ->
   atom.project = new Project(path: projectPath)
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
+  atom.commands.setRootNode(document.body)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
