@@ -176,7 +176,8 @@ EditorComponent = React.createClass
     @listenForDOMEvents()
     @listenForCommands()
 
-    @subscribe atom.themes, 'stylesheet-added stylesheet-removed stylesheet-updated', @onStylesheetsChanged
+    @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
+    @subscribe atom.themes.onDidRemoveStylesheet @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
