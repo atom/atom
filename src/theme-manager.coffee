@@ -107,7 +107,7 @@ class ThemeManager
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
-  activatePackages: (themePackages) -> @activateThemes()
+  activatePackages: -> @activateThemes()
 
   # Get the enabled theme names from the config.
   #
