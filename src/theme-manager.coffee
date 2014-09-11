@@ -84,7 +84,7 @@ class ThemeManager
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Methods
+  Section: Instance Methods
   ###
 
   getAvailableNames: ->
@@ -332,5 +332,19 @@ class ThemeManager
 
     @emit 'stylesheet-added', styleElement.sheet
     @emitter.emit 'did-add-stylesheet', styleElement.sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  updateGlobalEditorStyle: (property, value) ->
+    unless styleNode = @stylesheetElementForId('global-editor-styles')
+      @applyStylesheet('global-editor-styles', '.editor {}')
+      styleNode = @stylesheetElementForId('global-editor-styles')
+
+    {sheet} = styleNode
+    editorRule = sheet.cssRules[0]
+    editorRule.style[property] = value
+
+    @emit 'stylesheet-updated', sheet
+    @emitter.emit 'did-update-stylesheet', sheet
     @emit 'stylesheets-changed'
     @emitter.emit 'did-change-stylesheets'
