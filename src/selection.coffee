@@ -38,12 +38,16 @@ class Selection extends Model
   #
   # * `callback` {Function}
   #   * `screenRange` {Range} indicating the new screenrange
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeRange: (callback) ->
     @emitter.on 'did-change-range', callback
 
   # Extended: Calls your `callback` when the selection was destroyed
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 

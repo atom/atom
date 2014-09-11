@@ -36,6 +36,8 @@ class ThemeManager
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddStylesheet: (callback) ->
     @emitter.on 'did-add-stylesheet', callback
 
@@ -43,12 +45,16 @@ class ThemeManager
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveStylesheet: (callback) ->
     @emitter.on 'did-remove-stylesheet', callback
 
   # Essential: Invoke `callback` when any stylesheet has been updated, added, or removed.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStylesheets: (callback) ->
     @emitter.on 'did-change-stylesheets', callback
 

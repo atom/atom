@@ -56,6 +56,8 @@ class Package
   # Essential: Invoke the given callback when all packages have been activated.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDeactivate: (callback) ->
     @emitter.on 'did-deactivate', callback
 

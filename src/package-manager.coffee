@@ -51,12 +51,16 @@ class PackageManager
   # Essential: Invoke the given callback when all packages have been activated.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidLoadAll: (callback) ->
     @emitter.on 'did-load-all', callback
 
   # Essential: Invoke the given callback when all packages have been activated.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidActivateAll: (callback) ->
     @emitter.on 'did-activate-all', callback
 

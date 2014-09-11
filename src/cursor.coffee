@@ -67,12 +67,16 @@ class Cursor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePosition: (callback) ->
     @emitter.on 'did-change-position', callback
 
   # Extended: Calls your `callback` when the cursor is destroyed
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
@@ -80,6 +84,8 @@ class Cursor extends Model
   #
   # * `callback` {Function}
   #   * `visibility` {Boolean}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeVisibility: (callback) ->
     @emitter.on 'did-change-visibility', callback
 

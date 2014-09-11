@@ -113,6 +113,8 @@ class Git
   #     * `path` {String} the old parameters the decoration used to have
   #     * `pathStatus` {Number} representing the status. This value can be passed to
   #       {::isStatusModified} or {::isStatusNew} to get more information.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatus: (callback) ->
     @emitter.on 'did-change-status', callback
 
@@ -122,6 +124,8 @@ class Git
   # {::getPathStatus(path)} to get the status for your path of choice.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses: (callback) ->
     @emitter.on 'did-change-statuses', callback
 

@@ -65,12 +65,16 @@ class Decoration
   #   * `event` {Object}
   #     * `oldProperties` {Object} the old parameters the decoration used to have
   #     * `newProperties` {Object} the new parameters the decoration now has
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeProperties: (callback) ->
     @emitter.on 'did-change-properties', callback
 
   # Essential: Invoke the given callback when the {Decoration} is destroyed
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 

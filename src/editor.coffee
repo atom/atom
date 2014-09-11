@@ -179,18 +179,24 @@ class Editor extends Model
   # Essential: Calls your `callback` when the buffer's title has changed.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeTitle: (callback) ->
     @emitter.on 'did-change-title', callback
 
   # Essential: Calls your `callback` when the buffer's path, and therefore title, has changed.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePath: (callback) ->
     @emitter.on 'did-change-path', callback
 
   # Extended: Calls your `callback` when soft wrap was enabled or disabled.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
 
@@ -198,6 +204,8 @@ class Editor extends Model
   # been changed.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 
@@ -206,12 +214,16 @@ class Editor extends Model
   # to handle changes to the buffer without compromising typing performance.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidStopChanging: (callback) ->
     @getBuffer().onDidStopChanging(callback)
 
   # Extended: Calls your `callback` when the result of {::isModified} changes.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeModified: (callback) ->
     @getBuffer().onDidChangeModified(callback)
 
@@ -219,6 +231,8 @@ class Editor extends Model
   # disk at a moment when the result of {::isModified} is true.
   #
   # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidConflict: (callback) ->
     @getBuffer().onDidConflict(callback)
 
@@ -228,6 +242,8 @@ class Editor extends Model
   #   * `event` event {Object}
   #     * `text` {String} text to be inserted
   #     * `cancel` {Function} Call to prevent the text from being inserted
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onWillInsertText: (callback) ->
     @emitter.on 'will-insert-text', callback
 
@@ -236,6 +252,8 @@ class Editor extends Model
   # * `callback` {Function}
   #   * `event` event {Object}
   #     * `text` {String} text to be inserted
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidInsertText: (callback) ->
     @emitter.on 'did-insert-text', callback
 
@@ -244,6 +262,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `selection` {Selection} that was added
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeCursors: (callback) ->
     callback(cursor) for cursor in @getCursors()
     @onDidAddCursor(callback)
@@ -252,6 +272,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `cursor` {Cursor} that was added
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddCursor: (callback) ->
     @emitter.on 'did-add-cursor', callback
 
@@ -259,6 +281,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `cursor` {Cursor} that was removed
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveCursor: (callback) ->
     @emitter.on 'did-remove-cursor', callback
 
@@ -272,6 +296,8 @@ class Editor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeCursorPosition: (callback) ->
     @emitter.on 'did-change-cursor-position', callback
 
@@ -280,6 +306,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `selection` {Selection} that was added
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeSelections: (callback) ->
     callback(selection) for selection in @getSelections()
     @onDidAddSelection(callback)
@@ -288,6 +316,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `selection` {Selection} that was added
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddSelection: (callback) ->
     @emitter.on 'did-add-selection', callback
 
@@ -295,6 +325,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `selection` {Selection} that was removed
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveSelection: (callback) ->
     @emitter.on 'did-remove-selection', callback
 
@@ -302,6 +334,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `selection` {Selection} that moved
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSelectionRange: (callback) ->
     @emitter.on 'did-change-selection-range', callback
 
@@ -310,6 +344,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `decoration` {Decoration}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeDecorations: (callback) ->
     @displayBuffer.observeDecorations(callback)
 
@@ -317,6 +353,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `decoration` {Decoration} that was added
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddDecoration: (callback) ->
     @displayBuffer.onDidAddDecoration(callback)
 
@@ -324,6 +362,8 @@ class Editor extends Model
   #
   # * `callback` {Function}
   #   * `decoration` {Decoration} that was removed
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveDecoration: (callback) ->
     @displayBuffer.onDidRemoveDecoration(callback)
 
