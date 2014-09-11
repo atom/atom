@@ -712,7 +712,7 @@ EditorComponent = React.createClass
     return unless @performedInitialMeasurement
     return unless atom.themes.isInitialLoadComplete()
 
-    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @refreshScrollbars() if not stylesheet or @containsScrollbarSelector(stylesheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
