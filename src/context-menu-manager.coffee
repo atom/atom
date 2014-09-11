@@ -24,7 +24,7 @@ class ContextMenuManager
         @commandOptions = x: e.pageX, y: e.pageY
     ]
 
-    atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
+    atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
 
   loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
