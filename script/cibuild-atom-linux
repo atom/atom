@@ -2,7 +2,7 @@
 
 set -e
 
-echo "HERE?"
+export ATOM_ACCESS_TOKEN=$BUILD_ATOM_LINUX_ACCESS_TOKEN
 
 if [ -d /usr/local/share/nodenv ]; then
   export NODENV_ROOT=/usr/local/share/nodenv
