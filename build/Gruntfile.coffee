@@ -227,11 +227,12 @@ module.exports = (grunt) ->
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
 
-
   ciTasks = ['output-disk-space', 'download-atom-shell', 'build']
-  ciTasks.push('dump-symbols') unless process.platform is 'win32'
+  ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'test', 'codesign', 'publish-build')
+  ciTasks.push('test') if process.platform isnt 'linux'
+  ciTasks.push('codesign', 'publish-build')
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-atom-shell', 'build', 'set-version']
