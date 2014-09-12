@@ -59,9 +59,13 @@ getAssets = ->
       ]
     when 'linux'
       buildDir = grunt.config.get('atom.buildDir')
+      if process.arch is 'ia32'
+        arch = 'i386'
+      else
+        arch = 'amd64'
       debAsset = fs.listSync(buildDir, ['.deb'])[0]
       [
-        {assetName: path.basename(debAsset), sourcePath: debAsset}
+        {assetName: "atom-#{arch}.deb", sourcePath: debAsset}
       ]
 
 logError = (message, error, details) ->
