@@ -20,7 +20,7 @@ module.exports = (gruntObject) ->
   {cp} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
+    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'ks-add-debian-asset'
     tasks = ['upload-assets']
     tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
     grunt.task.run(tasks)
@@ -45,16 +45,23 @@ module.exports = (gruntObject) ->
           uploadAssets(release, buildDir, assets, done)
 
 getAssets = ->
-  if process.platform is 'darwin'
-    [
-      {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
-      {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
-      {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
-    ]
-  else
-    [
-      {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
-    ]
+  switch process.platform
+    when 'darwin'
+      [
+        {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
+        {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
+        {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
+      ]
+    when 'win32'
+      [
+        {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
+      ]
+    when 'linux'
+      buildDir = grunt.config.get('atom.buildDir')
+      debAsset = fs.listSync(buildDir, '.deb')[0]
+      [
+        {assetName: path.basename(debAsset), sourcePath: debAsset}
+      ]
 
 logError = (message, error, details) ->
   grunt.log.error(message)
