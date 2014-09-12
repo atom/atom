@@ -27,7 +27,7 @@
     "coffeestack": "0.7.0",
     "delegato": "^1",
     "emissary": "^1.3.1",
-    "event-kit": "0.7.1",
+    "event-kit": "0.7.2",
     "first-mate": "^2.1.1",
     "fs-plus": "^2.2.6",
     "fstream": "0.1.24",
