@@ -29,7 +29,7 @@ module.exports = (gruntObject) ->
   grunt.registerTask 'prepare-docs', 'Move api.json to atom-api.json', ->
     docsOutputDir = grunt.config.get('docsOutputDir')
     buildDir = grunt.config.get('atom.buildDir')
-    cp  path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
+    cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
     done = @async()
@@ -59,13 +59,15 @@ getAssets = ->
       ]
     when 'linux'
       buildDir = grunt.config.get('atom.buildDir')
+      sourcePath = fs.listSync(buildDir, ['.deb'])[0]
       if process.arch is 'ia32'
         arch = 'i386'
       else
         arch = 'amd64'
-      debAsset = fs.listSync(buildDir, ['.deb'])[0]
+      assetName = "atom-#{arch}.deb"
+      cp sourcePath, path.join(buildDir, assetName)
       [
-        {assetName: "atom-#{arch}.deb", sourcePath: debAsset}
+        {assetName, sourcePath}
       ]
 
 logError = (message, error, details) ->
