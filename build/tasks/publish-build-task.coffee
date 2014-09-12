@@ -60,12 +60,15 @@ getAssets = ->
     when 'linux'
       buildDir = grunt.config.get('atom.buildDir')
       sourcePath = fs.listSync(buildDir, ['.deb'])[0]
-      if process.arch is 'ia32'
+      if process.arch is 'ia32g'
         arch = 'i386'
       else
         arch = 'amd64'
       assetName = "atom-#{arch}.deb"
+
+      {cp} = require('./task-helpers')(grunt)
       cp sourcePath, path.join(buildDir, assetName)
+
       [
         {assetName, sourcePath}
       ]
