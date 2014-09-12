@@ -230,6 +230,7 @@ module.exports = (grunt) ->
 
   ciTasks = ['output-disk-space', 'download-atom-shell', 'build']
   ciTasks.push('dump-symbols') unless process.platform is 'win32'
+  ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'test', 'codesign', 'publish-build')
   grunt.registerTask('ci', ciTasks)
 
