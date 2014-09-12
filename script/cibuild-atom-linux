@@ -2,10 +2,6 @@
 
 set -e
 
-echo "the"
-echo $BUILD_ATOM_LINUX_ACCESS_TOKEN
-echo "token"
-
 export ATOM_ACCESS_TOKEN=$BUILD_ATOM_LINUX_ACCESS_TOKEN
 
 if [ -d /usr/local/share/nodenv ]; then
