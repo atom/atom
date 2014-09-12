@@ -372,13 +372,13 @@ class WorkspaceView extends View
   beforeRemove: ->
     @model.destroy()
 
-  setEditorFontSize: (fontSize) =>
+  setEditorFontSize: (fontSize) ->
     atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
 
-  setEditorFontFamily: (fontFamily) =>
+  setEditorFontFamily: (fontFamily) ->
     atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
 
-  setEditorLineHeight: (lineHeight) =>
+  setEditorLineHeight: (lineHeight) ->
     atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
 
   # Deprecated
