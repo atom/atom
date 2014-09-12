@@ -58,7 +58,7 @@ getAssets = ->
       ]
     when 'linux'
       buildDir = grunt.config.get('atom.buildDir')
-      debAsset = fs.listSync(buildDir, '.deb')[0]
+      debAsset = fs.listSync(buildDir, ['.deb'])[0]
       [
         {assetName: path.basename(debAsset), sourcePath: debAsset}
       ]
