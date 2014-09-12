@@ -20,6 +20,7 @@ module.exports = (gruntObject) ->
   {cp} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
+    return unless process.platform is 'linux'
     return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'ks-add-debian-asset'
     tasks = ['upload-assets']
     tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
