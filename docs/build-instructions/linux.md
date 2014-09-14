@@ -33,8 +33,28 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 If you have problems with permissions don't forget to prefix with `sudo`
 
-From the cloned repository directory:
+ 0. Get a current working copy:
 
+    If you have not done so before, clone the repository to a local directory.
+    
+    ```sh
+    git clone https://github.com/atom/atom
+    cd atom
+    ```
+    
+    If you cloned the repository before, update your clone to the remote.
+    
+    ```sh
+    cd atom
+    git fetch
+    ```
+    
+   In any case, check out the latest tag:
+   
+    ```sh    
+    git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+    ```
+    
  1. Build:
 
     ```sh
