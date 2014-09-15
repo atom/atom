@@ -1365,7 +1365,8 @@ class Editor extends Model
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
       scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
-      new TextMateScopeSelector('comment.*').matches(scopes)
+      @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
+      @commentScopeSelector.matches(scopes)
 
   # Public: Toggle line comments for rows intersecting selections.
   #
