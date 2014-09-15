@@ -273,7 +273,11 @@ class Package
     @unsubscribeFromActivationEvents()
     @deactivateResources()
     @deactivateConfig()
-    @mainModule?.deactivate?() if @mainActivated
+    if @mainActivated
+      try
+        @mainModule?.deactivate?()
+      catch e
+        console.error "Error deactivating package '#{@name}'", e.stack
     @emit 'deactivated'
     @emitter.emit 'did-deactivate'
 

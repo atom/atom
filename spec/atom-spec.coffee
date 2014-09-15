@@ -350,7 +350,7 @@ describe "the `atom` global", ->
             atom.packages.deactivatePackage("package-that-throws-on-activate")
             expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
-        it "absorbs exceptions that are thrown by the package module's serialize methods", ->
+        it "absorbs exceptions that are thrown by the package module's serialize method", ->
           spyOn(console, 'error')
 
           waitsForPromise ->
@@ -363,6 +363,16 @@ describe "the `atom` global", ->
             atom.packages.deactivatePackages()
             expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
             expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
+            expect(console.error).toHaveBeenCalled()
+
+        it "absorbs exceptions that are thrown by the package module's deactivate method", ->
+          spyOn(console, 'error')
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-that-throws-on-deactivate")
+
+          runs ->
+            expect(-> atom.packages.deactivatePackage("package-that-throws-on-deactivate")).not.toThrow()
             expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
