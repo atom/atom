@@ -184,6 +184,8 @@ EditorComponent = React.createClass
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
+    @updateParentViewFocusedClassIfNeeded({})
+    @updateParentViewMiniClassIfNeeded({})
     @checkForVisibilityChange()
 
   componentWillUnmount: ->
