@@ -362,7 +362,7 @@ class Workspace extends Model
   # Returns an {Editor} or `undefined` if the current active item is not an
   # {Editor}.
   getActiveTextEditor: ->
-    activeItem = @getActiveItem()
+    activeItem = @getActivePaneItem()
     activeItem if activeItem instanceof Editor
 
   # Deprecated:
