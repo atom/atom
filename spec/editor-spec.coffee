@@ -98,11 +98,11 @@ describe "Editor", ->
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
 
   describe "config defaults", ->
-    it "uses the `editor.tabLength`, `editor.softWrapped`, and `editor.softTabs` config values", ->
+    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
       editor1 = null
       editor2 = null
       atom.config.set('editor.tabLength', 4)
-      atom.config.set('editor.softWrapped', true)
+      atom.config.set('editor.softWrap', true)
       atom.config.set('editor.softTabs', false)
 
       waitsForPromise ->
@@ -114,7 +114,7 @@ describe "Editor", ->
         expect(editor1.getSoftTabs()).toBe false
 
         atom.config.set('editor.tabLength', 100)
-        atom.config.set('editor.softWrapped', false)
+        atom.config.set('editor.softWrap', false)
         atom.config.set('editor.softTabs', true)
 
       waitsForPromise ->
