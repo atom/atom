@@ -47,7 +47,7 @@ class EditorView extends View
     nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
     preferredLineLength: 80
     tabLength: 2
-    softWrapped: false
+    softWrap: false
     softTabs: true
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40

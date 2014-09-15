@@ -45,7 +45,7 @@ class DisplayBuffer extends Model
 
     @emitter = new Emitter
 
-    @softWrapped ?= atom.config.get('editor.softWrapped') ? false
+    @softWrapped ?= atom.config.get('editor.softWrap') ? false
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
