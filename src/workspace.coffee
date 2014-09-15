@@ -113,7 +113,7 @@ class Workspace extends Model
   # Extended: Invoke the given callback when a pane item is added to the
   # workspace.
   #
-  # * `callback` {Function} to be called panes are added.
+  # * `callback` {Function} to be called when panes are added.
   #   * `event` {Object} with the following keys:
   #     * `item` The added pane item.
   #     * `pane` {Pane} containing the added item.
@@ -121,6 +121,15 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
+
+  # Extended: Invoke the given callback when the active pane item changes.
+  #
+  # * `callback` {Function} to be called when the active pane item changes.
+  #   * `event` {Object} with the following keys:
+  #     * `activeItem` The active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
 
   # Extended: Invoke the given callback with all current and future panes items in
   # the workspace.
