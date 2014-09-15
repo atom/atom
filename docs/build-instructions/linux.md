@@ -33,39 +33,39 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 If you have problems with permissions don't forget to prefix with `sudo`
 
-  1. Clone the Atom repository:
+1. Clone the Atom repository:
 
-    ```sh
-    git clone https://github.com/atom/atom
-    cd atom
-    ```
+  ```sh
+  git clone https://github.com/atom/atom
+  cd atom
+  ```
 
-  2. Checkout the latest Atom release:
+2. Checkout the latest Atom release:
 
-    ```sh
-    git fetch
-    git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
-    ```
+  ```sh
+  git fetch
+  git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+  ```
 
-  3. Build Atom:
+3. Build Atom:
 
-    ```sh
-    script/build
-    ```
+  ```sh
+  script/build
+  ```
 
-    This will create the atom application at `$TMPDIR/atom-build/Atom`.
+  This will create the atom application at `$TMPDIR/atom-build/Atom`.
 
-  4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
+4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
 
-    ```sh
-    sudo script/grunt install
-    ```
+  ```sh
+  sudo script/grunt install
+  ```
 
-  5. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
+5. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
 
-    ```sh
-    script/grunt mkdeb
-    ```
+  ```sh
+  script/grunt mkdeb
+  ```
 
 Use the newly installed Atom by fully quitting Atom and then reopening.
 
