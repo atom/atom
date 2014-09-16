@@ -430,39 +430,6 @@ class Atom extends Model
     dimensions = @getWindowDimensions()
     @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
-
-
-
-
-  deserializeProject: ->
-    Project = require './project'
-
-    startTime = Date.now()
-    @project ?= @deserializers.deserialize(@state.project) ? new Project(path: @getLoadSettings().initialPath)
-    @deserializeTimings.project = Date.now() - startTime
-
-  deserializeWorkspaceView: ->
-    Workspace = require './workspace'
-    WorkspaceView = require './workspace-view'
-
-    startTime = Date.now()
-    @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-    @workspaceView = new WorkspaceView(@workspace)
-    @deserializeTimings.workspace = Date.now() - startTime
-
-    @keymaps.defaultTarget = @workspaceView[0]
-    $(@workspaceViewParentSelector).append(@workspaceView)
-
-  deserializePackageStates: ->
-    @packages.packageStates = @state.packageStates ? {}
-    delete @state.packageStates
-
-  deserializeEditorWindow: ->
-    @deserializeTimings = {}
-    @deserializePackageStates()
-    @deserializeProject()
-    @deserializeWorkspaceView()
-
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     {resourcePath, safeMode} = @getLoadSettings()
@@ -513,25 +480,16 @@ class Atom extends Model
 
     @windowEventHandler?.unsubscribe()
 
-  loadThemes: ->
-    @themes.load()
+  ###
+  Section: Messaging the User
+  ###
 
-  watchThemes: ->
-    @themes.onDidReloadAll =>
-      # Only reload stylesheets from non-theme packages
-      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
-        pack.reloadStylesheets?()
-      null
+  # Public: Visually and audibly trigger a beep.
+  beep: ->
+    shell.beep() if @config.get('core.audioBeep')
+    @workspaceView.trigger 'beep'
 
-  # Notify the browser project of the window's current project path
-  watchProjectPath: ->
-    onProjectPathChanged = =>
-      ipc.send('window-command', 'project-path-changed', @project.getPath())
-    @subscribe @project, 'path-changed', onProjectPathChanged
-    onProjectPathChanged()
-
-
-  # Public: Open a confirm dialog.
+  # Public: A flexible way to open a dialog akin to an alert dialog.
   #
   # ## Examples
   #
@@ -546,8 +504,8 @@ class Atom extends Model
   #
   # * `options` An {Object} with the following keys:
   #   * `message` The {String} message to display.
-  #   * `detailedMessage` The {String} detailed message to display.
-  #   * `buttons` Either an array of strings or an object where keys are
+  #   * `detailedMessage` (optional) The {String} detailed message to display.
+  #   * `buttons` (optional) Either an array of strings or an object where keys are
   #     button names and the values are callbacks to invoke when clicked.
   #
   # Returns the chosen button index {Number} if the buttons option was an array.
@@ -571,14 +529,58 @@ class Atom extends Model
       callback = buttons[buttonLabels[chosen]]
       callback?()
 
-  showSaveDialog: (callback) ->
-    callback(showSaveDialogSync())
+  ###
+  Section: Deserialization
+  ###
 
-  showSaveDialogSync: (defaultPath) ->
-    defaultPath ?= @project?.getPath()
-    currentWindow = @getCurrentWindow()
-    dialog = remote.require('dialog')
-    dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
+  deserializeProject: ->
+    Project = require './project'
+
+    startTime = Date.now()
+    @project ?= @deserializers.deserialize(@state.project) ? new Project(path: @getLoadSettings().initialPath)
+    @deserializeTimings.project = Date.now() - startTime
+
+  deserializeWorkspaceView: ->
+    Workspace = require './workspace'
+    WorkspaceView = require './workspace-view'
+
+    startTime = Date.now()
+    @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
+    @workspaceView = new WorkspaceView(@workspace)
+    @deserializeTimings.workspace = Date.now() - startTime
+
+    @keymaps.defaultTarget = @workspaceView[0]
+    $(@workspaceViewParentSelector).append(@workspaceView)
+
+  deserializePackageStates: ->
+    @packages.packageStates = @state.packageStates ? {}
+    delete @state.packageStates
+
+  deserializeEditorWindow: ->
+    @deserializeTimings = {}
+    @deserializePackageStates()
+    @deserializeProject()
+    @deserializeWorkspaceView()
+
+
+
+
+  loadThemes: ->
+    @themes.load()
+
+  watchThemes: ->
+    @themes.onDidReloadAll =>
+      # Only reload stylesheets from non-theme packages
+      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
+        pack.reloadStylesheets?()
+      null
+
+  # Notify the browser project of the window's current project path
+  watchProjectPath: ->
+    onProjectPathChanged = =>
+      ipc.send('window-command', 'project-path-changed', @project.getPath())
+    @subscribe @project, 'path-changed', onProjectPathChanged
+    onProjectPathChanged()
 
 
   ###
@@ -599,6 +601,7 @@ class Atom extends Model
 
 
 
+
   exit: (status) ->
     app = remote.require('app')
     app.emit('will-exit')
@@ -611,6 +614,16 @@ class Atom extends Model
     ipc.send('call-window-method', 'setRepresentedFilename', filename)
 
 
+
+  showSaveDialog: (callback) ->
+    callback(showSaveDialogSync())
+
+  showSaveDialogSync: (defaultPath) ->
+    defaultPath ?= @project?.getPath()
+    currentWindow = @getCurrentWindow()
+    dialog = remote.require('dialog')
+    dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
+
   saveSync: ->
     stateString = JSON.stringify(@state)
     if statePath = @constructor.getStatePath(@mode)
@@ -618,26 +631,12 @@ class Atom extends Model
     else
       @getCurrentWindow().loadSettings.windowState = stateString
 
-  # Public: Get the time taken to completely load the current window.
-  #
-  # This time include things like loading and activating packages, creating
-  # DOM elements for the editor, and reading the config.
-  #
-  # Returns the {Number} of milliseconds taken to load the window or null
-  # if the window hasn't finished loading yet.
-  getWindowLoadTime: ->
-    @loadTime
 
   crashMainProcess: ->
     remote.process.crash()
 
   crashRenderProcess: ->
     process.crash()
-
-  # Public: Visually and audibly trigger a beep.
-  beep: ->
-    shell.beep() if @config.get('core.audioBeep')
-    @workspaceView.trigger 'beep'
 
   getUserInitScriptPath: ->
     initScriptPath = fs.resolve(@getConfigDirPath(), 'init', ['js', 'coffee'])
@@ -650,7 +649,7 @@ class Atom extends Model
       catch error
         console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
-  # Public: Require the module with the given globals.
+  # Require the module with the given globals.
   #
   # The globals will be set on the `window` object and removed after the
   # require completes.
