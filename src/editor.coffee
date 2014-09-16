@@ -1432,14 +1432,21 @@ class Editor extends Model
   Section: Clipboard Operations
   ###
 
-  # Public: For each selection, copy the selected text.
+  # Essential: For each selection, copy the selected text.
   copySelectedText: ->
     maintainClipboard = false
     for selection in @getSelections()
       selection.copy(maintainClipboard)
       maintainClipboard = true
 
-  # Public: For each selection, replace the selected text with the contents of
+  # Essential: For each selection, cut the selected text.
+  cutSelectedText: ->
+    maintainClipboard = false
+    @mutateSelectedText (selection) ->
+      selection.cut(maintainClipboard)
+      maintainClipboard = true
+
+  # Essential: For each selection, replace the selected text with the contents of
   # the clipboard.
   #
   # If the clipboard contains the same number of selections as the current
@@ -1465,14 +1472,7 @@ class Editor extends Model
 
     @insertText(text, options)
 
-  # Public: For each selection, cut the selected text.
-  cutSelectedText: ->
-    maintainClipboard = false
-    @mutateSelectedText (selection) ->
-      selection.cut(maintainClipboard)
-      maintainClipboard = true
-
-  # Public: For each selection, if the selection is empty, cut all characters
+  # Extended: For each selection, if the selection is empty, cut all characters
   # of the containing line following the cursor. Otherwise cut the selected
   # text.
   cutToEndOfLine: ->
@@ -1486,7 +1486,7 @@ class Editor extends Model
   Section: Folds
   ###
 
-  # Public: Fold the most recent cursor's row based on its indentation level.
+  # Essential: Fold the most recent cursor's row based on its indentation level.
   #
   # The fold will extend from the nearest preceding line with a lower
   # indentation level up to the nearest following row with a lower indentation
@@ -1495,30 +1495,12 @@ class Editor extends Model
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @foldBufferRow(bufferRow)
 
-  # Public: Unfold the most recent cursor's row by one level.
+  # Essential: Unfold the most recent cursor's row by one level.
   unfoldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @unfoldBufferRow(bufferRow)
 
-  # Public: For each selection, fold the rows it intersects.
-  foldSelectedLines: ->
-    selection.fold() for selection in @getSelections()
-
-  # Public: Fold all foldable lines.
-  foldAll: ->
-    @languageMode.foldAll()
-
-  # Public: Unfold all existing folds.
-  unfoldAll: ->
-    @languageMode.unfoldAll()
-
-  # Public: Fold all foldable lines at the given indent level.
-  #
-  # * `level` A {Number}.
-  foldAllAtIndentLevel: (level) ->
-    @languageMode.foldAllAtIndentLevel(level)
-
-  # Public: Fold the given row in buffer coordinates based on its indentation
+  # Essential: Fold the given row in buffer coordinates based on its indentation
   # level.
   #
   # If the given row is foldable, the fold will begin there. Otherwise, it will
@@ -1528,13 +1510,31 @@ class Editor extends Model
   foldBufferRow: (bufferRow) ->
     @languageMode.foldBufferRow(bufferRow)
 
-  # Public: Unfold all folds containing the given row in buffer coordinates.
+  # Essential: Unfold all folds containing the given row in buffer coordinates.
   #
   # * `bufferRow` A {Number}
   unfoldBufferRow: (bufferRow) ->
     @displayBuffer.unfoldBufferRow(bufferRow)
 
-  # Public: Determine whether the given row in buffer coordinates is foldable.
+  # Extended: For each selection, fold the rows it intersects.
+  foldSelectedLines: ->
+    selection.fold() for selection in @getSelections()
+
+  # Extended: Fold all foldable lines.
+  foldAll: ->
+    @languageMode.foldAll()
+
+  # Extended: Unfold all existing folds.
+  unfoldAll: ->
+    @languageMode.unfoldAll()
+
+  # Extended: Fold all foldable lines at the given indent level.
+  #
+  # * `level` A {Number}.
+  foldAllAtIndentLevel: (level) ->
+    @languageMode.foldAllAtIndentLevel(level)
+
+  # Extended: Determine whether the given row in buffer coordinates is foldable.
   #
   # A *foldable* row is a row that *starts* a row range that can be folded.
   #
@@ -1544,9 +1544,46 @@ class Editor extends Model
   isFoldableAtBufferRow: (bufferRow) ->
     @languageMode.isFoldableAtBufferRow(bufferRow)
 
+  # Extended: Determine whether the given row in screen coordinates is foldable.
+  #
+  # A *foldable* row is a row that *starts* a row range that can be folded.
+  #
+  # * `bufferRow` A {Number}
+  #
+  # Returns a {Boolean}.
   isFoldableAtScreenRow: (screenRow) ->
     bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
     @isFoldableAtBufferRow(bufferRow)
+
+  # Extended: Fold the given buffer row if it isn't currently folded, and unfold
+  # it otherwise.
+  toggleFoldAtBufferRow: (bufferRow) ->
+    if @isFoldedAtBufferRow(bufferRow)
+      @unfoldBufferRow(bufferRow)
+    else
+      @foldBufferRow(bufferRow)
+
+  # Extended: Determine whether the most recently added cursor's row is folded.
+  #
+  # Returns a {Boolean}.
+  isFoldedAtCursorRow: ->
+    @isFoldedAtScreenRow(@getCursorScreenPosition().row)
+
+  # Extended: Determine whether the given row in buffer coordinates is folded.
+  #
+  # * `bufferRow` A {Number}
+  #
+  # Returns a {Boolean}.
+  isFoldedAtBufferRow: (bufferRow) ->
+    @displayBuffer.isFoldedAtBufferRow(bufferRow)
+
+  # Extended: Determine whether the given row in screen coordinates is folded.
+  #
+  # * `screenRow` A {Number}
+  #
+  # Returns a {Boolean}.
+  isFoldedAtScreenRow: (screenRow) ->
+    @displayBuffer.isFoldedAtScreenRow(screenRow)
 
   # TODO: Rename to foldRowRange?
   createFold: (startRow, endRow) ->
@@ -1561,36 +1598,6 @@ class Editor extends Model
     for row in [bufferRange.start.row..bufferRange.end.row]
       @unfoldBufferRow(row)
 
-  # Public: Fold the given buffer row if it isn't currently folded, and unfold
-  # it otherwise.
-  toggleFoldAtBufferRow: (bufferRow) ->
-    if @isFoldedAtBufferRow(bufferRow)
-      @unfoldBufferRow(bufferRow)
-    else
-      @foldBufferRow(bufferRow)
-
-  # Public: Determine whether the most recently added cursor's row is folded.
-  #
-  # Returns a {Boolean}.
-  isFoldedAtCursorRow: ->
-    @isFoldedAtScreenRow(@getCursorScreenPosition().row)
-
-  # Public: Determine whether the given row in buffer coordinates is folded.
-  #
-  # * `bufferRow` A {Number}
-  #
-  # Returns a {Boolean}.
-  isFoldedAtBufferRow: (bufferRow) ->
-    @displayBuffer.isFoldedAtBufferRow(bufferRow)
-
-  # Public: Determine whether the given row in screen coordinates is folded.
-  #
-  # * `screenRow` A {Number}
-  #
-  # Returns a {Boolean}.
-  isFoldedAtScreenRow: (screenRow) ->
-    @displayBuffer.isFoldedAtScreenRow(screenRow)
-
   # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
   largestFoldContainingBufferRow: (bufferRow) ->
     @displayBuffer.largestFoldContainingBufferRow(bufferRow)
@@ -1602,10 +1609,6 @@ class Editor extends Model
   # {Delegates to: DisplayBuffer.outermostFoldsForBufferRowRange}
   outermostFoldsInBufferRowRange: (startRow, endRow) ->
     @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
-
-
-
-
 
   ###
   Section: Decorations
