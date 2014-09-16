@@ -1056,7 +1056,27 @@ class Editor extends Model
   Section: Tab Behavior
   ###
 
-  # Public: Determine if the buffer uses hard or soft tabs.
+  # Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
+  # editor.
+  getSoftTabs: -> @softTabs
+
+  # Essential: Enable or disable soft tabs for this editor.
+  #
+  # * `softTabs` A {Boolean}
+  setSoftTabs: (@softTabs) -> @softTabs
+
+  # Essential: Toggle soft tabs for this editor
+  toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
+
+  # Essential: Get the on-screen length of tab characters.
+  #
+  # Returns a {Number}.
+  getTabLength: -> @displayBuffer.getTabLength()
+
+  # Essential: Set the on-screen length of tab characters.
+  setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
+
+  # Extended: Determine if the buffer uses hard or soft tabs.
   #
   # Returns `true` if the first non-comment line with leading whitespace starts
   # with a space character. Returns `false` if it starts with a hard tab (`\t`).
@@ -1073,33 +1093,13 @@ class Editor extends Model
 
     undefined
 
-  # Public: Returns a {Boolean} indicating whether softTabs are enabled for this
-  # editor.
-  getSoftTabs: -> @softTabs
-
-  # Public: Enable or disable soft tabs for this editor.
-  #
-  # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @softTabs
-
-  # Public: Toggle soft tabs for this editor
-  toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
-
-  # Public: Get the text representing a single level of indent.
+  # Extended: Get the text representing a single level of indent.
   #
   # If soft tabs are enabled, the text is composed of N spaces, where N is the
   # tab length. Otherwise the text is a tab character (`\t`).
   #
   # Returns a {String}.
   getTabText: -> @buildIndentString(1)
-
-  # Public: Get the on-screen length of tab characters.
-  #
-  # Returns a {Number}.
-  getTabLength: -> @displayBuffer.getTabLength()
-
-  # Public: Set the on-screen length of tab characters.
-  setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
   # If soft tabs are enabled, convert all hard tabs to soft tabs in the given
   # {Range}.
