@@ -254,56 +254,7 @@ class Atom extends Model
   Section: Managing The Atom Window
   ###
 
-  # Public: Get the current window
-  getCurrentWindow: ->
-    @constructor.getCurrentWindow()
-
-  # Public: Get the size of current window.
-  #
-  # Returns an {Object} in the format `{width: 1000, height: 700}`
-  getSize: ->
-    [width, height] = @getCurrentWindow().getSize()
-    {width, height}
-
-  # Public: Set the size of current window.
-  #
-  # * `width` The {Number} of pixels.
-  # * `height` The {Number} of pixels.
-  setSize: (width, height) ->
-    @getCurrentWindow().setSize(width, height)
-
-  # Public: Get the position of current window.
-  #
-  # Returns an {Object} in the format `{x: 10, y: 20}`
-  getPosition: ->
-    [x, y] = @getCurrentWindow().getPosition()
-    {x, y}
-
-  # Public: Set the position of current window.
-  #
-  # * `x` The {Number} of pixels.
-  # * `y` The {Number} of pixels.
-  setPosition: (x, y) ->
-    ipc.send('call-window-method', 'setPosition', x, y)
-
-  # Public: Move current window to the center of the screen.
-  center: ->
-    ipc.send('call-window-method', 'center')
-
-  # Public: Focus the current window.
-  focus: ->
-    ipc.send('call-window-method', 'focus')
-    $(window).focus()
-
-  # Public: Show the current window.
-  show: ->
-    ipc.send('call-window-method', 'show')
-
-  # Public: Hide the current window.
-  hide: ->
-    ipc.send('call-window-method', 'hide')
-
-  # Public: Open a new Atom window using the given options.
+  # Essential: Open a new Atom window using the given options.
   #
   # Calling this method without an options parameter will open a prompt to pick
   # a file/folder to open in the new window.
@@ -320,31 +271,80 @@ class Atom extends Model
   open: (options) ->
     ipc.send('open', options)
 
-  # Public: Close the current window.
+  # Essential: Close the current window.
   close: ->
     @getCurrentWindow().close()
 
-  # Public: Reload the current window.
+  # Essential: Get the size of current window.
+  #
+  # Returns an {Object} in the format `{width: 1000, height: 700}`
+  getSize: ->
+    [width, height] = @getCurrentWindow().getSize()
+    {width, height}
+
+  # Essential: Set the size of current window.
+  #
+  # * `width` The {Number} of pixels.
+  # * `height` The {Number} of pixels.
+  setSize: (width, height) ->
+    @getCurrentWindow().setSize(width, height)
+
+  # Essential: Get the position of current window.
+  #
+  # Returns an {Object} in the format `{x: 10, y: 20}`
+  getPosition: ->
+    [x, y] = @getCurrentWindow().getPosition()
+    {x, y}
+
+  # Essential: Set the position of current window.
+  #
+  # * `x` The {Number} of pixels.
+  # * `y` The {Number} of pixels.
+  setPosition: (x, y) ->
+    ipc.send('call-window-method', 'setPosition', x, y)
+
+  # Extended: Get the current window
+  getCurrentWindow: ->
+    @constructor.getCurrentWindow()
+
+  # Extended: Move current window to the center of the screen.
+  center: ->
+    ipc.send('call-window-method', 'center')
+
+  # Extended: Focus the current window.
+  focus: ->
+    ipc.send('call-window-method', 'focus')
+    $(window).focus()
+
+  # Extended: Show the current window.
+  show: ->
+    ipc.send('call-window-method', 'show')
+
+  # Extended: Hide the current window.
+  hide: ->
+    ipc.send('call-window-method', 'hide')
+
+  # Extended: Reload the current window.
   reload: ->
     ipc.send('call-window-method', 'restart')
 
-  # Public: Returns a {Boolean} true when the current window is maximized.
+  # Extended: Returns a {Boolean} true when the current window is maximized.
   isMaximixed: ->
     @getCurrentWindow().isMaximized()
 
   maximize: ->
     ipc.send('call-window-method', 'maximize')
 
-  # Public: Is the current window in full screen mode?
+  # Extended: Is the current window in full screen mode?
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
 
-  # Public: Set the full screen state of the current window.
+  # Extended: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     ipc.send('call-window-method', 'setFullScreen', fullScreen)
     if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
 
-  # Public: Toggle the full screen state of the current window.
+  # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
     @setFullScreen(!@isFullScreen())
 
