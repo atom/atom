@@ -17,6 +17,9 @@ module.exports = (grunt) ->
     packageInfo = JSON.parse(fs.readFileSync(path.join(atomDir, 'resources', 'app', 'package.json'), {encoding: 'utf8'}))
     inputTemplate = fs.readFileSync(path.join('build', 'windows', 'atom.nuspec.erb'), {encoding: 'utf8'})
 
+    ## NB: Build server has some sort of stamp on the version number
+    packageInfo.version = packageInfo.version.replace(/-.*$/, '')
+
     targetNuspecPath = path.join(buildDir, 'atom.nuspec')
     fs.writeFileSync(targetNuspecPath, _.template(inputTemplate, packageInfo))
 
