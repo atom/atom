@@ -654,7 +654,7 @@ class Editor extends Model
   # {Delegates to: TextBuffer.getEndPosition}
   getEofBufferPosition: -> @buffer.getEndPosition()
 
-  # Public: Get the {Range} of the paragraph surrounding the most recently added
+  # Extended: Get the {Range} of the paragraph surrounding the most recently added
   # cursor.
   #
   # Returns a {Range}.
@@ -1064,7 +1064,7 @@ class Editor extends Model
   #   * `replace` Call this {Function} with a {String} to replace the match.
   scan: (regex, iterator) -> @buffer.scan(regex, iterator)
 
-  # Essential: Scan regular expression matches in a given range, calling the given
+  # Extended: Scan regular expression matches in a given range, calling the given
   # iterator function on each match.
   #
   # * `regex` A {RegExp} to search for.
@@ -1078,7 +1078,7 @@ class Editor extends Model
   #   * `replace` Call this {Function} with a {String} to replace the match.
   scanInBufferRange: (regex, range, iterator) -> @buffer.scanInRange(regex, range, iterator)
 
-  # Essential: Scan regular expression matches in a given range in reverse order,
+  # Extended: Scan regular expression matches in a given range in reverse order,
   # calling the given iterator function on each match.
   #
   # * `regex` A {RegExp} to search for.
@@ -1332,7 +1332,7 @@ class Editor extends Model
   # Returns a {Point}.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
 
-  # Essential: Clip the start and end of the given range to valid positions in the
+  # Extended: Clip the start and end of the given range to valid positions in the
   # buffer. See {::clipBufferPosition} for more information.
   #
   # * `range` The {Range} to clip.
@@ -1340,7 +1340,7 @@ class Editor extends Model
   # Returns a {Range}.
   clipBufferRange: (range) -> @buffer.clipRange(range)
 
-  # Essential: Clip the given {Point} to a valid position on screen.
+  # Extended: Clip the given {Point} to a valid position on screen.
   #
   # If the given {Point} describes a position that is actually reachable by the
   # cursor based on the current contents of the screen, it is returned
