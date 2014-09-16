@@ -9,6 +9,7 @@ Delegator = require 'delegato'
 Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
+{jQuery} = require './space-pen-extensions'
 
 # Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
@@ -35,6 +36,7 @@ class Workspace extends Model
     super
 
     @emitter = new Emitter
+    @viewsByModel = new WeakMap
     @openers = []
 
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
@@ -488,3 +490,23 @@ class Workspace extends Model
   # Called by Model superclass when destroyed
   destroyed: ->
     @paneContainer.destroy()
+
+  getView: (object) ->
+    if view = @viewsByModel.get(object)
+      view
+    else if object instanceof HTMLElement
+      object
+    else if object instanceof jQuery
+      object[0].__spacePenView ?= object
+      object[0]
+    else
+      @createView(object)
+
+  createView: (model) ->
+    if viewClass = model?.getViewClass?()
+      view = new viewClass(model)
+      @viewsByModel.set(model, view[0])
+      view[0].__spacePenView ?= view
+      view[0]
+    else
+      throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
