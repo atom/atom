@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+_ = require 'underscore-plus'
 
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
@@ -14,10 +15,10 @@ module.exports = (grunt) ->
     atomDir = path.join(buildDir, 'Atom')
 
     packageInfo = JSON.parse(fs.readFileSync(path.join(atomDir, 'resources', 'app', 'package.json'), {encoding: 'utf8'}))
-    inputTemplate = fs.readFileSync(path.join('build', 'windows', 'atom.nuspec.hbs'), {encoding: 'utf8'})
+    inputTemplate = fs.readFileSync(path.join('build', 'windows', 'atom.nuspec.erb'), {encoding: 'utf8'})
 
     targetNuspecPath = path.join(buildDir, 'atom.nuspec')
-    fs.writeFileSync(targetNuspecPath, inputTemplate.replace(/{{version}}/, packageInfo.version))
+    fs.writeFileSync(targetNuspecPath, _.template(inputTemplate, packageInfo))
 
     cmd = 'build/windows/nuget.exe'
     args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
