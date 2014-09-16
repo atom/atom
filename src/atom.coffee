@@ -533,6 +533,11 @@ class Atom extends Model
     dialog = remote.require('dialog')
     dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 
+
+  ###
+  Section: Managing the Dev Tools
+  ###
+
   # Public: Open the dev tools for the current window.
   openDevTools: ->
     ipc.send('call-window-method', 'openDevTools')
