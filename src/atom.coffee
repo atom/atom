@@ -234,6 +234,12 @@ class Atom extends Model
   getConfigDirPath: ->
     @constructor.getConfigDirPath()
 
+  # Public: Get the load settings for the current window.
+  #
+  # Returns an {Object} containing all the load setting key/value pairs.
+  getLoadSettings: ->
+    @constructor.getLoadSettings()
+
   ###
   Section: Managing The Atom Window
   ###
@@ -400,12 +406,6 @@ class Atom extends Model
 
 
 
-
-  # Public: Get the load settings for the current window.
-  #
-  # Returns an {Object} containing all the load setting key/value pairs.
-  getLoadSettings: ->
-    @constructor.getLoadSettings()
 
   deserializeProject: ->
     Project = require './project'
