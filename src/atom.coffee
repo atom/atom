@@ -144,7 +144,7 @@ class Atom extends Model
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
 
-  # Public: Sets up the basic services that should be available in all modes
+  # Sets up the basic services that should be available in all modes
   # (both spec and application).
   #
   # Call after this instance has been assigned to the `atom` global.
