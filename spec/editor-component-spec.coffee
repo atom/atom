@@ -2195,7 +2195,7 @@ describe "EditorComponent", ->
       editor.setSoftWrapped(true)
 
       callingOrder = []
-      editor.onDidChangeScreenLines -> callingOrder.push 'screen-lines-changed'
+      editor.onDidChange -> callingOrder.push 'screen-lines-changed'
       wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
       editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
       nextAnimationFrame()

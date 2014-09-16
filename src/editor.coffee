@@ -155,7 +155,7 @@ class Editor extends Model
     @subscribe @displayBuffer.onDidTokenize => @handleTokenization()
     @subscribe @displayBuffer.onDidChange (e) =>
       @emit 'screen-lines-changed', e
-      @emitter.emit 'did-change-screen-lines', e
+      @emitter.emit 'did-change', e
 
     # TODO: remove these when we remove the deprecations. Though, no one is likely using them
     @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
@@ -191,6 +191,19 @@ class Editor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePath: (callback) ->
     @emitter.on 'did-change-path', callback
+
+  # Essential: Invoke the given callback synchronously when the content of the
+  # buffer changes.
+  #
+  # Because observers are invoked synchronously, it's important not to perform
+  # any expensive operations via this method. Consider {::onDidStopChanging} to
+  # delay expensive operations until after changes stop occurring.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
 
   # Extended: Calls your `callback` when soft wrap was enabled or disabled.
   #
@@ -380,9 +393,6 @@ class Editor extends Model
   onDidChangeCharacterWidths: (callback) ->
     @displayBuffer.onDidChangeCharacterWidths(callback)
 
-  onDidChangeScreenLines: (callback) ->
-    @emitter.on 'did-change-screen-lines', callback
-
   onDidChangeScrollTop: (callback) ->
     @emitter.on 'did-change-scroll-top', callback
 
@@ -437,7 +447,7 @@ class Editor extends Model
         deprecate("Use Marker::onDidChange instead. eg. `editor::decorateMarker(...).getMarker().onDidChange()`")
 
       when 'screen-lines-changed'
-        deprecate("Use Editor::onDidChangeScreenLines instead")
+        deprecate("Use Editor::onDidChange instead")
 
       when 'scroll-top-changed'
         deprecate("Use Editor::onDidChangeScrollTop instead")
