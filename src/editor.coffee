@@ -1674,15 +1674,43 @@ class Editor extends Model
   Section: Markers
   ###
 
-  # Public: Get the {DisplayBufferMarker} for the given marker id.
-  getMarker: (id) ->
-    @displayBuffer.getMarker(id)
+  # Essential: Mark the given range in buffer coordinates.
+  #
+  # * `range` A {Range} or range-compatible {Array}.
+  # * `options` (optional) See {TextBuffer::markRange}.
+  #
+  # Returns a {DisplayBufferMarker}.
+  markBufferRange: (args...) ->
+    @displayBuffer.markBufferRange(args...)
 
-  # Public: Get all {DisplayBufferMarker}s.
-  getMarkers: ->
-    @displayBuffer.getMarkers()
+  # Essential: Mark the given range in screen coordinates.
+  #
+  # * `range` A {Range} or range-compatible {Array}.
+  # * `options` (optional) See {TextBuffer::markRange}.
+  #
+  # Returns a {DisplayBufferMarker}.
+  markScreenRange: (args...) ->
+    @displayBuffer.markScreenRange(args...)
 
-  # Public: Find all {DisplayBufferMarker}s that match the given properties.
+  # Essential: Mark the given position in buffer coordinates.
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`.
+  # * `options` (optional) See {TextBuffer::markRange}.
+  #
+  # Returns a {DisplayBufferMarker}.
+  markBufferPosition: (args...) ->
+    @displayBuffer.markBufferPosition(args...)
+
+  # Essential: Mark the given position in screen coordinates.
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`.
+  # * `options` (optional) See {TextBuffer::markRange}.
+  #
+  # Returns a {DisplayBufferMarker}.
+  markScreenPosition: (args...) ->
+    @displayBuffer.markScreenPosition(args...)
+
+  # Essential: Find all {DisplayBufferMarker}s that match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
   # associated with custom properties that will be compared with basic equality.
@@ -1704,52 +1732,23 @@ class Editor extends Model
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
 
-  # Public: Mark the given range in screen coordinates.
-  #
-  # * `range` A {Range} or range-compatible {Array}.
-  # * `options` (optional) See {TextBuffer::markRange}.
-  #
-  # Returns a {DisplayBufferMarker}.
-  markScreenRange: (args...) ->
-    @displayBuffer.markScreenRange(args...)
+  # Extended: Get the {DisplayBufferMarker} for the given marker id.
+  getMarker: (id) ->
+    @displayBuffer.getMarker(id)
 
-  # Public: Mark the given range in buffer coordinates.
-  #
-  # * `range` A {Range} or range-compatible {Array}.
-  # * `options` (optional) See {TextBuffer::markRange}.
-  #
-  # Returns a {DisplayBufferMarker}.
-  markBufferRange: (args...) ->
-    @displayBuffer.markBufferRange(args...)
+  # Extended: Get all {DisplayBufferMarker}s.
+  getMarkers: ->
+    @displayBuffer.getMarkers()
 
-  # Public: Mark the given position in screen coordinates.
-  #
-  # * `position` A {Point} or {Array} of `[row, column]`.
-  # * `options` (optional) See {TextBuffer::markRange}.
-  #
-  # Returns a {DisplayBufferMarker}.
-  markScreenPosition: (args...) ->
-    @displayBuffer.markScreenPosition(args...)
-
-  # Public: Mark the given position in buffer coordinates.
-  #
-  # * `position` A {Point} or {Array} of `[row, column]`.
-  # * `options` (optional) See {TextBuffer::markRange}.
-  #
-  # Returns a {DisplayBufferMarker}.
-  markBufferPosition: (args...) ->
-    @displayBuffer.markBufferPosition(args...)
-
-  # {Delegates to: DisplayBuffer.destroyMarker}
-  destroyMarker: (args...) ->
-    @displayBuffer.destroyMarker(args...)
-
-  # Public: Get the number of markers in this editor's buffer.
+  # Extended: Get the number of markers in this editor's buffer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
+  # {Delegates to: DisplayBuffer.destroyMarker}
+  destroyMarker: (args...) ->
+    @displayBuffer.destroyMarker(args...)
 
   ###
   Section: Cursors
