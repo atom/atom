@@ -21,7 +21,7 @@ module.exports =
 class Atom extends Model
   @version: 1  # Increment this when the serialization format changes
 
-  # Public: Load or create the Atom environment in the given mode.
+  # Load or create the Atom environment in the given mode.
   #
   # * `mode` A {String} mode that is either 'editor' or 'spec' depending on the
   #   kind of environment you want to build.
