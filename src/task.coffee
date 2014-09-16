@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 child_process = require 'child_process'
 {Emitter} = require 'emissary'
 
-# Public: Run a node script in a separate process.
+# Extended: Run a node script in a separate process.
 #
 # Used by the fuzzy-finder.
 #
