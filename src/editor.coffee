@@ -893,6 +893,34 @@ class Editor extends Model
   joinLines: ->
     @mutateSelectedText (selection) -> selection.joinLines()
 
+  # Extended: Batch multiple operations as a single undo/redo step.
+  #
+  # Any group of operations that are logically grouped from the perspective of
+  # undoing and redoing should be performed in a transaction. If you want to
+  # abort the transaction, call {::abortTransaction} to terminate the function's
+  # execution and revert any changes performed up to the abortion.
+  #
+  # * `fn` A {Function} to call inside the transaction.
+  transact: (fn) -> @buffer.transact(fn)
+
+  # Extended: Start an open-ended transaction.
+  #
+  # Call {::commitTransaction} or {::abortTransaction} to terminate the
+  # transaction. If you nest calls to transactions, only the outermost
+  # transaction is considered. You must match every begin with a matching
+  # commit, but a single call to abort will cancel all nested transactions.
+  beginTransaction: -> @buffer.beginTransaction()
+
+  # Extended: Commit an open-ended transaction started with {::beginTransaction}
+  # and push it to the undo stack.
+  #
+  # If transactions are nested, only the outermost commit takes effect.
+  commitTransaction: -> @buffer.commitTransaction()
+
+  # Extended: Abort an open transaction, undoing any operations performed so far
+  # within the transaction.
+  abortTransaction: -> @buffer.abortTransaction()
+
   ###
   Section: Inserting Text
   ###
@@ -1230,38 +1258,6 @@ class Editor extends Model
   redo: ->
     @getLastCursor().needsAutoscroll = true
     @buffer.redo(this)
-
-  ###
-  Section: Text Mutation Transactions
-  ###
-
-  # Public: Batch multiple operations as a single undo/redo step.
-  #
-  # Any group of operations that are logically grouped from the perspective of
-  # undoing and redoing should be performed in a transaction. If you want to
-  # abort the transaction, call {::abortTransaction} to terminate the function's
-  # execution and revert any changes performed up to the abortion.
-  #
-  # * `fn` A {Function} to call inside the transaction.
-  transact: (fn) -> @buffer.transact(fn)
-
-  # Public: Start an open-ended transaction.
-  #
-  # Call {::commitTransaction} or {::abortTransaction} to terminate the
-  # transaction. If you nest calls to transactions, only the outermost
-  # transaction is considered. You must match every begin with a matching
-  # commit, but a single call to abort will cancel all nested transactions.
-  beginTransaction: -> @buffer.beginTransaction()
-
-  # Public: Commit an open-ended transaction started with {::beginTransaction}
-  # and push it to the undo stack.
-  #
-  # If transactions are nested, only the outermost commit takes effect.
-  commitTransaction: -> @buffer.commitTransaction()
-
-  # Public: Abort an open transaction, undoing any operations performed so far
-  # within the transaction.
-  abortTransaction: -> @buffer.abortTransaction()
 
   ###
   Section: Editor Coordinates
