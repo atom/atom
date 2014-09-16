@@ -257,6 +257,16 @@ class Editor extends Model
   onDidInsertText: (callback) ->
     @emitter.on 'did-insert-text', callback
 
+  # Public: Invoke the given callback after the buffer is saved to disk.
+  #
+  # * `callback` {Function} to be called after the buffer is saved.
+  #   * `event` {Object} with the following keys:
+  #     * `path` The path to which the buffer was saved.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidSave: (callback) ->
+    @getBuffer().onDidSave(callback)
+
   # Extended: Calls your `callback` when a {Cursor} is added to the editor.
   # Immediately calls your callback for each existing cursor.
   #
@@ -1365,7 +1375,8 @@ class Editor extends Model
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
       scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
-      new TextMateScopeSelector('comment.*').matches(scopes)
+      @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
+      @commentScopeSelector.matches(scopes)
 
   # Public: Toggle line comments for rows intersecting selections.
   #

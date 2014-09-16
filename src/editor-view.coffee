@@ -47,7 +47,7 @@ class EditorView extends View
     nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
     preferredLineLength: 80
     tabLength: 2
-    softWrapped: false
+    softWrap: false
     softTabs: true
     softWrapAtPreferredLineLength: false
     scrollSensitivity: 40
@@ -282,56 +282,39 @@ class EditorView extends View
     deprecate 'Use Editor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
     @editor.getLastVisibleScreenRow()
 
-  # Public: Gets the font family for the editor.
-  #
-  # Returns a {String} identifying the CSS `font-family`.
   getFontFamily: ->
+    deprecate 'This is going away. Use atom.config.get("editor.fontFamily") instead'
     @component?.getFontFamily()
 
-  # Public: Sets the font family for the editor.
-  #
-  # * `fontFamily` A {String} identifying the CSS `font-family`.
   setFontFamily: (fontFamily) ->
+    deprecate 'This is going away. Use atom.config.set("editor.fontFamily", "my-font") instead'
     @component?.setFontFamily(fontFamily)
 
-  # Public: Retrieves the font size for the editor.
-  #
-  # Returns a {Number} indicating the font size in pixels.
   getFontSize: ->
+    deprecate 'This is going away. Use atom.config.get("editor.fontSize") instead'
     @component?.getFontSize()
 
-  # Public: Sets the font size for the editor.
-  #
-  # * `fontSize` A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
+    deprecate 'This is going away. Use atom.config.set("editor.fontSize", 12) instead'
     @component?.setFontSize(fontSize)
+
+  setLineHeight: (lineHeight) ->
+    deprecate 'This is going away. Use atom.config.set("editor.lineHeight", 1.5) instead'
+    @component.setLineHeight(lineHeight)
 
   setWidthInChars: (widthInChars) ->
     @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
 
-  # Public: Sets the line height of the editor.
-  #
-  # Calling this method has no effect when called on a mini editor.
-  #
-  # * `lineHeight` A {Number} without a unit suffix identifying the CSS `line-height`.
-  setLineHeight: (lineHeight) ->
-    @component.setLineHeight(lineHeight)
-
-  # Public: Sets whether you want to show the indentation guides.
-  #
-  # * `showIndentGuide` A {Boolean} you can set to `true` if you want to see the
-  #   indentation guides.
   setShowIndentGuide: (showIndentGuide) ->
+    deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
     @component.setShowIndentGuide(showIndentGuide)
 
   setSoftWrap: (softWrapped) ->
     deprecate 'Use Editor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
     @editor.setSoftWrapped(softWrapped)
 
-  # Public: Set whether invisible characters are shown.
-  #
-  # * `showInvisibles` A {Boolean} which, if `true`, show invisible characters.
   setShowInvisibles: (showInvisibles) ->
+    deprecate 'This is going away. Use atom.config.set("editor.showInvisibles", true|false) instead'
     @component.setShowInvisibles(showInvisibles)
 
   getText: ->

@@ -20,6 +20,7 @@ class ThemeManager
   constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
     @emitter = new Emitter
     @lessCache = null
+    @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
 
   ###
@@ -50,6 +51,15 @@ class ThemeManager
   onDidRemoveStylesheet: (callback) ->
     @emitter.on 'did-remove-stylesheet', callback
 
+  # Essential: Invoke `callback` when a stylesheet has been updated.
+  #
+  # * `callback` {Function}
+  #   * `stylesheet` {StyleSheet} the style node
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidUpdateStylesheet: (callback) ->
+    @emitter.on 'did-update-stylesheet', callback
+
   # Essential: Invoke `callback` when any stylesheet has been updated, added, or removed.
   #
   # * `callback` {Function}
@@ -66,6 +76,8 @@ class ThemeManager
         deprecate 'Use ThemeManager::onDidAddStylesheet instead'
       when 'stylesheet-removed'
         deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
+      when 'stylesheet-updated'
+        deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
       when 'stylesheets-changed'
         deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
       else
@@ -73,7 +85,7 @@ class ThemeManager
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Methods
+  Section: Instance Methods
   ###
 
   getAvailableNames: ->
@@ -96,7 +108,7 @@ class ThemeManager
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
-  activatePackages: (themePackages) -> @activateThemes()
+  activatePackages: -> @activateThemes()
 
   # Get the enabled theme names from the config.
   #
@@ -154,6 +166,7 @@ class ThemeManager
         @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
         @loadUserStylesheet()
         @reloadBaseStylesheets()
+        @initialLoadComplete = true
         @emit 'reloaded'
         @emitter.emit 'did-reload-all'
         deferred.resolve()
@@ -165,6 +178,8 @@ class ThemeManager
     @unwatchUserStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
+
+  isInitialLoadComplete: -> @initialLoadComplete
 
   addActiveThemeClasses: ->
     for pack in @getActiveThemes()
@@ -321,5 +336,19 @@ class ThemeManager
 
     @emit 'stylesheet-added', styleElement.sheet
     @emitter.emit 'did-add-stylesheet', styleElement.sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  updateGlobalEditorStyle: (property, value) ->
+    unless styleNode = @stylesheetElementForId('global-editor-styles')
+      @applyStylesheet('global-editor-styles', '.editor {}')
+      styleNode = @stylesheetElementForId('global-editor-styles')
+
+    {sheet} = styleNode
+    editorRule = sheet.cssRules[0]
+    editorRule.style[property] = value
+
+    @emit 'stylesheet-updated', sheet
+    @emitter.emit 'did-update-stylesheet', sheet
     @emit 'stylesheets-changed'
     @emitter.emit 'did-change-stylesheets'

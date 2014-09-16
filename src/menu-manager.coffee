@@ -14,7 +14,7 @@ class MenuManager
   constructor: ({@resourcePath}) ->
     @pendingUpdateOperation = null
     @template = []
-    atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
+    atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
     atom.packages.onDidActivateAll => @sortPackagesMenu()
 
   # Public: Adds the given items to the application menu.

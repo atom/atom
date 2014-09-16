@@ -5,9 +5,6 @@ var path = require('path');
 
 process.chdir(path.dirname(__dirname));
 
-if (process.platform == 'linux')
-  throw new Error('cibuild can not run on linux yet!');
-
 var homeDir = process.platform == 'win32' ? process.env.USERPROFILE : process.env.HOME;
 
 function loadEnvironmentVariables(filePath) {
@@ -27,7 +24,7 @@ function loadEnvironmentVariables(filePath) {
 function readEnvironmentVariables() {
   if (process.platform === 'win32')
     loadEnvironmentVariables(path.resolve('/jenkins/config/atomcredentials'));
-  else {
+  else if (process.platform === 'darwin') {
     loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
     loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
   }

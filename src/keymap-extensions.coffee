@@ -4,9 +4,13 @@ KeymapManager = require 'atom-keymap'
 CSON = require 'season'
 {jQuery} = require 'space-pen'
 
+KeymapManager::onDidLoadBundledKeymaps = (callback) ->
+  @emitter.on 'did-load-bundled-keymaps', callback
+
 KeymapManager::loadBundledKeymaps = ->
   @loadKeymap(path.join(@resourcePath, 'keymaps'))
-  @emit('bundled-keymaps-loaded')
+  @emit 'bundled-keymaps-loaded'
+  @emitter.emit 'did-load-bundled-keymaps'
 
 KeymapManager::getUserKeymapPath = ->
   if userKeymapPath = CSON.resolve(path.join(@configDirPath, 'keymap'))

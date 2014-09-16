@@ -176,10 +176,16 @@ EditorComponent = React.createClass
     @listenForDOMEvents()
     @listenForCommands()
 
-    @subscribe atom.themes, 'stylesheet-added stylesheet-removed stylesheet-updated', @onStylesheetsChanged
+    @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
+    @subscribe atom.themes.onDidUpdateStylesheet @onStylesheetsChanged
+    @subscribe atom.themes.onDidRemoveStylesheet @onStylesheetsChanged
+    unless atom.themes.isInitialLoadComplete()
+      @subscribe atom.themes.onDidReloadAll @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
+    @updateParentViewFocusedClassIfNeeded({})
+    @updateParentViewMiniClassIfNeeded({})
     @checkForVisibilityChange()
 
   componentWillUnmount: ->
@@ -474,7 +480,7 @@ EditorComponent = React.createClass
         'editor:add-selection-above': -> editor.addSelectionAbove()
         'editor:split-selections-into-lines': -> editor.splitSelectionsIntoLines()
         'editor:toggle-soft-tabs': -> editor.toggleSoftTabs()
-        'editor:toggle-soft-wrapped': -> editor.toggleSoftWrapped()
+        'editor:toggle-soft-wrap': -> editor.toggleSoftWrapped()
         'editor:fold-all': -> editor.foldAll()
         'editor:unfold-all': -> editor.unfoldAll()
         'editor:fold-current-row': -> editor.foldCurrentRow()
@@ -706,8 +712,9 @@ EditorComponent = React.createClass
 
   onStylesheetsChanged: (stylesheet) ->
     return unless @performedInitialMeasurement
+    return unless atom.themes.isInitialLoadComplete()
 
-    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @refreshScrollbars() if not stylesheet? or @containsScrollbarSelector(stylesheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()

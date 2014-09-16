@@ -484,6 +484,14 @@ class AtomApplication
         when 'all' then ['openFile', 'openDirectory']
         else throw new Error("#{type} is an invalid type for promptForPath")
 
+    # Show the open dialog as child window on Windows and Linux, and as
+    # independent dialog on OS X. This matches most native apps.
+    parentWindow =
+      if process.platform is 'darwin'
+        null
+      else
+        BrowserWindow.getFocusedWindow()
+
     dialog = require 'dialog'
-    dialog.showOpenDialog title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
+    dialog.showOpenDialog parentWindow, title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
       @openPaths({pathsToOpen, devMode, safeMode, window})

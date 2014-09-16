@@ -376,25 +376,14 @@ class WorkspaceView extends View
   beforeRemove: ->
     @model.destroy()
 
-  setEditorFontSize: (fontSize) =>
-    @setEditorStyle('font-size', fontSize + 'px')
+  setEditorFontSize: (fontSize) ->
+    atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
 
-  setEditorFontFamily: (fontFamily) =>
-    @setEditorStyle('font-family', fontFamily)
+  setEditorFontFamily: (fontFamily) ->
+    atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
 
-  setEditorLineHeight: (lineHeight) =>
-    @setEditorStyle('line-height', lineHeight)
-
-  setEditorStyle: (property, value) ->
-    unless styleNode = atom.themes.stylesheetElementForId('global-editor-styles')
-      atom.themes.applyStylesheet('global-editor-styles', '.editor {}')
-      styleNode = atom.themes.stylesheetElementForId('global-editor-styles')
-
-    {sheet} = styleNode
-    editorRule = sheet.cssRules[0]
-    editorRule.style[property] = value
-    atom.themes.emit 'stylesheet-updated', sheet
-    atom.themes.emit 'stylesheets-changed'
+  setEditorLineHeight: (lineHeight) ->
+    atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
 
   # Deprecated
   eachPane: (callback) ->

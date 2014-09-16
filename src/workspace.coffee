@@ -110,10 +110,28 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePanes: (callback) -> @paneContainer.observePanes(callback)
 
+  # Extended: Invoke the given callback when the active pane changes.
+  #
+  # * `callback` {Function} to be called when the active pane changes.
+  #   * `pane` A {Pane} that is the current return value of {::getActivePane}.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActivePane: (callback) -> @paneContainer.onDidChangeActivePane(callback)
+
+  # Extended: Invoke the given callback with the current active pane and when
+  # the active pane changes.
+  #
+  # * `callback` {Function} to be called with the current and future active#
+  #   panes.
+  #   * `pane` A {Pane} that is the current return value of {::getActivePane}.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActivePane: (callback) -> @paneContainer.observeActivePane(callback)
+
   # Extended: Invoke the given callback when a pane item is added to the
   # workspace.
   #
-  # * `callback` {Function} to be called panes are added.
+  # * `callback` {Function} to be called when panes are added.
   #   * `event` {Object} with the following keys:
   #     * `item` The added pane item.
   #     * `pane` {Pane} containing the added item.
@@ -121,6 +139,15 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
+
+  # Extended: Invoke the given callback when the active pane item changes.
+  #
+  # * `callback` {Function} to be called when the active pane item changes.
+  #   * `event` {Object} with the following keys:
+  #     * `activeItem` The active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
 
   # Extended: Invoke the given callback with all current and future panes items in
   # the workspace.
@@ -362,7 +389,7 @@ class Workspace extends Model
   # Returns an {Editor} or `undefined` if the current active item is not an
   # {Editor}.
   getActiveTextEditor: ->
-    activeItem = @getActiveItem()
+    activeItem = @getActivePaneItem()
     activeItem if activeItem instanceof Editor
 
   # Deprecated:
