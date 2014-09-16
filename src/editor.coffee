@@ -492,7 +492,7 @@ class Editor extends Model
   Section: File Details
   ###
 
-  # Public: Get the title the editor's title for display in other parts of the
+  # Essential: Get the title the editor's title for display in other parts of the
   # UI such as the tabs.
   #
   # If the editor's buffer is saved, its title is the file name. If it is
@@ -505,7 +505,7 @@ class Editor extends Model
     else
       'untitled'
 
-  # Public: Get the editor's long title for display in other parts of the UI
+  # Essential: Get the editor's long title for display in other parts of the UI
   # such as the window title.
   #
   # If the editor's buffer is saved, its long title is formatted as
@@ -521,28 +521,29 @@ class Editor extends Model
     else
       'untitled'
 
-  # Public: Returns the {String} path of this editor's text buffer.
+  # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
 
-  # Public: Saves the editor's text buffer.
+  # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
   save: -> @buffer.save()
 
-  # Public: Saves the editor's text buffer as the given path.
+  # Essential: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
   saveAs: (filePath) -> @buffer.saveAs(filePath)
 
-  # Public: Determine whether the user should be prompted to save before closing
+  # Extended: Determine whether the user should be prompted to save before closing
   # this editor.
   shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
 
-  # Public: Returns {Boolean} `true` if this editor has been modified.
+  # Essential: Returns {Boolean} `true` if this editor has been modified.
   isModified: -> @buffer.isModified()
 
+  # Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty: -> @buffer.isEmpty()
 
   # Copies the current file path to the native clipboard.
