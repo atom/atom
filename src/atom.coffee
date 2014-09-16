@@ -138,6 +138,10 @@ class Atom extends Model
   # Public: A {WorkspaceView} instance
   workspaceView: null
 
+  ###
+  Section: Construction and Destruction
+  ###
+
   # Call .loadOrCreate instead
   constructor: (@state) ->
     {@mode} = @state
