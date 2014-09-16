@@ -1111,10 +1111,7 @@ class Editor extends Model
   Section: Soft Wrap Behavior
   ###
 
-  # Public: Sets the column at which column will soft wrap
-  getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
-
-  # Public: Determine whether lines in this editor are soft-wrapped.
+  # Essential: Determine whether lines in this editor are soft-wrapped.
   #
   # Returns a {Boolean}.
   isSoftWrapped: (softWrapped) -> @displayBuffer.isSoftWrapped()
@@ -1122,7 +1119,7 @@ class Editor extends Model
     deprecate("Use Editor::isSoftWrapped instead")
     @displayBuffer.isSoftWrapped()
 
-  # Public: Enable or disable soft wrapping for this editor.
+  # Essential: Enable or disable soft wrapping for this editor.
   #
   # * `softWrapped` A {Boolean}
   #
@@ -1132,13 +1129,16 @@ class Editor extends Model
     deprecate("Use Editor::setSoftWrapped instead")
     @setSoftWrapped(softWrapped)
 
-  # Public: Toggle soft wrapping for this editor
+  # Essential: Toggle soft wrapping for this editor
   #
   # Returns a {Boolean}.
   toggleSoftWrapped: -> @setSoftWrapped(not @isSoftWrapped())
   toggleSoftWrap: ->
     deprecate("Use Editor::toggleSoftWrapped instead")
     @toggleSoftWrapped()
+
+  # Extended: Gets the column at which column will soft wrap
+  getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
 
   ###
   Section: Indentation
