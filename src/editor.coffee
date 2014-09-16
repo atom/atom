@@ -1389,8 +1389,17 @@ class Editor extends Model
     @displayBuffer.reloadGrammar()
 
   ###
-  Section: Syntatic Queries
+  Section: Managing Syntax Scopes
   ###
+
+  # Public: Get the syntactic scopes for the most recently added cursor's
+  # position. See {::scopesForBufferPosition} for more information.
+  #
+  # Returns an {Array} of {String}s.
+  scopesAtCursor: -> @getLastCursor().getScopes()
+  getCursorScopes: ->
+    deprecate 'Use Editor::scopesAtCursor() instead'
+    @scopesAtCursor()
 
   # Essential: Get the syntactic scopes for the given position in buffer
   # coordinates.
@@ -1404,7 +1413,7 @@ class Editor extends Model
   # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
 
-  # Essential: Get the range in buffer coordinates of all tokens surrounding the
+  # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
   #
   # For example, if you wanted to find the string surrounding the cursor, you
@@ -1413,15 +1422,6 @@ class Editor extends Model
   # Returns a {Range}.
   bufferRangeForScopeAtCursor: (selector) ->
     @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
-
-  # Public: Get the syntactic scopes for the most recently added cursor's
-  # position. See {::scopesForBufferPosition} for more information.
-  #
-  # Returns an {Array} of {String}s.
-  scopesAtCursor: -> @getLastCursor().getScopes()
-  getCursorScopes: ->
-    deprecate 'Use Editor::scopesAtCursor() instead'
-    @scopesAtCursor()
 
   logCursorScope: ->
     console.log @getCursorScopes()
