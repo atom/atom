@@ -207,6 +207,34 @@ class Atom extends Model
     @windowEventHandler = new WindowEventHandler
 
   ###
+  Section: Atom Metadata
+  ###
+
+  # Public: Is the current window in development mode?
+  inDevMode: ->
+    @getLoadSettings().devMode
+
+  # Public: Is the current window running specs?
+  inSpecMode: ->
+    @getLoadSettings().isSpec
+
+  # Public: Get the version of the Atom application.
+  #
+  # Returns the version text {String}.
+  getVersion: ->
+    @appVersion ?= @getLoadSettings().appVersion
+
+  # Public: Determine whether the current version is an official release.
+  isReleasedVersion: ->
+    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
+
+  # Public: Get the directory path to Atom's configuration area.
+  #
+  # Returns the absolute path to `~/.atom`.
+  getConfigDirPath: ->
+    @constructor.getConfigDirPath()
+
+  ###
   Section: Managing The Atom Window
   ###
 
@@ -571,29 +599,6 @@ class Atom extends Model
   setRepresentedFilename: (filename) ->
     ipc.send('call-window-method', 'setRepresentedFilename', filename)
 
-  # Public: Is the current window in development mode?
-  inDevMode: ->
-    @getLoadSettings().devMode
-
-  # Public: Is the current window running specs?
-  inSpecMode: ->
-    @getLoadSettings().isSpec
-
-  # Public: Get the version of the Atom application.
-  #
-  # Returns the version text {String}.
-  getVersion: ->
-    @appVersion ?= @getLoadSettings().appVersion
-
-  # Public: Determine whether the current version is an official release.
-  isReleasedVersion: ->
-    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
-
-  # Public: Get the directory path to Atom's configuration area.
-  #
-  # Returns the absolute path to `~/.atom`.
-  getConfigDirPath: ->
-    @constructor.getConfigDirPath()
 
   saveSync: ->
     stateString = JSON.stringify(@state)
