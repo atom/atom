@@ -484,12 +484,12 @@ class Atom extends Model
   Section: Messaging the User
   ###
 
-  # Public: Visually and audibly trigger a beep.
+  # Essential: Visually and audibly trigger a beep.
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
     @workspaceView.trigger 'beep'
 
-  # Public: A flexible way to open a dialog akin to an alert dialog.
+  # Essential: A flexible way to open a dialog akin to an alert dialog.
   #
   # ## Examples
   #
