@@ -98,6 +98,10 @@ class Atom extends Model
   workspaceViewParentSelector: 'body'
   lastUncaughtError: null
 
+  ###
+  Section: Properties
+  ###
+
   # Public: A {Clipboard} instance
   clipboard: null
 
