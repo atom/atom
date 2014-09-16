@@ -50,7 +50,7 @@ class SelectListView extends View
   Section: Construction
   ###
 
-  # Public: Initialize the select list view.
+  # Essential: Initialize the select list view.
   #
   # This method can be overridden by subclasses but `super` should always
   # be called.
@@ -93,7 +93,7 @@ class SelectListView extends View
   Section: Methods that must be overridden
   ###
 
-  # Public: Create a view for the given model item.
+  # Essential: Create a view for the given model item.
   #
   # This method must be overridden by subclasses.
   #
@@ -106,7 +106,7 @@ class SelectListView extends View
   viewForItem: (item) ->
     throw new Error("Subclass must implement a viewForItem(item) method")
 
-  # Public: Callback function for when an item is selected.
+  # Essential: Callback function for when an item is selected.
   #
   # This method must be overridden by subclasses.
   #
@@ -121,7 +121,7 @@ class SelectListView extends View
   Section: Managing the list of items
   ###
 
-  # Public: Set the array of items to display in the list.
+  # Essential: Set the array of items to display in the list.
   #
   # This should be model items not actual views. {::viewForItem} will be
   # called to render the item when it is being appended to the list view.
@@ -131,7 +131,7 @@ class SelectListView extends View
     @populateList()
     @setLoading()
 
-  # Public: Get the model item that is currently selected in the list view.
+  # Essential: Get the model item that is currently selected in the list view.
   #
   # Returns a model item.
   getSelectedItem: ->
@@ -196,7 +196,7 @@ class SelectListView extends View
   Section: Messages to the user
   ###
 
-  # Public: Set the error message to display.
+  # Essential: Set the error message to display.
   #
   # * `message` The {String} error message (default: '').
   setError: (message='') ->
@@ -206,7 +206,7 @@ class SelectListView extends View
       @setLoading()
       @error.text(message).show()
 
-  # Public: Set the loading message to display.
+  # Essential: Set the loading message to display.
   #
   # * `message` The {String} loading message (default: '').
   setLoading: (message='') ->
@@ -219,7 +219,7 @@ class SelectListView extends View
       @loading.text(message)
       @loadingArea.show()
 
-  # Public: Get the message to display when there are no items.
+  # Extended: Get the message to display when there are no items.
   #
   # Subclasses may override this method to customize the message.
   #
@@ -233,11 +233,7 @@ class SelectListView extends View
   Section: View Actions
   ###
 
-  # Public: Focus the fuzzy filter editor view.
-  focusFilterEditor: ->
-    @filterEditorView.focus()
-
-  # Public: Cancel and close this select list view.
+  # Essential: Cancel and close this select list view.
   #
   # This restores focus to the previously focused element if
   # {::storeFocusedElement} was called prior to this view being attached.
@@ -251,7 +247,11 @@ class SelectListView extends View
     @cancelling = false
     clearTimeout(@scheduleTimeout)
 
-  # Public: Store the currently focused element. This element will be given
+  # Extended: Focus the fuzzy filter editor view.
+  focusFilterEditor: ->
+    @filterEditorView.focus()
+
+  # Extended: Store the currently focused element. This element will be given
   # back focus when {::cancel} is called.
   storeFocusedElement: ->
     @previouslyFocusedElement = $(':focus')
