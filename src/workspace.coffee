@@ -110,6 +110,24 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observePanes: (callback) -> @paneContainer.observePanes(callback)
 
+  # Extended: Invoke the given callback when the active pane changes.
+  #
+  # * `callback` {Function} to be called when the active pane changes.
+  #   * `pane` A {Pane} that is the current return value of {::getActivePane}.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActivePane: (callback) -> @paneContainer.onDidChangeActivePane(callback)
+
+  # Extended: Invoke the given callback with the current active pane and when
+  # the active pane changes.
+  #
+  # * `callback` {Function} to be called with the current and future active#
+  #   panes.
+  #   * `pane` A {Pane} that is the current return value of {::getActivePane}.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActivePane: (callback) -> @paneContainer.observeActivePane(callback)
+
   # Extended: Invoke the given callback when a pane item is added to the
   # workspace.
   #
