@@ -897,7 +897,7 @@ class Editor extends Model
   Section: Adding Text
   ###
 
-  # Public: For each selection, replace the selected text with the given text.
+  # Essential: For each selection, replace the selected text with the given text.
   #
   # * `text` A {String} representing the text to insert.
   # * `options` (optional) See {Selection::insertText}.
@@ -923,17 +923,17 @@ class Editor extends Model
     else
       false
 
-  # Public: For each selection, replace the selected text with a newline.
+  # Essential: For each selection, replace the selected text with a newline.
   insertNewline: ->
     @insertText('\n')
 
-  # Public: For each cursor, insert a newline at beginning the following line.
+  # Extended: For each cursor, insert a newline at beginning the following line.
   insertNewlineBelow: ->
     @transact =>
       @moveToEndOfLine()
       @insertNewline()
 
-  # Public: For each cursor, insert a newline at the end of the preceding line.
+  # Extended: For each cursor, insert a newline at the end of the preceding line.
   insertNewlineAbove: ->
     @transact =>
       bufferRow = @getCursorBufferPosition().row
