@@ -524,22 +524,6 @@ class Editor extends Model
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
 
-  # Essential: Saves the editor's text buffer.
-  #
-  # See {TextBuffer::save} for more details.
-  save: -> @buffer.save()
-
-  # Essential: Saves the editor's text buffer as the given path.
-  #
-  # See {TextBuffer::saveAs} for more details.
-  #
-  # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath)
-
-  # Extended: Determine whether the user should be prompted to save before closing
-  # this editor.
-  shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
-
   # Essential: Returns {Boolean} `true` if this editor has been modified.
   isModified: -> @buffer.isModified()
 
@@ -550,6 +534,26 @@ class Editor extends Model
   copyPathToClipboard: ->
     if filePath = @getPath()
       atom.clipboard.write(filePath)
+
+  ###
+  Section: Saving
+  ###
+
+  # Essential: Saves the editor's text buffer.
+  #
+  # See {TextBuffer::save} for more details.
+  save: -> @buffer.save()
+
+  # Extended: Saves the editor's text buffer as the given path.
+  #
+  # See {TextBuffer::saveAs} for more details.
+  #
+  # * `filePath` A {String} path.
+  saveAs: (filePath) -> @buffer.saveAs(filePath)
+
+  # Extended: Determine whether the user should be prompted to save before closing
+  # this editor.
+  shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
 
   ###
   Section: Reading Text
