@@ -210,37 +210,37 @@ class Atom extends Model
   Section: Atom Metadata
   ###
 
-  # Public: Is the current window in development mode?
+  # Essential: Is the current window in development mode?
   inDevMode: ->
     @getLoadSettings().devMode
 
-  # Public: Is the current window running specs?
+  # Essential: Is the current window running specs?
   inSpecMode: ->
     @getLoadSettings().isSpec
 
-  # Public: Get the version of the Atom application.
+  # Essential: Get the version of the Atom application.
   #
   # Returns the version text {String}.
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
 
-  # Public: Determine whether the current version is an official release.
+  # Essential: Determine whether the current version is an official release.
   isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
-  # Public: Get the directory path to Atom's configuration area.
+  # Essential: Get the directory path to Atom's configuration area.
   #
   # Returns the absolute path to `~/.atom`.
   getConfigDirPath: ->
     @constructor.getConfigDirPath()
 
-  # Public: Get the load settings for the current window.
+  # Extended: Get the load settings for the current window.
   #
   # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
     @constructor.getLoadSettings()
 
-  # Public: Get the time taken to completely load the current window.
+  # Extended: Get the time taken to completely load the current window.
   #
   # This time include things like loading and activating packages, creating
   # DOM elements for the editor, and reading the config.
