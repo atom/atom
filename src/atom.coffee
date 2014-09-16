@@ -206,18 +206,6 @@ class Atom extends Model
 
     @windowEventHandler = new WindowEventHandler
 
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClass: ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClasses: ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
-  setBodyPlatformClass: ->
-    document.body.classList.add("platform-#{process.platform}")
-
-
   ###
   Section: Managing The Atom Window
   ###
@@ -380,6 +368,10 @@ class Atom extends Model
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
     @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
+
+
+
+
 
   # Public: Get the load settings for the current window.
   #
@@ -662,3 +654,14 @@ class Atom extends Model
         delete window[key]
       else
         window[key] = value
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  registerRepresentationClass: ->
+    deprecate("Callers should be converted to use atom.deserializers")
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  registerRepresentationClasses: ->
+    deprecate("Callers should be converted to use atom.deserializers")
+
+  setBodyPlatformClass: ->
+    document.body.classList.add("platform-#{process.platform}")
