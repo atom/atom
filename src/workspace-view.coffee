@@ -166,7 +166,7 @@ class WorkspaceView extends View
   Section: Accessing the Workspace Model
   ###
 
-  # Public: Get the underlying model object.
+  # Essential: Get the underlying model object.
   #
   # Returns a {Workspace}.
   getModel: -> @model
@@ -175,7 +175,7 @@ class WorkspaceView extends View
   Section: Accessing Views
   ###
 
-  # Public: Register a function to be called for every current and future
+  # Essential: Register a function to be called for every current and future
   # editor view in the workspace (only includes {EditorView}s that are pane
   # items).
   #
@@ -191,7 +191,7 @@ class WorkspaceView extends View
     @on('editor:attached', attachedCallback)
     off: => @off('editor:attached', attachedCallback)
 
-  # Public: Register a function to be called for every current and future
+  # Essential: Register a function to be called for every current and future
   # pane view in the workspace.
   #
   # * `callback` A {Function} with a {PaneView} as its only argument.
@@ -202,7 +202,7 @@ class WorkspaceView extends View
   eachPaneView: (callback) ->
     @panes.eachPaneView(callback)
 
-  # Public: Get all existing pane views.
+  # Essential: Get all existing pane views.
   #
   # Prefer {Workspace::getPanes} if you don't need access to the view objects.
   # Also consider using {::eachPaneView} if you want to register a callback for
@@ -212,7 +212,7 @@ class WorkspaceView extends View
   getPaneViews: ->
     @panes.getPaneViews()
 
-  # Public: Get the active pane view.
+  # Essential: Get the active pane view.
   #
   # Prefer {Workspace::getActivePane} if you don't actually need access to the
   # view.
@@ -221,7 +221,7 @@ class WorkspaceView extends View
   getActivePaneView: ->
     @panes.getActivePaneView()
 
-  # Public: Get the view associated with the active pane item.
+  # Essential: Get the view associated with the active pane item.
   #
   # Returns a view.
   getActiveView: ->
@@ -231,55 +231,55 @@ class WorkspaceView extends View
   Section: Adding elements to the workspace
   ###
 
-  # Public: Prepend an element or view to the panels at the top of the
+  # Essential: Prepend an element or view to the panels at the top of the
   # workspace.
   #
   # * `element` jQuery object or DOM element
   prependToTop: (element) ->
     @vertical.prepend(element)
 
-  # Public: Append an element or view to the panels at the top of the workspace.
+  # Essential: Append an element or view to the panels at the top of the workspace.
   #
   # * `element` jQuery object or DOM element
   appendToTop: (element) ->
     @panes.before(element)
 
-  # Public: Prepend an element or view to the panels at the bottom of the
+  # Essential: Prepend an element or view to the panels at the bottom of the
   # workspace.
   #
   # * `element` jQuery object or DOM element
   prependToBottom: (element) ->
     @panes.after(element)
 
-  # Public: Append an element or view to the panels at the bottom of the
+  # Essential: Append an element or view to the panels at the bottom of the
   # workspace.
   #
   # * `element` jQuery object or DOM element
   appendToBottom: (element) ->
     @vertical.append(element)
 
-  # Public: Prepend an element or view to the panels at the left of the
+  # Essential: Prepend an element or view to the panels at the left of the
   # workspace.
   #
   # * `element` jQuery object or DOM element
   prependToLeft: (element) ->
     @horizontal.prepend(element)
 
-  # Public: Append an element or view to the panels at the left of the
+  # Essential: Append an element or view to the panels at the left of the
   # workspace.
   #
   # * `element` jQuery object or DOM element
   appendToLeft: (element) ->
     @vertical.before(element)
 
-  # Public: Prepend an element or view to the panels at the right of the
+  # Essential: Prepend an element or view to the panels at the right of the
   # workspace.
   #
   # * `element` jQuery object or DOM element
   prependToRight: (element) ->
     @vertical.after(element)
 
-  # Public: Append an element or view to the panels at the right of the
+  # Essential: Append an element or view to the panels at the right of the
   # workspace.
   #
   # * `element` jQuery object or DOM element
@@ -296,16 +296,16 @@ class WorkspaceView extends View
   # Focus the next pane by id.
   focusNextPaneView: -> @model.activateNextPane()
 
-  # Public: Focus the pane directly above the active pane.
+  # Essential: Focus the pane directly above the active pane.
   focusPaneViewAbove: -> @panes.focusPaneViewAbove()
 
-  # Public: Focus the pane directly below the active pane.
+  # Essential: Focus the pane directly below the active pane.
   focusPaneViewBelow: -> @panes.focusPaneViewBelow()
 
-  # Public: Focus the pane directly to the left of the active pane.
+  # Essential: Focus the pane directly to the left of the active pane.
   focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
 
-  # Public: Focus the pane directly to the right of the active pane.
+  # Essential: Focus the pane directly to the right of the active pane.
   focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
   ###
