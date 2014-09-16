@@ -47,8 +47,15 @@ class Git
   EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
 
+  @exists: (path) ->
+    if git = @open(path)
+      git.destroy()
+      true
+    else
+      false
+
   ###
-  Section: Class Methods
+  Section: Construction and Destruction
   ###
 
   # Public: Creates a new Git instance.
@@ -65,17 +72,6 @@ class Git
       new Git(path, options)
     catch
       null
-
-  @exists: (path) ->
-    if git = @open(path)
-      git.destroy()
-      true
-    else
-      false
-
-  ###
-  Section: Construction
-  ###
 
   constructor: (path, options={}) ->
     @emitter = new Emitter
@@ -99,6 +95,21 @@ class Git
 
     if @project?
       @subscribe @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
+
+  # Public: Destroy this {Git} object.
+  #
+  # This destroys any tasks and subscriptions and releases the underlying
+  # libgit2 repository handle.
+  destroy: ->
+    if @statusTask?
+      @statusTask.terminate()
+      @statusTask = null
+
+    if @repo?
+      @repo.release()
+      @repo = null
+
+    @unsubscribe()
 
   ###
   Section: Event Subscription
@@ -174,21 +185,6 @@ class Git
           Cancel: null
     else
       checkoutHead()
-
-  # Public: Destroy this {Git} object.
-  #
-  # This destroys any tasks and subscriptions and releases the underlying
-  # libgit2 repository handle.
-  destroy: ->
-    if @statusTask?
-      @statusTask.terminate()
-      @statusTask = null
-
-    if @repo?
-      @repo.release()
-      @repo = null
-
-    @unsubscribe()
 
   # Returns the corresponding {Repository}
   getRepo: (path) ->
