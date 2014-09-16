@@ -254,10 +254,6 @@ class Atom extends Model
   setPosition: (x, y) ->
     ipc.send('call-window-method', 'setPosition', x, y)
 
-  # Public: Returns a {Boolean} true when the current window is maximized.
-  isMaximixed: ->
-    @getCurrentWindow().isMaximized()
-
   # Public: Move current window to the center of the screen.
   center: ->
     ipc.send('call-window-method', 'center')
@@ -282,6 +278,26 @@ class Atom extends Model
   # Public: Reload the current window.
   reload: ->
     ipc.send('call-window-method', 'restart')
+
+  # Public: Returns a {Boolean} true when the current window is maximized.
+  isMaximixed: ->
+    @getCurrentWindow().isMaximized()
+
+  maximize: ->
+    ipc.send('call-window-method', 'maximize')
+
+  # Public: Is the current window in full screen mode?
+  isFullScreen: ->
+    @getCurrentWindow().isFullScreen()
+
+  # Public: Set the full screen state of the current window.
+  setFullScreen: (fullScreen=false) ->
+    ipc.send('call-window-method', 'setFullScreen', fullScreen)
+    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
+
+  # Public: Toggle the full screen state of the current window.
+  toggleFullScreen: ->
+    @setFullScreen(!@isFullScreen())
 
   # Schedule the window to be shown and focused on the next tick.
   #
@@ -570,22 +586,6 @@ class Atom extends Model
   # Public: Is the current window running specs?
   inSpecMode: ->
     @getLoadSettings().isSpec
-
-  # Public: Toggle the full screen state of the current window.
-  toggleFullScreen: ->
-    @setFullScreen(!@isFullScreen())
-
-  # Public: Set the full screen state of the current window.
-  setFullScreen: (fullScreen=false) ->
-    ipc.send('call-window-method', 'setFullScreen', fullScreen)
-    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
-
-  # Public: Is the current window in full screen mode?
-  isFullScreen: ->
-    @getCurrentWindow().isFullScreen()
-
-  maximize: ->
-    ipc.send('call-window-method', 'maximize')
 
   # Public: Get the version of the Atom application.
   #
