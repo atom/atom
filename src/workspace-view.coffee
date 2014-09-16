@@ -162,86 +162,74 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
+  ###
+  Section: Accessing the Workspace Model
+  ###
+
   # Public: Get the underlying model object.
   #
   # Returns a {Workspace}.
   getModel: -> @model
 
-  # Install the Atom shell commands on the user's system.
-  installShellCommands: ->
-    showErrorDialog = (error) ->
-      installDirectory = CommandInstaller.getInstallDirectory()
-      atom.confirm
-        message: "Failed to install shell commands"
-        detailedMessage: error.message
+  ###
+  Section: Accessing Views
+  ###
 
-    resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, true, (error) ->
-      if error?
-        showErrorDialog(error)
-      else
-        CommandInstaller.installApmCommand resourcePath, true, (error) ->
-          if error?
-            showErrorDialog(error)
-          else
-            atom.confirm
-              message: "Commands installed."
-              detailedMessage: "The shell commands `atom` and `apm` are installed."
-
-  handleFocus: ->
-    if @getActivePaneView()
-      @getActivePaneView().focus()
-      false
-    else
-      @updateTitle()
-      focusableChild = @find("[tabindex=-1]:visible:first")
-      if focusableChild.length
-        focusableChild.focus()
-        false
-      else
-        $(document.body).focus()
-        true
-
-  afterAttach: (onDom) ->
-    @focus() if onDom
-
-  # Prompts to save all unsaved items
-  confirmClose: ->
-    @panes.confirmClose()
-
-  # Updates the application's title and proxy icon based on whichever file is
-  # open.
-  updateTitle: ->
-    if projectPath = atom.project.getPath()
-      if item = @getModel().getActivePaneItem()
-        title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
-        @setTitle(title, item.getPath?())
-      else
-        @setTitle(projectPath, projectPath)
-    else
-      @setTitle('untitled')
-
-  # Sets the application's title (and the proxy icon on OS X)
-  setTitle: (title, proxyIconPath='') ->
-    document.title = title
-    atom.setRepresentedFilename(proxyIconPath)
-
-  # On OS X, fades the application window's proxy icon when the current file
-  # has been modified.
-  updateDocumentEdited: ->
-    modified = @model.getActivePaneItem()?.isModified?() ? false
-    atom.setDocumentEdited(modified)
-
-  # Get all editor views.
+  # Public: Register a function to be called for every current and future
+  # editor view in the workspace (only includes {EditorView}s that are pane
+  # items).
   #
-  # You should prefer {Workspace::getEditors} unless you absolutely need access
-  # to the view objects. Also consider using {::eachEditorView}, which will call
-  # a callback for all current and *future* editor views.
+  # * `callback` A {Function} with an {EditorView} as its only argument.
+  #   * `editorView` {EditorView}
   #
-  # Returns an {Array} of {EditorView}s.
-  getEditorViews: ->
-    for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
-      $(editorElement).view()
+  # Returns a subscription object with an `.off` method that you can call to
+  # unregister the callback.
+  eachEditorView: (callback) ->
+    callback(editorView) for editorView in @getEditorViews()
+    attachedCallback = (e, editorView) ->
+      callback(editorView) unless editorView.mini
+    @on('editor:attached', attachedCallback)
+    off: => @off('editor:attached', attachedCallback)
+
+  # Public: Register a function to be called for every current and future
+  # pane view in the workspace.
+  #
+  # * `callback` A {Function} with a {PaneView} as its only argument.
+  #   * `paneView` {PaneView}
+  #
+  # Returns a subscription object with an `.off` method that you can call to
+  # unregister the callback.
+  eachPaneView: (callback) ->
+    @panes.eachPaneView(callback)
+
+  # Public: Get all existing pane views.
+  #
+  # Prefer {Workspace::getPanes} if you don't need access to the view objects.
+  # Also consider using {::eachPaneView} if you want to register a callback for
+  # all current and *future* pane views.
+  #
+  # Returns an Array of all open {PaneView}s.
+  getPaneViews: ->
+    @panes.getPaneViews()
+
+  # Public: Get the active pane view.
+  #
+  # Prefer {Workspace::getActivePane} if you don't actually need access to the
+  # view.
+  #
+  # Returns a {PaneView}.
+  getActivePaneView: ->
+    @panes.getActivePaneView()
+
+  # Public: Get the view associated with the active pane item.
+  #
+  # Returns a view.
+  getActiveView: ->
+    @panes.getActiveView()
+
+  ###
+  Section: Adding elements to the workspace
+  ###
 
   # Public: Prepend an element or view to the panels at the top of the
   # workspace.
@@ -298,20 +286,9 @@ class WorkspaceView extends View
   appendToRight: (element) ->
     @horizontal.append(element)
 
-  # Public: Get the active pane view.
-  #
-  # Prefer {Workspace::getActivePane} if you don't actually need access to the
-  # view.
-  #
-  # Returns a {PaneView}.
-  getActivePaneView: ->
-    @panes.getActivePaneView()
-
-  # Public: Get the view associated with the active pane item.
-  #
-  # Returns a view.
-  getActiveView: ->
-    @panes.getActiveView()
+  ###
+  Section: Focusing pane views
+  ###
 
   # Focus the previous pane by id.
   focusPreviousPaneView: -> @model.activatePreviousPane()
@@ -331,42 +308,12 @@ class WorkspaceView extends View
   # Public: Focus the pane directly to the right of the active pane.
   focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
-  # Public: Register a function to be called for every current and future
-  # pane view in the workspace.
-  #
-  # * `callback` A {Function} with a {PaneView} as its only argument.
-  #   * `paneView` {PaneView}
-  #
-  # Returns a subscription object with an `.off` method that you can call to
-  # unregister the callback.
-  eachPaneView: (callback) ->
-    @panes.eachPaneView(callback)
+  ###
+  Section: Private
+  ###
 
-  # Public: Get all existing pane views.
-  #
-  # Prefer {Workspace::getPanes} if you don't need access to the view objects.
-  # Also consider using {::eachPaneView} if you want to register a callback for
-  # all current and *future* pane views.
-  #
-  # Returns an Array of all open {PaneView}s.
-  getPaneViews: ->
-    @panes.getPaneViews()
-
-  # Public: Register a function to be called for every current and future
-  # editor view in the workspace (only includes {EditorView}s that are pane
-  # items).
-  #
-  # * `callback` A {Function} with an {EditorView} as its only argument.
-  #   * `editorView` {EditorView}
-  #
-  # Returns a subscription object with an `.off` method that you can call to
-  # unregister the callback.
-  eachEditorView: (callback) ->
-    callback(editorView) for editorView in @getEditorViews()
-    attachedCallback = (e, editorView) ->
-      callback(editorView) unless editorView.mini
-    @on('editor:attached', attachedCallback)
-    off: => @off('editor:attached', attachedCallback)
+  afterAttach: (onDom) ->
+    @focus() if onDom
 
   # Called by SpacePen
   beforeRemove: ->
@@ -380,6 +327,84 @@ class WorkspaceView extends View
 
   setEditorLineHeight: (lineHeight) ->
     atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
+
+  # Install the Atom shell commands on the user's system.
+  installShellCommands: ->
+    showErrorDialog = (error) ->
+      installDirectory = CommandInstaller.getInstallDirectory()
+      atom.confirm
+        message: "Failed to install shell commands"
+        detailedMessage: error.message
+
+    resourcePath = atom.getLoadSettings().resourcePath
+    CommandInstaller.installAtomCommand resourcePath, true, (error) ->
+      if error?
+        showErrorDialog(error)
+      else
+        CommandInstaller.installApmCommand resourcePath, true, (error) ->
+          if error?
+            showErrorDialog(error)
+          else
+            atom.confirm
+              message: "Commands installed."
+              detailedMessage: "The shell commands `atom` and `apm` are installed."
+
+  handleFocus: ->
+    if @getActivePaneView()
+      @getActivePaneView().focus()
+      false
+    else
+      @updateTitle()
+      focusableChild = @find("[tabindex=-1]:visible:first")
+      if focusableChild.length
+        focusableChild.focus()
+        false
+      else
+        $(document.body).focus()
+        true
+
+  # Prompts to save all unsaved items
+  confirmClose: ->
+    @panes.confirmClose()
+
+  # Updates the application's title and proxy icon based on whichever file is
+  # open.
+  updateTitle: ->
+    if projectPath = atom.project.getPath()
+      if item = @getModel().getActivePaneItem()
+        title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        @setTitle(title, item.getPath?())
+      else
+        @setTitle(projectPath, projectPath)
+    else
+      @setTitle('untitled')
+
+  # Sets the application's title (and the proxy icon on OS X)
+  setTitle: (title, proxyIconPath='') ->
+    document.title = title
+    atom.setRepresentedFilename(proxyIconPath)
+
+  # On OS X, fades the application window's proxy icon when the current file
+  # has been modified.
+  updateDocumentEdited: ->
+    modified = @model.getActivePaneItem()?.isModified?() ? false
+    atom.setDocumentEdited(modified)
+
+  # Get all editor views.
+  #
+  # You should prefer {Workspace::getEditors} unless you absolutely need access
+  # to the view objects. Also consider using {::eachEditorView}, which will call
+  # a callback for all current and *future* editor views.
+  #
+  # Returns an {Array} of {EditorView}s.
+  getEditorViews: ->
+    for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
+      $(editorElement).view()
+
+
+  ###
+  Section: Deprecated
+  ###
 
   # Deprecated
   eachPane: (callback) ->
