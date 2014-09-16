@@ -119,7 +119,7 @@ describe "CommandRegistry", ->
       registry.add '.grandchild', 'namespace:command-3', ->
       registry.add '.grandchild.no-match', 'namespace:command-4', ->
 
-      expect(registry.findCommands(target: grandchild)).toEqual [
+      expect(registry.findCommands(target: grandchild)[0..2]).toEqual [
         {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
