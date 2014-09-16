@@ -1263,7 +1263,7 @@ class Editor extends Model
   Section: Editor Coordinates
   ###
 
-  # Public: Convert a position in buffer-coordinates to screen-coordinates.
+  # Essential: Convert a position in buffer-coordinates to screen-coordinates.
   #
   # The position is clipped via {::clipBufferPosition} prior to the conversion.
   # The position is also clipped via {::clipScreenPosition} following the
@@ -1275,7 +1275,7 @@ class Editor extends Model
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
 
-  # Public: Convert a position in screen-coordinates to buffer-coordinates.
+  # Essential: Convert a position in screen-coordinates to buffer-coordinates.
   #
   # The position is clipped via {::clipScreenPosition} prior to the conversion.
   #
@@ -1285,21 +1285,21 @@ class Editor extends Model
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
 
-  # Public: Convert a range in buffer-coordinates to screen-coordinates.
+  # Essential: Convert a range in buffer-coordinates to screen-coordinates.
   #
   # * `bufferRange` {Range} in buffer coordinates to translate into screen coordinates.
   #
   # Returns a {Range}.
   screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
 
-  # Public: Convert a range in screen-coordinates to buffer-coordinates.
+  # Essential: Convert a range in screen-coordinates to buffer-coordinates.
   #
   # * `screenRange` {Range} in screen coordinates to translate into buffer coordinates.
   #
   # Returns a {Range}.
   bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
 
-  # Public: Clip the given {Point} to a valid position in the buffer.
+  # Extended: Clip the given {Point} to a valid position in the buffer.
   #
   # If the given {Point} describes a position that is actually reachable by the
   # cursor based on the current contents of the buffer, it is returned
@@ -1320,7 +1320,7 @@ class Editor extends Model
   # Returns a {Point}.
   clipBufferPosition: (bufferPosition) -> @buffer.clipPosition(bufferPosition)
 
-  # Public: Clip the start and end of the given range to valid positions in the
+  # Essential: Clip the start and end of the given range to valid positions in the
   # buffer. See {::clipBufferPosition} for more information.
   #
   # * `range` The {Range} to clip.
@@ -1328,7 +1328,7 @@ class Editor extends Model
   # Returns a {Range}.
   clipBufferRange: (range) -> @buffer.clipRange(range)
 
-  # Public: Clip the given {Point} to a valid position on screen.
+  # Essential: Clip the given {Point} to a valid position on screen.
   #
   # If the given {Point} describes a position that is actually reachable by the
   # cursor based on the current contents of the screen, it is returned
@@ -1352,9 +1352,6 @@ class Editor extends Model
   #
   # Returns a {Point}.
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
-
-
-
 
   ###
   Section: Grammars
