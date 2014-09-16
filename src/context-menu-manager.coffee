@@ -5,7 +5,7 @@ path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
 
-# Public: Provides a registry for commands that you'd like to appear in the
+# Extended: Provides a registry for commands that you'd like to appear in the
 # context menu.
 #
 # An instance of this class is always available as the `atom.contextMenu`
