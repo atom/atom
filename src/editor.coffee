@@ -1424,7 +1424,7 @@ class Editor extends Model
     @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
 
   logCursorScope: ->
-    console.log @getCursorScopes()
+    console.log @scopesAtCursor()
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
