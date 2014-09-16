@@ -9,6 +9,8 @@ EditorComponent = require './editor-component'
 # Public: Represents the entire visual pane in Atom.
 #
 # The EditorView manages the {Editor}, which manages the file buffers.
+# `EditorView` is intentionally sparse. Most of the things you'll want
+# to do are on {Editor}.
 #
 # ## Examples
 #
