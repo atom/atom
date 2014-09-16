@@ -217,11 +217,84 @@ class Atom extends Model
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
+
+  ###
+  Section: Managing The Atom Window
+  ###
+
   # Public: Get the current window
   getCurrentWindow: ->
     @constructor.getCurrentWindow()
 
-  # Public: Get the dimensions of this window.
+  # Public: Get the size of current window.
+  #
+  # Returns an {Object} in the format `{width: 1000, height: 700}`
+  getSize: ->
+    [width, height] = @getCurrentWindow().getSize()
+    {width, height}
+
+  # Public: Set the size of current window.
+  #
+  # * `width` The {Number} of pixels.
+  # * `height` The {Number} of pixels.
+  setSize: (width, height) ->
+    @getCurrentWindow().setSize(width, height)
+
+  # Public: Get the position of current window.
+  #
+  # Returns an {Object} in the format `{x: 10, y: 20}`
+  getPosition: ->
+    [x, y] = @getCurrentWindow().getPosition()
+    {x, y}
+
+  # Public: Set the position of current window.
+  #
+  # * `x` The {Number} of pixels.
+  # * `y` The {Number} of pixels.
+  setPosition: (x, y) ->
+    ipc.send('call-window-method', 'setPosition', x, y)
+
+  # Public: Returns a {Boolean} true when the current window is maximized.
+  isMaximixed: ->
+    @getCurrentWindow().isMaximized()
+
+  # Public: Move current window to the center of the screen.
+  center: ->
+    ipc.send('call-window-method', 'center')
+
+  # Public: Focus the current window.
+  focus: ->
+    ipc.send('call-window-method', 'focus')
+    $(window).focus()
+
+  # Public: Show the current window.
+  show: ->
+    ipc.send('call-window-method', 'show')
+
+  # Public: Hide the current window.
+  hide: ->
+    ipc.send('call-window-method', 'hide')
+
+  # Public: Close the current window.
+  close: ->
+    @getCurrentWindow().close()
+
+  # Public: Reload the current window.
+  reload: ->
+    ipc.send('call-window-method', 'restart')
+
+  # Schedule the window to be shown and focused on the next tick.
+  #
+  # This is done in a next tick to prevent a white flicker from occurring
+  # if called synchronously.
+  displayWindow: ({maximize}={}) ->
+    setImmediate =>
+      @show()
+      @focus()
+      @setFullScreen(true) if @workspace.fullScreen
+      @maximize() if maximize
+
+  # Get the dimensions of this window.
   #
   # Returns an {Object} with the following keys:
   #   * `x`      The window's x-position {Number}.
@@ -235,7 +308,7 @@ class Atom extends Model
     maximized = browserWindow.isMaximized()
     {x, y, width, height, maximized}
 
-  # Public: Set the dimensions of the window.
+  # Set the dimensions of the window.
   #
   # The window will be centered if either the x or y coordinate is not set
   # in the dimensions parameter. If x or y are omitted the window will be
@@ -472,56 +545,7 @@ class Atom extends Model
   executeJavaScriptInDevTools: (code) ->
     ipc.send('call-window-method', 'executeJavaScriptInDevTools', code)
 
-  # Public: Reload the current window.
-  reload: ->
-    ipc.send('call-window-method', 'restart')
 
-  # Public: Focus the current window.
-  focus: ->
-    ipc.send('call-window-method', 'focus')
-    $(window).focus()
-
-  # Public: Show the current window.
-  show: ->
-    ipc.send('call-window-method', 'show')
-
-  # Public: Hide the current window.
-  hide: ->
-    ipc.send('call-window-method', 'hide')
-
-  # Public: Set the size of current window.
-  #
-  # * `width` The {Number} of pixels.
-  # * `height` The {Number} of pixels.
-  setSize: (width, height) ->
-    @getCurrentWindow().setSize(width, height)
-
-  # Public: Set the position of current window.
-  #
-  # * `x` The {Number} of pixels.
-  # * `y` The {Number} of pixels.
-  setPosition: (x, y) ->
-    ipc.send('call-window-method', 'setPosition', x, y)
-
-  # Public: Move current window to the center of the screen.
-  center: ->
-    ipc.send('call-window-method', 'center')
-
-
-  # Schedule the window to be shown and focused on the next tick.
-  #
-  # This is done in a next tick to prevent a white flicker from occurring
-  # if called synchronously.
-  displayWindow: ({maximize}={}) ->
-    setImmediate =>
-      @show()
-      @focus()
-      @setFullScreen(true) if @workspace.fullScreen
-      @maximize() if maximize
-
-  # Public: Close the current window.
-  close: ->
-    @getCurrentWindow().close()
 
   exit: (status) ->
     app = remote.require('app')
