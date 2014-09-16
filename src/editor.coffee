@@ -1357,11 +1357,11 @@ class Editor extends Model
   Section: Grammars
   ###
 
-  # Public: Get the current {Grammar} of this editor.
+  # Essential: Get the current {Grammar} of this editor.
   getGrammar: ->
     @displayBuffer.getGrammar()
 
-  # Public: Set the current {Grammar} of this editor.
+  # Essential: Set the current {Grammar} of this editor.
   #
   # Assigning a grammar will cause the editor to re-tokenize based on the new
   # grammar.
