@@ -10,7 +10,7 @@ GitUtils = require 'git-utils'
 
 Task = require './task'
 
-# Public: Represents the underlying git operations performed by Atom.
+# Extended: Represents the underlying git operations performed by Atom.
 #
 # This class shouldn't be instantiated directly but instead by accessing the
 # `atom.project` global and calling `getRepo()`. Note that this will only be
@@ -115,7 +115,7 @@ class Git
   Section: Event Subscription
   ###
 
-  # Essential: Invoke the given callback when a specific file's status has
+  # Public: Invoke the given callback when a specific file's status has
   # changed. When a file is updated, reloaded, etc, and the status changes, this
   # will be fired.
   #
@@ -129,7 +129,7 @@ class Git
   onDidChangeStatus: (callback) ->
     @emitter.on 'did-change-status', callback
 
-  # Essential: Invoke the given callback when a multiple files' statuses have
+  # Public: Invoke the given callback when a multiple files' statuses have
   # changed. For example, on window focus, the status of all the paths in the
   # repo is checked. If any of them have changed, this will be fired. Call
   # {::getPathStatus(path)} to get the status for your path of choice.
@@ -151,7 +151,7 @@ class Git
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Repo Data
+  Section: Repository Data
   ###
 
   # Public: Returns the {String} path of the repository.
@@ -275,7 +275,7 @@ class Git
   # Returns a {Boolean}.
   isPathIgnored: (path) -> @getRepo().isIgnored(@relativize(path))
 
-  # Extended: Get the status of a directory in the repository's working directory.
+  # Public: Get the status of a directory in the repository's working directory.
   #
   # * `path` The {String} path to check.
   #
@@ -288,7 +288,7 @@ class Git
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
-  # Extended: Get the status of a single path in the repository.
+  # Public: Get the status of a single path in the repository.
   #
   # `path` A {String} repository-relative path.
   #
@@ -310,7 +310,7 @@ class Git
 
     pathStatus
 
-  # Extended: Get the cached status for the given path.
+  # Public: Get the cached status for the given path.
   #
   # * `path` A {String} path in the repository, relative or absolute.
   #
@@ -318,10 +318,10 @@ class Git
   getCachedPathStatus: (path) ->
     @statuses[@relativize(path)]
 
-  # Extended: Returns true if the given status indicates modification.
+  # Public: Returns true if the given status indicates modification.
   isStatusModified: (status) -> @getRepo().isStatusModified(status)
 
-  # Extended: Returns true if the given status indicates a new path.
+  # Public: Returns true if the given status indicates a new path.
   isStatusNew: (status) -> @getRepo().isStatusNew(status)
 
   ###
