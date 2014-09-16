@@ -10,7 +10,7 @@ Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 
-# Public: Represents the state of the user interface for the entire window.
+# Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
 #
 # Interact with this object to open files, be notified of current and future
