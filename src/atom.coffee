@@ -14,7 +14,7 @@ fs = require 'fs-plus'
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
 
-# Public: Atom global for dealing with packages, themes, menus, and the window.
+# Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
 module.exports =
