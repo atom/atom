@@ -1481,7 +1481,6 @@ class Editor extends Model
       selection.cutToEndOfLine(maintainClipboard)
       maintainClipboard = true
 
-
   ###
   Section: Folds
   ###
@@ -1614,20 +1613,7 @@ class Editor extends Model
   Section: Decorations
   ###
 
-  # Public: Get all the decorations within a screen row range.
-  #
-  # * `startScreenRow` the {Number} beginning screen row
-  # * `endScreenRow` the {Number} end screen row (inclusive)
-  #
-  # Returns an {Object} of decorations in the form
-  #  `{1: [{id: 10, type: 'gutter', class: 'someclass'}], 2: ...}`
-  #   where the keys are {Marker} IDs, and the values are an array of decoration
-  #   params objects attached to the marker.
-  # Returns an empty object when no decorations are found
-  decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
-    @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
-
-  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # Essential: Adds a decoration that tracks a {Marker}. When the marker moves,
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
@@ -1667,6 +1653,19 @@ class Editor extends Model
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
     @displayBuffer.decorateMarker(marker, decorationParams)
+
+  # Extended: Get all the decorations within a screen row range.
+  #
+  # * `startScreenRow` the {Number} beginning screen row
+  # * `endScreenRow` the {Number} end screen row (inclusive)
+  #
+  # Returns an {Object} of decorations in the form
+  #  `{1: [{id: 10, type: 'gutter', class: 'someclass'}], 2: ...}`
+  #   where the keys are {Marker} IDs, and the values are an array of decoration
+  #   params objects attached to the marker.
+  # Returns an empty object when no decorations are found
+  decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
+    @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
 
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)
