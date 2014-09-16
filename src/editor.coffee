@@ -882,6 +882,14 @@ class Editor extends Model
   lowerCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toLowerCase()
 
+  # Extended: Toggle line comments for rows intersecting selections.
+  #
+  # If the current grammar doesn't support comments, does nothing.
+  #
+  # Returns an {Array} of the commented {Range}s.
+  toggleLineCommentsInSelection: ->
+    @mutateSelectedText (selection) -> selection.toggleLineComments()
+
   # Convert multiple lines to a single line.
   #
   # Operates on all selections. If the selection is empty, joins the current
@@ -1376,7 +1384,7 @@ class Editor extends Model
   Section: Syntatic Queries
   ###
 
-  # Public: Get the syntactic scopes for the given position in buffer
+  # Essential: Get the syntactic scopes for the given position in buffer
   # coordinates.
   #
   # For example, if called with a position inside the parameter list of an
@@ -1388,7 +1396,7 @@ class Editor extends Model
   # Returns an {Array} of {String}s.
   scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
 
-  # Public: Get the range in buffer coordinates of all tokens surrounding the
+  # Essential: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
   #
   # For example, if you wanted to find the string surrounding the cursor, you
@@ -1398,39 +1406,27 @@ class Editor extends Model
   bufferRangeForScopeAtCursor: (selector) ->
     @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
 
-  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
-  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
-
   # Public: Get the syntactic scopes for the most recently added cursor's
   # position. See {::scopesForBufferPosition} for more information.
   #
   # Returns an {Array} of {String}s.
-  getCursorScopes: -> @getLastCursor().getScopes()
+  scopesAtCursor: -> @getLastCursor().getScopes()
+  getCursorScopes: ->
+    deprecate 'Use Editor::scopesAtCursor() instead'
+    @scopesAtCursor()
 
   logCursorScope: ->
     console.log @getCursorScopes()
 
+  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
+  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
-  # Public: Determine if the given row is entirely a comment
+  # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
       scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
       @commentScopeSelector.matches(scopes)
-
-  # Public: Toggle line comments for rows intersecting selections.
-  #
-  # If the current grammar doesn't support comments, does nothing.
-  #
-  # Returns an {Array} of the commented {Range}s.
-  toggleLineCommentsInSelection: ->
-    @mutateSelectedText (selection) -> selection.toggleLineComments()
-
-
-
-
-
-
 
   ###
   Section: Clipboard Operations
