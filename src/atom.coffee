@@ -530,7 +530,23 @@ class Atom extends Model
       callback?()
 
   ###
-  Section: Deserialization
+  Section: Managing the Dev Tools
+  ###
+
+  # Public: Open the dev tools for the current window.
+  openDevTools: ->
+    ipc.send('call-window-method', 'openDevTools')
+
+  # Public: Toggle the visibility of the dev tools for the current window.
+  toggleDevTools: ->
+    ipc.send('call-window-method', 'toggleDevTools')
+
+  # Public: Execute code in dev tools.
+  executeJavaScriptInDevTools: (code) ->
+    ipc.send('call-window-method', 'executeJavaScriptInDevTools', code)
+
+  ###
+  Section: Private
   ###
 
   deserializeProject: ->
@@ -562,9 +578,6 @@ class Atom extends Model
     @deserializeProject()
     @deserializeWorkspaceView()
 
-
-
-
   loadThemes: ->
     @themes.load()
 
@@ -582,26 +595,6 @@ class Atom extends Model
     @subscribe @project, 'path-changed', onProjectPathChanged
     onProjectPathChanged()
 
-
-  ###
-  Section: Managing the Dev Tools
-  ###
-
-  # Public: Open the dev tools for the current window.
-  openDevTools: ->
-    ipc.send('call-window-method', 'openDevTools')
-
-  # Public: Toggle the visibility of the dev tools for the current window.
-  toggleDevTools: ->
-    ipc.send('call-window-method', 'toggleDevTools')
-
-  # Public: Execute code in dev tools.
-  executeJavaScriptInDevTools: (code) ->
-    ipc.send('call-window-method', 'executeJavaScriptInDevTools', code)
-
-
-
-
   exit: (status) ->
     app = remote.require('app')
     app.emit('will-exit')
@@ -612,8 +605,6 @@ class Atom extends Model
 
   setRepresentedFilename: (filename) ->
     ipc.send('call-window-method', 'setRepresentedFilename', filename)
-
-
 
   showSaveDialog: (callback) ->
     callback(showSaveDialogSync())
@@ -630,7 +621,6 @@ class Atom extends Model
       fs.writeFileSync(statePath, stateString, 'utf8')
     else
       @getCurrentWindow().loadSettings.windowState = stateString
-
 
   crashMainProcess: ->
     remote.process.crash()
