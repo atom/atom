@@ -240,6 +240,16 @@ class Atom extends Model
   getLoadSettings: ->
     @constructor.getLoadSettings()
 
+  # Public: Get the time taken to completely load the current window.
+  #
+  # This time include things like loading and activating packages, creating
+  # DOM elements for the editor, and reading the config.
+  #
+  # Returns the {Number} of milliseconds taken to load the window or null
+  # if the window hasn't finished loading yet.
+  getWindowLoadTime: ->
+    @loadTime
+
   ###
   Section: Managing The Atom Window
   ###
