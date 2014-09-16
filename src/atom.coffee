@@ -113,6 +113,9 @@ class Atom extends Model
   # Public: A {KeymapManager} instance
   keymaps: null
 
+  # Public: A {CommandRegistry} instance
+  commands: null
+
   # Public: A {MenuManager} instance
   menu: null
 
