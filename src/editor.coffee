@@ -894,7 +894,7 @@ class Editor extends Model
     @mutateSelectedText (selection) -> selection.joinLines()
 
   ###
-  Section: Adding Text
+  Section: Inserting Text
   ###
 
   # Essential: For each selection, replace the selected text with the given text.
@@ -955,10 +955,44 @@ class Editor extends Model
   Section: Removing Text
   ###
 
-  # Public: For each selection, if the selection is empty, delete the character
+  # Essential: For each selection, if the selection is empty, delete the character
+  # preceding the cursor. Otherwise delete the selected text.
+  delete: ->
+    @mutateSelectedText (selection) -> selection.delete()
+
+  # Essential: For each selection, if the selection is empty, delete the character
   # preceding the cursor. Otherwise delete the selected text.
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
+
+  # Extended: For each selection, if the selection is empty, delete all characters
+  # of the containing word that precede the cursor. Otherwise delete the
+  # selected text.
+  deleteToBeginningOfWord: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
+
+  # Extended: For each selection, if the selection is empty, delete all characters
+  # of the containing line that precede the cursor. Otherwise delete the
+  # selected text.
+  deleteToBeginningOfLine: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfLine()
+
+  # Extended: For each selection, if the selection is not empty, deletes the
+  # selection; otherwise, deletes all characters of the containing line
+  # following the cursor. If the cursor is already at the end of the line,
+  # deletes the following newline.
+  deleteToEndOfLine: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfLine()
+
+  # Extended: For each selection, if the selection is empty, delete all characters
+  # of the containing word following the cursor. Otherwise delete the selected
+  # text.
+  deleteToEndOfWord: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
+
+  # Extended: Delete all lines intersecting selections.
+  deleteLine: ->
+    @mutateSelectedText (selection) -> selection.deleteLine()
 
   # Deprecated: Use {::deleteToBeginningOfWord} instead.
   backspaceToBeginningOfWord: ->
@@ -969,40 +1003,6 @@ class Editor extends Model
   backspaceToBeginningOfLine: ->
     deprecate("Use Editor::deleteToBeginningOfLine() instead")
     @deleteToBeginningOfLine()
-
-  # Public: For each selection, if the selection is empty, delete all characters
-  # of the containing word that precede the cursor. Otherwise delete the
-  # selected text.
-  deleteToBeginningOfWord: ->
-    @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
-
-  # Public: For each selection, if the selection is empty, delete all characters
-  # of the containing line that precede the cursor. Otherwise delete the
-  # selected text.
-  deleteToBeginningOfLine: ->
-    @mutateSelectedText (selection) -> selection.deleteToBeginningOfLine()
-
-  # Public: For each selection, if the selection is empty, delete the character
-  # preceding the cursor. Otherwise delete the selected text.
-  delete: ->
-    @mutateSelectedText (selection) -> selection.delete()
-
-  # Public: For each selection, if the selection is not empty, deletes the
-  # selection; otherwise, deletes all characters of the containing line
-  # following the cursor. If the cursor is already at the end of the line,
-  # deletes the following newline.
-  deleteToEndOfLine: ->
-    @mutateSelectedText (selection) -> selection.deleteToEndOfLine()
-
-  # Public: For each selection, if the selection is empty, delete all characters
-  # of the containing word following the cursor. Otherwise delete the selected
-  # text.
-  deleteToEndOfWord: ->
-    @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
-
-  # Public: Delete all lines intersecting selections.
-  deleteLine: ->
-    @mutateSelectedText (selection) -> selection.deleteLine()
 
   ###
   Section: Searching Text
