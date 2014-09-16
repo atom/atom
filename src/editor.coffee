@@ -1114,6 +1114,8 @@ class Editor extends Model
   getTabLength: -> @displayBuffer.getTabLength()
 
   # Essential: Set the on-screen length of tab characters.
+  #
+  # * `tabLength` {Number} length of a single tab
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
   # Extended: Determine if the buffer uses hard or soft tabs.
@@ -1377,6 +1379,8 @@ class Editor extends Model
   #
   # Assigning a grammar will cause the editor to re-tokenize based on the new
   # grammar.
+  #
+  # * `grammar` {Grammar}
   setGrammar: (grammar) ->
     @displayBuffer.setGrammar(grammar)
 
