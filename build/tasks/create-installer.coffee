@@ -13,8 +13,14 @@ module.exports = (grunt) ->
     buildDir = grunt.config.get('atom.buildDir')
     atomDir = path.join(buildDir, 'Atom')
 
+    packageInfo = JSON.parse(fs.readFileSync(path.join(atomDir, 'resources', 'app', 'package.json'), {encoding: 'utf8'}))
+    inputTemplate = fs.readFileSync(path.join('build', 'windows', 'atom.nuspec.hbs'), {encoding: 'utf8'})
+
+    targetNuspecPath = path.join(buildDir, 'atom.nuspec')
+    fs.writeFileSync(targetNuspecPath, inputTemplate.replace(/{{version}}/, packageInfo.version))
+
     cmd = 'build/windows/nuget.exe'
-    args = ['pack', './build/windows/atom.nuspec', '-BasePath', atomDir, '-OutputDirectory', buildDir]
+    args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
 
     spawn {cmd, args}, (error, result, code) ->
       if error?
