@@ -7,7 +7,7 @@ screen = require 'screen'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{deprecated} = require 'grim'
+{deprecate} = require 'grim'
 {Model} = require 'theorist'
 fs = require 'fs-plus'
 
@@ -208,11 +208,11 @@ class Atom extends Model
 
   # Deprecated: Callers should be converted to use atom.deserializers
   registerRepresentationClass: ->
-    deprecated("Callers should be converted to use atom.deserializers")
+    deprecate("Callers should be converted to use atom.deserializers")
 
   # Deprecated: Callers should be converted to use atom.deserializers
   registerRepresentationClasses: ->
-    deprecated("Callers should be converted to use atom.deserializers")
+    deprecate("Callers should be converted to use atom.deserializers")
 
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
