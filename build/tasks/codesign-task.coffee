@@ -31,6 +31,13 @@ module.exports = (grunt) ->
         spawn {cmd: 'taskkill', args: ['/F', '/IM', 'atom.exe']}, ->
           cmd = process.env.JANKY_SIGNTOOL ? 'signtool'
           args = [path.join(grunt.config.get('atom.shellAppDir'), 'atom.exe')]
-          spawn {cmd, args}, (error) -> callback(error)
+
+          spawn {cmd, args}, (error) ->
+            if error?
+              callback(error)
+              return
+
+            args = [path.join(grunt.config.get('atom.shellAppDir'), '..', 'Releases', 'setup.exe')]
+            spawn {cmd, args}, (error) -> callback(error)
       else
         callback()
