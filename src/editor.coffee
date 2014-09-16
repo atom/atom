@@ -2576,7 +2576,6 @@ class Editor extends Model
   getRowsPerPage: ->
     Math.max(1, Math.ceil(@getHeight() / @getLineHeightInPixels()))
 
-
   ###
   Section: Config
   ###
@@ -2592,7 +2591,6 @@ class Editor extends Model
       @displayBuffer.setInvisibles(atom.config.get('editor.invisibles'))
     else
       @displayBuffer.setInvisibles(null)
-
 
   ###
   Section: Event Handlers
