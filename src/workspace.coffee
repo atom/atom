@@ -91,6 +91,33 @@ class Workspace extends Model
   Section: Event Subscription
   ###
 
+  # Essential: Invoke the given callback with all current and future text
+  # editors in the workspace.
+  #
+  # * `callback` {Function} to be called with current and future text editors.
+  #   * `editor` An {Editor} that is present in {::getTextEditors} at the time
+  #     of subscription or that is added at some later time.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeTextEditors: (callback) ->
+    callback(textEditor) for textEditor in @getTextEditors()
+    @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
+
+  # Essential: Invoke the given callback whenever an item is opened. Unlike
+  # ::onDidAddPaneItem, observers will be notified for items that are already
+  # present in the workspace when they are reopened.
+  #
+  # * `callback` {Function} to be called whenever an item is opened.
+  #   * `event` {Object} with the following keys:
+  #     * `uri` {String} representing the opened URI. Could be `undefined`.
+  #     * `item` The opened item.
+  #     * `pane` The pane in which the item was opened.
+  #     * `index` The index of the opened item on its pane.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidOpen: (callback) ->
+    @emitter.on 'did-open', callback
+
   # Extended: Invoke the given callback when a pane is added to the workspace.
   #
   # * `callback` {Function} to be called panes are added.
@@ -173,33 +200,6 @@ class Workspace extends Model
   onDidAddTextEditor: (callback) ->
     @onDidAddPaneItem ({item, pane, index}) ->
       callback({textEditor: item, pane, index}) if item instanceof Editor
-
-  # Essential: Invoke the given callback with all current and future text
-  # editors in the workspace.
-  #
-  # * `callback` {Function} to be called with current and future text editors.
-  #   * `editor` An {Editor} that is present in {::getTextEditors} at the time
-  #     of subscription or that is added at some later time.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeTextEditors: (callback) ->
-    callback(textEditor) for textEditor in @getTextEditors()
-    @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
-
-  # Essential: Invoke the given callback whenever an item is opened. Unlike
-  # ::onDidAddPaneItem, observers will be notified for items that are already
-  # present in the workspace when they are reopened.
-  #
-  # * `callback` {Function} to be called whenever an item is opened.
-  #   * `event` {Object} with the following keys:
-  #     * `uri` {String} representing the opened URI. Could be `undefined`.
-  #     * `item` The opened item.
-  #     * `pane` The pane in which the item was opened.
-  #     * `index` The index of the opened item on its pane.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidOpen: (callback) ->
-    @emitter.on 'did-open', callback
 
   eachEditor: (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
