@@ -167,7 +167,7 @@ class WorkspaceView extends View
   # Returns a {Workspace}.
   getModel: -> @model
 
-  # Public: Install the Atom shell commands on the user's system.
+  # Install the Atom shell commands on the user's system.
   installShellCommands: ->
     showErrorDialog = (error) ->
       installDirectory = CommandInstaller.getInstallDirectory()
