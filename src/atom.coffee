@@ -494,7 +494,7 @@ class Atom extends Model
   #   detailedMessage: 'Be honest.'
   #   buttons:
   #     Good: -> window.alert('good to hear')
-  #     Bad:  -> window.alert('bummer')
+  #     Bad: -> window.alert('bummer')
   # ```
   #
   # * `options` An {Object} with the following keys:
