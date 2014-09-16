@@ -1221,12 +1221,12 @@ class Editor extends Model
   Section: Undo Operations
   ###
 
-  # Public: Undo the last change.
+  # Essential: Undo the last change.
   undo: ->
     @getLastCursor().needsAutoscroll = true
     @buffer.undo(this)
 
-  # Public: Redo the last change.
+  # Essential: Redo the last change.
   redo: ->
     @getLastCursor().needsAutoscroll = true
     @buffer.redo(this)
