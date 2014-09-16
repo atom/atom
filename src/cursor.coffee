@@ -1,37 +1,14 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
+Grim = require 'grim'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
 #
 # Cursors belong to {Editor}s and have some metadata attached in the form
 # of a {Marker}.
-#
-# ## Events
-#
-# ### moved
-#
-# Extended: Emit when a cursor has been moved. If there are multiple cursors,
-# it will be emit for each cursor.
-#
-# * `event` {Object}
-#   * `oldBufferPosition` {Point}
-#   * `oldScreenPosition` {Point}
-#   * `newBufferPosition` {Point}
-#   * `newScreenPosition` {Point}
-#   * `textChanged` {Boolean}
-#
-# ### destroyed
-#
-# Extended: Emit when the cursor is destroyed
-#
-# ### visibility-changed
-#
-# Extended: Emit when the Cursor is hidden or shown
-#
-# * `visible` {Boolean} true when cursor is visible
-#
 module.exports =
 class Cursor extends Model
   screenPosition: null
@@ -42,9 +19,11 @@ class Cursor extends Model
 
   # Instantiated by an {Editor}
   constructor: ({@editor, @marker, id}) ->
+    @emitter = new Emitter
+
     @assignId(id)
     @updateVisibility()
-    @marker.on 'changed', (e) =>
+    @marker.onDidChange (e) =>
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
@@ -65,12 +44,66 @@ class Cursor extends Model
         textChanged: textChanged
 
       @emit 'moved', movedEvent
-      @editor.cursorMoved(movedEvent)
-    @marker.on 'destroyed', =>
+      @emitter.emit 'did-change-position'
+      @editor.cursorMoved(this, movedEvent)
+    @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeCursor(this)
       @emit 'destroyed'
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
     @needsAutoscroll = true
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Essential: Calls your `callback` when the cursor has been moved.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldBufferPosition` {Point}
+  #     * `oldScreenPosition` {Point}
+  #     * `newBufferPosition` {Point}
+  #     * `newScreenPosition` {Point}
+  #     * `textChanged` {Boolean}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangePosition: (callback) ->
+    @emitter.on 'did-change-position', callback
+
+  # Extended: Calls your `callback` when the cursor is destroyed
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  # Extended: Calls your `callback` when the cursor's visibility has changed
+  #
+  # * `callback` {Function}
+  #   * `visibility` {Boolean}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeVisibility: (callback) ->
+    @emitter.on 'did-change-visibility', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'moved'
+        Grim.deprecate("Use Cursor::onDidChangePosition instead")
+      when 'destroyed'
+        Grim.deprecate("Use Cursor::onDidDestroy instead")
+      when 'destroyed'
+        Grim.deprecate("Use Cursor::onDidDestroy instead")
+      else
+        Grim.deprecate("::on is no longer supported. Use the event subscription methods instead")
+    super
+
+  ###
+  Section: Methods
+  ###
 
   destroy: ->
     @marker.destroy()
@@ -131,6 +164,7 @@ class Cursor extends Model
       @visible = visible
       @needsAutoscroll ?= true if @visible and @isLastCursor()
       @emit 'visibility-changed', @visible
+      @emitter.emit 'did-change-visibility', @visible
 
   # Public: Returns the visibility of the cursor.
   isVisible: -> @visible
@@ -225,6 +259,11 @@ class Cursor extends Model
     @editor.lineTextForBufferRow(@getBufferRow())
 
   # Public: Moves the cursor up one screen row.
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
   moveUp: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
@@ -237,7 +276,12 @@ class Cursor extends Model
     @goalColumn = column
 
   # Public: Moves the cursor down one screen row.
-  moveDown: (rowCount = 1, {moveToEndOfSelection}={}) ->
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
+  moveDown: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       { row, column } = range.end
@@ -250,30 +294,51 @@ class Cursor extends Model
 
   # Public: Moves the cursor left one screen column.
   #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the left of the selection if a
   #     selection exists.
-  moveLeft: ({moveToEndOfSelection}={}) ->
+  moveLeft: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.start)
     else
       {row, column} = @getScreenPosition()
-      [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
+
+      while columnCount > column and row > 0
+        columnCount -= column
+        column = @editor.lineTextForScreenRow(--row).length
+        columnCount-- # subtract 1 for the row move
+
+      column = column - columnCount
       @setScreenPosition({row, column})
 
   # Public: Moves the cursor right one screen column.
   #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the right of the selection if a
   #     selection exists.
-  moveRight: ({moveToEndOfSelection}={}) ->
+  moveRight: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.end)
     else
       { row, column } = @getScreenPosition()
-      @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      maxLines = @editor.getScreenLineCount()
+      rowLength = @editor.lineTextForScreenRow(row).length
+      columnsRemainingInLine = rowLength - column
+
+      while columnCount > columnsRemainingInLine and row < maxLines - 1
+        columnCount -= columnsRemainingInLine
+        columnCount-- # subtract 1 for the row move
+
+        column = 0
+        rowLength = @editor.lineTextForScreenRow(++row).length
+        columnsRemainingInLine = rowLength
+
+      column = column + columnCount
+      @setScreenPosition({row, column}, skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->

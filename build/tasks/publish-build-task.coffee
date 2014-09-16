@@ -28,7 +28,7 @@ module.exports = (gruntObject) ->
   grunt.registerTask 'prepare-docs', 'Move api.json to atom-api.json', ->
     docsOutputDir = grunt.config.get('docsOutputDir')
     buildDir = grunt.config.get('atom.buildDir')
-    cp  path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
+    cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
     done = @async()
@@ -45,16 +45,32 @@ module.exports = (gruntObject) ->
           uploadAssets(release, buildDir, assets, done)
 
 getAssets = ->
-  if process.platform is 'darwin'
-    [
-      {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
-      {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
-      {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
-    ]
-  else
-    [
-      {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
-    ]
+  switch process.platform
+    when 'darwin'
+      [
+        {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
+        {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
+        {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
+      ]
+    when 'win32'
+      [
+        {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
+      ]
+    when 'linux'
+      buildDir = grunt.config.get('atom.buildDir')
+      sourcePath = fs.listSync(buildDir, ['.deb'])[0]
+      if process.arch is 'ia32g'
+        arch = 'i386'
+      else
+        arch = 'amd64'
+      assetName = "atom-#{arch}.deb"
+
+      {cp} = require('./task-helpers')(grunt)
+      cp sourcePath, path.join(buildDir, assetName)
+
+      [
+        {assetName, sourcePath}
+      ]
 
 logError = (message, error, details) ->
   grunt.log.error(message)

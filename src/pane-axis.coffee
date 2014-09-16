@@ -1,4 +1,5 @@
-{Model, Sequence} = require 'theorist'
+{Model} = require 'theorist'
+{Emitter, CompositeDisposable} = require 'event-kit'
 {flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
 
@@ -10,18 +11,17 @@ class PaneAxis extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
+  parent: null
+  container: null
+  orientation: null
+
   constructor: ({@container, @orientation, children}) ->
-    @children = Sequence.fromArray(children ? [])
-
-    @subscribe @children.onEach (child) =>
-      child.parent = this
-      child.container = @container
-      @subscribe child, 'destroyed', => @removeChild(child)
-
-    @subscribe @children.onRemoval (child) => @unsubscribe(child)
-
-    @when @children.$length.becomesLessThan(2), 'reparentLastChild'
-    @when @children.$length.becomesLessThan(1), 'destroy'
+    @emitter = new Emitter
+    @subscriptionsByChild = new WeakMap
+    @subscriptions = new CompositeDisposable
+    @children = []
+    if children?
+      @addChild(child) for child in children
 
   deserializeParams: (params) ->
     {container} = params
@@ -32,35 +32,93 @@ class PaneAxis extends Model
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
 
+  getParent: -> @parent
+
+  setParent: (@parent) -> @parent
+
+  getContainer: -> @container
+
+  setContainer: (@container) -> @container
+
   getViewClass: ->
     if @orientation is 'vertical'
       PaneColumnView ?= require './pane-column-view'
     else
       PaneRowView ?= require './pane-row-view'
 
+  getChildren: -> @children.slice()
+
   getPanes: ->
     flatten(@children.map (child) -> child.getPanes())
 
-  addChild: (child, index=@children.length) ->
-    @children.splice(index, 0, child)
+  getItems: ->
+    flatten(@children.map (child) -> child.getItems())
 
-  removeChild: (child) ->
+  onDidAddChild: (fn) ->
+    @emitter.on 'did-add-child', fn
+
+  onDidRemoveChild: (fn) ->
+    @emitter.on 'did-remove-child', fn
+
+  onDidReplaceChild: (fn) ->
+    @emitter.on 'did-replace-child', fn
+
+  onDidDestroy: (fn) ->
+    @emitter.on 'did-destroy', fn
+
+  addChild: (child, index=@children.length) ->
+    child.setParent(this)
+    child.setContainer(@container)
+
+    @subscribeToChild(child)
+
+    @children.splice(index, 0, child)
+    @emitter.emit 'did-add-child', {child, index}
+
+  removeChild: (child, replacing=false) ->
     index = @children.indexOf(child)
     throw new Error("Removing non-existent child") if index is -1
+
+    @unsubscribeFromChild(child)
+
     @children.splice(index, 1)
+    @emitter.emit 'did-remove-child', {child, index}
+    @reparentLastChild() if not replacing and @children.length < 2
 
   replaceChild: (oldChild, newChild) ->
+    @unsubscribeFromChild(oldChild)
+    @subscribeToChild(newChild)
+
+    newChild.setParent(this)
+    newChild.setContainer(@container)
+
     index = @children.indexOf(oldChild)
-    throw new Error("Replacing non-existent child") if index is -1
     @children.splice(index, 1, newChild)
+    @emitter.emit 'did-replace-child', {oldChild, newChild, index}
 
   insertChildBefore: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
-    @children.splice(index, 0, newChild)
+    @addChild(newChild, index)
 
   insertChildAfter: (currentChild, newChild) ->
     index = @children.indexOf(currentChild)
-    @children.splice(index + 1, 0, newChild)
+    @addChild(newChild, index + 1)
 
   reparentLastChild: ->
     @parent.replaceChild(this, @children[0])
+    @destroy()
+
+  subscribeToChild: (child) ->
+    subscription = child.onDidDestroy => @removeChild(child)
+    @subscriptionsByChild.set(child, subscription)
+    @subscriptions.add(subscription)
+
+  unsubscribeFromChild: (child) ->
+    subscription = @subscriptionsByChild.get(child)
+    @subscriptions.remove(subscription)
+    subscription.dispose()
+
+  destroyed: ->
+    @subscriptions.dispose()
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()

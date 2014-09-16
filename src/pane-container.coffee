@@ -1,5 +1,6 @@
-{find} = require 'underscore-plus'
+{find, flatten} = require 'underscore-plus'
 {Model} = require 'theorist'
+{Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
 Pane = require './pane'
 
@@ -11,10 +12,9 @@ class PaneContainer extends Model
   @version: 1
 
   @properties
-    root: -> new Pane
     activePane: null
 
-  previousRoot: null
+  root: null
 
   @behavior 'activePaneItem', ->
     @$activePane
@@ -23,8 +23,15 @@ class PaneContainer extends Model
 
   constructor: (params) ->
     super
-    @subscribe @$root, @onRootChanged
+
+    @emitter = new Emitter
+    @subscriptions = new CompositeDisposable
+
+    @setRoot(params?.root ? new Pane)
     @destroyEmptyPanes() if params?.destroyEmptyPanes
+
+    @monitorActivePaneItem()
+    @monitorPaneItems()
 
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
@@ -36,15 +43,74 @@ class PaneContainer extends Model
     root: @root?.serialize()
     activePaneId: @activePane.id
 
+  onDidChangeRoot: (fn) ->
+    @emitter.on 'did-change-root', fn
+
+  observeRoot: (fn) ->
+    fn(@getRoot())
+    @onDidChangeRoot(fn)
+
+  onDidAddPane: (fn) ->
+    @emitter.on 'did-add-pane', fn
+
+  observePanes: (fn) ->
+    fn(pane) for pane in @getPanes()
+    @onDidAddPane ({pane}) -> fn(pane)
+
+  onDidChangeActivePane: (fn) ->
+    @emitter.on 'did-change-active-pane', fn
+
+  observeActivePane: (fn) ->
+    fn(@getActivePane())
+    @onDidChangeActivePane(fn)
+
+  onDidAddPaneItem: (fn) ->
+    @emitter.on 'did-add-pane-item', fn
+
+  observePaneItems: (fn) ->
+    fn(item) for item in @getPaneItems()
+    @onDidAddPaneItem ({item}) -> fn(item)
+
+  onDidChangeActivePaneItem: (fn) ->
+    @emitter.on 'did-change-active-pane-item', fn
+
+  observeActivePaneItem: (fn) ->
+    fn(@getActivePaneItem())
+    @onDidChangeActivePaneItem(fn)
+
+  onDidDestroyPaneItem: (fn) ->
+    @emitter.on 'did-destroy-pane-item', fn
+
+  getRoot: -> @root
+
+  setRoot: (@root) ->
+    @root.setParent(this)
+    @root.setContainer(this)
+    @emitter.emit 'did-change-root', @root
+    if not @getActivePane()? and @root instanceof Pane
+      @setActivePane(@root)
+
   replaceChild: (oldChild, newChild) ->
     throw new Error("Replacing non-existent child") if oldChild isnt @root
-    @root = newChild
+    @setRoot(newChild)
 
   getPanes: ->
-    @root?.getPanes() ? []
+    @getRoot().getPanes()
+
+  getPaneItems: ->
+    @getRoot().getItems()
 
   getActivePane: ->
     @activePane
+
+  setActivePane: (activePane) ->
+    if activePane isnt @activePane
+      @activePane = activePane
+      @emitter.emit 'did-change-active-pane', @activePane
+    @activePane
+
+  getActivePaneItem: ->
+    @getActivePane().getActiveItem()
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
@@ -73,26 +139,37 @@ class PaneContainer extends Model
     else
       false
 
-  onRootChanged: (root) =>
-    @unsubscribe(@previousRoot) if @previousRoot?
-    @previousRoot = root
-
-    unless root?
-      @activePane = null
-      return
-
-    root.parent = this
-    root.container = this
-
-
-    @activePane ?= root if root instanceof Pane
-
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
 
-  itemDestroyed: (item) ->
-    @emit 'item-destroyed', item
+  paneItemDestroyed: (item) ->
+    @emitter.emit 'did-destroy-pane-item', item
+
+  didAddPane: (pane) ->
+    @emitter.emit 'did-add-pane', pane
 
   # Called by Model superclass when destroyed
   destroyed: ->
     pane.destroy() for pane in @getPanes()
+    @subscriptions.dispose()
+    @emitter.dispose()
+
+  monitorActivePaneItem: ->
+    childSubscription = null
+    @subscriptions.add @observeActivePane (activePane) =>
+      if childSubscription?
+        @subscriptions.remove(childSubscription)
+        childSubscription.dispose()
+
+      childSubscription = activePane.observeActiveItem (activeItem) =>
+        @emitter.emit 'did-change-active-pane-item', activeItem
+
+      @subscriptions.add(childSubscription)
+
+  monitorPaneItems: ->
+    @subscriptions.add @observePanes (pane) =>
+      for item, index in pane.getItems()
+        @emitter.emit 'did-add-pane-item', {item, pane, index}
+
+      pane.onDidAddItem ({item, index}) =>
+        @emitter.emit 'did-add-pane-item', {item, pane, index}

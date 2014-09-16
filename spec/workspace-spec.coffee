@@ -8,8 +8,12 @@ describe "Workspace", ->
     atom.workspace = workspace = new Workspace
 
   describe "::open(uri, options)", ->
+    openEvents = null
+
     beforeEach ->
-      spyOn(workspace.activePane, 'activate').andCallThrough()
+      openEvents = []
+      workspace.onDidOpen (event) -> openEvents.push(event)
+      spyOn(workspace.getActivePane(), 'activate').andCallThrough()
 
     describe "when the 'searchAllPanes' option is false (default)", ->
       describe "when called without a uri", ->
@@ -21,18 +25,21 @@ describe "Workspace", ->
 
           runs ->
             expect(editor1.getPath()).toBeUndefined()
-            expect(workspace.activePane.items).toEqual [editor1]
-            expect(workspace.activePaneItem).toBe editor1
-            expect(workspace.activePane.activate).toHaveBeenCalled()
+            expect(workspace.getActivePane().items).toEqual [editor1]
+            expect(workspace.getActivePaneItem()).toBe editor1
+            expect(workspace.getActivePane().activate).toHaveBeenCalled()
+            expect(openEvents).toEqual [{uri: undefined, pane: workspace.getActivePane(), item: editor1, index: 0}]
+            openEvents = []
 
           waitsForPromise ->
             workspace.open().then (editor) -> editor2 = editor
 
           runs ->
             expect(editor2.getPath()).toBeUndefined()
-            expect(workspace.activePane.items).toEqual [editor1, editor2]
-            expect(workspace.activePaneItem).toBe editor2
-            expect(workspace.activePane.activate).toHaveBeenCalled()
+            expect(workspace.getActivePane().items).toEqual [editor1, editor2]
+            expect(workspace.getActivePaneItem()).toBe editor2
+            expect(workspace.getActivePane().activate).toHaveBeenCalled()
+            expect(openEvents).toEqual [{uri: undefined, pane: workspace.getActivePane(), item: editor2, index: 1}]
 
       describe "when called with a uri", ->
         describe "when the active pane already has an editor for the given uri", ->
@@ -51,8 +58,29 @@ describe "Workspace", ->
 
             runs ->
               expect(editor).toBe editor1
-              expect(workspace.activePaneItem).toBe editor
-              expect(workspace.activePane.activate).toHaveBeenCalled()
+              expect(workspace.getActivePaneItem()).toBe editor
+              expect(workspace.getActivePane().activate).toHaveBeenCalled()
+
+              expect(openEvents).toEqual [
+                {
+                  uri: atom.project.resolve('a')
+                  item: editor1
+                  pane: atom.workspace.getActivePane()
+                  index: 0
+                }
+                {
+                  uri: atom.project.resolve('b')
+                  item: editor2
+                  pane: atom.workspace.getActivePane()
+                  index: 1
+                }
+                {
+                  uri: atom.project.resolve('a')
+                  item: editor1
+                  pane: atom.workspace.getActivePane()
+                  index: 0
+                }
+              ]
 
         describe "when the active pane does not have an editor for the given uri", ->
           it "adds and activates a new editor for the given path on the active pane", ->
@@ -62,9 +90,9 @@ describe "Workspace", ->
 
             runs ->
               expect(editor.getUri()).toBe atom.project.resolve('a')
-              expect(workspace.activePaneItem).toBe editor
-              expect(workspace.activePane.items).toEqual [editor]
-              expect(workspace.activePane.activate).toHaveBeenCalled()
+              expect(workspace.getActivePaneItem()).toBe editor
+              expect(workspace.getActivePane().items).toEqual [editor]
+              expect(workspace.getActivePane().activate).toHaveBeenCalled()
 
     describe "when the 'searchAllPanes' option is true", ->
       describe "when an editor for the given uri is already open on an inactive pane", ->
@@ -83,14 +111,14 @@ describe "Workspace", ->
             workspace.open('b').then (o) -> editor2 = o
 
           runs ->
-            expect(workspace.activePaneItem).toBe editor2
+            expect(workspace.getActivePaneItem()).toBe editor2
 
           waitsForPromise ->
             workspace.open('a', searchAllPanes: true)
 
           runs ->
-            expect(workspace.activePane).toBe pane1
-            expect(workspace.activePaneItem).toBe editor1
+            expect(workspace.getActivePane()).toBe pane1
+            expect(workspace.getActivePaneItem()).toBe editor1
 
       describe "when no editor for the given uri is open in any pane", ->
         it "opens an editor for the given uri in the active pane", ->
@@ -99,21 +127,21 @@ describe "Workspace", ->
             workspace.open('a', searchAllPanes: true).then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePaneItem).toBe editor
+            expect(workspace.getActivePaneItem()).toBe editor
 
     describe "when the 'split' option is set", ->
       describe "when the 'split' option is 'left'", ->
         it "opens the editor in the leftmost pane of the current pane axis", ->
-          pane1 = workspace.activePane
+          pane1 = workspace.getActivePane()
           pane2 = pane1.splitRight()
-          expect(workspace.activePane).toBe pane2
+          expect(workspace.getActivePane()).toBe pane2
 
           editor = null
           waitsForPromise ->
             workspace.open('a', split: 'left').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             expect(pane1.items).toEqual [editor]
             expect(pane2.items).toEqual []
 
@@ -123,37 +151,37 @@ describe "Workspace", ->
             workspace.open('a', split: 'left').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             expect(pane1.items).toEqual [editor]
             expect(pane2.items).toEqual []
 
       describe "when a pane axis is the leftmost sibling of the current pane", ->
         it "opens the new item in the current pane", ->
           editor = null
-          pane1 = workspace.activePane
+          pane1 = workspace.getActivePane()
           pane2 = pane1.splitLeft()
           pane3 = pane2.splitDown()
           pane1.activate()
-          expect(workspace.activePane).toBe pane1
+          expect(workspace.getActivePane()).toBe pane1
 
           waitsForPromise ->
             workspace.open('a', split: 'left').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             expect(pane1.items).toEqual [editor]
 
       describe "when the 'split' option is 'right'", ->
         it "opens the editor in the rightmost pane of the current pane axis", ->
           editor = null
-          pane1 = workspace.activePane
+          pane1 = workspace.getActivePane()
           pane2 = null
           waitsForPromise ->
             workspace.open('a', split: 'right').then (o) -> editor = o
 
           runs ->
             pane2 = workspace.getPanes().filter((p) -> p != pane1)[0]
-            expect(workspace.activePane).toBe pane2
+            expect(workspace.getActivePane()).toBe pane2
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
 
@@ -163,18 +191,18 @@ describe "Workspace", ->
             workspace.open('a', split: 'right').then (o) -> editor = o
 
           runs ->
-            expect(workspace.activePane).toBe pane2
+            expect(workspace.getActivePane()).toBe pane2
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
 
         describe "when a pane axis is the rightmost sibling of the current pane", ->
           it "opens the new item in a new pane split to the right of the current pane", ->
             editor = null
-            pane1 = workspace.activePane
+            pane1 = workspace.getActivePane()
             pane2 = pane1.splitRight()
             pane3 = pane2.splitDown()
             pane1.activate()
-            expect(workspace.activePane).toBe pane1
+            expect(workspace.getActivePane()).toBe pane1
             pane4 = null
 
             waitsForPromise ->
@@ -182,7 +210,7 @@ describe "Workspace", ->
 
             runs ->
               pane4 = workspace.getPanes().filter((p) -> p != pane1)[0]
-              expect(workspace.activePane).toBe pane4
+              expect(workspace.getActivePane()).toBe pane4
               expect(pane4.items).toEqual [editor]
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
@@ -203,21 +231,21 @@ describe "Workspace", ->
           workspace.open("bar://baz").then (item) ->
             expect(item).toEqual { bar: "bar://baz" }
 
-    it "emits an 'editor-created' event", ->
+    it "notifies ::onDidAddTextEditor observers", ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newEditorHandler = jasmine.createSpy('newEditorHandler')
-      workspace.on 'editor-created', newEditorHandler
+      workspace.onDidAddTextEditor newEditorHandler
 
       editor = null
       waitsForPromise ->
         workspace.open(absolutePath).then (e) -> editor = e
 
       runs ->
-        expect(newEditorHandler).toHaveBeenCalledWith editor
+        expect(newEditorHandler.argsForCall[0][0].textEditor).toBe editor
 
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
-      pane = workspace.activePane
+      pane = workspace.getActivePane()
       waitsForPromise ->
         workspace.open('a').then ->
           workspace.open('b').then ->
@@ -226,44 +254,44 @@ describe "Workspace", ->
 
       runs ->
         # does not reopen items with no uri
-        expect(workspace.activePaneItem.getUri()).toBeUndefined()
+        expect(workspace.getActivePaneItem().getUri()).toBeUndefined()
         pane.destroyActiveItem()
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.activePaneItem.getUri()).not.toBeUndefined()
+        expect(workspace.getActivePaneItem().getUri()).not.toBeUndefined()
 
         # destroy all items
-        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('file1')
         pane.destroyActiveItem()
-        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('b')
         pane.destroyActiveItem()
-        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('a')
         pane.destroyActiveItem()
 
         # reopens items with uris
-        expect(workspace.activePaneItem).toBeUndefined()
+        expect(workspace.getActivePaneItem()).toBeUndefined()
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('a')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('a')
 
       # does not reopen items that are already open
       waitsForPromise ->
         workspace.open('b')
 
       runs ->
-        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('b')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('b')
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.activePaneItem.getUri()).toBe atom.project.resolve('file1')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('file1')
 
   describe "::increase/decreaseFontSize()", ->
     it "increases/decreases the font size without going below 1", ->
@@ -282,7 +310,22 @@ describe "Workspace", ->
   describe "::openLicense()", ->
     it "opens the license as plain-text in a buffer", ->
       waitsForPromise -> workspace.openLicense()
-      runs -> expect(workspace.activePaneItem.getText()).toMatch /Copyright/
+      runs -> expect(workspace.getActivePaneItem().getText()).toMatch /Copyright/
+
+  describe "::observeTextEditors()", ->
+    it "invokes the observer with current and future text editors", ->
+      observed = []
+
+      waitsForPromise -> workspace.open()
+      waitsForPromise -> workspace.open()
+      waitsForPromise -> workspace.openLicense()
+
+      runs ->
+        workspace.observeTextEditors (editor) -> observed.push(editor)
+
+      waitsForPromise -> workspace.open()
+
+      expect(observed).toEqual workspace.getTextEditors()
 
   describe "when an editor is destroyed", ->
     it "removes the editor", ->
@@ -292,23 +335,9 @@ describe "Workspace", ->
         workspace.open("a").then (e) -> editor = e
 
       runs ->
-        expect(workspace.getEditors()).toHaveLength 1
+        expect(workspace.getTextEditors()).toHaveLength 1
         editor.destroy()
-        expect(workspace.getEditors()).toHaveLength 0
-
-  describe "when an editor is copied", ->
-    it "emits an 'editor-created' event", ->
-      editor = null
-      handler = jasmine.createSpy('editorCreatedHandler')
-      workspace.on 'editor-created', handler
-
-      waitsForPromise ->
-        workspace.open("a").then (o) -> editor = o
-
-      runs ->
-        expect(handler.callCount).toBe 1
-        editorCopy = editor.copy()
-        expect(handler.callCount).toBe 2
+        expect(workspace.getTextEditors()).toHaveLength 0
 
   it "stores the active grammars used by all the open editors", ->
     waitsForPromise ->
@@ -318,13 +347,18 @@ describe "Workspace", ->
       atom.packages.activatePackage('language-coffee-script')
 
     waitsForPromise ->
+      atom.packages.activatePackage('language-todo')
+
+    waitsForPromise ->
       atom.workspace.open('sample.coffee')
 
     runs ->
-      atom.workspace.getActiveEditor().setText('i = /test/;')
+      atom.workspace.getActiveEditor().setText """
+        i = /test/; #FIXME
+      """
 
       state = atom.workspace.serialize()
-      expect(state.packagesWithActiveGrammars).toEqual ['language-coffee-script', 'language-javascript']
+      expect(state.packagesWithActiveGrammars).toEqual ['language-coffee-script', 'language-javascript', 'language-todo']
 
       jsPackage = atom.packages.getLoadedPackage('language-javascript')
       coffeePackage = atom.packages.getLoadedPackage('language-coffee-script')

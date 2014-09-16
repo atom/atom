@@ -21,6 +21,7 @@ clipboard = require 'clipboard'
 
 atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'
+atom.themes.initialLoadComplete = true
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
@@ -137,8 +138,7 @@ afterEach ->
 
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
-  atom.syntax.off()
-  ensureNoDeprecatedFunctionsCalled() if isCoreSpec
+  atom.syntax.clearObservers()
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->

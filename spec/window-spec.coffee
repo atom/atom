@@ -256,3 +256,35 @@ describe "Window", ->
 
         elements.trigger "core:focus-previous"
         expect(elements.find("[tabindex=1]:focus")).toExist()
+
+  describe "the window:open-path event", ->
+    beforeEach ->
+      spyOn(atom.workspace, 'open')
+
+    describe "when the project does not have a path", ->
+      beforeEach ->
+        atom.project.setPath()
+
+      describe "when the opened path exists", ->
+        it "sets the project path to the opened path", ->
+          $(window).trigger('window:open-path', [{pathToOpen: __filename}])
+
+          expect(atom.project.getPath()).toBe __dirname
+
+      describe "when the opened path does not exist but its parent directory does", ->
+        it "sets the project path to the opened path's parent directory", ->
+          $(window).trigger('window:open-path', [{pathToOpen: path.join(__dirname, 'this-path-does-not-exist.txt')}])
+
+          expect(atom.project.getPath()).toBe __dirname
+
+    describe "when the opened path is a file", ->
+      it "opens it in the workspace", ->
+        $(window).trigger('window:open-path', [{pathToOpen: __filename}])
+
+        expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
+    describe "when the opened path is a directory", ->
+      it "does not open it in the workspace", ->
+        $(window).trigger('window:open-path', [{pathToOpen: __dirname}])
+
+        expect(atom.workspace.open.callCount).toBe 0

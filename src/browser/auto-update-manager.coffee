@@ -1,23 +1,26 @@
-https = require 'https'
-autoUpdater = require 'auto-updater'
-dialog = require 'dialog'
+autoUpdater = null
 _ = require 'underscore-plus'
 {EventEmitter} = require 'events'
 
-IDLE_STATE='idle'
-CHECKING_STATE='checking'
-DOWNLOADING_STATE='downloading'
-UPDATE_AVAILABLE_STATE='update-available'
-NO_UPDATE_AVAILABLE_STATE='no-update-available'
-ERROR_STATE='error'
+IdleState = 'idle'
+CheckingState = 'checking'
+DownladingState = 'downloading'
+UpdateAvailableState = 'update-available'
+NoUpdateAvailableState = 'no-update-available'
+ErrorState = 'error'
 
 module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
   constructor: (@version) ->
-    @state = IDLE_STATE
+    @state = IdleState
     @feedUrl = "https://atom.io/api/updates?version=#{@version}"
+
+    process.nextTick => @setupAutoUpdater()
+
+  setupAutoUpdater: ->
+    autoUpdater = require 'auto-updater'
 
     if process.platform is 'win32'
       autoUpdater.checkForUpdates = => @checkForUpdatesShim()
@@ -25,20 +28,20 @@ class AutoUpdateManager
     autoUpdater.setFeedUrl @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
-      @setState(CHECKING_STATE)
+      @setState(CheckingState)
 
     autoUpdater.on 'update-not-available', =>
-      @setState(NO_UPDATE_AVAILABLE_STATE)
+      @setState(NoUpdateAvailableState)
 
     autoUpdater.on 'update-available', =>
-      @setState(DOWNLOADING_STATE)
+      @setState(DownladingState)
 
     autoUpdater.on 'error', (event, message) =>
-      @setState(ERROR_STATE)
+      @setState(ErrorState)
       console.error "Error Downloading Update: #{message}"
 
     autoUpdater.on 'update-downloaded', (event, @releaseNotes, @releaseVersion) =>
-      @setState(UPDATE_AVAILABLE_STATE)
+      @setState(UpdateAvailableState)
       @emitUpdateAvailableEvent(@getWindows()...)
 
     # Only released versions should check for updates.
@@ -48,6 +51,8 @@ class AutoUpdateManager
   # Windows doesn't have an auto-updater, so use this method to shim the events.
   checkForUpdatesShim: ->
     autoUpdater.emit 'checking-for-update'
+
+    https = require 'https'
     request = https.get @feedUrl, (response) ->
       if response.statusCode == 200
         body = ""
@@ -67,7 +72,7 @@ class AutoUpdateManager
       atomWindow.sendCommand('window:update-available', [@releaseVersion, @releaseNotes])
 
   setState: (state) ->
-    return unless @state != state
+    return if @state is state
     @state = state
     @emit 'state-changed', @state
 
@@ -86,10 +91,12 @@ class AutoUpdateManager
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
+    dialog = require 'dialog'
     dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'No update available.', detail: "Version #{@version} is the latest version."
 
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
+    dialog = require 'dialog'
     dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
 
   getWindows: ->

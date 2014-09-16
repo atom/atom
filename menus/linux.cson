@@ -85,6 +85,7 @@
       { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
       { label: 'Open Your Snippets', command: 'application:open-your-snippets' }
       { label: 'Open Your Stylesheet', command: 'application:open-your-stylesheet' }
+      { type: 'separator' }
     ]
   }
 

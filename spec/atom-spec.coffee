@@ -241,15 +241,15 @@ describe "the `atom` global", ->
               two = atom.themes.stringToId(two)
               three = atom.themes.stringToId(three)
 
-              expect(atom.themes.stylesheetElementForId(one)).not.toExist()
-              expect(atom.themes.stylesheetElementForId(two)).not.toExist()
-              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).toBeNull()
+              expect(atom.themes.stylesheetElementForId(two)).toBeNull()
+              expect(atom.themes.stylesheetElementForId(three)).toBeNull()
 
               atom.packages.activatePackage("package-with-stylesheets-manifest")
 
-              expect(atom.themes.stylesheetElementForId(one)).toExist()
-              expect(atom.themes.stylesheetElementForId(two)).toExist()
-              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(three)).toBeNull()
               expect($('#jasmine-content').css('font-size')).toBe '1px'
 
           describe "when the metadata does not contain a 'stylesheets' manifest", ->
@@ -263,14 +263,14 @@ describe "the `atom` global", ->
               two = atom.themes.stringToId(two)
               three = atom.themes.stringToId(three)
 
-              expect(atom.themes.stylesheetElementForId(one)).not.toExist()
-              expect(atom.themes.stylesheetElementForId(two)).not.toExist()
-              expect(atom.themes.stylesheetElementForId(three)).not.toExist()
+              expect(atom.themes.stylesheetElementForId(one)).toBeNull()
+              expect(atom.themes.stylesheetElementForId(two)).toBeNull()
+              expect(atom.themes.stylesheetElementForId(three)).toBeNull()
 
               atom.packages.activatePackage("package-with-stylesheets")
-              expect(atom.themes.stylesheetElementForId(one)).toExist()
-              expect(atom.themes.stylesheetElementForId(two)).toExist()
-              expect(atom.themes.stylesheetElementForId(three)).toExist()
+              expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
               expect($('#jasmine-content').css('font-size')).toBe '3px'
 
         describe "grammar loading", ->
@@ -350,7 +350,7 @@ describe "the `atom` global", ->
             atom.packages.deactivatePackage("package-that-throws-on-activate")
             expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
-        it "absorbs exceptions that are thrown by the package module's serialize methods", ->
+        it "absorbs exceptions that are thrown by the package module's serialize method", ->
           spyOn(console, 'error')
 
           waitsForPromise ->
@@ -363,6 +363,16 @@ describe "the `atom` global", ->
             atom.packages.deactivatePackages()
             expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
             expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
+            expect(console.error).toHaveBeenCalled()
+
+        it "absorbs exceptions that are thrown by the package module's deactivate method", ->
+          spyOn(console, 'error')
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-that-throws-on-deactivate")
+
+          runs ->
+            expect(-> atom.packages.deactivatePackage("package-that-throws-on-deactivate")).not.toThrow()
             expect(console.error).toHaveBeenCalled()
 
         it "removes the package's grammars", ->
@@ -520,7 +530,7 @@ describe "the `atom` global", ->
 
             reloadedHandler = jasmine.createSpy('reloadedHandler')
             reloadedHandler.reset()
-            atom.themes.on('reloaded', reloadedHandler)
+            atom.themes.onDidReloadAll reloadedHandler
 
             pack = atom.packages.disablePackage(packageName)
 

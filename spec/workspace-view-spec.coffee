@@ -42,7 +42,7 @@ describe "WorkspaceView", ->
         runs ->
           editorView1 = atom.workspaceView.getActiveView()
           buffer = editorView1.getEditor().getBuffer()
-          editorView1.splitRight()
+          editorView1.getPaneView().getModel().splitRight(copyActiveItem: true)
           expect(atom.workspaceView.getActivePaneView()).toBe atom.workspaceView.getPaneViews()[1]
 
           simulateReload()
@@ -196,7 +196,8 @@ describe "WorkspaceView", ->
       atom.workspaceView.attachToDom()
       rightEditorView = atom.workspaceView.getActiveView()
       rightEditorView.getEditor().setText("\t  \n")
-      leftEditorView = rightEditorView.splitLeft()
+      rightEditorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
+      leftEditorView = atom.workspaceView.getActiveView()
       expect(rightEditorView.find(".line:first").text()).toBe "    "
       expect(leftEditorView.find(".line:first").text()).toBe "    "
 
@@ -207,14 +208,16 @@ describe "WorkspaceView", ->
       expect(rightEditorView.find(".line:first").text()).toBe withInvisiblesShowing
       expect(leftEditorView.find(".line:first").text()).toBe withInvisiblesShowing
 
-      lowerLeftEditorView = leftEditorView.splitDown()
+      leftEditorView.getPaneView().getModel().splitDown(copyActiveItem: true)
+      lowerLeftEditorView = atom.workspaceView.getActiveView()
       expect(lowerLeftEditorView.find(".line:first").text()).toBe withInvisiblesShowing
 
       atom.workspaceView.trigger "window:toggle-invisibles"
       expect(rightEditorView.find(".line:first").text()).toBe "    "
       expect(leftEditorView.find(".line:first").text()).toBe "    "
 
-      lowerRightEditorView = rightEditorView.splitDown()
+      rightEditorView.getPaneView().getModel().splitDown(copyActiveItem: true)
+      lowerRightEditorView = atom.workspaceView.getActiveView()
       expect(lowerRightEditorView.find(".line:first").text()).toBe "    "
 
   describe ".eachEditorView(callback)", ->
@@ -241,7 +244,7 @@ describe "WorkspaceView", ->
       atom.workspaceView.eachEditorView(callback)
       count = 0
       callbackEditor = null
-      atom.workspaceView.getActiveView().splitRight()
+      atom.workspaceView.getActiveView().getPaneView().getModel().splitRight(copyActiveItem: true)
       expect(count).toBe 1
       expect(callbackEditor).toBe atom.workspaceView.getActiveView()
 
@@ -259,10 +262,10 @@ describe "WorkspaceView", ->
 
       subscription = atom.workspaceView.eachEditorView(callback)
       expect(count).toBe 1
-      atom.workspaceView.getActiveView().splitRight()
+      atom.workspaceView.getActiveView().getPaneView().getModel().splitRight(copyActiveItem: true)
       expect(count).toBe 2
       subscription.off()
-      atom.workspaceView.getActiveView().splitRight()
+      atom.workspaceView.getActiveView().getPaneView().getModel().splitRight(copyActiveItem: true)
       expect(count).toBe 2
 
   describe "core:close", ->
@@ -271,7 +274,7 @@ describe "WorkspaceView", ->
 
       paneView1 = atom.workspaceView.getActivePaneView()
       editorView = atom.workspaceView.getActiveView()
-      editorView.splitRight()
+      editorView.getPaneView().getModel().splitRight(copyActiveItem: true)
       paneView2 = atom.workspaceView.getActivePaneView()
 
       expect(paneView1).not.toBe paneView2

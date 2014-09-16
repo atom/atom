@@ -1,47 +1,92 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
+{File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
+{deprecate} = require 'grim'
 
-{$} = require './space-pen-extensions'
 Package = require './package'
-{File} = require 'pathwatcher'
 
 # Extended: Handles loading and activating available themes.
 #
 # An instance of this class is always available as the `atom.themes` global.
-#
-# ## Events
-#
-# ### reloaded
-#
-# Extended: Emit when all styles have been reloaded.
-#
-# ### stylesheet-added
-#
-# Extended: Emit when a stylesheet has been added.
-#
-# * `stylesheet` {StyleSheet} object that was removed
-#
-# ### stylesheet-removed
-#
-# Extended: Emit when a stylesheet has been removed.
-#
-# * `stylesheet` {StyleSheet} object that was removed
-#
-# ### stylesheets-changed
-#
-# Extended: Emit anytime any style sheet is added or removed from the editor
-#
 module.exports =
 class ThemeManager
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
   constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
+    @emitter = new Emitter
     @lessCache = null
+    @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Essential: Invoke `callback` when all styles have been reloaded.
+  #
+  # * `callback` {Function}
+  onDidReloadAll: (callback) ->
+    @emitter.on 'did-reload-all', callback
+
+  # Essential: Invoke `callback` when a stylesheet has been added to the dom.
+  #
+  # * `callback` {Function}
+  #   * `stylesheet` {StyleSheet} the style node
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddStylesheet: (callback) ->
+    @emitter.on 'did-add-stylesheet', callback
+
+  # Essential: Invoke `callback` when a stylesheet has been removed from the dom.
+  #
+  # * `callback` {Function}
+  #   * `stylesheet` {StyleSheet} the style node
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidRemoveStylesheet: (callback) ->
+    @emitter.on 'did-remove-stylesheet', callback
+
+  # Essential: Invoke `callback` when a stylesheet has been updated.
+  #
+  # * `callback` {Function}
+  #   * `stylesheet` {StyleSheet} the style node
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidUpdateStylesheet: (callback) ->
+    @emitter.on 'did-update-stylesheet', callback
+
+  # Essential: Invoke `callback` when any stylesheet has been updated, added, or removed.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeStylesheets: (callback) ->
+    @emitter.on 'did-change-stylesheets', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'reloaded'
+        deprecate 'Use ThemeManager::onDidReloadAll instead'
+      when 'stylesheet-added'
+        deprecate 'Use ThemeManager::onDidAddStylesheet instead'
+      when 'stylesheet-removed'
+        deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
+      when 'stylesheet-updated'
+        deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
+      when 'stylesheets-changed'
+        deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
+      else
+        deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Instance Methods
+  ###
 
   getAvailableNames: ->
     # TODO: Maybe should change to list all the available themes out there?
@@ -63,7 +108,7 @@ class ThemeManager
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
-  activatePackages: (themePackages) -> @activateThemes()
+  activatePackages: -> @activateThemes()
 
   # Get the enabled theme names from the config.
   #
@@ -121,7 +166,9 @@ class ThemeManager
         @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
         @loadUserStylesheet()
         @reloadBaseStylesheets()
+        @initialLoadComplete = true
         @emit 'reloaded'
+        @emitter.emit 'did-reload-all'
         deferred.resolve()
 
     deferred.promise
@@ -131,6 +178,8 @@ class ThemeManager
     @unwatchUserStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
+
+  isInitialLoadComplete: -> @initialLoadComplete
 
   addActiveThemeClasses: ->
     for pack in @getActiveThemes()
@@ -197,8 +246,8 @@ class ThemeManager
     if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
       @requireStylesheet(nativeStylesheetPath)
 
-  stylesheetElementForId: (id, htmlElement=$('html')) ->
-    htmlElement.find("""head style[id="#{id}"]""")
+  stylesheetElementForId: (id) ->
+    document.head.querySelector("""style[id="#{id}"]""")
 
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
@@ -208,16 +257,16 @@ class ThemeManager
 
   # Public: Resolve and apply the stylesheet specified by the path.
   #
-  # This supports both CSS and LESS stylsheets.
+  # This supports both CSS and Less stylsheets.
   #
   # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
   #   path or a relative path that will be resolved against the load path.
   #
   # Returns the absolute path to the required stylesheet.
-  requireStylesheet: (stylesheetPath, type = 'bundled', htmlElement) ->
+  requireStylesheet: (stylesheetPath, type='bundled') ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content, type = 'bundled', htmlElement)
+      @applyStylesheet(fullPath, content, type)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -244,11 +293,11 @@ class ThemeManager
         @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
       else
         @lessCache.read(lessStylesheetPath)
-    catch e
+    catch error
       console.error """
-        Error compiling less stylesheet: #{lessStylesheetPath}
-        Line number: #{e.line}
-        #{e.message}
+        Error compiling Less stylesheet: #{lessStylesheetPath}
+        Line number: #{error.line}
+        #{error.message}
       """
 
   stringToId: (string) ->
@@ -257,23 +306,49 @@ class ThemeManager
   removeStylesheet: (stylesheetPath) ->
     fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
     element = @stylesheetElementForId(@stringToId(fullPath))
-    if element.length > 0
-      stylesheet = element[0].sheet
+    if element?
+      {sheet} = element
       element.remove()
-      @emit 'stylesheet-removed', stylesheet
+      @emit 'stylesheet-removed', sheet
+      @emitter.emit 'did-remove-stylesheet', sheet
       @emit 'stylesheets-changed'
+      @emitter.emit 'did-change-stylesheets'
 
-  applyStylesheet: (path, text, type = 'bundled', htmlElement=$('html')) ->
-    styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
-    if styleElement.length
-      @emit 'stylesheet-removed', styleElement[0].sheet
-      styleElement.text(text)
+  applyStylesheet: (path, text, type='bundled') ->
+    styleId = @stringToId(path)
+    styleElement = @stylesheetElementForId(styleId)
+
+    if styleElement?
+      @emit 'stylesheet-removed', styleElement.sheet
+      @emitter.emit 'did-remove-stylesheet', styleElement.sheet
+      styleElement.textContent = text
     else
-      styleElement = $("<style class='#{type}' id='#{@stringToId(path)}'>#{text}</style>")
-      if htmlElement.find("head style.#{type}").length
-        htmlElement.find("head style.#{type}:last").after(styleElement)
-      else
-        htmlElement.find("head").append(styleElement)
+      styleElement = document.createElement('style')
+      styleElement.setAttribute('class', type)
+      styleElement.setAttribute('id', styleId)
+      styleElement.textContent = text
 
-    @emit 'stylesheet-added', styleElement[0].sheet
+      elementToInsertBefore = _.last(document.head.querySelectorAll("style.#{type}"))?.nextElementSibling
+      if elementToInsertBefore?
+        document.head.insertBefore(styleElement, elementToInsertBefore)
+      else
+        document.head.appendChild(styleElement)
+
+    @emit 'stylesheet-added', styleElement.sheet
+    @emitter.emit 'did-add-stylesheet', styleElement.sheet
     @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  updateGlobalEditorStyle: (property, value) ->
+    unless styleNode = @stylesheetElementForId('global-editor-styles')
+      @applyStylesheet('global-editor-styles', '.editor {}')
+      styleNode = @stylesheetElementForId('global-editor-styles')
+
+    {sheet} = styleNode
+    editorRule = sheet.cssRules[0]
+    editorRule.style[property] = value
+
+    @emit 'stylesheet-updated', sheet
+    @emitter.emit 'did-update-stylesheet', sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'

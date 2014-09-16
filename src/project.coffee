@@ -18,19 +18,6 @@ Git = require './git'
 # Extended: Represents a project that's opened in Atom.
 #
 # An instance of this class is always available as the `atom.project` global.
-#
-# ## Events
-#
-# ### path-changed
-#
-# Extended: Emit when the project's path has changed. Use {::getPath} to get the new path
-#
-# ### buffer-created
-#
-# Extended: Emit when a buffer is created. For example, when {::open} is called, this is fired.
-#
-# * `buffer` {TextBuffer} the new buffer that was created.
-#
 module.exports =
 class Project extends Model
   atom.deserializers.add(this)
@@ -49,7 +36,7 @@ class Project extends Model
 
     for buffer in @buffers
       do (buffer) =>
-        buffer.once 'destroyed', => @removeBuffer(buffer)
+        buffer.onDidDestroy => @removeBuffer(buffer)
 
     @setPath(path)
 
@@ -216,11 +203,11 @@ class Project extends Model
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
-    buffer.once 'destroyed', => @removeBuffer(buffer)
+    buffer.onDidDestroy => @removeBuffer(buffer)
 
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
-    buffer.once 'destroyed', => @removeBuffer(buffer)
+    buffer.onDidDestroy => @removeBuffer(buffer)
     @emit 'buffer-created', buffer
     buffer
 

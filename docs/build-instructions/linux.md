@@ -33,26 +33,41 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 If you have problems with permissions don't forget to prefix with `sudo`
 
-From the cloned repository directory:
+1. Clone the Atom repository:
 
- 1. Build:
+  ```sh
+  git clone https://github.com/atom/atom
+  cd atom
+  ```
 
-    ```sh
-    $ script/build
-    ```
-    This will create the atom application at `$TMPDIR/atom-build/Atom`.
- 2. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
+2. Checkout the latest Atom release:
 
-    ```sh
-    $ sudo script/grunt install
-    ```
- 3. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
+  ```sh
+  git fetch
+  git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+  ```
 
-    ```sh
-    $ script/grunt mkdeb
-    ```
+3. Build Atom:
 
-Use the newly installed atom by restarting any running atom instances.
+  ```sh
+  script/build
+  ```
+
+  This will create the atom application at `$TMPDIR/atom-build/Atom`.
+
+4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
+
+  ```sh
+  sudo script/grunt install
+  ```
+
+5. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
+
+  ```sh
+  script/grunt mkdeb
+  ```
+
+Use the newly installed Atom by fully quitting Atom and then reopening.
 
 ## Advanced Options
 
@@ -88,7 +103,7 @@ this is the reason for this error you can issue
 and restart Atom.  If Atom now works fine, you can make this setting permanent:
 
   ```sh
-  echo 32768 > /proc/sys/fs/inotify/max_user_watches
+  echo 32768 | sudo tee -a /proc/sys/fs/inotify/max_user_watches
   ```
 
 See also https://github.com/atom/atom/issues/2082.
@@ -99,6 +114,15 @@ If you get this notice when attempting to `script/build`, you either do not
 have Node.js installed, or node isn't identified as Node.js on your machine.
 If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
+
+#### You can also use Alternatives
+
+On some variants (mostly Debian based distros) it's preferable for you to use
+Alternatives so that changes to the binary paths can be fixed or altered easily:
+
+```sh
+sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave /usr/bin/js js /usr/bin/nodejs
+```
 
 ### Linux build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)

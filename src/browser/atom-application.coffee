@@ -5,13 +5,11 @@ AutoUpdateManager = require './auto-update-manager'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 app = require 'app'
-dialog = require 'dialog'
 fs = require 'fs'
 ipc = require 'ipc'
 path = require 'path'
 os = require 'os'
 net = require 'net'
-shell = require 'shell'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
@@ -103,11 +101,12 @@ class AtomApplication
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
-    focusHandler = => @lastFocusedWindow = window
-    window.browserWindow.on 'focus', focusHandler
-    window.browserWindow.once 'closed', =>
-      @lastFocusedWindow = null if window is @lastFocusedWindow
-      window.browserWindow.removeListener 'focus', focusHandler
+    unless window.isSpec
+      focusHandler = => @lastFocusedWindow = window
+      window.browserWindow.on 'focus', focusHandler
+      window.browserWindow.once 'closed', =>
+        @lastFocusedWindow = null if window is @lastFocusedWindow
+        window.browserWindow.removeListener 'focus', focusHandler
 
   # Creates server to listen for additional atom application launches.
   #
@@ -155,8 +154,8 @@ class AtomApplication
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
 
-    @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
-    @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
+    @on 'application:open-documentation', -> require('shell').openExternal('https://atom.io/docs/latest/?app')
+    @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
     @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
@@ -484,5 +483,15 @@ class AtomApplication
         when 'folder' then ['openDirectory']
         when 'all' then ['openFile', 'openDirectory']
         else throw new Error("#{type} is an invalid type for promptForPath")
-    dialog.showOpenDialog title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
+
+    # Show the open dialog as child window on Windows and Linux, and as
+    # independent dialog on OS X. This matches most native apps.
+    parentWindow =
+      if process.platform is 'darwin'
+        null
+      else
+        BrowserWindow.getFocusedWindow()
+
+    dialog = require 'dialog'
+    dialog.showOpenDialog parentWindow, title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
       @openPaths({pathsToOpen, devMode, safeMode, window})

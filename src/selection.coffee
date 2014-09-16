@@ -1,21 +1,10 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
 {pick} = require 'underscore-plus'
+{Emitter} = require 'event-kit'
+Grim = require 'grim'
 
 # Extended: Represents a selection in the {Editor}.
-#
-# ## Events
-#
-# ### screen-range-changed
-#
-# Extended: Emit when the selection was moved.
-#
-# * `screenRange` {Range} indicating the new screenrange
-#
-# ### destroyed
-#
-# Extended: Emit when the selection was destroyed
-#
 module.exports =
 class Selection extends Model
   cursor: null
@@ -26,15 +15,54 @@ class Selection extends Model
   needsAutoscroll: null
 
   constructor: ({@cursor, @marker, @editor, id}) ->
+    @emitter = new Emitter
+
     @assignId(id)
     @cursor.selection = this
     @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
-    @marker.on 'changed', => @screenRangeChanged()
-    @marker.on 'destroyed', =>
-      @destroyed = true
-      @editor.removeSelection(this)
-      @emit 'destroyed' unless @editor.isDestroyed()
+    @marker.onDidChange => @screenRangeChanged()
+    @marker.onDidDestroy =>
+      unless @editor.isDestroyed()
+        @destroyed = true
+        @editor.removeSelection(this)
+        @emit 'destroyed'
+        @emitter.emit 'did-destroy'
+        @emitter.dispose()
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Extended: Calls your `callback` when the selection was moved.
+  #
+  # * `callback` {Function}
+  #   * `screenRange` {Range} indicating the new screenrange
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeRange: (callback) ->
+    @emitter.on 'did-change-range', callback
+
+  # Extended: Calls your `callback` when the selection was destroyed
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'screen-range-changed'
+        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
+      when 'destroyed'
+        Grim.deprecate("Use Selection::onDidDestroy instead.")
+
+    super
+
+  ###
+  Section: Methods
+  ###
 
   destroy: ->
     @marker.destroy()
@@ -198,18 +226,26 @@ class Selection extends Model
     @modifySelection => @cursor.setBufferPosition(position)
 
   # Public: Selects the text one position right of the cursor.
-  selectRight: ->
-    @modifySelection => @cursor.moveRight()
+  #
+  # * `columnCount` (optional) {Number} number of columns to select (default: 1)
+  selectRight: (columnCount) ->
+    @modifySelection => @cursor.moveRight(columnCount)
 
   # Public: Selects the text one position left of the cursor.
-  selectLeft: ->
-    @modifySelection => @cursor.moveLeft()
+  #
+  # * `columnCount` (optional) {Number} number of columns to select (default: 1)
+  selectLeft: (columnCount) ->
+    @modifySelection => @cursor.moveLeft(columnCount)
 
   # Public: Selects all the text one position above the cursor.
+  #
+  # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   selectUp: (rowCount) ->
     @modifySelection => @cursor.moveUp(rowCount)
 
   # Public: Selects all the text one position below the cursor.
+  #
+  # * `rowCount` (optional) {Number} number of rows to select (default: 1)
   selectDown: (rowCount) ->
     @modifySelection => @cursor.moveDown(rowCount)
 
@@ -657,6 +693,6 @@ class Selection extends Model
     @getBufferRange().compare(otherSelection.getBufferRange())
 
   screenRangeChanged: ->
-    screenRange = @getScreenRange()
-    @emit 'screen-range-changed', screenRange
-    @editor.selectionScreenRangeChanged(this)
+    @emit 'screen-range-changed', @getScreenRange()
+    @emitter.emit 'did-change-range'
+    @editor.selectionRangeChanged(this)

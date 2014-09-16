@@ -4,8 +4,10 @@ _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 Q = require 'q'
+{deprecate} = require 'grim'
 
 $ = null # Defer require in case this is in the window-less browser process
 ScopedProperties = require './scoped-properties'
@@ -14,7 +16,7 @@ ScopedProperties = require './scoped-properties'
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
   @stylesheetsDir: 'stylesheets'
 
@@ -37,10 +39,39 @@ class Package
   resolvedMainModulePath: false
   mainModule: null
 
+  ###
+  Section: Construction
+  ###
+
   constructor: (@path, @metadata) ->
+    @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
     @name = @metadata?.name ? path.basename(@path)
     @reset()
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Essential: Invoke the given callback when all packages have been activated.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDeactivate: (callback) ->
+    @emitter.on 'did-deactivate', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'deactivated'
+        deprecate 'Use Package::onDidDeactivate instead'
+      else
+        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Instance Methods
+  ###
 
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @name)
@@ -242,8 +273,13 @@ class Package
     @unsubscribeFromActivationEvents()
     @deactivateResources()
     @deactivateConfig()
-    @mainModule?.deactivate?() if @mainActivated
-    @emit('deactivated')
+    if @mainActivated
+      try
+        @mainModule?.deactivate?()
+      catch e
+        console.error "Error deactivating package '#{@name}'", e.stack
+    @emit 'deactivated'
+    @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()

@@ -70,9 +70,9 @@ class EditorView extends View
   # The constructor for setting up an `EditorView` instance.
   #
   # * `editorOrParams` Either an {Editor}, or an object with one property, `mini`.
-  #                  If `mini` is `true`, a "miniature" `Editor` is constructed.
-  #                  Typically, this is ideal for scenarios where you need an Atom editor,
-  #                  but without all the chrome, like scrollbars, gutter, _e.t.c._.
+  #    If `mini` is `true`, a "miniature" `Editor` is constructed.
+  #    Typically, this is ideal for scenarios where you need an Atom editor,
+  #    but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
   constructor: (editorOrParams, props) ->
     super
@@ -86,7 +86,7 @@ class EditorView extends View
       props.placeholderText = placeholderText
       @editor ?= new Editor
         buffer: new TextBuffer
-        softWrap: false
+        softWrapped: false
         tabLength: 2
         softTabs: true
         mini: mini
@@ -101,7 +101,6 @@ class EditorView extends View
     @overlayer = $(node).find('.lines').addClass('overlayer')
     @hiddenInput = $(node).find('.hidden-input')
 
-    # FIXME: there should be a better way to deal with the gutter element
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
       @gutter = $(node).find('.gutter')
 
@@ -136,7 +135,7 @@ class EditorView extends View
   Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
-  Object.defineProperty @::, 'active', get: -> @is(@getPane()?.activeView)
+  Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
   Object.defineProperty @::, 'mini', get: -> @component?.props.mini
 
@@ -144,12 +143,12 @@ class EditorView extends View
     return unless onDom
     return if @attached
     @attached = true
-    @component.pollDOM()
+    @component.checkForVisibilityChange()
+
     @focus() if @focusOnAttach
 
     @addGrammarScopeAttribute()
-    @subscribe @editor, 'grammar-changed', =>
-      @addGrammarScopeAttribute()
+    @subscribe @editor.onDidChangeGrammar => @addGrammarScopeAttribute()
 
     @trigger 'editor:attached', [this]
 
@@ -169,45 +168,28 @@ class EditorView extends View
     else
       @editor.getScrollLeft()
 
-  # Public: Scrolls the editor to the bottom.
   scrollToBottom: ->
+    deprecate 'Use Editor::scrollToBottom instead. You can get the editor via editorView.getModel()'
     @editor.setScrollBottom(Infinity)
 
-  # Public: Scrolls the editor to the given screen position.
-  #
-  # * `screenPosition` An object that represents a buffer position. It can be either
-  #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # * `options` (optional) {Object} matching the options available to {::scrollToScreenPosition}
   scrollToScreenPosition: (screenPosition, options) ->
+    deprecate 'Use Editor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToScreenPosition(screenPosition, options)
 
-  # Public: Scrolls the editor to the given buffer position.
-  #
-  # * `bufferPosition` An object that represents a buffer position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  # * `options` (optional) {Object} matching the options available to {::scrollToBufferPosition}
   scrollToBufferPosition: (bufferPosition, options) ->
+    deprecate 'Use Editor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToBufferPosition(bufferPosition, options)
 
   scrollToCursorPosition: ->
+    deprecate 'Use Editor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToCursorPosition()
 
-  # Public: Converts a buffer position to a pixel position.
-  #
-  # * `bufferPosition` An object that represents a buffer position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  #
-  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForBufferPosition: (bufferPosition) ->
+    deprecate 'Use Editor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
     @editor.pixelPositionForBufferPosition(bufferPosition)
 
-  # Public: Converts a screen position to a pixel position.
-  #
-  # * `screenPosition` An object that represents a screen position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  #
-  # Returns an object with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (screenPosition) ->
+    deprecate 'Use Editor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
     @editor.pixelPositionForScreenPosition(screenPosition)
 
   appendToLinesView: (view) ->
@@ -231,31 +213,50 @@ class EditorView extends View
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()
 
-  # Public: Split the editor view left.
   splitLeft: ->
-    pane = @getPane()
+    deprecate """
+      Use Pane::splitLeft instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
+    """
+    pane = @getPaneView()
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view right.
   splitRight: ->
-    pane = @getPane()
+    deprecate """
+      Use Pane::splitRight instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitRight(copyActiveItem: true)
+    """
+    pane = @getPaneView()
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view up.
   splitUp: ->
-    pane = @getPane()
+    deprecate """
+      Use Pane::splitUp instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitUp(copyActiveItem: true)
+    """
+    pane = @getPaneView()
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
-  # Public: Split the editor view down.
   splitDown: ->
-    pane = @getPane()
+    deprecate """
+      Use Pane::splitDown instead.
+      To duplicate this editor into the split use:
+      editorView.getPaneView().getModel().splitDown(copyActiveItem: true)
+    """
+    pane = @getPaneView()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
-  # Public: Get this view's pane.
+  # Public: Get this {EditorView}'s {PaneView}.
   #
-  # Returns a {Pane}.
-  getPane: ->
+  # Returns a {PaneView}
+  getPaneView: ->
     @parent('.item-views').parents('.pane').view()
+  getPane: ->
+    deprecate 'Use EditorView::getPaneView() instead'
+    @getPaneView()
 
   show: ->
     super
@@ -273,72 +274,47 @@ class EditorView extends View
     deprecate('Use editorView.getModel().pageUp()')
     @editor.pageUp()
 
-  # Public: Retrieves the number of the row that is visible and currently at the
-  # top of the editor.
-  #
-  # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    @editor.getVisibleRowRange()[0]
+    deprecate 'Use Editor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    @editor.getFirstVisibleScreenRow()
 
-  # Public: Retrieves the number of the row that is visible and currently at the
-  # bottom of the editor.
-  #
-  # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    @editor.getVisibleRowRange()[1]
+    deprecate 'Use Editor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    @editor.getLastVisibleScreenRow()
 
-  # Public: Gets the font family for the editor.
-  #
-  # Returns a {String} identifying the CSS `font-family`.
   getFontFamily: ->
+    deprecate 'This is going away. Use atom.config.get("editor.fontFamily") instead'
     @component?.getFontFamily()
 
-  # Public: Sets the font family for the editor.
-  #
-  # * `fontFamily` A {String} identifying the CSS `font-family`.
   setFontFamily: (fontFamily) ->
+    deprecate 'This is going away. Use atom.config.set("editor.fontFamily", "my-font") instead'
     @component?.setFontFamily(fontFamily)
 
-  # Public: Retrieves the font size for the editor.
-  #
-  # Returns a {Number} indicating the font size in pixels.
   getFontSize: ->
+    deprecate 'This is going away. Use atom.config.get("editor.fontSize") instead'
     @component?.getFontSize()
 
-  # Public: Sets the font size for the editor.
-  #
-  # * `fontSize` A {Number} indicating the font size in pixels.
   setFontSize: (fontSize) ->
+    deprecate 'This is going away. Use atom.config.set("editor.fontSize", 12) instead'
     @component?.setFontSize(fontSize)
+
+  setLineHeight: (lineHeight) ->
+    deprecate 'This is going away. Use atom.config.set("editor.lineHeight", 1.5) instead'
+    @component.setLineHeight(lineHeight)
 
   setWidthInChars: (widthInChars) ->
     @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
 
-  # Public: Sets the line height of the editor.
-  #
-  # Calling this method has no effect when called on a mini editor.
-  #
-  # * `lineHeight` A {Number} without a unit suffix identifying the CSS `line-height`.
-  setLineHeight: (lineHeight) ->
-    @component.setLineHeight(lineHeight)
-
-  # Public: Sets whether you want to show the indentation guides.
-  #
-  # * `showIndentGuide` A {Boolean} you can set to `true` if you want to see the
-  #   indentation guides.
   setShowIndentGuide: (showIndentGuide) ->
+    deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
     @component.setShowIndentGuide(showIndentGuide)
 
-  # Public: Enables/disables soft wrap on the editor.
-  #
-  # * `softWrap` A {Boolean} which, if `true`, enables soft wrap
-  setSoftWrap: (softWrap) ->
-    @editor.setSoftWrap(softWrap)
+  setSoftWrap: (softWrapped) ->
+    deprecate 'Use Editor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
+    @editor.setSoftWrapped(softWrapped)
 
-  # Public: Set whether invisible characters are shown.
-  #
-  # * `showInvisibles` A {Boolean} which, if `true`, show invisible characters.
   setShowInvisibles: (showInvisibles) ->
+    deprecate 'This is going away. Use atom.config.set("editor.showInvisibles", true|false) instead'
     @component.setShowInvisibles(showInvisibles)
 
   getText: ->

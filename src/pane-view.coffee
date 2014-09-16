@@ -1,6 +1,7 @@
 {$, View} = require './space-pen-extensions'
 Delegator = require 'delegato'
 {deprecate} = require 'grim'
+{CompositeDisposable} = require 'event-kit'
 PropertyAccessors = require 'property-accessors'
 
 Pane = require './pane'
@@ -33,6 +34,8 @@ class PaneView extends View
   previousActiveItem: null
 
   initialize: (args...) ->
+    @subscriptions = new CompositeDisposable
+
     if args[0] instanceof Pane
       @model = args[0]
     else
@@ -44,13 +47,13 @@ class PaneView extends View
     @handleEvents()
 
   handleEvents: ->
-    @subscribe @model.$activeItem, @onActiveItemChanged
-    @subscribe @model, 'item-added', @onItemAdded
-    @subscribe @model, 'item-removed', @onItemRemoved
-    @subscribe @model, 'item-moved', @onItemMoved
-    @subscribe @model, 'before-item-destroyed', @onBeforeItemDestroyed
-    @subscribe @model, 'activated', @onActivated
-    @subscribe @model.$active, @onActiveStatusChanged
+    @subscriptions.add @model.observeActiveItem(@onActiveItemChanged)
+    @subscriptions.add @model.onDidAddItem(@onItemAdded)
+    @subscriptions.add @model.onDidRemoveItem(@onItemRemoved)
+    @subscriptions.add @model.onDidMoveItem(@onItemMoved)
+    @subscriptions.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
+    @subscriptions.add @model.onDidActivate(@onActivated)
+    @subscriptions.add @model.observeActive(@onActiveStatusChanged)
 
     @subscribe this, 'focusin', => @model.focus()
     @subscribe this, 'focusout', => @model.blur()
@@ -72,14 +75,17 @@ class PaneView extends View
     @command 'pane:show-item-8', => @activateItemAtIndex(7)
     @command 'pane:show-item-9', => @activateItemAtIndex(8)
 
-    @command 'pane:split-left', => @splitLeft(@copyActiveItem())
-    @command 'pane:split-right', => @splitRight(@copyActiveItem())
-    @command 'pane:split-up', => @splitUp(@copyActiveItem())
-    @command 'pane:split-down', => @splitDown(@copyActiveItem())
+    @command 'pane:split-left', => @model.splitLeft(copyActiveItem: true)
+    @command 'pane:split-right', => @model.splitRight(copyActiveItem: true)
+    @command 'pane:split-up', => @model.splitUp(copyActiveItem: true)
+    @command 'pane:split-down', => @model.splitDown(copyActiveItem: true)
     @command 'pane:close', =>
       @model.destroyItems()
       @model.destroy()
     @command 'pane:close-other-items', => @destroyInactiveItems()
+
+  # Essential: Returns the {Pane} model underlying this pane view
+  getModel: -> @model
 
   # Deprecated: Use ::destroyItem
   removeItem: (item) ->
@@ -141,6 +147,9 @@ class PaneView extends View
     @activeItem
 
   onActiveItemChanged: (item) =>
+    @activeItemDisposables.dispose() if @activeItemDisposables?
+    @activeItemDisposables = new CompositeDisposable()
+
     if @previousActiveItem?.off?
       @previousActiveItem.off 'title-changed', @activeItemTitleChanged
       @previousActiveItem.off 'modified-status-changed', @activeItemModifiedChanged
@@ -148,22 +157,36 @@ class PaneView extends View
 
     return unless item?
 
-    hasFocus = @hasFocus()
-    if item.on?
-      item.on 'title-changed', @activeItemTitleChanged
-      item.on 'modified-status-changed', @activeItemModifiedChanged
+    if item.onDidChangeTitle?
+      disposable = item.onDidChangeTitle(@activeItemTitleChanged)
+      deprecate 'Please return a Disposable object from your ::onDidChangeTitle method!' unless disposable?.dispose?
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+    else if item.on?
+      deprecate '::on methods for items are no longer supported. If you would like your item to title change behavior, please implement a ::onDidChangeTitle() method.'
+      disposable = item.on('title-changed', @activeItemTitleChanged)
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+
+    if item.onDidChangeModified?
+      disposable = item.onDidChangeModified(@activeItemModifiedChanged)
+      deprecate 'Please return a Disposable object from your ::onDidChangeModified method!' unless disposable?.dispose?
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+    else if item.on?
+      deprecate '::on methods for items are no longer supported. If you would like your item to support modified behavior, please implement a ::onDidChangeModified() method.'
+      item.on('modified-status-changed', @activeItemModifiedChanged)
+      @activeItemDisposables.add(disposable) if disposable?.dispose?
+
     view = @viewForItem(item)
     otherView.hide() for otherView in @itemViews.children().not(view).views()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show() if @attached
-    view.focus() if hasFocus
+    view.focus() if @hasFocus()
 
     @trigger 'pane:active-item-changed', [item]
 
-  onItemAdded: (item, index) =>
+  onItemAdded: ({item, index}) =>
     @trigger 'pane:item-added', [item, index]
 
-  onItemRemoved: (item, index, destroyed) =>
+  onItemRemoved: ({item, index, destroyed}) =>
     if item instanceof $
       viewToRemove = item
     else if viewToRemove = @viewsByItem.get(item)
@@ -177,7 +200,7 @@ class PaneView extends View
 
     @trigger 'pane:item-removed', [item, index]
 
-  onItemMoved: (item, newIndex) =>
+  onItemMoved: ({item, newIndex}) =>
     @trigger 'pane:item-moved', [item, newIndex]
 
   onBeforeItemDestroyed: (item) =>
@@ -219,6 +242,7 @@ class PaneView extends View
     @closest('.panes').view()
 
   beforeRemove: ->
+    @subscriptions.dispose()
     @model.destroy() unless @model.isDestroyed()
 
   remove: (selector, keepData) ->

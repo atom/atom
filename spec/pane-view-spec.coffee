@@ -1,6 +1,7 @@
 PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
 fs = require 'fs-plus'
+{Emitter} = require 'event-kit'
 {$, View} = require 'atom'
 path = require 'path'
 temp = require 'temp'
@@ -12,9 +13,14 @@ describe "PaneView", ->
     @deserialize: ({id, text}) -> new TestView({id, text})
     @content: ({id, text}) -> @div class: 'test-view', id: id, tabindex: -1, text
     initialize: ({@id, @text}) ->
+      @emitter = new Emitter
     serialize: -> { deserializer: 'TestView', @id, @text }
     getUri: -> @id
     isEqual: (other) -> other? and @id == other.id and @text == other.text
+    changeTitle: ->
+      @emitter.emit 'did-change-title', 'title'
+    onDidChangeTitle: (callback) ->
+      @emitter.on 'did-change-title', callback
 
   beforeEach ->
     atom.deserializers.add(TestView)
@@ -29,7 +35,7 @@ describe "PaneView", ->
 
     runs ->
       pane = container.getRoot()
-      paneModel = pane.model
+      paneModel = pane.getModel()
       paneModel.addItems([view1, editor1, view2, editor2])
 
   afterEach ->
@@ -37,7 +43,7 @@ describe "PaneView", ->
 
   describe "when the active pane item changes", ->
     it "hides all item views except the active one", ->
-      expect(pane.activeItem).toBe view1
+      expect(pane.getActiveItem()).toBe view1
       expect(view1.css('display')).not.toBe 'none'
 
       pane.activateItem(view2)
@@ -48,7 +54,7 @@ describe "PaneView", ->
       itemChangedHandler = jasmine.createSpy("itemChangedHandler")
       container.on 'pane:active-item-changed', itemChangedHandler
 
-      expect(pane.activeItem).toBe view1
+      expect(pane.getActiveItem()).toBe view1
       paneModel.activateItem(view2)
       paneModel.activateItem(view2)
 
@@ -145,22 +151,47 @@ describe "PaneView", ->
       expect(view1.data('preservative')).toBe 1234
 
   describe "when the title of the active item changes", ->
-    it "emits pane:active-item-title-changed", ->
-      activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
-      pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+    describe 'when there is no onDidChangeTitle method', ->
+      beforeEach ->
+        view1.onDidChangeTitle = null
+        view2.onDidChangeTitle = null
 
-      expect(pane.activeItem).toBe view1
+        pane.activateItem(view2)
+        pane.activateItem(view1)
 
-      view2.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+      it "emits pane:active-item-title-changed", ->
+        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
+        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
 
-      view1.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-      activeItemTitleChangedHandler.reset()
+        expect(pane.getActiveItem()).toBe view1
 
-      pane.activateItem(view2)
-      view2.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+        view2.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+
+        view1.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+        activeItemTitleChangedHandler.reset()
+
+        pane.activateItem(view2)
+        view2.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+
+    describe 'when there is a onDidChangeTitle method', ->
+      it "emits pane:active-item-title-changed", ->
+        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
+        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+
+        expect(pane.getActiveItem()).toBe view1
+        view2.changeTitle()
+        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+
+        view1.changeTitle()
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+        activeItemTitleChangedHandler.reset()
+
+        pane.activateItem(view2)
+        view2.changeTitle()
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
 
   describe "when an unmodifed buffer's path is deleted", ->
     it "removes the pane item", ->
@@ -246,7 +277,7 @@ describe "PaneView", ->
 
     it "transfers focus to the active view", ->
       focusHandler = jasmine.createSpy("focusHandler")
-      pane.activeItem.on 'focus', focusHandler
+      pane.getActiveItem().on 'focus', focusHandler
       pane.focus()
       expect(focusHandler).toHaveBeenCalled()
 
@@ -259,7 +290,7 @@ describe "PaneView", ->
   describe "when a pane is split", ->
     it "builds the appropriate pane-row and pane-column views", ->
       pane1 = pane
-      pane1Model = pane.model
+      pane1Model = pane.getModel()
       pane.activateItem(editor1)
 
       pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])

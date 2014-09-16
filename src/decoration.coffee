@@ -1,5 +1,7 @@
 _ = require 'underscore-plus'
-{Subscriber, Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
+Grim = require 'grim'
 
 idCounter = 0
 nextId = -> idCounter++
@@ -26,53 +28,65 @@ nextId = -> idCounter++
 #
 # You should only use {Decoration::destroy} when you still need or do not own
 # the marker.
-#
-# ## Events
-#
-# ### updated
-#
-# Extended: When the {Decoration} is updated via {Decoration::update}.
-#
-# * `event` {Object}
-#   * `oldParams` {Object} the old parameters the decoration used to have
-#   * `newParams` {Object} the new parameters the decoration now has
-#
-# ### destroyed
-#
-# Extended: When the {Decoration} is destroyed
-#
 module.exports =
 class Decoration
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
-  # Extended: Check if the `decorationParams.type` matches `type`
+  # Extended: Check if the `decorationProperties.type` matches `type`
   #
-  # * `decorationParams` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
+  # * `decorationProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
   # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
   #   be an {Array} of {String}s, where it will return true if the decoration's
   #   type matches any in the array.
   #
   # Returns {Boolean}
-  @isType: (decorationParams, type) ->
-    if _.isArray(decorationParams.type)
-      type in decorationParams.type
+  @isType: (decorationProperties, type) ->
+    if _.isArray(decorationProperties.type)
+      type in decorationProperties.type
     else
-      type is decorationParams.type
+      type is decorationProperties.type
 
-  constructor: (@marker, @displayBuffer, @params) ->
+  constructor: (@marker, @displayBuffer, @properties) ->
+    @emitter = new Emitter
     @id = nextId()
-    @params.id = @id
+    @properties.id = @id
     @flashQueue = null
-    @isDestroyed = false
+    @destroyed = false
+
+    @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Essential: When the {Decoration} is updated via {Decoration::update}.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldProperties` {Object} the old parameters the decoration used to have
+  #     * `newProperties` {Object} the new parameters the decoration now has
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeProperties: (callback) ->
+    @emitter.on 'did-change-properties', callback
+
+  # Essential: Invoke the given callback when the {Decoration} is destroyed
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  ###
+  Section: Methods
+  ###
 
   # Essential: An id unique across all {Decoration} objects
   getId: -> @id
 
   # Essential: Returns the marker associated with this {Decoration}
   getMarker: -> @marker
-
-  # Essential: Returns the {Decoration}'s params.
-  getParams: -> @params
 
   # Public: Check if this decoration is of type `type`
   #
@@ -82,9 +96,16 @@ class Decoration
   #
   # Returns {Boolean}
   isType: (type) ->
-    Decoration.isType(@params, type)
+    Decoration.isType(@properties, type)
 
-  # Essential: Update the marker with new params. Allows you to change the decoration's class.
+  # Essential: Returns the {Decoration}'s properties.
+  getProperties: ->
+    @properties
+  getParams: ->
+    Grim.deprecate 'Use Decoration::getProperties instead'
+    @getProperties()
+
+  # Essential: Update the marker with new Properties. Allows you to change the decoration's class.
   #
   # ## Examples
   #
@@ -92,37 +113,60 @@ class Decoration
   # decoration.update({type: 'gutter', class: 'my-new-class'})
   # ```
   #
-  # * `newParams` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
-  update: (newParams) ->
-    return if @isDestroyed
-    oldParams = @params
-    @params = newParams
-    @params.id = @id
-    @displayBuffer.decorationUpdated(this)
-    @emit 'updated', {oldParams, newParams}
+  # * `newProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
+  setProperties: (newProperties) ->
+    return if @destroyed
+    oldProperties = @properties
+    @properties = newProperties
+    @properties.id = @id
+    @emit 'updated', {oldParams: oldProperties, newParams: newProperties}
+    @emitter.emit 'did-change-properties', {oldProperties, newProperties}
+  update: (newProperties) ->
+    Grim.deprecate 'Use Decoration::setProperties instead'
+    @setProperties(newProperties)
 
   # Essential: Destroy this marker.
   #
   # If you own the marker, you should use {Marker::destroy} which will destroy
   # this decoration.
   destroy: ->
-    return if @isDestroyed
-    @isDestroyed = true
-    @displayBuffer.removeDecoration(this)
+    return if @destroyed
+    @markerDestroyDisposable.dispose()
+    @markerDestroyDisposable = null
+    @destroyed = true
     @emit 'destroyed'
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
 
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?
     for key, value of decorationPattern
-      return false if @params[key] != value
+      return false if @properties[key] != value
     true
+
+  onDidFlash: (callback) ->
+    @emitter.on 'did-flash', callback
 
   flash: (klass, duration=500) ->
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
     @emit 'flash'
+    @emitter.emit 'did-flash'
 
   consumeNextFlash: ->
     return @flashQueue.shift() if @flashQueue?.length > 0
     null
+
+  on: (eventName) ->
+    switch eventName
+      when 'updated'
+        Grim.deprecate 'Use Decoration::onDidChangeProperties instead'
+      when 'destroyed'
+        Grim.deprecate 'Use Decoration::onDidDestroy instead'
+      when 'flash'
+        Grim.deprecate 'Use Decoration::onDidFlash instead'
+      else
+        Grim.deprecate 'Decoration::on is deprecated. Use event subscription methods instead.'
+
+    EmitterMixin::on.apply(this, arguments)

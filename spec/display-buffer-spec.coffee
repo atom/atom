@@ -9,7 +9,7 @@ describe "DisplayBuffer", ->
     buffer = atom.project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
     changeHandler = jasmine.createSpy 'changeHandler'
-    displayBuffer.on 'changed', changeHandler
+    displayBuffer.onDidChange changeHandler
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
@@ -58,7 +58,7 @@ describe "DisplayBuffer", ->
 
   describe "soft wrapping", ->
     beforeEach ->
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
       changeHandler.reset()
 
@@ -129,7 +129,7 @@ describe "DisplayBuffer", ->
 
             expect(event).toEqual(start: 7, end: 8, screenDelta: -1, bufferDelta: 0)
 
-        describe "when the update causes a line to softwrap an additional time", ->
+        describe "when the update causes a line to soft wrap an additional time", ->
           it "rewraps the line and emits a change event", ->
             buffer.insert([6, 28], '1234567890')
             expect(displayBuffer.tokenizedLineForScreenRow(7).text).toBe '      current < pivot ? '
@@ -162,7 +162,7 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = atom.project.buildBufferSync(null, '')
-          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrap: true})
+          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrapped: true})
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
           buffer.insert([0, Infinity], '\n')
@@ -220,10 +220,10 @@ describe "DisplayBuffer", ->
       displayBuffer.setWidth(50)
       displayBuffer.manageScrollPosition = true
 
-      displayBuffer.setSoftWrap(false)
+      displayBuffer.setSoftWrapped(false)
       displayBuffer.setScrollLeft(Infinity)
       expect(displayBuffer.getScrollLeft()).toBeGreaterThan 0
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       expect(displayBuffer.getScrollLeft()).toBe 0
       displayBuffer.setScrollLeft(10)
       expect(displayBuffer.getScrollLeft()).toBe 0
@@ -234,7 +234,7 @@ describe "DisplayBuffer", ->
       buffer.release()
       buffer = atom.project.bufferForPathSync('two-hundred.txt')
       displayBuffer = new DisplayBuffer({buffer, tabLength})
-      displayBuffer.on 'changed', changeHandler
+      displayBuffer.onDidChange changeHandler
 
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
@@ -568,7 +568,7 @@ describe "DisplayBuffer", ->
 
   describe "::clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
 
     it "allows valid positions", ->
@@ -643,7 +643,7 @@ describe "DisplayBuffer", ->
 
     it "correctly translates positions on soft wrapped lines containing tabs", ->
       buffer.setText('\t\taa  bb  cc  dd  ee  ff  gg')
-      displayBuffer.setSoftWrap(true)
+      displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(10)
       expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 0]
       expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 10]
@@ -686,7 +686,7 @@ describe "DisplayBuffer", ->
         expect(marker2.getScreenRange()).toEqual [[5, 4], [5, 10]]
 
       it "emits a 'marker-created' event on the DisplayBuffer whenever a marker is created", ->
-        displayBuffer.on 'marker-created', markerCreatedHandler = jasmine.createSpy("markerCreatedHandler")
+        displayBuffer.onDidCreateMarker markerCreatedHandler = jasmine.createSpy("markerCreatedHandler")
 
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
         expect(markerCreatedHandler).toHaveBeenCalledWith(marker1)
@@ -722,7 +722,7 @@ describe "DisplayBuffer", ->
 
       beforeEach ->
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        marker.on 'changed', markerChangedHandler = jasmine.createSpy("markerChangedHandler")
+        marker.onDidChange markerChangedHandler = jasmine.createSpy("markerChangedHandler")
 
       it "triggers the 'changed' event whenever the markers head's screen position changes in the buffer or on screen", ->
         marker.setHeadScreenPosition([8, 20])
@@ -859,8 +859,8 @@ describe "DisplayBuffer", ->
 
       it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
         marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]])
-        marker2.on 'changed', marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
-        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
+        marker2.onDidChange marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
+        displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
 
         # New change ----
 
@@ -886,7 +886,7 @@ describe "DisplayBuffer", ->
         marker2ChangedHandler.reset()
 
         marker3 = displayBuffer.markBufferRange([[8, 1], [8, 2]])
-        marker3.on 'changed', marker3ChangedHandler = jasmine.createSpy("marker3ChangedHandler")
+        marker3.onDidChange marker3ChangedHandler = jasmine.createSpy("marker3ChangedHandler")
 
         onDisplayBufferChange = ->
           # calls change handler first
@@ -932,7 +932,7 @@ describe "DisplayBuffer", ->
         expect(marker3ChangedHandler).toHaveBeenCalled()
 
       it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
-        displayBuffer.on 'changed', changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
+        displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
           # calls change handler first
           expect(markerChangedHandler).not.toHaveBeenCalled()
           # but still updates the markers
@@ -998,16 +998,16 @@ describe "DisplayBuffer", ->
         expect(marker.isValid()).toBeFalsy()
         expect(displayBuffer.getMarker(marker.id)).toBeUndefined()
 
-      it "emits 'destroyed' events when markers are destroyed", ->
+      it "notifies ::onDidDestroy observers when markers are destroyed", ->
         destroyedHandler = jasmine.createSpy("destroyedHandler")
         marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        marker.on 'destroyed', destroyedHandler
+        marker.onDidDestroy destroyedHandler
         marker.destroy()
         expect(destroyedHandler).toHaveBeenCalled()
         destroyedHandler.reset()
 
         marker2 = displayBuffer.markScreenRange([[5, 4], [5, 10]])
-        marker2.on 'destroyed', destroyedHandler
+        marker2.onDidDestroy destroyedHandler
         buffer.getMarker(marker2.id).destroy()
         expect(destroyedHandler).toHaveBeenCalled()
 
@@ -1041,9 +1041,8 @@ describe "DisplayBuffer", ->
       describe 'when a marker is created', ->
         it 'the second display buffer will not emit a marker-created event when the marker has been deleted in the first marker-created event', ->
           displayBuffer2 = new DisplayBuffer({buffer, tabLength})
-          displayBuffer.on 'marker-created', markerCreated1 = jasmine.createSpy().andCallFake (marker) ->
-            marker.destroy()
-          displayBuffer2.on 'marker-created', markerCreated2 = jasmine.createSpy()
+          displayBuffer.onDidCreateMarker markerCreated1 = jasmine.createSpy().andCallFake (marker) -> marker.destroy()
+          displayBuffer2.onDidCreateMarker markerCreated2 = jasmine.createSpy()
 
           displayBuffer.markBufferRange([[0, 0], [1, 5]], {})
 
@@ -1051,15 +1050,15 @@ describe "DisplayBuffer", ->
           expect(markerCreated2).not.toHaveBeenCalled()
 
   describe "decorations", ->
-    [marker, decoration, decorationParams] = []
+    [marker, decoration, decorationProperties] = []
     beforeEach ->
       marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
-      decorationParams = {type: 'gutter', class: 'one'}
-      decoration = displayBuffer.decorateMarker(marker, decorationParams)
+      decorationProperties = {type: 'gutter', class: 'one'}
+      decoration = displayBuffer.decorateMarker(marker, decorationProperties)
 
     it "can add decorations associated with markers and remove them", ->
       expect(decoration).toBeDefined()
-      expect(decoration.getParams()).toBe decorationParams
+      expect(decoration.getProperties()).toBe decorationProperties
       expect(displayBuffer.decorationForId(decoration.id)).toBe decoration
       expect(displayBuffer.decorationsForScreenRowRange(2, 3)[marker.id][0]).toBe decoration
 
@@ -1074,12 +1073,12 @@ describe "DisplayBuffer", ->
 
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
-        decoration.on 'updated', updatedSpy = jasmine.createSpy()
-        decoration.update type: 'gutter', class: 'two'
+        decoration.onDidChangeProperties updatedSpy = jasmine.createSpy()
+        decoration.setProperties type: 'gutter', class: 'two'
 
-        {oldParams, newParams} = updatedSpy.mostRecentCall.args[0]
-        expect(oldParams).toEqual decorationParams
-        expect(newParams).toEqual type: 'gutter', class: 'two', id: decoration.id
+        {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
+        expect(oldProperties).toEqual decorationProperties
+        expect(newProperties).toEqual type: 'gutter', class: 'two', id: decoration.id
 
   describe "::setScrollTop", ->
     beforeEach ->
@@ -1172,7 +1171,7 @@ describe "DisplayBuffer", ->
     it "recomputes the scroll width when the scoped character widths change in a batch", ->
       operatorWidth = 20
 
-      displayBuffer.on 'character-widths-changed', changedSpy = jasmine.createSpy()
+      displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
 
       displayBuffer.batchCharacterMeasurement ->
         displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)

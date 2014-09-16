@@ -69,7 +69,7 @@ describe "ThemeManager", ->
 
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
-      themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
+      themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
       spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
 
       waitsForPromise ->
@@ -131,8 +131,8 @@ describe "ThemeManager", ->
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
-      themeManager.on 'stylesheets-changed', stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
-      themeManager.on 'stylesheet-added', stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
+      themeManager.onDidChangeStylesheets stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
+      themeManager.onDidAddStylesheet stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
       cssPath = atom.project.resolve('css.css')
       lengthBefore = $('head style').length
 
@@ -193,8 +193,8 @@ describe "ThemeManager", ->
       themeManager.requireStylesheet(cssPath)
       expect($(document.body).css('font-weight')).toBe("bold")
 
-      themeManager.on 'stylesheet-removed', stylesheetRemovedHandler = jasmine.createSpy("stylesheetRemovedHandler")
-      themeManager.on 'stylesheets-changed', stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
+      themeManager.onDidRemoveStylesheet stylesheetRemovedHandler = jasmine.createSpy("stylesheetRemovedHandler")
+      themeManager.onDidChangeStylesheets stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
 
       themeManager.removeStylesheet(cssPath)
 
@@ -217,7 +217,7 @@ describe "ThemeManager", ->
         themeManager.activateThemes()
 
     it "loads the correct values from the theme's ui-variables file", ->
-      themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
+      themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
       atom.config.set('core.themes', ['theme-with-ui-variables'])
 
       waitsFor ->
@@ -234,7 +234,7 @@ describe "ThemeManager", ->
 
     describe "when there is a theme with incomplete variables", ->
       it "loads the correct values from the fallback ui-variables", ->
-        themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
+        themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
         atom.config.set('core.themes', ['theme-with-incomplete-ui-variables'])
 
         waitsFor ->
@@ -251,7 +251,7 @@ describe "ThemeManager", ->
       it 'adds theme-* classes to the workspace for each active theme', ->
         expect(atom.workspaceView).toHaveClass 'theme-atom-dark-ui'
 
-        themeManager.on 'reloaded', reloadHandler = jasmine.createSpy()
+        themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
         atom.config.set('core.themes', ['theme-with-ui-variables'])
 
         waitsFor ->
@@ -273,9 +273,9 @@ describe "ThemeManager", ->
         themeManager.activateThemes()
 
       runs ->
-        themeManager.on 'stylesheets-changed', stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
-        themeManager.on 'stylesheet-removed', stylesheetRemovedHandler = jasmine.createSpy("stylesheetRemovedHandler")
-        themeManager.on 'stylesheet-added', stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
+        themeManager.onDidChangeStylesheets stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
+        themeManager.onDidRemoveStylesheet stylesheetRemovedHandler = jasmine.createSpy("stylesheetRemovedHandler")
+        themeManager.onDidAddStylesheet stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
         spyOn(themeManager, 'loadUserStylesheet').andCallThrough()
 
         expect($(document.body).css('border-style')).toBe 'dotted'
@@ -316,7 +316,9 @@ describe "ThemeManager", ->
         themeManager.activateThemes()
 
       runs ->
-        themeManager.once 'reloaded', -> reloaded = true
+        disposable = themeManager.onDidReloadAll ->
+          disposable.dispose()
+          reloaded = true
         spyOn(console, 'warn')
         expect(-> atom.config.set('core.themes', ['atom-light-ui', 'theme-really-does-not-exist'])).not.toThrow()
 

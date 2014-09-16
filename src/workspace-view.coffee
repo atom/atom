@@ -84,7 +84,7 @@ class WorkspaceView extends View
     @panes.replaceWith(panes)
     @panes = panes
 
-    @subscribe @model, 'uri-opened', => @trigger 'uri-opened'
+    @subscribe @model.onDidOpen => @trigger 'uri-opened'
 
     @subscribe scrollbarStyle, (style) =>
       @removeClass('scrollbars-visible-always scrollbars-visible-when-scrolling')
@@ -240,7 +240,8 @@ class WorkspaceView extends View
   #
   # Returns an {Array} of {EditorView}s.
   getEditorViews: ->
-    @panes.find('.pane > .item-views > .editor').map(-> $(this).view()).toArray()
+    for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
+      $(editorElement).view()
 
   # Public: Prepend an element or view to the panels at the top of the
   # workspace.
@@ -371,25 +372,14 @@ class WorkspaceView extends View
   beforeRemove: ->
     @model.destroy()
 
-  setEditorFontSize: (fontSize) =>
-    @setEditorStyle('font-size', fontSize + 'px')
+  setEditorFontSize: (fontSize) ->
+    atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
 
-  setEditorFontFamily: (fontFamily) =>
-    @setEditorStyle('font-family', fontFamily)
+  setEditorFontFamily: (fontFamily) ->
+    atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
 
-  setEditorLineHeight: (lineHeight) =>
-    @setEditorStyle('line-height', lineHeight)
-
-  setEditorStyle: (property, value) ->
-    unless styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
-      atom.themes.applyStylesheet('global-editor-styles', '.editor {}')
-      styleNode = atom.themes.stylesheetElementForId('global-editor-styles')[0]
-
-    {sheet} = styleNode
-    editorRule = sheet.cssRules[0]
-    editorRule.style[property] = value
-    atom.themes.emit 'stylesheet-updated', sheet
-    atom.themes.emit 'stylesheets-changed'
+  setEditorLineHeight: (lineHeight) ->
+    atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
 
   # Deprecated
   eachPane: (callback) ->
@@ -409,4 +399,4 @@ class WorkspaceView extends View
   # Deprecated: Call {Workspace::getActivePaneItem} instead.
   getActivePaneItem: ->
     deprecate("Use Workspace::getActivePaneItem instead")
-    @model.activePaneItem
+    @model.getActivePaneItem()

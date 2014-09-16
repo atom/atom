@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div, span} = require 'reactionary-atom-fork'
 {debounce, defaults, isEqualForProperties} = require 'underscore-plus'
@@ -30,9 +31,8 @@ EditorComponent = React.createClass
   updateRequested: false
   updatesPaused: false
   updateRequestedWhilePaused: false
-  cursorsMoved: false
+  cursorMoved: false
   selectionChanged: false
-  selectionAdded: false
   scrollingVertically: false
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
@@ -176,10 +176,16 @@ EditorComponent = React.createClass
     @listenForDOMEvents()
     @listenForCommands()
 
-    @subscribe atom.themes, 'stylesheet-added stylesheet-removed stylesheet-updated', @onStylesheetsChanged
+    @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
+    @subscribe atom.themes.onDidUpdateStylesheet @onStylesheetsChanged
+    @subscribe atom.themes.onDidRemoveStylesheet @onStylesheetsChanged
+    unless atom.themes.isInitialLoadComplete()
+      @subscribe atom.themes.onDidReloadAll @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
+    @updateParentViewFocusedClassIfNeeded({})
+    @updateParentViewMiniClassIfNeeded({})
     @checkForVisibilityChange()
 
   componentWillUnmount: ->
@@ -195,16 +201,16 @@ EditorComponent = React.createClass
     @props.editor.setMini(newProps.mini)
 
   componentDidUpdate: (prevProps, prevState) ->
-    cursorsMoved = @cursorsMoved
+    cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
     @pendingChanges.length = 0
-    @cursorsMoved = false
+    @cursorMoved = false
     @selectionChanged = false
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
       @updateParentViewMiniClassIfNeeded(prevState)
-      @props.parentView.trigger 'cursor:moved' if cursorsMoved
+      @props.parentView.trigger 'cursor:moved' if cursorMoved
       @props.parentView.trigger 'selection:changed' if selectionChanged
       @props.parentView.trigger 'editor:display-updated'
 
@@ -305,7 +311,7 @@ EditorComponent = React.createClass
       if marker.isValid()
         for decoration in decorations
           if decoration.isType('gutter') or decoration.isType('line')
-            decorationParams = decoration.getParams()
+            decorationParams = decoration.getProperties()
             screenRange ?= marker.getScreenRange()
             headScreenRow ?= marker.getHeadScreenPosition().row
             startRow = screenRange.start.row
@@ -332,7 +338,7 @@ EditorComponent = React.createClass
       if marker.isValid() and not screenRange.isEmpty()
         for decoration in decorations
           if decoration.isType('highlight')
-            decorationParams = decoration.getParams()
+            decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
               startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
@@ -344,15 +350,12 @@ EditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor, 'screen-lines-changed', @onScreenLinesChanged
-    @subscribe editor, 'cursors-moved', @onCursorsMoved
-    @subscribe editor, 'selection-removed selection-screen-range-changed', @onSelectionChanged
-    @subscribe editor, 'selection-added', @onSelectionAdded
-    @subscribe editor, 'decoration-added', @onDecorationChanged
-    @subscribe editor, 'decoration-removed', @onDecorationChanged
-    @subscribe editor, 'decoration-changed', @onDecorationChanged
-    @subscribe editor, 'decoration-updated', @onDecorationChanged
-    @subscribe editor, 'character-widths-changed', @onCharacterWidthsChanged
+    @subscribe editor.onDidChangeScreenLines(@onScreenLinesChanged)
+    @subscribe editor.observeCursors(@onCursorAdded)
+    @subscribe editor.observeSelections(@onSelectionAdded)
+    @subscribe editor.observeDecorations(@onDecorationAdded)
+    @subscribe editor.onDidRemoveDecoration(@onDecorationRemoved)
+    @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
@@ -477,7 +480,7 @@ EditorComponent = React.createClass
         'editor:add-selection-above': -> editor.addSelectionAbove()
         'editor:split-selections-into-lines': -> editor.splitSelectionsIntoLines()
         'editor:toggle-soft-tabs': -> editor.toggleSoftTabs()
-        'editor:toggle-soft-wrap': -> editor.toggleSoftWrap()
+        'editor:toggle-soft-wrap': -> editor.toggleSoftWrapped()
         'editor:fold-all': -> editor.foldAll()
         'editor:unfold-all': -> editor.unfoldAll()
         'editor:fold-current-row': -> editor.foldCurrentRow()
@@ -644,8 +647,12 @@ EditorComponent = React.createClass
   onGutterMouseDown: (event) ->
     return unless event.button is 0 # only handle the left mouse button
 
-    if event.shiftKey
+    {shiftKey, metaKey, ctrlKey} = event
+
+    if shiftKey
       @onGutterShiftClick(event)
+    else if metaKey or (ctrlKey and process.platform isnt 'darwin')
+      @onGutterMetaClick(event)
     else
       @onGutterClick(event)
 
@@ -653,14 +660,38 @@ EditorComponent = React.createClass
     {editor} = @props
     clickedRow = @screenPositionForMouseEvent(event).row
 
-    editor.setCursorScreenPosition([clickedRow, 0])
+    editor.setSelectedScreenRange([[clickedRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
 
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
       if dragRow < clickedRow # dragging up
-        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]])
+        editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
       else
-        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
+
+  onGutterMetaClick: (event) ->
+    {editor} = @props
+    clickedRow = @screenPositionForMouseEvent(event).row
+
+    bufferRange = editor.bufferRangeForScreenRange([[clickedRow, 0], [clickedRow + 1, 0]])
+    rowSelection = editor.addSelectionForBufferRange(bufferRange, preserveFolds: true)
+
+    @handleDragUntilMouseUp event, (screenPosition) ->
+      dragRow = screenPosition.row
+
+      if dragRow < clickedRow # dragging up
+        rowSelection.setScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
+      else
+        rowSelection.setScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
+
+      # After updating the selected screen range, merge overlapping selections
+      editor.mergeIntersectingSelections(preserveFolds: true)
+
+      # The merge process will possibly destroy the current selection because
+      # it will be merged into another one. Therefore, we need to obtain a
+      # reference to the new selection that contains the originally selected row
+      rowSelection = _.find editor.getSelections(), (selection) ->
+        selection.intersectsBufferRange(bufferRange)
 
   onGutterShiftClick: (event) ->
     {editor} = @props
@@ -675,14 +706,15 @@ EditorComponent = React.createClass
     @handleDragUntilMouseUp event, (screenPosition) ->
       dragRow = screenPosition.row
       if dragRow < tailPosition.row # dragging up
-        editor.setSelectedScreenRange([[dragRow, 0], tailPosition])
+        editor.setSelectedScreenRange([[dragRow, 0], tailPosition], preserveFolds: true)
       else
-        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]])
+        editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]], preserveFolds: true)
 
   onStylesheetsChanged: (stylesheet) ->
     return unless @performedInitialMeasurement
+    return unless atom.themes.isInitialLoadComplete()
 
-    @refreshScrollbars() if @containsScrollbarSelector(stylesheet)
+    @refreshScrollbars() if not stylesheet? or @containsScrollbarSelector(stylesheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
@@ -692,17 +724,22 @@ EditorComponent = React.createClass
     @pendingChanges.push(change)
     @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
 
-  onSelectionChanged: (selection) ->
+  onSelectionAdded: (selection) ->
     {editor} = @props
+
+    @subscribe selection.onDidChangeRange => @onSelectionChanged(selection)
+    @subscribe selection.onDidDestroy =>
+      @onSelectionChanged(selection)
+      @unsubscribe(selection)
+
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
       @requestUpdate()
 
-  onSelectionAdded: (selection) ->
+  onSelectionChanged: (selection) ->
     {editor} = @props
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
-      @selectionAdded = true
       @requestUpdate()
 
   onScrollTopChanged: ->
@@ -720,11 +757,22 @@ EditorComponent = React.createClass
 
   onStoppedScrollingAfterDelay: null # created lazily
 
-  onCursorsMoved: ->
-    @cursorsMoved = true
+  onCursorAdded: (cursor) ->
+    @subscribe cursor.onDidChangePosition @onCursorMoved
+
+  onCursorMoved: ->
+    @cursorMoved = true
+    @requestUpdate()
+
+  onDecorationAdded: (decoration) ->
+    @subscribe decoration.onDidChangeProperties(@onDecorationChanged)
+    @subscribe decoration.getMarker().onDidChange(@onDecorationChanged)
     @requestUpdate()
 
   onDecorationChanged: ->
+    @requestUpdate()
+
+  onDecorationRemoved: ->
     @requestUpdate()
 
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->

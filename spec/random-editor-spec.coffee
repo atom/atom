@@ -50,9 +50,9 @@ describe "Editor", ->
 
   randomlyMutateEditor = ->
     if Math.random() < .2
-      softWrap = not editor.getSoftWrap()
-      steps.push(['setSoftWrap', softWrap])
-      editor.setSoftWrap(softWrap)
+      softWrapped = not editor.isSoftWrapped()
+      steps.push(['setSoftWrapped', softWrapped])
+      editor.setSoftWrapped(softWrapped)
     else
       range = getRandomRange()
       text = getRandomText()
@@ -79,7 +79,7 @@ describe "Editor", ->
     text
 
   getReferenceScreenLines = ->
-    if editor.getSoftWrap()
+    if editor.isSoftWrapped()
       screenLines = []
       bufferRows = []
       for bufferRow in [0..tokenizedBuffer.getLastRow()]
