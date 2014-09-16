@@ -1144,7 +1144,7 @@ class Editor extends Model
   Section: Indentation
   ###
 
-  # Public: Get the indentation level of the given a buffer row.
+  # Essential: Get the indentation level of the given a buffer row.
   #
   # Returns how deeply the given row is indented based on the soft tabs and
   # tab length settings of this editor. Note that if soft tabs are enabled and
@@ -1157,7 +1157,7 @@ class Editor extends Model
   indentationForBufferRow: (bufferRow) ->
     @indentLevelForLine(@lineTextForBufferRow(bufferRow))
 
-  # Public: Set the indentation level for the given buffer row.
+  # Essential: Set the indentation level for the given buffer row.
   #
   # Inserts or removes hard tabs or spaces based on the soft tabs and tab length
   # settings of this editor in order to bring it to the given indentation level.
@@ -1177,7 +1177,15 @@ class Editor extends Model
     newIndentString = @buildIndentString(newLevel)
     @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
 
-  # Public: Get the indentation level of the given line of text.
+  # Extended: Indent rows intersecting selections by one level.
+  indentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.indentSelectedRows()
+
+  # Extended: Outdent rows intersecting selections by one level.
+  outdentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.outdentSelectedRows()
+
+  # Extended: Get the indentation level of the given line of text.
   #
   # Returns how deeply the given line is indented based on the soft tabs and
   # tab length settings of this editor. Note that if soft tabs are enabled and
@@ -1190,24 +1198,16 @@ class Editor extends Model
   indentLevelForLine: (line) ->
     @displayBuffer.indentLevelForLine(line)
 
+  # Extended: Indent rows intersecting selections based on the grammar's suggested
+  # indent level.
+  autoIndentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
+
   # Indent all lines intersecting selections. See {Selection::indent} for more
   # information.
   indent: (options={}) ->
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
-
-  # Public: Indent rows intersecting selections by one level.
-  indentSelectedRows: ->
-    @mutateSelectedText (selection) -> selection.indentSelectedRows()
-
-  # Public: Outdent rows intersecting selections by one level.
-  outdentSelectedRows: ->
-    @mutateSelectedText (selection) -> selection.outdentSelectedRows()
-
-  # Public: Indent rows intersecting selections based on the grammar's suggested
-  # indent level.
-  autoIndentSelectedRows: ->
-    @mutateSelectedText (selection) -> selection.autoIndentSelectedRows()
 
   # Constructs the string used for tabs.
   buildIndentString: (number, column=0) ->
