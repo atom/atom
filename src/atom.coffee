@@ -533,15 +533,15 @@ class Atom extends Model
   Section: Managing the Dev Tools
   ###
 
-  # Public: Open the dev tools for the current window.
+  # Extended: Open the dev tools for the current window.
   openDevTools: ->
     ipc.send('call-window-method', 'openDevTools')
 
-  # Public: Toggle the visibility of the dev tools for the current window.
+  # Extended: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
     ipc.send('call-window-method', 'toggleDevTools')
 
-  # Public: Execute code in dev tools.
+  # Extended: Execute code in dev tools.
   executeJavaScriptInDevTools: (code) ->
     ipc.send('call-window-method', 'executeJavaScriptInDevTools', code)
 
