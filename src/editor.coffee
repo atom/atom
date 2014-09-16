@@ -555,10 +555,10 @@ class Editor extends Model
   Section: Reading Text
   ###
 
-  # Public: Returns a {String} representing the entire contents of the editor.
+  # Essential: Returns a {String} representing the entire contents of the editor.
   getText: -> @buffer.getText()
 
-  # Public: Get the text in the given {Range} in buffer coordinates.
+  # Essential: Get the text in the given {Range} in buffer coordinates.
   #
   # * `range` A {Range} or range-compatible {Array}.
   #
@@ -566,20 +566,22 @@ class Editor extends Model
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
 
-  # Public: Returns a {Number} representing the number of lines in the editor.
+  # Essential: Returns a {Number} representing the number of lines in the buffer.
   getLineCount: -> @buffer.getLineCount()
 
-  # {Delegates to: DisplayBuffer.getLineCount}
+  # Essential: Returns a {Number} representing the number of screen lines in the
+  # editor. This accounts for folds.
   getScreenLineCount: -> @displayBuffer.getLineCount()
 
-  # Public: Returns a {Number} representing the last zero-indexed buffer row
+  # Essential: Returns a {Number} representing the last zero-indexed buffer row
   # number of the editor.
   getLastBufferRow: -> @buffer.getLastRow()
 
-  # {Delegates to: DisplayBuffer.getLastRow}
+  # Essential: Returns a {Number} representing the last zero-indexed screen row
+  # number of the editor.
   getLastScreenRow: -> @displayBuffer.getLastRow()
 
-  # Public: Returns a {String} representing the contents of the line at the
+  # Essential: Returns a {String} representing the contents of the line at the
   # given buffer row.
   #
   # * `bufferRow` A {Number} representing a zero-indexed buffer row.
@@ -588,7 +590,7 @@ class Editor extends Model
     deprecate 'Use Editor::lineTextForBufferRow(bufferRow) instead'
     @lineTextForBufferRow(bufferRow)
 
-  # Public: Returns a {String} representing the contents of the line at the
+  # Essential: Returns a {String} representing the contents of the line at the
   # given screen row.
   #
   # * `screenRow` A {Number} representing a zero-indexed screen row.
