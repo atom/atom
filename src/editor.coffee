@@ -1008,15 +1008,49 @@ class Editor extends Model
   Section: Searching Text
   ###
 
-  # {Delegates to: TextBuffer.scan}
-  scan: (args...) -> @buffer.scan(args...)
+  # Essential: Scan regular expression matches in the entire buffer, calling the
+  # given iterator function on each match.
+  #
+  # If you're programmatically modifying the results, you may want to try
+  # {::backwardsScanInBufferRange} to avoid tripping over your own changes.
+  #
+  # * `regex` A {RegExp} to search for.
+  # * `iterator` A {Function} that's called on each match with an {Object}
+  #   containing the following keys:
+  #   * `match` The current regular expression match.
+  #   * `matchText` A {String} with the text of the match.
+  #   * `range` The {Range} of the match.
+  #   * `stop` Call this {Function} to terminate the scan.
+  #   * `replace` Call this {Function} with a {String} to replace the match.
+  scan: (regex, iterator) -> @buffer.scan(regex, iterator)
 
-  # {Delegates to: TextBuffer.scanInRange}
-  scanInBufferRange: (args...) -> @buffer.scanInRange(args...)
+  # Essential: Scan regular expression matches in a given range, calling the given
+  # iterator function on each match.
+  #
+  # * `regex` A {RegExp} to search for.
+  # * `range` A {Range} in which to search.
+  # * `iterator` A {Function} that's called on each match with an {Object}
+  #   containing the following keys:
+  #   * `match` The current regular expression match.
+  #   * `matchText` A {String} with the text of the match.
+  #   * `range` The {Range} of the match.
+  #   * `stop` Call this {Function} to terminate the scan.
+  #   * `replace` Call this {Function} with a {String} to replace the match.
+  scanInBufferRange: (regex, range, iterator) -> @buffer.scanInRange(regex, range, iterator)
 
-  # {Delegates to: TextBuffer.backwardsScanInRange}
-  backwardsScanInBufferRange: (args...) -> @buffer.backwardsScanInRange(args...)
-
+  # Essential: Scan regular expression matches in a given range in reverse order,
+  # calling the given iterator function on each match.
+  #
+  # * `regex` A {RegExp} to search for.
+  # * `range` A {Range} in which to search.
+  # * `iterator` A {Function} that's called on each match with an {Object}
+  #   containing the following keys:
+  #   * `match` The current regular expression match.
+  #   * `matchText` A {String} with the text of the match.
+  #   * `range` The {Range} of the match.
+  #   * `stop` Call this {Function} to terminate the scan.
+  #   * `replace` Call this {Function} with a {String} to replace the match.
+  backwardsScanInBufferRange: (regex, range, iterator) -> @buffer.backwardsScanInRange(regex, range, iterator)
 
   ###
   Section: Tab Behavior
