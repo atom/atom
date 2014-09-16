@@ -662,10 +662,10 @@ class Editor extends Model
   Section: Mutating Text
   ###
 
-  # Public: Replaces the entire contents of the buffer with the given {String}.
+  # Essential: Replaces the entire contents of the buffer with the given {String}.
   setText: (text) -> @buffer.setText(text)
 
-  # Public: Set the text in the given {Range} in buffer coordinates.
+  # Essential: Set the text in the given {Range} in buffer coordinates.
   #
   # * `range` A {Range} or range-compatible {Array}.
   # * `text` A {String}
@@ -673,7 +673,7 @@ class Editor extends Model
   # Returns the {Range} of the newly-inserted text.
   setTextInBufferRange: (range, text, normalizeLineEndings) -> @getBuffer().setTextInRange(range, text, normalizeLineEndings)
 
-  # Public: Mutate the text of all the selections in a single transaction.
+  # Extended: Mutate the text of all the selections in a single transaction.
   #
   # All the changes made inside the given {Function} can be reverted with a
   # single call to {::undo}.
@@ -853,7 +853,7 @@ class Editor extends Model
         @addSelectionForBufferRange([[row, 0], [row, Infinity]])
       @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
 
-  # Public: For each selection, transpose the selected text.
+  # Extended: For each selection, transpose the selected text.
   #
   # If the selection is empty, the characters preceding and following the cursor
   # are swapped. Otherwise, the selected characters are reversed.
@@ -868,14 +868,14 @@ class Editor extends Model
       else
         selection.insertText selection.getText().split('').reverse().join('')
 
-  # Public: Convert the selected text to upper case.
+  # Extended: Convert the selected text to upper case.
   #
   # For each selection, if the selection is empty, converts the containing word
   # to upper case. Otherwise convert the selected text to upper case.
   upperCase: ->
     @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toUpperCase()
 
-  # Public: Convert the selected text to lower case.
+  # Extended: Convert the selected text to lower case.
   #
   # For each selection, if the selection is empty, converts the containing word
   # to upper case. Otherwise convert the selected text to upper case.
