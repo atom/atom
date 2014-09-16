@@ -205,6 +205,40 @@ class Editor extends Model
   onDidChange: (callback) ->
     @emitter.on 'did-change', callback
 
+  # Essential: Invoke `callback` when the buffer's contents change. It is
+  # emit asynchronously 300ms after the last buffer change. This is a good place
+  # to handle changes to the buffer without compromising typing performance.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidStopChanging: (callback) ->
+    @getBuffer().onDidStopChanging(callback)
+
+  # Essential: Calls your `callback` when a {Cursor} is moved. If there are
+  # multiple cursors, your callback will be called for each cursor.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldBufferPosition` {Point}
+  #     * `oldScreenPosition` {Point}
+  #     * `newBufferPosition` {Point}
+  #     * `newScreenPosition` {Point}
+  #     * `textChanged` {Boolean}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeCursorPosition: (callback) ->
+    @emitter.on 'did-change-cursor-position', callback
+
+  # Essential: Calls your `callback` when a selection's screen range changes.
+  #
+  # * `callback` {Function}
+  #   * `selection` {Selection} that moved
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeSelectionRange: (callback) ->
+    @emitter.on 'did-change-selection-range', callback
+
   # Extended: Calls your `callback` when soft wrap was enabled or disabled.
   #
   # * `callback` {Function}
@@ -221,16 +255,6 @@ class Editor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
-
-  # Essential: Calls your `callback` when the buffer's contents change. It is
-  # emit asynchronously 300ms after the last buffer change. This is a good place
-  # to handle changes to the buffer without compromising typing performance.
-  #
-  # * `callback` {Function}
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidStopChanging: (callback) ->
-    @getBuffer().onDidStopChanging(callback)
 
   # Extended: Calls your `callback` when the result of {::isModified} changes.
   #
@@ -309,21 +333,6 @@ class Editor extends Model
   onDidRemoveCursor: (callback) ->
     @emitter.on 'did-remove-cursor', callback
 
-  # Essential: Calls your `callback` when a {Cursor} is moved. If there are
-  # multiple cursors, your callback will be called for each cursor.
-  #
-  # * `callback` {Function}
-  #   * `event` {Object}
-  #     * `oldBufferPosition` {Point}
-  #     * `oldScreenPosition` {Point}
-  #     * `newBufferPosition` {Point}
-  #     * `newScreenPosition` {Point}
-  #     * `textChanged` {Boolean}
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeCursorPosition: (callback) ->
-    @emitter.on 'did-change-cursor-position', callback
-
   # Extended: Calls your `callback` when a {Selection} is added to the editor.
   # Immediately calls your callback for each existing selection.
   #
@@ -352,15 +361,6 @@ class Editor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveSelection: (callback) ->
     @emitter.on 'did-remove-selection', callback
-
-  # Essential: Calls your `callback` when a selection's screen range changes.
-  #
-  # * `callback` {Function}
-  #   * `selection` {Selection} that moved
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeSelectionRange: (callback) ->
-    @emitter.on 'did-change-selection-range', callback
 
   # Extended: Calls your `callback` with each {Decoration} added to the editor.
   # Calls your `callback` immediately for any existing decorations.
