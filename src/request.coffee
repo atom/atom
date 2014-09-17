@@ -31,7 +31,3 @@ module.exports =
   createReadStream: (requestOptions, callback) ->
     configureRequest requestOptions, ->
       callback(request.get(requestOptions))
-
-  useStrictSsl: (callback) ->
-    loadNpm ->
-      callback(null, npm.config.get('strict-ssl'))
