@@ -34,7 +34,7 @@ class PaneView extends View
   setModel: (@model) ->
     @subscriptions = new CompositeDisposable
     @subscriptions.add @model.observeActiveItem(@onActiveItemChanged)
-    @subscriptions.add @model.observeItems(@onItemAdded)
+    @subscriptions.add @model.onDidAddItem(@onItemAdded)
     @subscriptions.add @model.onDidRemoveItem(@onItemRemoved)
     @subscriptions.add @model.onDidMoveItem(@onItemMoved)
     @subscriptions.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
