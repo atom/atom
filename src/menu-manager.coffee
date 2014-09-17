@@ -5,7 +5,7 @@ ipc = require 'ipc'
 CSON = require 'season'
 fs = require 'fs-plus'
 
-# Public: Provides a registry for menu items that you'd like to appear in the
+# Extended: Provides a registry for menu items that you'd like to appear in the
 # application menu.
 #
 # An instance of this class is always available as the `atom.menu` global.

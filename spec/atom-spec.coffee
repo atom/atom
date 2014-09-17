@@ -8,6 +8,23 @@ describe "the `atom` global", ->
   beforeEach ->
     atom.workspaceView = new WorkspaceView
 
+  describe 'window sizing methods', ->
+    describe '::getPosition and ::setPosition', ->
+      it 'sets the position of the window, and can retrieve the position just set', ->
+        atom.setPosition(22, 45)
+        expect(atom.getPosition()).toEqual x: 22, y: 45
+
+    describe '::getSize and ::setSize', ->
+      originalSize = null
+      beforeEach ->
+        originalSize = atom.getSize()
+      afterEach ->
+        atom.setSize(originalSize.width, originalSize.height)
+
+      it 'sets the size of the window, and can retrieve the size just set', ->
+        atom.setSize(100, 400)
+        expect(atom.getSize()).toEqual width: 100, height: 400
+
   describe "package lifecycle methods", ->
     describe ".loadPackage(name)", ->
       it "continues if the package has an invalid package.json", ->

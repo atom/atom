@@ -32,7 +32,7 @@ module.exports =
 class Decoration
   EmitterMixin.includeInto(this)
 
-  # Extended: Check if the `decorationProperties.type` matches `type`
+  # Private: Check if the `decorationProperties.type` matches `type`
   #
   # * `decorationProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
   # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
@@ -45,6 +45,10 @@ class Decoration
       type in decorationProperties.type
     else
       type is decorationProperties.type
+
+  ###
+  Section: Construction and Destruction
+  ###
 
   constructor: (@marker, @displayBuffer, @properties) ->
     @emitter = new Emitter

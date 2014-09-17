@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 ChildProcess = require 'child_process'
 
-# Public: A wrapper which provides standard error/output line buffering for
+# Extended: A wrapper which provides standard error/output line buffering for
 # Node's ChildProcess.
 #
 # ## Examples

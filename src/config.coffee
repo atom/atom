@@ -6,7 +6,7 @@ path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
 
-# Public: Used to access all of Atom's configuration details.
+# Essential: Used to access all of Atom's configuration details.
 #
 # An instance of this class is always available as the `atom.config` global.
 #
