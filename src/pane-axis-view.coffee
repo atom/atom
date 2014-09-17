@@ -16,10 +16,6 @@ class PaneAxisView extends View
   afterAttach: ->
     @container = @closest('.panes').view()
 
-  viewForModel: (model) ->
-    viewClass = model.getViewClass()
-    model._view ?= new viewClass(model)
-
   onChildReplaced:  ({index, oldChild, newChild}) =>
     focusedElement = document.activeElement if @hasFocus()
     @onChildRemoved({child: oldChild, index})
@@ -27,11 +23,11 @@ class PaneAxisView extends View
     focusedElement?.focus() if document.activeElement is document.body
 
   onChildAdded: ({child, index}) =>
-    view = @viewForModel(child)
+    view = @model.getView(child).__spacePenView
     @insertAt(index, view)
 
   onChildRemoved: ({child}) =>
-    view = @viewForModel(child)
+    view = @model.getView(child).__spacePenView
     view.detach()
     PaneView ?= require './pane-view'
     if view instanceof PaneView and view.model.isDestroyed()

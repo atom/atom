@@ -26,11 +26,6 @@ class PaneContainerView extends View
     @subscriptions.add @model.observeRoot(@onRootChanged)
     @subscriptions.add @model.onDidChangeActivePaneItem(@onActivePaneItemChanged)
 
-  viewForModel: (model) ->
-    if model?
-      viewClass = model.getViewClass()
-      model._view ?= new viewClass(model)
-
   getRoot: ->
     @children().first().view()
 
@@ -42,7 +37,7 @@ class PaneContainerView extends View
       @trigger 'pane:removed', [oldRoot]
     oldRoot?.detach()
     if root?
-      view = @viewForModel(root)
+      view = @model.getView(root).__spacePenView
       @append(view)
       focusedElement?.focus()
     else
@@ -88,7 +83,7 @@ class PaneContainerView extends View
     @getActivePaneView()
 
   getActivePaneView: ->
-    @viewForModel(@model.activePane)
+    @model.getView(@model.getActivePane()).__spacePenView
 
   getActivePaneItem: ->
     @model.getActivePaneItem()
@@ -97,7 +92,7 @@ class PaneContainerView extends View
     @getActivePaneView()?.activeView
 
   paneForUri: (uri) ->
-    @viewForModel(@model.paneForUri(uri))
+    @model.getView(@model.paneForUri(uri)).__spacePenView
 
   focusNextPaneView: ->
     @model.activateNextPane()

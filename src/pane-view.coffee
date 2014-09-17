@@ -33,15 +33,8 @@ class PaneView extends View
 
   previousActiveItem: null
 
-  initialize: (args...) ->
+  initialize: (@model) ->
     @subscriptions = new CompositeDisposable
-
-    if args[0] instanceof Pane
-      @model = args[0]
-    else
-      @model = new Pane(items: args)
-      @model._view = this
-
     @onItemAdded(item) for item in @items
     @viewsByItem = new WeakMap()
     @handleEvents()
@@ -227,13 +220,13 @@ class PaneView extends View
 
   @::accessor 'activeView', -> @viewForItem(@activeItem)
 
-  splitLeft: (items...) -> @model.splitLeft({items})._view
+  splitLeft: (items...) -> @model.getView(@model.splitLeft({items})).__spacePenView
 
-  splitRight: (items...) -> @model.splitRight({items})._view
+  splitRight: (items...) -> @model.getView(@model.splitRight({items})).__spacePenView
 
-  splitUp: (items...) -> @model.splitUp({items})._view
+  splitUp: (items...) -> @model.getView(@model.splitUp({items})).__spacePenView
 
-  splitDown: (items...) -> @model.splitDown({items})._view
+  splitDown: (items...) -> @model.getView(@model.splitDown({items})).__spacePenView
 
   # Public: Get the container view housing this pane.
   #
