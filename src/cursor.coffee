@@ -166,7 +166,7 @@ class Cursor extends Model
     @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
 
   ###
-  Section: Position-dependent cursor properties
+  Section: Info about the cursor position
   ###
 
   # Public: Identifies if the cursor is surrounded by whitespace.
