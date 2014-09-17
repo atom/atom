@@ -178,6 +178,8 @@ class WorkspaceView extends View
           deprecate('Use Pane::onDidDestroy instead')
         when 'cursor:moved'
           deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
       originalOn.apply(this, arguments)
 
   ###
