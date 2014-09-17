@@ -1,18 +1,19 @@
 {CompositeDisposable} = require 'event-kit'
 {$} = require './space-pen-extensions'
+PaneView = require './pane-view'
 
 class PaneElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
     @initializeContent()
     @subscribeToDOMEvents()
+    @createSpacePenShim()
 
   attachedCallback: ->
     @focus() if @model.isFocused()
 
   detachedCallback: ->
     @subscriptions.dispose()
-    @model.destroy() unless @model.isDestroyed()
 
   initializeContent: ->
     @setAttribute 'class', 'pane'
@@ -25,6 +26,9 @@ class PaneElement extends HTMLElement
     @addEventListener 'focusout', => @model.blur()
     @addEventListener 'focus', => @getActiveView()?.focus()
 
+  createSpacePenShim: ->
+    @__spacePenView = new PaneView(this)
+
   getModel: -> @model
 
   setModel: (@model) ->
@@ -32,6 +36,7 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActive(@activeStatusChanged.bind(this))
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
+    @__spacePenView.setModel(@model)
 
   activated: ->
     @focus() unless @hasFocus()
