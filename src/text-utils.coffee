@@ -18,8 +18,8 @@ isSurrogatePair = (string, index=0) ->
 
 # Is the character at the given index the start of a variation sequence?
 #
-# * `string` The {String} to check for a surrogate pair.
-# * `index`  The {Number} index to look for a surrogate pair at.
+# * `string` The {String} to check for a variation sequence.
+# * `index`  The {Number} index to look for a variation sequence at.
 #
 # Return a {Boolean}.
 isVariationSequence = (string, index=0) ->
@@ -28,7 +28,7 @@ isVariationSequence = (string, index=0) ->
 # Is the character at the given index the start of high/low surrogate pair
 # or a variation sequence?
 #
-# * `string` The {String} to check for a surrogate pair.
+# * `string` The {String} to check for a surrogate pair or variation sequence.
 # * `index`  The {Number} index to look for a surrogate pair at.
 #
 # Return a {Boolean}.
