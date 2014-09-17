@@ -13,7 +13,7 @@ describe "WorkspaceView", ->
     atom.project.setPath(atom.project.resolve('dir'))
     pathToOpen = atom.project.resolve('a')
     atom.workspace = new Workspace
-    atom.workspaceView = new WorkspaceView(atom.workspace)
+    atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
     atom.workspaceView.enableKeymap()
     atom.workspaceView.focus()
 
@@ -29,7 +29,7 @@ describe "WorkspaceView", ->
       atom.workspaceView.remove()
       atom.project = atom.deserializers.deserialize(projectState)
       atom.workspace = Workspace.deserialize(workspaceState)
-      atom.workspaceView = new WorkspaceView(atom.workspace)
+      atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
       atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
@@ -185,7 +185,8 @@ describe "WorkspaceView", ->
 
     describe "when the root view is deserialized", ->
       it "updates the title to contain the project's path", ->
-        workspaceView2 = new WorkspaceView(atom.workspace.testSerialization())
+        workspace2 = atom.workspace.testSerialization()
+        workspaceView2 = workspace2.getView(workspace2).__spacePenView
         item = atom.workspace.getActivePaneItem()
         expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         workspaceView2.remove()

@@ -10,6 +10,7 @@ Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 {jQuery} = require './space-pen-extensions'
+WorkspaceView = null
 
 # Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
@@ -65,6 +66,9 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
     packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
+
+  getViewClass: ->
+    WorkspaceView ?= require './workspace-view'
 
   getPackageNamesWithActiveGrammars: ->
     packageNames = []

@@ -209,7 +209,7 @@ describe "ThemeManager", ->
 
   describe "base stylesheet loading", ->
     beforeEach ->
-      atom.workspaceView = new WorkspaceView
+      atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
       atom.workspaceView.append $$ -> @div class: 'editor'
       atom.workspaceView.attachToDom()
 
