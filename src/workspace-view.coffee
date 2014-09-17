@@ -181,7 +181,9 @@ class WorkspaceView extends View
         when 'pane:became-active'
           deprecate('Use Pane::onDidActivate instead')
         when 'pane:became-inactive'
-          depcreate('Use Pane::onDidChangeActive instead')
+          deprecate('Use Pane::onDidChangeActive instead')
+        when 'pane:item-added'
+          deprecate('Use Pane::onDidAddItem instead')
         when 'pane:removed'
           deprecate('Use Pane::onDidDestroy instead')
         when 'pane-container:active-pane-item-changed'
