@@ -153,6 +153,8 @@ class Token
   getValueAsHtml: ({hasIndentGuide}) ->
     if @isHardTab
       classes = 'hard-tab'
+      classes += ' leading-whitespace' if @hasLeadingWhitespace()
+      classes += ' trailing-whitespace' if @hasTrailingWhitespace()
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if @hasInvisibleCharacters
       html = "<span class='#{classes}'>#{@escapeString(@value)}</span>"

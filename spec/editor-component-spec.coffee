@@ -197,6 +197,32 @@ describe "EditorComponent", ->
       nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
+    it "applies .trailing-whitespace for lines with trailing spaces and/or tabs", ->
+      editor.setText('a ')
+      nextAnimationFrame()
+
+      leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
+
+      editor.setText('a\t')
+      nextAnimationFrame()
+
+      leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
+
+    it "applies .leading-whitespace for lines with trailing spaces and/or tabs", ->
+      editor.setText(' a')
+      nextAnimationFrame()
+
+      leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe true
+
+      editor.setText('\ta')
+      nextAnimationFrame()
+
+      leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe true
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
