@@ -170,7 +170,7 @@ class WorkspaceView extends View
     @deprecatedViewEvents()
 
   deprecatedViewEvents: ->
-    originalOn = @on
+    originalWorkspaceViewOn = @on
 
     @on = (eventName) =>
       switch eventName
@@ -196,17 +196,40 @@ class WorkspaceView extends View
           deprecate('Use Editor::onDidChangeSelectionRange instead')
         when 'uri-opened'
           deprecate('Use Workspace::onDidOpen instead')
-      originalOn.apply(this, arguments)
+      originalWorkspaceViewOn.apply(this, arguments)
 
     EditorView = require './editor-view'
-    originalEditorOn = EditorView::on
+    originalEditorViewOn = EditorView::on
     EditorView::on = (eventName) ->
       switch eventName
         when 'cursor:moved'
           deprecate('Use Editor::onDidChangeCursorPosition instead')
         when 'selection:changed'
           deprecate('Use Editor::onDidChangeSelectionRange instead')
-      originalEditorOn.apply(this, arguments)
+      originalEditorViewOn.apply(this, arguments)
+
+    originalPaneViewOn = PaneView::on
+    PaneView::on = (eventName) ->
+      switch eventName
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'pane:active-item-changed'
+          deprecate('Use Pane::onDidChangeActiveItem instead')
+        when 'pane:became-active'
+          deprecate('Use Pane::onDidActivate instead')
+        when 'pane:became-inactive'
+          deprecate('Use Pane::onDidChangeActive instead')
+        when 'pane:item-added'
+          deprecate('Use Pane::onDidAddItem instead')
+        when 'pane:item-moved'
+          deprecate('Use Pane::onDidMoveItem instead')
+        when 'pane:item-removed'
+          deprecate('Use Pane::onDidRemoveItem instead')
+        when 'pane:removed'
+          deprecate('Use Pane::onDidDestroy instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+      originalPaneViewOn.apply(this, arguments)
 
   ###
   Section: Accessing the Workspace Model
