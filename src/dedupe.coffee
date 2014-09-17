@@ -41,11 +41,16 @@ class Dedupe extends Command
     env.USERPROFILE = env.HOME if config.isWin32()
 
     fs.makeTreeSync(@atomDirectory)
-    @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
-      if code is 0
-        callback()
-      else
-        callback("#{stdout}\n#{stderr}")
+    config.loadNpm (error, npm) =>
+      # Pass through configured proxy to node-gyp
+      proxy = npm.config.get('https-proxy') or npm.config.get('proxy')
+      installNodeArgs.push("--proxy=#{proxy}") if proxy
+
+      @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
+        if code is 0
+          callback()
+        else
+          callback("#{stdout}\n#{stderr}")
 
   getVisualStudioFlags: ->
     return null unless config.isWin32()
