@@ -6,6 +6,8 @@ class ViewRegistry
     @views = new WeakMap
 
   getView: (object) ->
+    return unless object?
+
     if view = @views.get(object)
       view
     else

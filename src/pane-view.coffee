@@ -36,7 +36,6 @@ class PaneView extends View
   initialize: (@model) ->
     @subscriptions = new CompositeDisposable
     @onItemAdded(item) for item in @items
-    @viewsByItem = new WeakMap()
     @handleEvents()
 
   handleEvents: ->
@@ -168,7 +167,7 @@ class PaneView extends View
       item.on('modified-status-changed', @activeItemModifiedChanged)
       @activeItemDisposables.add(disposable) if disposable?.dispose?
 
-    view = @viewForItem(item)
+    view = @model.getView(item).__spacePenView
     otherView.hide() for otherView in @itemViews.children().not(view).views()
     @itemViews.append(view) unless view.parent().is(@itemViews)
     view.show() if @attached
@@ -182,8 +181,8 @@ class PaneView extends View
   onItemRemoved: ({item, index, destroyed}) =>
     if item instanceof $
       viewToRemove = item
-    else if viewToRemove = @viewsByItem.get(item)
-      @viewsByItem.delete(item)
+    else
+      viewToRemove = @model.getView(item).__spacePenView
 
     if viewToRemove?
       if destroyed
@@ -206,19 +205,7 @@ class PaneView extends View
   activeItemModifiedChanged: =>
     @trigger 'pane:active-item-modified-status-changed'
 
-  viewForItem: (item) ->
-    return unless item?
-    if item instanceof $
-      item
-    else if view = @viewsByItem.get(item)
-      view
-    else
-      viewClass = item.getViewClass()
-      view = new viewClass(item)
-      @viewsByItem.set(item, view)
-      view
-
-  @::accessor 'activeView', -> @viewForItem(@activeItem)
+  @::accessor 'activeView', -> @model.getView(@activeItem)?.__spacePenView
 
   splitLeft: (items...) -> @model.getView(@model.splitLeft({items})).__spacePenView
 
