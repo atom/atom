@@ -3,6 +3,7 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
 Pane = require './pane'
+PaneContainerView = null
 
 module.exports =
 class PaneContainer extends Model
@@ -42,6 +43,9 @@ class PaneContainer extends Model
   serializeParams: (params) ->
     root: @root?.serialize()
     activePaneId: @activePane.id
+
+  getViewClass: ->
+    PaneContainerView ?= require './pane-container-view'
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn
