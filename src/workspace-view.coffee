@@ -167,9 +167,9 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
-    @setupViewEventDeprecations()
+    @deprecatedViewEvents()
 
-  setupViewEventDeprecations: ->
+  deprecatedViewEvents: ->
     originalOn = @on
 
     @on = (eventName) =>
