@@ -238,6 +238,8 @@ class Pane extends Model
     @focused = false
     true # if this is called from an event handler, don't cancel it
 
+  isFocused: -> @focused
+
   getPanes: -> [this]
 
   ###

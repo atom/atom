@@ -37,7 +37,8 @@ class PaneContainerView extends View
       @trigger 'pane:removed', [oldRoot]
     oldRoot?.detach()
     if root?
-      view = @model.getView(root).__spacePenView
+      view = @model.getView(root)
+      view = view.__spacePenView if view.__spacePenView?
       @append(view)
       focusedElement?.focus()
     else
