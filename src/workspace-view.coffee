@@ -136,7 +136,8 @@ class WorkspaceView extends View
     @command 'application:open-your-stylesheet', -> ipc.send('command', 'application:open-your-stylesheet')
     @command 'application:open-license', => @model.openLicense()
 
-    @command 'window:install-shell-commands', => @installShellCommands()
+    if process.platform is 'darwin'
+      @command 'window:install-shell-commands', => @installShellCommands()
 
     @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
     @command 'window:increase-font-size', => @increaseFontSize()
