@@ -176,6 +176,8 @@ class WorkspaceView extends View
       switch eventName
         when 'pane:removed'
           deprecate('Use Pane::onDidDestroy instead')
+        when 'pane-container:active-pane-item-changed'
+          deprecate('Use Workspace::onDidChangeActivePaneItem instead')
         when 'cursor:moved'
           deprecate('Use Editor::onDidChangeCursorPosition instead')
         when 'selection:changed'
