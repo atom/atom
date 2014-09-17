@@ -188,6 +188,8 @@ class WorkspaceView extends View
           deprecate('Use Workspace::onDidChangeActivePaneItem instead')
         when 'selection:changed'
           deprecate('Use Editor::onDidChangeSelectionRange instead')
+        when 'uri-opened'
+          deprecate('Use Workspace::onDidOpen instead')
       originalOn.apply(this, arguments)
 
   ###
