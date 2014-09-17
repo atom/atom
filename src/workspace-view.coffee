@@ -198,6 +198,16 @@ class WorkspaceView extends View
           deprecate('Use Workspace::onDidOpen instead')
       originalOn.apply(this, arguments)
 
+    EditorView = require './editor-view'
+    originalEditorOn = EditorView::on
+    EditorView::on = (eventName) ->
+      switch eventName
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+      originalEditorOn.apply(this, arguments)
+
   ###
   Section: Accessing the Workspace Model
   ###
