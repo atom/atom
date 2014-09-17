@@ -3343,7 +3343,7 @@ describe "Editor", ->
         editor2.destroy()
         expect(editor.shouldPromptToSave()).toBeTruthy()
 
-  describe "when the edit session contains surrogate pair characters", ->
+  describe "when the editor contains surrogate pair characters", ->
     it "correctly backspaces over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97')
       editor.moveToBottom()
@@ -3366,6 +3366,47 @@ describe "Editor", ->
 
     it "correctly moves over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97\n')
+      editor.moveToTop()
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 2]
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 4]
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 6]
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [1, 0]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 6]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 4]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 2]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+  describe "when the editor contains variation sequence character pairs", ->
+    it "correctly backspaces over them", ->
+      editor.setText('\u2714\uFE0E\u2714\uFE0E\u2714\uFE0E')
+      editor.moveToBottom()
+      editor.backspace()
+      expect(editor.getText()).toBe '\u2714\uFE0E\u2714\uFE0E'
+      editor.backspace()
+      expect(editor.getText()).toBe '\u2714\uFE0E'
+      editor.backspace()
+      expect(editor.getText()).toBe ''
+
+    it "correctly deletes over them", ->
+      editor.setText('\u2714\uFE0E\u2714\uFE0E\u2714\uFE0E')
+      editor.moveToTop()
+      editor.delete()
+      expect(editor.getText()).toBe '\u2714\uFE0E\u2714\uFE0E'
+      editor.delete()
+      expect(editor.getText()).toBe '\u2714\uFE0E'
+      editor.delete()
+      expect(editor.getText()).toBe ''
+
+    it "correctly moves over them", ->
+      editor.setText('\u2714\uFE0E\u2714\uFE0E\u2714\uFE0E\n')
       editor.moveToTop()
       editor.moveRight()
       expect(editor.getCursorBufferPosition()).toEqual [0, 2]
