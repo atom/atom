@@ -37,7 +37,6 @@ class PaneElement extends HTMLElement
     @focus() unless @hasFocus()
 
   activeStatusChanged: (active) ->
-    console.log this
     if active
       @classList.add('active')
     else
@@ -71,30 +70,26 @@ class PaneElement extends HTMLElement
     {activeElement} = document
     this is activeElement or @contains(activeElement)
 
+atom.commands.add '.pane',
+  'pane:save-items': -> @getModel().saveItems()
+  'pane:show-next-item': -> @getModel().activateNextItem()
+  'pane:show-previous-item': -> @getModel().activatePreviousItem()
+  'pane:show-item-1': -> @getModel().activateItemAtIndex(0)
+  'pane:show-item-2': -> @getModel().activateItemAtIndex(1)
+  'pane:show-item-3': -> @getModel().activateItemAtIndex(2)
+  'pane:show-item-4': -> @getModel().activateItemAtIndex(3)
+  'pane:show-item-5': -> @getModel().activateItemAtIndex(4)
+  'pane:show-item-6': -> @getModel().activateItemAtIndex(5)
+  'pane:show-item-7': -> @getModel().activateItemAtIndex(6)
+  'pane:show-item-8': -> @getModel().activateItemAtIndex(7)
+  'pane:show-item-9': -> @getModel().activateItemAtIndex(8)
+  'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
+  'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
+  'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
+  'pane:split-down': -> @getModel().splitDown(copyActiveItem: true)
+  'pane:close': -> @getModel().destroy()
+  'pane:close-other-items': -> @getModel().destroyInactiveItems()
+
 module.exports = PaneElement = document.registerElement 'atom-pane',
   prototype: PaneElement.prototype
   extends: 'div'
-
-# handleEvents: ->
-  # @command 'pane:save-items', => @saveItems()
-  # @command 'pane:show-next-item', => @activateNextItem()
-  # @command 'pane:show-previous-item', => @activatePreviousItem()
-  #
-  # @command 'pane:show-item-1', => @activateItemAtIndex(0)
-  # @command 'pane:show-item-2', => @activateItemAtIndex(1)
-  # @command 'pane:show-item-3', => @activateItemAtIndex(2)
-  # @command 'pane:show-item-4', => @activateItemAtIndex(3)
-  # @command 'pane:show-item-5', => @activateItemAtIndex(4)
-  # @command 'pane:show-item-6', => @activateItemAtIndex(5)
-  # @command 'pane:show-item-7', => @activateItemAtIndex(6)
-  # @command 'pane:show-item-8', => @activateItemAtIndex(7)
-  # @command 'pane:show-item-9', => @activateItemAtIndex(8)
-  #
-  # @command 'pane:split-left', => @model.splitLeft(copyActiveItem: true)
-  # @command 'pane:split-right', => @model.splitRight(copyActiveItem: true)
-  # @command 'pane:split-up', => @model.splitUp(copyActiveItem: true)
-  # @command 'pane:split-down', => @model.splitDown(copyActiveItem: true)
-  # @command 'pane:close', =>
-  #   @model.destroyItems()
-  #   @model.destroy()
-  # @command 'pane:close-other-items', => @destroyInactiveItems()
