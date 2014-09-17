@@ -211,6 +211,18 @@ describe "EditorComponent", ->
       expect(leafNodes[0].classList.contains('leading-whitespace')).toBe true
 
     it "applies .trailing-whitespace for lines with trailing spaces and/or tabs", ->
+      editor.setText(' ')
+      nextAnimationFrame()
+
+      leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
+
+      editor.setText('\t')
+      nextAnimationFrame()
+
+      leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
+      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
+
       editor.setText('a ')
       nextAnimationFrame()
 
