@@ -492,7 +492,7 @@ class Editor extends Model
   Section: File Details
   ###
 
-  # Essential: Get the title the editor's title for display in other parts of the
+  # Essential: Get the editor's title for display in other parts of the
   # UI such as the tabs.
   #
   # If the editor's buffer is saved, its title is the file name. If it is
