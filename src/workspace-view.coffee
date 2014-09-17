@@ -175,7 +175,9 @@ class WorkspaceView extends View
     @on = (eventName) =>
       switch eventName
         when 'pane:removed'
-          deprecate("Use Pane::onDidDestroy instead")
+          deprecate('Use Pane::onDidDestroy instead')
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
       originalOn.apply(this, arguments)
 
   ###
