@@ -23,7 +23,7 @@ isSurrogatePair = (string, index=0) ->
 #
 # Return a {Boolean}.
 isVariationSequence = (string, index=0) ->
-  isVariationSelector(string, index + 1)
+  not isVariationSelector(string, index) and isVariationSelector(string, index + 1)
 
 # Is the character at the given index the start of high/low surrogate pair
 # or a variation sequence?
