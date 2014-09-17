@@ -9,7 +9,7 @@ Delegator = require 'delegato'
 Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
-{jQuery} = require './space-pen-extensions'
+ViewRegistry = require './view-registry'
 WorkspaceView = null
 
 # Essential: Represents the state of the user interface for the entire window.
@@ -29,7 +29,7 @@ class Workspace extends Model
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
 
   @properties
-    paneContainer: -> new PaneContainer
+    paneContainer: null
     fullScreen: false
     destroyedItemUris: -> []
 
@@ -37,9 +37,10 @@ class Workspace extends Model
     super
 
     @emitter = new Emitter
-    @viewsByModel = new WeakMap
     @openers = []
 
+    @viewRegistry ?= new ViewRegistry
+    @paneContainer ?= new PaneContainer({@viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
 
     @registerOpener (filePath) =>
@@ -58,6 +59,8 @@ class Workspace extends Model
     for packageName in params.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
+    params.viewRegistry = new ViewRegistry
+    params.paneContainer.viewRegistry = params.viewRegistry
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -496,21 +499,4 @@ class Workspace extends Model
     @paneContainer.destroy()
 
   getView: (object) ->
-    if view = @viewsByModel.get(object)
-      view
-    else if object instanceof HTMLElement
-      object
-    else if object instanceof jQuery
-      object[0].__spacePenView ?= object
-      object[0]
-    else
-      @createView(object)
-
-  createView: (model) ->
-    if viewClass = model?.getViewClass?()
-      view = new viewClass(model)
-      @viewsByModel.set(model, view[0])
-      view[0].__spacePenView ?= view
-      view[0]
-    else
-      throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
+    @viewRegistry.getView(object)
