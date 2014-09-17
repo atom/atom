@@ -1,17 +1,6 @@
 textUtils = require '../src/text-utils'
 
 describe 'text utilities', ->
-  describe '.getCharacterCount(string)', ->
-    it 'returns the number of full characters in the string', ->
-      expect(textUtils.getCharacterCount('abc')).toBe 3
-      expect(textUtils.getCharacterCount('a\uD835\uDF97b\uD835\uDF97c')).toBe 5
-      expect(textUtils.getCharacterCount('\uD835\uDF97')).toBe 1
-      expect(textUtils.getCharacterCount('\u2714\uFE0E')).toBe 1
-      expect(textUtils.getCharacterCount('\uD835')).toBe 1
-      expect(textUtils.getCharacterCount('\uDF97')).toBe 1
-      expect(textUtils.getCharacterCount('\uFE0E')).toBe 1
-      expect(textUtils.getCharacterCount('\uFE0E\uFE0E')).toBe 2
-
   describe '.hasPairedCharacter(string)', ->
     it 'returns true when the string contains a surrogate pair or variation sequence', ->
       expect(textUtils.hasPairedCharacter('abc')).toBe false

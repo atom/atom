@@ -36,27 +36,16 @@ isVariationSequence = (string, index=0) ->
 isPairedCharacter = (string, index=0) ->
   isSurrogatePair(string, index) or isVariationSequence(string, index)
 
-# Get the number of characters in the string accounting for surrogate pairs and
-# variation sequences.
-#
-# This method counts high/low surrogate pairs and variation sequences as a
-# single character and will always returns a value less than or equal to
-# `string.length`.
-#
-# * `string` The {String} to count the number of full characters in.
-#
-# Returns a {Number}.
-getCharacterCount = (string) ->
-  count = string.length
-  count-- for index in [0...string.length] when isPairedCharacter(string, index)
-  count
-
 # Does the given string contain at least surrogate pair or variation sequence?
 #
 # * `string` The {String} to check for the presence of paired characters.
 #
 # Returns a {Boolean}.
 hasPairedCharacter = (string) ->
-  string.length isnt getCharacterCount(string)
+  index = 0
+  while index < string.length
+    return true if isPairedCharacter(string, index)
+    index++
+  false
 
-module.exports = {getCharacterCount, isPairedCharacter, hasPairedCharacter}
+module.exports = {isPairedCharacter, hasPairedCharacter}
