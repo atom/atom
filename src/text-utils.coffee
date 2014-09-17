@@ -32,7 +32,6 @@ isVariationSequence = (string, index=0) ->
 # * `index`  The {Number} index to look for a surrogate pair at.
 #
 # Return a {Boolean}.
-
 isPairedCharacter = (string, index=0) ->
   isSurrogatePair(string, index) or isVariationSequence(string, index)
 
