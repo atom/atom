@@ -3343,7 +3343,7 @@ describe "Editor", ->
         editor2.destroy()
         expect(editor.shouldPromptToSave()).toBeTruthy()
 
-  describe "when the editor text contains surrogate pair characters", ->
+  describe "when the editor contains surrogate pair characters", ->
     it "correctly backspaces over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97')
       editor.moveToBottom()
