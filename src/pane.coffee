@@ -53,9 +53,6 @@ class Pane extends Model
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 
-  # Called by the view layer to construct a view for this model.
-  getViewClass: -> PaneView ?= require './pane-view'
-
   getView: (object) ->
     @container.getView(object)
 
