@@ -23,10 +23,8 @@ class Project extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  # Public: Find the local path for the given repository URL.
-  #
-  # * `repoUrl` {String} url to a git repository
   @pathForRepositoryUrl: (repoUrl) ->
+    deprecate '::pathForRepositoryUrl will be removed. Please remove from your code.'
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
     repoName = repoName.replace(/\.git$/, '')
     path.join(atom.config.get('core.projectHome'), repoName)
