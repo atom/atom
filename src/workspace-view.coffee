@@ -174,6 +174,8 @@ class WorkspaceView extends View
 
     @on = (eventName) =>
       switch eventName
+        when 'pane:active-item-changed'
+          deprecate('Use Pane::onDidChangeActiveItem instead')
         when 'pane:removed'
           deprecate('Use Pane::onDidDestroy instead')
         when 'pane-container:active-pane-item-changed'
