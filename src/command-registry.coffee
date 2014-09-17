@@ -168,8 +168,6 @@ class CommandRegistry
 
 class CommandListener
   constructor: (@selector, @callback) ->
-    console.log "calc specificity", @selector
-
     @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
     @sequenceNumber = SequenceCount++
 
