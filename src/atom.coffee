@@ -111,7 +111,7 @@ class Atom extends Model
   # Public: A {ContextMenuManager} instance
   contextMenu: null
 
-  # A {DeserializerManager} instance
+  # Public: A {DeserializerManager} instance
   deserializers: null
 
   # Public: A {KeymapManager} instance
