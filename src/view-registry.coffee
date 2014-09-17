@@ -4,6 +4,10 @@ module.exports =
 class ViewRegistry
   constructor: ->
     @views = new WeakMap
+    @providers = []
+
+  addViewProvider: (provider) ->
+    @providers.push(provider)
 
   getView: (object) ->
     return unless object?
@@ -21,9 +25,16 @@ class ViewRegistry
     else if object instanceof jQuery
       object[0].__spacePenView ?= object
       object[0]
+    else if provider = @findProvider(object)
+      element = new provider.viewClass
+      element.setModel(object)
+      element
     else if viewClass = object?.getViewClass?()
       view = new viewClass(object)
       view[0].__spacePenView ?= view
       view[0]
     else
       throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
+
+  findProvider: (object) ->
+    @providers.find ({modelClass}) -> object instanceof modelClass

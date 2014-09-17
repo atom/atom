@@ -24,6 +24,30 @@ describe "ViewRegistry", ->
         expect(node.__spacePenView).toBe view
 
     describe "when passed a model object", ->
+      describe "when a view provider is registered matching the object's constructor", ->
+        it "constructs a view element and assigns the model on it", ->
+          class TestModel
+
+          class TestModelSubclass extends TestModel
+
+          class TestView
+            setModel: (@model) ->
+
+          model = new TestModel
+
+          registry.addViewProvider
+            modelClass: TestModel
+            viewClass: TestView
+
+          view = registry.getView(model)
+          expect(view instanceof TestView).toBe true
+          expect(view.model).toBe model
+
+          subclassModel = new TestModelSubclass
+          view2 = registry.getView(subclassModel)
+          expect(view2 instanceof TestView).toBe true
+          expect(view2.model).toBe subclassModel
+
       describe "when no view provider is registered for the object's constructor", ->
         describe "when the object has a .getViewClass() method", ->
           it "builds an instance of the view class with the model, then returns its root node with a __spacePenView property pointing at the view", ->
