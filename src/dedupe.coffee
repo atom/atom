@@ -42,6 +42,12 @@ class Dedupe extends Command
 
     fs.makeTreeSync(@atomDirectory)
     config.loadNpm (error, npm) =>
+      # node-gyp doesn't currently have an option for this so just set the
+      # environment variable to bypass strict SSL
+      # https://github.com/TooTallNate/node-gyp/issues/448
+      useStrictSsl = npm.config.get('strict-ssl') ? true
+      env.NODE_TLS_REJECT_UNAUTHORIZED = 0 unless useStrictSsl
+
       # Pass through configured proxy to node-gyp
       proxy = npm.config.get('https-proxy') or npm.config.get('proxy')
       installNodeArgs.push("--proxy=#{proxy}") if proxy
