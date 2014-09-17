@@ -11,7 +11,7 @@ describe 'text utilities', ->
       expect(textUtils.getCharacterCount('\uDF97')).toBe 1
 
   describe '.hasPairedCharacter(string)', ->
-    it 'returns true when the string contains a surrogate pair', ->
+    it 'returns true when the string contains a surrogate pair or variation sequence', ->
       expect(textUtils.hasPairedCharacter('abc')).toBe false
       expect(textUtils.hasPairedCharacter('a\uD835\uDF97b\uD835\uDF97c')).toBe true
       expect(textUtils.hasPairedCharacter('\uD835\uDF97')).toBe true
@@ -21,7 +21,7 @@ describe 'text utilities', ->
       expect(textUtils.hasPairedCharacter('\uFE0E')).toBe false
 
   describe '.isPairedCharacter(string, index)', ->
-    it 'returns true when the index is the start of a high/low surrogate pair', ->
+    it 'returns true when the index is the start of a high/low surrogate pair or variation sequence', ->
       expect(textUtils.isPairedCharacter('a\uD835\uDF97b\uD835\uDF97c', 0)).toBe false
       expect(textUtils.isPairedCharacter('a\uD835\uDF97b\uD835\uDF97c', 1)).toBe true
       expect(textUtils.isPairedCharacter('a\uD835\uDF97b\uD835\uDF97c', 2)).toBe false
