@@ -167,6 +167,17 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
+    @setupViewEventDeprecations()
+
+  setupViewEventDeprecations: ->
+    originalOn = @on
+
+    @on = (eventName) =>
+      switch eventName
+        when 'pane:removed'
+          deprecate("Use Pane::onDidDestroy instead")
+      originalOn.apply(this, arguments)
+
   ###
   Section: Accessing the Workspace Model
   ###
