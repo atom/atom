@@ -661,9 +661,8 @@ class DisplayBuffer extends Model
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @defaultCharWidth
-    rawRowCount = targetTop / @getLineHeightInPixels()
-    isLastRow = rawRowCount > @getLastRow()
-    row = Math.floor(rawRowCount)
+    row = Math.floor(targetTop / @getLineHeightInPixels())
+    isLastRow = row > @getLastRow()
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)
 
