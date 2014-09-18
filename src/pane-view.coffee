@@ -162,7 +162,7 @@ class PaneView extends View
       deprecate 'Please return a Disposable object from your ::onDidChangeTitle method!' unless disposable?.dispose?
       @activeItemDisposables.add(disposable) if disposable?.dispose?
     else if item.on?
-      deprecate '::on methods for items are no longer supported. If you would like your item to title change behavior, please implement a ::onDidChangeTitle() method.'
+      deprecate '::on methods for items are no longer supported. If you would like your item to support title change behavior, please implement a ::onDidChangeTitle() method.'
       disposable = item.on('title-changed', @activeItemTitleChanged)
       @activeItemDisposables.add(disposable) if disposable?.dispose?
 
