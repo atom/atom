@@ -152,6 +152,7 @@ class CommandRegistry
   handleCommandEvent: (event) =>
     propagationStopped = false
     immediatePropagationStopped = false
+    matched = false
     currentTarget = event.target
 
     syntheticEvent = Object.create event,
@@ -169,6 +170,8 @@ class CommandRegistry
           .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
           .sort (a, b) -> a.compare(b)
 
+      matched = true if matchingListeners.length > 0
+
       for listener in matchingListeners
         break if immediatePropagationStopped
         listener.callback.call(currentTarget, syntheticEvent)
@@ -177,6 +180,8 @@ class CommandRegistry
       break if currentTarget is @rootNode
       break if propagationStopped
       currentTarget = currentTarget.parentNode
+
+    matched
 
 class CommandListener
   constructor: (@selector, @callback) ->

@@ -138,3 +138,10 @@ describe "CommandRegistry", ->
 
       registry.dispatch(grandchild, 'command')
       expect(called).toBe true
+
+    it "returns a boolean indicating whether any listeners matched the command", ->
+      registry.add '.grandchild', 'command', ->
+
+      expect(registry.dispatch(grandchild, 'command')).toBe true
+      expect(registry.dispatch(grandchild, 'bogus')).toBe false
+      expect(registry.dispatch(parent, 'command')).toBe false
