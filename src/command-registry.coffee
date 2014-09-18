@@ -178,9 +178,6 @@ class CommandRegistry
       break if propagationStopped
       currentTarget = currentTarget.parentNode
 
-  clear: ->
-    @listenersByCommandName = {}
-
 class CommandListener
   constructor: (@selector, @callback) ->
     @specificity = (SpecificityCache[@selector] ?= specificity(@selector))

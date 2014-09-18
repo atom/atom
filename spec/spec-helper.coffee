@@ -121,8 +121,6 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.commands.clear()
-
   atom.packages.deactivatePackages()
   atom.menu.template = []
 
