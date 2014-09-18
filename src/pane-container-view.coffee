@@ -1,7 +1,7 @@
 {deprecate} = require 'grim'
 Delegator = require 'delegato'
 {CompositeDisposable} = require 'event-kit'
-{$, View} = require './space-pen-extensions'
+{$, View, callAttachHooks} = require './space-pen-extensions'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
 
@@ -27,19 +27,19 @@ class PaneContainerView extends View
     @subscriptions.add @model.onDidChangeActivePaneItem(@onActivePaneItemChanged)
 
   getRoot: ->
-    @children().first().view()
+    view = @model.getView(@model.getRoot())
+    view.__spacePenView ? view
 
   onRootChanged: (root) =>
     focusedElement = document.activeElement if @hasFocus()
 
-    oldRoot = @getRoot()
-    if oldRoot instanceof PaneView and oldRoot.model.isDestroyed()
-      @trigger 'pane:removed', [oldRoot]
-    oldRoot?.detach()
+    if oldRootView = @model.getView(@model.getRoot())
+      oldRootView.remove()
+
     if root?
       view = @model.getView(root)
-      view = view.__spacePenView if view.__spacePenView?
       @append(view)
+      callAttachHooks(view)
       focusedElement?.focus()
     else
       atom.workspaceView?.focus() if focusedElement?

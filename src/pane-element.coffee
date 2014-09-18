@@ -72,8 +72,7 @@ class PaneElement extends HTMLElement
   getActiveView: -> @model.getView(@model.getActiveItem())
 
   hasFocus: ->
-    {activeElement} = document
-    this is activeElement or @contains(activeElement)
+    this is document.activeElement or @contains(document.activeElement)
 
 atom.commands.add '.pane',
   'pane:save-items': -> @getModel().saveItems()

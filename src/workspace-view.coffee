@@ -10,8 +10,6 @@ fs = require 'fs-plus'
 Workspace = require './workspace'
 CommandInstaller = require './command-installer'
 PaneView = require './pane-view'
-PaneColumnView = require './pane-column-view'
-PaneRowView = require './pane-row-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
 

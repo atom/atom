@@ -39,13 +39,17 @@ class PaneView extends View
     @subscriptions.add @model.onDidMoveItem(@onItemMoved)
     @subscriptions.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
     @subscriptions.add @model.observeActive(@onActiveStatusChanged)
+    @subscriptions.add @model.onDidDestroy(@onPaneDestroyed)
 
   afterAttach: ->
     @container ?= @closest('.panes').view()
-    @trigger 'pane:attached', [this]
+    @trigger('pane:attached', [this])
 
-  beforeRemove: ->
+  onPaneDestroyed: =>
+    @container?.trigger 'pane:removed', [this]
     @subscriptions.dispose()
+
+  remove: ->
     @model.destroy() unless @model.isDestroyed()
 
   # Essential: Returns the {Pane} model underlying this pane view
@@ -164,3 +168,6 @@ class PaneView extends View
   splitDown: (items...) -> @model.getView(@model.splitDown({items})).__spacePenView
 
   getContainer: -> @closest('.panes').view()
+
+  focus: ->
+    @element.focus()

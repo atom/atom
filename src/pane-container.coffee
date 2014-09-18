@@ -4,6 +4,8 @@
 Serializable = require 'serializable'
 Pane = require './pane'
 PaneElement = require './pane-element'
+PaneAxis = require './pane-axis'
+PaneAxisElement = require './pane-axis-element'
 ViewRegistry = require './view-registry'
 ItemRegistry = require './item-registry'
 PaneContainerView = null
@@ -36,6 +38,9 @@ class PaneContainer extends Model
     @viewRegistry.addViewProvider
       modelConstructor: Pane
       viewConstructor: PaneElement
+    @viewRegistry.addViewProvider
+      modelConstructor: PaneAxis
+      viewConstructor: PaneAxisElement
 
     @setRoot(params?.root ? new Pane)
     @destroyEmptyPanes() if params?.destroyEmptyPanes
