@@ -4,11 +4,11 @@
 Serializable = require 'serializable'
 Pane = require './pane'
 PaneElement = require './pane-element'
-PaneAxis = require './pane-axis'
+PaneContainerElement = require './pane-container-element'
 PaneAxisElement = require './pane-axis-element'
+PaneAxis = require './pane-axis'
 ViewRegistry = require './view-registry'
 ItemRegistry = require './item-registry'
-PaneContainerView = null
 
 module.exports =
 class PaneContainer extends Model
@@ -35,12 +35,7 @@ class PaneContainer extends Model
 
     @itemRegistry = new ItemRegistry
     @viewRegistry = params?.viewRegistry ? new ViewRegistry
-    @viewRegistry.addViewProvider
-      modelConstructor: Pane
-      viewConstructor: PaneElement
-    @viewRegistry.addViewProvider
-      modelConstructor: PaneAxis
-      viewConstructor: PaneAxisElement
+    @registerViewProviders()
 
     @setRoot(params?.root ? new Pane)
     @destroyEmptyPanes() if params?.destroyEmptyPanes
@@ -58,8 +53,18 @@ class PaneContainer extends Model
     root: @root?.serialize()
     activePaneId: @activePane.id
 
-  getViewClass: ->
-    PaneContainerView ?= require './pane-container-view'
+  registerViewProviders: ->
+    @viewRegistry.addViewProvider
+      modelConstructor: PaneContainer
+      viewConstructor: PaneContainerElement
+
+    @viewRegistry.addViewProvider
+      modelConstructor: PaneAxis
+      viewConstructor: PaneAxisElement
+
+    @viewRegistry.addViewProvider
+      modelConstructor: Pane
+      viewConstructor: PaneElement
 
   getView: (object) ->
     @viewRegistry.getView(object)

@@ -29,11 +29,12 @@ class Workspace extends Model
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
 
   @properties
+    viewRegistry: null
     paneContainer: null
     fullScreen: false
     destroyedItemUris: -> []
 
-  constructor: ->
+  constructor: (params) ->
     super
 
     @emitter = new Emitter
@@ -61,6 +62,7 @@ class Workspace extends Model
 
     params.viewRegistry = new ViewRegistry
     params.paneContainer.viewRegistry = params.viewRegistry
+    console.log "deserializing pane container"
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
