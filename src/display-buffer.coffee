@@ -10,7 +10,7 @@ RowMap = require './row-map'
 Fold = require './fold'
 Token = require './token'
 Decoration = require './decoration'
-Marker = require './display-buffer-marker'
+Marker = require './marker'
 Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
