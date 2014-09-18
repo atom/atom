@@ -148,15 +148,20 @@ class LanguageMode
     return unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
     startRow = bufferRow
-    for currentRow in [bufferRow-1..0]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
-      startRow = currentRow
     endRow = bufferRow
-    for currentRow in [bufferRow+1..@buffer.getLastRow()]
-      break if @buffer.isRowBlank(currentRow)
-      break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
-      endRow = currentRow
+
+    if bufferRow > 0
+      for currentRow in [bufferRow-1..0]
+        break if @buffer.isRowBlank(currentRow)
+        break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        startRow = currentRow
+
+    if bufferRow < @buffer.getLastRow()
+      for currentRow in [bufferRow+1..@buffer.getLastRow()]
+        break if @buffer.isRowBlank(currentRow)
+        break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
+        endRow = currentRow
+
     return [startRow, endRow] if startRow isnt endRow
 
   rowRangeForCodeFoldAtBufferRow: (bufferRow) ->

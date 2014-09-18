@@ -70,6 +70,28 @@ describe "LanguageMode", ->
         expect(languageMode.rowRangeForCodeFoldAtBufferRow(2)).toBeNull()
         expect(languageMode.rowRangeForCodeFoldAtBufferRow(4)).toEqual [4, 7]
 
+    describe ".rowRangeForCommentAtBufferRow(bufferRow)", ->
+      it "returns the start/end rows of the foldable comment starting at the given row", ->
+        buffer.setText("//this is a multi line comment\n//another line")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toEqual [0, 1]
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toEqual [0, 1]
+
+        buffer.setText("//this is a multi line comment\n//another line\n//and one more")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toEqual [0, 2]
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toEqual [0, 2]
+
+        buffer.setText("//this is a multi line comment\n\n//with an empty line")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toBeUndefined()
+        expect(languageMode.rowRangeForCommentAtBufferRow(2)).toBeUndefined()
+
+        buffer.setText("//this is a single line comment\n")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toBeUndefined()
+
+        buffer.setText("//this is a single line comment")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
+
     describe "suggestedIndentForBufferRow", ->
       it "returns the suggested indentation based on auto-indent/outdent rules", ->
         expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
