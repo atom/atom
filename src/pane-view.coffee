@@ -26,6 +26,7 @@ class PaneView extends View
     'activate', 'getActiveItem', toProperty: 'model'
 
   previousActiveItem: null
+  attached: false
 
   constructor: (@element) ->
     @itemViews = $(element.itemViews)
@@ -43,7 +44,8 @@ class PaneView extends View
 
   afterAttach: ->
     @container ?= @closest('.panes').view()
-    @trigger('pane:attached', [this])
+    @trigger('pane:attached', [this]) unless @attached
+    @attached = true
 
   onPaneDestroyed: =>
     @container?.trigger 'pane:removed', [this]
