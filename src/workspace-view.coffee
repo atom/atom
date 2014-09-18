@@ -20,7 +20,7 @@ atom.commands.add '.workspace',
   'window:decrease-font-size': -> @getModel().decreaseFontSize()
   'window:reset-font-size': -> @getModel().resetFontSize()
 
-# Essential: The top-level view for the entire window. An instance of this class is
+# Extended: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
 #
 # It is backed by a model object, an instance of {Workspace}, which is available
