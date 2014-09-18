@@ -418,6 +418,8 @@ class WorkspaceView extends View
 
     @on = (eventName) =>
       switch eventName
+        when 'beep'
+          deprecate('Use Atom::onDidBeep instead')
         when 'cursor:moved'
           deprecate('Use Editor::onDidChangeCursorPosition instead')
         when 'editor:attached'
