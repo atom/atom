@@ -1138,9 +1138,9 @@ class DisplayBuffer extends Model
       @pendingChangeEvent = null
       @emitDidChange(event, false)
 
-  handleBufferMarkerCreated: (marker) =>
-    @createFoldForMarker(marker) if marker.matchesProperties(@getFoldMarkerAttributes())
-    if marker = @getMarker(marker.id)
+  handleBufferMarkerCreated: (textBufferMarker) =>
+    @createFoldForMarker(textBufferMarker) if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
+    if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
       @emit 'marker-created', marker
