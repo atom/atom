@@ -398,7 +398,7 @@ class Workspace extends Model
   getActiveEditor: ->
     @activePane?.getActiveEditor()
 
-  # Extended: Save all pane items.
+  # Save all pane items.
   saveAll: ->
     @paneContainer.saveAll()
 
