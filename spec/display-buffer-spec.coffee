@@ -1020,8 +1020,8 @@ describe "DisplayBuffer", ->
         marker2 = marker1.copy(b: 3)
         expect(marker2.getBufferRange()).toEqual marker1.getBufferRange()
         expect(displayBuffer.getMarkerCount()).toBe initialMarkerCount + 2
-        expect(marker1.getAttributes()).toEqual a: 1, b: 2
-        expect(marker2.getAttributes()).toEqual a: 1, b: 3
+        expect(marker1.getProperties()).toEqual a: 1, b: 2
+        expect(marker2.getProperties()).toEqual a: 1, b: 3
 
     describe "DisplayBufferMarker::getPixelRange()", ->
       it "returns the start and end positions of the marker based on the line height and character widths assigned to the DisplayBuffer", ->

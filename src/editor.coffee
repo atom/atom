@@ -93,7 +93,7 @@ class Editor extends Model
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
-      marker.setAttributes(preserveFolds: true)
+      marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
     @subscribeToBuffer()
@@ -2480,13 +2480,13 @@ class Editor extends Model
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
-    unless marker.getAttributes().preserveFolds
+    unless marker.getProperties().preserveFolds
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editor: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
-    @mergeIntersectingSelections(preserveFolds: marker.getAttributes().preserveFolds)
+    @mergeIntersectingSelections(preserveFolds: marker.getProperties().preserveFolds)
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)

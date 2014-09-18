@@ -139,15 +139,21 @@ class DisplayBufferMarker
 
   # Extended: Returns an {Object} containing any custom properties associated with
   # the marker.
-  getAttributes: ->
+  getProperties: ->
     @bufferMarker.getProperties()
+  getAttributes: ->
+    deprecate 'Use Marker::getProperties instead'
+    @getProperties()
 
   # Extended: Merges an {Object} containing new properties into the marker's
   # existing properties.
   #
   # * `properties` {Object}
-  setAttributes: (attributes) ->
-    @bufferMarker.setProperties(attributes)
+  setProperties: (properties) ->
+    @bufferMarker.setProperties(properties)
+  setAttributes: (properties) ->
+    deprecate 'Use Marker::getProperties instead'
+    @setProperties(properties)
 
   matchesAttributes: (attributes) ->
     attributes = @displayBuffer.translateToBufferMarkerParams(attributes)
