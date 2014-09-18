@@ -163,8 +163,4 @@ class PaneView extends View
 
   splitDown: (items...) -> @model.getView(@model.splitDown({items})).__spacePenView
 
-  # Public: Get the container view housing this pane.
-  #
-  # Returns a {View}.
-  getContainer: ->
-    @closest('.panes').view()
+  getContainer: -> @closest('.panes').view()
