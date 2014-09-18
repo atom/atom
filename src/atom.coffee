@@ -8,6 +8,7 @@ shell = require 'shell'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
+{Emitter} = require 'event-kit'
 {Model} = require 'theorist'
 fs = require 'fs-plus'
 
@@ -147,6 +148,7 @@ class Atom extends Model
 
   # Call .loadOrCreate instead
   constructor: (@state) ->
+    @emitter = new Emitter
     {@mode} = @state
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
@@ -210,6 +212,18 @@ class Atom extends Model
     Editor = require './editor'
 
     @windowEventHandler = new WindowEventHandler
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Extended: Invoke the given callback whenever {::beep} is called.
+  #
+  # * `callback` {Function} to be called whenever {::beep} is called.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidBeep: (callback) ->
+    @emitter.on 'did-beep', callback
 
   ###
   Section: Atom Metadata
@@ -493,6 +507,7 @@ class Atom extends Model
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
     @workspaceView.trigger 'beep'
+    @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
   #
