@@ -172,6 +172,7 @@ class Editor extends Model
     @displayBuffer.destroy()
     @languageMode.destroy()
     @emitter.emit 'did-destroy'
+    @emitter.dispose()
 
   ###
   Section: Event Subscription
