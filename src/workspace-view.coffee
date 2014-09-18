@@ -178,6 +178,8 @@ class WorkspaceView extends View
           deprecate('Use Editor::onDidChangeCursorPosition instead')
         when 'pane:active-item-changed'
           deprecate('Use Pane::onDidChangeActiveItem instead')
+        when 'pane:active-item-modified-status-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
         when 'pane:active-item-title-changed'
           deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
         when 'pane:became-active'
@@ -217,6 +219,8 @@ class WorkspaceView extends View
           deprecate('Use Editor::onDidChangeCursorPosition instead')
         when 'pane:active-item-changed'
           deprecate('Use Pane::onDidChangeActiveItem instead')
+        when 'pane:active-item-modified-status-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
         when 'pane:active-item-title-changed'
           deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
         when 'pane:became-active'
