@@ -6,7 +6,7 @@ PropertyAccessors = require 'property-accessors'
 
 Pane = require './pane'
 
-# Extended: A container which can contains multiple items to be switched between.
+# A container which can contains multiple items to be switched between.
 #
 # Items can be almost anything however most commonly they're {EditorView}s.
 #
