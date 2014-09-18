@@ -71,7 +71,7 @@ describe "LanguageMode", ->
         expect(languageMode.rowRangeForCodeFoldAtBufferRow(4)).toEqual [4, 7]
 
     describe ".rowRangeForCommentAtBufferRow(bufferRow)", ->
-      it "returns the start/end rows of the foldable comment starting at the given row", ->
+      fit "returns the start/end rows of the foldable comment starting at the given row", ->
         buffer.setText("//this is a multi line comment\n//another line")
         expect(languageMode.rowRangeForCommentAtBufferRow(0)).toEqual [0, 1]
         expect(languageMode.rowRangeForCommentAtBufferRow(1)).toEqual [0, 1]
@@ -86,10 +86,12 @@ describe "LanguageMode", ->
         expect(languageMode.rowRangeForCommentAtBufferRow(2)).toBeUndefined()
 
         buffer.setText("//this is a single line comment\n")
+        console.log buffer.getLastRow()
         expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
         expect(languageMode.rowRangeForCommentAtBufferRow(1)).toBeUndefined()
 
         buffer.setText("//this is a single line comment")
+        console.log languageMode.isLineCommentedAtBufferRow(0)
         expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
 
     describe "suggestedIndentForBufferRow", ->

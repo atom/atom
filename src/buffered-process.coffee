@@ -49,8 +49,10 @@ class BufferedProcess
             # Don't wrap /root,C:\folder style arguments to explorer calls in
             # quotes since they will not be interpreted correctly if they are
             arg
-          else
+          else if typeof arg is 'string'
             "\"#{arg.replace(/"/g, '\\"')}\""
+          else
+            arg
       else
         cmdArgs = []
       if /\s/.test(command)
