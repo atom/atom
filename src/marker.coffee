@@ -12,7 +12,7 @@ Grim = require 'grim'
 #
 # ### Marker Creation
 #
-# You will use {Editor::markBufferRange} rather than creating Markers directly.
+# Use {Editor::markBufferRange} rather than creating Markers directly.
 #
 # ### Head and Tail
 #
@@ -128,7 +128,7 @@ class Marker
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Marker Metadata
+  Section: Marker Details
   ###
 
   # Essential: Returns a {Boolean} indicating whether the marker is valid. Markers can be
@@ -143,11 +143,11 @@ class Marker
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
-  # Extended: Returns a {Boolean} indicating whether the head precedes the tail.
+  # Essential: Returns a {Boolean} indicating whether the head precedes the tail.
   isReversed: ->
     @bufferMarker.isReversed()
 
-  # Extended: Get the invalidation strategy for this marker.
+  # Essential: Get the invalidation strategy for this marker.
   #
   # Valid values include: `never`, `surround`, `overlap`, `inside`, and `touch`.
   #
@@ -155,7 +155,7 @@ class Marker
   getInvalidationStrategy: ->
     @bufferMarker.getInvalidationStrategy()
 
-  # Extended: Returns an {Object} containing any custom properties associated with
+  # Essential: Returns an {Object} containing any custom properties associated with
   # the marker.
   getProperties: ->
     @bufferMarker.getProperties()
@@ -163,7 +163,7 @@ class Marker
     deprecate 'Use Marker::getProperties instead'
     @getProperties()
 
-  # Extended: Merges an {Object} containing new properties into the marker's
+  # Essential: Merges an {Object} containing new properties into the marker's
   # existing properties.
   #
   # * `properties` {Object}
