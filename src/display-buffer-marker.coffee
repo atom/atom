@@ -155,9 +155,12 @@ class DisplayBufferMarker
     deprecate 'Use Marker::getProperties instead'
     @setProperties(properties)
 
-  matchesAttributes: (attributes) ->
+  matchesProperties: (attributes) ->
     attributes = @displayBuffer.translateToBufferMarkerParams(attributes)
-    @bufferMarker.matchesAttributes(attributes)
+    @bufferMarker.matchesParams(attributes)
+  matchesAttributes: (attributes) ->
+    deprecate 'Use Marker::matchesProperties instead'
+    @matchesProperties(attributes)
 
   ###
   Section: Comparing to other markers
