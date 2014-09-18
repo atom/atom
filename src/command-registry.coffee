@@ -51,8 +51,8 @@ class CommandRegistry
     @rootNode = newRootNode
 
     for commandName of @listenersByCommandName
-      oldRootNode?.removeEventListener(commandName, @dispatchCommand, true)
-      newRootNode?.addEventListener(commandName, @dispatchCommand, true)
+      oldRootNode?.removeEventListener(commandName, @handleCommandEvent, true)
+      newRootNode?.addEventListener(commandName, @handleCommandEvent, true)
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -88,7 +88,7 @@ class CommandRegistry
       return disposable
 
     unless @listenersByCommandName[commandName]?
-      @rootNode?.addEventListener(commandName, @dispatchCommand, true)
+      @rootNode?.addEventListener(commandName, @handleCommandEvent, true)
       @listenersByCommandName[commandName] = []
 
     listener = new CommandListener(selector, callback)
@@ -99,35 +99,7 @@ class CommandRegistry
       listenersForCommand.splice(listenersForCommand.indexOf(listener), 1)
       if listenersForCommand.length is 0
         delete @listenersByCommandName[commandName]
-        @rootNode.removeEventListener(commandName, @dispatchCommand, true)
-
-  dispatchCommand: (event) =>
-    propagationStopped = false
-    immediatePropagationStopped = false
-    currentTarget = event.target
-
-    syntheticEvent = Object.create event,
-      eventPhase: value: Event.BUBBLING_PHASE
-      currentTarget: get: -> currentTarget
-      stopPropagation: value: ->
-        propagationStopped = true
-      stopImmediatePropagation: value: ->
-        propagationStopped = true
-        immediatePropagationStopped = true
-
-    loop
-      matchingListeners =
-        @listenersByCommandName[event.type]
-          .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
-          .sort (a, b) -> a.compare(b)
-
-      for listener in matchingListeners
-        break if immediatePropagationStopped
-        listener.callback.call(currentTarget, syntheticEvent)
-
-      break if propagationStopped
-      break if currentTarget is @rootNode
-      currentTarget = currentTarget.parentNode
+        @rootNode.removeEventListener(commandName, @handleCommandEvent, true)
 
   # Public: Find all registered commands matching a query.
   #
@@ -162,6 +134,49 @@ class CommandRegistry
       commands.push({name, displayName, jQuery: true})
 
     commands
+
+  # Public: Simulate the dispatch of a command on a DOM node.
+  #
+  # This can be useful for testing when you want to simulate the invocation of a
+  # command on a detached DOM node. Otherwise, the DOM node in question needs to
+  # be attached to the document so the event bubbles up to the root node to be
+  # processed.
+  #
+  # * `target` The DOM node at which to start bubbling the command event.
+  # * `commandName` {String} indicating the name of the command to dispatch.
+  dispatch: (target, commandName) ->
+    event = new CustomEvent(commandName, bubbles: true)
+    eventWithTarget = Object.create(event, target: value: target)
+    @handleCommandEvent(eventWithTarget)
+
+  handleCommandEvent: (event) =>
+    propagationStopped = false
+    immediatePropagationStopped = false
+    currentTarget = event.target
+
+    syntheticEvent = Object.create event,
+      eventPhase: value: Event.BUBBLING_PHASE
+      currentTarget: get: -> currentTarget
+      stopPropagation: value: ->
+        propagationStopped = true
+      stopImmediatePropagation: value: ->
+        propagationStopped = true
+        immediatePropagationStopped = true
+
+    loop
+      matchingListeners =
+        @listenersByCommandName[event.type]
+          .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
+          .sort (a, b) -> a.compare(b)
+
+      for listener in matchingListeners
+        break if immediatePropagationStopped
+        listener.callback.call(currentTarget, syntheticEvent)
+
+      break unless currentTarget?
+      break if currentTarget is @rootNode
+      break if propagationStopped
+      currentTarget = currentTarget.parentNode
 
   clear: ->
     @listenersByCommandName = {}

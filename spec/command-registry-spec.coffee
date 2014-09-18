@@ -124,3 +124,17 @@ describe "CommandRegistry", ->
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]
+
+  describe "::dispatch(target, commandName)", ->
+    it "simulates invocation of the given command ", ->
+      called = false
+      registry.add '.grandchild', 'command', (event) ->
+        expect(this).toBe grandchild
+        expect(event.type).toBe 'command'
+        expect(event.eventPhase).toBe Event.BUBBLING_PHASE
+        expect(event.target).toBe grandchild
+        expect(event.currentTarget).toBe grandchild
+        called = true
+
+      registry.dispatch(grandchild, 'command')
+      expect(called).toBe true
