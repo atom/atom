@@ -44,7 +44,7 @@ Grim = require 'grim'
 #
 # See {Editor::markBufferRange} for usage.
 module.exports =
-class DisplayBufferMarker
+class Marker
   EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
 
@@ -121,9 +121,9 @@ class DisplayBufferMarker
   on: (eventName) ->
     switch eventName
       when 'changed'
-        Grim.deprecate("Use DisplayBufferMarker::onDidChange instead")
+        Grim.deprecate("Use Marker::onDidChange instead")
       when 'destroyed'
-        Grim.deprecate("Use DisplayBufferMarker::onDidDestroy instead")
+        Grim.deprecate("Use Marker::onDidDestroy instead")
 
     EmitterMixin::on.apply(this, arguments)
 
@@ -233,28 +233,28 @@ class DisplayBufferMarker
     @setBufferRange(@displayBuffer.bufferRangeForScreenRange(screenRange), options)
 
   # Essential: Retrieves the buffer position of the marker's start. This will always be
-  # less than or equal to the result of {DisplayBufferMarker::getEndBufferPosition}.
+  # less than or equal to the result of {Marker::getEndBufferPosition}.
   #
   # Returns a {Point}.
   getStartBufferPosition: ->
     @bufferMarker.getStartPosition()
 
   # Essential: Retrieves the screen position of the marker's start. This will always be
-  # less than or equal to the result of {DisplayBufferMarker::getEndScreenPosition}.
+  # less than or equal to the result of {Marker::getEndScreenPosition}.
   #
   # Returns a {Point}.
   getStartScreenPosition: ->
     @displayBuffer.screenPositionForBufferPosition(@getStartBufferPosition(), wrapAtSoftNewlines: true)
 
   # Essential: Retrieves the buffer position of the marker's end. This will always be
-  # greater than or equal to the result of {DisplayBufferMarker::getStartBufferPosition}.
+  # greater than or equal to the result of {Marker::getStartBufferPosition}.
   #
   # Returns a {Point}.
   getEndBufferPosition: ->
     @bufferMarker.getEndPosition()
 
   # Essential: Retrieves the screen position of the marker's end. This will always be
-  # greater than or equal to the result of {DisplayBufferMarker::getStartScreenPosition}.
+  # greater than or equal to the result of {Marker::getStartScreenPosition}.
   #
   # Returns a {Point}.
   getEndScreenPosition: ->
@@ -340,7 +340,7 @@ class DisplayBufferMarker
 
   # Returns a {String} representation of the marker
   inspect: ->
-    "DisplayBufferMarker(id: #{@id}, bufferRange: #{@getBufferRange()})"
+    "Marker(id: #{@id}, bufferRange: #{@getBufferRange()})"
 
   destroyed: ->
     delete @displayBuffer.markers[@id]

@@ -1011,7 +1011,7 @@ describe "DisplayBuffer", ->
         buffer.getMarker(marker2.id).destroy()
         expect(destroyedHandler).toHaveBeenCalled()
 
-    describe "DisplayBufferMarker::copy(attributes)", ->
+    describe "Marker::copy(attributes)", ->
       it "creates a copy of the marker with the given attributes merged in", ->
         initialMarkerCount = displayBuffer.getMarkerCount()
         marker1 = displayBuffer.markScreenRange([[5, 4], [5, 10]], a: 1, b: 2)
@@ -1023,7 +1023,7 @@ describe "DisplayBuffer", ->
         expect(marker1.getProperties()).toEqual a: 1, b: 2
         expect(marker2.getProperties()).toEqual a: 1, b: 3
 
-    describe "DisplayBufferMarker::getPixelRange()", ->
+    describe "Marker::getPixelRange()", ->
       it "returns the start and end positions of the marker based on the line height and character widths assigned to the DisplayBuffer", ->
         marker = displayBuffer.markScreenRange([[5, 10], [6, 4]])
 

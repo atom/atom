@@ -1754,7 +1754,7 @@ class Editor extends Model
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
@@ -1763,11 +1763,11 @@ class Editor extends Model
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Essential: Find all {DisplayBufferMarker}s that match the given properties.
+  # Essential: Find all {Marker}s that match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
   # associated with custom properties that will be compared with basic equality.
@@ -1789,11 +1789,11 @@ class Editor extends Model
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
 
-  # Extended: Get the {DisplayBufferMarker} for the given marker id.
+  # Extended: Get the {Marker} for the given marker id.
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
-  # Extended: Get all {DisplayBufferMarker}s.
+  # Extended: Get all {Marker}s.
   getMarkers: ->
     @displayBuffer.getMarkers()
 
@@ -2054,7 +2054,7 @@ class Editor extends Model
   getCursorsOrderedByBufferPosition: ->
     @getCursors().sort (a, b) -> a.compare(b)
 
-  # Add a cursor based on the given {DisplayBufferMarker}.
+  # Add a cursor based on the given {Marker}.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
@@ -2397,7 +2397,7 @@ class Editor extends Model
 
   # Extended: Select the range of the given marker if it is valid.
   #
-  # * `marker` A {DisplayBufferMarker}
+  # * `marker` A {Marker}
   #
   # Returns the selected {Range} or `undefined` if the marker is invalid.
   selectMarker: (marker) ->
@@ -2513,9 +2513,9 @@ class Editor extends Model
 
     _.reduce(@getSelections(), reducer, [])
 
-  # Add a {Selection} based on the given {DisplayBufferMarker}.
+  # Add a {Selection} based on the given {Marker}.
   #
-  # * `marker` The {DisplayBufferMarker} to highlight
+  # * `marker` The {Marker} to highlight
   # * `options` (optional) An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
