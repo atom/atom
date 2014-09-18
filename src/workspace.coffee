@@ -103,6 +103,25 @@ class Workspace extends Model
     callback(textEditor) for textEditor in @getTextEditors()
     @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
 
+  # Essential: Invoke the given callback with all current and future panes items in
+  # the workspace.
+  #
+  # * `callback` {Function} to be called with current and future pane items.
+  #   * `item` An item that is present in {::getPaneItems} at the time of
+  #      subscription or that is added at some later time.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
+
+  # Essential: Invoke the given callback when the active pane item changes.
+  #
+  # * `callback` {Function} to be called when the active pane item changes.
+  #   * `event` {Object} with the following keys:
+  #     * `activeItem` The active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
+
   # Essential: Invoke the given callback whenever an item is opened. Unlike
   # {::onDidAddPaneItem}, observers will be notified for items that are already
   # present in the workspace when they are reopened.
@@ -166,25 +185,6 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
-
-  # Extended: Invoke the given callback when the active pane item changes.
-  #
-  # * `callback` {Function} to be called when the active pane item changes.
-  #   * `event` {Object} with the following keys:
-  #     * `activeItem` The active pane item.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
-
-  # Extended: Invoke the given callback with all current and future panes items in
-  # the workspace.
-  #
-  # * `callback` {Function} to be called with current and future pane items.
-  #   * `item` An item that is present in {::getPaneItems} at the time of
-  #      subscription or that is added at some later time.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
 
   # Extended: Invoke the given callback when a text editor is added to the
   # workspace.
