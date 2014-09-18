@@ -10,6 +10,10 @@ Grim = require 'grim'
 # targets, misspelled words, and anything else that needs to track a logical
 # location in the buffer over time.
 #
+# ### Marker Creation
+#
+# You will use {Editor::markBufferRange} rather than creating Markers directly.
+#
 # ### Head and Tail
 #
 # Markers always have a *head* and sometimes have a *tail*. If you think of a
@@ -24,7 +28,21 @@ Grim = require 'grim'
 # Markers are considered *valid* when they are first created. Depending on the
 # invalidation strategy you choose, certain changes to the buffer can cause a
 # marker to become invalid, for example if the text surrounding the marker is
-# deleted. See {Editor::markBufferRange} for invalidation strategies.
+# deleted. The strategies, in order of descending fragility:
+#
+# * __never__: The marker is never marked as invalid. This is a good choice for
+#   markers representing selections in an editor.
+# * __surround__: The marker is invalidated by changes that completely surround it.
+# * __overlap__: The marker is invalidated by changes that surround the
+#   start or end of the marker. This is the default.
+# * __inside__: The marker is invalidated by changes that extend into the
+#   inside of the marker. Changes that end at the marker's start or
+#   start at the marker's end do not invalidate the marker.
+# * __touch__: The marker is invalidated by a change that touches the marked
+#   region in any way, including changes that end at the marker's
+#   start or start at the marker's end. This is the most fragile strategy.
+#
+# See {Editor::markBufferRange} for usage.
 module.exports =
 class DisplayBufferMarker
   EmitterMixin.includeInto(this)

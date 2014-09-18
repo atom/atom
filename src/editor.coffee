@@ -1691,21 +1691,61 @@ class Editor extends Model
   Section: Markers
   ###
 
-  # Essential: Mark the given range in buffer coordinates.
+  # Essential: Create a marker with the given range in buffer coordinates. This
+  # marker will maintain its logical location as the buffer is changed, so if
+  # you mark a particular word, the marker will remain over that word even if
+  # the word's location in the buffer changes.
   #
-  # * `range` A {Range} or range-compatible {Array}.
-  # * `options` (optional) See {TextBuffer::markRange}.
+  # * `range` A {Range} or range-compatible {Array}
+  # * `properties` A hash of key-value pairs to associate with the marker. There
+  #   are also reserved property names that have marker-specific meaning.
+  #   * `reversed` (optional) Creates the marker in a reversed orientation. (default: false)
+  #   * `persistent` (optional) Whether to include this marker when serializing the buffer. (default: true)
+  #   * `invalidate` (optional) Determines the rules by which changes to the
+  #     buffer *invalidate* the marker. (default: 'overlap') It can be any of
+  #     the following strategies, in order of fragility
+  #     * __never__: The marker is never marked as invalid. This is a good choice for
+  #       markers representing selections in an editor.
+  #     * __surround__: The marker is invalidated by changes that completely surround it.
+  #     * __overlap__: The marker is invalidated by changes that surround the
+  #       start or end of the marker. This is the default.
+  #     * __inside__: The marker is invalidated by changes that extend into the
+  #       inside of the marker. Changes that end at the marker's start or
+  #       start at the marker's end do not invalidate the marker.
+  #     * __touch__: The marker is invalidated by a change that touches the marked
+  #       region in any way, including changes that end at the marker's
+  #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # Essential: Mark the given range in screen coordinates.
+  # Essential: Create a marker with the given range in screen coordinates. This
+  # marker will maintain its logical location as the buffer is changed, so if
+  # you mark a particular word, the marker will remain over that word even if
+  # the word's location in the buffer changes.
   #
-  # * `range` A {Range} or range-compatible {Array}.
-  # * `options` (optional) See {TextBuffer::markRange}.
+  # * `range` A {Range} or range-compatible {Array}
+  # * `properties` A hash of key-value pairs to associate with the marker. There
+  #   are also reserved property names that have marker-specific meaning.
+  #   * `reversed` (optional) Creates the marker in a reversed orientation. (default: false)
+  #   * `persistent` (optional) Whether to include this marker when serializing the buffer. (default: true)
+  #   * `invalidate` (optional) Determines the rules by which changes to the
+  #     buffer *invalidate* the marker. (default: 'overlap') It can be any of
+  #     the following strategies, in order of fragility
+  #     * __never__: The marker is never marked as invalid. This is a good choice for
+  #       markers representing selections in an editor.
+  #     * __surround__: The marker is invalidated by changes that completely surround it.
+  #     * __overlap__: The marker is invalidated by changes that surround the
+  #       start or end of the marker. This is the default.
+  #     * __inside__: The marker is invalidated by changes that extend into the
+  #       inside of the marker. Changes that end at the marker's start or
+  #       start at the marker's end do not invalidate the marker.
+  #     * __touch__: The marker is invalidated by a change that touches the marked
+  #       region in any way, including changes that end at the marker's
+  #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
