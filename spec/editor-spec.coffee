@@ -3229,6 +3229,13 @@ describe "Editor", ->
       editor.destroy()
       expect(buffer.getMarkerCount()).toBe 0
 
+    it "notifies ::onDidDestroy observers when the editor is destroyed", ->
+      destroyObserverCalled = false
+      editor.onDidDestroy -> destroyObserverCalled = true
+
+      editor.destroy()
+      expect(destroyObserverCalled).toBe true
+
   describe ".joinLines()", ->
     describe "when no text is selected", ->
       describe "when the line below isn't empty", ->

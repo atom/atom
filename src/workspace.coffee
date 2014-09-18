@@ -104,7 +104,7 @@ class Workspace extends Model
     @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
 
   # Essential: Invoke the given callback whenever an item is opened. Unlike
-  # ::onDidAddPaneItem, observers will be notified for items that are already
+  # {::onDidAddPaneItem}, observers will be notified for items that are already
   # present in the workspace when they are reopened.
   #
   # * `callback` {Function} to be called whenever an item is opened.

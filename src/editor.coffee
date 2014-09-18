@@ -171,6 +171,7 @@ class Editor extends Model
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
+    @emitter.emit 'did-destroy'
 
   ###
   Section: Event Subscription
@@ -303,6 +304,14 @@ class Editor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidSave: (callback) ->
     @getBuffer().onDidSave(callback)
+
+  # Public: Invoke the given callback when the editor is destroyed.
+  #
+  # * `callback` {Function} to be called when the editor is destroyed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
 
   # Extended: Calls your `callback` when a {Cursor} is added to the editor.
   # Immediately calls your callback for each existing cursor.

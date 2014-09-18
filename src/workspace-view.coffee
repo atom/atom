@@ -167,6 +167,8 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
+    @deprecatedViewEvents()
+
   ###
   Section: Accessing the Workspace Model
   ###
@@ -410,6 +412,100 @@ class WorkspaceView extends View
   ###
   Section: Deprecated
   ###
+
+  deprecatedViewEvents: ->
+    originalWorkspaceViewOn = @on
+
+    @on = (eventName) =>
+      switch eventName
+        when 'beep'
+          deprecate('Use Atom::onDidBeep instead')
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
+        when 'editor:detached'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'editor:will-be-removed'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'pane:active-item-changed'
+          deprecate('Use Pane::onDidChangeActiveItem instead')
+        when 'pane:active-item-modified-status-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
+        when 'pane:active-item-title-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
+        when 'pane:attached'
+          deprecate('Use Workspace::onDidAddPane instead')
+        when 'pane:became-active'
+          deprecate('Use Pane::onDidActivate instead')
+        when 'pane:became-inactive'
+          deprecate('Use Pane::onDidChangeActive instead')
+        when 'pane:item-added'
+          deprecate('Use Pane::onDidAddItem instead')
+        when 'pane:item-moved'
+          deprecate('Use Pane::onDidMoveItem instead')
+        when 'pane:item-removed'
+          deprecate('Use Pane::onDidRemoveItem instead')
+        when 'pane:removed'
+          deprecate('Use Pane::onDidDestroy instead')
+        when 'pane-container:active-pane-item-changed'
+          deprecate('Use Workspace::onDidChangeActivePaneItem instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+        when 'uri-opened'
+          deprecate('Use Workspace::onDidOpen instead')
+      originalWorkspaceViewOn.apply(this, arguments)
+
+    EditorView = require './editor-view'
+    originalEditorViewOn = EditorView::on
+    EditorView::on = (eventName) ->
+      switch eventName
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
+        when 'editor:detached'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'editor:will-be-removed'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+      originalEditorViewOn.apply(this, arguments)
+
+    originalPaneViewOn = PaneView::on
+    PaneView::on = (eventName) ->
+      switch eventName
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
+        when 'editor:detached'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'editor:will-be-removed'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'pane:active-item-changed'
+          deprecate('Use Pane::onDidChangeActiveItem instead')
+        when 'pane:active-item-modified-status-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
+        when 'pane:active-item-title-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
+        when 'pane:attached'
+          deprecate('Use Workspace::onDidAddPane instead')
+        when 'pane:became-active'
+          deprecate('Use Pane::onDidActivate instead')
+        when 'pane:became-inactive'
+          deprecate('Use Pane::onDidChangeActive instead')
+        when 'pane:item-added'
+          deprecate('Use Pane::onDidAddItem instead')
+        when 'pane:item-moved'
+          deprecate('Use Pane::onDidMoveItem instead')
+        when 'pane:item-removed'
+          deprecate('Use Pane::onDidRemoveItem instead')
+        when 'pane:removed'
+          deprecate('Use Pane::onDidDestroy instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+      originalPaneViewOn.apply(this, arguments)
 
   # Deprecated
   eachPane: (callback) ->
