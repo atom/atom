@@ -1140,11 +1140,11 @@ class DisplayBuffer extends Model
 
   handleBufferMarkerCreated: (marker) =>
     @createFoldForMarker(marker) if marker.matchesProperties(@getFoldMarkerAttributes())
-    if displayBufferMarker = @getMarker(marker.id)
+    if marker = @getMarker(marker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
-      @emit 'marker-created', displayBufferMarker
-      @emitter.emit 'did-create-marker', displayBufferMarker
+      @emit 'marker-created', marker
+      @emitter.emit 'did-create-marker', marker
 
   createFoldForMarker: (marker) ->
     @decorateMarker(marker, type: 'gutter', class: 'folded')
