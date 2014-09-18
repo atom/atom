@@ -182,6 +182,8 @@ class WorkspaceView extends View
           deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
         when 'pane:active-item-title-changed'
           deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
+        when 'pane:attached'
+          deprecate('Use Workspace::onDidAddPane instead')
         when 'pane:became-active'
           deprecate('Use Pane::onDidActivate instead')
         when 'pane:became-inactive'
@@ -223,6 +225,8 @@ class WorkspaceView extends View
           deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
         when 'pane:active-item-title-changed'
           deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
+        when 'pane:attached'
+          deprecate('Use Workspace::onDidAddPane instead')
         when 'pane:became-active'
           deprecate('Use Pane::onDidActivate instead')
         when 'pane:became-inactive'
