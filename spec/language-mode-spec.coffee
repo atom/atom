@@ -71,7 +71,7 @@ describe "LanguageMode", ->
         expect(languageMode.rowRangeForCodeFoldAtBufferRow(4)).toEqual [4, 7]
 
     describe ".rowRangeForCommentAtBufferRow(bufferRow)", ->
-      fit "returns the start/end rows of the foldable comment starting at the given row", ->
+      it "returns the start/end rows of the foldable comment starting at the given row", ->
         buffer.setText("//this is a multi line comment\n//another line")
         expect(languageMode.rowRangeForCommentAtBufferRow(0)).toEqual [0, 1]
         expect(languageMode.rowRangeForCommentAtBufferRow(1)).toEqual [0, 1]
