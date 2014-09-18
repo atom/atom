@@ -45,7 +45,7 @@ class BufferedProcess
       # Quote all arguments and escapes inner quotes
       if args?
         cmdArgs = args.filter (arg) -> arg?
-        cmdArgs = args.map (arg) ->
+        cmdArgs = cmdArgs.map (arg) ->
           if command in ['explorer.exe', 'explorer'] and /^\/[a-zA-Z]+,.*$/.test(arg)
             # Don't wrap /root,C:\folder style arguments to explorer calls in
             # quotes since they will not be interpreted correctly if they are
