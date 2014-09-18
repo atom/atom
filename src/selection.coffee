@@ -176,7 +176,7 @@ class Selection extends Model
 
   # Public: Clears the selection, moving the marker to the head.
   clear: ->
-    @marker.setAttributes(goalBufferRange: null)
+    @marker.setProperties(goalBufferRange: null)
     @marker.clearTail() unless @retainSelection
     @finalize()
 
@@ -718,5 +718,5 @@ class Selection extends Model
     @marker.plantTail()
 
   getGoalBufferRange: ->
-    if goalBufferRange = @marker.getAttributes().goalBufferRange
+    if goalBufferRange = @marker.getProperties().goalBufferRange
       Range.fromObject(goalBufferRange)

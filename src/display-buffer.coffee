@@ -10,7 +10,7 @@ RowMap = require './row-map'
 Fold = require './fold'
 Token = require './token'
 Decoration = require './decoration'
-DisplayBufferMarker = require './display-buffer-marker'
+Marker = require './marker'
 Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
@@ -865,21 +865,21 @@ class DisplayBuffer extends Model
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
 
-  # Retrieves a {DisplayBufferMarker} based on its id.
+  # Retrieves a {Marker} based on its id.
   #
   # id - A {Number} representing a marker id
   #
-  # Returns the {DisplayBufferMarker} (if it exists).
+  # Returns the {Marker} (if it exists).
   getMarker: (id) ->
     unless marker = @markers[id]
       if bufferMarker = @buffer.getMarker(id)
-        marker = new DisplayBufferMarker({bufferMarker, displayBuffer: this})
+        marker = new Marker({bufferMarker, displayBuffer: this})
         @markers[id] = marker
     marker
 
   # Retrieves the active markers in the buffer.
   #
-  # Returns an {Array} of existing {DisplayBufferMarker}s.
+  # Returns an {Array} of existing {Marker}s.
   getMarkers: ->
     @buffer.getMarkers().map ({id}) => @getMarker(id)
 
@@ -934,7 +934,7 @@ class DisplayBuffer extends Model
   #
   # Refer to {DisplayBuffer::findMarkers} for details.
   #
-  # Returns a {DisplayBufferMarker} or null
+  # Returns a {Marker} or null
   findMarker: (params) ->
     @findMarkers(params)[0]
 
@@ -955,7 +955,7 @@ class DisplayBuffer extends Model
   #   :containedInBufferRange - A {Range} or range-compatible {Array}. Only
   #     returns markers contained within this range.
   #
-  # Returns an {Array} of {DisplayBufferMarker}s
+  # Returns an {Array} of {Marker}s
   findMarkers: (params) ->
     params = @translateToBufferMarkerParams(params)
     @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
@@ -1138,13 +1138,13 @@ class DisplayBuffer extends Model
       @pendingChangeEvent = null
       @emitDidChange(event, false)
 
-  handleBufferMarkerCreated: (marker) =>
-    @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())
-    if displayBufferMarker = @getMarker(marker.id)
+  handleBufferMarkerCreated: (textBufferMarker) =>
+    @createFoldForMarker(textBufferMarker) if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
+    if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
-      @emit 'marker-created', displayBufferMarker
-      @emitter.emit 'did-create-marker', displayBufferMarker
+      @emit 'marker-created', marker
+      @emitter.emit 'did-create-marker', marker
 
   createFoldForMarker: (marker) ->
     @decorateMarker(marker, type: 'gutter', class: 'folded')

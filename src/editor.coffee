@@ -93,7 +93,7 @@ class Editor extends Model
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
-      marker.setAttributes(preserveFolds: true)
+      marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
     @subscribeToBuffer()
@@ -1691,21 +1691,61 @@ class Editor extends Model
   Section: Markers
   ###
 
-  # Essential: Mark the given range in buffer coordinates.
+  # Essential: Create a marker with the given range in buffer coordinates. This
+  # marker will maintain its logical location as the buffer is changed, so if
+  # you mark a particular word, the marker will remain over that word even if
+  # the word's location in the buffer changes.
   #
-  # * `range` A {Range} or range-compatible {Array}.
-  # * `options` (optional) See {TextBuffer::markRange}.
+  # * `range` A {Range} or range-compatible {Array}
+  # * `properties` A hash of key-value pairs to associate with the marker. There
+  #   are also reserved property names that have marker-specific meaning.
+  #   * `reversed` (optional) Creates the marker in a reversed orientation. (default: false)
+  #   * `persistent` (optional) Whether to include this marker when serializing the buffer. (default: true)
+  #   * `invalidate` (optional) Determines the rules by which changes to the
+  #     buffer *invalidate* the marker. (default: 'overlap') It can be any of
+  #     the following strategies, in order of fragility
+  #     * __never__: The marker is never marked as invalid. This is a good choice for
+  #       markers representing selections in an editor.
+  #     * __surround__: The marker is invalidated by changes that completely surround it.
+  #     * __overlap__: The marker is invalidated by changes that surround the
+  #       start or end of the marker. This is the default.
+  #     * __inside__: The marker is invalidated by changes that extend into the
+  #       inside of the marker. Changes that end at the marker's start or
+  #       start at the marker's end do not invalidate the marker.
+  #     * __touch__: The marker is invalidated by a change that touches the marked
+  #       region in any way, including changes that end at the marker's
+  #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # Essential: Mark the given range in screen coordinates.
+  # Essential: Create a marker with the given range in screen coordinates. This
+  # marker will maintain its logical location as the buffer is changed, so if
+  # you mark a particular word, the marker will remain over that word even if
+  # the word's location in the buffer changes.
   #
-  # * `range` A {Range} or range-compatible {Array}.
-  # * `options` (optional) See {TextBuffer::markRange}.
+  # * `range` A {Range} or range-compatible {Array}
+  # * `properties` A hash of key-value pairs to associate with the marker. There
+  #   are also reserved property names that have marker-specific meaning.
+  #   * `reversed` (optional) Creates the marker in a reversed orientation. (default: false)
+  #   * `persistent` (optional) Whether to include this marker when serializing the buffer. (default: true)
+  #   * `invalidate` (optional) Determines the rules by which changes to the
+  #     buffer *invalidate* the marker. (default: 'overlap') It can be any of
+  #     the following strategies, in order of fragility
+  #     * __never__: The marker is never marked as invalid. This is a good choice for
+  #       markers representing selections in an editor.
+  #     * __surround__: The marker is invalidated by changes that completely surround it.
+  #     * __overlap__: The marker is invalidated by changes that surround the
+  #       start or end of the marker. This is the default.
+  #     * __inside__: The marker is invalidated by changes that extend into the
+  #       inside of the marker. Changes that end at the marker's start or
+  #       start at the marker's end do not invalidate the marker.
+  #     * __touch__: The marker is invalidated by a change that touches the marked
+  #       region in any way, including changes that end at the marker's
+  #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
@@ -1714,7 +1754,7 @@ class Editor extends Model
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
@@ -1723,11 +1763,11 @@ class Editor extends Model
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {DisplayBufferMarker}.
+  # Returns a {Marker}.
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Essential: Find all {DisplayBufferMarker}s that match the given properties.
+  # Essential: Find all {Marker}s that match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
   # associated with custom properties that will be compared with basic equality.
@@ -1749,11 +1789,11 @@ class Editor extends Model
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
 
-  # Extended: Get the {DisplayBufferMarker} for the given marker id.
+  # Extended: Get the {Marker} for the given marker id.
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
-  # Extended: Get all {DisplayBufferMarker}s.
+  # Extended: Get all {Marker}s.
   getMarkers: ->
     @displayBuffer.getMarkers()
 
@@ -2014,7 +2054,7 @@ class Editor extends Model
   getCursorsOrderedByBufferPosition: ->
     @getCursors().sort (a, b) -> a.compare(b)
 
-  # Add a cursor based on the given {DisplayBufferMarker}.
+  # Add a cursor based on the given {Marker}.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
@@ -2357,7 +2397,7 @@ class Editor extends Model
 
   # Extended: Select the range of the given marker if it is valid.
   #
-  # * `marker` A {DisplayBufferMarker}
+  # * `marker` A {Marker}
   #
   # Returns the selected {Range} or `undefined` if the marker is invalid.
   selectMarker: (marker) ->
@@ -2473,20 +2513,20 @@ class Editor extends Model
 
     _.reduce(@getSelections(), reducer, [])
 
-  # Add a {Selection} based on the given {DisplayBufferMarker}.
+  # Add a {Selection} based on the given {Marker}.
   #
-  # * `marker` The {DisplayBufferMarker} to highlight
+  # * `marker` The {Marker} to highlight
   # * `options` (optional) An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
-    unless marker.getAttributes().preserveFolds
+    unless marker.getProperties().preserveFolds
       @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editor: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
-    @mergeIntersectingSelections(preserveFolds: marker.getAttributes().preserveFolds)
+    @mergeIntersectingSelections(preserveFolds: marker.getProperties().preserveFolds)
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)
@@ -2622,7 +2662,7 @@ class Editor extends Model
     @emitter.emit 'did-change-grammar'
 
   handleMarkerCreated: (marker) =>
-    if marker.matchesAttributes(@getSelectionMarkerAttributes())
+    if marker.matchesProperties(@getSelectionMarkerAttributes())
       @addSelection(marker)
 
   ###
