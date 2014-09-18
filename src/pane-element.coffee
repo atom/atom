@@ -12,9 +12,6 @@ class PaneElement extends HTMLElement
   attachedCallback: ->
     @focus() if @model.isFocused()
 
-  detachedCallback: ->
-    @subscriptions.dispose()
-
   initializeContent: ->
     @setAttribute 'class', 'pane'
     @setAttribute 'tabindex', -1
@@ -36,6 +33,7 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActive(@activeStatusChanged.bind(this))
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
+    @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
     @__spacePenView.setModel(@model)
 
   activated: ->
@@ -68,6 +66,9 @@ class PaneElement extends HTMLElement
         viewToRemove.remove()
       else
         viewToRemove.detach()
+
+  paneDestroyed: ->
+    @subscriptions.dispose()
 
   getActiveView: -> @model.getView(@model.getActiveItem())
 
