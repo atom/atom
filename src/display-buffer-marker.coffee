@@ -129,6 +129,14 @@ class DisplayBufferMarker
   isReversed: ->
     @bufferMarker.isReversed()
 
+  # Extended: Get the invalidation strategy for this marker.
+  #
+  # Valid values include: `never`, `surround`, `overlap`, `inside`, and `touch`.
+  #
+  # Returns a {String}.
+  getInvalidationStrategy: ->
+    @bufferMarker.getInvalidationStrategy()
+
   # Extended: Returns an {Object} containing any custom properties associated with
   # the marker.
   getAttributes: ->
