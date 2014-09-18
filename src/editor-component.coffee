@@ -954,7 +954,7 @@ EditorComponent = React.createClass
     {verticalScrollbar, horizontalScrollbar, scrollbarCorner} = @refs
 
     verticalNode = verticalScrollbar.getDOMNode()
-    horizontalNode = verticalScrollbar.getDOMNode()
+    horizontalNode = horizontalScrollbar.getDOMNode()
     cornerNode = scrollbarCorner.getDOMNode()
 
     originalVerticalDisplayValue = verticalNode.style.display
