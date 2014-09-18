@@ -323,7 +323,7 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Extended: Asynchronously reopens the last-closed item's URI if it hasn't already been
+  # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
   #
   # Returns a promise that is resolved when the item is opened
@@ -339,7 +339,9 @@ class Workspace extends Model
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
 
-  # Extended: Register an opener for a uri.
+  # TODO: make ::registerOpener() return a disposable
+
+  # Public: Register an opener for a uri.
   #
   # An {Editor} will be used if no openers return a value.
   #
@@ -355,7 +357,7 @@ class Workspace extends Model
   registerOpener: (opener) ->
     @openers.push(opener)
 
-  # Extended: Unregister an opener registered with {::registerOpener}.
+  # Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
     _.remove(@openers, opener)
 
