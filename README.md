@@ -25,6 +25,16 @@ You can also download a `.zip` file from the [releases page](https://github.com/
 The Windows version does not currently automatically update so you will need to
 manually upgrade to future releases by re-downloading the `.zip` file.
 
+### Linux
+
+1. Install [Nix](http://nixos.org/nix).
+2. Run `nix-env -i atom`
+3. In the future run `nix-env -u atom` to upgrade to the latest release.
+
+You can also download a `.deb` file from the [releases page](https://github.com/atom/atom/releases/latest).
+The Linux version does not currently automatically update so you will need to
+manually upgrade to future releases by re-downloading the `.deb` file.
+
 ## Building
 
 * [Linux](docs/build-instructions/linux.md)
