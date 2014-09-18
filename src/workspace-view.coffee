@@ -420,6 +420,8 @@ class WorkspaceView extends View
       switch eventName
         when 'cursor:moved'
           deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
         when 'editor:will-be-removed'
           deprecate('Use Editor::onDidDestroy instead')
         when 'pane:active-item-changed'
@@ -456,6 +458,8 @@ class WorkspaceView extends View
       switch eventName
         when 'cursor:moved'
           deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
         when 'editor:will-be-removed'
           deprecate('Use Editor::onDidDestroy instead')
         when 'selection:changed'
@@ -467,6 +471,8 @@ class WorkspaceView extends View
       switch eventName
         when 'cursor:moved'
           deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
         when 'editor:will-be-removed'
           deprecate('Use Editor::onDidDestroy instead')
         when 'pane:active-item-changed'
