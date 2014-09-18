@@ -596,6 +596,7 @@ class Selection extends Model
       delta = desiredIndent - @cursor.getIndentLevel()
 
       if autoIndent and delta > 0
+        delta = Math.max(delta, 1) unless @editor.getSoftTabs()
         @insertText(@editor.buildIndentString(delta))
       else
         @insertText(@editor.buildIndentString(1, @cursor.getBufferColumn()))

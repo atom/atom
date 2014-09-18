@@ -2330,6 +2330,16 @@ describe "Editor", ->
                 expect(buffer.lineForRow(5)).toMatch /^\t\t\t$/
                 expect(editor.getCursorBufferPosition()).toEqual [5, 3]
 
+              describe "when the difference between the suggested level of indentation and the current level of indentation is greater than 0 but less than 1", ->
+                it "inserts one tab", ->
+                  editor.setSoftTabs(false)
+                  buffer.setText(" \ntest")
+                  editor.setCursorBufferPosition [1, 0]
+
+                  editor.indent(autoIndent: true)
+                  expect(buffer.lineForRow(1)).toBe '\ttest'
+                  expect(editor.getCursorBufferPosition()).toEqual [1, 1]
+
           describe "when the line's indent level is greater than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
               it "moves the cursor to the end of the leading whitespace and inserts 'tabLength' spaces into the buffer", ->
