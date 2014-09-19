@@ -99,6 +99,13 @@ describe "Pane", ->
       pane.addItem(item, 1)
       expect(events).toEqual [{item, index: 1}]
 
+    it "throws an exception if the item is already present on a pane", ->
+      item = new Item("A")
+      pane1 = new Pane(items: [item])
+      container = new PaneContainer(root: pane1)
+      pane2 = pane1.splitRight()
+      expect(-> pane2.addItem(item)).toThrow()
+
   describe "::activateItem(item)", ->
     pane = null
 

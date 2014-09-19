@@ -4,6 +4,7 @@
 Serializable = require 'serializable'
 Pane = require './pane'
 ViewRegistry = require './view-registry'
+ItemRegistry = require './item-registry'
 PaneContainerView = null
 
 module.exports =
@@ -30,6 +31,7 @@ class PaneContainer extends Model
     @subscriptions = new CompositeDisposable
 
     @viewRegistry = params?.viewRegistry ? new ViewRegistry
+    @itemRegistry = new ItemRegistry
     @setRoot(params?.root ? new Pane)
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
@@ -178,7 +180,17 @@ class PaneContainer extends Model
   monitorPaneItems: ->
     @subscriptions.add @observePanes (pane) =>
       for item, index in pane.getItems()
-        @emitter.emit 'did-add-pane-item', {item, pane, index}
+        @addedPaneItem(item, pane, index)
 
       pane.onDidAddItem ({item, index}) =>
-        @emitter.emit 'did-add-pane-item', {item, pane, index}
+        @addedPaneItem(item, pane, index)
+
+      pane.onDidRemoveItem ({item}) =>
+        @removedPaneItem(item)
+
+  addedPaneItem: (item, pane, index) ->
+    @itemRegistry.addItem(item)
+    @emitter.emit 'did-add-pane-item', {item, pane, index}
+
+  removedPaneItem: (item) ->
+    @itemRegistry.removeItem(item)
