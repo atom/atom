@@ -502,7 +502,7 @@ class Workspace extends Model
   Section: View Management
   ###
 
-  # Extended: Get the view associated with an object in the workspace.
+  # Essential: Get the view associated with an object in the workspace.
   #
   # If you're just *using* the workspace, you shouldn't need to access the view
   # layer, but view layer access may be necessary if you want to perform DOM
