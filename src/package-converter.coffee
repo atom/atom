@@ -187,7 +187,10 @@ class PackageConverter
         selector = new ScopeSelector(scope).toCssSelector()
         for key, value of properties
           preferencesBySelector[selector] ?= {}
-          preferencesBySelector[selector][key] = value
+          if preferencesBySelector[selector][key]?
+            preferencesBySelector[selector][key] = _.extend(value, preferencesBySelector[selector][key])
+          else
+            preferencesBySelector[selector][key] = value
 
     @writeFileSync(path.join(destination, "#{packageName}.cson"), preferencesBySelector)
     @normalizeFilenames(destination)

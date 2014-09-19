@@ -66,6 +66,10 @@ describe "apm init", ->
           body: 'attach($1) *outlet'
           prefix: 'att'
         }
+        expect(CSON.readFileSync(path.join(packagePath, 'scoped-properties', 'fake-package.cson'))['.source.r']['editor']).toEqual {
+          foldEndPattern: '(^\\s*\\)|^\\s*\\})'
+          commentStart: '# '
+        }
 
       it "unescapes escaped dollar signs `$` in snippets", ->
         forLoopBody = CSON.readFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))['.source.perl']['For Loop'].body
