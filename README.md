@@ -25,6 +25,10 @@ You can also download a `.zip` file from the [releases page](https://github.com/
 The Windows version does not currently automatically update so you will need to
 manually upgrade to future releases by re-downloading the `.zip` file.
 
+### Linux
+
+Binary distribution of Atom for unbuntu 14.04 can be installed using `apt-get` as explained in [Install Atom in Ubuntu (32bit + 64bit) via PPA](http://www.webupd8.org/2014/05/install-atom-text-editor-in-ubuntu-via-ppa.html).
+
 ## Building
 
 * [Linux](docs/build-instructions/linux.md)
