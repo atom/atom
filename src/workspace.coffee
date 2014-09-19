@@ -498,5 +498,39 @@ class Workspace extends Model
   destroyed: ->
     @paneContainer.destroy()
 
+  ###
+  Section: View Management
+  ###
+
+  # Extended: Get the view associated with an object in the workspace.
+  #
+  # If you're just *using* the workspace, you shouldn't need to access the view
+  # layer, but view layer access may be necessary if you want to perform DOM
+  # manipulation that isn't supported via the model API.
+  #
+  # ## Examples
+  #
+  # ### Getting An Editor View
+  # ```coffee
+  # textEditor = atom.workspace.getActiveTextEditor()
+  # textEditorView = atom.workspace.getView(textEditor)
+  # ```
+  #
+  # ### Getting A Pane View
+  # ```coffee
+  # pane = atom.workspace.getActivePane()
+  # paneView = atom.workspace.getView(pane)
+  # ```
+  #
+  # ### Getting The Workspace View
+  #
+  # ```coffee
+  # workspaceView = atom.workspace.getView(atom.workspace)
+  # ```
+  #
+  # * `object` The object for which you want to retrieve a view. This can be a
+  #   pane item, a pane, or the workspace itself.
+  #
+  # Returns a DOM element.
   getView: (object) ->
     @viewRegistry.getView(object)
