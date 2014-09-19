@@ -59,6 +59,19 @@ class Decoration
 
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
+  # Essential: Destroy this marker.
+  #
+  # If you own the marker, you should use {Marker::destroy} which will destroy
+  # this decoration.
+  destroy: ->
+    return if @destroyed
+    @markerDestroyDisposable.dispose()
+    @markerDestroyDisposable = null
+    @destroyed = true
+    @emit 'destroyed'
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
+
   ###
   Section: Event Subscription
   ###
@@ -83,7 +96,7 @@ class Decoration
     @emitter.on 'did-destroy', callback
 
   ###
-  Section: Methods
+  Section: Decoration Details
   ###
 
   # Essential: An id unique across all {Decoration} objects
@@ -101,6 +114,10 @@ class Decoration
   # Returns {Boolean}
   isType: (type) ->
     Decoration.isType(@properties, type)
+
+  ###
+  Section: Properties
+  ###
 
   # Essential: Returns the {Decoration}'s properties.
   getProperties: ->
@@ -129,18 +146,9 @@ class Decoration
     Grim.deprecate 'Use Decoration::setProperties instead'
     @setProperties(newProperties)
 
-  # Essential: Destroy this marker.
-  #
-  # If you own the marker, you should use {Marker::destroy} which will destroy
-  # this decoration.
-  destroy: ->
-    return if @destroyed
-    @markerDestroyDisposable.dispose()
-    @markerDestroyDisposable = null
-    @destroyed = true
-    @emit 'destroyed'
-    @emitter.emit 'did-destroy'
-    @emitter.dispose()
+  ###
+  Section: Private methods
+  ###
 
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?
