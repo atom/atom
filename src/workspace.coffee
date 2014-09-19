@@ -534,3 +534,5 @@ class Workspace extends Model
   # Returns a DOM element.
   getView: (object) ->
     @viewRegistry.getView(object)
+  addViewProvider: (providerSpec) ->
+    @viewRegistry.addViewProvider(providerSpec)
