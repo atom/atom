@@ -61,7 +61,7 @@ describe "WorkspaceView", ->
 
         waitsForPromise ->
           atom.workspace.open('b').then (editor) ->
-            pane2.activateItem(editor)
+            pane2.activateItem(editor.copy())
 
         waitsForPromise ->
           atom.workspace.open('../sample.js').then (editor) ->
