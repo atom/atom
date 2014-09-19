@@ -29,15 +29,15 @@ class ViewRegistry
       object[0].__spacePenView ?= object
       object[0]
     else if provider = @findProvider(object)
-      element = new provider.viewClass
+      element = new provider.viewConstructor
       element.setModel(object)
       element
-    else if viewClass = object?.getViewClass?()
-      view = new viewClass(object)
+    else if viewConstructor = object?.getViewClass?()
+      view = new viewConstructor(object)
       view[0].__spacePenView ?= view
       view[0]
     else
       throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
 
   findProvider: (object) ->
-    @providers.find ({modelClass}) -> object instanceof modelClass
+    @providers.find ({modelConstructor}) -> object instanceof modelConstructor

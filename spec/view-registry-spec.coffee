@@ -25,28 +25,29 @@ describe "ViewRegistry", ->
 
     describe "when passed a model object", ->
       describe "when a view provider is registered matching the object's constructor", ->
-        it "constructs a view element and assigns the model on it", ->
-          class TestModel
+        describe "when the provider has a viewConstructor property", ->
+          it "constructs a view element and assigns the model on it", ->
+            class TestModel
 
-          class TestModelSubclass extends TestModel
+            class TestModelSubclass extends TestModel
 
-          class TestView
-            setModel: (@model) ->
+            class TestView
+              setModel: (@model) ->
 
-          model = new TestModel
+            model = new TestModel
 
-          registry.addViewProvider
-            modelClass: TestModel
-            viewClass: TestView
+            registry.addViewProvider
+              modelConstructor: TestModel
+              viewConstructor: TestView
 
-          view = registry.getView(model)
-          expect(view instanceof TestView).toBe true
-          expect(view.model).toBe model
+            view = registry.getView(model)
+            expect(view instanceof TestView).toBe true
+            expect(view.model).toBe model
 
-          subclassModel = new TestModelSubclass
-          view2 = registry.getView(subclassModel)
-          expect(view2 instanceof TestView).toBe true
-          expect(view2.model).toBe subclassModel
+            subclassModel = new TestModelSubclass
+            view2 = registry.getView(subclassModel)
+            expect(view2 instanceof TestView).toBe true
+            expect(view2.model).toBe subclassModel
 
       describe "when no view provider is registered for the object's constructor", ->
         describe "when the object has a .getViewClass() method", ->
@@ -75,13 +76,13 @@ describe "ViewRegistry", ->
             expect(-> registry.getView(new Object)).toThrow()
 
   describe "::addViewProvider(providerSpec)", ->
-    it "returns a disposable that can be used to removed the provider", ->
+    it "returns a disposable that can be used to remove the provider", ->
       class TestModel
       class TestView
         setModel: (@model) ->
       disposable = registry.addViewProvider
-        modelClass: TestModel
-        viewClass: TestView
+        modelConstructor: TestModel
+        viewConstructor: TestView
 
       expect(registry.getView(new TestModel) instanceof TestView).toBe true
       disposable.dispose()
