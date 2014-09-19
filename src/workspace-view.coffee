@@ -20,7 +20,7 @@ atom.commands.add '.workspace',
   'window:decrease-font-size': -> @getModel().decreaseFontSize()
   'window:reset-font-size': -> @getModel().resetFontSize()
 
-# Essential: The top-level view for the entire window. An instance of this class is
+# Extended: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
 #
 # It is backed by a model object, an instance of {Workspace}, which is available
@@ -303,16 +303,16 @@ class WorkspaceView extends View
   # Focus the next pane by id.
   focusNextPaneView: -> @model.activateNextPane()
 
-  # Essential: Focus the pane directly above the active pane.
+  # Focus the pane directly above the active pane.
   focusPaneViewAbove: -> @panes.focusPaneViewAbove()
 
-  # Essential: Focus the pane directly below the active pane.
+  # Focus the pane directly below the active pane.
   focusPaneViewBelow: -> @panes.focusPaneViewBelow()
 
-  # Essential: Focus the pane directly to the left of the active pane.
+  # Focus the pane directly to the left of the active pane.
   focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
 
-  # Essential: Focus the pane directly to the right of the active pane.
+  # Focus the pane directly to the right of the active pane.
   focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
 
   ###

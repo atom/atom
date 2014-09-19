@@ -166,7 +166,7 @@ class Cursor extends Model
     @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
 
   ###
-  Section: Info about the cursor position
+  Section: Cursor Position Details
   ###
 
   # Public: Identifies if the cursor is surrounded by whitespace.
@@ -412,7 +412,7 @@ class Cursor extends Model
       @setBufferPosition(position)
 
   ###
-  Section: Retrieving Positions and Ranges of local boundaries
+  Section: Local Positions and Ranges
   ###
 
   # Public: Retrieves the buffer position of where the current word starts.

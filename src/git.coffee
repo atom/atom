@@ -151,7 +151,7 @@ class Git
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Repository Data
+  Section: Repository Details
   ###
 
   # Public: Returns the {String} path of the repository.

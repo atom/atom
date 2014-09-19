@@ -226,40 +226,34 @@ class Atom extends Model
     @emitter.on 'did-beep', callback
 
   ###
-  Section: Atom Metadata
+  Section: Atom Details
   ###
 
-  # Essential: Is the current window in development mode?
+  # Public: Is the current window in development mode?
   inDevMode: ->
     @getLoadSettings().devMode
 
-  # Essential: Is the current window running specs?
+  # Public: Is the current window running specs?
   inSpecMode: ->
     @getLoadSettings().isSpec
 
-  # Essential: Get the version of the Atom application.
+  # Public: Get the version of the Atom application.
   #
   # Returns the version text {String}.
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
 
-  # Essential: Determine whether the current version is an official release.
+  # Public: Determine whether the current version is an official release.
   isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
-  # Essential: Get the directory path to Atom's configuration area.
+  # Public: Get the directory path to Atom's configuration area.
   #
   # Returns the absolute path to `~/.atom`.
   getConfigDirPath: ->
     @constructor.getConfigDirPath()
 
-  # Extended: Get the load settings for the current window.
-  #
-  # Returns an {Object} containing all the load setting key/value pairs.
-  getLoadSettings: ->
-    @constructor.getLoadSettings()
-
-  # Extended: Get the time taken to completely load the current window.
+  # Public: Get the time taken to completely load the current window.
   #
   # This time include things like loading and activating packages, creating
   # DOM elements for the editor, and reading the config.
@@ -268,6 +262,12 @@ class Atom extends Model
   # if the window hasn't finished loading yet.
   getWindowLoadTime: ->
     @loadTime
+
+  # Public: Get the load settings for the current window.
+  #
+  # Returns an {Object} containing all the load setting key/value pairs.
+  getLoadSettings: ->
+    @constructor.getLoadSettings()
 
   ###
   Section: Managing The Atom Window
