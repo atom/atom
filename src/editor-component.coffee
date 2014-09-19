@@ -128,6 +128,7 @@ EditorComponent = React.createClass
           scrollableInOppositeDirection: verticallyScrollable
           verticalScrollbarWidth: verticalScrollbarWidth
           horizontalScrollbarHeight: horizontalScrollbarHeight
+          useHardwareAcceleration: @useHardwareAcceleration
 
       ScrollbarComponent
         ref: 'verticalScrollbar'
@@ -140,6 +141,7 @@ EditorComponent = React.createClass
         scrollableInOppositeDirection: horizontallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
+        useHardwareAcceleration: @useHardwareAcceleration
 
       # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent

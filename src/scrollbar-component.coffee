@@ -9,9 +9,11 @@ ScrollbarComponent = React.createClass
   render: ->
     {orientation, className, scrollHeight, scrollWidth, visible} = @props
     {scrollableInOppositeDirection, horizontalScrollbarHeight, verticalScrollbarWidth} = @props
+    {useHardwareAcceleration} = @props
 
     style = {}
     style.display = 'none' unless visible
+    style.transform = 'translateZ(0)' if useHardwareAcceleration # See atom/atom#3559
     switch orientation
       when 'vertical'
         style.width = verticalScrollbarWidth
