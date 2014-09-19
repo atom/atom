@@ -73,3 +73,16 @@ describe "ViewRegistry", ->
         describe "when the object has no .getViewClass() method", ->
           it "throws an exception", ->
             expect(-> registry.getView(new Object)).toThrow()
+
+  describe "::addViewProvider(providerSpec)", ->
+    it "returns a disposable that can be used to removed the provider", ->
+      class TestModel
+      class TestView
+        setModel: (@model) ->
+      disposable = registry.addViewProvider
+        modelClass: TestModel
+        viewClass: TestView
+
+      expect(registry.getView(new TestModel) instanceof TestView).toBe true
+      disposable.dispose()
+      expect(-> registry.getView(new TestModel)).toThrow()

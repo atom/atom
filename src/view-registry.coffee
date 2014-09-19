@@ -1,3 +1,4 @@
+{Disposable} = require 'event-kit'
 {jQuery} = require './space-pen-extensions'
 
 module.exports =
@@ -6,8 +7,10 @@ class ViewRegistry
     @views = new WeakMap
     @providers = []
 
-  addViewProvider: (provider) ->
-    @providers.push(provider)
+  addViewProvider: (providerSpec) ->
+    @providers.push(providerSpec)
+    new Disposable =>
+      @providers = @providers.filter (provider) -> provider isnt providerSpec
 
   getView: (object) ->
     return unless object?
