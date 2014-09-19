@@ -49,6 +49,24 @@ describe "ViewRegistry", ->
             expect(view2 instanceof TestView).toBe true
             expect(view2.model).toBe subclassModel
 
+        describe "when the provider has a createView method", ->
+          it "constructs a view element by calling the createView method with the model", ->
+            class TestModel
+            class TestView
+              setModel: (@model) ->
+
+            registry.addViewProvider
+              modelConstructor: TestModel
+              createView: (model) ->
+                view = new TestView
+                view.setModel(model)
+                view
+
+            model = new TestModel
+            view = registry.getView(model)
+            expect(view instanceof TestView).toBe true
+            expect(view.model).toBe model
+
       describe "when no view provider is registered for the object's constructor", ->
         describe "when the object has a .getViewClass() method", ->
           it "builds an instance of the view class with the model, then returns its root node with a __spacePenView property pointing at the view", ->

@@ -29,8 +29,10 @@ class ViewRegistry
       object[0].__spacePenView ?= object
       object[0]
     else if provider = @findProvider(object)
-      element = new provider.viewConstructor
-      element.setModel(object)
+      element = provider.createView?(object)
+      unless element?
+        element = new provider.viewConstructor
+        element.setModel(object)
       element
     else if viewConstructor = object?.getViewClass?()
       view = new viewConstructor(object)
