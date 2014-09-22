@@ -71,6 +71,7 @@ class Cursor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
+  #     * `Cursor` {Cursor} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePosition: (callback) ->
