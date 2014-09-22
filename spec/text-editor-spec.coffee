@@ -3263,6 +3263,9 @@ describe "TextEditor", ->
       runs ->
         expect(editor.softTabs).toBe false
 
+        atom.packages.deactivatePackage('language-coffee-script')
+        atom.packages.unloadPackage('language-coffee-script')
+
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
