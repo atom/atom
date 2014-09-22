@@ -16,7 +16,7 @@ DEB_PATH="$6"
 FILE_MODE=755
 
 TARGET_ROOT="`mktemp -d`"
-chmod 755 "$TARGET_ROOT"
+chmod $FILE_MODE "$TARGET_ROOT"
 TARGET="$TARGET_ROOT/atom-$VERSION-$ARCH"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr"
