@@ -9,7 +9,7 @@ module.exports =
   Range: Range
 
 Object.defineProperty module.exports, 'Git', get: ->
-  deprecate "Please require `GitRepository` instead of `Git`: `{Git} = require 'atom'`"
+  deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
   module.exports.GitRepository
 
 # The following classes can't be used from a Task handler and should therefore
