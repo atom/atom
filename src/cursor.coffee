@@ -42,6 +42,7 @@ class Cursor extends Model
         newBufferPosition: newHeadBufferPosition
         newScreenPosition: newHeadScreenPosition
         textChanged: textChanged
+        cursor: this
 
       @emit 'moved', movedEvent
       @emitter.emit 'did-change-position'

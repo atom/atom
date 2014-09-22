@@ -174,6 +174,20 @@ describe "Editor", ->
         editor.moveDown()
         expect(editor.getCursorBufferPosition()).toEqual [1, 1]
 
+      it "emits an event with the old position, new position, and the cursor that moved", ->
+        editor.onDidChangeCursorPosition positionChangedHandler = jasmine.createSpy()
+
+        editor.setCursorBufferPosition([2, 4])
+
+        expect(positionChangedHandler).toHaveBeenCalled()
+        eventObject = positionChangedHandler.mostRecentCall.args[0]
+
+        expect(eventObject.oldBufferPosition).toEqual [0, 0]
+        expect(eventObject.oldScreenPosition).toEqual [0, 0]
+        expect(eventObject.newBufferPosition).toEqual [2, 4]
+        expect(eventObject.newScreenPosition).toEqual [2, 4]
+        expect(eventObject.cursor).toBe editor.getLastCursor()
+
     describe ".setCursorScreenPosition(screenPosition)", ->
       it "clears a goal column established by vertical movement", ->
         # set a goal column by moving down
