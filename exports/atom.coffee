@@ -4,7 +4,7 @@
 module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
-  GitRepository: require '../src/git'
+  GitRepository: require '../src/git-repository'
   Point: Point
   Range: Range
 
