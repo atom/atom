@@ -46,7 +46,7 @@ class Cursor extends Model
 
       @emit 'moved', movedEvent
       @emitter.emit 'did-change-position'
-      @editor.cursorMoved(this, movedEvent)
+      @editor.cursorMoved(movedEvent)
     @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeCursor(this)

@@ -1604,7 +1604,7 @@ class Editor extends Model
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
-  cursorMoved: (cursor, event) ->
+  cursorMoved: (event) ->
     @emit 'cursor-moved', event
     @emitter.emit 'did-change-cursor-position', event
 
