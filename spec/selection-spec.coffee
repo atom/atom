@@ -1,4 +1,4 @@
-Editor = require '../src/editor'
+Editor = require '../src/text-editor'
 
 describe "Selection", ->
   [buffer, editor, selection] = []

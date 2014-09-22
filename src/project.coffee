@@ -11,7 +11,7 @@ Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 {Directory} = require 'pathwatcher'
 
-Editor = require './editor'
+Editor = require './text-editor'
 Task = require './task'
 GitRepository = require './git-repository'
 

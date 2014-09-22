@@ -1,6 +1,6 @@
 {$, $$} = require 'atom'
 path = require 'path'
-Editor = require '../src/editor'
+Editor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 
 describe "Window", ->

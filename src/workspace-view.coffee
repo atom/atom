@@ -13,7 +13,7 @@ PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
 PaneRowView = require './pane-row-view'
 PaneContainerView = require './pane-container-view'
-Editor = require './editor'
+Editor = require './text-editor'
 
 atom.commands.add '.workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()

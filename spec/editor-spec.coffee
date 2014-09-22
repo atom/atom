@@ -1,5 +1,5 @@
 clipboard = require 'clipboard'
-Editor = require '../src/editor'
+Editor = require '../src/text-editor'
 
 describe "Editor", ->
   [buffer, editor, lineLengths] = []

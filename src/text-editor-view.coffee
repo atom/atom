@@ -2,7 +2,7 @@
 React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
-Editor = require './editor'
+Editor = require './text-editor'
 EditorComponent = require './text-editor-component'
 {deprecate} = require 'grim'
 
