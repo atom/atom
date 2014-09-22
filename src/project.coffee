@@ -13,7 +13,7 @@ TextBuffer = require 'text-buffer'
 
 Editor = require './editor'
 Task = require './task'
-Git = require './git'
+GitRepository = require './git-repository'
 
 # Extended: Represents a project that's opened in Atom.
 #
@@ -70,7 +70,7 @@ class Project extends Model
   Section: Accessing the git repository
   ###
 
-  # Public: Returns the {Git} repository if available.
+  # Public: Returns the {GitRepository} if available.
   getRepo: -> @repo
 
   ###
@@ -93,7 +93,7 @@ class Project extends Model
     if projectPath?
       directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      if @repo = Git.open(directory, project: this)
+      if @repo = GitRepository.open(directory, project: this)
         @repo.refreshIndex()
         @repo.refreshStatus()
     else
