@@ -1,7 +1,7 @@
 clipboard = require 'clipboard'
-Editor = require '../src/text-editor'
+TextEditor = require '../src/text-editor'
 
-describe "Editor", ->
+describe "TextEditor", ->
   [buffer, editor, lineLengths] = []
 
   convertToHardTabs = (buffer) ->
@@ -49,7 +49,7 @@ describe "Editor", ->
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
-      editor2 = Editor.deserialize(state)
+      editor2 = TextEditor.deserialize(state)
 
       expect(editor2.displayBuffer.invisibles.eol).toBe '?'
       expect(editor2.displayBuffer.tokenizedBuffer.invisibles.eol).toBe '?'

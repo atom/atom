@@ -14,8 +14,8 @@ ScrollbarCornerComponent = require './scrollbar-corner-component'
 SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
-EditorComponent = React.createClass
-  displayName: 'EditorComponent'
+TextEditorComponent = React.createClass
+  displayName: 'TextEditorComponent'
   mixins: [SubscriberMixin]
 
   statics:
@@ -236,7 +236,7 @@ EditorComponent = React.createClass
       @updateRequestedWhilePaused = true
       return
 
-    if @performSyncUpdates ? EditorComponent.performSyncUpdates
+    if @performSyncUpdates ? TextEditorComponent.performSyncUpdates
       @forceUpdate()
     else unless @updateRequested
       @updateRequested = true
@@ -606,7 +606,7 @@ EditorComponent = React.createClass
 
   onScrollViewScroll: ->
     if @isMounted()
-      console.warn "EditorScrollView scrolled when it shouldn't have."
+      console.warn "TextEditorScrollView scrolled when it shouldn't have."
       scrollViewNode = @refs.scrollView.getDOMNode()
       scrollViewNode.scrollTop = 0
       scrollViewNode.scrollLeft = 0

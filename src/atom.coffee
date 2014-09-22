@@ -215,7 +215,7 @@ class Atom extends Model
     @deserializers.add(TextBuffer)
     TokenizedBuffer = require './tokenized-buffer'
     DisplayBuffer = require './display-buffer'
-    Editor = require './text-editor'
+    TextEditor = require './text-editor'
 
     @windowEventHandler = new WindowEventHandler
 
