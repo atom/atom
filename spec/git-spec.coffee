@@ -10,7 +10,7 @@ copyRepository = ->
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   workingDirPath
 
-fdescribe "GitRepository", ->
+describe "GitRepository", ->
   repo = null
 
   beforeEach ->
