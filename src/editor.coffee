@@ -226,6 +226,7 @@ class Editor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
+  #     * `cursor` {Cursor} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeCursorPosition: (callback) ->
