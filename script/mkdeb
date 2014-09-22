@@ -31,6 +31,6 @@ cp "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
-dpkg-deb -b "$TARGET"
+fakeroot dpkg-deb -b "$TARGET"
 mv "$TARGET_ROOT/atom-$VERSION-$ARCH.deb" "$DEB_PATH"
 rm -rf "$TARGET_ROOT"
