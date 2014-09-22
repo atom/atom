@@ -40,7 +40,12 @@ class Selection extends Model
   # Extended: Calls your `callback` when the selection was moved.
   #
   # * `callback` {Function}
-  #   * `screenRange` {Range} indicating the new screenrange
+  #   * `event` {Object}
+  #     * `oldBufferRange` {Range}
+  #     * `oldScreenRange` {Range}
+  #     * `newBufferRange` {Range}
+  #     * `newScreenRange` {Range}
+  #     * `selection` {Selection} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeRange: (callback) ->
