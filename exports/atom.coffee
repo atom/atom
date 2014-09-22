@@ -8,10 +8,6 @@ module.exports =
   Point: Point
   Range: Range
 
-Object.defineProperty module.exports, 'Git', get: ->
-  deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
-  module.exports.GitRepository
-
 # The following classes can't be used from a Task handler and should therefore
 # only be exported when not running as a child node process
 unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
@@ -20,7 +16,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$ = $
   module.exports.$$ = $$
   module.exports.$$$ = $$$
-  module.exports.EditorView = require '../src/text-editor-view'
+  module.exports.TextEditorView = require '../src/text-editor-view'
   module.exports.ScrollView = require '../src/scroll-view'
   module.exports.SelectListView = require '../src/select-list-view'
   module.exports.Task = require '../src/task'
@@ -29,3 +25,11 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Workspace = require '../src/workspace'
   module.exports.React = require 'react-atom-fork'
   module.exports.Reactionary = require 'reactionary-atom-fork'
+
+Object.defineProperty module.exports, 'Git', get: ->
+  deprecate "Please require `GitRepository` instead of `Git`: `{Git} = require 'atom'`"
+  module.exports.GitRepository
+
+Object.defineProperty module.exports, 'EditorView', get: ->
+  deprecate "Please require `TextEditorView` instead of `EditorView`: `{TextEditorView} = require 'atom'`"
+  module.exports.TextEditorView
