@@ -163,7 +163,7 @@ class Editor extends Model
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
   getViewClass: ->
-    require './editor-view'
+    require './text-editor-view'
 
   destroyed: ->
     @unsubscribe()

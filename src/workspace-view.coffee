@@ -456,7 +456,7 @@ class WorkspaceView extends View
           deprecate('Use Workspace::onDidOpen instead')
       originalWorkspaceViewOn.apply(this, arguments)
 
-    EditorView = require './editor-view'
+    EditorView = require './text-editor-view'
     originalEditorViewOn = EditorView::on
     EditorView::on = (eventName) ->
       switch eventName
