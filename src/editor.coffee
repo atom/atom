@@ -235,7 +235,12 @@ class Editor extends Model
   # Essential: Calls your `callback` when a selection's screen range changes.
   #
   # * `callback` {Function}
-  #   * `selection` {Selection} that moved
+  #   * `event` {Object}
+  #     * `oldBufferRange` {Range}
+  #     * `oldScreenRange` {Range}
+  #     * `newBufferRange` {Range}
+  #     * `newScreenRange` {Range}
+  #     * `selection` {Selection} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSelectionRange: (callback) ->
