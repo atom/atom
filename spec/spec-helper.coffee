@@ -15,7 +15,7 @@ Project = require '../src/project'
 Editor = require '../src/editor'
 EditorView = require '../src/editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
-EditorComponent = require '../src/editor-component'
+EditorComponent = require '../src/text-editor-component'
 pathwatcher = require 'pathwatcher'
 clipboard = require 'clipboard'
 

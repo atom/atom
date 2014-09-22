@@ -3,7 +3,7 @@ React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 Editor = require './editor'
-EditorComponent = require './editor-component'
+EditorComponent = require './text-editor-component'
 {deprecate} = require 'grim'
 
 # Public: Represents the entire visual pane in Atom.
