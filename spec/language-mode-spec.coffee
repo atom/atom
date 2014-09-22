@@ -86,12 +86,10 @@ describe "LanguageMode", ->
         expect(languageMode.rowRangeForCommentAtBufferRow(2)).toBeUndefined()
 
         buffer.setText("//this is a single line comment\n")
-        console.log buffer.getLastRow()
         expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
         expect(languageMode.rowRangeForCommentAtBufferRow(1)).toBeUndefined()
 
         buffer.setText("//this is a single line comment")
-        console.log languageMode.isLineCommentedAtBufferRow(0)
         expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
 
     describe "suggestedIndentForBufferRow", ->
