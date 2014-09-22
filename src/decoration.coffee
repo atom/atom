@@ -32,7 +32,7 @@ module.exports =
 class Decoration
   EmitterMixin.includeInto(this)
 
-  # Extended: Check if the `decorationProperties.type` matches `type`
+  # Private: Check if the `decorationProperties.type` matches `type`
   #
   # * `decorationProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
   # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
@@ -46,6 +46,10 @@ class Decoration
     else
       type is decorationProperties.type
 
+  ###
+  Section: Construction and Destruction
+  ###
+
   constructor: (@marker, @displayBuffer, @properties) ->
     @emitter = new Emitter
     @id = nextId()
@@ -54,6 +58,19 @@ class Decoration
     @destroyed = false
 
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
+
+  # Essential: Destroy this marker.
+  #
+  # If you own the marker, you should use {Marker::destroy} which will destroy
+  # this decoration.
+  destroy: ->
+    return if @destroyed
+    @markerDestroyDisposable.dispose()
+    @markerDestroyDisposable = null
+    @destroyed = true
+    @emit 'destroyed'
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
 
   ###
   Section: Event Subscription
@@ -79,7 +96,7 @@ class Decoration
     @emitter.on 'did-destroy', callback
 
   ###
-  Section: Methods
+  Section: Decoration Details
   ###
 
   # Essential: An id unique across all {Decoration} objects
@@ -97,6 +114,10 @@ class Decoration
   # Returns {Boolean}
   isType: (type) ->
     Decoration.isType(@properties, type)
+
+  ###
+  Section: Properties
+  ###
 
   # Essential: Returns the {Decoration}'s properties.
   getProperties: ->
@@ -125,18 +146,9 @@ class Decoration
     Grim.deprecate 'Use Decoration::setProperties instead'
     @setProperties(newProperties)
 
-  # Essential: Destroy this marker.
-  #
-  # If you own the marker, you should use {Marker::destroy} which will destroy
-  # this decoration.
-  destroy: ->
-    return if @destroyed
-    @markerDestroyDisposable.dispose()
-    @markerDestroyDisposable = null
-    @destroyed = true
-    @emit 'destroyed'
-    @emitter.emit 'did-destroy'
-    @emitter.dispose()
+  ###
+  Section: Private methods
+  ###
 
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?

@@ -2,14 +2,38 @@ _ = require 'underscore-plus'
 child_process = require 'child_process'
 {Emitter} = require 'emissary'
 
-# Public: Run a node script in a separate process.
+# Extended: Run a node script in a separate process.
 #
-# Used by the fuzzy-finder.
+# Used by the fuzzy-finder and [find in project](https://github.com/atom/atom/blob/master/src/scan-handler.coffee).
+#
+# For a real-world example, see the [scan-handler](https://github.com/atom/atom/blob/master/src/scan-handler.coffee)
+# and the [instantiation of the task](https://github.com/atom/atom/blob/4a20f13162f65afc816b512ad7201e528c3443d7/src/project.coffee#L245).
 #
 # ## Examples
 #
+# In your package code:
+#
 # ```coffee
 # {Task} = require 'atom'
+#
+# task = Task.once '/path/to/task-file.coffee', parameter1, parameter2, ->
+#   console.log 'task has finished'
+#
+# task.on 'some-event-from-the-task', (data) =>
+#   console.log data.someString # prints 'yep this is it'
+# ```
+#
+# In `'/path/to/task-file.coffee'`:
+#
+# ```coffee
+# module.exports = (parameter1, parameter2) ->
+#   # Indicates that this task will be async.
+#   # Call the `callback` to finish the task
+#   callback = @async()
+#
+#   emit('some-event-from-the-task', {someString: 'yep this is it'})
+#
+#   callback()
 # ```
 #
 # ## Events
@@ -55,7 +79,7 @@ class Task
   # receives a completion callback, this is overridden.
   callback: null
 
-  # Public: Creates a task.
+  # Public: Creates a task. You should probably use {.once}
   #
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file that
   #   exports a single {Function} to execute.

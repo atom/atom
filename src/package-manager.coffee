@@ -48,7 +48,7 @@ class PackageManager
   Section: Event Subscription
   ###
 
-  # Essential: Invoke the given callback when all packages have been activated.
+  # Public: Invoke the given callback when all packages have been activated.
   #
   # * `callback` {Function}
   #
@@ -56,7 +56,7 @@ class PackageManager
   onDidLoadAll: (callback) ->
     @emitter.on 'did-load-all', callback
 
-  # Essential: Invoke the given callback when all packages have been activated.
+  # Public: Invoke the given callback when all packages have been activated.
   #
   # * `callback` {Function}
   #
@@ -75,10 +75,10 @@ class PackageManager
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Instance Methods
+  Section: Package system data
   ###
 
-  # Extended: Get the path to the apm command.
+  # Public: Get the path to the apm command.
   #
   # Return a {String} file path to apm.
   getApmPath: ->
@@ -86,19 +86,43 @@ class PackageManager
     commandName += '.cmd' if process.platform is 'win32'
     @apmPath ?= path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', commandName)
 
-  # Extended: Get the paths being used to look for packages.
+  # Public: Get the paths being used to look for packages.
   #
   # Returns an {Array} of {String} directory paths.
   getPackageDirPaths: ->
     _.clone(@packageDirPaths)
 
-  getPackageState: (name) ->
-    @packageStates[name]
+  ###
+  Section: General package data
+  ###
 
-  setPackageState: (name, state) ->
-    @packageStates[name] = state
+  # Public: Resolve the given package name to a path on disk.
+  #
+  # * `name` - The {String} package name.
+  #
+  # Return a {String} folder path or undefined if it could not be resolved.
+  resolvePackagePath: (name) ->
+    return name if fs.isDirectorySync(name)
 
-  # Extended: Enable the package with the given name.
+    packagePath = fs.resolve(@packageDirPaths..., name)
+    return packagePath if fs.isDirectorySync(packagePath)
+
+    packagePath = path.join(@resourcePath, 'node_modules', name)
+    return packagePath if @hasAtomEngine(packagePath)
+
+  # Public: Is the package with the given name bundled with Atom?
+  #
+  # * `name` - The {String} package name.
+  #
+  # Returns a {Boolean}.
+  isBundledPackage: (name) ->
+    @getPackageDependencies().hasOwnProperty(name)
+
+  ###
+  Section: Enabling and disabling packages
+  ###
+
+  # Public: Enable the package with the given name.
   #
   # Returns the {Package} that was enabled or null if it isn't loaded.
   enablePackage: (name) ->
@@ -106,7 +130,7 @@ class PackageManager
     pack?.enable()
     pack
 
-  # Extended: Disable the package with the given name.
+  # Public: Disable the package with the given name.
   #
   # Returns the {Package} that was disabled or null if it isn't loaded.
   disablePackage: (name) ->
@@ -114,51 +138,23 @@ class PackageManager
     pack?.disable()
     pack
 
-  # Activate all the packages that should be activated.
-  activate: ->
-    for [activator, types] in @packageActivators
-      packages = @getLoadedPackagesForTypes(types)
-      activator.activatePackages(packages)
-    @emit 'activated'
-    @emitter.emit 'did-activate-all'
+  # Public: Is the package with the given name disabled?
+  #
+  # * `name` - The {String} package name.
+  #
+  # Returns a {Boolean}.
+  isPackageDisabled: (name) ->
+    _.include(atom.config.get('core.disabledPackages') ? [], name)
 
-  # another type of package manager can handle other package types.
-  # See ThemeManager
-  registerPackageActivator: (activator, types) ->
-    @packageActivators.push([activator, types])
+  ###
+  Section: Accessing active packages
+  ###
 
-  activatePackages: (packages) ->
-    @activatePackage(pack.name) for pack in packages
-    @observeDisabledPackages()
-
-  # Activate a single package by name
-  activatePackage: (name) ->
-    if pack = @getActivePackage(name)
-      Q(pack)
-    else
-      pack = @loadPackage(name)
-      pack.activate().then =>
-        @activePackages[pack.name] = pack
-        pack
-
-  # Deactivate all packages
-  deactivatePackages: ->
-    @deactivatePackage(pack.name) for pack in @getLoadedPackages()
-    @unobserveDisabledPackages()
-
-  # Deactivate the package with the given name
-  deactivatePackage: (name) ->
-    pack = @getLoadedPackage(name)
-    if @isPackageActive(name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
-    pack.deactivate()
-    delete @activePackages[pack.name]
-
-  # Essential: Get an {Array} of all the active {Package}s.
+  # Public: Get an {Array} of all the active {Package}s.
   getActivePackages: ->
     _.values(@activePackages)
 
-  # Essential: Get the active {Package} with the given name.
+  # Public: Get the active {Package} with the given name.
   #
   # * `name` - The {String} package name.
   #
@@ -173,6 +169,91 @@ class PackageManager
   # Returns a {Boolean}.
   isPackageActive: (name) ->
     @getActivePackage(name)?
+
+  ###
+  Section: Accessing loaded packages
+  ###
+
+  # Public: Get an {Array} of all the loaded {Package}s
+  getLoadedPackages: ->
+    _.values(@loadedPackages)
+
+  # Get packages for a certain package type
+  #
+  # * `types` an {Array} of {String}s like ['atom', 'textmate'].
+  getLoadedPackagesForTypes: (types) ->
+    pack for pack in @getLoadedPackages() when pack.getType() in types
+
+  # Public: Get the loaded {Package} with the given name.
+  #
+  # * `name` - The {String} package name.
+  #
+  # Returns a {Package} or undefined.
+  getLoadedPackage: (name) ->
+    @loadedPackages[name]
+
+  # Public: Is the package with the given name loaded?
+  #
+  # * `name` - The {String} package name.
+  #
+  # Returns a {Boolean}.
+  isPackageLoaded: (name) ->
+    @getLoadedPackage(name)?
+
+  ###
+  Section: Accessing available packages
+  ###
+
+  # Public: Get an {Array} of {String}s of all the available package paths.
+  getAvailablePackagePaths: ->
+    packagePaths = []
+
+    for packageDirPath in @packageDirPaths
+      for packagePath in fs.listSync(packageDirPath)
+        packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
+
+    packagesPath = path.join(@resourcePath, 'node_modules')
+    for packageName, packageVersion of @getPackageDependencies()
+      packagePath = path.join(packagesPath, packageName)
+      packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
+
+    _.uniq(packagePaths)
+
+  # Public: Get an {Array} of {String}s of all the available package names.
+  getAvailablePackageNames: ->
+    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
+
+  # Public: Get an {Array} of {String}s of all the available package metadata.
+  getAvailablePackageMetadata: ->
+    packages = []
+    for packagePath in @getAvailablePackagePaths()
+      name = path.basename(packagePath)
+      metadata = @getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
+      packages.push(metadata)
+    packages
+
+  ###
+  Section: Private
+  ###
+
+  getPackageState: (name) ->
+    @packageStates[name]
+
+  setPackageState: (name, state) ->
+    @packageStates[name] = state
+
+  getPackageDependencies: ->
+    unless @packageDependencies?
+      try
+        metadataPath = path.join(@resourcePath, 'package.json')
+        {@packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
+      @packageDependencies ?= {}
+
+    @packageDependencies
+
+  hasAtomEngine: (packagePath) ->
+    metadata = Package.loadMetadata(packagePath, true)
+    metadata?.engines?.atom?
 
   unobserveDisabledPackages: ->
     @disabledPackagesSubscription?.off()
@@ -234,99 +315,42 @@ class PackageManager
     else
       throw new Error("No loaded package for name '#{name}'")
 
-  # Essential: Get the loaded {Package} with the given name.
-  #
-  # * `name` - The {String} package name.
-  #
-  # Returns a {Package} or undefined.
-  getLoadedPackage: (name) ->
-    @loadedPackages[name]
+  # Activate all the packages that should be activated.
+  activate: ->
+    for [activator, types] in @packageActivators
+      packages = @getLoadedPackagesForTypes(types)
+      activator.activatePackages(packages)
+    @emit 'activated'
+    @emitter.emit 'did-activate-all'
 
-  # Essential: Is the package with the given name loaded?
-  #
-  # * `name` - The {String} package name.
-  #
-  # Returns a {Boolean}.
-  isPackageLoaded: (name) ->
-    @getLoadedPackage(name)?
+  # another type of package manager can handle other package types.
+  # See ThemeManager
+  registerPackageActivator: (activator, types) ->
+    @packageActivators.push([activator, types])
 
-  # Essential: Get an {Array} of all the loaded {Package}s
-  getLoadedPackages: ->
-    _.values(@loadedPackages)
+  activatePackages: (packages) ->
+    @activatePackage(pack.name) for pack in packages
+    @observeDisabledPackages()
 
-  # Get packages for a certain package type
-  #
-  # * `types` an {Array} of {String}s like ['atom', 'textmate'].
-  getLoadedPackagesForTypes: (types) ->
-    pack for pack in @getLoadedPackages() when pack.getType() in types
+  # Activate a single package by name
+  activatePackage: (name) ->
+    if pack = @getActivePackage(name)
+      Q(pack)
+    else
+      pack = @loadPackage(name)
+      pack.activate().then =>
+        @activePackages[pack.name] = pack
+        pack
 
-  # Extended: Resolve the given package name to a path on disk.
-  #
-  # * `name` - The {String} package name.
-  #
-  # Return a {String} folder path or undefined if it could not be resolved.
-  resolvePackagePath: (name) ->
-    return name if fs.isDirectorySync(name)
+  # Deactivate all packages
+  deactivatePackages: ->
+    @deactivatePackage(pack.name) for pack in @getLoadedPackages()
+    @unobserveDisabledPackages()
 
-    packagePath = fs.resolve(@packageDirPaths..., name)
-    return packagePath if fs.isDirectorySync(packagePath)
-
-    packagePath = path.join(@resourcePath, 'node_modules', name)
-    return packagePath if @hasAtomEngine(packagePath)
-
-  # Essential: Is the package with the given name disabled?
-  #
-  # * `name` - The {String} package name.
-  #
-  # Returns a {Boolean}.
-  isPackageDisabled: (name) ->
-    _.include(atom.config.get('core.disabledPackages') ? [], name)
-
-  hasAtomEngine: (packagePath) ->
-    metadata = Package.loadMetadata(packagePath, true)
-    metadata?.engines?.atom?
-
-  # Extended: Is the package with the given name bundled with Atom?
-  #
-  # * `name` - The {String} package name.
-  #
-  # Returns a {Boolean}.
-  isBundledPackage: (name) ->
-    @getPackageDependencies().hasOwnProperty(name)
-
-  getPackageDependencies: ->
-    unless @packageDependencies?
-      try
-        metadataPath = path.join(@resourcePath, 'package.json')
-        {@packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
-      @packageDependencies ?= {}
-
-    @packageDependencies
-
-  # Extended: Get an {Array} of {String}s of all the available package paths.
-  getAvailablePackagePaths: ->
-    packagePaths = []
-
-    for packageDirPath in @packageDirPaths
-      for packagePath in fs.listSync(packageDirPath)
-        packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
-
-    packagesPath = path.join(@resourcePath, 'node_modules')
-    for packageName, packageVersion of @getPackageDependencies()
-      packagePath = path.join(packagesPath, packageName)
-      packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
-
-    _.uniq(packagePaths)
-
-  # Extended: Get an {Array} of {String}s of all the available package names.
-  getAvailablePackageNames: ->
-    _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
-
-  # Extended: Get an {Array} of {String}s of all the available package metadata.
-  getAvailablePackageMetadata: ->
-    packages = []
-    for packagePath in @getAvailablePackagePaths()
-      name = path.basename(packagePath)
-      metadata = @getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
-      packages.push(metadata)
-    packages
+  # Deactivate the package with the given name
+  deactivatePackage: (name) ->
+    pack = @getLoadedPackage(name)
+    if @isPackageActive(name)
+      @setPackageState(pack.name, state) if state = pack.serialize?()
+    pack.deactivate()
+    delete @activePackages[pack.name]

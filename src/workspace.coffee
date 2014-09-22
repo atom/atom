@@ -10,7 +10,7 @@ Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 
-# Public: Represents the state of the user interface for the entire window.
+# Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
 #
 # Interact with this object to open files, be notified of current and future
@@ -91,6 +91,52 @@ class Workspace extends Model
   Section: Event Subscription
   ###
 
+  # Essential: Invoke the given callback with all current and future text
+  # editors in the workspace.
+  #
+  # * `callback` {Function} to be called with current and future text editors.
+  #   * `editor` An {Editor} that is present in {::getTextEditors} at the time
+  #     of subscription or that is added at some later time.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeTextEditors: (callback) ->
+    callback(textEditor) for textEditor in @getTextEditors()
+    @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
+
+  # Essential: Invoke the given callback with all current and future panes items in
+  # the workspace.
+  #
+  # * `callback` {Function} to be called with current and future pane items.
+  #   * `item` An item that is present in {::getPaneItems} at the time of
+  #      subscription or that is added at some later time.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
+
+  # Essential: Invoke the given callback when the active pane item changes.
+  #
+  # * `callback` {Function} to be called when the active pane item changes.
+  #   * `event` {Object} with the following keys:
+  #     * `activeItem` The active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
+
+  # Essential: Invoke the given callback whenever an item is opened. Unlike
+  # {::onDidAddPaneItem}, observers will be notified for items that are already
+  # present in the workspace when they are reopened.
+  #
+  # * `callback` {Function} to be called whenever an item is opened.
+  #   * `event` {Object} with the following keys:
+  #     * `uri` {String} representing the opened URI. Could be `undefined`.
+  #     * `item` The opened item.
+  #     * `pane` The pane in which the item was opened.
+  #     * `index` The index of the opened item on its pane.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidOpen: (callback) ->
+    @emitter.on 'did-open', callback
+
   # Extended: Invoke the given callback when a pane is added to the workspace.
   #
   # * `callback` {Function} to be called panes are added.
@@ -140,25 +186,6 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
 
-  # Extended: Invoke the given callback when the active pane item changes.
-  #
-  # * `callback` {Function} to be called when the active pane item changes.
-  #   * `event` {Object} with the following keys:
-  #     * `activeItem` The active pane item.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
-
-  # Extended: Invoke the given callback with all current and future panes items in
-  # the workspace.
-  #
-  # * `callback` {Function} to be called with current and future pane items.
-  #   * `item` An item that is present in {::getPaneItems} at the time of
-  #      subscription or that is added at some later time.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePaneItems: (callback) -> @paneContainer.observePaneItems(callback)
-
   # Extended: Invoke the given callback when a text editor is added to the
   # workspace.
   #
@@ -173,33 +200,6 @@ class Workspace extends Model
   onDidAddTextEditor: (callback) ->
     @onDidAddPaneItem ({item, pane, index}) ->
       callback({textEditor: item, pane, index}) if item instanceof Editor
-
-  # Essential: Invoke the given callback with all current and future text
-  # editors in the workspace.
-  #
-  # * `callback` {Function} to be called with current and future text editors.
-  #   * `editor` An {Editor} that is present in {::getTextEditors} at the time
-  #     of subscription or that is added at some later time.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeTextEditors: (callback) ->
-    callback(textEditor) for textEditor in @getTextEditors()
-    @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
-
-  # Essential: Invoke the given callback whenever an item is opened. Unlike
-  # ::onDidAddPaneItem, observers will be notified for items that are already
-  # present in the workspace when they are reopened.
-  #
-  # * `callback` {Function} to be called whenever an item is opened.
-  #   * `event` {Object} with the following keys:
-  #     * `uri` {String} representing the opened URI. Could be `undefined`.
-  #     * `item` The opened item.
-  #     * `pane` The pane in which the item was opened.
-  #     * `index` The index of the opened item on its pane.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidOpen: (callback) ->
-    @emitter.on 'did-open', callback
 
   eachEditor: (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
@@ -323,7 +323,7 @@ class Workspace extends Model
       .catch (error) ->
         console.error(error.stack ? error)
 
-  # Extended: Asynchronously reopens the last-closed item's URI if it hasn't already been
+  # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
   #
   # Returns a promise that is resolved when the item is opened
@@ -339,7 +339,9 @@ class Workspace extends Model
     if uri = @destroyedItemUris.pop()
       @openSync(uri)
 
-  # Extended: Register an opener for a uri.
+  # TODO: make ::registerOpener() return a disposable
+
+  # Public: Register an opener for a uri.
   #
   # An {Editor} will be used if no openers return a value.
   #
@@ -355,7 +357,7 @@ class Workspace extends Model
   registerOpener: (opener) ->
     @openers.push(opener)
 
-  # Extended: Unregister an opener registered with {::registerOpener}.
+  # Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
     _.remove(@openers, opener)
 
@@ -396,7 +398,7 @@ class Workspace extends Model
   getActiveEditor: ->
     @activePane?.getActiveEditor()
 
-  # Extended: Save all pane items.
+  # Save all pane items.
   saveAll: ->
     @paneContainer.saveAll()
 

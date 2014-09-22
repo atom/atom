@@ -2330,6 +2330,16 @@ describe "Editor", ->
                 expect(buffer.lineForRow(5)).toMatch /^\t\t\t$/
                 expect(editor.getCursorBufferPosition()).toEqual [5, 3]
 
+              describe "when the difference between the suggested level of indentation and the current level of indentation is greater than 0 but less than 1", ->
+                it "inserts one tab", ->
+                  editor.setSoftTabs(false)
+                  buffer.setText(" \ntest")
+                  editor.setCursorBufferPosition [1, 0]
+
+                  editor.indent(autoIndent: true)
+                  expect(buffer.lineForRow(1)).toBe '\ttest'
+                  expect(editor.getCursorBufferPosition()).toEqual [1, 1]
+
           describe "when the line's indent level is greater than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
               it "moves the cursor to the end of the leading whitespace and inserts 'tabLength' spaces into the buffer", ->
@@ -3229,6 +3239,13 @@ describe "Editor", ->
       editor.destroy()
       expect(buffer.getMarkerCount()).toBe 0
 
+    it "notifies ::onDidDestroy observers when the editor is destroyed", ->
+      destroyObserverCalled = false
+      editor.onDidDestroy -> destroyObserverCalled = true
+
+      editor.destroy()
+      expect(destroyObserverCalled).toBe true
+
   describe ".joinLines()", ->
     describe "when no text is selected", ->
       describe "when the line below isn't empty", ->
@@ -3343,7 +3360,7 @@ describe "Editor", ->
         editor2.destroy()
         expect(editor.shouldPromptToSave()).toBeTruthy()
 
-  describe "when the edit session contains surrogate pair characters", ->
+  describe "when the editor contains surrogate pair characters", ->
     it "correctly backspaces over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97')
       editor.moveToBottom()
@@ -3366,6 +3383,47 @@ describe "Editor", ->
 
     it "correctly moves over them", ->
       editor.setText('\uD835\uDF97\uD835\uDF97\uD835\uDF97\n')
+      editor.moveToTop()
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 2]
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 4]
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 6]
+      editor.moveRight()
+      expect(editor.getCursorBufferPosition()).toEqual [1, 0]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 6]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 4]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 2]
+      editor.moveLeft()
+      expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+  describe "when the editor contains variation sequence character pairs", ->
+    it "correctly backspaces over them", ->
+      editor.setText('\u2714\uFE0E\u2714\uFE0E\u2714\uFE0E')
+      editor.moveToBottom()
+      editor.backspace()
+      expect(editor.getText()).toBe '\u2714\uFE0E\u2714\uFE0E'
+      editor.backspace()
+      expect(editor.getText()).toBe '\u2714\uFE0E'
+      editor.backspace()
+      expect(editor.getText()).toBe ''
+
+    it "correctly deletes over them", ->
+      editor.setText('\u2714\uFE0E\u2714\uFE0E\u2714\uFE0E')
+      editor.moveToTop()
+      editor.delete()
+      expect(editor.getText()).toBe '\u2714\uFE0E\u2714\uFE0E'
+      editor.delete()
+      expect(editor.getText()).toBe '\u2714\uFE0E'
+      editor.delete()
+      expect(editor.getText()).toBe ''
+
+    it "correctly moves over them", ->
+      editor.setText('\u2714\uFE0E\u2714\uFE0E\u2714\uFE0E\n')
       editor.moveToTop()
       editor.moveRight()
       expect(editor.getCursorBufferPosition()).toEqual [0, 2]

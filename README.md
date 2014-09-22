@@ -25,6 +25,17 @@ You can also download a `.zip` file from the [releases page](https://github.com/
 The Windows version does not currently automatically update so you will need to
 manually upgrade to future releases by re-downloading the `.zip` file.
 
+### Debian Linux (Ubuntu)
+
+Currently only a 64-bit version is available.
+
+1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
+3. Launch Atom using the installed `atom` command.
+
+The Linux version does not currently automatically update so you will need to
+repeat these steps to upgrade to future releases.
+
 ## Building
 
 * [Linux](docs/build-instructions/linux.md)

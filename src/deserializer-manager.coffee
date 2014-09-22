@@ -1,4 +1,4 @@
-# Public: Manages the deserializers used for serialized state
+# Extended: Manages the deserializers used for serialized state
 #
 # An instance of this class is always available as the `atom.deserializers`
 # global.

@@ -143,6 +143,8 @@
   # Sublime Parity
   'cmd-enter': 'editor:newline-below'
   'cmd-shift-enter': 'editor:newline-above'
+  'alt-enter': 'editor:newline'
+  'shift-enter': 'editor:newline'
   'cmd-]': 'editor:indent-selected-rows'
   'cmd-[': 'editor:outdent-selected-rows'
   'ctrl-cmd-up': 'editor:move-line-up'

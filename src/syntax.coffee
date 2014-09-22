@@ -9,7 +9,7 @@ PropertyAccessors = require 'property-accessors'
 {$, $$} = require './space-pen-extensions'
 Token = require './token'
 
-# Public: Syntax class holding the grammars used for tokenizing.
+# Extended: Syntax class holding the grammars used for tokenizing.
 #
 # An instance of this class is always available as the `atom.syntax` global.
 #

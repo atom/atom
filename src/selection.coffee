@@ -30,6 +30,9 @@ class Selection extends Model
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
+  destroy: ->
+    @marker.destroy()
+
   ###
   Section: Event Subscription
   ###
@@ -60,36 +63,10 @@ class Selection extends Model
 
     super
 
+
   ###
-  Section: Methods
+  Section: Managing the selection range
   ###
-
-  destroy: ->
-    @marker.destroy()
-
-  finalize: ->
-    @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
-    if @isEmpty()
-      @wordwise = false
-      @linewise = false
-
-  clearAutoscroll: ->
-    @needsAutoscroll = null
-
-  # Public: Determines if the selection contains anything.
-  isEmpty: ->
-    @getBufferRange().isEmpty()
-
-  # Public: Determines if the ending position of a marker is greater than the
-  # starting position.
-  #
-  # This can happen when, for example, you highlight text "up" in a {TextBuffer}.
-  isReversed: ->
-    @marker.isReversed()
-
-  # Public: Returns whether the selection is a single line or not.
-  isSingleScreenLine: ->
-    @getScreenRange().isSingleLine()
 
   # Public: Returns the screen {Range} for the selection.
   getScreenRange: ->
@@ -148,54 +125,60 @@ class Selection extends Model
   getHeadBufferPosition: ->
     @marker.getHeadBufferPosition()
 
-  autoscroll: ->
-    @editor.scrollToScreenRange(@getScreenRange())
+  ###
+  Section: Info about the selection
+  ###
+
+  # Public: Determines if the selection contains anything.
+  isEmpty: ->
+    @getBufferRange().isEmpty()
+
+  # Public: Determines if the ending position of a marker is greater than the
+  # starting position.
+  #
+  # This can happen when, for example, you highlight text "up" in a {TextBuffer}.
+  isReversed: ->
+    @marker.isReversed()
+
+  # Public: Returns whether the selection is a single line or not.
+  isSingleScreenLine: ->
+    @getScreenRange().isSingleLine()
 
   # Public: Returns the text in the selection.
   getText: ->
     @editor.buffer.getTextInRange(@getBufferRange())
 
+  # Public: Identifies if a selection intersects with a given buffer range.
+  #
+  # * `bufferRange` A {Range} to check against.
+  #
+  # Returns a {Boolean}
+  intersectsBufferRange: (bufferRange) ->
+    @getBufferRange().intersectsWith(bufferRange)
+
+  intersectsScreenRowRange: (startRow, endRow) ->
+    @getScreenRange().intersectsRowRange(startRow, endRow)
+
+  intersectsScreenRow: (screenRow) ->
+    @getScreenRange().intersectsRow(screenRow)
+
+  # Public: Identifies if a selection intersects with another selection.
+  #
+  # * `otherSelection` A {Selection} to check against.
+  #
+  # Returns a {Boolean}
+  intersectsWith: (otherSelection, exclusive) ->
+    @getBufferRange().intersectsWith(otherSelection.getBufferRange(), exclusive)
+
+  ###
+  Section: Modifying the selected range
+  ###
+
   # Public: Clears the selection, moving the marker to the head.
   clear: ->
-    @marker.setAttributes(goalBufferRange: null)
+    @marker.setProperties(goalBufferRange: null)
     @marker.clearTail() unless @retainSelection
     @finalize()
-
-  # Public: Modifies the selection to encompass the current word.
-  #
-  # Returns a {Range}.
-  selectWord: ->
-    options = {}
-    options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
-    if @cursor.isBetweenWordAndNonWord()
-      options.includeNonWordCharacters = false
-
-    @setBufferRange(@cursor.getCurrentWordBufferRange(options))
-    @wordwise = true
-    @initialScreenRange = @getScreenRange()
-
-  # Public: Expands the newest selection to include the entire word on which
-  # the cursors rests.
-  expandOverWord: ->
-    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
-
-  # Public: Selects an entire line in the buffer.
-  #
-  # * `row` The line {Number} to select (default: the row of the cursor).
-  selectLine: (row=@cursor.getBufferPosition().row) ->
-    range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(@getBufferRange().union(range))
-    @linewise = true
-    @wordwise = false
-    @initialScreenRange = @getScreenRange()
-
-  # Public: Expands the newest selection to include the entire line on which
-  # the cursor currently rests.
-  #
-  # It also includes the newline character.
-  expandOverLine: ->
-    range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
-    @setBufferRange(range)
 
   # Public: Selects the text from the current cursor position to a given screen
   # position.
@@ -311,46 +294,45 @@ class Selection extends Model
   selectToBeginningOfPreviousParagraph: ->
     @modifySelection => @cursor.moveToBeginningOfPreviousParagraph()
 
-  # Public: Moves the selection down one row.
-  addSelectionBelow: ->
-    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
-    nextRow = range.end.row + 1
+  # Public: Modifies the selection to encompass the current word.
+  #
+  # Returns a {Range}.
+  selectWord: ->
+    options = {}
+    options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
+    if @cursor.isBetweenWordAndNonWord()
+      options.includeNonWordCharacters = false
 
-    for row in [nextRow..@editor.getLastBufferRow()]
-      range.start.row = row
-      range.end.row = row
-      clippedRange = @editor.clipBufferRange(range)
+    @setBufferRange(@cursor.getCurrentWordBufferRange(options))
+    @wordwise = true
+    @initialScreenRange = @getScreenRange()
 
-      if range.isEmpty()
-        continue if range.end.column > 0 and clippedRange.end.column is 0
-      else
-        continue if clippedRange.isEmpty()
+  # Public: Expands the newest selection to include the entire word on which
+  # the cursors rests.
+  expandOverWord: ->
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
-      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
-      break
+  # Public: Selects an entire line in the buffer.
+  #
+  # * `row` The line {Number} to select (default: the row of the cursor).
+  selectLine: (row=@cursor.getBufferPosition().row) ->
+    range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
+    @setBufferRange(@getBufferRange().union(range))
+    @linewise = true
+    @wordwise = false
+    @initialScreenRange = @getScreenRange()
 
-  # FIXME: I have no idea what this does.
-  getGoalBufferRange: ->
-    if goalBufferRange = @marker.getAttributes().goalBufferRange
-      Range.fromObject(goalBufferRange)
+  # Public: Expands the newest selection to include the entire line on which
+  # the cursor currently rests.
+  #
+  # It also includes the newline character.
+  expandOverLine: ->
+    range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
+    @setBufferRange(range)
 
-  # Public: Moves the selection up one row.
-  addSelectionAbove: ->
-    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
-    previousRow = range.end.row - 1
-
-    for row in [previousRow..0]
-      range.start.row = row
-      range.end.row = row
-      clippedRange = @editor.clipBufferRange(range)
-
-      if range.isEmpty()
-        continue if range.end.column > 0 and clippedRange.end.column is 0
-      else
-        continue if clippedRange.isEmpty()
-
-      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
-      break
+  ###
+  Section: Modifying the selected text
+  ###
 
   # Public: Replaces text at the current selection.
   #
@@ -390,71 +372,6 @@ class Selection extends Model
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
     newBufferRange
-
-  # Public: Indents the given text to the suggested level based on the grammar.
-  #
-  # * `text` The {String} to indent within the selection.
-  # * `indentBasis` The beginning indent level.
-  normalizeIndents: (text, indentBasis) ->
-    textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
-    isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
-
-    lines = text.split('\n')
-    firstLineIndentLevel = @editor.indentLevelForLine(lines[0])
-    if isCursorInsideExistingLine
-      minimumIndentLevel = @editor.indentationForBufferRow(@cursor.getBufferRow())
-    else
-      minimumIndentLevel = @cursor.getIndentLevel()
-
-    normalizedLines = []
-    for line, i in lines
-      if i == 0
-        indentLevel = 0
-      else if line == '' # remove all indentation from empty lines
-        indentLevel = 0
-      else
-        lineIndentLevel = @editor.indentLevelForLine(lines[i])
-        indentLevel = minimumIndentLevel + (lineIndentLevel - indentBasis)
-
-      normalizedLines.push(@setIndentationForLine(line, indentLevel))
-
-    normalizedLines.join('\n')
-
-  # Indent the current line(s).
-  #
-  # If the selection is empty, indents the current line if the cursor precedes
-  # non-whitespace characters, and otherwise inserts a tab. If the selection is
-  # non empty, calls {::indentSelectedRows}.
-  #
-  # * `options` (optional) {Object} with the keys:
-  #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
-  #     level. Otherwise, {Editor::getTabText} is inserted.
-  indent: ({ autoIndent }={}) ->
-    { row, column } = @cursor.getBufferPosition()
-
-    if @isEmpty()
-      @cursor.skipLeadingWhitespace()
-      desiredIndent = @editor.suggestedIndentForBufferRow(row)
-      delta = desiredIndent - @cursor.getIndentLevel()
-
-      if autoIndent and delta > 0
-        @insertText(@editor.buildIndentString(delta))
-      else
-        @insertText(@editor.buildIndentString(1, @cursor.getBufferColumn()))
-    else
-      @indentSelectedRows()
-
-  # Public: If the selection spans multiple rows, indent all of them.
-  indentSelectedRows: ->
-    [start, end] = @getBufferRowRange()
-    for row in [start..end]
-      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
-
-  # Public: ?
-  setIndentationForLine: (line, indentLevel) ->
-    desiredIndentLevel = Math.max(0, indentLevel)
-    desiredIndentString = @editor.buildIndentString(desiredIndentLevel)
-    line.replace(/^[\t ]*/, desiredIndentString)
 
   # Public: Removes the first character before the selection if the selection
   # is empty otherwise it deletes the selection.
@@ -632,41 +549,110 @@ class Selection extends Model
     @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  modifySelection: (fn) ->
-    @retainSelection = true
-    @plantTail()
-    fn()
-    @retainSelection = false
+  # Public: Indents the given text to the suggested level based on the grammar.
+  #
+  # * `text` The {String} to indent within the selection.
+  # * `indentBasis` The beginning indent level.
+  normalizeIndents: (text, indentBasis) ->
+    textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
+    isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
 
-  # Sets the marker's tail to the same position as the marker's head.
-  #
-  # This only works if there isn't already a tail position.
-  #
-  # Returns a {Point} representing the new tail position.
-  plantTail: ->
-    @marker.plantTail()
+    lines = text.split('\n')
+    firstLineIndentLevel = @editor.indentLevelForLine(lines[0])
+    if isCursorInsideExistingLine
+      minimumIndentLevel = @editor.indentationForBufferRow(@cursor.getBufferRow())
+    else
+      minimumIndentLevel = @cursor.getIndentLevel()
 
-  # Public: Identifies if a selection intersects with a given buffer range.
-  #
-  # * `bufferRange` A {Range} to check against.
-  #
-  # Returns a {Boolean}
-  intersectsBufferRange: (bufferRange) ->
-    @getBufferRange().intersectsWith(bufferRange)
+    normalizedLines = []
+    for line, i in lines
+      if i == 0
+        indentLevel = 0
+      else if line == '' # remove all indentation from empty lines
+        indentLevel = 0
+      else
+        lineIndentLevel = @editor.indentLevelForLine(lines[i])
+        indentLevel = minimumIndentLevel + (lineIndentLevel - indentBasis)
 
-  intersectsScreenRowRange: (startRow, endRow) ->
-    @getScreenRange().intersectsRowRange(startRow, endRow)
+      normalizedLines.push(@setIndentationForLine(line, indentLevel))
 
-  intersectsScreenRow: (screenRow) ->
-    @getScreenRange().intersectsRow(screenRow)
+    normalizedLines.join('\n')
 
-  # Public: Identifies if a selection intersects with another selection.
+  # Indent the current line(s).
   #
-  # * `otherSelection` A {Selection} to check against.
+  # If the selection is empty, indents the current line if the cursor precedes
+  # non-whitespace characters, and otherwise inserts a tab. If the selection is
+  # non empty, calls {::indentSelectedRows}.
   #
-  # Returns a {Boolean}
-  intersectsWith: (otherSelection, exclusive) ->
-    @getBufferRange().intersectsWith(otherSelection.getBufferRange(), exclusive)
+  # * `options` (optional) {Object} with the keys:
+  #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
+  #     level. Otherwise, {Editor::getTabText} is inserted.
+  indent: ({ autoIndent }={}) ->
+    { row, column } = @cursor.getBufferPosition()
+
+    if @isEmpty()
+      @cursor.skipLeadingWhitespace()
+      desiredIndent = @editor.suggestedIndentForBufferRow(row)
+      delta = desiredIndent - @cursor.getIndentLevel()
+
+      if autoIndent and delta > 0
+        delta = Math.max(delta, 1) unless @editor.getSoftTabs()
+        @insertText(@editor.buildIndentString(delta))
+      else
+        @insertText(@editor.buildIndentString(1, @cursor.getBufferColumn()))
+    else
+      @indentSelectedRows()
+
+  # Public: If the selection spans multiple rows, indent all of them.
+  indentSelectedRows: ->
+    [start, end] = @getBufferRowRange()
+    for row in [start..end]
+      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
+
+  setIndentationForLine: (line, indentLevel) ->
+    desiredIndentLevel = Math.max(0, indentLevel)
+    desiredIndentString = @editor.buildIndentString(desiredIndentLevel)
+    line.replace(/^[\t ]*/, desiredIndentString)
+
+  ###
+  Section: Managing multiple selections
+  ###
+
+  # Public: Moves the selection down one row.
+  addSelectionBelow: ->
+    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
+    nextRow = range.end.row + 1
+
+    for row in [nextRow..@editor.getLastBufferRow()]
+      range.start.row = row
+      range.end.row = row
+      clippedRange = @editor.clipBufferRange(range)
+
+      if range.isEmpty()
+        continue if range.end.column > 0 and clippedRange.end.column is 0
+      else
+        continue if clippedRange.isEmpty()
+
+      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
+      break
+
+  # Public: Moves the selection up one row.
+  addSelectionAbove: ->
+    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
+    previousRow = range.end.row - 1
+
+    for row in [previousRow..0]
+      range.start.row = row
+      range.end.row = row
+      clippedRange = @editor.clipBufferRange(range)
+
+      if range.isEmpty()
+        continue if range.end.column > 0 and clippedRange.end.column is 0
+      else
+        continue if clippedRange.isEmpty()
+
+      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
+      break
 
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.
@@ -683,6 +669,10 @@ class Selection extends Model
     @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     otherSelection.destroy()
 
+  ###
+  Section: Comparing to other selections
+  ###
+
   # Public: Compare this selection's buffer range to another selection's buffer
   # range.
   #
@@ -692,7 +682,41 @@ class Selection extends Model
   compare: (otherSelection) ->
     @getBufferRange().compare(otherSelection.getBufferRange())
 
+  ###
+  Section: Private Utilities
+  ###
+
   screenRangeChanged: ->
     @emit 'screen-range-changed', @getScreenRange()
     @emitter.emit 'did-change-range'
     @editor.selectionRangeChanged(this)
+
+  finalize: ->
+    @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
+    if @isEmpty()
+      @wordwise = false
+      @linewise = false
+
+  autoscroll: ->
+    @editor.scrollToScreenRange(@getScreenRange())
+
+  clearAutoscroll: ->
+    @needsAutoscroll = null
+
+  modifySelection: (fn) ->
+    @retainSelection = true
+    @plantTail()
+    fn()
+    @retainSelection = false
+
+  # Sets the marker's tail to the same position as the marker's head.
+  #
+  # This only works if there isn't already a tail position.
+  #
+  # Returns a {Point} representing the new tail position.
+  plantTail: ->
+    @marker.plantTail()
+
+  getGoalBufferRange: ->
+    if goalBufferRange = @marker.getProperties().goalBufferRange
+      Range.fromObject(goalBufferRange)

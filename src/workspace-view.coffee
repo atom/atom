@@ -15,7 +15,12 @@ PaneRowView = require './pane-row-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
 
-# Essential: The top-level view for the entire window. An instance of this class is
+atom.commands.add '.workspace',
+  'window:increase-font-size': -> @getModel().increaseFontSize()
+  'window:decrease-font-size': -> @getModel().decreaseFontSize()
+  'window:reset-font-size': -> @getModel().resetFontSize()
+
+# Extended: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
 #
 # It is backed by a model object, an instance of {Workspace}, which is available
@@ -77,8 +82,10 @@ class WorkspaceView extends View
         @div class: 'vertical', outlet: 'vertical', =>
           @div class: 'panes', outlet: 'panes'
 
-  initialize: (@model) ->
-    @model = atom.workspace ? new Workspace unless @model?
+  initialize: (model) ->
+    @model = model ? atom.workspace ? new Workspace unless @model?
+    @element.getModel = -> model
+    atom.commands.setRootNode(@[0])
 
     panes = new PaneContainerView(@model.paneContainer)
     @panes.replaceWith(panes)
@@ -136,12 +143,10 @@ class WorkspaceView extends View
     @command 'application:open-your-stylesheet', -> ipc.send('command', 'application:open-your-stylesheet')
     @command 'application:open-license', => @model.openLicense()
 
-    @command 'window:install-shell-commands', => @installShellCommands()
+    if process.platform is 'darwin'
+      @command 'window:install-shell-commands', => @installShellCommands()
 
     @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
-    @command 'window:increase-font-size', => @increaseFontSize()
-    @command 'window:decrease-font-size', => @decreaseFontSize()
-    @command 'window:reset-font-size', => @model.resetFontSize()
 
     @command 'window:focus-next-pane', => @focusNextPaneView()
     @command 'window:focus-previous-pane', => @focusPreviousPaneView()
@@ -162,12 +167,175 @@ class WorkspaceView extends View
     @command 'core:save', => @saveActivePaneItem()
     @command 'core:save-as', => @saveActivePaneItemAs()
 
-  # Public: Get the underlying model object.
+    @deprecatedViewEvents()
+
+  ###
+  Section: Accessing the Workspace Model
+  ###
+
+  # Essential: Get the underlying model object.
   #
   # Returns a {Workspace}.
   getModel: -> @model
 
-  # Public: Install the Atom shell commands on the user's system.
+  ###
+  Section: Accessing Views
+  ###
+
+  # Essential: Register a function to be called for every current and future
+  # editor view in the workspace (only includes {EditorView}s that are pane
+  # items).
+  #
+  # * `callback` A {Function} with an {EditorView} as its only argument.
+  #   * `editorView` {EditorView}
+  #
+  # Returns a subscription object with an `.off` method that you can call to
+  # unregister the callback.
+  eachEditorView: (callback) ->
+    callback(editorView) for editorView in @getEditorViews()
+    attachedCallback = (e, editorView) ->
+      callback(editorView) unless editorView.mini
+    @on('editor:attached', attachedCallback)
+    off: => @off('editor:attached', attachedCallback)
+
+  # Essential: Register a function to be called for every current and future
+  # pane view in the workspace.
+  #
+  # * `callback` A {Function} with a {PaneView} as its only argument.
+  #   * `paneView` {PaneView}
+  #
+  # Returns a subscription object with an `.off` method that you can call to
+  # unregister the callback.
+  eachPaneView: (callback) ->
+    @panes.eachPaneView(callback)
+
+  # Essential: Get all existing pane views.
+  #
+  # Prefer {Workspace::getPanes} if you don't need access to the view objects.
+  # Also consider using {::eachPaneView} if you want to register a callback for
+  # all current and *future* pane views.
+  #
+  # Returns an Array of all open {PaneView}s.
+  getPaneViews: ->
+    @panes.getPaneViews()
+
+  # Essential: Get the active pane view.
+  #
+  # Prefer {Workspace::getActivePane} if you don't actually need access to the
+  # view.
+  #
+  # Returns a {PaneView}.
+  getActivePaneView: ->
+    @panes.getActivePaneView()
+
+  # Essential: Get the view associated with the active pane item.
+  #
+  # Returns a view.
+  getActiveView: ->
+    @panes.getActiveView()
+
+  ###
+  Section: Adding elements to the workspace
+  ###
+
+  # Essential: Prepend an element or view to the panels at the top of the
+  # workspace.
+  #
+  # * `element` jQuery object or DOM element
+  prependToTop: (element) ->
+    @vertical.prepend(element)
+
+  # Essential: Append an element or view to the panels at the top of the workspace.
+  #
+  # * `element` jQuery object or DOM element
+  appendToTop: (element) ->
+    @panes.before(element)
+
+  # Essential: Prepend an element or view to the panels at the bottom of the
+  # workspace.
+  #
+  # * `element` jQuery object or DOM element
+  prependToBottom: (element) ->
+    @panes.after(element)
+
+  # Essential: Append an element or view to the panels at the bottom of the
+  # workspace.
+  #
+  # * `element` jQuery object or DOM element
+  appendToBottom: (element) ->
+    @vertical.append(element)
+
+  # Essential: Prepend an element or view to the panels at the left of the
+  # workspace.
+  #
+  # * `element` jQuery object or DOM element
+  prependToLeft: (element) ->
+    @horizontal.prepend(element)
+
+  # Essential: Append an element or view to the panels at the left of the
+  # workspace.
+  #
+  # * `element` jQuery object or DOM element
+  appendToLeft: (element) ->
+    @vertical.before(element)
+
+  # Essential: Prepend an element or view to the panels at the right of the
+  # workspace.
+  #
+  # * `element` jQuery object or DOM element
+  prependToRight: (element) ->
+    @vertical.after(element)
+
+  # Essential: Append an element or view to the panels at the right of the
+  # workspace.
+  #
+  # * `element` jQuery object or DOM element
+  appendToRight: (element) ->
+    @horizontal.append(element)
+
+  ###
+  Section: Focusing pane views
+  ###
+
+  # Focus the previous pane by id.
+  focusPreviousPaneView: -> @model.activatePreviousPane()
+
+  # Focus the next pane by id.
+  focusNextPaneView: -> @model.activateNextPane()
+
+  # Focus the pane directly above the active pane.
+  focusPaneViewAbove: -> @panes.focusPaneViewAbove()
+
+  # Focus the pane directly below the active pane.
+  focusPaneViewBelow: -> @panes.focusPaneViewBelow()
+
+  # Focus the pane directly to the left of the active pane.
+  focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
+
+  # Focus the pane directly to the right of the active pane.
+  focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
+
+  ###
+  Section: Private
+  ###
+
+  afterAttach: (onDom) ->
+    @focus() if onDom
+
+  # Called by SpacePen
+  beforeRemove: ->
+    @model.destroy()
+
+  setEditorFontSize: (fontSize) ->
+    atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
+
+  setEditorFontFamily: (fontFamily) ->
+    atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
+
+  setEditorLineHeight: (lineHeight) ->
+    atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
+
+  # Install the Atom shell commands on the user's system.
   installShellCommands: ->
     showErrorDialog = (error) ->
       installDirectory = CommandInstaller.getInstallDirectory()
@@ -201,9 +369,6 @@ class WorkspaceView extends View
       else
         $(document.body).focus()
         true
-
-  afterAttach: (onDom) ->
-    @focus() if onDom
 
   # Prompts to save all unsaved items
   confirmClose: ->
@@ -243,143 +408,104 @@ class WorkspaceView extends View
     for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
       $(editorElement).view()
 
-  # Public: Prepend an element or view to the panels at the top of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
-  prependToTop: (element) ->
-    @vertical.prepend(element)
 
-  # Public: Append an element or view to the panels at the top of the workspace.
-  #
-  # * `element` jQuery object or DOM element
-  appendToTop: (element) ->
-    @panes.before(element)
+  ###
+  Section: Deprecated
+  ###
 
-  # Public: Prepend an element or view to the panels at the bottom of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
-  prependToBottom: (element) ->
-    @panes.after(element)
+  deprecatedViewEvents: ->
+    originalWorkspaceViewOn = @on
 
-  # Public: Append an element or view to the panels at the bottom of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
-  appendToBottom: (element) ->
-    @vertical.append(element)
+    @on = (eventName) =>
+      switch eventName
+        when 'beep'
+          deprecate('Use Atom::onDidBeep instead')
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
+        when 'editor:detached'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'editor:will-be-removed'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'pane:active-item-changed'
+          deprecate('Use Pane::onDidChangeActiveItem instead')
+        when 'pane:active-item-modified-status-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
+        when 'pane:active-item-title-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
+        when 'pane:attached'
+          deprecate('Use Workspace::onDidAddPane instead')
+        when 'pane:became-active'
+          deprecate('Use Pane::onDidActivate instead')
+        when 'pane:became-inactive'
+          deprecate('Use Pane::onDidChangeActive instead')
+        when 'pane:item-added'
+          deprecate('Use Pane::onDidAddItem instead')
+        when 'pane:item-moved'
+          deprecate('Use Pane::onDidMoveItem instead')
+        when 'pane:item-removed'
+          deprecate('Use Pane::onDidRemoveItem instead')
+        when 'pane:removed'
+          deprecate('Use Pane::onDidDestroy instead')
+        when 'pane-container:active-pane-item-changed'
+          deprecate('Use Workspace::onDidChangeActivePaneItem instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+        when 'uri-opened'
+          deprecate('Use Workspace::onDidOpen instead')
+      originalWorkspaceViewOn.apply(this, arguments)
 
-  # Public: Prepend an element or view to the panels at the left of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
-  prependToLeft: (element) ->
-    @horizontal.prepend(element)
+    EditorView = require './editor-view'
+    originalEditorViewOn = EditorView::on
+    EditorView::on = (eventName) ->
+      switch eventName
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
+        when 'editor:detached'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'editor:will-be-removed'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+      originalEditorViewOn.apply(this, arguments)
 
-  # Public: Append an element or view to the panels at the left of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
-  appendToLeft: (element) ->
-    @vertical.before(element)
-
-  # Public: Prepend an element or view to the panels at the right of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
-  prependToRight: (element) ->
-    @vertical.after(element)
-
-  # Public: Append an element or view to the panels at the right of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
-  appendToRight: (element) ->
-    @horizontal.append(element)
-
-  # Public: Get the active pane view.
-  #
-  # Prefer {Workspace::getActivePane} if you don't actually need access to the
-  # view.
-  #
-  # Returns a {PaneView}.
-  getActivePaneView: ->
-    @panes.getActivePaneView()
-
-  # Public: Get the view associated with the active pane item.
-  #
-  # Returns a view.
-  getActiveView: ->
-    @panes.getActiveView()
-
-  # Focus the previous pane by id.
-  focusPreviousPaneView: -> @model.activatePreviousPane()
-
-  # Focus the next pane by id.
-  focusNextPaneView: -> @model.activateNextPane()
-
-  # Public: Focus the pane directly above the active pane.
-  focusPaneViewAbove: -> @panes.focusPaneViewAbove()
-
-  # Public: Focus the pane directly below the active pane.
-  focusPaneViewBelow: -> @panes.focusPaneViewBelow()
-
-  # Public: Focus the pane directly to the left of the active pane.
-  focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
-
-  # Public: Focus the pane directly to the right of the active pane.
-  focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
-
-  # Public: Register a function to be called for every current and future
-  # pane view in the workspace.
-  #
-  # * `callback` A {Function} with a {PaneView} as its only argument.
-  #   * `paneView` {PaneView}
-  #
-  # Returns a subscription object with an `.off` method that you can call to
-  # unregister the callback.
-  eachPaneView: (callback) ->
-    @panes.eachPaneView(callback)
-
-  # Public: Get all existing pane views.
-  #
-  # Prefer {Workspace::getPanes} if you don't need access to the view objects.
-  # Also consider using {::eachPaneView} if you want to register a callback for
-  # all current and *future* pane views.
-  #
-  # Returns an Array of all open {PaneView}s.
-  getPaneViews: ->
-    @panes.getPaneViews()
-
-  # Public: Register a function to be called for every current and future
-  # editor view in the workspace (only includes {EditorView}s that are pane
-  # items).
-  #
-  # * `callback` A {Function} with an {EditorView} as its only argument.
-  #   * `editorView` {EditorView}
-  #
-  # Returns a subscription object with an `.off` method that you can call to
-  # unregister the callback.
-  eachEditorView: (callback) ->
-    callback(editorView) for editorView in @getEditorViews()
-    attachedCallback = (e, editorView) ->
-      callback(editorView) unless editorView.mini
-    @on('editor:attached', attachedCallback)
-    off: => @off('editor:attached', attachedCallback)
-
-  # Called by SpacePen
-  beforeRemove: ->
-    @model.destroy()
-
-  setEditorFontSize: (fontSize) ->
-    atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
-
-  setEditorFontFamily: (fontFamily) ->
-    atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
-
-  setEditorLineHeight: (lineHeight) ->
-    atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
+    originalPaneViewOn = PaneView::on
+    PaneView::on = (eventName) ->
+      switch eventName
+        when 'cursor:moved'
+          deprecate('Use Editor::onDidChangeCursorPosition instead')
+        when 'editor:attached'
+          deprecate('Use Editor::onDidAddTextEditor instead')
+        when 'editor:detached'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'editor:will-be-removed'
+          deprecate('Use Editor::onDidDestroy instead')
+        when 'pane:active-item-changed'
+          deprecate('Use Pane::onDidChangeActiveItem instead')
+        when 'pane:active-item-modified-status-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeModified on the active item instead')
+        when 'pane:active-item-title-changed'
+          deprecate('Use Pane::onDidChangeActiveItem and call onDidChangeTitle on the active item instead')
+        when 'pane:attached'
+          deprecate('Use Workspace::onDidAddPane instead')
+        when 'pane:became-active'
+          deprecate('Use Pane::onDidActivate instead')
+        when 'pane:became-inactive'
+          deprecate('Use Pane::onDidChangeActive instead')
+        when 'pane:item-added'
+          deprecate('Use Pane::onDidAddItem instead')
+        when 'pane:item-moved'
+          deprecate('Use Pane::onDidMoveItem instead')
+        when 'pane:item-removed'
+          deprecate('Use Pane::onDidRemoveItem instead')
+        when 'pane:removed'
+          deprecate('Use Pane::onDidDestroy instead')
+        when 'selection:changed'
+          deprecate('Use Editor::onDidChangeSelectionRange instead')
+      originalPaneViewOn.apply(this, arguments)
 
   # Deprecated
   eachPane: (callback) ->

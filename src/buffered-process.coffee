@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 ChildProcess = require 'child_process'
 
-# Public: A wrapper which provides standard error/output line buffering for
+# Extended: A wrapper which provides standard error/output line buffering for
 # Node's ChildProcess.
 #
 # ## Examples
@@ -44,13 +44,14 @@ class BufferedProcess
     if process.platform is "win32"
       # Quote all arguments and escapes inner quotes
       if args?
-        cmdArgs = args.map (arg) ->
+        cmdArgs = args.filter (arg) -> arg?
+        cmdArgs = cmdArgs.map (arg) ->
           if command in ['explorer.exe', 'explorer'] and /^\/[a-zA-Z]+,.*$/.test(arg)
             # Don't wrap /root,C:\folder style arguments to explorer calls in
             # quotes since they will not be interpreted correctly if they are
             arg
           else
-            "\"#{arg.replace(/"/g, '\\"')}\""
+            "\"#{arg.toString().replace(/"/g, '\\"')}\""
       else
         cmdArgs = []
       if /\s/.test(command)

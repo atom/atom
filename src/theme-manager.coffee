@@ -85,16 +85,28 @@ class ThemeManager
     EmitterMixin::on.apply(this, arguments)
 
   ###
-  Section: Instance Methods
+  Section: Accessing Available Themes
   ###
 
   getAvailableNames: ->
     # TODO: Maybe should change to list all the available themes out there?
     @getLoadedNames()
 
+  ###
+  Section: Accessing Loaded Themes
+  ###
+
   # Public: Get an array of all the loaded theme names.
   getLoadedNames: ->
     theme.name for theme in @getLoadedThemes()
+
+  # Public: Get an array of all the loaded themes.
+  getLoadedThemes: ->
+    pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
+
+  ###
+  Section: Accessing Active Themes
+  ###
 
   # Public: Get an array of all the active theme names.
   getActiveNames: ->
@@ -104,13 +116,13 @@ class ThemeManager
   getActiveThemes: ->
     pack for pack in @packageManager.getActivePackages() when pack.isTheme()
 
-  # Public: Get an array of all the loaded themes.
-  getLoadedThemes: ->
-    pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
-
   activatePackages: -> @activateThemes()
 
-  # Get the enabled theme names from the config.
+  ###
+  Section: Managing Enabled Themes
+  ###
+
+  # Public: Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
@@ -144,6 +156,147 @@ class ThemeManager
     # Reverse so the first (top) theme is loaded after the others. We want
     # the first/top theme to override later themes in the stack.
     themeNames.reverse()
+
+  # Public: Set the list of enabled themes.
+  #
+  # * `enabledThemeNames` An {Array} of {String} theme names.
+  setEnabledThemes: (enabledThemeNames) ->
+    atom.config.set('core.themes', enabledThemeNames)
+
+  ###
+  Section: Managing Stylesheets
+  ###
+
+  # Public: Returns the {String} path to the user's stylesheet under ~/.atom
+  getUserStylesheetPath: ->
+    stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
+    if fs.isFileSync(stylesheetPath)
+      stylesheetPath
+    else
+      path.join(@configDirPath, 'styles.less')
+
+  # Public: Resolve and apply the stylesheet specified by the path.
+  #
+  # This supports both CSS and Less stylsheets.
+  #
+  # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
+  #   path or a relative path that will be resolved against the load path.
+  #
+  # Returns the absolute path to the required stylesheet.
+  requireStylesheet: (stylesheetPath, type='bundled') ->
+    if fullPath = @resolveStylesheet(stylesheetPath)
+      content = @loadStylesheet(fullPath)
+      @applyStylesheet(fullPath, content, type)
+    else
+      throw new Error("Could not find a file at path '#{stylesheetPath}'")
+
+    fullPath
+
+  unwatchUserStylesheet: ->
+    @userStylesheetFile?.off()
+    @userStylesheetFile = null
+    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
+
+  loadUserStylesheet: ->
+    @unwatchUserStylesheet()
+    userStylesheetPath = @getUserStylesheetPath()
+    return unless fs.isFileSync(userStylesheetPath)
+
+    @userStylesheetPath = userStylesheetPath
+    @userStylesheetFile = new File(userStylesheetPath)
+    @userStylesheetFile.on 'contents-changed moved removed', =>
+      @loadUserStylesheet()
+    userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
+    @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
+
+  loadBaseStylesheets: ->
+    @requireStylesheet('bootstrap/less/bootstrap')
+    @reloadBaseStylesheets()
+
+  reloadBaseStylesheets: ->
+    @requireStylesheet('../static/atom')
+    if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
+      @requireStylesheet(nativeStylesheetPath)
+
+  stylesheetElementForId: (id) ->
+    document.head.querySelector("""style[id="#{id}"]""")
+
+  resolveStylesheet: (stylesheetPath) ->
+    if path.extname(stylesheetPath).length > 0
+      fs.resolveOnLoadPath(stylesheetPath)
+    else
+      fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
+
+  loadStylesheet: (stylesheetPath, importFallbackVariables) ->
+    if path.extname(stylesheetPath) is '.less'
+      @loadLessStylesheet(stylesheetPath, importFallbackVariables)
+    else
+      fs.readFileSync(stylesheetPath, 'utf8')
+
+  loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
+    unless @lessCache?
+      LessCompileCache = require './less-compile-cache'
+      @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
+
+    try
+      if importFallbackVariables
+        baseVarImports = """
+        @import "variables/ui-variables";
+        @import "variables/syntax-variables";
+        """
+        less = fs.readFileSync(lessStylesheetPath, 'utf8')
+        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
+      else
+        @lessCache.read(lessStylesheetPath)
+    catch error
+      console.error """
+        Error compiling Less stylesheet: #{lessStylesheetPath}
+        Line number: #{error.line}
+        #{error.message}
+      """
+
+  removeStylesheet: (stylesheetPath) ->
+    fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
+    element = @stylesheetElementForId(@stringToId(fullPath))
+    if element?
+      {sheet} = element
+      element.remove()
+      @emit 'stylesheet-removed', sheet
+      @emitter.emit 'did-remove-stylesheet', sheet
+      @emit 'stylesheets-changed'
+      @emitter.emit 'did-change-stylesheets'
+
+  applyStylesheet: (path, text, type='bundled') ->
+    styleId = @stringToId(path)
+    styleElement = @stylesheetElementForId(styleId)
+
+    if styleElement?
+      @emit 'stylesheet-removed', styleElement.sheet
+      @emitter.emit 'did-remove-stylesheet', styleElement.sheet
+      styleElement.textContent = text
+    else
+      styleElement = document.createElement('style')
+      styleElement.setAttribute('class', type)
+      styleElement.setAttribute('id', styleId)
+      styleElement.textContent = text
+
+      elementToInsertBefore = _.last(document.head.querySelectorAll("style.#{type}"))?.nextElementSibling
+      if elementToInsertBefore?
+        document.head.insertBefore(styleElement, elementToInsertBefore)
+      else
+        document.head.appendChild(styleElement)
+
+    @emit 'stylesheet-added', styleElement.sheet
+    @emitter.emit 'did-add-stylesheet', styleElement.sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  ###
+  Section: Private
+  ###
+
+  stringToId: (string) ->
+    string.replace(/\\/g, '/')
 
   activateThemes: ->
     deferred = Q.defer()
@@ -194,12 +347,6 @@ class ThemeManager
   refreshLessCache: ->
     @lessCache?.setImportPaths(@getImportPaths())
 
-  # Public: Set the list of enabled themes.
-  #
-  # * `enabledThemeNames` An {Array} of {String} theme names.
-  setEnabledThemes: (enabledThemeNames) ->
-    atom.config.set('core.themes', enabledThemeNames)
-
   getImportPaths: ->
     activeThemes = @getActiveThemes()
     if activeThemes.length > 0
@@ -211,133 +358,6 @@ class ThemeManager
           themePaths.push(path.join(themePath, Package.stylesheetsDir))
 
     themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
-
-  # Public: Returns the {String} path to the user's stylesheet under ~/.atom
-  getUserStylesheetPath: ->
-    stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
-    if fs.isFileSync(stylesheetPath)
-      stylesheetPath
-    else
-      path.join(@configDirPath, 'styles.less')
-
-  unwatchUserStylesheet: ->
-    @userStylesheetFile?.off()
-    @userStylesheetFile = null
-    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
-
-  loadUserStylesheet: ->
-    @unwatchUserStylesheet()
-    userStylesheetPath = @getUserStylesheetPath()
-    return unless fs.isFileSync(userStylesheetPath)
-
-    @userStylesheetPath = userStylesheetPath
-    @userStylesheetFile = new File(userStylesheetPath)
-    @userStylesheetFile.on 'contents-changed moved removed', =>
-      @loadUserStylesheet()
-    userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
-    @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
-
-  loadBaseStylesheets: ->
-    @requireStylesheet('bootstrap/less/bootstrap')
-    @reloadBaseStylesheets()
-
-  reloadBaseStylesheets: ->
-    @requireStylesheet('../static/atom')
-    if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
-      @requireStylesheet(nativeStylesheetPath)
-
-  stylesheetElementForId: (id) ->
-    document.head.querySelector("""style[id="#{id}"]""")
-
-  resolveStylesheet: (stylesheetPath) ->
-    if path.extname(stylesheetPath).length > 0
-      fs.resolveOnLoadPath(stylesheetPath)
-    else
-      fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
-
-  # Public: Resolve and apply the stylesheet specified by the path.
-  #
-  # This supports both CSS and Less stylsheets.
-  #
-  # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
-  #   path or a relative path that will be resolved against the load path.
-  #
-  # Returns the absolute path to the required stylesheet.
-  requireStylesheet: (stylesheetPath, type='bundled') ->
-    if fullPath = @resolveStylesheet(stylesheetPath)
-      content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content, type)
-    else
-      throw new Error("Could not find a file at path '#{stylesheetPath}'")
-
-    fullPath
-
-  loadStylesheet: (stylesheetPath, importFallbackVariables) ->
-    if path.extname(stylesheetPath) is '.less'
-      @loadLessStylesheet(stylesheetPath, importFallbackVariables)
-    else
-      fs.readFileSync(stylesheetPath, 'utf8')
-
-  loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
-    unless @lessCache?
-      LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
-
-    try
-      if importFallbackVariables
-        baseVarImports = """
-        @import "variables/ui-variables";
-        @import "variables/syntax-variables";
-        """
-        less = fs.readFileSync(lessStylesheetPath, 'utf8')
-        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
-      else
-        @lessCache.read(lessStylesheetPath)
-    catch error
-      console.error """
-        Error compiling Less stylesheet: #{lessStylesheetPath}
-        Line number: #{error.line}
-        #{error.message}
-      """
-
-  stringToId: (string) ->
-    string.replace(/\\/g, '/')
-
-  removeStylesheet: (stylesheetPath) ->
-    fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
-    element = @stylesheetElementForId(@stringToId(fullPath))
-    if element?
-      {sheet} = element
-      element.remove()
-      @emit 'stylesheet-removed', sheet
-      @emitter.emit 'did-remove-stylesheet', sheet
-      @emit 'stylesheets-changed'
-      @emitter.emit 'did-change-stylesheets'
-
-  applyStylesheet: (path, text, type='bundled') ->
-    styleId = @stringToId(path)
-    styleElement = @stylesheetElementForId(styleId)
-
-    if styleElement?
-      @emit 'stylesheet-removed', styleElement.sheet
-      @emitter.emit 'did-remove-stylesheet', styleElement.sheet
-      styleElement.textContent = text
-    else
-      styleElement = document.createElement('style')
-      styleElement.setAttribute('class', type)
-      styleElement.setAttribute('id', styleId)
-      styleElement.textContent = text
-
-      elementToInsertBefore = _.last(document.head.querySelectorAll("style.#{type}"))?.nextElementSibling
-      if elementToInsertBefore?
-        document.head.insertBefore(styleElement, elementToInsertBefore)
-      else
-        document.head.appendChild(styleElement)
-
-    @emit 'stylesheet-added', styleElement.sheet
-    @emitter.emit 'did-add-stylesheet', styleElement.sheet
-    @emit 'stylesheets-changed'
-    @emitter.emit 'did-change-stylesheets'
 
   updateGlobalEditorStyle: (property, value) ->
     unless styleNode = @stylesheetElementForId('global-editor-styles')

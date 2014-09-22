@@ -128,6 +128,7 @@ EditorComponent = React.createClass
           scrollableInOppositeDirection: verticallyScrollable
           verticalScrollbarWidth: verticalScrollbarWidth
           horizontalScrollbarHeight: horizontalScrollbarHeight
+          useHardwareAcceleration: @useHardwareAcceleration
 
       ScrollbarComponent
         ref: 'verticalScrollbar'
@@ -140,6 +141,7 @@ EditorComponent = React.createClass
         scrollableInOppositeDirection: horizontallyScrollable
         verticalScrollbarWidth: verticalScrollbarWidth
         horizontalScrollbarHeight: horizontalScrollbarHeight
+        useHardwareAcceleration: @useHardwareAcceleration
 
       # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent
@@ -350,7 +352,7 @@ EditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor.onDidChangeScreenLines(@onScreenLinesChanged)
+    @subscribe editor.onDidChange(@onScreenLinesChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
     @subscribe editor.observeSelections(@onSelectionAdded)
     @subscribe editor.observeDecorations(@onDecorationAdded)
@@ -954,7 +956,7 @@ EditorComponent = React.createClass
     {verticalScrollbar, horizontalScrollbar, scrollbarCorner} = @refs
 
     verticalNode = verticalScrollbar.getDOMNode()
-    horizontalNode = verticalScrollbar.getDOMNode()
+    horizontalNode = horizontalScrollbar.getDOMNode()
     cornerNode = scrollbarCorner.getDOMNode()
 
     originalVerticalDisplayValue = verticalNode.style.display
