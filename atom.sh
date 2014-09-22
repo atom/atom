@@ -50,7 +50,7 @@ if [ $OS == 'Mac' ]; then
 
   # If ATOM_PATH isn't a executable file, use spotlight to search for Atom
   if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
-    ATOM_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | head -1 | xargs dirname)
+    ATOM_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | grep -v ShipIt | head -1 | xargs dirname)
   fi
 
   # Exit if Atom can't be found
