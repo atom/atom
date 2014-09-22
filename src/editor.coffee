@@ -226,6 +226,7 @@ class Editor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
+  #     * `cursor` {Cursor} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeCursorPosition: (callback) ->
@@ -234,7 +235,12 @@ class Editor extends Model
   # Essential: Calls your `callback` when a selection's screen range changes.
   #
   # * `callback` {Function}
-  #   * `selection` {Selection} that moved
+  #   * `event` {Object}
+  #     * `oldBufferRange` {Range}
+  #     * `oldScreenRange` {Range}
+  #     * `newBufferRange` {Range}
+  #     * `newScreenRange` {Range}
+  #     * `selection` {Selection} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSelectionRange: (callback) ->
@@ -1604,7 +1610,7 @@ class Editor extends Model
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
-  cursorMoved: (cursor, event) ->
+  cursorMoved: (event) ->
     @emit 'cursor-moved', event
     @emitter.emit 'did-change-cursor-position', event
 
@@ -2087,9 +2093,9 @@ class Editor extends Model
       false
 
   # Called by the selection
-  selectionRangeChanged: (selection) ->
-    @emit 'selection-screen-range-changed', selection
-    @emitter.emit 'did-change-selection-range', selection
+  selectionRangeChanged: (event) ->
+    @emit 'selection-screen-range-changed', event
+    @emitter.emit 'did-change-selection-range', event
 
   ###
   Section: Searching and Replacing

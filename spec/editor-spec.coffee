@@ -174,6 +174,20 @@ describe "Editor", ->
         editor.moveDown()
         expect(editor.getCursorBufferPosition()).toEqual [1, 1]
 
+      it "emits an event with the old position, new position, and the cursor that moved", ->
+        editor.onDidChangeCursorPosition positionChangedHandler = jasmine.createSpy()
+
+        editor.setCursorBufferPosition([2, 4])
+
+        expect(positionChangedHandler).toHaveBeenCalled()
+        eventObject = positionChangedHandler.mostRecentCall.args[0]
+
+        expect(eventObject.oldBufferPosition).toEqual [0, 0]
+        expect(eventObject.oldScreenPosition).toEqual [0, 0]
+        expect(eventObject.newBufferPosition).toEqual [2, 4]
+        expect(eventObject.newScreenPosition).toEqual [2, 4]
+        expect(eventObject.cursor).toBe editor.getLastCursor()
+
     describe ".setCursorScreenPosition(screenPosition)", ->
       it "clears a goal column established by vertical movement", ->
         # set a goal column by moving down
@@ -886,6 +900,22 @@ describe "Editor", ->
 
     beforeEach ->
       selection = editor.getLastSelection()
+
+    describe "when the selection range changes", ->
+      it "emits an event with the old range, new range, and the selection that moved", ->
+        editor.setSelectedBufferRange([[3, 0], [4, 5]])
+
+        editor.onDidChangeSelectionRange rangeChangedHandler = jasmine.createSpy()
+        editor.selectToBufferPosition([6, 2])
+
+        expect(rangeChangedHandler).toHaveBeenCalled()
+        eventObject = rangeChangedHandler.mostRecentCall.args[0]
+
+        expect(eventObject.oldBufferRange).toEqual [[3, 0], [4, 5]]
+        expect(eventObject.oldScreenRange).toEqual [[3, 0], [4, 5]]
+        expect(eventObject.newBufferRange).toEqual [[3, 0], [6, 2]]
+        expect(eventObject.newScreenRange).toEqual [[3, 0], [6, 2]]
+        expect(eventObject.selection).toBe selection
 
     describe ".selectUp/Down/Left/Right()", ->
       it "expands each selection to its cursor's new location", ->
