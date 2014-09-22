@@ -901,6 +901,22 @@ describe "Editor", ->
     beforeEach ->
       selection = editor.getLastSelection()
 
+    describe "when the selection range changes", ->
+      it "emits an event with the old range, new range, and the selection that moved", ->
+        editor.setSelectedBufferRange([[3, 0], [4, 5]])
+
+        editor.onDidChangeSelectionRange rangeChangedHandler = jasmine.createSpy()
+        editor.selectToBufferPosition([6, 2])
+
+        expect(rangeChangedHandler).toHaveBeenCalled()
+        eventObject = rangeChangedHandler.mostRecentCall.args[0]
+
+        expect(eventObject.oldBufferRange).toEqual [[3, 0], [4, 5]]
+        expect(eventObject.oldScreenRange).toEqual [[3, 0], [4, 5]]
+        expect(eventObject.newBufferRange).toEqual [[3, 0], [6, 2]]
+        expect(eventObject.newScreenRange).toEqual [[3, 0], [6, 2]]
+        expect(eventObject.selection).toBe selection
+
     describe ".selectUp/Down/Left/Right()", ->
       it "expands each selection to its cursor's new location", ->
         editor.setSelectedBufferRanges([[[0,9], [0,13]], [[3,16], [3,21]]])

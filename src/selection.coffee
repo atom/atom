@@ -21,7 +21,7 @@ class Selection extends Model
     @cursor.selection = this
     @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
-    @marker.onDidChange => @screenRangeChanged()
+    @marker.onDidChange (e) => @screenRangeChanged(e)
     @marker.onDidDestroy =>
       unless @editor.isDestroyed()
         @destroyed = true
@@ -686,10 +686,20 @@ class Selection extends Model
   Section: Private Utilities
   ###
 
-  screenRangeChanged: ->
-    @emit 'screen-range-changed', @getScreenRange()
+  screenRangeChanged: (e) ->
+    {oldHeadBufferPosition, oldTailBufferPosition} = e
+    {oldHeadScreenPosition, oldTailScreenPosition} = e
+
+    eventObject =
+      oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition)
+      oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition)
+      newBufferRange: @getBufferRange()
+      newScreenRange: @getScreenRange()
+      selection: this
+
+    @emit 'screen-range-changed', @getScreenRange() # old event
     @emitter.emit 'did-change-range'
-    @editor.selectionRangeChanged(this)
+    @editor.selectionRangeChanged(eventObject)
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())

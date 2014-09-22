@@ -2088,9 +2088,9 @@ class Editor extends Model
       false
 
   # Called by the selection
-  selectionRangeChanged: (selection) ->
-    @emit 'selection-screen-range-changed', selection
-    @emitter.emit 'did-change-selection-range', selection
+  selectionRangeChanged: (event) ->
+    @emit 'selection-screen-range-changed', event
+    @emitter.emit 'did-change-selection-range', event
 
   ###
   Section: Searching and Replacing
