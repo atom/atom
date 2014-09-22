@@ -33,4 +33,4 @@ cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
 dpkg-deb -b "$TARGET"
 mv "$TARGET_ROOT/atom-$VERSION-$ARCH.deb" "$DEB_PATH"
-rm -rf $TARGET_ROOT
+rm -rf "$TARGET_ROOT"
