@@ -27,7 +27,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Reactionary = require 'reactionary-atom-fork'
 
 Object.defineProperty module.exports, 'Git', get: ->
-  deprecate "Please require `GitRepository` instead of `Git`: `{Git} = require 'atom'`"
+  deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
   module.exports.GitRepository
 
 Object.defineProperty module.exports, 'EditorView', get: ->
