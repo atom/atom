@@ -96,6 +96,7 @@ describe "PackageManager", ->
           [mainModule, promise] = []
 
           beforeEach ->
+            atom.workspaceView.attachToDom()
             mainModule = require './fixtures/packages/package-with-activation-events/index'
             spyOn(mainModule, 'activate').andCallThrough()
             spyOn(Package.prototype, 'requireMainModule').andCallThrough()
@@ -104,7 +105,7 @@ describe "PackageManager", ->
 
           it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
             expect(promise.isFulfilled()).not.toBeTruthy()
-            atom.workspaceView.trigger 'activation-event'
+            atom.workspaceView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
 
             waitsForPromise ->
               promise
@@ -117,11 +118,11 @@ describe "PackageManager", ->
               editorView = atom.workspaceView.getActiveView()
               eventHandler = jasmine.createSpy("activation-event")
               editorView.command 'activation-event', eventHandler
-              editorView.trigger 'activation-event'
+              editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
               expect(mainModule.activate.callCount).toBe 1
               expect(mainModule.activationEventCallCount).toBe 1
               expect(eventHandler.callCount).toBe 1
-              editorView.trigger 'activation-event'
+              editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
               expect(mainModule.activationEventCallCount).toBe 2
               expect(eventHandler.callCount).toBe 2
               expect(mainModule.activate.callCount).toBe 1
