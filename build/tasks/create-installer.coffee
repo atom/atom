@@ -16,7 +16,7 @@ module.exports = (grunt) ->
     packageInfo = grunt.file.readJSON(path.join(atomDir, 'resources', 'app', 'package.json'))
     inputTemplate = grunt.file.read(path.join('build', 'windows', 'atom.nuspec.erb'))
 
-    ## NB: Build server has some sort of stamp on the version number
+    # NB: Build server has some sort of stamp on the version number
     packageInfo.version = packageInfo.version.replace(/-.*$/, '')
 
     targetNuspecPath = path.join(buildDir, 'atom.nuspec')
@@ -32,8 +32,8 @@ module.exports = (grunt) ->
 
       releasesDir = path.join(buildDir, 'Releases')
 
-      ## NB: Gonna clear Releases for now, in the future we need to pull down
-      ## the existing version
+      # NB: Gonna clear Releases for now, in the future we need to pull down
+      # the existing version
       rm(releasesDir)
 
       cmd = 'build/windows/update.com'
