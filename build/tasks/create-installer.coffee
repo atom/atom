@@ -6,8 +6,7 @@ module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'create-installer', 'Create the Windows installer', ->
-    if process.platform != 'win32'
-      return
+    return unless if process.platform is 'win32'
 
     done = @async()
 
@@ -27,9 +26,7 @@ module.exports = (grunt) ->
     args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
 
     spawn {cmd, args}, (error, result, code) ->
-      if error?
-        done(error)
-        return
+      return done(error) if error?
 
       pkgs = pkg for pkg in fs.readdirSync(buildDir) when pkg.match /.nupkg$/i
 
