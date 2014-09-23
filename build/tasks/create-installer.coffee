@@ -13,7 +13,7 @@ module.exports = (grunt) ->
     buildDir = grunt.config.get('atom.buildDir')
     atomDir = path.join(buildDir, 'Atom')
 
-    packageInfo = JSON.parse(fs.readFileSync(path.join(atomDir, 'resources', 'app', 'package.json'), {encoding: 'utf8'}))
+    packageInfo = grunt.file.readJSON(path.join(atomDir, 'resources', 'app', 'package.json'))
     inputTemplate = grunt.file.read(path.join('build', 'windows', 'atom.nuspec.erb'))
 
     ## NB: Build server has some sort of stamp on the version number
