@@ -3665,3 +3665,21 @@ describe "Editor", ->
       editor.selectPageUp()
       expect(editor.getScrollTop()).toBe 0
       expect(editor.getSelectedBufferRanges()).toEqual [[[0,0], [12,2]]]
+
+  describe '.get/setPlaceholderText()', ->
+    it 'can be created with placeholderText', ->
+      TextBuffer = require 'text-buffer'
+      newEditor = new Editor
+        buffer: new TextBuffer
+        mini: true
+        placeholderText: 'yep'
+      expect(newEditor.getPlaceholderText()).toBe 'yep'
+
+    it 'models placeholderText and emits an event when changed', ->
+      editor.onDidChangePlaceholderText handler = jasmine.createSpy()
+
+      expect(editor.getPlaceholderText()).toBeUndefined()
+
+      editor.setPlaceholderText('OK')
+      expect(handler).toHaveBeenCalledWith 'OK'
+      expect(editor.getPlaceholderText()).toBe 'OK'

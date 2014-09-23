@@ -77,7 +77,7 @@ class Editor extends Model
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
     'manageScrollPosition', toProperty: 'displayBuffer'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText}) ->
     super
 
     @emitter = new Emitter
@@ -404,6 +404,15 @@ class Editor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveDecoration: (callback) ->
     @displayBuffer.onDidRemoveDecoration(callback)
+
+  # Extended: Calls your `callback` when the placeholder text is changed.
+  #
+  # * `callback` {Function}
+  #   * `placeholderText` {String} new text
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangePlaceholderText: (callback) ->
+    @emitter.on 'did-change-placeholder-text', callback
 
   onDidChangeCharacterWidths: (callback) ->
     @displayBuffer.onDidChangeCharacterWidths(callback)
@@ -2669,6 +2678,21 @@ class Editor extends Model
   ###
   Section: Editor Rendering
   ###
+
+  # Public: Retrieves the greyed out placeholder of a mini editor.
+  #
+  # Returns a {String}.
+  getPlaceholderText: ->
+    @placeholderText
+
+  # Public: Set the greyed out placeholder of a mini editor. Placeholder text
+  # will be displayed when the editor has no content.
+  #
+  # * `placeholderText` {String} text that is displayed when the editor has no content.
+  setPlaceholderText: (placeholderText) ->
+    return if @placeholderText is placeholderText
+    @placeholderText = placeholderText
+    @emitter.emit 'did-change-placeholder-text', @placeholderText
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # top of the editor.
