@@ -27,22 +27,31 @@ class List extends Command
 
       Usage: apm list
              apm list --themes
+             apm list --installed
+             apm list --installed --bare > my-packages.txt
 
       List all the installed packages and also the packages bundled with Atom.
     """
+    options.alias('b', 'bare').boolean('bare').describe('bare', 'Print packages one per line with no formatting')
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
     options.alias('i', 'installed').boolean('installed').describe('installed', 'Only list installed packages/themes')
+    options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
 
   isPackageDisabled: (name) ->
     @disabledPackages.indexOf(name) isnt -1
 
-  logPackages: (packages) ->
-    tree packages, (pack) =>
-      packageLine = pack.name
-      packageLine += "@#{pack.version}" if pack.version?
-      packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
-      packageLine
+  logPackages: (packages, options) ->
+    if options.argv.bare
+      for pack in packages
+        packageLine = pack.name
+        packageLine += "@#{pack.version}" if pack.version?
+        console.log packageLine
+    else
+      tree packages, (pack) =>
+        packageLine = pack.name
+        packageLine += "@#{pack.version}" if pack.version?
+        packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
+        packageLine
     console.log()
 
   listPackages: (directoryPath, options) ->
@@ -65,14 +74,16 @@ class List extends Command
 
   listUserPackages: (options) ->
     userPackages = @listPackages(@userPackagesDirectory, options)
-    console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
-    @logPackages(userPackages)
+    unless options.argv.bare
+      console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
+    @logPackages(userPackages, options)
 
   listDevPackages: (options) ->
     devPackages = @listPackages(@devPackagesDirectory, options)
     if devPackages.length > 0
-      console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
-      @logPackages(devPackages)
+      unless options.argv.bare
+        console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
+      @logPackages(devPackages, options)
 
   listBundledPackages: (options, callback) ->
     config.getResourcePath (resourcePath) =>
@@ -87,11 +98,13 @@ class List extends Command
       packages = packages.filter ({name}) ->
         packageDependencies.hasOwnProperty(name)
 
-      if options.argv.themes
-        console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
-      else
-        console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
-      @logPackages(packages)
+      unless options.argv.bare
+        if options.argv.themes
+          console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
+        else
+          console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
+
+      @logPackages(packages, options)
       callback()
 
   listInstalledPackages: (options) ->
