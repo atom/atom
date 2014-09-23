@@ -231,6 +231,26 @@ describe "Config", ->
       atom.config.setDefaults("foo.bar.baz", a: 2)
       expect(updatedCallback.callCount).toBe 1
 
+  describe ".onDidChange(keyPath)", ->
+    [observeHandler, observeSubscription] = []
+
+    beforeEach ->
+      observeHandler = jasmine.createSpy("observeHandler")
+      atom.config.set("foo.bar.baz", "value 1")
+      observeSubscription = atom.config.onDidChange "foo.bar.baz", observeHandler
+
+    it "does not fire the given callback with the current value at the keypath", ->
+      expect(observeHandler).not.toHaveBeenCalledWith("value 1")
+
+    it "fires the callback every time the observed value changes", ->
+      observeHandler.reset() # clear the initial call
+      atom.config.set('foo.bar.baz', "value 2")
+      expect(observeHandler).toHaveBeenCalledWith("value 2", {previous: 'value 1'})
+      observeHandler.reset()
+
+      atom.config.set('foo.bar.baz', "value 1")
+      expect(observeHandler).toHaveBeenCalledWith("value 1", {previous: 'value 2'})
+
   describe ".observe(keyPath)", ->
     [observeHandler, observeSubscription] = []
 

@@ -1,10 +1,12 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
+{deprecate} = require 'grim'
 
 # Essential: Used to access all of Atom's configuration details.
 #
@@ -24,15 +26,66 @@ pathWatcher = require 'pathwatcher'
 # ```
 module.exports =
 class Config
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
   # Created during initialization, available as `atom.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
+    @emitter = new Emitter
     @defaultSettings = {}
     @settings = {}
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
+
+  ###
+  Section: Config Subscription
+  ###
+
+  # Essential: Add a listener for changes to a given key path.
+  #
+  # * `keyPath` The {String} name of the key to observe
+  # * `callback` The {Function} to call when the value of the key changes.
+  #   The first argument will be the new value of the key and the
+  #   second argument will be an {Object} with a `previous` property
+  #   that is the prior value of the key.
+  #
+  # Returns a {Disposable} with the following keys on which you can call
+  # `.dispose()` to unsubscribe.
+  onDidChange: (keyPath, callback) ->
+    value = @get(keyPath)
+    previousValue = _.clone(value)
+    updateCallback = =>
+      value = @get(keyPath)
+      unless _.isEqual(value, previousValue)
+        previous = previousValue
+        previousValue = _.clone(value)
+        callback(value, {previous})
+
+    @emitter.on 'did-change', updateCallback
+
+  # Essential: Add a listener for changes to a given key path. This is different
+  # than {::onDidChange} in that it will immediately call your callback with the
+  # current value of the config entry.
+  #
+  # * `keyPath` The {String} name of the key to observe
+  # * `callback` The {Function} to call when the value of the key changes.
+  #   The first argument will be the new value of the key and the
+  #   second argument will be an {Object} with a `previous` property
+  #   that is the prior value of the key.
+  #
+  # Returns a {Disposable} with the following keys on which you can call
+  # `.dispose()` to unsubscribe.
+  observe: (keyPath, options={}, callback) ->
+    if _.isFunction(options)
+      callback = options
+      options = {}
+    else
+      message = ''
+      message = '`callNow` as been set to false. Use ::onDidChange instead.' if options.callNow == false
+      deprecate 'Config::observe no longer supports options. #{message}'
+
+    callback(_.clone(@get(keyPath))) unless options.callNow == false
+    @onDidChange(keyPath, callback)
 
   ###
   Section: get / set
@@ -75,36 +128,6 @@ class Config
       @update()
     value
 
-  # Essential: Add a listener for changes to a given key path.
-  #
-  # * `keyPath` The {String} name of the key to observe
-  # * `options` An optional {Object} containing the `callNow` key.
-  # * `callback` The {Function} to call when the value of the key changes.
-  #              The first argument will be the new value of the key and the
-  #              second argument will be an {Object} with a `previous` property
-  #              that is the prior value of the key.
-  #
-  # Returns an {Object} with the following keys:
-  #  * `off` A {Function} that unobserves the `keyPath` when called.
-  observe: (keyPath, options={}, callback) ->
-    if _.isFunction(options)
-      callback = options
-      options = {}
-
-    value = @get(keyPath)
-    previousValue = _.clone(value)
-    updateCallback = =>
-      value = @get(keyPath)
-      unless _.isEqual(value, previousValue)
-        previous = previousValue
-        previousValue = _.clone(value)
-        callback(value, {previous})
-
-    eventName = "updated.#{keyPath.replace(/\./, '-')}"
-    subscription = @on eventName, updateCallback
-    callback(value) if options.callNow ? true
-    subscription
-
   # Extended: Get the {String} path to the config file being used.
   getUserConfigPath: ->
     @configFilePath
@@ -112,7 +135,6 @@ class Config
   # Extended: Returns a new {Object} containing all of settings and defaults.
   getSettings: ->
     _.deepExtend(@settings, @defaultSettings)
-
 
   # Extended: Restore the key path to its default value.
   #
@@ -252,6 +274,7 @@ class Config
       _.extend(@settings, userConfig)
       @configFileHasErrors = false
       @emit 'updated'
+      @emitter.emit 'did-change'
     catch error
       @configFileHasErrors = true
       console.error "Failed to load user config '#{@configFilePath}'", error.message
@@ -278,11 +301,13 @@ class Config
 
     _.extend hash, defaults
     @emit 'updated'
+    @emitter.emit 'did-change'
 
   update: ->
     return if @configFileHasErrors
     @save()
     @emit 'updated'
+    @emitter.emit 'did-change'
 
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
