@@ -6,7 +6,7 @@ ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
   beforeEach ->
-    atom.workspaceView = new WorkspaceView
+    atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
 
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->

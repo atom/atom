@@ -87,7 +87,7 @@ class WorkspaceView extends View
     @element.getModel = -> model
     atom.commands.setRootNode(@[0])
 
-    panes = new PaneContainerView(@model.paneContainer)
+    panes = @model.getView(@model.paneContainer).__spacePenView
     @panes.replaceWith(panes)
     @panes = panes
 

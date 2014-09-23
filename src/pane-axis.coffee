@@ -46,6 +46,9 @@ class PaneAxis extends Model
     else
       PaneRowView ?= require './pane-row-view'
 
+  getView: (object) ->
+    @container.getView(object)
+
   getChildren: -> @children.slice()
 
   getPanes: ->

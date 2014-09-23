@@ -56,6 +56,9 @@ class Pane extends Model
   # Called by the view layer to construct a view for this model.
   getViewClass: -> PaneView ?= require './pane-view'
 
+  getView: (object) ->
+    @container.getView(object)
+
   getParent: -> @parent
 
   setParent: (@parent) -> @parent
@@ -377,8 +380,8 @@ class Pane extends Model
   # * `index` {Number} indicating the index to which to move the item in the
   #   given pane.
   moveItemToPane: (item, pane, index) ->
-    pane.addItem(item, index)
     @removeItem(item)
+    pane.addItem(item, index)
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->

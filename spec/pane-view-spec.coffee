@@ -7,7 +7,7 @@ path = require 'path'
 temp = require 'temp'
 
 describe "PaneView", ->
-  [container, view1, view2, editor1, editor2, pane, paneModel] = []
+  [container, containerModel, view1, view2, editor1, editor2, pane, paneModel] = []
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
@@ -25,6 +25,7 @@ describe "PaneView", ->
   beforeEach ->
     atom.deserializers.add(TestView)
     container = new PaneContainerView
+    containerModel = container.model
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
     waitsForPromise ->
@@ -216,7 +217,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight() # Can't destroy the last pane, so we add another
-      pane2 = pane2Model._view
+      pane2 = containerModel.getView(pane2Model).__spacePenView
 
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")
@@ -249,7 +250,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight(items: [pane.copyActiveItem()])
-      pane2 = pane2Model._view
+      pane2 = containerModel.getView(pane2Model).__spacePenView
       expect(pane2Model.isActive()).toBe true
 
     it "adds or removes the .active class as appropriate", ->
@@ -296,7 +297,8 @@ describe "PaneView", ->
       pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])
       pane3Model = pane2Model.splitDown(items: [pane2Model.copyActiveItem()])
       pane2 = pane2Model._view
-      pane3 = pane3Model._view
+      pane2 = containerModel.getView(pane2Model).__spacePenView
+      pane3 = containerModel.getView(pane3Model).__spacePenView
 
       expect(container.find('> .pane-row > .pane').toArray()).toEqual [pane1[0]]
       expect(container.find('> .pane-row > .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]

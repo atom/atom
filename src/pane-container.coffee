@@ -3,6 +3,9 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
 Pane = require './pane'
+ViewRegistry = require './view-registry'
+ItemRegistry = require './item-registry'
+PaneContainerView = null
 
 module.exports =
 class PaneContainer extends Model
@@ -27,6 +30,8 @@ class PaneContainer extends Model
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
+    @viewRegistry = params?.viewRegistry ? new ViewRegistry
+    @itemRegistry = new ItemRegistry
     @setRoot(params?.root ? new Pane)
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
@@ -42,6 +47,12 @@ class PaneContainer extends Model
   serializeParams: (params) ->
     root: @root?.serialize()
     activePaneId: @activePane.id
+
+  getViewClass: ->
+    PaneContainerView ?= require './pane-container-view'
+
+  getView: (object) ->
+    @viewRegistry.getView(object)
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn
@@ -169,7 +180,17 @@ class PaneContainer extends Model
   monitorPaneItems: ->
     @subscriptions.add @observePanes (pane) =>
       for item, index in pane.getItems()
-        @emitter.emit 'did-add-pane-item', {item, pane, index}
+        @addedPaneItem(item, pane, index)
 
       pane.onDidAddItem ({item, index}) =>
-        @emitter.emit 'did-add-pane-item', {item, pane, index}
+        @addedPaneItem(item, pane, index)
+
+      pane.onDidRemoveItem ({item}) =>
+        @removedPaneItem(item)
+
+  addedPaneItem: (item, pane, index) ->
+    @itemRegistry.addItem(item)
+    @emitter.emit 'did-add-pane-item', {item, pane, index}
+
+  removedPaneItem: (item) ->
+    @itemRegistry.removeItem(item)
