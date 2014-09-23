@@ -486,15 +486,12 @@ describe "Config", ->
         type: 'integer'
         default: 12
 
-    describe 'when the value has an integer type', ->
+    describe 'when the value has an "integer" type', ->
       beforeEach ->
         schema =
-          type: 'object'
-          properties:
-            anInt:
-              type: 'integer'
-              default: 12
-        atom.config.setSchema('foo.bar', schema)
+          type: 'integer'
+          default: 12
+        atom.config.setSchema('foo.bar.anInt', schema)
 
       it 'coerces a string to an int', ->
         atom.config.set('foo.bar.anInt', '123')
@@ -504,13 +501,72 @@ describe "Config", ->
         atom.config.set('foo.bar.anInt', 12.3)
         expect(atom.config.get('foo.bar.anInt')).toBe 12
 
-    describe 'when the value has a number type', ->
+      it 'will not set non-integers', ->
+        atom.config.set('foo.bar.anInt', null)
+        expect(atom.config.get('foo.bar.anInt')).toBe 12
+
+    describe 'when the value has an "integer" and "string" type', ->
+      beforeEach ->
+        schema =
+          type: ['integer', 'string']
+          default: 12
+        atom.config.setSchema('foo.bar.anInt', schema)
+
+      it 'can coerce an int, and fallback to a string', ->
+        atom.config.set('foo.bar.anInt', '123')
+        expect(atom.config.get('foo.bar.anInt')).toBe 123
+
+        atom.config.set('foo.bar.anInt', 'cats')
+        expect(atom.config.get('foo.bar.anInt')).toBe 'cats'
+
+    describe 'when the value has a "number" type', ->
       beforeEach ->
         schema =
           type: 'number'
           default: 12.1
-        atom.config.setSchema('foo.bar.anInt', schema)
+        atom.config.setSchema('foo.bar.aFloat', schema)
 
       it 'coerces a string to a float', ->
-        atom.config.set('foo.bar.anInt', '12.23')
-        expect(atom.config.get('foo.bar.anInt')).toBe 12.23
+        atom.config.set('foo.bar.aFloat', '12.23')
+        expect(atom.config.get('foo.bar.aFloat')).toBe 12.23
+
+    describe 'when the value has a "boolean" type', ->
+      beforeEach ->
+        schema =
+          type: 'boolean'
+          default: true
+        atom.config.setSchema('foo.bar.aBool', schema)
+
+      it 'coerces various types to a boolean', ->
+        atom.config.set('foo.bar.aBool', 'true')
+        expect(atom.config.get('foo.bar.aBool')).toBe true
+        atom.config.set('foo.bar.aBool', 'false')
+        expect(atom.config.get('foo.bar.aBool')).toBe false
+        atom.config.set('foo.bar.aBool', 'TRUE')
+        expect(atom.config.get('foo.bar.aBool')).toBe true
+        atom.config.set('foo.bar.aBool', 'FALSE')
+        expect(atom.config.get('foo.bar.aBool')).toBe false
+        atom.config.set('foo.bar.aBool', 1)
+        expect(atom.config.get('foo.bar.aBool')).toBe true
+        atom.config.set('foo.bar.aBool', 0)
+        expect(atom.config.get('foo.bar.aBool')).toBe false
+        atom.config.set('foo.bar.aBool', {})
+        expect(atom.config.get('foo.bar.aBool')).toBe true
+        atom.config.set('foo.bar.aBool', null)
+        expect(atom.config.get('foo.bar.aBool')).toBe false
+
+    describe 'when the value has an "string" type', ->
+      beforeEach ->
+        schema =
+          type: 'string'
+          default: 'ok'
+        atom.config.setSchema('foo.bar.aString', schema)
+
+      it 'allows strings', ->
+        atom.config.set('foo.bar.aString', 'yep')
+        expect(atom.config.get('foo.bar.aString')).toBe 'yep'
+
+      it 'will not set non-strings', ->
+        atom.config.set('foo.bar.aString', null)
+        expect(atom.config.get('foo.bar.aString')).toBe 'ok'
+

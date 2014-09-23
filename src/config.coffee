@@ -39,9 +39,16 @@ class Config
         @addTypeFilter(typeName, filterFunction)
 
   @executeTypeFilters: (value, schema) ->
-    if filterFunctions = @typeFilters[schema.type]
-      for filter in filterFunctions
-        value = filter.call(this, value, schema)
+    types = schema.type
+    types = [types] unless Array.isArray(types)
+    for type in types
+      try
+        if filterFunctions = @typeFilters[type]
+          for filter in filterFunctions
+            value = filter.call(this, value, schema)
+          break
+      catch e
+        ;
     value
 
   # Created during initialization, available as `atom.config`
@@ -384,6 +391,28 @@ class Config
 
 Config.addTypeFilters
   'integer':
-    coercion: (value, schema) -> parseInt(value)
+    coercion: (value, schema) ->
+      value = parseInt(value)
+      throw new Error() if isNaN(value)
+      value
+
   'number':
     coercion: (value, schema) -> parseFloat(value)
+
+  'boolean':
+    coercion: (value, schema) ->
+      switch typeof value
+        when 'string'
+          value.toLowerCase() in ['true', 't']
+        else
+          !!value
+
+  'string': (value, schema) ->
+    throw new Error unless typeof value is 'string'
+    value
+
+  'null':
+    # null sort of isnt supported. It will just unset in this case
+    coercion: (value, schema) ->
+      throw new Error() unless value == null
+      value
