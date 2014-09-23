@@ -28,7 +28,7 @@ module.exports = (grunt) ->
     spawn {cmd, args}, (error, result, code) ->
       return done(error) if error?
 
-      pkgs = pkg for pkg in fs.readdirSync(buildDir) when pkg.match /.nupkg$/i
+      pkgs = pkg for pkg in fs.readdirSync(buildDir) when path.extname(pkg) is '.nupkg'
 
       releasesDir = path.join(buildDir, 'Releases')
 
