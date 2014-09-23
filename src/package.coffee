@@ -5,7 +5,7 @@ async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
 {deprecate} = require 'grim'
 
@@ -270,7 +270,7 @@ class Package
   deactivate: ->
     @activationDeferred?.reject()
     @activationDeferred = null
-    @unsubscribeFromActivationEvents()
+    @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()
     if @mainActivated
@@ -333,51 +333,32 @@ class Package
 
   subscribeToActivationEvents: ->
     return unless @metadata.activationEvents?
+
+    @activationCommandSubscriptions = new CompositeDisposable
+
     if _.isArray(@metadata.activationEvents)
-      atom.workspaceView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
+      for eventName in @metadata.activationEvents
+        @activationCommandSubscriptions.add(
+          atom.commands.add('.workspace', eventName, @handleActivationEvent)
+        )
     else if _.isString(@metadata.activationEvents)
-      atom.workspaceView.command(@metadata.activationEvents, @handleActivationEvent)
+      eventName = @metadata.activationEvents
+      @activationCommandSubscriptions.add(
+        atom.commands.add('.workspace', eventName, @handleActivationEvent)
+      )
     else
-      atom.workspaceView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+      for eventName, selector of @metadata.activationEvents
+        @activationCommandSubscriptions.add(
+          atom.commands.add(selector, eventName, @handleActivationEvent)
+        )
 
   handleActivationEvent: (event) =>
-    bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
-    disabledCommands = atom.commands.disableCommands(event.target, event.type)
+    event.stopImmediatePropagation()
+    @activationCommandSubscriptions.dispose()
+    reenableInvokedListeners = event.disableInvokedListeners()
     @activateNow()
     event.target.dispatchEvent(new CustomEvent(event.type, bubbles: true))
-    @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
-    disabledCommands.dispose()
-    @unsubscribeFromActivationEvents()
-    event.stopImmediatePropagation()
-
-  unsubscribeFromActivationEvents: ->
-    return unless atom.workspaceView?
-
-    if _.isArray(@metadata.activationEvents)
-      atom.workspaceView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
-    else if _.isString(@metadata.activationEvents)
-      atom.workspaceView.off(@metadata.activationEvents, @handleActivationEvent)
-    else
-      atom.workspaceView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
-
-  disableEventHandlersOnBubblePath: (event) ->
-    bubblePathEventHandlers = []
-    disabledHandler = ->
-    $ ?= require('./space-pen-extensions').$
-    element = $(event.target)
-    while element.length
-      if eventHandlers = element.handlers()?[event.type]
-        for eventHandler in eventHandlers
-          eventHandler.disabledHandler = eventHandler.handler
-          eventHandler.handler = disabledHandler
-          bubblePathEventHandlers.push(eventHandler)
-      element = element.parent()
-    bubblePathEventHandlers
-
-  restoreEventHandlersOnBubblePath: (eventHandlers) ->
-    for eventHandler in eventHandlers
-      eventHandler.handler = eventHandler.disabledHandler
-      delete eventHandler.disabledHandler
+    reenableInvokedListeners()
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->

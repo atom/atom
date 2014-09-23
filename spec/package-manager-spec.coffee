@@ -93,7 +93,7 @@ describe "PackageManager", ->
             expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
         describe "when the package metadata includes activation events", ->
-          [mainModule, promise] = []
+          [mainModule, promise, workspaceCommandListener] = []
 
           beforeEach ->
             atom.workspaceView.attachToDom()
@@ -102,6 +102,9 @@ describe "PackageManager", ->
             mainModule.activationCommandCallCount = 0
             spyOn(mainModule, 'activate').andCallThrough()
             spyOn(Package.prototype, 'requireMainModule').andCallThrough()
+
+            workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
+            atom.commands.add '.workspace', 'activation-event', workspaceCommandListener
 
             promise = atom.packages.activatePackage('package-with-activation-events')
 
@@ -118,21 +121,23 @@ describe "PackageManager", ->
 
             runs ->
               editorView = atom.workspaceView.getActiveView()
-              eventHandler = jasmine.createSpy("activation event handler")
-              globalCommandHandler = jasmine.createSpy("activation global command handler")
-              editorView.command 'activation-event', eventHandler
-              commandDisposable = atom.commands.add '.workspace', 'activation-event', globalCommandHandler
+              legacyCommandListener = jasmine.createSpy("legacyCommandListener")
+              editorView.command 'activation-event', legacyCommandListener
+              editorCommandListener = jasmine.createSpy("editorCommandListener")
+              atom.commands.add '.editor', 'activation-event', editorCommandListener
               editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
               expect(mainModule.activate.callCount).toBe 1
               expect(mainModule.activationEventCallCount).toBe 1
               expect(mainModule.activationCommandCallCount).toBe 1
-              expect(eventHandler.callCount).toBe 1
-              expect(globalCommandHandler.callCount).toBe 1
+              expect(legacyCommandListener.callCount).toBe 1
+              expect(editorCommandListener.callCount).toBe 1
+              expect(workspaceCommandListener.callCount).toBe 1
               editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
               expect(mainModule.activationEventCallCount).toBe 2
               expect(mainModule.activationCommandCallCount).toBe 2
-              expect(eventHandler.callCount).toBe 2
-              expect(globalCommandHandler.callCount).toBe 2
+              expect(legacyCommandListener.callCount).toBe 2
+              expect(editorCommandListener.callCount).toBe 2
+              expect(workspaceCommandListener.callCount).toBe 2
               expect(mainModule.activate.callCount).toBe 1
 
           it "activates the package immediately when the events are empty", ->

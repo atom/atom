@@ -137,25 +137,6 @@ class CommandRegistry
 
     commands
 
-  disableCommands: (target, commandName) ->
-    if @rootNode.contains(target)
-      currentTarget = target
-    else
-      currentTarget = @rootNode
-
-    disabledListeners = []
-    loop
-      for listener in @listenersByCommandName[commandName] ? []
-        if currentTarget.webkitMatchesSelector(listener.selector)
-          listener.enabled = false
-          disabledListeners.push(listener)
-
-      break if currentTarget is @rootNode
-      currentTarget = currentTarget.parentNode
-
-    new Disposable =>
-      listener.enabled = true for listener in disabledListeners
-
   # Public: Simulate the dispatch of a command on a DOM node.
   #
   # This can be useful for testing when you want to simulate the invocation of a
@@ -184,6 +165,7 @@ class CommandRegistry
     immediatePropagationStopped = false
     matched = false
     currentTarget = originalEvent.target
+    invokedListeners = []
 
     syntheticEvent = Object.create originalEvent,
       eventPhase: value: Event.BUBBLING_PHASE
@@ -195,6 +177,9 @@ class CommandRegistry
         originalEvent.stopImmediatePropagation()
         propagationStopped = true
         immediatePropagationStopped = true
+      disableInvokedListeners: value: ->
+        listener.enabled = false for listener in invokedListeners
+        -> listener.enabled = true for listener in invokedListeners
 
     loop
       matchingListeners =
@@ -206,6 +191,7 @@ class CommandRegistry
 
       for listener in matchingListeners when listener.enabled
         break if immediatePropagationStopped
+        invokedListeners.push(listener)
         listener.callback.call(currentTarget, syntheticEvent)
 
       break unless currentTarget?
