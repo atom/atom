@@ -486,3 +486,31 @@ describe "Config", ->
         type: 'integer'
         default: 12
 
+    describe 'when the value has an integer type', ->
+      beforeEach ->
+        schema =
+          type: 'object'
+          properties:
+            anInt:
+              type: 'integer'
+              default: 12
+        atom.config.setSchema('foo.bar', schema)
+
+      it 'coerces a string to an int', ->
+        atom.config.set('foo.bar.anInt', '123')
+        expect(atom.config.get('foo.bar.anInt')).toBe 123
+
+      it 'coerces a float to an int', ->
+        atom.config.set('foo.bar.anInt', 12.3)
+        expect(atom.config.get('foo.bar.anInt')).toBe 12
+
+    describe 'when the value has a number type', ->
+      beforeEach ->
+        schema =
+          type: 'number'
+          default: 12.1
+        atom.config.setSchema('foo.bar.anInt', schema)
+
+      it 'coerces a string to a float', ->
+        atom.config.set('foo.bar.anInt', '12.23')
+        expect(atom.config.get('foo.bar.anInt')).toBe 12.23

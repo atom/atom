@@ -27,6 +27,22 @@ pathWatcher = require 'pathwatcher'
 module.exports =
 class Config
   EmitterMixin.includeInto(this)
+  @typeFilters = {}
+
+  @addTypeFilter: (typeName, filterFunction) ->
+    @typeFilters[typeName] ?= []
+    @typeFilters[typeName].push(filterFunction)
+
+  @addTypeFilters: (filters) ->
+    for typeName, functions of filters
+      for name, filterFunction of functions
+        @addTypeFilter(typeName, filterFunction)
+
+  @executeTypeFilters: (value, schema) ->
+    if filterFunctions = @typeFilters[schema.type]
+      for filter in filterFunctions
+        value = filter.call(this, value, schema)
+    value
 
   # Created during initialization, available as `atom.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
@@ -124,6 +140,7 @@ class Config
   #
   # Returns the `value`.
   set: (keyPath, value) ->
+    value = @scrubValue(keyPath, value)
     if @get(keyPath) isnt value
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
       value = undefined if _.isEqual(defaultValue, value)
@@ -169,6 +186,7 @@ class Config
     keys = keyPath.split('.')
     schema = @schema
     for key in keys
+      break unless schema?
       schema = schema.properties[key]
     schema
 
@@ -309,6 +327,15 @@ class Config
     @watchSubscription?.close()
     @watchSubscription = null
 
+  update: ->
+    return if @configFileHasErrors
+    @save()
+    @emit 'updated'
+    @emitter.emit 'did-change'
+
+  save: ->
+    CSON.writeFileSync(@configFilePath, @settings)
+
   setDefaults: (keyPath, defaults) ->
     if typeof defaults isnt 'object'
       return _.setValueForKeyPath(@defaultSettings, keyPath, defaults)
@@ -351,11 +378,12 @@ class Config
       defaults[key] = @extractDefaultsFromSchema(value) for key, value of properties
       defaults
 
-  update: ->
-    return if @configFileHasErrors
-    @save()
-    @emit 'updated'
-    @emitter.emit 'did-change'
+  scrubValue: (keyPath, value) ->
+    value = @constructor.executeTypeFilters(value, schema) if schema = @getSchema(keyPath)
+    value
 
-  save: ->
-    CSON.writeFileSync(@configFilePath, @settings)
+Config.addTypeFilters
+  'integer':
+    coercion: (value, schema) -> parseInt(value)
+  'number':
+    coercion: (value, schema) -> parseFloat(value)
