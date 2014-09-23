@@ -27,6 +27,7 @@ fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 atom.keymaps.loadBundledKeymaps()
 keyBindingsToRestore = atom.keymaps.getKeyBindings()
+commandsToRestore = atom.commands.getSnapshot()
 
 $(window).on 'core:close', -> window.close()
 $(window).on 'beforeunload', ->
@@ -65,6 +66,7 @@ beforeEach ->
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.setRootNode(document.body)
+  atom.commands.restoreSnapshot(commandsToRestore)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}

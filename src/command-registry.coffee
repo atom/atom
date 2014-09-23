@@ -46,6 +46,8 @@ class CommandRegistry
   constructor: (@rootNode) ->
     @listenersByCommandName = {}
 
+  getRootNode: -> @rootNode
+
   setRootNode: (newRootNode) ->
     oldRootNode = @rootNode
     @rootNode = newRootNode
@@ -148,6 +150,15 @@ class CommandRegistry
     event = new CustomEvent(commandName, bubbles: true)
     eventWithTarget = Object.create(event, target: value: target)
     @handleCommandEvent(eventWithTarget)
+
+  getSnapshot: ->
+    _.deepClone(@listenersByCommandName)
+
+  restoreSnapshot: (snapshot) ->
+    rootNode = @getRootNode()
+    @setRootNode(null) # clear listeners for current commands
+    @listenersByCommandName = _.deepClone(snapshot)
+    @setRootNode(rootNode) # restore listeners for commands in snapshot
 
   handleCommandEvent: (event) =>
     propagationStopped = false

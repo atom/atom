@@ -145,3 +145,31 @@ describe "CommandRegistry", ->
       expect(registry.dispatch(grandchild, 'command')).toBe true
       expect(registry.dispatch(grandchild, 'bogus')).toBe false
       expect(registry.dispatch(parent, 'command')).toBe false
+
+  describe "::getSnapshot and ::restoreSnapshot", ->
+    it "removes all command handlers except for those in the snapshot", ->
+      registry.add '.parent', 'namespace:command-1', ->
+      registry.add '.child', 'namespace:command-2', ->
+      snapshot = registry.getSnapshot()
+      registry.add '.grandchild', 'namespace:command-3', ->
+
+      expect(registry.findCommands(target: grandchild)[0..2]).toEqual [
+        {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
+        {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
+        {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
+      ]
+
+      registry.restoreSnapshot(snapshot)
+
+      expect(registry.findCommands(target: grandchild)[0..1]).toEqual [
+        {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
+        {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
+      ]
+
+      registry.add '.grandchild', 'namespace:command-3', ->
+      registry.restoreSnapshot(snapshot)
+
+      expect(registry.findCommands(target: grandchild)[0..1]).toEqual [
+        {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
+        {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
+      ]
