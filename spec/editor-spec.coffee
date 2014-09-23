@@ -3648,7 +3648,7 @@ describe "Editor", ->
     it 'models placeholderText and emits an event when changed', ->
       editor.onDidChangePlaceholderText handler = jasmine.createSpy()
 
-      expect(editor.getPlaceholderText()).not.toBeDefined()
+      expect(editor.getPlaceholderText()).toBeUndefined()
 
       editor.setPlaceholderText('OK')
       expect(handler).toHaveBeenCalledWith 'OK'
