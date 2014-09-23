@@ -179,24 +179,26 @@ class CommandRegistry
     @listenersByCommandName = _.deepClone(snapshot)
     @setRootNode(rootNode) # restore listeners for commands in snapshot
 
-  handleCommandEvent: (event) =>
+  handleCommandEvent: (originalEvent) =>
     propagationStopped = false
     immediatePropagationStopped = false
     matched = false
-    currentTarget = event.target
+    currentTarget = originalEvent.target
 
-    syntheticEvent = Object.create event,
+    syntheticEvent = Object.create originalEvent,
       eventPhase: value: Event.BUBBLING_PHASE
       currentTarget: get: -> currentTarget
       stopPropagation: value: ->
+        originalEvent.stopPropagation()
         propagationStopped = true
       stopImmediatePropagation: value: ->
+        originalEvent.stopImmediatePropagation()
         propagationStopped = true
         immediatePropagationStopped = true
 
     loop
       matchingListeners =
-        (@listenersByCommandName[event.type] ? [])
+        (@listenersByCommandName[originalEvent.type] ? [])
           .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
           .sort (a, b) -> a.compare(b)
 
