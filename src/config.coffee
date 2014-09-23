@@ -162,42 +162,6 @@ class Config
   isDefault: (keyPath) ->
     not _.valueForKeyPath(@settings, keyPath)?
 
-  # Extended: Push the value to the array at the key path.
-  #
-  # * `keyPath` The {String} key path.
-  # * `value` The value to push to the array.
-  #
-  # Returns the new array length {Number} of the setting.
-  pushAtKeyPath: (keyPath, value) ->
-    arrayValue = @get(keyPath) ? []
-    result = arrayValue.push(value)
-    @set(keyPath, arrayValue)
-    result
-
-  # Extended: Add the value to the beginning of the array at the key path.
-  #
-  # * `keyPath` The {String} key path.
-  # * `value` The value to shift onto the array.
-  #
-  # Returns the new array length {Number} of the setting.
-  unshiftAtKeyPath: (keyPath, value) ->
-    arrayValue = @get(keyPath) ? []
-    result = arrayValue.unshift(value)
-    @set(keyPath, arrayValue)
-    result
-
-  # Public: Remove the value from the array at the key path.
-  #
-  # * `keyPath` The {String} key path.
-  # * `value` The value to remove from the array.
-  #
-  # Returns the new array value of the setting.
-  removeAtKeyPath: (keyPath, value) ->
-    arrayValue = @get(keyPath) ? []
-    result = _.remove(arrayValue, value)
-    @set(keyPath, arrayValue)
-    result
-
   ###
   Section: To Deprecate
   ###
@@ -233,11 +197,54 @@ class Config
   toggle: (keyPath) ->
     @set(keyPath, !@get(keyPath))
 
+  ###
+  Section: Deprecated
+  ###
+
   # Unobserve all callbacks on a given key.
   # * `keyPath` The {String} name of the key to unobserve.
   #
   unobserve: (keyPath) ->
-    @off("updated.#{keyPath.replace(/\./, '-')}")
+    deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
+
+  # Push the value to the array at the key path.
+  #
+  # * `keyPath` The {String} key path.
+  # * `value` The value to push to the array.
+  #
+  # Returns the new array length {Number} of the setting.
+  pushAtKeyPath: (keyPath, value) ->
+    deprecate 'Please remove from your code. Config::pushAtKeyPath is going away. Please push the value onto the array, and call Config::set'
+    arrayValue = @get(keyPath) ? []
+    result = arrayValue.push(value)
+    @set(keyPath, arrayValue)
+    result
+
+  # Add the value to the beginning of the array at the key path.
+  #
+  # * `keyPath` The {String} key path.
+  # * `value` The value to shift onto the array.
+  #
+  # Returns the new array length {Number} of the setting.
+  unshiftAtKeyPath: (keyPath, value) ->
+    deprecate 'Please remove from your code. Config::unshiftAtKeyPath is going away. Please unshift the value onto the array, and call Config::set'
+    arrayValue = @get(keyPath) ? []
+    result = arrayValue.unshift(value)
+    @set(keyPath, arrayValue)
+    result
+
+  # Remove the value from the array at the key path.
+  #
+  # * `keyPath` The {String} key path.
+  # * `value` The value to remove from the array.
+  #
+  # Returns the new array value of the setting.
+  removeAtKeyPath: (keyPath, value) ->
+    deprecate 'Please remove from your code. Config::removeAtKeyPath is going away. Please remove the value from the array, and call Config::set'
+    arrayValue = @get(keyPath) ? []
+    result = _.remove(arrayValue, value)
+    @set(keyPath, arrayValue)
+    result
 
   ###
   Section: Private
