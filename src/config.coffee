@@ -39,6 +39,7 @@ class Config
         @addTypeFilter(typeName, filterFunction)
 
   @executeTypeFilters: (value, schema) ->
+    failedValidation = false
     types = schema.type
     types = [types] unless Array.isArray(types)
     for type in types
@@ -46,9 +47,12 @@ class Config
         if filterFunctions = @typeFilters[type]
           for filter in filterFunctions
             value = filter.call(this, value, schema)
+          failedValidation = false
           break
       catch e
-        ;
+        failedValidation = true
+
+    throw new Error('value is not valid') if failedValidation
     value
 
   # Created during initialization, available as `atom.config`
@@ -145,15 +149,19 @@ class Config
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting.
   #
-  # Returns the `value`.
+  # Returns a {Boolean} true if the value was set.
   set: (keyPath, value) ->
-    value = @scrubValue(keyPath, value)
+    try
+      value = @scrubValue(keyPath, value)
+    catch e
+      return false
+
     if @get(keyPath) isnt value
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
       value = undefined if _.isEqual(defaultValue, value)
       _.setValueForKeyPath(@settings, keyPath, value)
       @update()
-    value
+    true
 
   # Extended: Get the {String} path to the config file being used.
   getUserConfigPath: ->
@@ -407,9 +415,10 @@ Config.addTypeFilters
         else
           !!value
 
-  'string': (value, schema) ->
-    throw new Error unless typeof value is 'string'
-    value
+  'string':
+    typeCheck: (value, schema) ->
+      throw new Error() if typeof value isnt 'string'
+      value
 
   'null':
     # null sort of isnt supported. It will just unset in this case

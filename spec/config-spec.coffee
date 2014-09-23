@@ -505,6 +505,9 @@ describe "Config", ->
         atom.config.set('foo.bar.anInt', null)
         expect(atom.config.get('foo.bar.anInt')).toBe 12
 
+        atom.config.set('foo.bar.anInt', 'nope')
+        expect(atom.config.get('foo.bar.anInt')).toBe 12
+
     describe 'when the value has an "integer" and "string" type', ->
       beforeEach ->
         schema =
@@ -567,6 +570,9 @@ describe "Config", ->
         expect(atom.config.get('foo.bar.aString')).toBe 'yep'
 
       it 'will not set non-strings', ->
-        atom.config.set('foo.bar.aString', null)
+        expect(atom.config.set('foo.bar.aString', null)).toBe false
+        expect(atom.config.get('foo.bar.aString')).toBe 'ok'
+
+        expect(atom.config.set('foo.bar.aString', 123)).toBe false
         expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
