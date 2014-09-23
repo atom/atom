@@ -16,7 +16,7 @@ DEB_PATH="$6"
 FILE_MODE=755
 
 TARGET_ROOT="`mktemp -d`"
-chmod 755 "$TARGET_ROOT"
+chmod $FILE_MODE "$TARGET_ROOT"
 TARGET="$TARGET_ROOT/atom-$VERSION-$ARCH"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr"
@@ -31,6 +31,17 @@ cp "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
-dpkg-deb -b "$TARGET"
+# Copy generated LICENSE.md to /usr/share/doc/atom/copyright
+mkdir -m $FILE_MODE -p "$TARGET/usr/share/doc/atom"
+cp "$TARGET/usr/share/atom/resources/app/LICENSE.md" "$TARGET/usr/share/doc/atom/copyright"
+
+# Add lintian overrides
+mkdir -m $FILE_MODE -p "$TARGET/usr/share/lintian/overrides"
+cp "$ROOT/resources/linux/debian/lintian-overrides" "$TARGET/usr/share/lintian/overrides/atom"
+
+# Remove executable bit from .node files
+find "$TARGET" -type f -name "*.node" -exec chmod a-x {} \;
+
+fakeroot dpkg-deb -b "$TARGET"
 mv "$TARGET_ROOT/atom-$VERSION-$ARCH.deb" "$DEB_PATH"
-rm -rf $TARGET_ROOT
+rm -rf "$TARGET_ROOT"
