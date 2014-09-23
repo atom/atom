@@ -1,10 +1,9 @@
 fs = require 'fs'
 path = require 'path'
 _ = require 'underscore-plus'
-rimraf = require 'rimraf'
 
 module.exports = (grunt) ->
-  {spawn} = require('./task-helpers')(grunt)
+  {spawn, rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'create-installer', 'Create the Windows installer', ->
     if process.platform != 'win32'
@@ -16,13 +15,13 @@ module.exports = (grunt) ->
     atomDir = path.join(buildDir, 'Atom')
 
     packageInfo = JSON.parse(fs.readFileSync(path.join(atomDir, 'resources', 'app', 'package.json'), {encoding: 'utf8'}))
-    inputTemplate = fs.readFileSync(path.join('build', 'windows', 'atom.nuspec.erb'), {encoding: 'utf8'})
+    inputTemplate = grunt.file.read(path.join('build', 'windows', 'atom.nuspec.erb'))
 
     ## NB: Build server has some sort of stamp on the version number
     packageInfo.version = packageInfo.version.replace(/-.*$/, '')
 
     targetNuspecPath = path.join(buildDir, 'atom.nuspec')
-    fs.writeFileSync(targetNuspecPath, _.template(inputTemplate, packageInfo))
+    grunt.file.write(targetNuspecPath, _.template(inputTemplate, packageInfo))
 
     cmd = 'build/windows/nuget.exe'
     args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
@@ -38,7 +37,7 @@ module.exports = (grunt) ->
 
       ## NB: Gonna clear Releases for now, in the future we need to pull down
       ## the existing version
-      rimraf.sync(releasesDir)
+      rm(releasesDir)
 
       cmd = 'build/windows/update.com'
       args = ['--releasify', path.join(buildDir, pkgs), '-r', releasesDir]
