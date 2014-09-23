@@ -342,12 +342,13 @@ class Package
 
   handleActivationEvent: (event) =>
     bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
+    disabledCommands = atom.commands.disableCommands(event.target, event.type)
     @activateNow()
-    $ ?= require('./space-pen-extensions').$
-    $(event.target).trigger(event)
+    event.target.dispatchEvent(new CustomEvent(event.type, bubbles: true))
     @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
+    disabledCommands.dispose()
     @unsubscribeFromActivationEvents()
-    false
+    event.stopImmediatePropagation()
 
   unsubscribeFromActivationEvents: ->
     return unless atom.workspaceView?

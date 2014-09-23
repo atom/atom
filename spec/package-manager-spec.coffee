@@ -98,6 +98,8 @@ describe "PackageManager", ->
           beforeEach ->
             atom.workspaceView.attachToDom()
             mainModule = require './fixtures/packages/package-with-activation-events/index'
+            mainModule.activationEventCallCount = 0
+            mainModule.activationCommandCallCount = 0
             spyOn(mainModule, 'activate').andCallThrough()
             spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
@@ -116,15 +118,21 @@ describe "PackageManager", ->
 
             runs ->
               editorView = atom.workspaceView.getActiveView()
-              eventHandler = jasmine.createSpy("activation-event")
+              eventHandler = jasmine.createSpy("activation event handler")
+              globalCommandHandler = jasmine.createSpy("activation global command handler")
               editorView.command 'activation-event', eventHandler
+              commandDisposable = atom.commands.add '.workspace', 'activation-event', globalCommandHandler
               editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
               expect(mainModule.activate.callCount).toBe 1
               expect(mainModule.activationEventCallCount).toBe 1
+              expect(mainModule.activationCommandCallCount).toBe 1
               expect(eventHandler.callCount).toBe 1
+              expect(globalCommandHandler.callCount).toBe 1
               editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
               expect(mainModule.activationEventCallCount).toBe 2
+              expect(mainModule.activationCommandCallCount).toBe 2
               expect(eventHandler.callCount).toBe 2
+              expect(globalCommandHandler.callCount).toBe 2
               expect(mainModule.activate.callCount).toBe 1
 
           it "activates the package immediately when the events are empty", ->
