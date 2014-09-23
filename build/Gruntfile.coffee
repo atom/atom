@@ -62,6 +62,9 @@ module.exports = (grunt) ->
     installDir ?= process.env.INSTALL_PREFIX ? '/usr/local'
     killCommand ='pkill -9 atom'
 
+  buildDir = path.resolve(buildDir)
+  installDir = path.resolve(installDir)
+
   coffeeConfig =
     glob_to_multiple:
       expand: true
