@@ -33,7 +33,7 @@ module.exports = (grunt) ->
           args = [path.join(grunt.config.get('atom.shellAppDir'), 'atom.exe')]
 
           spawn {cmd, args}, (error) ->
-            return callback(error)if error?
+            return callback(error) if error?
 
             args = [path.join(grunt.config.get('atom.shellAppDir'), '..', 'Releases', 'setup.exe')]
             spawn {cmd, args}, (error) -> callback(error)
