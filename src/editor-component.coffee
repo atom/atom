@@ -64,7 +64,7 @@ EditorComponent = React.createClass
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
       lineDecorations = @getLineDecorations(decorations)
-      placeholderText = @props.placeholderText if @props.placeholderText? and editor.isEmpty()
+      placeholderText = editor.getPlaceholderText() if editor.isEmpty()
       visible = @isVisible()
 
       scrollHeight = editor.getScrollHeight()
@@ -358,6 +358,7 @@ EditorComponent = React.createClass
     @subscribe editor.observeDecorations(@onDecorationAdded)
     @subscribe editor.onDidRemoveDecoration(@onDecorationRemoved)
     @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)
+    @subscribe editor.onDidChangePlaceholderText(@onPlaceholderTextChanged)
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @requestUpdate
     @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
@@ -778,6 +779,9 @@ EditorComponent = React.createClass
     @requestUpdate()
 
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
+    @requestUpdate()
+
+  onPlaceholderTextChanged: ->
     @requestUpdate()
 
   handleDragUntilMouseUp: (event, dragHandler) ->

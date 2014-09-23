@@ -2225,7 +2225,7 @@ describe "EditorComponent", ->
 
   describe "when placholderText is specified", ->
     it "renders the placeholder text when the buffer is empty", ->
-      component.setProps(placeholderText: 'Hello World')
+      editor.setPlaceholderText('Hello World')
       expect(componentNode.querySelector('.placeholder-text')).toBeNull()
       editor.setText('')
       nextAnimationFrame()
