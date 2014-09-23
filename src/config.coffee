@@ -34,71 +34,9 @@ class Config
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
 
-  initializeConfigDirectory: (done) ->
-    return if fs.existsSync(@configDirPath)
-
-    fs.makeTreeSync(@configDirPath)
-
-    queue = async.queue ({sourcePath, destinationPath}, callback) ->
-      fs.copy(sourcePath, destinationPath, callback)
-    queue.drain = done
-
-    templateConfigDirPath = fs.resolve(@resourcePath, 'dot-atom')
-    onConfigDirFile = (sourcePath) =>
-      relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
-      destinationPath = path.join(@configDirPath, relativePath)
-      queue.push({sourcePath, destinationPath})
-    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
-
-  load: ->
-    @initializeConfigDirectory()
-    @loadUserConfig()
-    @observeUserConfig()
-
-  loadUserConfig: ->
-    unless fs.existsSync(@configFilePath)
-      fs.makeTreeSync(path.dirname(@configFilePath))
-      CSON.writeFileSync(@configFilePath, {})
-
-    try
-      userConfig = CSON.readFileSync(@configFilePath)
-      _.extend(@settings, userConfig)
-      @configFileHasErrors = false
-      @emit 'updated'
-    catch error
-      @configFileHasErrors = true
-      console.error "Failed to load user config '#{@configFilePath}'", error.message
-      console.error error.stack
-
-  observeUserConfig: ->
-    try
-      @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
-        @loadUserConfig() if eventType is 'change' and @watchSubscription?
-    catch error
-      console.error "Failed to watch user config '#{@configFilePath}'", error.message
-      console.error error.stack
-
-  unobserveUserConfig: ->
-    @watchSubscription?.close()
-    @watchSubscription = null
-
-  setDefaults: (keyPath, defaults) ->
-    keys = keyPath.split('.')
-    hash = @defaultSettings
-    for key in keys
-      hash[key] ?= {}
-      hash = hash[key]
-
-    _.extend hash, defaults
-    @emit 'updated'
-
-  # Extended: Get the {String} path to the config file being used.
-  getUserConfigPath: ->
-    @configFilePath
-
-  # Extended: Returns a new {Object} containing all of settings and defaults.
-  getSettings: ->
-    _.deepExtend(@settings, @defaultSettings)
+  ###
+  Section: get / set
+  ###
 
   # Essential: Retrieves the setting for the given key.
   #
@@ -121,26 +59,6 @@ class Config
 
     value
 
-  # Extended: Retrieves the setting for the given key as an integer.
-  #
-  # * `keyPath` The {String} name of the key to retrieve
-  #
-  # Returns the value from Atom's default settings, the user's configuration
-  # file, or `NaN` if the key doesn't exist in either.
-  getInt: (keyPath) ->
-    parseInt(@get(keyPath))
-
-  # Extended: Retrieves the setting for the given key as a positive integer.
-  #
-  # * `keyPath` The {String} name of the key to retrieve
-  # * `defaultValue` The integer {Number} to fall back to if the value isn't
-  #                positive, defaults to 0.
-  #
-  # Returns the value from Atom's default settings, the user's configuration
-  # file, or `defaultValue` if the key value isn't greater than zero.
-  getPositiveInt: (keyPath, defaultValue=0) ->
-    Math.max(@getInt(keyPath), 0) or defaultValue
-
   # Essential: Sets the value for a configuration setting.
   #
   # This value is stored in Atom's internal configuration file.
@@ -157,16 +75,44 @@ class Config
       @update()
     value
 
-  # Extended: Toggle the value at the key path.
+  # Essential: Add a listener for changes to a given key path.
   #
-  # The new value will be `true` if the value is currently falsy and will be
-  # `false` if the value is currently truthy.
+  # * `keyPath` The {String} name of the key to observe
+  # * `options` An optional {Object} containing the `callNow` key.
+  # * `callback` The {Function} to call when the value of the key changes.
+  #              The first argument will be the new value of the key and the
+  #              second argument will be an {Object} with a `previous` property
+  #              that is the prior value of the key.
   #
-  # * `keyPath` The {String} name of the key.
-  #
-  # Returns the new value.
-  toggle: (keyPath) ->
-    @set(keyPath, !@get(keyPath))
+  # Returns an {Object} with the following keys:
+  #  * `off` A {Function} that unobserves the `keyPath` when called.
+  observe: (keyPath, options={}, callback) ->
+    if _.isFunction(options)
+      callback = options
+      options = {}
+
+    value = @get(keyPath)
+    previousValue = _.clone(value)
+    updateCallback = =>
+      value = @get(keyPath)
+      unless _.isEqual(value, previousValue)
+        previous = previousValue
+        previousValue = _.clone(value)
+        callback(value, {previous})
+
+    eventName = "updated.#{keyPath.replace(/\./, '-')}"
+    subscription = @on eventName, updateCallback
+    callback(value) if options.callNow ? true
+    subscription
+
+  # Extended: Get the {String} path to the config file being used.
+  getUserConfigPath: ->
+    @configFilePath
+
+  # Extended: Returns a new {Object} containing all of settings and defaults.
+  getSettings: ->
+    _.deepExtend(@settings, @defaultSettings)
+
 
   # Extended: Restore the key path to its default value.
   #
@@ -230,41 +176,108 @@ class Config
     @set(keyPath, arrayValue)
     result
 
-  # Essential: Add a listener for changes to a given key path.
-  #
-  # * `keyPath` The {String} name of the key to observe
-  # * `options` An optional {Object} containing the `callNow` key.
-  # * `callback` The {Function} to call when the value of the key changes.
-  #              The first argument will be the new value of the key and the
-  #              second argument will be an {Object} with a `previous` property
-  #              that is the prior value of the key.
-  #
-  # Returns an {Object} with the following keys:
-  #  * `off` A {Function} that unobserves the `keyPath` when called.
-  observe: (keyPath, options={}, callback) ->
-    if _.isFunction(options)
-      callback = options
-      options = {}
+  ###
+  Section: To Deprecate
+  ###
 
-    value = @get(keyPath)
-    previousValue = _.clone(value)
-    updateCallback = =>
-      value = @get(keyPath)
-      unless _.isEqual(value, previousValue)
-        previous = previousValue
-        previousValue = _.clone(value)
-        callback(value, {previous})
+  # Retrieves the setting for the given key as an integer.
+  #
+  # * `keyPath` The {String} name of the key to retrieve
+  #
+  # Returns the value from Atom's default settings, the user's configuration
+  # file, or `NaN` if the key doesn't exist in either.
+  getInt: (keyPath) ->
+    parseInt(@get(keyPath))
 
-    eventName = "updated.#{keyPath.replace(/\./, '-')}"
-    subscription = @on eventName, updateCallback
-    callback(value) if options.callNow ? true
-    subscription
+  # Retrieves the setting for the given key as a positive integer.
+  #
+  # * `keyPath` The {String} name of the key to retrieve
+  # * `defaultValue` The integer {Number} to fall back to if the value isn't
+  #                positive, defaults to 0.
+  #
+  # Returns the value from Atom's default settings, the user's configuration
+  # file, or `defaultValue` if the key value isn't greater than zero.
+  getPositiveInt: (keyPath, defaultValue=0) ->
+    Math.max(@getInt(keyPath), 0) or defaultValue
+
+  # Toggle the value at the key path.
+  #
+  # The new value will be `true` if the value is currently falsy and will be
+  # `false` if the value is currently truthy.
+  #
+  # * `keyPath` The {String} name of the key.
+  #
+  # Returns the new value.
+  toggle: (keyPath) ->
+    @set(keyPath, !@get(keyPath))
 
   # Unobserve all callbacks on a given key.
-  #
   # * `keyPath` The {String} name of the key to unobserve.
+  #
   unobserve: (keyPath) ->
     @off("updated.#{keyPath.replace(/\./, '-')}")
+
+  ###
+  Section: Private
+  ###
+
+  initializeConfigDirectory: (done) ->
+    return if fs.existsSync(@configDirPath)
+
+    fs.makeTreeSync(@configDirPath)
+
+    queue = async.queue ({sourcePath, destinationPath}, callback) ->
+      fs.copy(sourcePath, destinationPath, callback)
+    queue.drain = done
+
+    templateConfigDirPath = fs.resolve(@resourcePath, 'dot-atom')
+    onConfigDirFile = (sourcePath) =>
+      relativePath = sourcePath.substring(templateConfigDirPath.length + 1)
+      destinationPath = path.join(@configDirPath, relativePath)
+      queue.push({sourcePath, destinationPath})
+    fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
+
+  load: ->
+    @initializeConfigDirectory()
+    @loadUserConfig()
+    @observeUserConfig()
+
+  loadUserConfig: ->
+    unless fs.existsSync(@configFilePath)
+      fs.makeTreeSync(path.dirname(@configFilePath))
+      CSON.writeFileSync(@configFilePath, {})
+
+    try
+      userConfig = CSON.readFileSync(@configFilePath)
+      _.extend(@settings, userConfig)
+      @configFileHasErrors = false
+      @emit 'updated'
+    catch error
+      @configFileHasErrors = true
+      console.error "Failed to load user config '#{@configFilePath}'", error.message
+      console.error error.stack
+
+  observeUserConfig: ->
+    try
+      @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
+        @loadUserConfig() if eventType is 'change' and @watchSubscription?
+    catch error
+      console.error "Failed to watch user config '#{@configFilePath}'", error.message
+      console.error error.stack
+
+  unobserveUserConfig: ->
+    @watchSubscription?.close()
+    @watchSubscription = null
+
+  setDefaults: (keyPath, defaults) ->
+    keys = keyPath.split('.')
+    hash = @defaultSettings
+    for key in keys
+      hash[key] ?= {}
+      hash = hash[key]
+
+    _.extend hash, defaults
+    @emit 'updated'
 
   update: ->
     return if @configFileHasErrors
