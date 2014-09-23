@@ -196,7 +196,7 @@ class CommandRegistry
 
     loop
       matchingListeners =
-        @listenersByCommandName[event.type]
+        (@listenersByCommandName[event.type] ? [])
           .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
           .sort (a, b) -> a.compare(b)
 
