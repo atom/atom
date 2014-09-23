@@ -31,6 +31,10 @@ cp "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/pixmaps"
 cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
+# Copy generated LICENSE.md to /usr/share/doc/atom/copyright
+mkdir -m $FILE_MODE -p "$TARGET/usr/share/doc/atom"
+cp "$TARGET/usr/share/atom/resources/app/LICENSE.md" "$TARGET/usr/share/doc/atom/copyright"
+
 # Remove executable bit from .node files
 find "$TARGET" -type f -name "*.node" -exec chmod a-x {} \;
 
