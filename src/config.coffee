@@ -31,6 +31,9 @@ class Config
   # Created during initialization, available as `atom.config`
   constructor: ({@configDirPath, @resourcePath}={}) ->
     @emitter = new Emitter
+    @schema =
+      type: 'object'
+      properties: {}
     @defaultSettings = {}
     @settings = {}
     @configFileHasErrors = false
@@ -161,6 +164,13 @@ class Config
   # otherwise.
   isDefault: (keyPath) ->
     not _.valueForKeyPath(@settings, keyPath)?
+
+  getSchema: (keyPath) ->
+    keys = keyPath.split('.')
+    schema = @schema
+    for key in keys
+      schema = schema.properties[key]
+    schema
 
   ###
   Section: To Deprecate
@@ -300,6 +310,9 @@ class Config
     @watchSubscription = null
 
   setDefaults: (keyPath, defaults) ->
+    if typeof defaults isnt 'object'
+      return _.setValueForKeyPath(@defaultSettings, keyPath, defaults)
+
     keys = keyPath.split('.')
     hash = @defaultSettings
     for key in keys
@@ -309,6 +322,34 @@ class Config
     _.extend hash, defaults
     @emit 'updated'
     @emitter.emit 'did-change'
+
+  setSchema: (keyPath, schema) ->
+    unless typeof schema is "object"
+      throw new Error("Schemas can only be objects!")
+
+    unless typeof schema.type?
+      throw new Error("Schema object's must have a type attribute")
+
+    keys = keyPath.split('.')
+    rootSchema = @schema
+    for key in keys
+      rootSchema.type = 'object'
+      rootSchema.properties ?= {}
+      properties = rootSchema.properties
+      properties[key] ?= {}
+      rootSchema = properties[key]
+
+    _.extend rootSchema, schema
+    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
+
+  extractDefaultsFromSchema: (schema) ->
+    if schema.default?
+      schema.default
+    else if schema.type is 'object' and schema.properties? and typeof schema.properties is "object"
+      defaults = {}
+      properties = schema.properties or {}
+      defaults[key] = @extractDefaultsFromSchema(value) for key, value of properties
+      defaults
 
   update: ->
     return if @configFileHasErrors

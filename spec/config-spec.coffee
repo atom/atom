@@ -399,3 +399,90 @@ describe "Config", ->
         it "updates the config data and resumes saving", ->
           atom.config.set("hair", "blonde")
           expect(atom.config.save).toHaveBeenCalled()
+
+  describe "when there is a schema specified", ->
+    schema = null
+
+    describe '.setSchema(keyPath, schema)', ->
+      it 'sets defaults specified by the schema', ->
+        schema =
+          type: 'object'
+          properties:
+            anInt:
+              type: 'integer'
+              default: 12
+            anObject:
+              type: 'object'
+              properties:
+                nestedInt:
+                  type: 'integer'
+                  default: 24
+                nestedObject:
+                  type: 'object'
+                  properties:
+                    superNestedInt:
+                      type: 'integer'
+                      default: 36
+
+        atom.config.setSchema('foo.bar', schema)
+        expect(atom.config.get("foo.bar.anInt")).toBe 12
+        expect(atom.config.get("foo.bar.anObject")).toEqual
+          nestedInt: 24
+          nestedObject:
+            superNestedInt: 36
+
+      it 'can set a non-object schema', ->
+        schema =
+          type: 'integer'
+          default: 12
+
+        atom.config.setSchema('foo.bar.anInt', schema)
+        expect(atom.config.get("foo.bar.anInt")).toBe 12
+        expect(atom.config.getSchema('foo.bar.anInt')).toEqual
+          type: 'integer'
+          default: 12
+
+      it 'creates a properly nested schema', ->
+        schema =
+          type: 'object'
+          properties:
+            anInt:
+              type: 'integer'
+              default: 12
+
+        atom.config.setSchema('foo.bar', schema)
+
+        expect(atom.config.schema).toEqual
+          type: 'object'
+          properties:
+            foo:
+              type: 'object'
+              properties:
+                bar:
+                  type: 'object'
+                  properties:
+                    anInt:
+                      type: 'integer'
+                      default: 12
+
+    describe '.getSchema(keyPath)', ->
+      schema =
+        type: 'object'
+        properties:
+          anInt:
+            type: 'integer'
+            default: 12
+
+      atom.config.setSchema('foo.bar', schema)
+
+      expect(atom.config.getSchema('foo.bar')).toEqual
+        type: 'object'
+        properties:
+          anInt:
+            type: 'integer'
+            default: 12
+
+      expect(atom.config.getSchema('foo.bar.anInt')).toEqual
+        type: 'integer'
+        default: 12
+
