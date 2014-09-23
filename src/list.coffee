@@ -32,6 +32,7 @@ class List extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
+    options.alias('i', 'installed').boolean('installed').describe('installed', 'Only list installed packages/themes')
 
   isPackageDisabled: (name) ->
     @disabledPackages.indexOf(name) isnt -1
@@ -93,11 +94,18 @@ class List extends Command
       @logPackages(packages)
       callback()
 
+  listInstalledPackages: (options) ->
+    @listDevPackages(options)
+    @listUserPackages(options)
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    @listBundledPackages options, =>
-      @listDevPackages(options)
-      @listUserPackages(options)
+    if options.argv.installed
+      @listInstalledPackages(options)
       callback()
+    else
+      @listBundledPackages options, =>
+        @listInstalledPackages(options)
+        callback()
