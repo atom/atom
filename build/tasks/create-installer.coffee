@@ -6,7 +6,7 @@ module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'create-installer', 'Create the Windows installer', ->
-    return unless if process.platform is 'win32'
+    return unless process.platform is 'win32'
 
     done = @async()
 
