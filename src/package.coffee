@@ -348,6 +348,7 @@ class Package
       )
     else
       for eventName, selector of @metadata.activationEvents
+        selector ?= '.workspace'
         @activationCommandSubscriptions.add(
           atom.commands.add(selector, eventName, @handleActivationEvent)
         )
