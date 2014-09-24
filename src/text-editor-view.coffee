@@ -73,9 +73,8 @@ class EditorView extends View
       default: 16
       minimum: 1
     lineHeight:
-      type: 'number'
+      type: 'string'
       default: 1.3
-      minimum: 1.0
     showInvisibles:
       type: 'boolean'
       default: false
