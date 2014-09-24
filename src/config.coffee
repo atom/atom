@@ -27,24 +27,25 @@ pathWatcher = require 'pathwatcher'
 module.exports =
 class Config
   EmitterMixin.includeInto(this)
-  @typeFilters = {}
+  @schemaValidators = {}
 
-  @addTypeFilter: (typeName, filterFunction) ->
-    @typeFilters[typeName] ?= []
-    @typeFilters[typeName].push(filterFunction)
+  @addSchemaValidator: (typeName, validatorFunction) ->
+    @schemaValidators[typeName] ?= []
+    @schemaValidators[typeName].push(validatorFunction)
 
-  @addTypeFilters: (filters) ->
+  @addSchemaValidators: (filters) ->
     for typeName, functions of filters
-      for name, filterFunction of functions
-        @addTypeFilter(typeName, filterFunction)
+      for name, validatorFunction of functions
+        @addSchemaValidator(typeName, validatorFunction)
 
-  @executeTypeFilters: (value, schema) ->
+  @executeSchemaValidators: (value, schema) ->
     failedValidation = false
     types = schema.type
     types = [types] unless Array.isArray(types)
     for type in types
       try
-        if filterFunctions = @typeFilters[type]
+        if filterFunctions = @schemaValidators[type]
+          filterFunctions = filterFunctions.concat(@schemaValidators['*'])
           for filter in filterFunctions
             value = filter.call(this, value, schema)
           failedValidation = false
@@ -394,34 +395,20 @@ class Config
       defaults
 
   scrubValue: (keyPath, value) ->
-    value = @constructor.executeTypeFilters(value, schema) if schema = @schemaForKeyPath(keyPath)
+    value = @constructor.executeSchemaValidators(value, schema) if schema = @schemaForKeyPath(keyPath)
     value
 
-Config.addTypeFilters
+Config.addSchemaValidators
   'integer':
     coercion: (value, schema) ->
       value = parseInt(value)
       throw new Error() if isNaN(value)
       value
 
-    minMaxCoercion: (value, schema) ->
-      if schema.minimum? and typeof schema.minimum is 'number'
-        value = Math.max(value, schema.minimum)
-      if schema.maximum? and typeof schema.maximum is 'number'
-        value = Math.min(value, schema.maximum)
-      value
-
   'number':
     coercion: (value, schema) ->
       value = parseFloat(value)
       throw new Error() if isNaN(value)
-      value
-
-    minMaxCoercion: (value, schema) ->
-      if schema.minimum? and typeof schema.minimum is 'number'
-        value = Math.max(value, schema.minimum)
-      if schema.maximum? and typeof schema.maximum is 'number'
-        value = Math.min(value, schema.maximum)
       value
 
   'boolean':
@@ -448,7 +435,7 @@ Config.addTypeFilters
       throw new Error() if typeof value isnt 'object'
       return value unless schema.properties?
       for prop, childSchema of schema.properties
-        value[prop] = @executeTypeFilters(value[prop], childSchema) if prop of value
+        value[prop] = @executeSchemaValidators(value[prop], childSchema) if prop of value
       value
 
   'array':
@@ -456,6 +443,15 @@ Config.addTypeFilters
       throw new Error() unless Array.isArray(value)
       itemSchema = schema.items
       if itemSchema?
-        @executeTypeFilters(item, itemSchema) for item in value
+        @executeSchemaValidators(item, itemSchema) for item in value
       else
         value
+
+  '*':
+    minimumAndMaximumCoercion: (value, schema) ->
+      return value unless typeof value is 'number'
+      if schema.minimum? and typeof schema.minimum is 'number'
+        value = Math.max(value, schema.minimum)
+      if schema.maximum? and typeof schema.maximum is 'number'
+        value = Math.min(value, schema.maximum)
+      value
