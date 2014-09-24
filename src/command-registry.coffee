@@ -128,6 +128,7 @@ class CommandRegistry
 
       break if currentTarget is @rootNode
       currentTarget = currentTarget.parentNode
+      break unless currentTarget?
 
     for name, displayName of $(target).events() when displayName
       commands.push({name, displayName, jQuery: true})
@@ -201,10 +202,10 @@ class CommandRegistry
         invokedListeners.push(listener)
         listener.callback.call(currentTarget, syntheticEvent)
 
-      break unless currentTarget?
       break if currentTarget is @rootNode
       break if propagationStopped
       currentTarget = currentTarget.parentNode
+      break unless currentTarget?
 
     matched
 
