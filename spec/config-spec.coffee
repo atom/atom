@@ -12,7 +12,7 @@ describe "Config", ->
 
   describe ".get(keyPath)", ->
     it "allows a key path's value to be read", ->
-      expect(atom.config.set("foo.bar.baz", 42)).toBe 42
+      expect(atom.config.set("foo.bar.baz", 42)).toBe true
       expect(atom.config.get("foo.bar.baz")).toBe 42
       expect(atom.config.get("bogus.key.path")).toBeUndefined()
 
@@ -37,7 +37,7 @@ describe "Config", ->
 
   describe ".set(keyPath, value)", ->
     it "allows a key path's value to be written", ->
-      expect(atom.config.set("foo.bar.baz", 42)).toBe 42
+      expect(atom.config.set("foo.bar.baz", 42)).toBe true
       expect(atom.config.get("foo.bar.baz")).toBe 42
 
     it "updates observers and saves when a key path is set", ->
