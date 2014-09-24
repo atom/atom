@@ -143,7 +143,10 @@ class Package
 
     @requireMainModule()
     if @mainModule?
-      atom.config.setDefaults(@name, @mainModule.configDefaults)
+      if @mainModule.config? and typeof @mainModule.config is 'object'
+        atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
+      else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
+        atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
 

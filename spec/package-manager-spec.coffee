@@ -82,7 +82,21 @@ describe "PackageManager", ->
               expect(indexModule.activate).toHaveBeenCalled()
               expect(pack.mainModule).toBe indexModule
 
-        it "assigns config defaults from the module", ->
+        it "assigns config schema, including defaults when package contains a schema", ->
+          expect(atom.config.get('package-with-config-schema.numbers.one')).toBeUndefined()
+
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-config-schema')
+
+          runs ->
+            expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 1
+            expect(atom.config.get('package-with-config-schema.numbers.two')).toBe 2
+
+            expect(atom.config.set('package-with-config-schema.numbers.one', 'nope')).toBe false
+            expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe true
+            expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 10
+
+        it "still assigns configDefaults from the module though deprecated", ->
           expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
 
           waitsForPromise ->
