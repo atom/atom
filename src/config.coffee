@@ -427,8 +427,18 @@ Config.addTypeFilters
       value
 
   'object':
-    typeCheck: (value, schema) ->
+    coercion: (value, schema) ->
+      throw new Error() if typeof value isnt 'object'
       return value unless schema.properties?
       for prop, childSchema of schema.properties
         value[prop] = @executeTypeFilters(value[prop], childSchema) if prop of value
       value
+
+  'array':
+    coercion: (value, schema) ->
+      throw new Error() unless Array.isArray(value)
+      itemSchema = schema.items
+      if itemSchema?
+        @executeTypeFilters(item, itemSchema) for item in value
+      else
+        value

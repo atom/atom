@@ -602,3 +602,15 @@ describe "Config", ->
           nestedObject:
             nestedBool: true
 
+    describe 'when the value has an "array" type', ->
+      beforeEach ->
+        schema =
+          type: 'array'
+          default: [1, 2, 3]
+          items:
+            type: 'integer'
+        atom.config.setSchema('foo.bar', schema)
+
+      it 'converts an array of strings to an array of ints', ->
+        atom.config.set 'foo.bar', ['2', '3', '4']
+        expect(atom.config.get('foo.bar')).toEqual  [2, 3, 4]
