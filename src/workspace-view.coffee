@@ -71,15 +71,21 @@ class WorkspaceView extends View
     ignoredNames:
       type: 'array'
       default: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
+      items:
+        type: 'string'
     excludeVcsIgnoredPaths:
       type: 'boolean'
       default: true
     disabledPackages:
       type: 'array'
       default: []
+      items:
+        type: 'string'
     themes:
       type: 'array'
       default: ['atom-dark-ui', 'atom-dark-syntax']
+      items:
+        type: 'string'
     projectHome:
       type: 'string'
       default: path.join(fs.getHomeDirectory(), 'github')
