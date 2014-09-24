@@ -438,7 +438,7 @@ describe "Config", ->
 
         atom.config.setSchema('foo.bar.anInt', schema)
         expect(atom.config.get("foo.bar.anInt")).toBe 12
-        expect(atom.config.schemaForKeyPath('foo.bar.anInt')).toEqual
+        expect(atom.config.getSchema('foo.bar.anInt')).toEqual
           type: 'integer'
           default: 12
 
@@ -465,7 +465,7 @@ describe "Config", ->
                       type: 'integer'
                       default: 12
 
-    describe '.schemaForKeyPath(keyPath)', ->
+    describe '.getSchema(keyPath)', ->
       schema =
         type: 'object'
         properties:
@@ -475,14 +475,14 @@ describe "Config", ->
 
       atom.config.setSchema('foo.bar', schema)
 
-      expect(atom.config.schemaForKeyPath('foo.bar')).toEqual
+      expect(atom.config.getSchema('foo.bar')).toEqual
         type: 'object'
         properties:
           anInt:
             type: 'integer'
             default: 12
 
-      expect(atom.config.schemaForKeyPath('foo.bar.anInt')).toEqual
+      expect(atom.config.getSchema('foo.bar.anInt')).toEqual
         type: 'integer'
         default: 12
 
