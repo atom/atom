@@ -53,8 +53,8 @@ class CommandRegistry
     @rootNode = newRootNode
 
     for commandName of @listenersByCommandName
-      oldRootNode?.removeEventListener(commandName, @handleCommandEvent, true)
-      newRootNode?.addEventListener(commandName, @handleCommandEvent, true)
+      @removeCommandListener(oldRootNode, commandName)
+      @addCommandListener(newRootNode, commandName)
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -90,7 +90,7 @@ class CommandRegistry
       return disposable
 
     unless @listenersByCommandName[commandName]?
-      @rootNode?.addEventListener(commandName, @handleCommandEvent, true)
+      @addCommandListener(@rootNode, commandName)
       @listenersByCommandName[commandName] = []
 
     listener = new CommandListener(selector, callback)
@@ -101,7 +101,7 @@ class CommandRegistry
       listenersForCommand.splice(listenersForCommand.indexOf(listener), 1)
       if listenersForCommand.length is 0
         delete @listenersByCommandName[commandName]
-        @rootNode.removeEventListener(commandName, @handleCommandEvent, true)
+        @removeCommandListener(@rootNode, commandName)
 
   # Public: Find all registered commands matching a query.
   #
@@ -161,6 +161,8 @@ class CommandRegistry
     @setRootNode(rootNode) # restore listeners for commands in snapshot
 
   handleCommandEvent: (originalEvent) =>
+    originalEvent.__handledByCommandRegistry = true
+
     propagationStopped = false
     immediatePropagationStopped = false
     matched = false
@@ -200,6 +202,17 @@ class CommandRegistry
       currentTarget = currentTarget.parentNode
 
     matched
+
+  handleJQueryCommandEvent: (event) =>
+    @handleCommandEvent(event) unless event.originalEvent?.__handledByCommandRegistry
+
+  addCommandListener: (node, commandName, listener) ->
+    node?.addEventListener(commandName, @handleCommandEvent, true)
+    $(node).on commandName, @handleJQueryCommandEvent
+
+  removeCommandListener: (node, commandName) ->
+    node?.removeEventListener(commandName, @handleCommandEvent, true)
+    $(node).off commandName, @handleJQueryCommandEvent
 
 class CommandListener
   enabled: true
