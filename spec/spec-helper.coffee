@@ -35,6 +35,12 @@ $(window).on 'beforeunload', ->
   atom.saveSync()
 $('html,body').css('overflow', 'auto')
 
+# Allow document.title to be assigned in specs without screwing up spec window title
+documentTitle = null
+Object.defineProperty document, 'title',
+  get: -> documentTitle
+  set: (title) -> documentTitle = title
+
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
 if process.platform is 'win32' and process.env.JANKY_SHA1
@@ -61,6 +67,7 @@ isCoreSpec = specDirectory == fs.realpathSync(__dirname)
 beforeEach ->
   Grim.clearDeprecations() if isCoreSpec
   $.fx.off = true
+  documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(path: projectPath)
   atom.workspace = new Workspace()
@@ -106,7 +113,7 @@ beforeEach ->
   spyOn(EditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   EditorComponent.performSyncUpdates = true
 
-  spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) ->
+  spyOn(atom, "setRepresentedFilename")
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
