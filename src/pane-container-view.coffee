@@ -30,13 +30,7 @@ class PaneContainerView extends View
     @trigger 'pane-container:active-pane-item-changed', [activeItem]
 
   confirmClose: ->
-    saved = true
-    for paneView in @getPaneViews()
-      for item in paneView.getItems()
-        if not paneView.promptToSaveItem(item)
-          saved = false
-          break
-    saved
+    @model.confirmClose()
 
   getPaneViews: ->
     @find('.pane').views()

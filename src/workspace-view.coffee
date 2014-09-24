@@ -348,7 +348,7 @@ class WorkspaceView extends View
 
   # Prompts to save all unsaved items
   confirmClose: ->
-    @panes.confirmClose()
+    @model.confirmClose()
 
   # Updates the application's title and proxy icon based on whichever file is
   # open.

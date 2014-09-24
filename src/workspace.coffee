@@ -433,6 +433,9 @@ class Workspace extends Model
   saveAll: ->
     @paneContainer.saveAll()
 
+  confirmClose: ->
+    @paneContainer.confirmClose()
+
   # Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's

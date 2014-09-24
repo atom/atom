@@ -71,29 +71,6 @@ describe "PaneContainerView", ->
         for item in pane.getItems()
           expect(item.saved).toBeTruthy()
 
-  describe ".confirmClose()", ->
-    it "returns true after modified files are saved", ->
-      pane1.itemAtIndex(0).shouldPromptToSave = -> true
-      pane2.itemAtIndex(0).shouldPromptToSave = -> true
-      spyOn(atom, "confirm").andReturn(0)
-
-      saved = container.confirmClose()
-
-      runs ->
-        expect(saved).toBeTruthy()
-        expect(atom.confirm).toHaveBeenCalled()
-
-    it "returns false if the user cancels saving", ->
-      pane1.itemAtIndex(0).shouldPromptToSave = -> true
-      pane2.itemAtIndex(0).shouldPromptToSave = -> true
-      spyOn(atom, "confirm").andReturn(1)
-
-      saved = container.confirmClose()
-
-      runs ->
-        expect(saved).toBeFalsy()
-        expect(atom.confirm).toHaveBeenCalled()
-
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
       newContainer = atom.workspace.getView(container.model.testSerialization()).__spacePenView
