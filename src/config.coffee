@@ -110,9 +110,9 @@ class Config
       callback = options
       options = {}
     else
-      message = ''
-      message = '`callNow` as been set to false. Use ::onDidChange instead.' if options.callNow == false
-      deprecate 'Config::observe no longer supports options. #{message}'
+      message = ""
+      message = "`callNow` as been set to false. Use ::onDidChange instead." if options.callNow == false
+      deprecate "Config::observe no longer supports options. #{message}"
 
     callback(_.clone(@get(keyPath))) unless options.callNow == false
     @onDidChange(keyPath, callback)
