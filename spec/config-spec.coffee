@@ -164,13 +164,19 @@ describe "Config", ->
       expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz"), {previous: ['a', 'b', 'c']}
 
   describe ".getPositiveInt(keyPath, defaultValue)", ->
-    it "returns the proper current or default value", ->
+    it "returns the proper coerced value", ->
       atom.config.set('editor.preferredLineLength', 0)
-      expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+      expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 1
+
+    it "returns the proper coerced value", ->
       atom.config.set('editor.preferredLineLength', -1234)
-      expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+      expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 1
+
+    it "returns the default value when a string is passed in", ->
       atom.config.set('editor.preferredLineLength', 'abcd')
       expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+
+    it "returns the default value when null is passed in", ->
       atom.config.set('editor.preferredLineLength', null)
       expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
 
@@ -452,18 +458,15 @@ describe "Config", ->
 
         atom.config.setSchema('foo.bar', schema)
 
-        expect(atom.config.schema).toEqual
+        expect(atom.config.getSchema('foo')).toEqual
           type: 'object'
           properties:
-            foo:
+            bar:
               type: 'object'
               properties:
-                bar:
-                  type: 'object'
-                  properties:
-                    anInt:
-                      type: 'integer'
-                      default: 12
+                anInt:
+                  type: 'integer'
+                  default: 12
 
     describe '.getSchema(keyPath)', ->
       schema =
