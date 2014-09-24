@@ -197,7 +197,7 @@ class Config
   isDefault: (keyPath) ->
     not _.valueForKeyPath(@settings, keyPath)?
 
-  getSchema: (keyPath) ->
+  schemaForKeyPath: (keyPath) ->
     keys = keyPath.split('.')
     schema = @schema
     for key in keys
@@ -394,7 +394,7 @@ class Config
       defaults
 
   scrubValue: (keyPath, value) ->
-    value = @constructor.executeTypeFilters(value, schema) if schema = @getSchema(keyPath)
+    value = @constructor.executeTypeFilters(value, schema) if schema = @schemaForKeyPath(keyPath)
     value
 
 Config.addTypeFilters
