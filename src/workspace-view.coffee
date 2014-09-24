@@ -8,7 +8,6 @@ scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
 Workspace = require './workspace'
-CommandInstaller = require './command-installer'
 PaneView = require './pane-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
@@ -142,7 +141,7 @@ class WorkspaceView extends View
     @command 'application:open-license', => @model.openLicense()
 
     if process.platform is 'darwin'
-      @command 'window:install-shell-commands', => @installShellCommands()
+      @command 'window:install-shell-commands', => @getModel().installShellCommands()
 
     @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
 
@@ -332,27 +331,6 @@ class WorkspaceView extends View
 
   setEditorLineHeight: (lineHeight) ->
     atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
-
-  # Install the Atom shell commands on the user's system.
-  installShellCommands: ->
-    showErrorDialog = (error) ->
-      installDirectory = CommandInstaller.getInstallDirectory()
-      atom.confirm
-        message: "Failed to install shell commands"
-        detailedMessage: error.message
-
-    resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, true, (error) ->
-      if error?
-        showErrorDialog(error)
-      else
-        CommandInstaller.installApmCommand resourcePath, true, (error) ->
-          if error?
-            showErrorDialog(error)
-          else
-            atom.confirm
-              message: "Commands installed."
-              detailedMessage: "The shell commands `atom` and `apm` are installed."
 
   handleFocus: ->
     if @getActivePaneView()

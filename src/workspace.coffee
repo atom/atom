@@ -6,6 +6,7 @@ Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
 {Emitter} = require 'event-kit'
+CommandInstaller = require './command-installer'
 Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -96,6 +97,26 @@ class Workspace extends Model
 
   editorAdded: (editor) ->
     @emit 'editor-created', editor
+
+  installShellCommands: ->
+    showErrorDialog = (error) ->
+      installDirectory = CommandInstaller.getInstallDirectory()
+      atom.confirm
+        message: "Failed to install shell commands"
+        detailedMessage: error.message
+
+    resourcePath = atom.getLoadSettings().resourcePath
+    CommandInstaller.installAtomCommand resourcePath, true, (error) ->
+      if error?
+        showErrorDialog(error)
+      else
+        CommandInstaller.installApmCommand resourcePath, true, (error) ->
+          if error?
+            showErrorDialog(error)
+          else
+            atom.confirm
+              message: "Commands installed."
+              detailedMessage: "The shell commands `atom` and `apm` are installed."
 
   ###
   Section: Event Subscription
