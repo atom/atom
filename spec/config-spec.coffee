@@ -533,6 +533,13 @@ describe "Config", ->
         atom.config.set('foo.bar.aFloat', '12.23')
         expect(atom.config.get('foo.bar.aFloat')).toBe 12.23
 
+      it 'will not set non-numbers', ->
+        atom.config.set('foo.bar.aFloat', null)
+        expect(atom.config.get('foo.bar.aFloat')).toBe 12.1
+
+        atom.config.set('foo.bar.aFloat', 'nope')
+        expect(atom.config.get('foo.bar.aFloat')).toBe 12.1
+
     describe 'when the value has a "boolean" type', ->
       beforeEach ->
         schema =

@@ -405,7 +405,10 @@ Config.addTypeFilters
       value
 
   'number':
-    coercion: (value, schema) -> parseFloat(value)
+    coercion: (value, schema) ->
+      value = parseFloat(value)
+      throw new Error() if isNaN(value)
+      value
 
   'boolean':
     coercion: (value, schema) ->
