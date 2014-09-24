@@ -1,0 +1,3 @@
+activationCommands:
+  '.workspace': 'workspace-command'
+  '.editor': ['editor-command-1', 'editor-command-2']

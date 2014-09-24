@@ -92,7 +92,7 @@ describe "PackageManager", ->
             expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
             expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
-        describe "when the package metadata includes activation events", ->
+        describe "when the package metadata includes `activationEvents`", ->
           [mainModule, promise, workspaceCommandListener] = []
 
           beforeEach ->
@@ -149,6 +149,21 @@ describe "PackageManager", ->
 
             runs ->
               expect(mainModule.activate.callCount).toBe 1
+
+        describe "when the package metadata includes `activationCommands`", ->
+          it "defers activation until one of the commands is invoked", ->
+            atom.workspaceView.attachToDom()
+            mainModule = require './fixtures/packages/package-with-activation-commands/index'
+            mainModule.commands = []
+            spyOn(mainModule, 'activate').andCallThrough()
+            spyOn(Package.prototype, 'requireMainModule').andCallThrough()
+
+            promise = atom.packages.activatePackage('package-with-activation-commands')
+            expect(promise.isFulfilled()).not.toBeTruthy()
+
+            atom.workspaceView[0].dispatchEvent(new CustomEvent('workspace-command', bubbles: true))
+
+            waitsForPromise -> promise
 
       describe "when the package has no main module", ->
         it "does not throw an exception", ->

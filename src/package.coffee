@@ -99,7 +99,7 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @scopedPropertiesPromise = @loadScopedProperties()
-        @requireMainModule() unless @hasActivationEvents()
+        @requireMainModule() unless @hasActivationCommands()
 
       catch error
         console.warn "Failed to load package named '#{@name}'", error.stack ? error
@@ -119,8 +119,8 @@ class Package
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
         @activateResources()
-        if @hasActivationEvents()
-          @subscribeToActivationEvents()
+        if @hasActivationCommands()
+          @subscribeToActivationCommands()
         else
           @activateNow()
 
@@ -319,41 +319,50 @@ class Package
         path.join(@path, 'index')
     @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
-  hasActivationEvents: ->
-    if _.isArray(@metadata.activationEvents)
-      return @metadata.activationEvents.some (activationEvent) ->
-        activationEvent?.length > 0
-    else if _.isString(@metadata.activationEvents)
-      return @metadata.activationEvents.length > 0
-    else if _.isObject(@metadata.activationEvents)
-      for event, selector of @metadata.activationEvents
-        return true if event.length > 0 and selector.length > 0
-
+  hasActivationCommands: ->
+    for selector, commands of @getActivationCommands()
+      return true if commands.length > 0
     false
 
-  subscribeToActivationEvents: ->
-    return unless @metadata.activationEvents?
-
+  subscribeToActivationCommands: ->
     @activationCommandSubscriptions = new CompositeDisposable
-
-    if _.isArray(@metadata.activationEvents)
-      for eventName in @metadata.activationEvents
+    for selector, commands of @getActivationCommands()
+      for command in commands
         @activationCommandSubscriptions.add(
-          atom.commands.add('.workspace', eventName, @handleActivationEvent)
-        )
-    else if _.isString(@metadata.activationEvents)
-      eventName = @metadata.activationEvents
-      @activationCommandSubscriptions.add(
-        atom.commands.add('.workspace', eventName, @handleActivationEvent)
-      )
-    else
-      for eventName, selector of @metadata.activationEvents
-        selector ?= '.workspace'
-        @activationCommandSubscriptions.add(
-          atom.commands.add(selector, eventName, @handleActivationEvent)
+          atom.commands.add(selector, command, @handleActivationCommand)
         )
 
-  handleActivationEvent: (event) =>
+  getActivationCommands: ->
+    return @activationCommands if @activationCommands?
+
+    @activationCommands = {}
+
+    if @metadata.activationCommands?
+      for selector, commands of @metadata.activationCommands
+        @activationCommands[selector] ?= []
+        if _.isString(commands)
+          @activationCommands[selector].push(commands)
+        else if _.isArray(commands)
+          @activationCommands[selector].push(commands...)
+
+    if @metadata.activationEvents?
+      if _.isArray(@metadata.activationEvents)
+        for eventName in @metadata.activationEvents
+          @activationCommands['.workspace'] ?= []
+          @activationCommands['.workspace'].push(eventName)
+      else if _.isString(@metadata.activationEvents)
+        eventName = @metadata.activationEvents
+        @activationCommands['.workspace'] ?= []
+        @activationCommands['.workspace'].push(eventName)
+      else
+        for eventName, selector of @metadata.activationEvents
+          selector ?= '.workspace'
+          @activationCommands[selector] ?= []
+          @activationCommands[selector].push(eventName)
+
+    @activationCommands
+
+  handleActivationCommand: (event) =>
     event.stopImmediatePropagation()
     @activationCommandSubscriptions.dispose()
     reenableInvokedListeners = event.disableInvokedListeners()
