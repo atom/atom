@@ -235,7 +235,9 @@ module.exports = (grunt) ->
   ciTasks.push('set-version', 'check-licenses', 'lint')
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('test') if process.platform isnt 'linux'
-  ciTasks.push('codesign', 'publish-build')
+  ciTasks.push('codesign')
+  ciTasks.push('create-installer') if process.platform is 'win32'
+  ciTasks.push('publish-build')
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-atom-shell', 'build', 'set-version']
