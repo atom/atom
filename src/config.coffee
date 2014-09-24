@@ -398,6 +398,14 @@ class Config
     value = @constructor.executeSchemaValidators(value, schema) if schema = @getSchema(keyPath)
     value
 
+# Base schema validators. These will coerce raw input into the specified type,
+# and will throw an error when the value cannot be coerced. Throwing the error
+# will indicate that the value should not be set.
+#
+# Validators are run from most specific to least. For a schema with type
+# `integer`, all the validators for the `integer` type will be run first, in
+# order of specification. Then the `*` validators will be run, in order of
+# specification.
 Config.addSchemaValidators
   'integer':
     coercion: (value, schema) ->
