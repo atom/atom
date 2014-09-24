@@ -1734,11 +1734,11 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(verticalScrollbarNode.scrollTop).toBe 10
 
-      it "parses negative scrollSensitivity values as positive", ->
+      it "parses negative scrollSensitivity values at the minimum", ->
         atom.config.set('editor.scrollSensitivity', -50)
         componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -10))
         nextAnimationFrame()
-        expect(verticalScrollbarNode.scrollTop).toBe 5
+        expect(verticalScrollbarNode.scrollTop).toBe 1
 
     describe "when the mousewheel event's target is a line", ->
       it "keeps the line on the DOM if it is scrolled off-screen", ->

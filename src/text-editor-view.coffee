@@ -113,7 +113,7 @@ class EditorView extends View
     scrollSensitivity:
       type: 'integer'
       default: 40
-      minimum: 1
+      minimum: 10
       maximum: 200
     useHardwareAcceleration:
       type: 'boolean'
@@ -128,16 +128,16 @@ class EditorView extends View
       type: 'object'
       properties:
         eol:
-          type: 'string'
+          type: ['string', 'boolean']
           default: '\u00ac'
         space:
-          type: 'string'
+          type: ['string', 'boolean']
           default: '\u00b7'
         tab:
-          type: 'string'
+          type: ['string', 'boolean']
           default: '\u00bb'
         cr:
-          type: 'string'
+          type: ['string', 'boolean']
           default: '\u00a4'
 >>>>>>> Editor config uses a schema:src/editor-view.coffee
 
