@@ -644,6 +644,15 @@ describe "Config", ->
           nestedObject:
             nestedBool: true
 
+      it 'will set only the values that adhere to the schema', ->
+        expect(atom.config.set 'foo.bar',
+          anInt: 'nope'
+          nestedObject:
+            nestedBool: true
+        ).toBe true
+        expect(atom.config.get('foo.bar.anInt')).toEqual 12
+        expect(atom.config.get('foo.bar.nestedObject.nestedBool')).toEqual true
+
     describe 'when the value has an "array" type', ->
       beforeEach ->
         schema =

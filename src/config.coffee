@@ -404,16 +404,27 @@ Config.addSchemaValidators
     coercion: (value, schema) ->
       throw new Error('Value must be an object') if typeof value isnt 'object'
       return value unless schema.properties?
+      newValue = {}
       for prop, childSchema of schema.properties
-        value[prop] = @executeSchemaValidators(value[prop], childSchema) if prop of value
-      value
+        continue unless prop of value
+        try
+          newValue[prop] = @executeSchemaValidators(value[prop], childSchema)
+        catch error
+          ;
+      newValue
 
   'array':
     coercion: (value, schema) ->
       throw new Error('Value must be an array') unless Array.isArray(value)
       itemSchema = schema.items
       if itemSchema?
-        @executeSchemaValidators(item, itemSchema) for item in value
+        newValue = []
+        for item in value
+          try
+            newValue.push @executeSchemaValidators(item, itemSchema)
+          catch error
+            ;
+        newValue
       else
         value
 
