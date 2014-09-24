@@ -455,3 +455,13 @@ Config.addSchemaValidators
       if schema.maximum? and typeof schema.maximum is 'number'
         value = Math.min(value, schema.maximum)
       value
+
+    enumValidation: (value, schema) ->
+      possibleValues = schema.enum
+      return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
+
+      for possibleValue in possibleValues
+        # Using `isEqual` for possibility of placing enums on array and object schemas
+        return value if _.isEqual(possibleValue, value)
+
+      throw new Error('Value is not one of the possible values')

@@ -653,3 +653,46 @@ describe "Config", ->
       it 'converts an array of strings to an array of ints', ->
         atom.config.set 'foo.bar', ['2', '3', '4']
         expect(atom.config.get('foo.bar')).toEqual  [2, 3, 4]
+
+    describe 'when the `enum` key is used', ->
+      beforeEach ->
+        schema =
+          type: 'object'
+          properties:
+            str:
+              type: 'string'
+              default: 'ok'
+              enum: ['ok', 'one', 'two']
+            int:
+              type: 'integer'
+              default: 2
+              enum: [2, 3, 5]
+            arr:
+              type: 'array'
+              default: ['one', 'two']
+              items:
+                type: 'string'
+                enum: ['one', 'two', 'three']
+
+        atom.config.setSchema('foo.bar', schema)
+
+      it 'will only set a string when the string is in the enum values', ->
+        expect(atom.config.set('foo.bar.str', 'nope')).toBe false
+        expect(atom.config.get('foo.bar.str')).toBe 'ok'
+
+        expect(atom.config.set('foo.bar.str', 'one')).toBe true
+        expect(atom.config.get('foo.bar.str')).toBe 'one'
+
+      it 'will only set an integer when the integer is in the enum values', ->
+        expect(atom.config.set('foo.bar.int', '400')).toBe false
+        expect(atom.config.get('foo.bar.int')).toBe 2
+
+        expect(atom.config.set('foo.bar.int', '3')).toBe true
+        expect(atom.config.get('foo.bar.int')).toBe 3
+
+      it 'will only set an array when the array values are in the enum values', ->
+        expect(atom.config.set('foo.bar.arr', ['one', 'two', 'five'])).toBe false
+        expect(atom.config.get('foo.bar.arr')).toEqual ['one', 'two']
+
+        expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
+        expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
