@@ -65,14 +65,18 @@ class Config
       _.extend(@settings, userConfig)
       @configFileHasErrors = false
       @emit 'updated'
-    catch e
+    catch error
       @configFileHasErrors = true
-      console.error "Failed to load user config '#{@configFilePath}'", e.message
-      console.error e.stack
+      console.error "Failed to load user config '#{@configFilePath}'", error.message
+      console.error error.stack
 
   observeUserConfig: ->
-    @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
-      @loadUserConfig() if eventType is 'change' and @watchSubscription?
+    try
+      @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
+        @loadUserConfig() if eventType is 'change' and @watchSubscription?
+    catch error
+      console.error "Failed to watch user config '#{@configFilePath}'", error.message
+      console.error error.stack
 
   unobserveUserConfig: ->
     @watchSubscription?.close()

@@ -40,10 +40,10 @@ Task = require './task'
 # ### Requiring in packages
 #
 # ```coffee
-# {Git} = require 'atom'
+# {GitRepository} = require 'atom'
 # ```
 module.exports =
-class Git
+class GitRepository
   EmitterMixin.includeInto(this)
   Subscriber.includeInto(this)
 
@@ -58,18 +58,18 @@ class Git
   Section: Construction and Destruction
   ###
 
-  # Public: Creates a new Git instance.
+  # Public: Creates a new GitRepository instance.
   #
   # * `path` The {String} path to the Git repository to open.
   # * `options` An optinal {Object} with the following keys:
   #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
   #     statuses when the window is focused.
   #
-  # Returns a {Git} instance or `null` if the repository could not be opened.
+  # Returns a {GitRepository} instance or `null` if the repository could not be opened.
   @open: (path, options) ->
     return null unless path
     try
-      new Git(path, options)
+      new GitRepository(path, options)
     catch
       null
 
@@ -96,7 +96,7 @@ class Git
     if @project?
       @subscribe @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
 
-  # Public: Destroy this {Git} object.
+  # Public: Destroy this {GitRepository} object.
   #
   # This destroys any tasks and subscriptions and releases the underlying
   # libgit2 repository handle.
@@ -143,11 +143,11 @@ class Git
   on: (eventName) ->
     switch eventName
       when 'status-changed'
-        deprecate 'Use Git::onDidChangeStatus instead'
+        deprecate 'Use GitRepository::onDidChangeStatus instead'
       when 'statuses-changed'
-        deprecate 'Use Git::onDidChangeStatuses instead'
+        deprecate 'Use GitRepository::onDidChangeStatuses instead'
       else
-        deprecate 'Git::on is deprecated. Use event subscription methods instead.'
+        deprecate 'GitRepository::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
 
   ###

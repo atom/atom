@@ -1,5 +1,5 @@
 temp = require 'temp'
-Git = require '../src/git'
+GitRepository = require '../src/git-repository'
 fs = require 'fs-plus'
 path = require 'path'
 Task = require '../src/task'
@@ -10,7 +10,7 @@ copyRepository = ->
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   workingDirPath
 
-describe "Git", ->
+describe "GitRepository", ->
   repo = null
 
   beforeEach ->
@@ -22,28 +22,28 @@ describe "Git", ->
 
   describe "@open(path)", ->
     it "returns null when no repository is found", ->
-      expect(Git.open(path.join(temp.dir, 'nogit.txt'))).toBeNull()
+      expect(GitRepository.open(path.join(temp.dir, 'nogit.txt'))).toBeNull()
 
-  describe "new Git(path)", ->
+  describe "new GitRepository(path)", ->
     it "throws an exception when no repository is found", ->
-      expect(-> new Git(path.join(temp.dir, 'nogit.txt'))).toThrow()
+      expect(-> new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
 
   describe ".getPath()", ->
     it "returns the repository path for a .git directory path", ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'master.git', 'HEAD'))
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git', 'HEAD'))
       expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
 
     it "returns the repository path for a repository path", ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'master.git'))
       expect(repo.getPath()).toBe path.join(__dirname, 'fixtures', 'git', 'master.git')
 
   describe ".isPathIgnored(path)", ->
     it "returns true for an ignored path", ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
       expect(repo.isPathIgnored('a.txt')).toBeTruthy()
 
     it "returns false for a non-ignored path", ->
-      repo = new Git(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
+      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
       expect(repo.isPathIgnored('b.txt')).toBeFalsy()
 
   describe ".isPathModified(path)", ->
@@ -51,7 +51,7 @@ describe "Git", ->
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new Git(workingDirPath)
+      repo = new GitRepository(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
 
@@ -75,7 +75,7 @@ describe "Git", ->
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new Git(workingDirPath)
+      repo = new GitRepository(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
       fs.writeFileSync(newPath, "i'm new here")
@@ -92,7 +92,7 @@ describe "Git", ->
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new Git(workingDirPath)
+      repo = new GitRepository(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
 
     it "no longer reports a path as modified after checkout", ->
@@ -124,7 +124,7 @@ describe "Git", ->
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new Git(workingDirPath)
+      repo = new GitRepository(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       fs.writeFileSync(filePath, 'ch ch changes')
 
@@ -153,7 +153,7 @@ describe "Git", ->
 
   describe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
-      repo = new Git(require.resolve('./fixtures/git/master.git/HEAD'))
+      repo = new GitRepository(require.resolve('./fixtures/git/master.git/HEAD'))
       repo.destroy()
       expect(-> repo.getShortHead()).toThrow()
 
@@ -162,7 +162,7 @@ describe "Git", ->
 
     beforeEach ->
       workingDirectory = copyRepository()
-      repo = new Git(workingDirectory)
+      repo = new GitRepository(workingDirectory)
       filePath = path.join(workingDirectory, 'file.txt')
 
     it "trigger a status-changed event when the new status differs from the last cached one", ->
@@ -182,7 +182,7 @@ describe "Git", ->
 
     beforeEach ->
       workingDirectory = copyRepository()
-      repo = new Git(workingDirectory)
+      repo = new GitRepository(workingDirectory)
       directoryPath = path.join(workingDirectory, 'dir')
       filePath = path.join(directoryPath, 'b.txt')
 
@@ -197,7 +197,7 @@ describe "Git", ->
 
     beforeEach ->
       workingDirectory = copyRepository()
-      repo = new Git(workingDirectory)
+      repo = new GitRepository(workingDirectory)
       modifiedPath = path.join(workingDirectory, 'file.txt')
       newPath = path.join(workingDirectory, 'untracked.txt')
       cleanPath = path.join(workingDirectory, 'other.txt')

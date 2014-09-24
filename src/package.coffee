@@ -5,7 +5,7 @@ async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
 {deprecate} = require 'grim'
 
@@ -99,7 +99,7 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @scopedPropertiesPromise = @loadScopedProperties()
-        @requireMainModule() unless @hasActivationEvents()
+        @requireMainModule() unless @hasActivationCommands()
 
       catch error
         console.warn "Failed to load package named '#{@name}'", error.stack ? error
@@ -119,8 +119,8 @@ class Package
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
         @activateResources()
-        if @hasActivationEvents()
-          @subscribeToActivationEvents()
+        if @hasActivationCommands()
+          @subscribeToActivationCommands()
         else
           @activateNow()
 
@@ -270,7 +270,7 @@ class Package
   deactivate: ->
     @activationDeferred?.reject()
     @activationDeferred = null
-    @unsubscribeFromActivationEvents()
+    @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()
     if @mainActivated
@@ -319,64 +319,56 @@ class Package
         path.join(@path, 'index')
     @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
-  hasActivationEvents: ->
-    if _.isArray(@metadata.activationEvents)
-      return @metadata.activationEvents.some (activationEvent) ->
-        activationEvent?.length > 0
-    else if _.isString(@metadata.activationEvents)
-      return @metadata.activationEvents.length > 0
-    else if _.isObject(@metadata.activationEvents)
-      for event, selector of @metadata.activationEvents
-        return true if event.length > 0 and selector.length > 0
-
+  hasActivationCommands: ->
+    for selector, commands of @getActivationCommands()
+      return true if commands.length > 0
     false
 
-  subscribeToActivationEvents: ->
-    return unless @metadata.activationEvents?
-    if _.isArray(@metadata.activationEvents)
-      atom.workspaceView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
-    else if _.isString(@metadata.activationEvents)
-      atom.workspaceView.command(@metadata.activationEvents, @handleActivationEvent)
-    else
-      atom.workspaceView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+  subscribeToActivationCommands: ->
+    @activationCommandSubscriptions = new CompositeDisposable
+    for selector, commands of @getActivationCommands()
+      for command in commands
+        @activationCommandSubscriptions.add(
+          atom.commands.add(selector, command, @handleActivationCommand)
+        )
 
-  handleActivationEvent: (event) =>
-    bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
+  getActivationCommands: ->
+    return @activationCommands if @activationCommands?
+
+    @activationCommands = {}
+
+    if @metadata.activationCommands?
+      for selector, commands of @metadata.activationCommands
+        @activationCommands[selector] ?= []
+        if _.isString(commands)
+          @activationCommands[selector].push(commands)
+        else if _.isArray(commands)
+          @activationCommands[selector].push(commands...)
+
+    if @metadata.activationEvents?
+      if _.isArray(@metadata.activationEvents)
+        for eventName in @metadata.activationEvents
+          @activationCommands['.workspace'] ?= []
+          @activationCommands['.workspace'].push(eventName)
+      else if _.isString(@metadata.activationEvents)
+        eventName = @metadata.activationEvents
+        @activationCommands['.workspace'] ?= []
+        @activationCommands['.workspace'].push(eventName)
+      else
+        for eventName, selector of @metadata.activationEvents
+          selector ?= '.workspace'
+          @activationCommands[selector] ?= []
+          @activationCommands[selector].push(eventName)
+
+    @activationCommands
+
+  handleActivationCommand: (event) =>
+    event.stopImmediatePropagation()
+    @activationCommandSubscriptions.dispose()
+    reenableInvokedListeners = event.disableInvokedListeners()
     @activateNow()
-    $ ?= require('./space-pen-extensions').$
-    $(event.target).trigger(event)
-    @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
-    @unsubscribeFromActivationEvents()
-    false
-
-  unsubscribeFromActivationEvents: ->
-    return unless atom.workspaceView?
-
-    if _.isArray(@metadata.activationEvents)
-      atom.workspaceView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
-    else if _.isString(@metadata.activationEvents)
-      atom.workspaceView.off(@metadata.activationEvents, @handleActivationEvent)
-    else
-      atom.workspaceView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
-
-  disableEventHandlersOnBubblePath: (event) ->
-    bubblePathEventHandlers = []
-    disabledHandler = ->
-    $ ?= require('./space-pen-extensions').$
-    element = $(event.target)
-    while element.length
-      if eventHandlers = element.handlers()?[event.type]
-        for eventHandler in eventHandlers
-          eventHandler.disabledHandler = eventHandler.handler
-          eventHandler.handler = disabledHandler
-          bubblePathEventHandlers.push(eventHandler)
-      element = element.parent()
-    bubblePathEventHandlers
-
-  restoreEventHandlersOnBubblePath: (eventHandlers) ->
-    for eventHandler in eventHandlers
-      eventHandler.handler = eventHandler.disabledHandler
-      delete eventHandler.disabledHandler
+    event.target.dispatchEvent(new CustomEvent(event.type, bubbles: true))
+    reenableInvokedListeners()
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->

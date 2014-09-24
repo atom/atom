@@ -1,8 +1,10 @@
 Package: <%= name %>
 Version: <%= version %>
+Depends: python (>= 2.6), libc6
 Section: <%= section %>
 Priority: optional
 Architecture: <%= arch %>
 Installed-Size: <%= installedSize %>
 Maintainer: <%= maintainer %>
 Description: <%= description %>
+ Atom is a free and open source text editor that is modern, approachable, and hackable to the core.

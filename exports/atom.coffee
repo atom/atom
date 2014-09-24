@@ -1,11 +1,16 @@
 {Point, Range} = require 'text-buffer'
+{deprecate} = require 'grim'
 
 module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
-  Git: require '../src/git'
+  GitRepository: require '../src/git-repository'
   Point: Point
   Range: Range
+
+Object.defineProperty module.exports, 'Git', get: ->
+  deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
+  module.exports.GitRepository
 
 # The following classes can't be used from a Task handler and should therefore
 # only be exported when not running as a child node process

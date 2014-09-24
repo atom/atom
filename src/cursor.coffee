@@ -42,10 +42,11 @@ class Cursor extends Model
         newBufferPosition: newHeadBufferPosition
         newScreenPosition: newHeadScreenPosition
         textChanged: textChanged
+        cursor: this
 
       @emit 'moved', movedEvent
       @emitter.emit 'did-change-position'
-      @editor.cursorMoved(this, movedEvent)
+      @editor.cursorMoved(movedEvent)
     @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeCursor(this)
@@ -70,6 +71,7 @@ class Cursor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
+  #     * `Cursor` {Cursor} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePosition: (callback) ->

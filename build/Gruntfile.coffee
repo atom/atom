@@ -39,6 +39,7 @@ module.exports = (grunt) ->
   tmpDir = os.tmpdir()
   appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
+  buildDir = path.resolve(buildDir)
   installDir = grunt.option('install-dir')
 
   home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
@@ -61,6 +62,8 @@ module.exports = (grunt) ->
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir ?= process.env.INSTALL_PREFIX ? '/usr/local'
     killCommand ='pkill -9 atom'
+
+  installDir = path.resolve(installDir)
 
   coffeeConfig =
     glob_to_multiple:

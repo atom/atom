@@ -85,13 +85,13 @@ class EditorView extends View
       {@editor, mini, placeholderText} = editorOrParams
       props ?= {}
       props.mini = mini
-      props.placeholderText = placeholderText
       @editor ?= new Editor
         buffer: new TextBuffer
         softWrapped: false
         tabLength: 2
         softTabs: true
         mini: mini
+        placeholderText: placeholderText
 
     props = defaults({@editor, parentView: this}, props)
     @component = React.renderComponent(EditorComponent(props), @element)
@@ -346,16 +346,9 @@ class EditorView extends View
   redraw: ->
     deprecate('Please remove from your code. ::redraw no longer does anything')
 
-  # Public: Set the text to appear in the editor when it is empty.
-  #
-  # This only affects mini editors.
-  #
-  # * `placeholderText` A {String} of text to display when empty.
   setPlaceholderText: (placeholderText) ->
-    if @component?
-      @component.setProps({placeholderText})
-    else
-      @props.placeholderText = placeholderText
+    deprecate('Use TextEditor::setPlaceholderText instead. eg. editorView.getModel().setPlaceholderText(text)')
+    @getModel().setPlaceholderText(placeholderText)
 
   lineElementForScreenRow: (screenRow) ->
     $(@component.lineNodeForScreenRow(screenRow))

@@ -77,7 +77,7 @@ class Editor extends Model
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
     'manageScrollPosition', toProperty: 'displayBuffer'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText}) ->
     super
 
     @emitter = new Emitter
@@ -226,6 +226,7 @@ class Editor extends Model
   #     * `newBufferPosition` {Point}
   #     * `newScreenPosition` {Point}
   #     * `textChanged` {Boolean}
+  #     * `cursor` {Cursor} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeCursorPosition: (callback) ->
@@ -234,7 +235,12 @@ class Editor extends Model
   # Essential: Calls your `callback` when a selection's screen range changes.
   #
   # * `callback` {Function}
-  #   * `selection` {Selection} that moved
+  #   * `event` {Object}
+  #     * `oldBufferRange` {Range}
+  #     * `oldScreenRange` {Range}
+  #     * `newBufferRange` {Range}
+  #     * `newScreenRange` {Range}
+  #     * `selection` {Selection} that triggered the event
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSelectionRange: (callback) ->
@@ -398,6 +404,15 @@ class Editor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveDecoration: (callback) ->
     @displayBuffer.onDidRemoveDecoration(callback)
+
+  # Extended: Calls your `callback` when the placeholder text is changed.
+  #
+  # * `callback` {Function}
+  #   * `placeholderText` {String} new text
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangePlaceholderText: (callback) ->
+    @emitter.on 'did-change-placeholder-text', callback
 
   onDidChangeCharacterWidths: (callback) ->
     @displayBuffer.onDidChangeCharacterWidths(callback)
@@ -1604,7 +1619,7 @@ class Editor extends Model
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
-  cursorMoved: (cursor, event) ->
+  cursorMoved: (event) ->
     @emit 'cursor-moved', event
     @emitter.emit 'did-change-cursor-position', event
 
@@ -2087,9 +2102,9 @@ class Editor extends Model
       false
 
   # Called by the selection
-  selectionRangeChanged: (selection) ->
-    @emit 'selection-screen-range-changed', selection
-    @emitter.emit 'did-change-selection-range', selection
+  selectionRangeChanged: (event) ->
+    @emit 'selection-screen-range-changed', event
+    @emitter.emit 'did-change-selection-range', event
 
   ###
   Section: Searching and Replacing
@@ -2663,6 +2678,21 @@ class Editor extends Model
   ###
   Section: Editor Rendering
   ###
+
+  # Public: Retrieves the greyed out placeholder of a mini editor.
+  #
+  # Returns a {String}.
+  getPlaceholderText: ->
+    @placeholderText
+
+  # Public: Set the greyed out placeholder of a mini editor. Placeholder text
+  # will be displayed when the editor has no content.
+  #
+  # * `placeholderText` {String} text that is displayed when the editor has no content.
+  setPlaceholderText: (placeholderText) ->
+    return if @placeholderText is placeholderText
+    @placeholderText = placeholderText
+    @emitter.emit 'did-change-placeholder-text', @placeholderText
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # top of the editor.

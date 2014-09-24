@@ -1,4 +1,5 @@
 Workspace = require '../src/workspace'
+{View} = require '../src/space-pen-extensions'
 
 describe "Workspace", ->
   workspace = null

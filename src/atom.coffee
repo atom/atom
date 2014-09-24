@@ -103,29 +103,23 @@ class Atom extends Model
   Section: Properties
   ###
 
-  # Public: A {Clipboard} instance
-  clipboard: null
+  # Experimental: A {CommandRegistry} instance
+  commands: null
 
   # Public: A {Config} instance
   config: null
 
+  # Public: A {Clipboard} instance
+  clipboard: null
+
   # Public: A {ContextMenuManager} instance
   contextMenu: null
-
-  # Public: A {DeserializerManager} instance
-  deserializers: null
-
-  # Public: A {KeymapManager} instance
-  keymaps: null
-
-  # Public: A {CommandRegistry} instance
-  commands: null
 
   # Public: A {MenuManager} instance
   menu: null
 
-  # Public: A {PackageManager} instance
-  packages: null
+  # Public: A {KeymapManager} instance
+  keymaps: null
 
   # Public: A {Project} instance
   project: null
@@ -133,8 +127,14 @@ class Atom extends Model
   # Public: A {Syntax} instance
   syntax: null
 
+  # Public: A {PackageManager} instance
+  packages: null
+
   # Public: A {ThemeManager} instance
   themes: null
+
+  # Public: A {DeserializerManager} instance
+  deserializers: null
 
   # Public: A {Workspace} instance
   workspace: null
@@ -158,6 +158,12 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
+    # Disable deprecations unless in dev mode or spec mode so that regular
+    # editor performance isn't impacted by generating stack traces for
+    # deprecated calls.
+    unless @inDevMode() or @inSpecMode()
+      require('grim').deprecate = ->
+
     window.onerror = =>
       @openDevTools()
       @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
@@ -582,7 +588,7 @@ class Atom extends Model
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-    @workspaceView = new WorkspaceView(@workspace)
+    @workspaceView = @workspace.getView(@workspace).__spacePenView
     @deserializeTimings.workspace = Date.now() - startTime
 
     @keymaps.defaultTarget = @workspaceView[0]
