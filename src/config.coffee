@@ -207,56 +207,30 @@ class Config
     schema
 
   ###
-  Section: To Deprecate
-  ###
-
-  # Retrieves the setting for the given key as an integer.
-  #
-  # * `keyPath` The {String} name of the key to retrieve
-  #
-  # Returns the value from Atom's default settings, the user's configuration
-  # file, or `NaN` if the key doesn't exist in either.
-  getInt: (keyPath) ->
-    parseInt(@get(keyPath))
-
-  # Retrieves the setting for the given key as a positive integer.
-  #
-  # * `keyPath` The {String} name of the key to retrieve
-  # * `defaultValue` The integer {Number} to fall back to if the value isn't
-  #                positive, defaults to 0.
-  #
-  # Returns the value from Atom's default settings, the user's configuration
-  # file, or `defaultValue` if the key value isn't greater than zero.
-  getPositiveInt: (keyPath, defaultValue=0) ->
-    Math.max(@getInt(keyPath), 0) or defaultValue
-
-  # Toggle the value at the key path.
-  #
-  # The new value will be `true` if the value is currently falsy and will be
-  # `false` if the value is currently truthy.
-  #
-  # * `keyPath` The {String} name of the key.
-  #
-  # Returns the new value.
-  toggle: (keyPath) ->
-    @set(keyPath, !@get(keyPath))
-
-  ###
   Section: Deprecated
   ###
 
-  # Unobserve all callbacks on a given key.
-  # * `keyPath` The {String} name of the key to unobserve.
-  #
+  getInt: (keyPath) ->
+    deprecate '''Config::getInt is no longer necessary. Use ::get instead.
+    Make sure the config option you are accessing has specified an `integer`
+    schema. See the configuration section of
+    https://atom.io/docs/latest/creating-a-package for more info.'''
+    parseInt(@get(keyPath))
+
+  getPositiveInt: (keyPath, defaultValue=0) ->
+    deprecate '''Config::getPositiveInt is no longer necessary. Use ::get instead.
+    Make sure the config option you are accessing has specified an `integer`
+    schema with `minimum: 1`. See the configuration section of
+    https://atom.io/docs/latest/creating-a-package for more info.'''
+    Math.max(@getInt(keyPath), 0) or defaultValue
+
+  toggle: (keyPath) ->
+    deprecate 'Config::toggle is no longer supported. Please remove from your code.'
+    @set(keyPath, !@get(keyPath))
+
   unobserve: (keyPath) ->
     deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
-  # Push the value to the array at the key path.
-  #
-  # * `keyPath` The {String} key path.
-  # * `value` The value to push to the array.
-  #
-  # Returns the new array length {Number} of the setting.
   pushAtKeyPath: (keyPath, value) ->
     deprecate 'Please remove from your code. Config::pushAtKeyPath is going away. Please push the value onto the array, and call Config::set'
     arrayValue = @get(keyPath) ? []
@@ -264,12 +238,6 @@ class Config
     @set(keyPath, arrayValue)
     result
 
-  # Add the value to the beginning of the array at the key path.
-  #
-  # * `keyPath` The {String} key path.
-  # * `value` The value to shift onto the array.
-  #
-  # Returns the new array length {Number} of the setting.
   unshiftAtKeyPath: (keyPath, value) ->
     deprecate 'Please remove from your code. Config::unshiftAtKeyPath is going away. Please unshift the value onto the array, and call Config::set'
     arrayValue = @get(keyPath) ? []
@@ -277,12 +245,6 @@ class Config
     @set(keyPath, arrayValue)
     result
 
-  # Remove the value from the array at the key path.
-  #
-  # * `keyPath` The {String} key path.
-  # * `value` The value to remove from the array.
-  #
-  # Returns the new array value of the setting.
   removeAtKeyPath: (keyPath, value) ->
     deprecate 'Please remove from your code. Config::removeAtKeyPath is going away. Please remove the value from the array, and call Config::set'
     arrayValue = @get(keyPath) ? []
