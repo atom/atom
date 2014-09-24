@@ -152,12 +152,17 @@ class CommandRegistry
     @handleCommandEvent(eventWithTarget)
 
   getSnapshot: ->
-    _.deepClone(@listenersByCommandName)
+    snapshot = {}
+    for commandName, listeners of @listenersByCommandName
+      snapshot[commandName] = listeners.slice()
+    snapshot
 
   restoreSnapshot: (snapshot) ->
     rootNode = @getRootNode()
     @setRootNode(null) # clear listeners for current commands
-    @listenersByCommandName = _.deepClone(snapshot)
+    @listenersByCommandName = {}
+    for commandName, listeners of snapshot
+      @listenersByCommandName[commandName] = listeners.slice()
     @setRootNode(rootNode) # restore listeners for commands in snapshot
 
   handleCommandEvent: (originalEvent) =>
