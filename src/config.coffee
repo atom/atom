@@ -425,3 +425,10 @@ Config.addTypeFilters
     coercion: (value, schema) ->
       throw new Error() unless value == null
       value
+
+  'object':
+    typeCheck: (value, schema) ->
+      return value unless schema.properties?
+      for prop, childSchema of schema.properties
+        value[prop] = @executeTypeFilters(value[prop], childSchema) if prop of value
+      value

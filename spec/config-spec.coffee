@@ -576,3 +576,29 @@ describe "Config", ->
         expect(atom.config.set('foo.bar.aString', 123)).toBe false
         expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
+    describe 'when the value has an "object" type', ->
+      beforeEach ->
+        schema =
+          type: 'object'
+          properties:
+            anInt:
+              type: 'integer'
+              default: 12
+            nestedObject:
+              type: 'object'
+              properties:
+                nestedBool:
+                  type: 'boolean'
+                  default: false
+        atom.config.setSchema('foo.bar', schema)
+
+      it 'converts and validates all the children', ->
+        atom.config.set 'foo.bar',
+          anInt: '23'
+          nestedObject:
+            nestedBool: 't'
+        expect(atom.config.get('foo.bar')).toEqual
+          anInt: 23
+          nestedObject:
+            nestedBool: true
+
