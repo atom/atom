@@ -67,14 +67,28 @@ class WorkspaceView extends View
 
   @version: 4
 
-  @configDefaults:
-    ignoredNames: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
-    excludeVcsIgnoredPaths: true
-    disabledPackages: []
-    themes: ['atom-dark-ui', 'atom-dark-syntax']
-    projectHome: path.join(fs.getHomeDirectory(), 'github')
-    audioBeep: true
-    destroyEmptyPanes: true
+  @config:
+    ignoredNames:
+      type: 'array'
+      default: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
+    excludeVcsIgnoredPaths:
+      type: 'boolean'
+      default: true
+    disabledPackages:
+      type: 'array'
+      default: []
+    themes:
+      type: 'array'
+      default: ['atom-dark-ui', 'atom-dark-syntax']
+    projectHome:
+      type: 'string'
+      default: path.join(fs.getHomeDirectory(), 'github')
+    audioBeep:
+      type: 'boolean'
+      default: true
+    destroyEmptyPanes:
+      type: 'boolean'
+      default: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
