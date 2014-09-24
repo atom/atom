@@ -508,6 +508,22 @@ describe "Config", ->
         atom.config.set('foo.bar.anInt', 'nope')
         expect(atom.config.get('foo.bar.anInt')).toBe 12
 
+      describe 'when the minimum and maximum keys are used', ->
+        beforeEach ->
+          schema =
+            type: 'integer'
+            minimum: 10
+            maximum: 20
+            default: 12
+          atom.config.setSchema('foo.bar.anInt', schema)
+
+        it 'keeps the specified value within the specified range', ->
+          atom.config.set('foo.bar.anInt', '123')
+          expect(atom.config.get('foo.bar.anInt')).toBe 20
+
+          atom.config.set('foo.bar.anInt', '1')
+          expect(atom.config.get('foo.bar.anInt')).toBe 10
+
     describe 'when the value has an "integer" and "string" type', ->
       beforeEach ->
         schema =
@@ -539,6 +555,22 @@ describe "Config", ->
 
         atom.config.set('foo.bar.aFloat', 'nope')
         expect(atom.config.get('foo.bar.aFloat')).toBe 12.1
+
+      describe 'when the minimum and maximum keys are used', ->
+        beforeEach ->
+          schema =
+            type: 'number'
+            minimum: 11.2
+            maximum: 25.4
+            default: 12.1
+          atom.config.setSchema('foo.bar.aFloat', schema)
+
+        it 'keeps the specified value within the specified range', ->
+          atom.config.set('foo.bar.aFloat', '123.2')
+          expect(atom.config.get('foo.bar.aFloat')).toBe 25.4
+
+          atom.config.set('foo.bar.aFloat', '1.0')
+          expect(atom.config.get('foo.bar.aFloat')).toBe 11.2
 
     describe 'when the value has a "boolean" type', ->
       beforeEach ->

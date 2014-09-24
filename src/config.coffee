@@ -404,10 +404,24 @@ Config.addTypeFilters
       throw new Error() if isNaN(value)
       value
 
+    minMaxCoercion: (value, schema) ->
+      if schema.minimum? and typeof schema.minimum is 'number'
+        value = Math.max(value, schema.minimum)
+      if schema.maximum? and typeof schema.maximum is 'number'
+        value = Math.min(value, schema.maximum)
+      value
+
   'number':
     coercion: (value, schema) ->
       value = parseFloat(value)
       throw new Error() if isNaN(value)
+      value
+
+    minMaxCoercion: (value, schema) ->
+      if schema.minimum? and typeof schema.minimum is 'number'
+        value = Math.max(value, schema.minimum)
+      if schema.maximum? and typeof schema.maximum is 'number'
+        value = Math.min(value, schema.maximum)
       value
 
   'boolean':
@@ -419,7 +433,7 @@ Config.addTypeFilters
           !!value
 
   'string':
-    typeCheck: (value, schema) ->
+    coercion: (value, schema) ->
       throw new Error() if typeof value isnt 'string'
       value
 
