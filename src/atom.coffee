@@ -603,8 +603,8 @@ class Atom extends Model
     @deserializeWorkspaceView()
 
   loadConfig: ->
-    @config.setSchema('core', {type: 'object', properties: require('./workspace-view').config})
-    @config.setDefaults('editor', require('./editor-view').configDefaults)
+    @config.setSchema 'core', {type: 'object', properties: require('./workspace-view').config}
+    @config.setSchema 'editor', {type: 'object', properties: require('./editor-view').config}
     @config.load()
 
   loadThemes: ->

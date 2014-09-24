@@ -36,6 +36,7 @@ TextEditorComponent = require './text-editor-component'
 #   console.log(editorView.getModel().getPath())
 # ```
 module.exports =
+<<<<<<< HEAD:src/text-editor-view.coffee
 class TextEditorView extends View
   @configDefaults:
     fontFamily: ''
@@ -61,6 +62,85 @@ class TextEditorView extends View
       tab: '\u00bb'
       cr: '\u00a4'
     scrollPastEnd: false
+=======
+class EditorView extends View
+  @config:
+    fontFamily:
+      type: 'string'
+      default: ''
+    fontSize:
+      type: 'integer'
+      default: 16
+      minimum: 1
+    lineHeight:
+      type: 'number'
+      default: 1.3
+      minimum: 1.0
+    showInvisibles:
+      type: 'boolean'
+      default: false
+    showIndentGuide:
+      type: 'boolean'
+      default: false
+    showLineNumbers:
+      type: 'boolean'
+      default: true
+    autoIndent:
+      type: 'boolean'
+      default: true
+    normalizeIndentOnPaste:
+      type: 'boolean'
+      default: true
+    nonWordCharacters:
+      type: 'string'
+      default: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
+    preferredLineLength:
+      type: 'integer'
+      default: 80
+      minimum: 1
+    tabLength:
+      type: 'integer'
+      default: 2
+      minimum: 1
+    softWrap:
+      type: 'boolean'
+      default: false
+    softTabs:
+      type: 'boolean'
+      default: true
+    softWrapAtPreferredLineLength:
+      type: 'boolean'
+      default: false
+    scrollSensitivity:
+      type: 'integer'
+      default: 40
+      minimum: 1
+      maximum: 200
+    useHardwareAcceleration:
+      type: 'boolean'
+      default: true
+    confirmCheckoutHeadRevision:
+      type: 'boolean'
+      default: true
+    scrollPastEnd:
+      type: 'boolean'
+      default: false
+    invisibles:
+      type: 'object'
+      properties:
+        eol:
+          type: 'string'
+          default: '\u00ac'
+        space:
+          type: 'string'
+          default: '\u00b7'
+        tab:
+          type: 'string'
+          default: '\u00bb'
+        cr:
+          type: 'string'
+          default: '\u00a4'
+>>>>>>> Editor config uses a schema:src/editor-view.coffee
 
   @content: (params) ->
     attributes = params.attributes ? {}
