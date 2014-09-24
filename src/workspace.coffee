@@ -39,14 +39,13 @@ class Workspace extends Model
     super
 
     @emitter = new Emitter
-    @subscriptions = new CompositeDisposable
     @openers = []
 
     @viewRegistry ?= new ViewRegistry
     @paneContainer ?= new PaneContainer({@viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
 
-    @maintainWindowTitle()
+    @subscribeToActiveItem()
 
     @registerOpener (filePath) =>
       switch filePath
@@ -121,18 +120,17 @@ class Workspace extends Model
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
-  maintainWindowTitle: ->
+  subscribeToActiveItem: ->
     @updateWindowTitle()
+    @updateDocumentEdited()
     atom.project.on 'path-changed', @updateWindowTitle
 
-    titleSubscription = null
-    @subscribe @onDidChangeActivePaneItem (item) =>
+    @observeActivePaneItem (item) =>
       @updateWindowTitle()
+      @updateDocumentEdited()
 
-      if titleSubscription?
-        @subscriptions.remove(titleSubscription)
-        titleSubscription.dispose()
-        titleSubscription = null
+      @activeItemSubscriptions?.dispose()
+      @activeItemSubscriptions = new CompositeDisposable
 
       if typeof item?.onDidChangeTitle is 'function'
         titleSubscription = item.onDidChangeTitle(@updateWindowTitle)
@@ -141,7 +139,15 @@ class Workspace extends Model
         unless typeof titleSubscription?.dispose is 'function'
           titleSubscription = new Disposable => item.off('title-changed', @updateWindowTitle)
 
-      @subscriptions.add(titleSubscription) if titleSubscription?
+      if typeof item?.onDidChangeModified is 'function'
+        modifiedSubscription = item.onDidChangeModified(@updateDocumentEdited)
+      else if typeof item?.on? is 'function'
+        modifiedSubscription = item.on('modified-status-changed', @updateDocumentEdited)
+        unless typeof modifiedSubscription?.dispose is 'function'
+          modifiedSubscription = new Disposable => item.off('modified-status-changed', @updateDocumentEdited)
+
+      @activeItemSubscriptions.add(titleSubscription) if titleSubscription?
+      @activeItemSubscriptions.add(modifiedSubscription) if modifiedSubscription?
 
   # Updates the application's title and proxy icon based on whichever file is
   # open.
@@ -156,6 +162,12 @@ class Workspace extends Model
     else
       document.title = 'untitled'
       atom.setRepresentedFilename('')
+
+  # On OS X, fades the application window's proxy icon when the current file
+  # has been modified.
+  updateDocumentEdited: =>
+    modified = @getActivePaneItem()?.isModified?() ? false
+    atom.setDocumentEdited(modified)
 
   ###
   Section: Event Subscription
@@ -173,8 +185,8 @@ class Workspace extends Model
     callback(textEditor) for textEditor in @getTextEditors()
     @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
 
-  # Essential: Invoke the given callback with all current and future panes items in
-  # the workspace.
+  # Essential: Invoke the given callback with all current and future panes items
+  # in the workspace.
   #
   # * `callback` {Function} to be called with current and future pane items.
   #   * `item` An item that is present in {::getPaneItems} at the time of
@@ -191,6 +203,15 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
+
+  # Essential: Invoke the given callback with the current active pane item and
+  # with all future active pane items in the workspace.
+  #
+  # * `callback` {Function} to be called when the active pane item changes.
+  #   * `item` The current active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActivePaneItem: (callback) -> @paneContainer.observeActivePaneItem(callback)
 
   # Essential: Invoke the given callback whenever an item is opened. Unlike
   # {::onDidAddPaneItem}, observers will be notified for items that are already
@@ -561,7 +582,7 @@ class Workspace extends Model
   # Called by Model superclass when destroyed
   destroyed: ->
     @paneContainer.destroy()
-    @subscriptions.dispose()
+    @activeItemSubscriptions?.dispose()
 
   ###
   Section: View Management

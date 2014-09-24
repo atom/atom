@@ -426,3 +426,35 @@ describe "Workspace", ->
         item = atom.workspace.getActivePaneItem()
         expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
         workspace2.destroy()
+
+  describe "document edited status", ->
+    [item1, item2] = []
+
+    beforeEach ->
+      waitsForPromise -> atom.workspace.open('a')
+      waitsForPromise -> atom.workspace.open('b')
+      runs ->
+        [item1, item2] = atom.workspace.getPaneItems()
+        spyOn(atom, 'setDocumentEdited')
+
+    it "calls atom.setDocumentEdited when the active item changes", ->
+      expect(atom.workspace.getActivePaneItem()).toBe item2
+      item1.insertText('a')
+      expect(item1.isModified()).toBe true
+      atom.workspace.getActivePane().activateNextItem()
+
+      expect(atom.setDocumentEdited).toHaveBeenCalledWith(true)
+
+    it "calls atom.setDocumentEdited when the active item's modified status changes", ->
+      expect(atom.workspace.getActivePaneItem()).toBe item2
+      item2.insertText('a')
+      advanceClock(item2.getBuffer().getStoppedChangingDelay())
+
+      expect(item2.isModified()).toBe true
+      expect(atom.setDocumentEdited).toHaveBeenCalledWith(true)
+
+      item2.undo()
+      advanceClock(item2.getBuffer().getStoppedChangingDelay())
+
+      expect(item2.isModified()).toBe false
+      expect(atom.setDocumentEdited).toHaveBeenCalledWith(false)

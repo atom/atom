@@ -107,8 +107,6 @@ class WorkspaceView extends View
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
-    @on 'pane:active-item-modified-status-changed', '.active.pane', => @updateDocumentEdited()
-
     @command 'application:about', -> ipc.send('command', 'application:about')
     @command 'application:run-all-specs', -> ipc.send('command', 'application:run-all-specs')
     @command 'application:run-benchmarks', -> ipc.send('command', 'application:run-benchmarks')
@@ -343,12 +341,6 @@ class WorkspaceView extends View
   # Prompts to save all unsaved items
   confirmClose: ->
     @model.confirmClose()
-
-  # On OS X, fades the application window's proxy icon when the current file
-  # has been modified.
-  updateDocumentEdited: ->
-    modified = @model.getActivePaneItem()?.isModified?() ? false
-    atom.setDocumentEdited(modified)
 
   # Get all editor views.
   #
