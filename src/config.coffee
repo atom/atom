@@ -410,7 +410,7 @@ Config.addSchemaValidators
         try
           newValue[prop] = @executeSchemaValidators(value[prop], childSchema)
         catch error
-          ;
+          console.warn "Error setting value #{error.message}"
       newValue
 
   'array':
@@ -423,7 +423,7 @@ Config.addSchemaValidators
           try
             newValue.push @executeSchemaValidators(item, itemSchema)
           catch error
-            ;
+            console.warn "Error setting value #{error.message}"
         newValue
       else
         value
