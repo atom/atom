@@ -62,7 +62,6 @@ class Workspace extends Model
 
     params.viewRegistry = new ViewRegistry
     params.paneContainer.viewRegistry = params.viewRegistry
-    console.log "deserializing pane container"
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
