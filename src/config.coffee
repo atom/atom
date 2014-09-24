@@ -402,13 +402,13 @@ Config.addSchemaValidators
   'integer':
     coercion: (value, schema) ->
       value = parseInt(value)
-      throw new Error() if isNaN(value)
+      throw new Error('Value cannot be coerced into an int') if isNaN(value)
       value
 
   'number':
     coercion: (value, schema) ->
       value = parseFloat(value)
-      throw new Error() if isNaN(value)
+      throw new Error('Value cannot be coerced into a number') if isNaN(value)
       value
 
   'boolean':
@@ -421,18 +421,18 @@ Config.addSchemaValidators
 
   'string':
     coercion: (value, schema) ->
-      throw new Error() if typeof value isnt 'string'
+      throw new Error('Value must be a string') if typeof value isnt 'string'
       value
 
   'null':
     # null sort of isnt supported. It will just unset in this case
     coercion: (value, schema) ->
-      throw new Error() unless value == null
+      throw new Error('Value must be an object') unless value == null
       value
 
   'object':
     coercion: (value, schema) ->
-      throw new Error() if typeof value isnt 'object'
+      throw new Error('Value must be an object') if typeof value isnt 'object'
       return value unless schema.properties?
       for prop, childSchema of schema.properties
         value[prop] = @executeSchemaValidators(value[prop], childSchema) if prop of value
@@ -440,7 +440,7 @@ Config.addSchemaValidators
 
   'array':
     coercion: (value, schema) ->
-      throw new Error() unless Array.isArray(value)
+      throw new Error('Value must be an array') unless Array.isArray(value)
       itemSchema = schema.items
       if itemSchema?
         @executeSchemaValidators(item, itemSchema) for item in value
