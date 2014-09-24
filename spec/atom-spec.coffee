@@ -49,8 +49,5 @@ describe "the `atom` global", ->
         expect(version).toBe 'version'
 
   describe "loading default config", ->
-    beforeEach ->
-      atom.loadConfig()
-
     it 'loads the default core config', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
