@@ -92,25 +92,25 @@ describe "PackageManager", ->
             expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
             expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
-        describe "when the package metadata includes `activationEvents`", ->
+        describe "when the package metadata includes `activationCommands`", ->
           [mainModule, promise, workspaceCommandListener] = []
 
           beforeEach ->
             atom.workspaceView.attachToDom()
-            mainModule = require './fixtures/packages/package-with-activation-events/index'
-            mainModule.activationEventCallCount = 0
+            mainModule = require './fixtures/packages/package-with-activation-commands/index'
+            mainModule.legacyActivationCommandCallCount = 0
             mainModule.activationCommandCallCount = 0
             spyOn(mainModule, 'activate').andCallThrough()
             spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
             workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
-            atom.commands.add '.workspace', 'activation-event', workspaceCommandListener
+            atom.commands.add '.workspace', 'activation-command', workspaceCommandListener
 
-            promise = atom.packages.activatePackage('package-with-activation-events')
+            promise = atom.packages.activatePackage('package-with-activation-commands')
 
           it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
             expect(promise.isFulfilled()).not.toBeTruthy()
-            atom.workspaceView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
+            atom.workspaceView[0].dispatchEvent(new CustomEvent('activation-command', bubbles: true))
 
             waitsForPromise ->
               promise
@@ -122,18 +122,18 @@ describe "PackageManager", ->
             runs ->
               editorView = atom.workspaceView.getActiveView()
               legacyCommandListener = jasmine.createSpy("legacyCommandListener")
-              editorView.command 'activation-event', legacyCommandListener
+              editorView.command 'activation-command', legacyCommandListener
               editorCommandListener = jasmine.createSpy("editorCommandListener")
-              atom.commands.add '.editor', 'activation-event', editorCommandListener
-              editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
+              atom.commands.add '.editor', 'activation-command', editorCommandListener
+              editorView[0].dispatchEvent(new CustomEvent('activation-command', bubbles: true))
               expect(mainModule.activate.callCount).toBe 1
-              expect(mainModule.activationEventCallCount).toBe 1
+              expect(mainModule.legacyActivationCommandCallCount).toBe 1
               expect(mainModule.activationCommandCallCount).toBe 1
               expect(legacyCommandListener.callCount).toBe 1
               expect(editorCommandListener.callCount).toBe 1
               expect(workspaceCommandListener.callCount).toBe 1
-              editorView[0].dispatchEvent(new CustomEvent('activation-event', bubbles: true))
-              expect(mainModule.activationEventCallCount).toBe 2
+              editorView[0].dispatchEvent(new CustomEvent('activation-command', bubbles: true))
+              expect(mainModule.legacyActivationCommandCallCount).toBe 2
               expect(mainModule.activationCommandCallCount).toBe 2
               expect(legacyCommandListener.callCount).toBe 2
               expect(editorCommandListener.callCount).toBe 2
@@ -141,29 +141,14 @@ describe "PackageManager", ->
               expect(mainModule.activate.callCount).toBe 1
 
           it "activates the package immediately when the events are empty", ->
-            mainModule = require './fixtures/packages/package-with-empty-activation-events/index'
+            mainModule = require './fixtures/packages/package-with-empty-activation-commands/index'
             spyOn(mainModule, 'activate').andCallThrough()
 
             waitsForPromise ->
-              atom.packages.activatePackage('package-with-empty-activation-events')
+              atom.packages.activatePackage('package-with-empty-activation-commands')
 
             runs ->
               expect(mainModule.activate.callCount).toBe 1
-
-        describe "when the package metadata includes `activationCommands`", ->
-          it "defers activation until one of the commands is invoked", ->
-            atom.workspaceView.attachToDom()
-            mainModule = require './fixtures/packages/package-with-activation-commands/index'
-            mainModule.commands = []
-            spyOn(mainModule, 'activate').andCallThrough()
-            spyOn(Package.prototype, 'requireMainModule').andCallThrough()
-
-            promise = atom.packages.activatePackage('package-with-activation-commands')
-            expect(promise.isFulfilled()).not.toBeTruthy()
-
-            atom.workspaceView[0].dispatchEvent(new CustomEvent('workspace-command', bubbles: true))
-
-            waitsForPromise -> promise
 
       describe "when the package has no main module", ->
         it "does not throw an exception", ->
