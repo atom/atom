@@ -321,6 +321,122 @@ extensions your grammar supports:
 ]
 ```
 
+## Adding Configuration Settings
+
+You can support config options in your package that the user can edit in the
+settings view. So do this you specify a `config` key in your package main
+specifying the configuration.
+
+```coffeescript
+module.exports =
+  config: # < Your config schema goes here!
+    #...
+  activate: (state) -> # ...
+  # ...
+```
+
+To specify the configuration, we use [json schema][json-schema] which allows you
+to specify your value, the type it should be, etc. A simple example:
+
+```coffee
+# We want to provide an `enableThing`, and a `thingVolume`
+config:
+  enableThing:
+    type: 'boolean'
+    default: false
+  thingVolume:
+    type: 'integer'
+    default: 5
+    minimum: 1
+    maximum: 11
+```
+
+The type keyword allows for type coercion and validation. If a `thingVolume` is
+set to a string `'10'`, it will be coerced into an integer.
+
+```coffee
+atom.config.set('my-package.thingVolume', '10')
+atom.config.get('my-package.thingVolume') # -> 10
+
+# It respects the min / max
+atom.config.set('my-package.thingVolume', '400')
+atom.config.get('my-package.thingVolume') # -> 11
+
+# If it cannot be coerced, the value will not be set
+atom.config.set('my-package.thingVolume', 'cats')
+atom.config.get('my-package.thingVolume') # -> 11
+```
+
+### Supported Types
+
+* `string` Values must be a string
+  ```coffee
+  config:
+    someSetting:
+      type: 'string'
+      default: 'hello'
+  ```
+* `integer` Values will be coerced into integer. Supports the `minimum` and `maximum` keys.
+  ```coffee
+  config:
+    someSetting:
+      type: 'integer'
+      default: 5
+      minimum: 1
+      maximum: 11
+  ```
+* `number` Values will be coerced into a number, including real numbers. Supports the `minimum` and `maximum` keys.
+  ```coffee
+  config:
+    someSetting:
+      type: 'number'
+      default: 5.3
+      minimum: 1.5
+      maximum: 11.5
+  ```
+* `boolean` Values will be coerced into a Boolean
+  ```coffee
+  config:
+    someSetting:
+      type: 'boolean'
+      default: false
+  ```
+* `array` Value must be an Array. The types of the values can be specified by a subschema in the `items` key.
+  ```coffee
+  config:
+    someSetting:
+      type: 'array'
+      default: [1, 2, 3]
+      items:
+        type: 'integer'
+        minimum: 1.5
+        maximum: 11.5
+  ```
+* `object` Value must be an object. This allows you to nest config options. Sub options must be under a `properties key`
+  ```coffee
+  config:
+    someSetting:
+      type: 'object'
+      properties:
+        myChildIntOption:
+          type: 'integer'
+          minimum: 1.5
+          maximum: 11.5
+  ```
+
+### Other Supported Keys
+
+All schemas support an `enum` key. The enum key lets you specify all values that
+the config setting can possibly be.
+
+```coffee
+config:
+  someSetting:
+    type: 'integer'
+    default: 4
+    enum: [2, 4, 6, 8]
+```
+
 ## Bundle External Resources
 
 It's common to ship external resources like images and fonts in the package, to
@@ -392,3 +508,4 @@ all the other available commands.
 [first-package]: your-first-package.html
 [convert-bundle]: converting-a-text-mate-bundle.html
 [convert-theme]: converting-a-text-mate-theme.html
+[json-schema]: http://json-schema.org/
