@@ -37,5 +37,5 @@ module.exports = (grunt) ->
       rm(releasesDir)
 
       cmd = 'build/windows/update.com'
-      args = ['--releasify', path.join(buildDir, pkgs), '-r', releasesDir]
+      args = ['--releasify', path.join(buildDir, pkgs), '-r', releasesDir, '-g', 'build/windows/install-spinner.gif']
       spawn {cmd, args}, (error, result, code) -> done(error)
