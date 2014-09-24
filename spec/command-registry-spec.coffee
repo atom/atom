@@ -66,8 +66,11 @@ describe "CommandRegistry", ->
       registry.add '.child', 'command', -> calls.push('child-2')
       registry.add '.child', 'command', (event) -> calls.push('child-1'); event.stopPropagation()
 
-      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      spyOn(dispatchedEvent, 'stopPropagation')
+      grandchild.dispatchEvent(dispatchedEvent)
       expect(calls).toEqual ['child-1', 'child-2']
+      expect(dispatchedEvent.stopPropagation).toHaveBeenCalled()
 
     it "stops invoking callbacks when .stopImmediatePropagation() is called on the event", ->
       calls = []
@@ -76,8 +79,21 @@ describe "CommandRegistry", ->
       registry.add '.child', 'command', -> calls.push('child-2')
       registry.add '.child', 'command', (event) -> calls.push('child-1'); event.stopImmediatePropagation()
 
-      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      spyOn(dispatchedEvent, 'stopImmediatePropagation')
+      grandchild.dispatchEvent(dispatchedEvent)
       expect(calls).toEqual ['child-1']
+      expect(dispatchedEvent.stopImmediatePropagation).toHaveBeenCalled()
+
+    it "forwards .preventDefault() calls from the synthetic event to the original", ->
+      calls = []
+
+      registry.add '.child', 'command', (event) -> event.preventDefault()
+
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      spyOn(dispatchedEvent, 'preventDefault')
+      grandchild.dispatchEvent(dispatchedEvent)
+      expect(dispatchedEvent.preventDefault).toHaveBeenCalled()
 
     it "allows listeners to be removed via a disposable returned by ::add", ->
       calls = []
@@ -121,6 +137,55 @@ describe "CommandRegistry", ->
 
       expect(registry.findCommands(target: grandchild)[0..2]).toEqual [
         {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
+        {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
+        {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
+      ]
+
+  describe "::dispatch(target, commandName)", ->
+    it "simulates invocation of the given command ", ->
+      called = false
+      registry.add '.grandchild', 'command', (event) ->
+        expect(this).toBe grandchild
+        expect(event.type).toBe 'command'
+        expect(event.eventPhase).toBe Event.BUBBLING_PHASE
+        expect(event.target).toBe grandchild
+        expect(event.currentTarget).toBe grandchild
+        called = true
+
+      registry.dispatch(grandchild, 'command')
+      expect(called).toBe true
+
+    it "returns a boolean indicating whether any listeners matched the command", ->
+      registry.add '.grandchild', 'command', ->
+
+      expect(registry.dispatch(grandchild, 'command')).toBe true
+      expect(registry.dispatch(grandchild, 'bogus')).toBe false
+      expect(registry.dispatch(parent, 'command')).toBe false
+
+  describe "::getSnapshot and ::restoreSnapshot", ->
+    it "removes all command handlers except for those in the snapshot", ->
+      registry.add '.parent', 'namespace:command-1', ->
+      registry.add '.child', 'namespace:command-2', ->
+      snapshot = registry.getSnapshot()
+      registry.add '.grandchild', 'namespace:command-3', ->
+
+      expect(registry.findCommands(target: grandchild)[0..2]).toEqual [
+        {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
+        {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
+        {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
+      ]
+
+      registry.restoreSnapshot(snapshot)
+
+      expect(registry.findCommands(target: grandchild)[0..1]).toEqual [
+        {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
+        {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
+      ]
+
+      registry.add '.grandchild', 'namespace:command-3', ->
+      registry.restoreSnapshot(snapshot)
+
+      expect(registry.findCommands(target: grandchild)[0..1]).toEqual [
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]
