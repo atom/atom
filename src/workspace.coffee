@@ -5,7 +5,7 @@ _ = require 'underscore-plus'
 Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
-{Emitter} = require 'event-kit'
+{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 CommandInstaller = require './command-installer'
 Editor = require './editor'
 PaneContainer = require './pane-container'
@@ -39,11 +39,14 @@ class Workspace extends Model
     super
 
     @emitter = new Emitter
+    @subscriptions = new CompositeDisposable
     @openers = []
 
     @viewRegistry ?= new ViewRegistry
     @paneContainer ?= new PaneContainer({@viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
+
+    @maintainWindowTitle()
 
     @registerOpener (filePath) =>
       switch filePath
@@ -117,6 +120,42 @@ class Workspace extends Model
             atom.confirm
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
+
+  maintainWindowTitle: ->
+    @updateWindowTitle()
+    atom.project.on 'path-changed', @updateWindowTitle
+
+    titleSubscription = null
+    @subscribe @onDidChangeActivePaneItem (item) =>
+      @updateWindowTitle()
+
+      if titleSubscription?
+        @subscriptions.remove(titleSubscription)
+        titleSubscription.dispose()
+        titleSubscription = null
+
+      if typeof item?.onDidChangeTitle is 'function'
+        titleSubscription = item.onDidChangeTitle(@updateWindowTitle)
+      else if typeof item?.on is 'function'
+        titleSubscription = item.on('title-changed', @updateWindowTitle)
+        unless typeof titleSubscription?.dispose is 'function'
+          titleSubscription = new Disposable => item.off('title-changed', @updateWindowTitle)
+
+      @subscriptions.add(titleSubscription) if titleSubscription?
+
+  # Updates the application's title and proxy icon based on whichever file is
+  # open.
+  updateWindowTitle: =>
+    if projectPath = atom.project.getPath()
+      if item = @getActivePaneItem()
+        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        atom.setRepresentedFilename(item.getPath?())
+      else
+        document.title = projectPath
+        atom.setRepresentedFilename(projectPath)
+    else
+      document.title = 'untitled'
+      atom.setRepresentedFilename('')
 
   ###
   Section: Event Subscription
@@ -522,6 +561,7 @@ class Workspace extends Model
   # Called by Model superclass when destroyed
   destroyed: ->
     @paneContainer.destroy()
+    @subscriptions.dispose()
 
   ###
   Section: View Management

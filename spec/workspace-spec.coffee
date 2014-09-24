@@ -1,3 +1,5 @@
+path = require 'path'
+temp = require 'temp'
 Workspace = require '../src/workspace'
 {View} = require '../src/space-pen-extensions'
 
@@ -369,3 +371,58 @@ describe "Workspace", ->
       workspace2 = Workspace.deserialize(state)
       expect(jsPackage.loadGrammarsSync.callCount).toBe 1
       expect(coffeePackage.loadGrammarsSync.callCount).toBe 1
+
+  describe "document.title", ->
+    describe "when the project has no path", ->
+      it "sets the title to 'untitled'", ->
+        atom.project.setPath(undefined)
+        expect(document.title).toBe 'untitled'
+
+    describe "when the project has a path", ->
+      beforeEach ->
+        waitsForPromise ->
+          atom.workspace.open('b')
+
+      describe "when there is an active pane item", ->
+        it "sets the title to the pane item's title plus the project path", ->
+          item = atom.workspace.getActivePaneItem()
+          console.log item.getTitle()
+          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+
+      describe "when the title of the active pane item changes", ->
+        it "updates the window title based on the item's new title", ->
+          editor = atom.workspace.getActivePaneItem()
+          editor.buffer.setPath(path.join(temp.dir, 'hi'))
+          expect(document.title).toBe "#{editor.getTitle()} - #{atom.project.getPath()}"
+
+      describe "when the active pane's item changes", ->
+        it "updates the title to the new item's title plus the project path", ->
+          atom.workspace.getActivePane().activateNextItem()
+          item = atom.workspace.getActivePaneItem()
+          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+
+      describe "when the last pane item is removed", ->
+        it "updates the title to contain the project's path", ->
+          atom.workspace.getActivePane().destroy()
+          expect(atom.workspace.getActivePaneItem()).toBeUndefined()
+          expect(document.title).toBe atom.project.getPath()
+
+      describe "when an inactive pane's item changes", ->
+        it "does not update the title", ->
+          pane = atom.workspace.getActivePane()
+          pane.splitRight()
+          initialTitle = document.title
+          pane.activateNextItem()
+          expect(document.title).toBe initialTitle
+
+    describe "when the workspace is deserialized", ->
+      beforeEach ->
+        waitsForPromise -> atom.workspace.open('a')
+
+      it "updates the title to contain the project's path", ->
+        document.title = null
+        console.log atom.workspace.getActivePaneItem()
+        workspace2 = atom.workspace.testSerialization()
+        item = atom.workspace.getActivePaneItem()
+        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+        workspace2.destroy()

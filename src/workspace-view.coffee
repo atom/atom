@@ -103,15 +103,10 @@ class WorkspaceView extends View
     @subscribe atom.config.observe 'editor.fontFamily', @setEditorFontFamily
     @subscribe atom.config.observe 'editor.lineHeight', @setEditorLineHeight
 
-    @updateTitle()
-
     @on 'focus', (e) => @handleFocus(e)
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
-    atom.project.on 'path-changed', => @updateTitle()
-    @on 'pane-container:active-pane-item-changed', => @updateTitle()
-    @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
     @on 'pane:active-item-modified-status-changed', '.active.pane', => @updateDocumentEdited()
 
     @command 'application:about', -> ipc.send('command', 'application:about')
@@ -337,7 +332,6 @@ class WorkspaceView extends View
       @getActivePaneView().focus()
       false
     else
-      @updateTitle()
       focusableChild = @find("[tabindex=-1]:visible:first")
       if focusableChild.length
         focusableChild.focus()
@@ -349,23 +343,6 @@ class WorkspaceView extends View
   # Prompts to save all unsaved items
   confirmClose: ->
     @model.confirmClose()
-
-  # Updates the application's title and proxy icon based on whichever file is
-  # open.
-  updateTitle: ->
-    if projectPath = atom.project.getPath()
-      if item = @getModel().getActivePaneItem()
-        title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
-        @setTitle(title, item.getPath?())
-      else
-        @setTitle(projectPath, projectPath)
-    else
-      @setTitle('untitled')
-
-  # Sets the application's title (and the proxy icon on OS X)
-  setTitle: (title, proxyIconPath='') ->
-    document.title = title
-    atom.setRepresentedFilename(proxyIconPath)
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.
