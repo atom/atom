@@ -60,6 +60,7 @@ class TextEditorView extends View
       space: '\u00b7'
       tab: '\u00bb'
       cr: '\u00a4'
+    scrollPastEnd: false
 
   @content: (params) ->
     attributes = params.attributes ? {}
