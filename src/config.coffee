@@ -12,18 +12,213 @@ pathWatcher = require 'pathwatcher'
 #
 # An instance of this class is always available as the `atom.config` global.
 #
-# ## Best practices
-#
-# * Create your own root keypath using your package's name.
-# * Don't depend on (or write to) configuration keys outside of your keypath.
-#
-# ## Examples
+# ## Getting and setting config settings
 #
 # ```coffee
-# atom.config.set('my-package.key', 'value')
-# atom.config.observe 'my-package.key', ->
-#   console.log 'My configuration changed:', atom.config.get('my-package.key')
+#  # When no value has been set, `::get` returns the setting's default value
+#  atom.config.get('my-package.myKey') # -> 'defaultValue'
+#
+#  atom.config.set('my-package.myKey', 'value')
+#  atom.config.get('my-package.myKey') # -> 'value'
 # ```
+#
+# You may want to watch for changes. Use {::observe} to catch changes to the setting.
+#
+# ```coffee
+# atom.config.set('my-package.myKey', 'value')
+# atom.config.observe 'my-package.myKey', (newValue) ->
+#   # `observe` calls your callback immediately and every time the value is changed
+#   console.log 'My configuration changed:', newValue
+# ```
+#
+# If you'd like to get a notification only when the value changes, use {::onDidChange}.
+#
+# ```coffee
+# atom.config.onDidChange 'my-package.myKey', (newValue) ->
+#   console.log 'My configuration changed:', newValue
+# ```
+#
+# ### Value Coercion
+#
+# Config settings each have a type specified by way of a
+# [schema](json-schema.org). Let's say we have an integer setting that only
+# allows numbers greater than 0:
+#
+# ```coffee
+#  # When no value has been set, `::get` returns the setting's default value
+#  atom.config.get('my-package.anInt') # -> 12
+#
+#  # The string will be coerced to the integer 123
+#  atom.config.set('my-package.anInt', '123')
+#  atom.config.get('my-package.anInt') # -> 123
+#
+#  # The string will be coerced to an integer, but it must be greater than 0, so is set to 1
+#  atom.config.set('my-package.anInt', '-20')
+#  atom.config.get('my-package.anInt') # -> 1
+# ```
+#
+# ## Defining config settings for your package
+#
+# You specify a schema under a `config` key
+#
+# ```coffeescript
+# module.exports =
+#   # Your config schema
+#   config:
+#     someInt:
+#       type: 'integer'
+#       default: 23
+#       minimum: 1
+#
+#   activate: (state) -> # ...
+#   # ...
+# ```
+#
+# ## Config Schemas
+#
+# We use [json schema][json-schema] which allows you to specify your value, its
+# default, the type it should be, etc. A simple example:
+#
+# ```coffee
+# # We want to provide an `enableThing`, and a `thingVolume`
+# config:
+#   enableThing:
+#     type: 'boolean'
+#     default: false
+#   thingVolume:
+#     type: 'integer'
+#     default: 5
+#     minimum: 1
+#     maximum: 11
+# ```
+#
+# The type keyword allows for type coercion and validation. If a `thingVolume` is
+# set to a string `'10'`, it will be coerced into an integer.
+#
+# ```coffee
+# atom.config.set('my-package.thingVolume', '10')
+# atom.config.get('my-package.thingVolume') # -> 10
+#
+# # It respects the min / max
+# atom.config.set('my-package.thingVolume', '400')
+# atom.config.get('my-package.thingVolume') # -> 11
+#
+# # If it cannot be coerced, the value will not be set
+# atom.config.set('my-package.thingVolume', 'cats')
+# atom.config.get('my-package.thingVolume') # -> 11
+# ```
+#
+# ### Supported Types
+#
+# * __string__ Values must be a string
+#   ```coffee
+#   config:
+#     someSetting:
+#       type: 'string'
+#       default: 'hello'
+#   ```
+# * __integer__ Values will be coerced into integer. Supports the (optional) `minimum` and `maximum` keys.
+#   ```coffee
+#   config:
+#     someSetting:
+#       type: 'integer'
+#       default: 5
+#       minimum: 1
+#       maximum: 11
+#   ```
+# * __number__ Values will be coerced into a number, including real numbers. Supports the (optional) `minimum` and `maximum` keys.
+#   ```coffee
+#   config:
+#     someSetting:
+#       type: 'number'
+#       default: 5.3
+#       minimum: 1.5
+#       maximum: 11.5
+#   ```
+# * __boolean__ Values will be coerced into a Boolean
+#   ```coffee
+#   config:
+#     someSetting:
+#       type: 'boolean'
+#       default: false
+#   ```
+# * __array__ Value must be an Array. The types of the values can be specified by a subschema in the `items` key.
+#   ```coffee
+#   config:
+#     someSetting:
+#       type: 'array'
+#       default: [1, 2, 3]
+#       items:
+#         type: 'integer'
+#         minimum: 1.5
+#         maximum: 11.5
+#   ```
+# * __object__ Value must be an object. This allows you to nest config options. Sub options must be under a `properties key`
+#   ```coffee
+#   config:
+#     someSetting:
+#       type: 'object'
+#       properties:
+#         myChildIntOption:
+#           type: 'integer'
+#           minimum: 1.5
+#           maximum: 11.5
+#   ```
+#
+# ### Other Supported Keys
+#
+# #### enum
+#
+# All schemas support an `enum` key. The enum key lets you specify all values
+# that the config setting can possibly be. `enum` _must_ be an array of values
+# of your specified type.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'integer'
+#     default: 4
+#     enum: [2, 4, 6, 8]
+# ```
+#
+# ```coffee
+# atom.config.set('my-package.someSetting', '2')
+# atom.config.get('my-package.someSetting') # -> 2
+#
+# # will not set values outside of the enum values
+# atom.config.set('my-package.someSetting', '3')
+# atom.config.get('my-package.someSetting') # -> 2
+#
+# # If it cannot be coerced, the value will not be set
+# atom.config.set('my-package.someSetting', '4')
+# atom.config.get('my-package.someSetting') # -> 4
+# ```
+#
+# #### title and description
+#
+# The settings view will use the `title` and `description` keys display your
+# option in a readable way. By default the settings view humanizes your config
+# key, so `someSetting` becomes `Some Setting`. In some cases, this is confusing
+# for users, and a more descriptive title is useful.
+#
+# Descriptions will be displayed below the title in the settings view.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     title: 'Setting Magnitude'
+#     description: 'This will affect the blah and the other blah'
+#     type: 'integer'
+#     default: 4
+# ```
+#
+# __Note__: You should strive to be so clear in your naming of the config
+# setting that you do not need to specify a title or description!
+#
+# ## Best practices
+#
+# * Don't depend on (or write to) configuration keys outside of your keypath.
+#
 module.exports =
 class Config
   EmitterMixin.includeInto(this)
