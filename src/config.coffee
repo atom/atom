@@ -319,11 +319,11 @@ class Config
   # than {::onDidChange} in that it will immediately call your callback with the
   # current value of the config entry.
   #
-  # * `keyPath` The {String} name of the key to observe
-  # * `callback` The {Function} to call when the value of the key changes.
-  #   The first argument will be the new value of the key and the
-  #   second argument will be an {Object} with a `previous` property
-  #   that is the prior value of the key.
+  # * `keyPath` {String} name of the key to observe
+  # * `callback` {Function} to call when the value of the key changes.
+  #   * `value` the new value of the key
+  #   * `event` {Object}
+  #     * `previous` the prior value of the key.
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
@@ -341,11 +341,11 @@ class Config
 
   # Essential: Add a listener for changes to a given key path.
   #
-  # * `keyPath` The {String} name of the key to observe
-  # * `callback` The {Function} to call when the value of the key changes.
-  #   The first argument will be the new value of the key and the
-  #   second argument will be an {Object} with a `previous` property
-  #   that is the prior value of the key.
+  # * `keyPath` {String} name of the key to observe
+  # * `callback` {Function} to call when the value of the key changes.
+  #   * `value` the new value of the key
+  #   * `event` {Object}
+  #     * `previous` the prior value of the key.
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
