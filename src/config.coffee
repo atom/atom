@@ -402,7 +402,9 @@ class Config
     @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
     @get(keyPath)
 
-  # Extended: Get the default value of the key path.
+  # Extended: Get the default value of the key path. _Please note_ that in most
+  # cases calling this is not necessary! {::get} returns the default value when
+  # a custom value is not specified.
   #
   # * `keyPath` The {String} name of the key.
   #
@@ -420,6 +422,14 @@ class Config
   isDefault: (keyPath) ->
     not _.valueForKeyPath(@settings, keyPath)?
 
+  # Extended: Retrieve the schema for a specific key path. The shema will tell
+  # you what type the keyPath expects, and other metadata about the config
+  # option.
+  #
+  # * `keyPath` The {String} name of the key.
+  #
+  # Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
+  # Returns `null` when the keyPath has no schema specified.
   getSchema: (keyPath) ->
     keys = keyPath.split('.')
     schema = @schema
