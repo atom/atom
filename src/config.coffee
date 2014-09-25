@@ -113,6 +113,23 @@ pathWatcher = require 'pathwatcher'
 #
 # ### Supported Types
 #
+# The `type` keyword can be a string with any one of the following. You can also
+# chain them by specifying multiple in an an array. For example
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: ['boolean', 'integer']
+#     default: 5
+#
+# # Then
+# atom.config.set('my-package.someSetting', 'true')
+# atom.config.get('my-package.someSetting') # -> true
+#
+# atom.config.set('my-package.someSetting', '12')
+# atom.config.get('my-package.someSetting') # -> 12
+# ```
+#
 # #### string
 #
 # Values must be a string.
