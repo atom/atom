@@ -45,7 +45,7 @@ module.exports =
         default: 16
         minimum: 1
       lineHeight:
-        type: 'string'
+        type: ['string', 'number']
         default: 1.3
       showInvisibles:
         type: 'boolean'
