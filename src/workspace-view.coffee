@@ -6,7 +6,6 @@ Delegator = require 'delegato'
 {deprecate, logDeprecationWarnings} = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
-fs = require 'fs-plus'
 Workspace = require './workspace'
 CommandInstaller = require './command-installer'
 PaneView = require './pane-view'
@@ -66,35 +65,6 @@ class WorkspaceView extends View
     'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'
 
   @version: 4
-
-  @config:
-    ignoredNames:
-      type: 'array'
-      default: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
-      items:
-        type: 'string'
-    excludeVcsIgnoredPaths:
-      type: 'boolean'
-      default: true
-    disabledPackages:
-      type: 'array'
-      default: []
-      items:
-        type: 'string'
-    themes:
-      type: 'array'
-      default: ['atom-dark-ui', 'atom-dark-syntax']
-      items:
-        type: 'string'
-    projectHome:
-      type: 'string'
-      default: path.join(fs.getHomeDirectory(), 'github')
-    audioBeep:
-      type: 'boolean'
-      default: true
-    destroyEmptyPanes:
-      type: 'boolean'
-      default: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>

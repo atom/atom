@@ -336,14 +336,14 @@ class Config
     return
 
   setDefaults: (keyPath, defaults) ->
-    if typeof defaults isnt 'object'
+    unless isPlainObject(defaults)
       return _.setValueForKeyPath(@defaultSettings, keyPath, defaults)
 
-    keys = keyPath.split('.')
     hash = @defaultSettings
-    for key in keys
-      hash[key] ?= {}
-      hash = hash[key]
+    if keyPath
+      for key in keyPath.split('.')
+        hash[key] ?= {}
+        hash = hash[key]
 
     _.extend hash, defaults
     @emit 'updated'
@@ -351,19 +351,19 @@ class Config
 
   setSchema: (keyPath, schema) ->
     unless typeof schema is "object"
-      throw new Error("Schemas can only be objects!")
+      throw new Error("Error loading schema for #{keyPath}: schemas can only be objects!")
 
     unless typeof schema.type?
-      throw new Error("Schema object's must have a type attribute")
+      throw new Error("Error loading schema for #{keyPath}: schema objects must have a type attribute")
 
-    keys = keyPath.split('.')
     rootSchema = @schema
-    for key in keys
-      rootSchema.type = 'object'
-      rootSchema.properties ?= {}
-      properties = rootSchema.properties
-      properties[key] ?= {}
-      rootSchema = properties[key]
+    if keyPath
+      for key in keyPath.split('.')
+        rootSchema.type = 'object'
+        rootSchema.properties ?= {}
+        properties = rootSchema.properties
+        properties[key] ?= {}
+        rootSchema = properties[key]
 
     _.extend rootSchema, schema
     @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
