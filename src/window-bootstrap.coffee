@@ -11,7 +11,7 @@ window.atom.loadTime = Date.now() - startTime
 console.log "Window load time: #{atom.getWindowLoadTime()}ms"
 
 # Workaround for focus getting cleared upon window creation
-windowFocused = (e) ->
+windowFocused = ->
   window.removeEventListener('focus', windowFocused)
   setTimeout (-> document.querySelector('.workspace').focus()), 0
 window.addEventListener('focus', windowFocused)

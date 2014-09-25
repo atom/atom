@@ -416,7 +416,7 @@ class Pane extends Model
     return true unless typeof item.getUri is 'function' and item.shouldPromptToSave?()
 
     chosen = atom.confirm
-      message: "'#{item.getTitle?() ? item.getUri?()}' has changes, do you want to save them?"
+      message: "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
 
