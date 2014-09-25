@@ -38,7 +38,7 @@ class Config
       for name, validatorFunction of functions
         @addSchemaValidator(typeName, validatorFunction)
 
-  @executeSchemaValidators: (value, schema) ->
+  @executeSchemaValidators: (keyPath, value, schema) ->
     error = null
     types = schema.type
     types = [types] unless Array.isArray(types)
@@ -47,7 +47,7 @@ class Config
         if filterFunctions = @schemaValidators[type]
           filterFunctions = filterFunctions.concat(@schemaValidators['*'])
           for filter in filterFunctions
-            value = filter.call(this, value, schema)
+            value = filter.call(this, keyPath, value, schema)
           error = null
           break
       catch e
@@ -378,7 +378,7 @@ class Config
       defaults
 
   scrubValue: (keyPath, value) ->
-    value = @constructor.executeSchemaValidators(value, schema) if schema = @getSchema(keyPath)
+    value = @constructor.executeSchemaValidators(keyPath, value, schema) if schema = @getSchema(keyPath)
     value
 
 # Base schema validators. These will coerce raw input into the specified type,
@@ -391,19 +391,19 @@ class Config
 # specification.
 Config.addSchemaValidators
   'integer':
-    coercion: (value, schema) ->
+    coercion: (keyPath, value, schema) ->
       value = parseInt(value)
-      throw new Error('Value cannot be coerced into an int') if isNaN(value)
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into an int") if isNaN(value)
       value
 
   'number':
-    coercion: (value, schema) ->
+    coercion: (keyPath, value, schema) ->
       value = parseFloat(value)
-      throw new Error('Value cannot be coerced into a number') if isNaN(value)
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a number") if isNaN(value)
       value
 
   'boolean':
-    coercion: (value, schema) ->
+    coercion: (keyPath, value, schema) ->
       switch typeof value
         when 'string'
           value.toLowerCase() in ['true', 't']
@@ -411,46 +411,47 @@ Config.addSchemaValidators
           !!value
 
   'string':
-    coercion: (value, schema) ->
-      throw new Error('Value must be a string') if typeof value isnt 'string'
+    coercion: (keyPath, value, schema) ->
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be a string") if typeof value isnt 'string'
       value
 
   'null':
     # null sort of isnt supported. It will just unset in this case
-    coercion: (value, schema) ->
-      throw new Error('Value must be an object') unless value == null
+    coercion: (keyPath, value, schema) ->
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be null") unless value == null
       value
 
   'object':
-    coercion: (value, schema) ->
-      throw new Error('Value must be an object') if typeof value isnt 'object'
+    coercion: (keyPath, value, schema) ->
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
       return value unless schema.properties?
+
       newValue = {}
       for prop, childSchema of schema.properties
-        continue unless prop of value
+        continue unless value.hasOwnProperty(prop)
         try
-          newValue[prop] = @executeSchemaValidators(value[prop], childSchema)
+          newValue[prop] = @executeSchemaValidators("#{keyPath}.#{prop}", value[prop], childSchema)
         catch error
-          console.warn "Error setting value #{error.message}"
+          console.warn "Error setting item in object: #{error.message}"
       newValue
 
   'array':
-    coercion: (value, schema) ->
-      throw new Error('Value must be an array') unless Array.isArray(value)
+    coercion: (keyPath, value, schema) ->
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be an array") unless Array.isArray(value)
       itemSchema = schema.items
       if itemSchema?
         newValue = []
         for item in value
           try
-            newValue.push @executeSchemaValidators(item, itemSchema)
+            newValue.push @executeSchemaValidators(keyPath, item, itemSchema)
           catch error
-            console.warn "Error setting value: #{error.message}"
+            console.warn "Error setting item in array: #{error.message}"
         newValue
       else
         value
 
   '*':
-    minimumAndMaximumCoercion: (value, schema) ->
+    minimumAndMaximumCoercion: (keyPath, value, schema) ->
       return value unless typeof value is 'number'
       if schema.minimum? and typeof schema.minimum is 'number'
         value = Math.max(value, schema.minimum)
@@ -458,7 +459,7 @@ Config.addSchemaValidators
         value = Math.min(value, schema.maximum)
       value
 
-    enumValidation: (value, schema) ->
+    enumValidation: (keyPath, value, schema) ->
       possibleValues = schema.enum
       return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
 
@@ -466,7 +467,7 @@ Config.addSchemaValidators
         # Using `isEqual` for possibility of placing enums on array and object schemas
         return value if _.isEqual(possibleValue, value)
 
-      throw new Error('Value is not one of the possible values')
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} is not one of #{JSON.stringify(possibleValues)}")
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value)
