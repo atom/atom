@@ -360,6 +360,38 @@ describe "Config", ->
         expect(fs.existsSync(atom.config.configFilePath)).toBe true
         expect(CSON.readFileSync(atom.config.configFilePath)).toEqual {}
 
+    describe "when a schema is specified", ->
+      beforeEach ->
+        schema =
+          type: 'object'
+          properties:
+            bar:
+              type: 'string'
+              default: 'def'
+            int:
+              type: 'integer'
+              default: 12
+
+        atom.config.setSchema('foo', schema)
+
+      describe "when the config file contains values that do not adhere to the schema", ->
+        warnSpy = null
+        beforeEach ->
+          warnSpy = spyOn console, 'warn'
+          fs.writeFileSync atom.config.configFilePath, """
+            foo:
+              bar: 'baz'
+              int: 'bad value'
+          """
+          atom.config.loadUserConfig()
+
+        it "updates the config data based on the file contents", ->
+          expect(atom.config.get("foo.bar")).toBe 'baz'
+          expect(atom.config.get("foo.int")).toBe 12
+
+          expect(warnSpy).toHaveBeenCalled()
+          expect(warnSpy.mostRecentCall.args[0]).toContain "'foo.int' could not be set"
+
   describe ".observeUserConfig()", ->
     updatedHandler = null
 

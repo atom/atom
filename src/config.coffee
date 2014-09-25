@@ -284,7 +284,7 @@ class Config
 
     try
       userConfig = CSON.readFileSync(@configFilePath)
-      _.extend(@settings, userConfig)
+      @setAllRecursive(userConfig)
       @configFileHasErrors = false
       @emit 'updated'
       @emitter.emit 'did-change'
@@ -313,6 +313,22 @@ class Config
 
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
+
+  setAllRecursive: (value) ->
+    @setRecursive(key, childValue) for key, childValue of value
+    return
+
+  setRecursive: (keyPath, value) ->
+    if value? and isPlainObject(value)
+      keys = keyPath.split('.')
+      for key, childValue of value
+        continue unless value.hasOwnProperty(key)
+        @setRecursive(keys.concat([key]).join('.'), childValue)
+    else
+      unless @set(keyPath, value)
+        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+
+    return
 
   setDefaults: (keyPath, defaults) ->
     if typeof defaults isnt 'object'
@@ -446,3 +462,6 @@ Config.addSchemaValidators
         return value if _.isEqual(possibleValue, value)
 
       throw new Error('Value is not one of the possible values')
+
+isPlainObject = (value) ->
+  _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value)
