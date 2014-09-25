@@ -299,28 +299,6 @@ class Config
   Section: Config Subscription
   ###
 
-  # Essential: Add a listener for changes to a given key path.
-  #
-  # * `keyPath` The {String} name of the key to observe
-  # * `callback` The {Function} to call when the value of the key changes.
-  #   The first argument will be the new value of the key and the
-  #   second argument will be an {Object} with a `previous` property
-  #   that is the prior value of the key.
-  #
-  # Returns a {Disposable} with the following keys on which you can call
-  # `.dispose()` to unsubscribe.
-  onDidChange: (keyPath, callback) ->
-    value = @get(keyPath)
-    previousValue = _.clone(value)
-    updateCallback = =>
-      value = @get(keyPath)
-      unless _.isEqual(value, previousValue)
-        previous = previousValue
-        previousValue = _.clone(value)
-        callback(value, {previous})
-
-    @emitter.on 'did-change', updateCallback
-
   # Essential: Add a listener for changes to a given key path. This is different
   # than {::onDidChange} in that it will immediately call your callback with the
   # current value of the config entry.
@@ -345,8 +323,30 @@ class Config
     callback(_.clone(@get(keyPath))) unless options.callNow == false
     @onDidChange(keyPath, callback)
 
+  # Essential: Add a listener for changes to a given key path.
+  #
+  # * `keyPath` The {String} name of the key to observe
+  # * `callback` The {Function} to call when the value of the key changes.
+  #   The first argument will be the new value of the key and the
+  #   second argument will be an {Object} with a `previous` property
+  #   that is the prior value of the key.
+  #
+  # Returns a {Disposable} with the following keys on which you can call
+  # `.dispose()` to unsubscribe.
+  onDidChange: (keyPath, callback) ->
+    value = @get(keyPath)
+    previousValue = _.clone(value)
+    updateCallback = =>
+      value = @get(keyPath)
+      unless _.isEqual(value, previousValue)
+        previous = previousValue
+        previousValue = _.clone(value)
+        callback(value, {previous})
+
+    @emitter.on 'did-change', updateCallback
+
   ###
-  Section: get / set
+  Section: Managing Settings
   ###
 
   # Essential: Retrieves the setting for the given key.
@@ -354,7 +354,7 @@ class Config
   # * `keyPath` The {String} name of the key to retrieve.
   #
   # Returns the value from Atom's default settings, the user's configuration
-  # file, or `null` if the key doesn't exist in either.
+  # file in the type specified by the configuration schema.
   get: (keyPath) ->
     value = _.valueForKeyPath(@settings, keyPath)
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
@@ -377,7 +377,9 @@ class Config
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting.
   #
-  # Returns a {Boolean} true if the value was set.
+  # Returns a {Boolean}
+  # * `true` if the value was set.
+  # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: (keyPath, value) ->
     try
       value = @scrubValue(keyPath, value)
@@ -390,14 +392,6 @@ class Config
       _.setValueForKeyPath(@settings, keyPath, value)
       @update()
     true
-
-  # Extended: Get the {String} path to the config file being used.
-  getUserConfigPath: ->
-    @configFilePath
-
-  # Extended: Returns a new {Object} containing all of settings and defaults.
-  getSettings: ->
-    _.deepExtend(@settings, @defaultSettings)
 
   # Extended: Restore the key path to its default value.
   #
@@ -432,6 +426,14 @@ class Config
       break unless schema?
       schema = schema.properties[key]
     schema
+
+  # Extended: Returns a new {Object} containing all of settings and defaults.
+  getSettings: ->
+    _.deepExtend(@settings, @defaultSettings)
+
+  # Extended: Get the {String} path to the config file being used.
+  getUserConfigPath: ->
+    @configFilePath
 
   ###
   Section: Deprecated
