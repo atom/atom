@@ -63,7 +63,7 @@ describe "Window", ->
       beforeUnloadEvent = $.Event(new Event('beforeunload'))
 
     describe "when pane items are are modified", ->
-      it "prompts user to save and and calls atom.workspace.confirmClose", ->
+      it "prompts user to save and calls atom.workspace.confirmClose", ->
         editor = null
         spyOn(atom.workspace, 'confirmClose').andCallThrough()
         spyOn(atom, "confirm").andReturn(2)

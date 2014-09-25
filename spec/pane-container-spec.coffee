@@ -130,13 +130,13 @@ describe "PaneContainer", ->
       pane1.addItem(new TestItem)
       pane2.addItem(new TestItem)
 
-    it "returns true if all the user saves all modified files when prompted", ->
+    it "returns true if the user saves all modified files when prompted", ->
       spyOn(atom, "confirm").andReturn(0)
       saved = container.confirmClose()
       expect(saved).toBeTruthy()
       expect(atom.confirm).toHaveBeenCalled()
 
-    it "returns false if the user cancels saving", ->
+    it "returns false if the user cancels saving any modified file", ->
       spyOn(atom, "confirm").andReturn(1)
       saved = container.confirmClose()
       expect(saved).toBeFalsy()
