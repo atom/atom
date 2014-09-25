@@ -487,30 +487,27 @@ class Config
   unobserve: (keyPath) ->
     deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
+  ###
+  Section: Private
+  ###
+
   pushAtKeyPath: (keyPath, value) ->
-    deprecate 'Please remove from your code. Config::pushAtKeyPath is going away. Please push the value onto the array, and call Config::set'
     arrayValue = @get(keyPath) ? []
     result = arrayValue.push(value)
     @set(keyPath, arrayValue)
     result
 
   unshiftAtKeyPath: (keyPath, value) ->
-    deprecate 'Please remove from your code. Config::unshiftAtKeyPath is going away. Please unshift the value onto the array, and call Config::set'
     arrayValue = @get(keyPath) ? []
     result = arrayValue.unshift(value)
     @set(keyPath, arrayValue)
     result
 
   removeAtKeyPath: (keyPath, value) ->
-    deprecate 'Please remove from your code. Config::removeAtKeyPath is going away. Please remove the value from the array, and call Config::set'
     arrayValue = @get(keyPath) ? []
     result = _.remove(arrayValue, value)
     @set(keyPath, arrayValue)
     result
-
-  ###
-  Section: Private
-  ###
 
   initializeConfigDirectory: (done) ->
     return if fs.existsSync(@configDirPath)

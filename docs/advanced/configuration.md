@@ -48,15 +48,6 @@ but you can programmatically write to it with `atom.config.set`:
 atom.config.set("core.showInvisibles", true)
 ```
 
-You should never mutate the value of a config key, because that would circumvent
-the notification of observers. You can however use methods like `pushAtKeyPath`,
-`unshiftAtKeyPath`, and `removeAtKeyPath` to manipulate mutable config values.
-
-```coffeescript
-atom.config.pushAtKeyPath("core.disabledPackages", "wrap-guide")
-atom.config.removeAtKeyPath("core.disabledPackages", "terminal")
-```
-
 You can also use `setDefaults`, which will assign default values for keys that
 are always overridden by values assigned with `set`. Defaults are not written
 out to the the `config.json` file to prevent it from becoming cluttered.
