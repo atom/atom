@@ -381,10 +381,11 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: (keyPath, value) ->
-    try
-      value = @scrubValue(keyPath, value)
-    catch e
-      return false
+    unless value == undefined
+      try
+        value = @scrubValue(keyPath, value)
+      catch e
+        return false
 
     if @get(keyPath) isnt value
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)

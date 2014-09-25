@@ -577,6 +577,23 @@ describe "Config", ->
         atom.config.set('foo.bar.anInt', 'cats')
         expect(atom.config.get('foo.bar.anInt')).toBe 'cats'
 
+    describe 'when the value has an "string" and "boolean" type', ->
+      beforeEach ->
+        schema =
+          type: ['string', 'boolean']
+          default: 'def'
+        atom.config.setSchema('foo.bar', schema)
+
+      it 'can set a string, a boolean, and unset', ->
+        atom.config.set('foo.bar', 'ok')
+        expect(atom.config.get('foo.bar')).toBe 'ok'
+
+        atom.config.set('foo.bar', false)
+        expect(atom.config.get('foo.bar')).toBe false
+
+        atom.config.set('foo.bar', undefined)
+        expect(atom.config.get('foo.bar')).toBe 'def'
+
     describe 'when the value has a "number" type', ->
       beforeEach ->
         schema =
