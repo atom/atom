@@ -442,6 +442,26 @@ describe "Config", ->
     schema = null
 
     describe '.setSchema(keyPath, schema)', ->
+      it 'creates a properly nested schema', ->
+        schema =
+          type: 'object'
+          properties:
+            anInt:
+              type: 'integer'
+              default: 12
+
+        atom.config.setSchema('foo.bar', schema)
+
+        expect(atom.config.getSchema('foo')).toEqual
+          type: 'object'
+          properties:
+            bar:
+              type: 'object'
+              properties:
+                anInt:
+                  type: 'integer'
+                  default: 12
+
       it 'sets defaults specified by the schema', ->
         schema =
           type: 'object'
@@ -479,26 +499,6 @@ describe "Config", ->
         expect(atom.config.getSchema('foo.bar.anInt')).toEqual
           type: 'integer'
           default: 12
-
-      it 'creates a properly nested schema', ->
-        schema =
-          type: 'object'
-          properties:
-            anInt:
-              type: 'integer'
-              default: 12
-
-        atom.config.setSchema('foo.bar', schema)
-
-        expect(atom.config.getSchema('foo')).toEqual
-          type: 'object'
-          properties:
-            bar:
-              type: 'object'
-              properties:
-                anInt:
-                  type: 'integer'
-                  default: 12
 
     describe '.getSchema(keyPath)', ->
       schema =
