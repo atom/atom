@@ -646,44 +646,44 @@ Config.addSchemaValidators
   'integer':
     coercion: (keyPath, value, schema) ->
       value = parseInt(value)
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into an int") if isNaN(value) or not isFinite(value)
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into an int") if isNaN(value) or not isFinite(value)
       value
 
   'number':
     coercion: (keyPath, value, schema) ->
       value = parseFloat(value)
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a number") if isNaN(value) or not isFinite(value)
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a number") if isNaN(value) or not isFinite(value)
       value
 
   'boolean':
     coercion: (keyPath, value, schema) ->
       switch typeof value
         when 'string'
-          if value.toLowerCase() in ['true']
+          if value.toLowerCase() is 'true'
             true
-          else if value.toLowerCase() in ['false']
+          else if value.toLowerCase() is 'false'
             false
           else
-            throw new Error("Cannot coerce #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
+            throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
         when 'boolean'
           value
         else
-          throw new Error("Cannot coerce #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
+          throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
 
   'string':
     coercion: (keyPath, value, schema) ->
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be a string") if typeof value isnt 'string'
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a string") if typeof value isnt 'string'
       value
 
   'null':
     # null sort of isnt supported. It will just unset in this case
     coercion: (keyPath, value, schema) ->
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be null") unless value == null
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be null") unless value == null
       value
 
   'object':
     coercion: (keyPath, value, schema) ->
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
       return value unless schema.properties?
 
       newValue = {}
@@ -697,7 +697,7 @@ Config.addSchemaValidators
 
   'array':
     coercion: (keyPath, value, schema) ->
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} must be an array") unless Array.isArray(value)
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an array") unless Array.isArray(value)
       itemSchema = schema.items
       if itemSchema?
         newValue = []
@@ -727,7 +727,7 @@ Config.addSchemaValidators
         # Using `isEqual` for possibility of placing enums on array and object schemas
         return value if _.isEqual(possibleValue, value)
 
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} is not one of #{JSON.stringify(possibleValues)}")
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} is not one of #{JSON.stringify(possibleValues)}")
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value)
