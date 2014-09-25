@@ -30,14 +30,41 @@ module.exports =
   getInstallDirectory: ->
     "/usr/local/bin"
 
-  install: (commandPath, askForPrivilege, callback) ->
+  installShellCommandsInteractively: ->
+    showErrorDialog = (error) ->
+      atom.confirm
+        message: "Failed to install shell commands"
+        detailedMessage: error.message
+
+    resourcePath = atom.getLoadSettings().resourcePath
+    @installAtomCommand resourcePath, true, (error) =>
+      if error?
+        showErrorDialog(error)
+      else
+        @installApmCommand resourcePath, true, (error) =>
+          if error?
+            showErrorDialog(error)
+          else
+            atom.confirm
+              message: "Commands installed."
+              detailedMessage: "The shell commands `atom` and `apm` are installed."
+
+  installAtomCommand: (resourcePath, askForPrivilege, callback) ->
+    commandPath = path.join(resourcePath, 'atom.sh')
+    @createSymlink commandPath, askForPrivilege, callback
+
+  installApmCommand: (resourcePath, askForPrivilege, callback) ->
+    commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
+    @createSymlink commandPath, askForPrivilege, callback
+
+  createSymlink: (commandPath, askForPrivilege, callback) ->
     return unless process.platform is 'darwin'
 
     commandName = path.basename(commandPath, path.extname(commandPath))
     destinationPath = path.join(@getInstallDirectory(), commandName)
 
     fs.readlink destinationPath, (error, realpath) ->
-      if realpath == commandPath
+      if realpath is commandPath
         callback()
         return
 
@@ -49,11 +76,3 @@ module.exports =
           catch error
 
         callback?(error)
-
-  installAtomCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'atom.sh')
-    @install commandPath, askForPrivilege, callback
-
-  installApmCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install commandPath, askForPrivilege, callback

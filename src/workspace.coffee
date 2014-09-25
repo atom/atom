@@ -102,24 +102,7 @@ class Workspace extends Model
     @emit 'editor-created', editor
 
   installShellCommands: ->
-    showErrorDialog = (error) ->
-      installDirectory = CommandInstaller.getInstallDirectory()
-      atom.confirm
-        message: "Failed to install shell commands"
-        detailedMessage: error.message
-
-    resourcePath = atom.getLoadSettings().resourcePath
-    CommandInstaller.installAtomCommand resourcePath, true, (error) ->
-      if error?
-        showErrorDialog(error)
-      else
-        CommandInstaller.installApmCommand resourcePath, true, (error) ->
-          if error?
-            showErrorDialog(error)
-          else
-            atom.confirm
-              message: "Commands installed."
-              detailedMessage: "The shell commands `atom` and `apm` are installed."
+    CommandInstaller.installShellCommandsInteractively()
 
   subscribeToActiveItem: ->
     @updateWindowTitle()
