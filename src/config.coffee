@@ -287,12 +287,11 @@ class Config
     types = [types] unless Array.isArray(types)
     for type in types
       try
-        if filterFunctions = @schemaValidators[type]
-          filterFunctions = filterFunctions.concat(@schemaValidators['*'])
-          for filter in filterFunctions
-            value = filter.call(this, keyPath, value, schema)
-          error = null
-          break
+        filterFunctions = @schemaValidators[type].concat(@schemaValidators['*'])
+        for filter in filterFunctions
+          value = filter.call(this, keyPath, value, schema)
+        error = null
+        break
       catch e
         error = e
 
