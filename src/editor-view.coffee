@@ -208,6 +208,7 @@ class EditorView extends View
   beforeRemove: ->
     return unless @attached
     @attached = false
+    debugger unless @component?.isMounted()
     @unmountComponent()
     @editor.destroy()
     @trigger 'editor:detached', this

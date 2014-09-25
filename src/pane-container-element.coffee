@@ -1,6 +1,6 @@
 {CompositeDisposable} = require 'event-kit'
 {callAttachHooks} = require './space-pen-extensions'
-PaneContainerView = require './pane-container-view'
+PaneContainerView = null
 _ = require 'underscore-plus'
 
 module.exports =
@@ -8,6 +8,7 @@ class PaneContainerElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
     @classList.add 'panes'
+    PaneContainerView ?= require './pane-container-view'
     @__spacePenView = new PaneContainerView(this)
 
   setModel: (@model) ->

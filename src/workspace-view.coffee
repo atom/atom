@@ -7,15 +7,9 @@ Delegator = require 'delegato'
 scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
-Workspace = require './workspace'
 PaneView = require './pane-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
-
-atom.commands.add '.workspace',
-  'window:increase-font-size': -> @getModel().increaseFontSize()
-  'window:decrease-font-size': -> @getModel().decreaseFontSize()
-  'window:reset-font-size': -> @getModel().resetFontSize()
 
 # Extended: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
@@ -62,8 +56,6 @@ class WorkspaceView extends View
     'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
     'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'
 
-  @version: 4
-
   @configDefaults:
     ignoredNames: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
     excludeVcsIgnoredPaths: true
@@ -73,91 +65,18 @@ class WorkspaceView extends View
     audioBeep: true
     destroyEmptyPanes: true
 
-  @content: ->
-    @div class: 'workspace', tabindex: -1, =>
-      @div class: 'horizontal', outlet: 'horizontal', =>
-        @div class: 'vertical', outlet: 'vertical', =>
-          @div class: 'panes', outlet: 'panes'
+  constructor: (@element) ->
+    super
+    @deprecatedViewEvents()
 
-  initialize: (model) ->
-    @model = model ? atom.workspace ? new Workspace unless @model?
-    @element.getModel = -> model
-    atom.commands.setRootNode(@[0])
-
-    panes = @model.getView(@model.paneContainer).__spacePenView
-    @panes.replaceWith(panes)
-    @panes = panes
-
+  setModel: (@model) ->
+    @horizontal = @find('.horizontal')
+    @vertical = @find('.vertical')
+    @panes = @find('.panes').view()
     @subscribe @model.onDidOpen => @trigger 'uri-opened'
 
-    @subscribe scrollbarStyle, (style) =>
-      @removeClass('scrollbars-visible-always scrollbars-visible-when-scrolling')
-      switch style
-        when 'legacy'
-          @addClass("scrollbars-visible-always")
-        when 'overlay'
-          @addClass("scrollbars-visible-when-scrolling")
-
-
-    @subscribe atom.config.observe 'editor.fontSize', @setEditorFontSize
-    @subscribe atom.config.observe 'editor.fontFamily', @setEditorFontFamily
-    @subscribe atom.config.observe 'editor.lineHeight', @setEditorLineHeight
-
-    @on 'focus', (e) => @handleFocus(e)
-    @subscribe $(window), 'focus', (e) =>
-      @handleFocus(e) if document.activeElement is document.body
-
-    @command 'application:about', -> ipc.send('command', 'application:about')
-    @command 'application:run-all-specs', -> ipc.send('command', 'application:run-all-specs')
-    @command 'application:run-benchmarks', -> ipc.send('command', 'application:run-benchmarks')
-    @command 'application:show-settings', -> ipc.send('command', 'application:show-settings')
-    @command 'application:quit', -> ipc.send('command', 'application:quit')
-    @command 'application:hide', -> ipc.send('command', 'application:hide')
-    @command 'application:hide-other-applications', -> ipc.send('command', 'application:hide-other-applications')
-    @command 'application:install-update', -> ipc.send('command', 'application:install-update')
-    @command 'application:unhide-all-applications', -> ipc.send('command', 'application:unhide-all-applications')
-    @command 'application:new-window', -> ipc.send('command', 'application:new-window')
-    @command 'application:new-file', -> ipc.send('command', 'application:new-file')
-    @command 'application:open', -> ipc.send('command', 'application:open')
-    @command 'application:open-file', -> ipc.send('command', 'application:open-file')
-    @command 'application:open-folder', -> ipc.send('command', 'application:open-folder')
-    @command 'application:open-dev', -> ipc.send('command', 'application:open-dev')
-    @command 'application:open-safe', -> ipc.send('command', 'application:open-safe')
-    @command 'application:minimize', -> ipc.send('command', 'application:minimize')
-    @command 'application:zoom', -> ipc.send('command', 'application:zoom')
-    @command 'application:bring-all-windows-to-front', -> ipc.send('command', 'application:bring-all-windows-to-front')
-    @command 'application:open-your-config', -> ipc.send('command', 'application:open-your-config')
-    @command 'application:open-your-init-script', -> ipc.send('command', 'application:open-your-init-script')
-    @command 'application:open-your-keymap', -> ipc.send('command', 'application:open-your-keymap')
-    @command 'application:open-your-snippets', -> ipc.send('command', 'application:open-your-snippets')
-    @command 'application:open-your-stylesheet', -> ipc.send('command', 'application:open-your-stylesheet')
-    @command 'application:open-license', => @model.openLicense()
-
-    if process.platform is 'darwin'
-      @command 'window:install-shell-commands', => @getModel().installShellCommands()
-
-    @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
-
-    @command 'window:focus-next-pane', => @focusNextPaneView()
-    @command 'window:focus-previous-pane', => @focusPreviousPaneView()
-    @command 'window:focus-pane-above', => @focusPaneViewAbove()
-    @command 'window:focus-pane-below', => @focusPaneViewBelow()
-    @command 'window:focus-pane-on-left', => @focusPaneViewOnLeft()
-    @command 'window:focus-pane-on-right', => @focusPaneViewOnRight()
-    @command 'window:save-all', => @saveAll()
-    @command 'window:toggle-invisibles', -> atom.config.toggle("editor.showInvisibles")
-    @command 'window:log-deprecation-warnings', -> logDeprecationWarnings()
-
-    @command 'window:toggle-auto-indent', ->
-      atom.config.toggle("editor.autoIndent")
-
-    @command 'pane:reopen-closed-item', => @getModel().reopenItem()
-
-    @command 'core:close', => if @getModel().getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
-    @command 'core:save', => @saveActivePaneItem()
-    @command 'core:save-as', => @saveActivePaneItemAs()
-
-    @deprecatedViewEvents()
+  beforeRemove: ->
+    @model?.destroy()
 
   ###
   Section: Accessing the Workspace Model
@@ -308,35 +227,6 @@ class WorkspaceView extends View
   ###
   Section: Private
   ###
-
-  afterAttach: (onDom) ->
-    @focus() if onDom
-
-  # Called by SpacePen
-  beforeRemove: ->
-    @model.destroy()
-
-  setEditorFontSize: (fontSize) ->
-    atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
-
-  setEditorFontFamily: (fontFamily) ->
-    atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
-
-  setEditorLineHeight: (lineHeight) ->
-    atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
-
-  handleFocus: ->
-    if @getActivePaneView()
-      @getActivePaneView().focus()
-      false
-    else
-      focusableChild = @find("[tabindex=-1]:visible:first")
-      if focusableChild.length
-        focusableChild.focus()
-        false
-      else
-        $(document.body).focus()
-        true
 
   # Prompts to save all unsaved items
   confirmClose: ->

@@ -11,7 +11,7 @@ Editor = require './editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 ViewRegistry = require './view-registry'
-WorkspaceView = null
+WorkspaceElement = require './workspace-element'
 
 # Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
@@ -58,6 +58,10 @@ class Workspace extends Model
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
 
+    @addViewProvider
+      modelConstructor: Workspace
+      viewConstructor: WorkspaceElement
+
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     for packageName in params.packagesWithActiveGrammars ? []
@@ -73,9 +77,6 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
     packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
-
-  getViewClass: ->
-    WorkspaceView ?= require './workspace-view'
 
   getPackageNamesWithActiveGrammars: ->
     packageNames = []
@@ -152,7 +153,7 @@ class Workspace extends Model
   # Updates the application's title and proxy icon based on whichever file is
   # open.
   updateWindowTitle: =>
-    if projectPath = atom.project.getPath()
+    if projectPath = atom.project?.getPath()
       if item = @getActivePaneItem()
         document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
         atom.setRepresentedFilename(item.getPath?())
@@ -555,6 +556,10 @@ class Workspace extends Model
   # Destroy (close) the active pane.
   destroyActivePane: ->
     @activePane?.destroy()
+
+  # Destroy the active pane item or the active pane if it is empty.
+  destroyActivePaneItemOrEmptyPane: ->
+    if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
 
   # Increase the editor font size by 1px.
   increaseFontSize: ->
