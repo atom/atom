@@ -3672,7 +3672,7 @@ describe "TextEditor", ->
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
       TextBuffer = require 'text-buffer'
-      newEditor = new Editor
+      newEditor = new TextEditor
         buffer: new TextBuffer
         mini: true
         placeholderText: 'yep'
