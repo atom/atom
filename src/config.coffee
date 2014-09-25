@@ -39,7 +39,7 @@ class Config
         @addSchemaValidator(typeName, validatorFunction)
 
   @executeSchemaValidators: (value, schema) ->
-    failedValidation = false
+    error = null
     types = schema.type
     types = [types] unless Array.isArray(types)
     for type in types
@@ -48,12 +48,12 @@ class Config
           filterFunctions = filterFunctions.concat(@schemaValidators['*'])
           for filter in filterFunctions
             value = filter.call(this, value, schema)
-          failedValidation = false
+          error = null
           break
       catch e
-        failedValidation = true
+        error = e
 
-    throw new Error('value is not valid') if failedValidation
+    throw error if error?
     value
 
   # Created during initialization, available as `atom.config`
@@ -325,7 +325,12 @@ class Config
         continue unless value.hasOwnProperty(key)
         @setRecursive(keys.concat([key]).join('.'), childValue)
     else
-      unless @set(keyPath, value)
+      try
+        value = @scrubValue(keyPath, value)
+        defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+        value = undefined if _.isEqual(defaultValue, value)
+        _.setValueForKeyPath(@settings, keyPath, value)
+      catch e
         console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
     return
@@ -439,7 +444,7 @@ Config.addSchemaValidators
           try
             newValue.push @executeSchemaValidators(item, itemSchema)
           catch error
-            console.warn "Error setting value #{error.message}"
+            console.warn "Error setting value: #{error.message}"
         newValue
       else
         value

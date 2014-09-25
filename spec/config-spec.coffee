@@ -735,8 +735,8 @@ describe "Config", ->
         expect(atom.config.get('foo.bar.int')).toBe 3
 
       it 'will only set an array when the array values are in the enum values', ->
-        expect(atom.config.set('foo.bar.arr', ['one', 'two', 'five'])).toBe false
-        expect(atom.config.get('foo.bar.arr')).toEqual ['one', 'two']
+        expect(atom.config.set('foo.bar.arr', ['one', 'five'])).toBe true
+        expect(atom.config.get('foo.bar.arr')).toEqual ['one']
 
         expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
         expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
