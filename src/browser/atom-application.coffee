@@ -492,6 +492,14 @@ class AtomApplication
       else
         BrowserWindow.getFocusedWindow()
 
+    openOptions =
+      properties: properties.concat(['multiSelections', 'createDirectory'])
+      title: 'Open'
+
+    if process.platform is 'linux'
+      if projectPath = @lastFocusedWindow?.projectPath
+        openOptions.defaultPath = projectPath
+
     dialog = require 'dialog'
-    dialog.showOpenDialog parentWindow, title: 'Open', properties: properties.concat(['multiSelections', 'createDirectory']), (pathsToOpen) =>
+    dialog.showOpenDialog parentWindow, openOptions, (pathsToOpen) =>
       @openPaths({pathsToOpen, devMode, safeMode, window})
