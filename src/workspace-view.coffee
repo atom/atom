@@ -67,7 +67,7 @@ class WorkspaceView extends View
 
   constructor: (@element) ->
     super
-    @deprecatedViewEvents()
+    @deprecateViewEvents()
 
   setModel: (@model) ->
     @horizontal = @find('.horizontal')
@@ -248,7 +248,7 @@ class WorkspaceView extends View
   Section: Deprecated
   ###
 
-  deprecatedViewEvents: ->
+  deprecateViewEvents: ->
     originalWorkspaceViewOn = @on
 
     @on = (eventName) =>
