@@ -506,8 +506,8 @@ TextEditorComponent = React.createClass
         'editor:move-line-down': -> editor.moveLineDown()
         'editor:duplicate-lines': -> editor.duplicateLines()
         'editor:join-lines': -> editor.joinLines()
-        'editor:toggle-indent-guide': -> atom.config.toggle('editor.showIndentGuide')
-        'editor:toggle-line-numbers': ->  atom.config.toggle('editor.showLineNumbers')
+        'editor:toggle-indent-guide': -> atom.config.set('editor.showIndentGuide', not atom.config.get('editor.showIndentGuide'))
+        'editor:toggle-line-numbers': ->  atom.config.set('editor.showLineNumbers', not atom.config.get('editor.showLineNumbers'))
         'editor:scroll-to-cursor': -> editor.scrollToCursorPosition()
         'benchmark:scroll': @runScrollBenchmark
 
