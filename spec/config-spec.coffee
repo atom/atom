@@ -645,13 +645,17 @@ describe "Config", ->
         atom.config.set('foo.bar.aBool', 'FALSE')
         expect(atom.config.get('foo.bar.aBool')).toBe false
         atom.config.set('foo.bar.aBool', 1)
-        expect(atom.config.get('foo.bar.aBool')).toBe true
+        expect(atom.config.get('foo.bar.aBool')).toBe false
         atom.config.set('foo.bar.aBool', 0)
         expect(atom.config.get('foo.bar.aBool')).toBe false
         atom.config.set('foo.bar.aBool', {})
-        expect(atom.config.get('foo.bar.aBool')).toBe true
+        expect(atom.config.get('foo.bar.aBool')).toBe false
         atom.config.set('foo.bar.aBool', null)
         expect(atom.config.get('foo.bar.aBool')).toBe false
+
+        # unset
+        atom.config.set('foo.bar.aBool', undefined)
+        expect(atom.config.get('foo.bar.aBool')).toBe true
 
     describe 'when the value has an "string" type', ->
       beforeEach ->
@@ -691,7 +695,7 @@ describe "Config", ->
         atom.config.set 'foo.bar',
           anInt: '23'
           nestedObject:
-            nestedBool: 't'
+            nestedBool: 'true'
         expect(atom.config.get('foo.bar')).toEqual
           anInt: 23
           nestedObject:

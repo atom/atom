@@ -100,14 +100,14 @@ module.exports =
         type: 'object'
         properties:
           eol:
-            type: ['string', 'boolean']
+            type: ['boolean', 'string']
             default: '\u00ac'
           space:
-            type: ['string', 'boolean']
+            type: ['boolean', 'string']
             default: '\u00b7'
           tab:
-            type: ['string', 'boolean']
+            type: ['boolean', 'string']
             default: '\u00bb'
           cr:
-            type: ['string', 'boolean']
+            type: ['boolean', 'string']
             default: '\u00a4'

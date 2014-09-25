@@ -154,9 +154,8 @@ pathWatcher = require 'pathwatcher'
 #
 # #### boolean
 #
-# Values will be coerced into a Boolean. `'true'` and `'t'` will be coerced into
-# `true`. Numbers, arrays, objects, and anything else will be coerced via
-# `!!value`.
+# Values will be coerced into a Boolean. `'true'` and `'false'` will be coerced into
+# a boolean. Numbers, arrays, objects, and anything else will not be coerced.
 #
 # ```coffee
 # config:
@@ -647,9 +646,16 @@ Config.addSchemaValidators
     coercion: (keyPath, value, schema) ->
       switch typeof value
         when 'string'
-          value.toLowerCase() in ['true', 't']
+          if value.toLowerCase() in ['true']
+            true
+          else if value.toLowerCase() in ['false']
+            false
+          else
+            throw new Error("Cannot coerce #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
+        when 'boolean'
+          value
         else
-          !!value
+          throw new Error("Cannot coerce #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
 
   'string':
     coercion: (keyPath, value, schema) ->
