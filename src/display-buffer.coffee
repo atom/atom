@@ -439,7 +439,7 @@ class DisplayBuffer extends Model
 
   getSoftWrapColumn: ->
     if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.getPositiveInt('editor.preferredLineLength', @getEditorWidthInChars()))
+      Math.min(@getEditorWidthInChars(), atom.config.get('editor.preferredLineLength'))
     else
       @getEditorWidthInChars()
 
