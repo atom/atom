@@ -400,6 +400,7 @@ class Config
   # Returns the new value.
   restoreDefault: (keyPath) ->
     @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+    @get(keyPath)
 
   # Extended: Get the default value of the key path.
   #
