@@ -532,6 +532,10 @@ describe "Config", ->
         atom.config.set('foo.bar.anInt', '123')
         expect(atom.config.get('foo.bar.anInt')).toBe 123
 
+      it 'does not allow infinity', ->
+        atom.config.set('foo.bar.anInt', Infinity)
+        expect(atom.config.get('foo.bar.anInt')).toBe 12
+
       it 'coerces a float to an int', ->
         atom.config.set('foo.bar.anInt', 12.3)
         expect(atom.config.get('foo.bar.anInt')).toBe 12

@@ -393,13 +393,13 @@ Config.addSchemaValidators
   'integer':
     coercion: (keyPath, value, schema) ->
       value = parseInt(value)
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into an int") if isNaN(value)
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into an int") if isNaN(value) or not isFinite(value)
       value
 
   'number':
     coercion: (keyPath, value, schema) ->
       value = parseFloat(value)
-      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a number") if isNaN(value)
+      throw new Error("Cannot set #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a number") if isNaN(value) or not isFinite(value)
       value
 
   'boolean':
