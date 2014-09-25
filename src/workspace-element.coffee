@@ -69,22 +69,6 @@ class WorkspaceElement extends HTMLElement
 
     @__spacePenView.setModel(@model)
 
-  # Essential: Focus the pane directly above the active pane.
-  focusPaneViewAbove: -> @panes.focusPaneViewAbove()
-
-  # Essential: Focus the pane directly below the active pane.
-  focusPaneViewBelow: -> @panes.focusPaneViewBelow()
-
-  # Essential: Focus the pane directly to the left of the active pane.
-  focusPaneViewOnLeft: -> @panes.focusPaneViewOnLeft()
-
-  # Essential: Focus the pane directly to the right of the active pane.
-  focusPaneViewOnRight: -> @panes.focusPaneViewOnRight()
-
-  ###
-  Section: Private
-  ###
-
   setTextEditorFontSize: (fontSize) ->
     atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
 
