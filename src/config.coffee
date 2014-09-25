@@ -15,11 +15,11 @@ pathWatcher = require 'pathwatcher'
 # ## Getting and setting config settings
 #
 # ```coffee
-#  # When no value has been set, `::get` returns the setting's default value
-#  atom.config.get('my-package.myKey') # -> 'defaultValue'
+# # With no value set, `::get` returns the setting's default value
+# atom.config.get('my-package.myKey') # -> 'defaultValue'
 #
-#  atom.config.set('my-package.myKey', 'value')
-#  atom.config.get('my-package.myKey') # -> 'value'
+# atom.config.set('my-package.myKey', 'value')
+# atom.config.get('my-package.myKey') # -> 'value'
 # ```
 #
 # You may want to watch for changes. Use {::observe} to catch changes to the setting.
@@ -27,11 +27,11 @@ pathWatcher = require 'pathwatcher'
 # ```coffee
 # atom.config.set('my-package.myKey', 'value')
 # atom.config.observe 'my-package.myKey', (newValue) ->
-#   # `observe` calls your callback immediately and every time the value is changed
+#   # `observe` calls immediately and every time the value is changed
 #   console.log 'My configuration changed:', newValue
 # ```
 #
-# If you'd like to get a notification only when the value changes, use {::onDidChange}.
+# If you want a notification only when the value changes, use {::onDidChange}.
 #
 # ```coffee
 # atom.config.onDidChange 'my-package.myKey', (newValue) ->
@@ -41,27 +41,27 @@ pathWatcher = require 'pathwatcher'
 # ### Value Coercion
 #
 # Config settings each have a type specified by way of a
-# [schema](json-schema.org). Let's say we have an integer setting that only
-# allows numbers greater than 0:
+# [schema](json-schema.org). For example we might an integer setting that only
+# allows integers greater than `0`:
 #
 # ```coffee
-#  # When no value has been set, `::get` returns the setting's default value
-#  atom.config.get('my-package.anInt') # -> 12
+# # When no value has been set, `::get` returns the setting's default value
+# atom.config.get('my-package.anInt') # -> 12
 #
-#  # The string will be coerced to the integer 123
-#  atom.config.set('my-package.anInt', '123')
-#  atom.config.get('my-package.anInt') # -> 123
+# # The string will be coerced to the integer 123
+# atom.config.set('my-package.anInt', '123')
+# atom.config.get('my-package.anInt') # -> 123
 #
-#  # The string will be coerced to an integer, but it must be greater than 0, so is set to 1
-#  atom.config.set('my-package.anInt', '-20')
-#  atom.config.get('my-package.anInt') # -> 1
+# # The string will be coerced to an integer, but it must be greater than 0, so is set to 1
+# atom.config.set('my-package.anInt', '-20')
+# atom.config.get('my-package.anInt') # -> 1
 # ```
 #
-# ## Defining config settings for your package
+# ## Defining settings for your package
 #
-# You specify a schema under a `config` key
+# Specify a schema under a `config` key in your package main.
 #
-# ```coffeescript
+# ```coffee
 # module.exports =
 #   # Your config schema
 #   config:
@@ -74,9 +74,12 @@ pathWatcher = require 'pathwatcher'
 #   # ...
 # ```
 #
+# See [Creating a Package](https://atom.io/docs/latest/creating-a-package) for
+# more info.
+#
 # ## Config Schemas
 #
-# We use [json schema][json-schema] which allows you to specify your value, its
+# We use [json schema](json-schema.org) which allows you to specify your value, its
 # default, the type it should be, etc. A simple example:
 #
 # ```coffee
@@ -110,14 +113,22 @@ pathWatcher = require 'pathwatcher'
 #
 # ### Supported Types
 #
-# * __string__ Values must be a string
-#   ```coffee
-#   config:
-#     someSetting:
-#       type: 'string'
-#       default: 'hello'
-#   ```
-# * __integer__ Values will be coerced into integer. Supports the (optional) `minimum` and `maximum` keys.
+# #### string
+#
+# Values must be a string.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'string'
+#     default: 'hello'
+# ```
+#
+# #### integer
+#
+# Values will be coerced into integer. Supports the (optional) `minimum` and
+# `maximum` keys.
+#
 #   ```coffee
 #   config:
 #     someSetting:
@@ -126,50 +137,71 @@ pathWatcher = require 'pathwatcher'
 #       minimum: 1
 #       maximum: 11
 #   ```
-# * __number__ Values will be coerced into a number, including real numbers. Supports the (optional) `minimum` and `maximum` keys.
-#   ```coffee
-#   config:
-#     someSetting:
-#       type: 'number'
-#       default: 5.3
+#
+# #### number
+#
+# Values will be coerced into a number, including real numbers. Supports the
+# (optional) `minimum` and `maximum` keys.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'number'
+#     default: 5.3
+#     minimum: 1.5
+#     maximum: 11.5
+# ```
+#
+# #### boolean
+#
+# Values will be coerced into a Boolean. `'true'` and `'t'` will be coerced into
+# `true`. Numbers, arrays, objects, and anything else will be coerced via
+# `!!value`.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'boolean'
+#     default: false
+# ```
+#
+# #### array
+#
+# Value must be an Array. The types of the values can be specified by a
+# subschema in the `items` key.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'array'
+#     default: [1, 2, 3]
+#     items:
+#       type: 'integer'
 #       minimum: 1.5
 #       maximum: 11.5
-#   ```
-# * __boolean__ Values will be coerced into a Boolean
-#   ```coffee
-#   config:
-#     someSetting:
-#       type: 'boolean'
-#       default: false
-#   ```
-# * __array__ Value must be an Array. The types of the values can be specified by a subschema in the `items` key.
-#   ```coffee
-#   config:
-#     someSetting:
-#       type: 'array'
-#       default: [1, 2, 3]
-#       items:
+# ```
+#
+# #### object
+#
+# Value must be an object. This allows you to nest config options. Sub options
+# must be under a `properties key`
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'object'
+#     properties:
+#       myChildIntOption:
 #         type: 'integer'
 #         minimum: 1.5
 #         maximum: 11.5
-#   ```
-# * __object__ Value must be an object. This allows you to nest config options. Sub options must be under a `properties key`
-#   ```coffee
-#   config:
-#     someSetting:
-#       type: 'object'
-#       properties:
-#         myChildIntOption:
-#           type: 'integer'
-#           minimum: 1.5
-#           maximum: 11.5
-#   ```
+# ```
 #
 # ### Other Supported Keys
 #
 # #### enum
 #
-# All schemas support an `enum` key. The enum key lets you specify all values
+# All types support an `enum` key. The enum key lets you specify all values
 # that the config setting can possibly be. `enum` _must_ be an array of values
 # of your specified type.
 #
@@ -197,9 +229,9 @@ pathWatcher = require 'pathwatcher'
 # #### title and description
 #
 # The settings view will use the `title` and `description` keys display your
-# option in a readable way. By default the settings view humanizes your config
-# key, so `someSetting` becomes `Some Setting`. In some cases, this is confusing
-# for users, and a more descriptive title is useful.
+# config setting in a readable way. By default the settings view humanizes your
+# config key, so `someSetting` becomes `Some Setting`. In some cases, this is
+# confusing for users, and a more descriptive title is useful.
 #
 # Descriptions will be displayed below the title in the settings view.
 #
