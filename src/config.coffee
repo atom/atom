@@ -624,7 +624,7 @@ class Config
   extractDefaultsFromSchema: (schema) ->
     if schema.default?
       schema.default
-    else if schema.type is 'object' and schema.properties? and typeof schema.properties is "object"
+    else if schema.type is 'object' and schema.properties? and isPlainObject(schema.properties)
       defaults = {}
       properties = schema.properties or {}
       defaults[key] = @extractDefaultsFromSchema(value) for key, value of properties
