@@ -1,6 +1,6 @@
 {$, $$} = require 'atom'
 path = require 'path'
-Editor = require '../src/editor'
+TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 
 describe "Window", ->
@@ -59,7 +59,7 @@ describe "Window", ->
     [beforeUnloadEvent] = []
 
     beforeEach ->
-      jasmine.unspy(Editor.prototype, "shouldPromptToSave")
+      jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
       beforeUnloadEvent = $.Event(new Event('beforeunload'))
 
     describe "when pane items are are modified", ->

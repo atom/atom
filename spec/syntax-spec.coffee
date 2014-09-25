@@ -4,7 +4,6 @@ temp = require 'temp'
 
 describe "the `syntax` global", ->
   beforeEach ->
-
     waitsForPromise ->
       atom.packages.activatePackage('language-text')
 
@@ -16,6 +15,19 @@ describe "the `syntax` global", ->
 
     waitsForPromise ->
       atom.packages.activatePackage('language-ruby')
+
+  afterEach ->
+    atom.packages.deactivatePackage('language-text')
+    atom.packages.unloadPackage('language-text')
+
+    atom.packages.deactivatePackage('language-javascript')
+    atom.packages.unloadPackage('language-javascript')
+
+    atom.packages.deactivatePackage('language-coffee-script')
+    atom.packages.unloadPackage('language-coffee-script')
+
+    atom.packages.deactivatePackage('language-ruby')
+    atom.packages.unloadPackage('language-ruby')
 
   describe "serialization", ->
     it "remembers grammar overrides by path", ->

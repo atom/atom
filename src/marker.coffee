@@ -12,7 +12,7 @@ Grim = require 'grim'
 #
 # ### Marker Creation
 #
-# Use {Editor::markBufferRange} rather than creating Markers directly.
+# Use {TextEditor::markBufferRange} rather than creating Markers directly.
 #
 # ### Head and Tail
 #
@@ -42,7 +42,7 @@ Grim = require 'grim'
 #   region in any way, including changes that end at the marker's
 #   start or start at the marker's end. This is the most fragile strategy.
 #
-# See {Editor::markBufferRange} for usage.
+# See {TextEditor::markBufferRange} for usage.
 module.exports =
 class Marker
   EmitterMixin.includeInto(this)

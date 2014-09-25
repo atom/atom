@@ -6,7 +6,7 @@ Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
 {Emitter} = require 'event-kit'
-Editor = require './editor'
+TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 ViewRegistry = require './view-registry'
@@ -19,7 +19,7 @@ WorkspaceView = null
 # editors, and manipulate panes. To add panels, you'll need to use the
 # {WorkspaceView} class for now until we establish APIs at the model layer.
 #
-# * `editor` {Editor} the new editor
+# * `editor` {TextEditor} the new editor
 #
 module.exports =
 class Workspace extends Model
@@ -104,7 +104,7 @@ class Workspace extends Model
   # editors in the workspace.
   #
   # * `callback` {Function} to be called with current and future text editors.
-  #   * `editor` An {Editor} that is present in {::getTextEditors} at the time
+  #   * `editor` An {TextEditor} that is present in {::getTextEditors} at the time
   #     of subscription or that is added at some later time.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
@@ -200,7 +200,7 @@ class Workspace extends Model
   #
   # * `callback` {Function} to be called panes are added.
   #   * `event` {Object} with the following keys:
-  #     * `textEditor` {Editor} that was added.
+  #     * `textEditor` {TextEditor} that was added.
   #     * `pane` {Pane} containing the added text editor.
   #     * `index` {Number} indicating the index of the added text editor in its
   #        pane.
@@ -208,7 +208,7 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddTextEditor: (callback) ->
     @onDidAddPaneItem ({item, pane, index}) ->
-      callback({textEditor: item, pane, index}) if item instanceof Editor
+      callback({textEditor: item, pane, index}) if item instanceof TextEditor
 
   eachEditor: (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
@@ -221,7 +221,7 @@ class Workspace extends Model
 
     editors = []
     for pane in @paneContainer.getPanes()
-      editors.push(item) for item in pane.getItems() when item instanceof Editor
+      editors.push(item) for item in pane.getItems() when item instanceof TextEditor
 
     editors
 
@@ -258,7 +258,7 @@ class Workspace extends Model
   #     If `false`, only the active pane will be searched for
   #     an existing item for the same URI. Defaults to `false`.
   #
-  # Returns a promise that resolves to the {Editor} for the file URI.
+  # Returns a promise that resolves to the {TextEditor} for the file URI.
   open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
@@ -352,7 +352,7 @@ class Workspace extends Model
 
   # Public: Register an opener for a uri.
   #
-  # An {Editor} will be used if no openers return a value.
+  # An {TextEditor} will be used if no openers return a value.
   #
   # ## Examples
   #
@@ -391,17 +391,17 @@ class Workspace extends Model
 
   # Essential: Get all text editors in the workspace.
   #
-  # Returns an {Array} of {Editor}s.
+  # Returns an {Array} of {TextEditor}s.
   getTextEditors: ->
-    @getPaneItems().filter (item) -> item instanceof Editor
+    @getPaneItems().filter (item) -> item instanceof TextEditor
 
-  # Essential: Get the active item if it is an {Editor}.
+  # Essential: Get the active item if it is an {TextEditor}.
   #
-  # Returns an {Editor} or `undefined` if the current active item is not an
-  # {Editor}.
+  # Returns an {TextEditor} or `undefined` if the current active item is not an
+  # {TextEditor}.
   getActiveTextEditor: ->
     activeItem = @getActivePaneItem()
-    activeItem if activeItem instanceof Editor
+    activeItem if activeItem instanceof TextEditor
 
   # Deprecated:
   getActiveEditor: ->

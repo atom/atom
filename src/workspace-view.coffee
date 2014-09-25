@@ -13,7 +13,7 @@ PaneView = require './pane-view'
 PaneColumnView = require './pane-column-view'
 PaneRowView = require './pane-row-view'
 PaneContainerView = require './pane-container-view'
-Editor = require './editor'
+TextEditor = require './text-editor'
 
 atom.commands.add '.workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
@@ -183,11 +183,11 @@ class WorkspaceView extends View
   ###
 
   # Essential: Register a function to be called for every current and future
-  # editor view in the workspace (only includes {EditorView}s that are pane
+  # editor view in the workspace (only includes {TextEditorView}s that are pane
   # items).
   #
-  # * `callback` A {Function} with an {EditorView} as its only argument.
-  #   * `editorView` {EditorView}
+  # * `callback` A {Function} with an {TextEditorView} as its only argument.
+  #   * `editorView` {TextEditorView}
   #
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
@@ -403,7 +403,7 @@ class WorkspaceView extends View
   # to the view objects. Also consider using {::eachEditorView}, which will call
   # a callback for all current and *future* editor views.
   #
-  # Returns an {Array} of {EditorView}s.
+  # Returns an {Array} of {TextEditorView}s.
   getEditorViews: ->
     for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
       $(editorElement).view()
@@ -421,13 +421,13 @@ class WorkspaceView extends View
         when 'beep'
           deprecate('Use Atom::onDidBeep instead')
         when 'cursor:moved'
-          deprecate('Use Editor::onDidChangeCursorPosition instead')
+          deprecate('Use TextEditor::onDidChangeCursorPosition instead')
         when 'editor:attached'
-          deprecate('Use Editor::onDidAddTextEditor instead')
+          deprecate('Use TextEditor::onDidAddTextEditor instead')
         when 'editor:detached'
-          deprecate('Use Editor::onDidDestroy instead')
+          deprecate('Use TextEditor::onDidDestroy instead')
         when 'editor:will-be-removed'
-          deprecate('Use Editor::onDidDestroy instead')
+          deprecate('Use TextEditor::onDidDestroy instead')
         when 'pane:active-item-changed'
           deprecate('Use Pane::onDidChangeActiveItem instead')
         when 'pane:active-item-modified-status-changed'
@@ -451,38 +451,38 @@ class WorkspaceView extends View
         when 'pane-container:active-pane-item-changed'
           deprecate('Use Workspace::onDidChangeActivePaneItem instead')
         when 'selection:changed'
-          deprecate('Use Editor::onDidChangeSelectionRange instead')
+          deprecate('Use TextEditor::onDidChangeSelectionRange instead')
         when 'uri-opened'
           deprecate('Use Workspace::onDidOpen instead')
       originalWorkspaceViewOn.apply(this, arguments)
 
-    EditorView = require './editor-view'
-    originalEditorViewOn = EditorView::on
-    EditorView::on = (eventName) ->
+    TextEditorView = require './text-editor-view'
+    originalEditorViewOn = TextEditorView::on
+    TextEditorView::on = (eventName) ->
       switch eventName
         when 'cursor:moved'
-          deprecate('Use Editor::onDidChangeCursorPosition instead')
+          deprecate('Use TextEditor::onDidChangeCursorPosition instead')
         when 'editor:attached'
-          deprecate('Use Editor::onDidAddTextEditor instead')
+          deprecate('Use TextEditor::onDidAddTextEditor instead')
         when 'editor:detached'
-          deprecate('Use Editor::onDidDestroy instead')
+          deprecate('Use TextEditor::onDidDestroy instead')
         when 'editor:will-be-removed'
-          deprecate('Use Editor::onDidDestroy instead')
+          deprecate('Use TextEditor::onDidDestroy instead')
         when 'selection:changed'
-          deprecate('Use Editor::onDidChangeSelectionRange instead')
+          deprecate('Use TextEditor::onDidChangeSelectionRange instead')
       originalEditorViewOn.apply(this, arguments)
 
     originalPaneViewOn = PaneView::on
     PaneView::on = (eventName) ->
       switch eventName
         when 'cursor:moved'
-          deprecate('Use Editor::onDidChangeCursorPosition instead')
+          deprecate('Use TextEditor::onDidChangeCursorPosition instead')
         when 'editor:attached'
-          deprecate('Use Editor::onDidAddTextEditor instead')
+          deprecate('Use TextEditor::onDidAddTextEditor instead')
         when 'editor:detached'
-          deprecate('Use Editor::onDidDestroy instead')
+          deprecate('Use TextEditor::onDidDestroy instead')
         when 'editor:will-be-removed'
-          deprecate('Use Editor::onDidDestroy instead')
+          deprecate('Use TextEditor::onDidDestroy instead')
         when 'pane:active-item-changed'
           deprecate('Use Pane::onDidChangeActiveItem instead')
         when 'pane:active-item-modified-status-changed'
@@ -504,7 +504,7 @@ class WorkspaceView extends View
         when 'pane:removed'
           deprecate('Use Pane::onDidDestroy instead')
         when 'selection:changed'
-          deprecate('Use Editor::onDidChangeSelectionRange instead')
+          deprecate('Use TextEditor::onDidChangeSelectionRange instead')
       originalPaneViewOn.apply(this, arguments)
 
   # Deprecated

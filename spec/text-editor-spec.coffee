@@ -1,7 +1,7 @@
 clipboard = require 'clipboard'
-Editor = require '../src/editor'
+TextEditor = require '../src/text-editor'
 
-describe "Editor", ->
+describe "TextEditor", ->
   [buffer, editor, lineLengths] = []
 
   convertToHardTabs = (buffer) ->
@@ -49,7 +49,7 @@ describe "Editor", ->
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
-      editor2 = Editor.deserialize(state)
+      editor2 = TextEditor.deserialize(state)
 
       expect(editor2.displayBuffer.invisibles.eol).toBe '?'
       expect(editor2.displayBuffer.tokenizedBuffer.invisibles.eol).toBe '?'
@@ -3263,6 +3263,9 @@ describe "Editor", ->
       runs ->
         expect(editor.softTabs).toBe false
 
+        atom.packages.deactivatePackage('language-coffee-script')
+        atom.packages.unloadPackage('language-coffee-script')
+
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
@@ -3669,7 +3672,7 @@ describe "Editor", ->
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
       TextBuffer = require 'text-buffer'
-      newEditor = new Editor
+      newEditor = new TextEditor
         buffer: new TextBuffer
         mini: true
         placeholderText: 'yep'

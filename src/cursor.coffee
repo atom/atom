@@ -7,7 +7,7 @@ Grim = require 'grim'
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
 #
-# Cursors belong to {Editor}s and have some metadata attached in the form
+# Cursors belong to {TextEditor}s and have some metadata attached in the form
 # of a {Marker}.
 module.exports =
 class Cursor extends Model
@@ -17,7 +17,7 @@ class Cursor extends Model
   visible: true
   needsAutoscroll: null
 
-  # Instantiated by an {Editor}
+  # Instantiated by an {TextEditor}
   constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
 
@@ -114,7 +114,7 @@ class Cursor extends Model
   #
   # * `screenPosition` {Array} of two numbers: the screen row, and the screen column.
   # * `options` (optional) {Object} with the following keys:
-  #   * `autoscroll` A Boolean which, if `true`, scrolls the {Editor} to wherever
+  #   * `autoscroll` A Boolean which, if `true`, scrolls the {TextEditor} to wherever
   #     the cursor moves to.
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
@@ -128,7 +128,7 @@ class Cursor extends Model
   #
   # * `bufferPosition` {Array} of two numbers: the buffer row, and the buffer column.
   # * `options` (optional) {Object} with the following keys:
-  #   * `autoscroll` A Boolean which, if `true`, scrolls the {Editor} to wherever
+  #   * `autoscroll` A Boolean which, if `true`, scrolls the {TextEditor} to wherever
   #     the cursor moves to.
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
@@ -232,7 +232,7 @@ class Cursor extends Model
     else
       bufferPosition.column > firstCharacterColumn
 
-  # Public: Identifies if this cursor is the last in the {Editor}.
+  # Public: Identifies if this cursor is the last in the {TextEditor}.
   #
   # "Last" is defined as the most recently added cursor.
   #

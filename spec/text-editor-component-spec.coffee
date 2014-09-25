@@ -1,11 +1,11 @@
 _ = require 'underscore-plus'
 {extend, flatten, toArray, last} = _
 
-EditorView = require '../src/editor-view'
-EditorComponent = require '../src/editor-component'
+TextEditorView = require '../src/text-editor-view'
+TextEditorComponent = require '../src/text-editor-component'
 nbsp = String.fromCharCode(160)
 
-describe "EditorComponent", ->
+describe "TextEditorComponent", ->
   [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, lineOverdrawMargin] = []
 
@@ -34,7 +34,7 @@ describe "EditorComponent", ->
       contentNode = document.querySelector('#jasmine-content')
       contentNode.style.width = '1000px'
 
-      wrapperView = new EditorView(editor, {lineOverdrawMargin})
+      wrapperView = new TextEditorView(editor, {lineOverdrawMargin})
       wrapperView.attachToDom()
       wrapperNode = wrapperView.element
 
@@ -1999,7 +1999,7 @@ describe "EditorComponent", ->
         hiddenParent.style.display = 'none'
         contentNode.appendChild(hiddenParent)
 
-        wrapperView = new EditorView(editor, {lineOverdrawMargin})
+        wrapperView = new TextEditorView(editor, {lineOverdrawMargin})
         wrapperNode = wrapperView.element
         wrapperView.appendTo(hiddenParent)
 

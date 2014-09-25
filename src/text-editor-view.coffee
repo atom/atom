@@ -2,24 +2,24 @@
 React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
-Editor = require './editor'
-EditorComponent = require './editor-component'
+TextEditor = require './text-editor'
+TextEditorComponent = require './text-editor-component'
 {deprecate} = require 'grim'
 
 # Public: Represents the entire visual pane in Atom.
 #
-# The EditorView manages the {Editor}, which manages the file buffers.
-# `EditorView` is intentionally sparse. Most of the things you'll want
-# to do are on {Editor}.
+# The TextEditorView manages the {TextEditor}, which manages the file buffers.
+# `TextEditorView` is intentionally sparse. Most of the things you'll want
+# to do are on {TextEditor}.
 #
 # ## Examples
 #
 # Requiring in packages
 #
 # ```coffee
-# {EditorView} = require 'atom'
+# {TextEditorView} = require 'atom'
 #
-# miniEditorView = new EditorView(mini: true)
+# miniEditorView = new TextEditorView(mini: true)
 # ```
 #
 # Iterating over the open editor views
@@ -36,7 +36,7 @@ EditorComponent = require './editor-component'
 #   console.log(editorView.getModel().getPath())
 # ```
 module.exports =
-class EditorView extends View
+class TextEditorView extends View
   @configDefaults:
     fontFamily: ''
     fontSize: 16
@@ -69,23 +69,23 @@ class EditorView extends View
 
   focusOnAttach: false
 
-  # The constructor for setting up an `EditorView` instance.
+  # The constructor for setting up an `TextEditorView` instance.
   #
-  # * `editorOrParams` Either an {Editor}, or an object with one property, `mini`.
-  #    If `mini` is `true`, a "miniature" `Editor` is constructed.
+  # * `editorOrParams` Either an {TextEditor}, or an object with one property, `mini`.
+  #    If `mini` is `true`, a "miniature" `TextEditor` is constructed.
   #    Typically, this is ideal for scenarios where you need an Atom editor,
   #    but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
   constructor: (editorOrParams, props) ->
     super
 
-    if editorOrParams instanceof Editor
+    if editorOrParams instanceof TextEditor
       @editor = editorOrParams
     else
       {@editor, mini, placeholderText} = editorOrParams
       props ?= {}
       props.mini = mini
-      @editor ?= new Editor
+      @editor ?= new TextEditor
         buffer: new TextBuffer
         softWrapped: false
         tabLength: 2
@@ -94,7 +94,7 @@ class EditorView extends View
         placeholderText: placeholderText
 
     props = defaults({@editor, parentView: this}, props)
-    @component = React.renderComponent(EditorComponent(props), @element)
+    @component = React.renderComponent(TextEditorComponent(props), @element)
 
     node = @component.getDOMNode()
 
@@ -128,7 +128,7 @@ class EditorView extends View
 
   # Public: Get the underlying editor model for this view.
   #
-  # Returns an {Editor}
+  # Returns an {TextEditor}
   getModel: -> @editor
 
   getEditor: -> @editor
@@ -171,27 +171,27 @@ class EditorView extends View
       @editor.getScrollLeft()
 
   scrollToBottom: ->
-    deprecate 'Use Editor::scrollToBottom instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::scrollToBottom instead. You can get the editor via editorView.getModel()'
     @editor.setScrollBottom(Infinity)
 
   scrollToScreenPosition: (screenPosition, options) ->
-    deprecate 'Use Editor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToScreenPosition(screenPosition, options)
 
   scrollToBufferPosition: (bufferPosition, options) ->
-    deprecate 'Use Editor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToBufferPosition(bufferPosition, options)
 
   scrollToCursorPosition: ->
-    deprecate 'Use Editor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
     @editor.scrollToCursorPosition()
 
   pixelPositionForBufferPosition: (bufferPosition) ->
-    deprecate 'Use Editor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
     @editor.pixelPositionForBufferPosition(bufferPosition)
 
   pixelPositionForScreenPosition: (screenPosition) ->
-    deprecate 'Use Editor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
     @editor.pixelPositionForScreenPosition(screenPosition)
 
   appendToLinesView: (view) ->
@@ -251,13 +251,13 @@ class EditorView extends View
     pane = @getPaneView()
     pane?.splitDown(pane?.copyActiveItem()).activeView
 
-  # Public: Get this {EditorView}'s {PaneView}.
+  # Public: Get this {TextEditorView}'s {PaneView}.
   #
   # Returns a {PaneView}
   getPaneView: ->
     @parent('.item-views').parents('.pane').view()
   getPane: ->
-    deprecate 'Use EditorView::getPaneView() instead'
+    deprecate 'Use TextEditorView::getPaneView() instead'
     @getPaneView()
 
   show: ->
@@ -277,11 +277,11 @@ class EditorView extends View
     @editor.pageUp()
 
   getFirstVisibleScreenRow: ->
-    deprecate 'Use Editor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
     @editor.getFirstVisibleScreenRow()
 
   getLastVisibleScreenRow: ->
-    deprecate 'Use Editor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
     @editor.getLastVisibleScreenRow()
 
   getFontFamily: ->
@@ -312,7 +312,7 @@ class EditorView extends View
     @component.setShowIndentGuide(showIndentGuide)
 
   setSoftWrap: (softWrapped) ->
-    deprecate 'Use Editor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
+    deprecate 'Use TextEditor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
     @editor.setSoftWrapped(softWrapped)
 
   setShowInvisibles: (showInvisibles) ->

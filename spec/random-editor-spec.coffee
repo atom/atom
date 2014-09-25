@@ -1,9 +1,9 @@
 {times, random} = require 'underscore-plus'
 randomWords = require 'random-words'
 TextBuffer = require 'text-buffer'
-Editor = require '../src/editor'
+TextEditor = require '../src/text-editor'
 
-describe "Editor", ->
+describe "TextEditor", ->
   [editor, tokenizedBuffer, buffer, steps, previousSteps] = []
 
   softWrapColumn = 80
@@ -17,7 +17,7 @@ describe "Editor", ->
 
     times 10, (i) ->
       buffer = new TextBuffer
-      editor = new Editor({buffer})
+      editor = new TextEditor({buffer})
       editor.setEditorWidthInChars(80)
       tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
       steps = []

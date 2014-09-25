@@ -1,11 +1,11 @@
-Editor = require '../src/editor'
+TextEditor = require '../src/text-editor'
 
 describe "Selection", ->
   [buffer, editor, selection] = []
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
-    editor = new Editor(buffer: buffer, tabLength: 2)
+    editor = new TextEditor(buffer: buffer, tabLength: 2)
     selection = editor.getLastSelection()
 
   afterEach ->

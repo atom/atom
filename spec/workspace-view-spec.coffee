@@ -2,7 +2,7 @@
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
-EditorView = require '../src/editor-view'
+TextEditorView = require '../src/text-editor-view'
 PaneView = require '../src/pane-view'
 Workspace = require '../src/workspace'
 
@@ -253,7 +253,7 @@ describe "WorkspaceView", ->
       editorViewCreatedHandler = jasmine.createSpy('editorViewCreatedHandler')
       atom.workspaceView.eachEditorView(editorViewCreatedHandler)
       editorViewCreatedHandler.reset()
-      miniEditor = new EditorView(mini: true)
+      miniEditor = new TextEditorView(mini: true)
       atom.workspaceView.append(miniEditor)
       expect(editorViewCreatedHandler).not.toHaveBeenCalled()
 

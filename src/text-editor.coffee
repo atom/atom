@@ -16,16 +16,16 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # Public: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
 # If you're manipulating the state of an editor, use this class. If you're
-# interested in the visual appearance of editors, use {EditorView} instead.
+# interested in the visual appearance of editors, use {TextEditorView} instead.
 #
 # A single {TextBuffer} can belong to multiple editors. For example, if the
 # same file is open in two different panes, Atom creates a separate editor for
 # each pane. If the buffer is manipulated the changes are reflected in both
 # editors, but each maintains its own cursor position, folded lines, etc.
 #
-# ## Accessing Editor Instances
+# ## Accessing TextEditor Instances
 #
-# The easiest way to get hold of `Editor` objects is by registering a callback
+# The easiest way to get hold of `TextEditor` objects is by registering a callback
 # with `::observeTextEditors` on the `atom.workspace` global. Your callback will
 # then be called with all current editor instances and also when any editor is
 # created in the future.
@@ -53,7 +53,7 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 # **When in doubt, just default to buffer coordinates**, then experiment with
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
-class Editor extends Model
+class TextEditor extends Model
   Serializable.includeInto(this)
   atom.deserializers.add(this)
   Delegator.includeInto(this)
@@ -163,7 +163,7 @@ class Editor extends Model
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
   getViewClass: ->
-    require './editor-view'
+    require './text-editor-view'
 
   destroyed: ->
     @unsubscribe()
@@ -426,57 +426,57 @@ class Editor extends Model
   on: (eventName) ->
     switch eventName
       when 'title-changed'
-        deprecate("Use Editor::onDidChangeTitle instead")
+        deprecate("Use TextEditor::onDidChangeTitle instead")
       when 'path-changed'
-        deprecate("Use Editor::onDidChangePath instead")
+        deprecate("Use TextEditor::onDidChangePath instead")
       when 'modified-status-changed'
-        deprecate("Use Editor::onDidChangeModified instead")
+        deprecate("Use TextEditor::onDidChangeModified instead")
       when 'soft-wrap-changed'
-        deprecate("Use Editor::onDidChangeSoftWrapped instead")
+        deprecate("Use TextEditor::onDidChangeSoftWrapped instead")
       when 'grammar-changed'
-        deprecate("Use Editor::onDidChangeGrammar instead")
+        deprecate("Use TextEditor::onDidChangeGrammar instead")
       when 'character-widths-changed'
-        deprecate("Use Editor::onDidChangeCharacterWidths instead")
+        deprecate("Use TextEditor::onDidChangeCharacterWidths instead")
       when 'contents-modified'
-        deprecate("Use Editor::onDidStopChanging instead")
+        deprecate("Use TextEditor::onDidStopChanging instead")
       when 'contents-conflicted'
-        deprecate("Use Editor::onDidConflict instead")
+        deprecate("Use TextEditor::onDidConflict instead")
 
       when 'will-insert-text'
-        deprecate("Use Editor::onWillInsertText instead")
+        deprecate("Use TextEditor::onWillInsertText instead")
       when 'did-insert-text'
-        deprecate("Use Editor::onDidInsertText instead")
+        deprecate("Use TextEditor::onDidInsertText instead")
 
       when 'cursor-added'
-        deprecate("Use Editor::onDidAddCursor instead")
+        deprecate("Use TextEditor::onDidAddCursor instead")
       when 'cursor-removed'
-        deprecate("Use Editor::onDidRemoveCursor instead")
+        deprecate("Use TextEditor::onDidRemoveCursor instead")
       when 'cursor-moved'
-        deprecate("Use Editor::onDidChangeCursorPosition instead")
+        deprecate("Use TextEditor::onDidChangeCursorPosition instead")
 
       when 'selection-added'
-        deprecate("Use Editor::onDidAddSelection instead")
+        deprecate("Use TextEditor::onDidAddSelection instead")
       when 'selection-removed'
-        deprecate("Use Editor::onDidRemoveSelection instead")
+        deprecate("Use TextEditor::onDidRemoveSelection instead")
       when 'selection-screen-range-changed'
-        deprecate("Use Editor::onDidChangeSelectionRange instead")
+        deprecate("Use TextEditor::onDidChangeSelectionRange instead")
 
       when 'decoration-added'
-        deprecate("Use Editor::onDidAddDecoration instead")
+        deprecate("Use TextEditor::onDidAddDecoration instead")
       when 'decoration-removed'
-        deprecate("Use Editor::onDidRemoveDecoration instead")
+        deprecate("Use TextEditor::onDidRemoveDecoration instead")
       when 'decoration-updated'
-        deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `Editor::decorateMarker()`")
+        deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `TextEditor::decorateMarker()`")
       when 'decoration-changed'
         deprecate("Use Marker::onDidChange instead. eg. `editor::decorateMarker(...).getMarker().onDidChange()`")
 
       when 'screen-lines-changed'
-        deprecate("Use Editor::onDidChange instead")
+        deprecate("Use TextEditor::onDidChange instead")
 
       when 'scroll-top-changed'
-        deprecate("Use Editor::onDidChangeScrollTop instead")
+        deprecate("Use TextEditor::onDidChangeScrollTop instead")
       when 'scroll-left-changed'
-        deprecate("Use Editor::onDidChangeScrollLeft instead")
+        deprecate("Use TextEditor::onDidChangeScrollLeft instead")
 
     EmitterMixin::on.apply(this, arguments)
 
@@ -486,12 +486,12 @@ class Editor extends Model
   # Retrieves the current buffer's URI.
   getUri: -> @buffer.getUri()
 
-  # Create an {Editor} with its initial state based on this object
+  # Create an {TextEditor} with its initial state based on this object
   copy: ->
     tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new Editor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
+    newEditor = new TextEditor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
@@ -507,7 +507,7 @@ class Editor extends Model
   # Set the number of characters that can be displayed horizontally in the
   # editor.
   #
-  # * `editorWidthInChars` A {Number} representing the width of the {EditorView}
+  # * `editorWidthInChars` A {Number} representing the width of the {TextEditorView}
   # in characters.
   setEditorWidthInChars: (editorWidthInChars) ->
     @displayBuffer.setEditorWidthInChars(editorWidthInChars)
@@ -615,7 +615,7 @@ class Editor extends Model
   # * `bufferRow` A {Number} representing a zero-indexed buffer row.
   lineTextForBufferRow: (bufferRow) -> @buffer.lineForRow(bufferRow)
   lineForBufferRow: (bufferRow) ->
-    deprecate 'Use Editor::lineTextForBufferRow(bufferRow) instead'
+    deprecate 'Use TextEditor::lineTextForBufferRow(bufferRow) instead'
     @lineTextForBufferRow(bufferRow)
 
   # Essential: Returns a {String} representing the contents of the line at the
@@ -631,13 +631,13 @@ class Editor extends Model
   # Returns {TokenizedLine}
   tokenizedLineForScreenRow: (screenRow) -> @displayBuffer.tokenizedLineForScreenRow(screenRow)
   lineForScreenRow: (screenRow) ->
-    deprecate "Editor::tokenizedLineForScreenRow(bufferRow) is the new name. But it's private. Try to use Editor::lineTextForScreenRow instead"
+    deprecate "TextEditor::tokenizedLineForScreenRow(bufferRow) is the new name. But it's private. Try to use TextEditor::lineTextForScreenRow instead"
     @tokenizedLineForScreenRow(screenRow)
 
   # {Delegates to: DisplayBuffer.tokenizedLinesForScreenRows}
   tokenizedLinesForScreenRows: (start, end) -> @displayBuffer.tokenizedLinesForScreenRows(start, end)
   linesForScreenRows: (start, end) ->
-    deprecate "Use Editor::tokenizedLinesForScreenRows instead"
+    deprecate "Use TextEditor::tokenizedLinesForScreenRows instead"
     @tokenizedLinesForScreenRows(start, end)
 
   # Returns a {Number} representing the line length for the given
@@ -889,7 +889,7 @@ class Editor extends Model
 
   # Deprecated: Use {::duplicateLines} instead.
   duplicateLine: ->
-    deprecate("Use Editor::duplicateLines() instead")
+    deprecate("Use TextEditor::duplicateLines() instead")
     @duplicateLines()
 
   replaceSelectedText: (options={}, fn) ->
@@ -1024,12 +1024,12 @@ class Editor extends Model
 
   # Deprecated: Use {::deleteToBeginningOfWord} instead.
   backspaceToBeginningOfWord: ->
-    deprecate("Use Editor::deleteToBeginningOfWord() instead")
+    deprecate("Use TextEditor::deleteToBeginningOfWord() instead")
     @deleteToBeginningOfWord()
 
   # Deprecated: Use {::deleteToBeginningOfLine} instead.
   backspaceToBeginningOfLine: ->
-    deprecate("Use Editor::deleteToBeginningOfLine() instead")
+    deprecate("Use TextEditor::deleteToBeginningOfLine() instead")
     @deleteToBeginningOfLine()
 
   ###
@@ -1075,7 +1075,7 @@ class Editor extends Model
   abortTransaction: -> @buffer.abortTransaction()
 
   ###
-  Section: Editor Coordinates
+  Section: TextEditor Coordinates
   ###
 
   # Essential: Convert a position in buffer-coordinates to screen-coordinates.
@@ -1438,7 +1438,7 @@ class Editor extends Model
   moveUp: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveUp(lineCount, moveToEndOfSelection: true)
   moveCursorUp: (lineCount) ->
-    deprecate("Use Editor::moveUp() instead")
+    deprecate("Use TextEditor::moveUp() instead")
     @moveUp(lineCount)
 
   # Essential: Move every cursor down one row in screen coordinates.
@@ -1447,7 +1447,7 @@ class Editor extends Model
   moveDown: (lineCount) ->
     @moveCursors (cursor) -> cursor.moveDown(lineCount, moveToEndOfSelection: true)
   moveCursorDown: (lineCount) ->
-    deprecate("Use Editor::moveDown() instead")
+    deprecate("Use TextEditor::moveDown() instead")
     @moveDown(lineCount)
 
   # Essential: Move every cursor left one column.
@@ -1456,7 +1456,7 @@ class Editor extends Model
   moveLeft: (columnCount) ->
     @moveCursors (cursor) -> cursor.moveLeft(columnCount, moveToEndOfSelection: true)
   moveCursorLeft: ->
-    deprecate("Use Editor::moveLeft() instead")
+    deprecate("Use TextEditor::moveLeft() instead")
     @moveLeft()
 
   # Essential: Move every cursor right one column.
@@ -1465,56 +1465,56 @@ class Editor extends Model
   moveRight: (columnCount) ->
     @moveCursors (cursor) -> cursor.moveRight(columnCount, moveToEndOfSelection: true)
   moveCursorRight: ->
-    deprecate("Use Editor::moveRight() instead")
+    deprecate("Use TextEditor::moveRight() instead")
     @moveRight()
 
   # Essential: Move every cursor to the beginning of its line in buffer coordinates.
   moveToBeginningOfLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
   moveCursorToBeginningOfLine: ->
-    deprecate("Use Editor::moveToBeginningOfLine() instead")
+    deprecate("Use TextEditor::moveToBeginningOfLine() instead")
     @moveToBeginningOfLine()
 
   # Essential: Move every cursor to the beginning of its line in screen coordinates.
   moveToBeginningOfScreenLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
   moveCursorToBeginningOfScreenLine: ->
-    deprecate("Use Editor::moveToBeginningOfScreenLine() instead")
+    deprecate("Use TextEditor::moveToBeginningOfScreenLine() instead")
     @moveToBeginningOfScreenLine()
 
   # Essential: Move every cursor to the first non-whitespace character of its line.
   moveToFirstCharacterOfLine: ->
     @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
   moveCursorToFirstCharacterOfLine: ->
-    deprecate("Use Editor::moveToFirstCharacterOfLine() instead")
+    deprecate("Use TextEditor::moveToFirstCharacterOfLine() instead")
     @moveToFirstCharacterOfLine()
 
   # Essential: Move every cursor to the end of its line in buffer coordinates.
   moveToEndOfLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfLine()
   moveCursorToEndOfLine: ->
-    deprecate("Use Editor::moveToEndOfLine() instead")
+    deprecate("Use TextEditor::moveToEndOfLine() instead")
     @moveToEndOfLine()
 
   # Essential: Move every cursor to the end of its line in screen coordinates.
   moveToEndOfScreenLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfScreenLine()
   moveCursorToEndOfScreenLine: ->
-    deprecate("Use Editor::moveToEndOfScreenLine() instead")
+    deprecate("Use TextEditor::moveToEndOfScreenLine() instead")
     @moveToEndOfScreenLine()
 
   # Essential: Move every cursor to the beginning of its surrounding word.
   moveToBeginningOfWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
   moveCursorToBeginningOfWord: ->
-    deprecate("Use Editor::moveToBeginningOfWord() instead")
+    deprecate("Use TextEditor::moveToBeginningOfWord() instead")
     @moveToBeginningOfWord()
 
   # Essential: Move every cursor to the end of its surrounding word.
   moveToEndOfWord: ->
     @moveCursors (cursor) -> cursor.moveToEndOfWord()
   moveCursorToEndOfWord: ->
-    deprecate("Use Editor::moveToEndOfWord() instead")
+    deprecate("Use TextEditor::moveToEndOfWord() instead")
     @moveToEndOfWord()
 
   # Cursor Extended
@@ -1525,7 +1525,7 @@ class Editor extends Model
   moveToTop: ->
     @moveCursors (cursor) -> cursor.moveToTop()
   moveCursorToTop: ->
-    deprecate("Use Editor::moveToTop() instead")
+    deprecate("Use TextEditor::moveToTop() instead")
     @moveToTop()
 
   # Extended: Move every cursor to the bottom of the buffer.
@@ -1534,42 +1534,42 @@ class Editor extends Model
   moveToBottom: ->
     @moveCursors (cursor) -> cursor.moveToBottom()
   moveCursorToBottom: ->
-    deprecate("Use Editor::moveToBottom() instead")
+    deprecate("Use TextEditor::moveToBottom() instead")
     @moveToBottom()
 
   # Extended: Move every cursor to the beginning of the next word.
   moveToBeginningOfNextWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextWord()
   moveCursorToBeginningOfNextWord: ->
-    deprecate("Use Editor::moveToBeginningOfNextWord() instead")
+    deprecate("Use TextEditor::moveToBeginningOfNextWord() instead")
     @moveToBeginningOfNextWord()
 
   # Extended: Move every cursor to the previous word boundary.
   moveToPreviousWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToPreviousWordBoundary()
   moveCursorToPreviousWordBoundary: ->
-    deprecate("Use Editor::moveToPreviousWordBoundary() instead")
+    deprecate("Use TextEditor::moveToPreviousWordBoundary() instead")
     @moveToPreviousWordBoundary()
 
   # Extended: Move every cursor to the next word boundary.
   moveToNextWordBoundary: ->
     @moveCursors (cursor) -> cursor.moveToNextWordBoundary()
   moveCursorToNextWordBoundary: ->
-    deprecate("Use Editor::moveToNextWordBoundary() instead")
+    deprecate("Use TextEditor::moveToNextWordBoundary() instead")
     @moveToNextWordBoundary()
 
   # Extended: Move every cursor to the beginning of the next paragraph.
   moveToBeginningOfNextParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
   moveCursorToBeginningOfNextParagraph: ->
-    deprecate("Use Editor::moveToBeginningOfNextParagraph() instead")
+    deprecate("Use TextEditor::moveToBeginningOfNextParagraph() instead")
     @moveToBeginningOfNextParagraph()
 
   # Extended: Move every cursor to the beginning of the previous paragraph.
   moveToBeginningOfPreviousParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfPreviousParagraph()
   moveCursorToBeginningOfPreviousParagraph: ->
-    deprecate("Use Editor::moveToBeginningOfPreviousParagraph() instead")
+    deprecate("Use TextEditor::moveToBeginningOfPreviousParagraph() instead")
     @moveToBeginningOfPreviousParagraph()
 
   # Extended: Returns the most recently added {Cursor}
@@ -1578,7 +1578,7 @@ class Editor extends Model
 
   # Deprecated:
   getCursor: ->
-    deprecate("Use Editor::getLastCursor() instead")
+    deprecate("Use TextEditor::getLastCursor() instead")
     @getLastCursor()
 
   # Extended: Returns the word surrounding the most recently added cursor.
@@ -1892,14 +1892,14 @@ class Editor extends Model
   selectLinesContainingCursors: ->
     @expandSelectionsForward (selection) -> selection.selectLine()
   selectLine: ->
-    deprecate('Use Editor::selectLinesContainingCursors instead')
+    deprecate('Use TextEditor::selectLinesContainingCursors instead')
     @selectLinesContainingCursors()
 
   # Essential: Select the word surrounding each cursor.
   selectWordsContainingCursors: ->
     @expandSelectionsForward (selection) -> selection.selectWord()
   selectWord: ->
-    deprecate('Use Editor::selectWordsContainingCursors instead')
+    deprecate('Use TextEditor::selectWordsContainingCursors instead')
     @selectWordsContainingCursors()
 
   # Selection Extended
@@ -1959,10 +1959,10 @@ class Editor extends Model
   # Deprecated:
   getSelection: (index) ->
     if index?
-      deprecate("Use Editor::getSelections()[index] instead when getting a specific selection")
+      deprecate("Use TextEditor::getSelections()[index] instead when getting a specific selection")
       @getSelections()[index]
     else
-      deprecate("Use Editor::getLastSelection() instead")
+      deprecate("Use TextEditor::getLastSelection() instead")
       @getLastSelection()
 
   # Extended: Get current {Selection}s.
@@ -2222,7 +2222,7 @@ class Editor extends Model
   # Returns a {Boolean}.
   isSoftWrapped: (softWrapped) -> @displayBuffer.isSoftWrapped()
   getSoftWrapped: ->
-    deprecate("Use Editor::isSoftWrapped instead")
+    deprecate("Use TextEditor::isSoftWrapped instead")
     @displayBuffer.isSoftWrapped()
 
   # Essential: Enable or disable soft wrapping for this editor.
@@ -2232,7 +2232,7 @@ class Editor extends Model
   # Returns a {Boolean}.
   setSoftWrapped: (softWrapped) -> @displayBuffer.setSoftWrapped(softWrapped)
   setSoftWrap: (softWrapped) ->
-    deprecate("Use Editor::setSoftWrapped instead")
+    deprecate("Use TextEditor::setSoftWrapped instead")
     @setSoftWrapped(softWrapped)
 
   # Essential: Toggle soft wrapping for this editor
@@ -2240,7 +2240,7 @@ class Editor extends Model
   # Returns a {Boolean}.
   toggleSoftWrapped: -> @setSoftWrapped(not @isSoftWrapped())
   toggleSoftWrap: ->
-    deprecate("Use Editor::toggleSoftWrapped instead")
+    deprecate("Use TextEditor::toggleSoftWrapped instead")
     @toggleSoftWrapped()
 
   # Public: Gets the column at which column will soft wrap
@@ -2354,7 +2354,7 @@ class Editor extends Model
   # Returns an {Array} of {String}s.
   scopesAtCursor: -> @getLastCursor().getScopes()
   getCursorScopes: ->
-    deprecate 'Use Editor::scopesAtCursor() instead'
+    deprecate 'Use TextEditor::scopesAtCursor() instead'
     @scopesAtCursor()
 
   # Essential: Get the syntactic scopes for the given position in buffer
@@ -2574,7 +2574,7 @@ class Editor extends Model
     @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
 
   ###
-  Section: Scrolling the Editor
+  Section: Scrolling the TextEditor
   ###
 
   # Essential: Scroll the editor to reveal the most recently added cursor if it is
@@ -2676,7 +2676,7 @@ class Editor extends Model
       @addSelection(marker)
 
   ###
-  Section: Editor Rendering
+  Section: TextEditor Rendering
   ###
 
   # Public: Retrieves the greyed out placeholder of a mini editor.
@@ -2783,7 +2783,7 @@ class Editor extends Model
 
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
-    deprecate("Use Editor::joinLines() instead")
+    deprecate("Use TextEditor::joinLines() instead")
     @joinLines()
 
   ###
@@ -2791,6 +2791,6 @@ class Editor extends Model
   ###
 
   inspect: ->
-    "<Editor #{@id}>"
+    "<TextEditor #{@id}>"
 
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
