@@ -33,8 +33,8 @@
       { label: '&Undo', command: 'core:undo' }
       { label: '&Redo', command: 'core:redo' }
       { type: 'separator' }
-      { label: '&Cut', command: 'core:cut' }
-      { label: 'C&opy', command: 'core:copy' }
+      { label: 'Cu&t', command: 'core:cut' }
+      { label: '&Copy', command: 'core:copy' }
       { label: 'Copy Pat&h', command: 'editor:copy-path' }
       { label: '&Paste', command: 'core:paste' }
       { label: 'Select &All', command: 'core:select-all' }
