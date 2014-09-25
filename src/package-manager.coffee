@@ -260,7 +260,7 @@ class PackageManager
     @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
-    @disabledPackagesSubscription ?= atom.config.observe 'core.disabledPackages', callNow: false, (disabledPackages, {previous}) =>
+    @disabledPackagesSubscription ?= atom.config.onDidChange 'core.disabledPackages', (disabledPackages, {previous}) =>
       packagesToEnable = _.difference(previous, disabledPackages)
       packagesToDisable = _.difference(disabledPackages, previous)
 

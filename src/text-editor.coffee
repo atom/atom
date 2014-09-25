@@ -113,8 +113,8 @@ class TextEditor extends Model
       @emit 'scroll-left-changed', scrollLeft
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
-    @subscribe atom.config.observe 'editor.showInvisibles', callNow: false, (show) => @updateInvisibles()
-    @subscribe atom.config.observe 'editor.invisibles', callNow: false, => @updateInvisibles()
+    @subscribe atom.config.onDidChange 'editor.showInvisibles', => @updateInvisibles()
+    @subscribe atom.config.onDidChange 'editor.invisibles', => @updateInvisibles()
 
     atom.workspace?.editorAdded(this) if registerEditor
 

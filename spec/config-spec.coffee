@@ -232,7 +232,7 @@ describe "Config", ->
 
     it "emits an updated event", ->
       updatedCallback = jasmine.createSpy('updated')
-      atom.config.observe('foo.bar.baz.a', callNow: false, updatedCallback)
+      atom.config.onDidChange('foo.bar.baz.a', updatedCallback)
       expect(updatedCallback.callCount).toBe 0
       atom.config.setDefaults("foo.bar.baz", a: 2)
       expect(updatedCallback.callCount).toBe 1
