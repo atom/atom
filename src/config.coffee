@@ -390,7 +390,8 @@ class Config
   # This value is stored in Atom's internal configuration file.
   #
   # * `keyPath` The {String} name of the key.
-  # * `value` The value of the setting.
+  # * `value` The value of the setting. Passing `undefined` will revert the
+  #   setting to the default value.
   #
   # Returns a {Boolean}
   # * `true` if the value was set.
@@ -672,8 +673,11 @@ Config.addSchemaValidators
 
   'string':
     coercion: (keyPath, value, schema) ->
-      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a string") if typeof value isnt 'string'
-      value
+      switch typeof value
+        when 'number', 'string'
+          value.toString()
+        else
+          throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a string or number")
 
   'null':
     # null sort of isnt supported. It will just unset in this case
