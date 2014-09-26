@@ -67,9 +67,9 @@ class WorkspaceView extends View
     destroyEmptyPanes: true
 
   constructor: (@element) ->
-    @element ?= atom.workspace.getView(atom.workspace)
+    unless @element?
+      return atom.workspace.getView(atom.workspace).__spacePenView
     super
-    @setModel(atom.workspace) unless @model?
     @deprecateViewEvents()
 
   setModel: (@model) ->
