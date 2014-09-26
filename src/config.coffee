@@ -469,15 +469,15 @@ class Config
   getInt: (keyPath) ->
     deprecate '''Config::getInt is no longer necessary. Use ::get instead.
     Make sure the config option you are accessing has specified an `integer`
-    schema. See the configuration section of
-    https://atom.io/docs/latest/creating-a-package for more info.'''
+    schema. See the schema section of
+    https://atom.io/docs/api/latest/Config for more info.'''
     parseInt(@get(keyPath))
 
   getPositiveInt: (keyPath, defaultValue=0) ->
     deprecate '''Config::getPositiveInt is no longer necessary. Use ::get instead.
     Make sure the config option you are accessing has specified an `integer`
-    schema with `minimum: 1`. See the configuration section of
-    https://atom.io/docs/latest/creating-a-package for more info.'''
+    schema with `minimum: 1`. See the schema section of
+    https://atom.io/docs/api/latest/Config for more info.'''
     Math.max(@getInt(keyPath), 0) or defaultValue
 
   toggle: (keyPath) ->
