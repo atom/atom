@@ -59,7 +59,7 @@ pathWatcher = require 'pathwatcher'
 #
 # ## Defining settings for your package
 #
-# Specify a schema under a `config` key in your package main.
+# Define a schema under a `config` key in your package main.
 #
 # ```coffee
 # module.exports =
@@ -79,7 +79,7 @@ pathWatcher = require 'pathwatcher'
 #
 # ## Config Schemas
 #
-# We use [json schema](json-schema.org) which allows you to specify your value, its
+# We use [json schema](json-schema.org) which allows you to define your value's
 # default, the type it should be, etc. A simple example:
 #
 # ```coffee
@@ -260,8 +260,8 @@ pathWatcher = require 'pathwatcher'
 #     default: 4
 # ```
 #
-# __Note__: You should strive to be so clear in your naming of the config
-# setting that you do not need to specify a title or description!
+# __Note__: You should strive to be so clear in your naming of the  setting that
+# you do not need to specify a title or description!
 #
 # ## Best practices
 #

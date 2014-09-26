@@ -338,7 +338,7 @@ module.exports =
   # ...
 ```
 
-To specify the configuration, we use [json schema][json-schema] which allows you
+To define the configuration, we use [json schema][json-schema] which allows you
 to indicate the type your value should be, its default, etc.
 
 See the [Config API Docs](https://atom.io/docs/api/latest/Config) for more
