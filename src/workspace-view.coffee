@@ -10,7 +10,6 @@ fs = require 'fs-plus'
 PaneView = require './pane-view'
 PaneContainerView = require './pane-container-view'
 Editor = require './editor'
-Workspace = require './workspace'
 
 # Extended: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
