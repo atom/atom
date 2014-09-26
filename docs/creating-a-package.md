@@ -323,9 +323,8 @@ extensions your grammar supports:
 
 ## Adding Configuration Settings
 
-You can support config options in your package that the user can edit in the
-settings view. So do this you specify a `config` key in your package main
-specifying the configuration.
+You can support config settings in your package that are editable in the
+settings view. Specify a `config` key in your package main:
 
 ```coffeescript
 module.exports =
@@ -340,7 +339,7 @@ module.exports =
 ```
 
 To specify the configuration, we use [json schema][json-schema] which allows you
-to specify your value, the type it should be, etc.
+to indicate the type your value should be, its default, etc.
 
 See the [Config API Docs](https://atom.io/docs/api/latest/Config) for more
 details specifying your configuration.
