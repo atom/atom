@@ -95,7 +95,8 @@ class TextEditorView extends View
         placeholderText: placeholderText
 
     props = defaults({@editor, parentView: this}, props)
-    @component = React.renderComponent(TextEditorComponent(props), @element)
+    @componentDescriptor = TextEditorComponent(props)
+    @component = React.renderComponent(@componentDescriptor, @element)
 
     node = @component.getDOMNode()
 
@@ -146,6 +147,7 @@ class TextEditorView extends View
     return unless onDom
     return if @attached
     @attached = true
+    @component = React.renderComponent(@componentDescriptor, @element) unless @component.isMounted()
     @component.checkForVisibilityChange()
 
     @focus() if @focusOnAttach
