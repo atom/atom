@@ -270,26 +270,27 @@ pathWatcher = require 'pathwatcher'
 module.exports =
 class Config
   EmitterMixin.includeInto(this)
-  @schemaValidators = {}
+  @schemaEnforcers = {}
 
-  @addSchemaValidator: (typeName, validatorFunction) ->
-    @schemaValidators[typeName] ?= []
-    @schemaValidators[typeName].push(validatorFunction)
+  @addSchemaEnforcer: (typeName, enforcerFunction) ->
+    @schemaEnforcers[typeName] ?= []
+    @schemaEnforcers[typeName].push(enforcerFunction)
 
-  @addSchemaValidators: (filters) ->
+  @addSchemaEnforcers: (filters) ->
     for typeName, functions of filters
-      for name, validatorFunction of functions
-        @addSchemaValidator(typeName, validatorFunction)
+      for name, enforcerFunction of functions
+        @addSchemaEnforcer(typeName, enforcerFunction)
 
-  @executeSchemaValidators: (keyPath, value, schema) ->
+  @executeSchemaEnforcers: (keyPath, value, schema) ->
     error = null
     types = schema.type
     types = [types] unless Array.isArray(types)
     for type in types
       try
-        filterFunctions = @schemaValidators[type].concat(@schemaValidators['*'])
-        for filter in filterFunctions
-          value = filter.call(this, keyPath, value, schema)
+        enforcerFunctions = @schemaEnforcers[type].concat(@schemaEnforcers['*'])
+        for enforcer in enforcerFunctions
+          # At some point in one's life, one must call upon an enforcer.
+          value = enforcer.call(this, keyPath, value, schema)
         error = null
         break
       catch e
@@ -399,7 +400,7 @@ class Config
   set: (keyPath, value) ->
     unless value == undefined
       try
-        value = @scrubValue(keyPath, value)
+        value = @makeValueConformToSchema(keyPath, value)
       catch e
         return false
 
@@ -580,7 +581,7 @@ class Config
         @setRecursive(keys.concat([key]).join('.'), childValue)
     else
       try
-        value = @scrubValue(keyPath, value)
+        value = @makeValueConformToSchema(keyPath, value)
         defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
         value = undefined if _.isEqual(defaultValue, value)
         _.setValueForKeyPath(@settings, keyPath, value)
@@ -631,19 +632,19 @@ class Config
       defaults[key] = @extractDefaultsFromSchema(value) for key, value of properties
       defaults
 
-  scrubValue: (keyPath, value) ->
-    value = @constructor.executeSchemaValidators(keyPath, value, schema) if schema = @getSchema(keyPath)
+  makeValueConformToSchema: (keyPath, value) ->
+    value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
     value
 
-# Base schema validators. These will coerce raw input into the specified type,
+# Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
 # will indicate that the value should not be set.
 #
-# Validators are run from most specific to least. For a schema with type
-# `integer`, all the validators for the `integer` type will be run first, in
-# order of specification. Then the `*` validators will be run, in order of
+# Enforcers are run from most specific to least. For a schema with type
+# `integer`, all the enforcers for the `integer` type will be run first, in
+# order of specification. Then the `*` enforcers will be run, in order of
 # specification.
-Config.addSchemaValidators
+Config.addSchemaEnforcers
   'integer':
     coercion: (keyPath, value, schema) ->
       value = parseInt(value)
@@ -694,7 +695,7 @@ Config.addSchemaValidators
       for prop, childSchema of schema.properties
         continue unless value.hasOwnProperty(prop)
         try
-          newValue[prop] = @executeSchemaValidators("#{keyPath}.#{prop}", value[prop], childSchema)
+          newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", value[prop], childSchema)
         catch error
           console.warn "Error setting item in object: #{error.message}"
       newValue
@@ -707,7 +708,7 @@ Config.addSchemaValidators
         newValue = []
         for item in value
           try
-            newValue.push @executeSchemaValidators(keyPath, item, itemSchema)
+            newValue.push @executeSchemaEnforcers(keyPath, item, itemSchema)
           catch error
             console.warn "Error setting item in array: #{error.message}"
         newValue
