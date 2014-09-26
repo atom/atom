@@ -357,7 +357,7 @@ $.fn.enableKeymap = ->
     not e.originalEvent.defaultPrevented
 
 $.fn.attachToDom = ->
-  @appendTo($('#jasmine-content'))
+  @appendTo($('#jasmine-content')) unless @isOnDom()
 
 $.fn.simulateDomAttachment = ->
   $('<html>').append(this)
