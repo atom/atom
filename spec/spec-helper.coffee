@@ -29,8 +29,8 @@ atom.keymaps.loadBundledKeymaps()
 keyBindingsToRestore = atom.keymaps.getKeyBindings()
 commandsToRestore = atom.commands.getSnapshot()
 
-$(window).on 'core:close', -> window.close()
-$(window).on 'beforeunload', ->
+window.addEventListener 'core:close', -> window.close()
+window.addEventListener 'beforeunload', ->
   atom.storeWindowDimensions()
   atom.saveSync()
 $('html,body').css('overflow', 'auto')
