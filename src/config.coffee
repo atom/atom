@@ -12,10 +12,10 @@ pathWatcher = require 'pathwatcher'
 #
 # An instance of this class is always available as the `atom.config` global.
 #
-# ## Getting and setting config settings
+# ## Getting and setting config settings. Note that with no value set, {::get}
+# returns the setting's default value.
 #
 # ```coffee
-# # With no value set, `::get` returns the setting's default value
 # atom.config.get('my-package.myKey') # -> 'defaultValue'
 #
 # atom.config.set('my-package.myKey', 'value')
@@ -244,7 +244,7 @@ pathWatcher = require 'pathwatcher'
 #
 # #### title and description
 #
-# The settings view will use the `title` and `description` keys display your
+# The settings view will use the `title` and `description` keys to display your
 # config setting in a readable way. By default the settings view humanizes your
 # config key, so `someSetting` becomes `Some Setting`. In some cases, this is
 # confusing for users, and a more descriptive title is useful.
@@ -260,7 +260,7 @@ pathWatcher = require 'pathwatcher'
 #     default: 4
 # ```
 #
-# __Note__: You should strive to be so clear in your naming of the  setting that
+# __Note__: You should strive to be so clear in your naming of the setting that
 # you do not need to specify a title or description!
 #
 # ## Best practices
