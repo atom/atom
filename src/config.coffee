@@ -646,19 +646,19 @@ class Config
 # specification.
 Config.addSchemaEnforcers
   'integer':
-    coercion: (keyPath, value, schema) ->
+    coerce: (keyPath, value, schema) ->
       value = parseInt(value)
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into an int") if isNaN(value) or not isFinite(value)
       value
 
   'number':
-    coercion: (keyPath, value, schema) ->
+    coerce: (keyPath, value, schema) ->
       value = parseFloat(value)
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a number") if isNaN(value) or not isFinite(value)
       value
 
   'boolean':
-    coercion: (keyPath, value, schema) ->
+    coerce: (keyPath, value, schema) ->
       switch typeof value
         when 'string'
           if value.toLowerCase() is 'true'
@@ -673,7 +673,7 @@ Config.addSchemaEnforcers
           throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
 
   'string':
-    coercion: (keyPath, value, schema) ->
+    coerce: (keyPath, value, schema) ->
       switch typeof value
         when 'number', 'string'
           value.toString()
@@ -682,12 +682,12 @@ Config.addSchemaEnforcers
 
   'null':
     # null sort of isnt supported. It will just unset in this case
-    coercion: (keyPath, value, schema) ->
+    coerce: (keyPath, value, schema) ->
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be null") unless value == null
       value
 
   'object':
-    coercion: (keyPath, value, schema) ->
+    coerce: (keyPath, value, schema) ->
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
       return value unless schema.properties?
 
@@ -701,7 +701,7 @@ Config.addSchemaEnforcers
       newValue
 
   'array':
-    coercion: (keyPath, value, schema) ->
+    coerce: (keyPath, value, schema) ->
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an array") unless Array.isArray(value)
       itemSchema = schema.items
       if itemSchema?
@@ -716,7 +716,7 @@ Config.addSchemaEnforcers
         value
 
   '*':
-    minimumAndMaximumCoercion: (keyPath, value, schema) ->
+    coerceMinimumAndMaximum: (keyPath, value, schema) ->
       return value unless typeof value is 'number'
       if schema.minimum? and typeof schema.minimum is 'number'
         value = Math.max(value, schema.minimum)
@@ -724,7 +724,7 @@ Config.addSchemaEnforcers
         value = Math.min(value, schema.maximum)
       value
 
-    enumValidation: (keyPath, value, schema) ->
+    validateEnum: (keyPath, value, schema) ->
       possibleValues = schema.enum
       return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
 
