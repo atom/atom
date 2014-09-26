@@ -385,7 +385,7 @@ describe "Config", ->
           """
           atom.config.loadUserConfig()
 
-        it "updates the config data based on the file contents", ->
+        it "updates the only the settings that have values matching the schema", ->
           expect(atom.config.get("foo.bar")).toBe 'baz'
           expect(atom.config.get("foo.int")).toBe 12
 
@@ -438,7 +438,7 @@ describe "Config", ->
           atom.config.set("hair", "blonde")
           expect(atom.config.save).toHaveBeenCalled()
 
-  describe "when there is a schema specified", ->
+  describe "when a schema is specified", ->
     schema = null
 
     describe '.setSchema(keyPath, schema)', ->
@@ -584,7 +584,7 @@ describe "Config", ->
           default: 'def'
         atom.config.setSchema('foo.bar', schema)
 
-      it 'can set a string, a boolean, and unset', ->
+      it 'can set a string, a boolean, and revert back to the default', ->
         atom.config.set('foo.bar', 'ok')
         expect(atom.config.get('foo.bar')).toBe 'ok'
 
@@ -653,7 +653,10 @@ describe "Config", ->
         atom.config.set('foo.bar.aBool', null)
         expect(atom.config.get('foo.bar.aBool')).toBe false
 
-        # unset
+      it 'reverts back to the default value when undefined is passed to set', ->
+        atom.config.set('foo.bar.aBool', 'false')
+        expect(atom.config.get('foo.bar.aBool')).toBe false
+
         atom.config.set('foo.bar.aBool', undefined)
         expect(atom.config.get('foo.bar.aBool')).toBe true
 
