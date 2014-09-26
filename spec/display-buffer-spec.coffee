@@ -1100,6 +1100,33 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.setScrollTop(maxScrollTop + 50)).toBe maxScrollTop
       expect(displayBuffer.getScrollTop()).toBe maxScrollTop
 
+  describe "editor.scrollPastEnd", ->
+    describe "when editor.scrollPastEnd is false", ->
+      beforeEach ->
+        atom.config.set("editor.scrollPastEnd", false)
+        displayBuffer.manageScrollPosition = true
+        displayBuffer.setLineHeightInPixels(10)
+
+      it "does not add the height of the view to the scroll height", ->
+        lineHeight = displayBuffer.getLineHeightInPixels()
+        originalScrollHeight = displayBuffer.getScrollHeight()
+        displayBuffer.setHeight(50)
+
+        expect(displayBuffer.getScrollHeight()).toBe originalScrollHeight
+
+    describe "when editor.scrollPastEnd is true", ->
+      beforeEach ->
+        atom.config.set("editor.scrollPastEnd", true)
+        displayBuffer.manageScrollPosition = true
+        displayBuffer.setLineHeightInPixels(10)
+
+      it "adds the height of the view to the scroll height", ->
+        lineHeight = displayBuffer.getLineHeightInPixels()
+        originalScrollHeight = displayBuffer.getScrollHeight()
+        displayBuffer.setHeight(50)
+
+        expect(displayBuffer.getScrollHeight()).toEqual(originalScrollHeight + displayBuffer.height - (lineHeight * 3))
+
   describe "::setScrollLeft", ->
     beforeEach ->
       displayBuffer.manageScrollPosition = true

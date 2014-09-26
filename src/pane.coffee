@@ -4,7 +4,7 @@
 Serializable = require 'serializable'
 Grim = require 'grim'
 PaneAxis = require './pane-axis'
-Editor = require './editor'
+TextEditor = require './text-editor'
 PaneView = null
 
 # Extended: A container for presenting content in the center of the workspace.
@@ -260,9 +260,9 @@ class Pane extends Model
       @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
 
-  # Return an {Editor} if the pane item is an {Editor}, or null otherwise.
+  # Return an {TextEditor} if the pane item is an {TextEditor}, or null otherwise.
   getActiveEditor: ->
-    @activeItem if @activeItem instanceof Editor
+    @activeItem if @activeItem instanceof TextEditor
 
   # Public: Return the item at the given index.
   #

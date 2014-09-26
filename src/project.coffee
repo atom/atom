@@ -11,7 +11,7 @@ Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 {Directory} = require 'pathwatcher'
 
-Editor = require './editor'
+TextEditor = require './text-editor'
 Task = require './task'
 GitRepository = require './git-repository'
 
@@ -232,12 +232,12 @@ class Project extends Model
   ###
 
   # Given a path to a file, this constructs and associates a new
-  # {Editor}, showing the file.
+  # {TextEditor}, showing the file.
   #
   # * `filePath` The {String} path of the file to associate with.
-  # * `options` Options that you can pass to the {Editor} constructor.
+  # * `options` Options that you can pass to the {TextEditor} constructor.
   #
-  # Returns a promise that resolves to an {Editor}.
+  # Returns a promise that resolves to an {TextEditor}.
   open: (filePath, options={}) ->
     filePath = @resolve(filePath)
     @bufferForPath(filePath).then (buffer) =>
@@ -330,7 +330,7 @@ class Project extends Model
     buffer?.destroy()
 
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new Editor(_.extend({buffer, registerEditor: true}, editorOptions))
+    editor = new TextEditor(_.extend({buffer, registerEditor: true}, editorOptions))
     editor
 
   eachBuffer: (args...) ->

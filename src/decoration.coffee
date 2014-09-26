@@ -12,7 +12,7 @@ nextId = -> idCounter++
 # around marked ranges of text.
 #
 # {Decoration} objects are not meant to be created directly, but created with
-# {Editor::decorateMarker}. eg.
+# {TextEditor::decorateMarker}. eg.
 #
 # ```coffee
 # range = editor.getSelectedBufferRange() # any range you like

@@ -8,9 +8,9 @@ class LanguageMode
   Emitter.includeInto(this)
   Subscriber.includeInto(this)
 
-  # Sets up a `LanguageMode` for the given {Editor}.
+  # Sets up a `LanguageMode` for the given {TextEditor}.
   #
-  # editor - The {Editor} to associate with
+  # editor - The {TextEditor} to associate with
   constructor: (@editor) ->
     {@buffer} = @editor
 
@@ -283,7 +283,7 @@ class LanguageMode
   # Given a buffer row, this indents it.
   #
   # bufferRow - The row {Number}.
-  # options - An options {Object} to pass through to {Editor::setIndentationForBufferRow}.
+  # options - An options {Object} to pass through to {TextEditor::setIndentationForBufferRow}.
   autoIndentBufferRow: (bufferRow, options) ->
     indentLevel = @suggestedIndentForBufferRow(bufferRow)
     @editor.setIndentationForBufferRow(bufferRow, indentLevel, options)

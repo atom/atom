@@ -4,7 +4,7 @@
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
-# Extended: Represents a selection in the {Editor}.
+# Extended: Represents a selection in the {TextEditor}.
 module.exports =
 class Selection extends Model
   cursor: null
@@ -93,7 +93,7 @@ class Selection extends Model
   # * `screenRange` The new {Range} to select.
   # * `options` (optional) {Object} with the keys:
   #   * `preserveFolds` if `true`, the fold settings are preserved after the selection moves.
-  #   * `autoscroll` if `true`, the {Editor} scrolls to the new selection.
+  #   * `autoscroll` if `true`, the {TextEditor} scrolls to the new selection.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
@@ -591,7 +591,7 @@ class Selection extends Model
   #
   # * `options` (optional) {Object} with the keys:
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
-  #     level. Otherwise, {Editor::getTabText} is inserted.
+  #     level. Otherwise, {TextEditor::getTabText} is inserted.
   indent: ({ autoIndent }={}) ->
     { row, column } = @cursor.getBufferPosition()
 

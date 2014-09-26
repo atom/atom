@@ -12,10 +12,10 @@ KeymapManager = require '../src/keymap-extensions'
 Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
-Editor = require '../src/editor'
-EditorView = require '../src/editor-view'
+TextEditor = require '../src/text-editor'
+TextEditorView = require '../src/text-editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
-EditorComponent = require '../src/editor-component'
+TextEditorComponent = require '../src/text-editor-component'
 pathwatcher = require 'pathwatcher'
 clipboard = require 'clipboard'
 
@@ -99,7 +99,7 @@ beforeEach ->
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.setDefaults('core', WorkspaceView.configDefaults)
-  config.setDefaults('editor', EditorView.configDefaults)
+  config.setDefaults('editor', TextEditorView.configDefaults)
   config.set "core.destroyEmptyPanes", false
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
@@ -110,14 +110,14 @@ beforeEach ->
   atom.config = config
 
   # make editor display updates synchronous
-  spyOn(EditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
-  EditorComponent.performSyncUpdates = true
+  spyOn(TextEditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
+  TextEditorComponent.performSyncUpdates = true
 
   spyOn(atom, "setRepresentedFilename")
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
-  spyOn(Editor.prototype, "shouldPromptToSave").andReturn false
+  spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 
   # make tokenization synchronous
   TokenizedBuffer.prototype.chunkSize = Infinity

@@ -215,7 +215,7 @@ class Atom extends Model
     @deserializers.add(TextBuffer)
     TokenizedBuffer = require './tokenized-buffer'
     DisplayBuffer = require './display-buffer'
-    Editor = require './editor'
+    TextEditor = require './text-editor'
 
     @windowEventHandler = new WindowEventHandler
 
@@ -468,7 +468,7 @@ class Atom extends Model
     dimensions = @restoreWindowDimensions()
     @config.load()
     @config.setDefaults('core', require('./workspace-view').configDefaults)
-    @config.setDefaults('editor', require('./editor-view').configDefaults)
+    @config.setDefaults('editor', require('./text-editor-view').configDefaults)
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()

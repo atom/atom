@@ -315,9 +315,14 @@ class DisplayBuffer extends Model
     @charWidthsByScope = {}
 
   getScrollHeight: ->
-    return 0 unless @getLineHeightInPixels() > 0
+    lineHeight = @getLineHeightInPixels()
+    return 0 unless lineHeight > 0
 
-    @getLineCount() * @getLineHeightInPixels()
+    scrollHeight = @getLineCount() * lineHeight
+    if @height? and atom.config.get('editor.scrollPastEnd')
+      scrollHeight = scrollHeight + @height - (lineHeight * 3)
+
+    scrollHeight
 
   getScrollWidth: ->
     @scrollWidth
