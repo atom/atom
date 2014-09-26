@@ -603,7 +603,7 @@ class Atom extends Model
     @deserializeWorkspaceView()
 
   loadConfig: ->
-    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-default-schema'))}
+    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-defaults'))}
     @config.load()
 
   loadThemes: ->
