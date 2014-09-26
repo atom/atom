@@ -59,6 +59,9 @@ jQuery.fn.destroyTooltip = ->
   requireBootstrapTooltip()
   @tooltip('destroy')
 
+jQuery.fn.view = ->
+  @[0]?.__spacePenView ? @data('view')
+
 # Hide tooltips when window is resized
 jQuery(document.body).on 'show.bs.tooltip', ({target}) ->
   windowHandler = -> jQuery(target).hideTooltip()
