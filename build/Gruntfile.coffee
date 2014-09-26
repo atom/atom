@@ -236,7 +236,6 @@ module.exports = (grunt) ->
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('test') if process.platform isnt 'linux'
   ciTasks.push('codesign')
-  ciTasks.push('create-installer') if process.platform is 'win32'
   ciTasks.push('publish-build')
   grunt.registerTask('ci', ciTasks)
 
