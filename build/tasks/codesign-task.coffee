@@ -1,4 +1,5 @@
 path = require 'path'
+fs = require 'fs-plus'
 
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
@@ -35,7 +36,11 @@ module.exports = (grunt) ->
           spawn {cmd, args}, (error) ->
             return callback(error) if error?
 
-            args = [path.join(grunt.config.get('atom.shellAppDir'), '..', 'Releases', 'setup.exe')]
-            spawn {cmd, args}, (error) -> callback(error)
+            setupExePath = path.join(grunt.config.get('atom.shellAppDir'), '..', 'Releases', 'setup.exe')
+            if fs.isFileSync(setupExePath)
+              args = [setupExePath]
+              spawn {cmd, args}, (error) -> callback(error)
+            else
+              callback()
       else
         callback()
