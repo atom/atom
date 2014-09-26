@@ -604,7 +604,7 @@ class Config
     @emitter.emit 'did-change'
 
   setSchema: (keyPath, schema) ->
-    unless typeof schema is "object"
+    unless isPlainObject(schema)
       throw new Error("Error loading schema for #{keyPath}: schemas can only be objects!")
 
     unless typeof schema.type?
