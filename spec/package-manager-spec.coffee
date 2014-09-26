@@ -461,6 +461,7 @@ describe "PackageManager", ->
       themeActivator = spyOn(atom.themes, 'activatePackages')
 
     afterEach ->
+      atom.packages.deactivatePackages()
       atom.packages.unloadPackages()
 
       Syntax = require '../src/syntax'

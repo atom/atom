@@ -15,8 +15,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-javascript')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-javascript')
-      atom.packages.unloadPackage('language-javascript')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe ".minIndentLevelForRowRange(startRow, endRow)", ->
       it "returns the minimum indent level for the given row range", ->
@@ -154,8 +154,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-coffee-script')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-coffee-script')
-      atom.packages.unloadPackage('language-coffee-script')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -209,8 +209,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-css')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-css')
-      atom.packages.unloadPackage('language-css')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -261,11 +261,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-css')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-less')
-      atom.packages.unloadPackage('language-less')
-
-      atom.packages.deactivatePackage('language-css')
-      atom.packages.unloadPackage('language-css')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe "when commenting lines", ->
       it "only uses the `commentEnd` pattern if it comes from the same grammar as the `commentStart`", ->
@@ -284,8 +281,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-xml')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-xml')
-      atom.packages.unloadPackage('language-xml')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe "when uncommenting lines", ->
       it "removes the leading whitespace from the comment end pattern match", ->
@@ -303,8 +300,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-javascript')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-javascript')
-      atom.packages.unloadPackage('language-javascript')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     it "maintains cursor buffer position when a folding/unfolding", ->
       editor.setCursorBufferPosition([5,5])
@@ -394,8 +391,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-javascript')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-javascript')
-      atom.packages.unloadPackage('language-javascript')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe ".unfoldAll()", ->
       it "unfolds every folded line", ->
@@ -467,11 +464,8 @@ describe "LanguageMode", ->
         atom.packages.activatePackage('language-css')
 
     afterEach ->
-      atom.packages.deactivatePackage('language-source')
-      atom.packages.unloadPackage('language-source')
-
-      atom.packages.deactivatePackage('language-css')
-      atom.packages.unloadPackage('language-css')
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe "suggestedIndentForBufferRow", ->
       it "does not return negative values (regression)", ->

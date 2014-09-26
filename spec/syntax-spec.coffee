@@ -17,17 +17,8 @@ describe "the `syntax` global", ->
       atom.packages.activatePackage('language-ruby')
 
   afterEach ->
-    atom.packages.deactivatePackage('language-text')
-    atom.packages.unloadPackage('language-text')
-
-    atom.packages.deactivatePackage('language-javascript')
-    atom.packages.unloadPackage('language-javascript')
-
-    atom.packages.deactivatePackage('language-coffee-script')
-    atom.packages.unloadPackage('language-coffee-script')
-
-    atom.packages.deactivatePackage('language-ruby')
-    atom.packages.unloadPackage('language-ruby')
+    atom.packages.deactivatePackages()
+    atom.packages.unloadPackages()
 
   describe "serialization", ->
     it "remembers grammar overrides by path", ->
