@@ -1660,7 +1660,7 @@ class TextEditor extends Model
 
   # Essential: Get the {Range}s of all selections in buffer coordinates.
   #
-  # The ranges are sorted by their position in the buffer.
+  # The ranges are sorted by when the selections were added. Most recent at the end.
   #
   # Returns an {Array} of {Range}s.
   getSelectedBufferRanges: ->
@@ -1706,7 +1706,7 @@ class TextEditor extends Model
 
   # Essential: Get the {Range}s of all selections in screen coordinates.
   #
-  # The ranges are sorted by their position in the buffer.
+  # The ranges are sorted by when the selections were added. Most recent at the end.
   #
   # Returns an {Array} of {Range}s.
   getSelectedScreenRanges: ->
