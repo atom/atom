@@ -27,6 +27,7 @@ class ContextMenuManager
     @add '.workspace': [{
       label: 'Inspect Element'
       command: 'application:inspect'
+      devMode: true
       created: (event) ->
         {pageX, pageY} = event
         @commandOptions = {x: pageX, y: pageY}
