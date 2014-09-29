@@ -27,9 +27,9 @@ class ContextMenuManager
     @add '.workspace': [{
       label: 'Inspect Element'
       command: 'application:inspect'
-      created: (item, event) ->
+      created: (event) ->
         {pageX, pageY} = event
-        item.commandOptions = {x: pageX, y: pageY}
+        @commandOptions = {x: pageX, y: pageY}
     }]
 
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
