@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 ipc = require 'ipc'
 CSON = require 'season'
 fs = require 'fs-plus'
+{Disposable} = require 'event-kit'
 
 # Extended: Provides a registry for menu items that you'd like to appear in the
 # application menu.
@@ -37,7 +38,11 @@ class MenuManager
   add: (items) ->
     @merge(@template, item) for item in items
     @update()
-    undefined
+    new Disposable => @remove(items)
+
+  remove: (items) ->
+    @unmerge(@template, item) for item in items
+    @update()
 
   # Should the binding for the given selector be included in the menu
   # commands.
@@ -96,11 +101,28 @@ class MenuManager
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
     item = _.deepClone(item)
+    matchingItem = @findMatchingItem(menu, item)
 
-    if item.submenu? and match = _.find(menu, ({label, submenu}) => submenu? and label and @normalizeLabel(label) is @normalizeLabel(item.label))
-      @merge(match.submenu, i) for i in item.submenu
+    if matchingItem? and item.submenu?
+      @merge(matchingItem.submenu, submenuItem) for submenuItem in item.submenu
     else
-      menu.push(item) unless _.find(menu, ({label}) => label and @normalizeLabel(label) is @normalizeLabel(item.label))
+      menu.push(item)
+
+  unmerge: (menu, item) ->
+    if matchingItem = @findMatchingItem(menu, item)
+      if item.submenu?
+        @unmerge(matchingItem.submenu, submenuItem) for submenuItem in item.submenu
+
+      unless matchingItem.submenu?.length > 0
+        menu.splice(menu.indexOf(matchingItem), 1)
+
+  # find an existing menu item matching the given item
+  findMatchingItem: (menu, {label, submenu}) ->
+    debugger unless menu?
+    for item in menu
+      if @normalizeLabel(item.label) is @normalizeLabel(label) and item.submenu? is submenu?
+        return item
+    null
 
   # OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
