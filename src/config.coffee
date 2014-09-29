@@ -333,11 +333,12 @@ class Config
       options = {}
     else
       message = ""
-      message = "`callNow` was set to false. Use ::onDidChange instead." if options.callNow == false
+      message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
       deprecate "Config::observe no longer supports options. #{message}"
 
     callback(_.clone(@get(keyPath))) unless options.callNow == false
-    @onDidChange(keyPath, callback)
+    @emitter.on 'did-change', (event) =>
+      callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
 
   # Essential: Add a listener for changes to a given key path.
   #
@@ -350,16 +351,12 @@ class Config
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
   onDidChange: (keyPath, callback) ->
-    value = @get(keyPath)
-    previousValue = _.clone(value)
-    updateCallback = =>
-      value = @get(keyPath)
-      unless _.isEqual(value, previousValue)
-        previous = previousValue
-        previousValue = _.clone(value)
-        callback(value, {previous})
+    if arguments.length is 1
+      callback = keyPath
+      keyPath = undefined
 
-    @emitter.on 'did-change', updateCallback
+    @emitter.on 'did-change', (event) =>
+      callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
 
   ###
   Section: Managing Settings
@@ -407,8 +404,11 @@ class Config
     if @get(keyPath) isnt value
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
       value = undefined if _.isEqual(defaultValue, value)
+
+      oldValue = _.clone(@get(keyPath))
       _.setValueForKeyPath(@settings, keyPath, value)
-      @update()
+      newValue = @get(keyPath)
+      @update({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
     true
 
   # Extended: Restore the key path to its default value.
@@ -560,11 +560,11 @@ class Config
     @watchSubscription?.close()
     @watchSubscription = null
 
-  update: ->
+  update: (event) ->
     return if @configFileHasErrors
     @save()
     @emit 'updated'
-    @emitter.emit 'did-change'
+    @emitter.emit 'did-change', event
 
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)

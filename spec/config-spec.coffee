@@ -48,7 +48,7 @@ describe "Config", ->
       atom.config.set("foo.bar.baz", 42)
 
       expect(atom.config.save).toHaveBeenCalled()
-      expect(observeHandler).toHaveBeenCalledWith 42, {previous: undefined}
+      expect(observeHandler).toHaveBeenCalledWith 42
 
     describe "when the value equals the default value", ->
       it "does not store the value", ->
@@ -139,7 +139,7 @@ describe "Config", ->
 
       expect(atom.config.pushAtKeyPath("foo.bar.baz", "b")).toBe 2
       expect(atom.config.get("foo.bar.baz")).toEqual ["a", "b"]
-      expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz"), {previous: ['a']}
+      expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz")
 
   describe ".unshiftAtKeyPath(keyPath, value)", ->
     it "unshifts the given value to the array at the key path and updates observers", ->
@@ -150,7 +150,7 @@ describe "Config", ->
 
       expect(atom.config.unshiftAtKeyPath("foo.bar.baz", "a")).toBe 2
       expect(atom.config.get("foo.bar.baz")).toEqual ["a", "b"]
-      expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz"), {previous: ['b']}
+      expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz")
 
   describe ".removeAtKeyPath(keyPath, value)", ->
     it "removes the given value from the array at the key path and updates observers", ->
@@ -161,7 +161,7 @@ describe "Config", ->
 
       expect(atom.config.removeAtKeyPath("foo.bar.baz", "b")).toEqual ["a", "c"]
       expect(atom.config.get("foo.bar.baz")).toEqual ["a", "c"]
-      expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz"), {previous: ['a', 'b', 'c']}
+      expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz")
 
   describe ".getPositiveInt(keyPath, defaultValue)", ->
     it "returns the proper coerced value", ->
@@ -240,22 +240,45 @@ describe "Config", ->
   describe ".onDidChange(keyPath)", ->
     [observeHandler, observeSubscription] = []
 
-    beforeEach ->
-      observeHandler = jasmine.createSpy("observeHandler")
-      atom.config.set("foo.bar.baz", "value 1")
-      observeSubscription = atom.config.onDidChange "foo.bar.baz", observeHandler
+    describe 'when a keyPath is specified', ->
+      beforeEach ->
+        observeHandler = jasmine.createSpy("observeHandler")
+        atom.config.set("foo.bar.baz", "value 1")
+        observeSubscription = atom.config.onDidChange "foo.bar.baz", observeHandler
 
-    it "does not fire the given callback with the current value at the keypath", ->
-      expect(observeHandler).not.toHaveBeenCalledWith("value 1")
+      it "does not fire the given callback with the current value at the keypath", ->
+        expect(observeHandler).not.toHaveBeenCalled()
 
-    it "fires the callback every time the observed value changes", ->
-      observeHandler.reset() # clear the initial call
-      atom.config.set('foo.bar.baz', "value 2")
-      expect(observeHandler).toHaveBeenCalledWith("value 2", {previous: 'value 1'})
-      observeHandler.reset()
+      it "fires the callback every time the observed value changes", ->
+        observeHandler.reset() # clear the initial call
+        atom.config.set('foo.bar.baz', "value 2")
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1', keyPath: 'foo.bar.baz'})
+        observeHandler.reset()
 
-      atom.config.set('foo.bar.baz', "value 1")
-      expect(observeHandler).toHaveBeenCalledWith("value 1", {previous: 'value 2'})
+        atom.config.set('foo.bar.baz', "value 1")
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2', keyPath: 'foo.bar.baz'})
+
+    describe 'when a keyPath is not specified', ->
+      beforeEach ->
+        observeHandler = jasmine.createSpy("observeHandler")
+        atom.config.set("foo.bar.baz", "value 1")
+        observeSubscription = atom.config.onDidChange observeHandler
+
+      it "does not fire the given callback initially", ->
+        expect(observeHandler).not.toHaveBeenCalled()
+
+      it "fires the callback every time any value changes", ->
+        observeHandler.reset() # clear the initial call
+        atom.config.set('foo.bar.baz', "value 2")
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1', keyPath: 'foo.bar.baz'})
+
+        observeHandler.reset()
+        atom.config.set('foo.bar.baz', "value 1")
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2', keyPath: 'foo.bar.baz'})
+
+        observeHandler.reset()
+        atom.config.set('foo.bar.int', 1)
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 1, oldValue: undefined, keyPath: 'foo.bar.int'})
 
   describe ".observe(keyPath)", ->
     [observeHandler, observeSubscription] = []
@@ -271,26 +294,25 @@ describe "Config", ->
     it "fires the callback every time the observed value changes", ->
       observeHandler.reset() # clear the initial call
       atom.config.set('foo.bar.baz', "value 2")
-      expect(observeHandler).toHaveBeenCalledWith("value 2", {previous: 'value 1'})
+      expect(observeHandler).toHaveBeenCalledWith("value 2")
       observeHandler.reset()
 
       atom.config.set('foo.bar.baz', "value 1")
-      expect(observeHandler).toHaveBeenCalledWith("value 1", {previous: 'value 2'})
+      expect(observeHandler).toHaveBeenCalledWith("value 1")
 
     it "fires the callback when the observed value is deleted", ->
       observeHandler.reset() # clear the initial call
       atom.config.set('foo.bar.baz', undefined)
-      expect(observeHandler).toHaveBeenCalledWith(undefined, {previous: 'value 1'})
+      expect(observeHandler).toHaveBeenCalledWith(undefined)
 
     it "fires the callback when the full key path goes into and out of existence", ->
       observeHandler.reset() # clear the initial call
       atom.config.set("foo.bar", undefined)
+      expect(observeHandler).toHaveBeenCalledWith(undefined)
 
-      expect(observeHandler).toHaveBeenCalledWith(undefined, {previous: 'value 1'})
       observeHandler.reset()
-
       atom.config.set("foo.bar.baz", "i'm back")
-      expect(observeHandler).toHaveBeenCalledWith("i'm back", {previous: undefined})
+      expect(observeHandler).toHaveBeenCalledWith("i'm back")
 
     it "does not fire the callback once the observe subscription is off'ed", ->
       observeHandler.reset() # clear the initial call
