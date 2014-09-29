@@ -6,6 +6,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {specificity} = require 'clear-cut'
 {Disposable} = require 'event-kit'
+Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
 
 SpecificityCache = {}
@@ -85,6 +86,7 @@ class ContextMenuManager
   #     * `event` The click event that deployed the context menu.
   add: (items) ->
     unless typeof arguments[0] is 'object'
+      Grim.deprecate("ContextMenuManage::add has changed to take a single object as its argument. Please consult the documentation.")
       legacyItems = arguments[1]
       devMode = arguments[2]?.devMode
       return @add(@convertLegacyItems(legacyItems, devMode))
