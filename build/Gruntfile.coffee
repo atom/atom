@@ -234,9 +234,8 @@ module.exports = (grunt) ->
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint')
   ciTasks.push('mkdeb') if process.platform is 'linux'
-  ciTasks.push('test') if process.platform isnt 'linux'
+  ciTasks.push('test') if process.platform is 'darwin'
   ciTasks.push('codesign')
-  ciTasks.push('create-installer') if process.platform is 'win32'
   ciTasks.push('publish-build')
   grunt.registerTask('ci', ciTasks)
 

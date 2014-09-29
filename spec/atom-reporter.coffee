@@ -76,6 +76,9 @@ class AtomReporter extends View
     @addSpecs(specs)
     $(document.body).append this
 
+    @on 'click', '.stack-trace', ->
+      $(this).toggleClass('expanded')
+
   reportRunnerResults: (runner) ->
     @updateSpecCounts()
     @status.addClass('alert-success').removeClass('alert-info') if @failedCount is 0

@@ -2259,6 +2259,11 @@ describe "TextEditorComponent", ->
       editor.setGrammar(atom.syntax.nullGrammar)
       expect(wrapperNode.dataset.grammar).toBe 'text plain null-grammar'
 
+  describe "detaching and reattaching the editor (regression)", ->
+    it "does not throw an exception", ->
+      wrapperView.detach()
+      wrapperView.attachToDom()
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     properties.detail ?= 1
