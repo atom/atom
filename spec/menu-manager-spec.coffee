@@ -7,7 +7,7 @@ describe "MenuManager", ->
       disposable.dispose()
       expect(atom.menu.template.length).toBe originalItemCount
 
-    it "can submenu items to existing menus that can be removed with the returned disposable", ->
+    it "can add submenu items to existing menus that can be removed with the returned disposable", ->
       originalItemCount = atom.menu.template.length
       disposable1 = atom.menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
       disposable2 = atom.menu.add [{label: "A", submenu: [{label: "C", submenu: [{label: "D", command: 'd'}]}]}]
