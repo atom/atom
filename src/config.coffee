@@ -322,8 +322,6 @@ class Config
   # * `keyPath` {String} name of the key to observe
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
-  #   * `event` {Object}
-  #     * `previous` the prior value of the key.
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
@@ -340,13 +338,15 @@ class Config
     @emitter.on 'did-change', (event) =>
       callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
 
-  # Essential: Add a listener for changes to a given key path.
+  # Essential: Add a listener for changes to a given key path. If `keyPath` is
+  # not specified, your callback will be called on changes to any key.
   #
-  # * `keyPath` {String} name of the key to observe
+  # * `keyPath` (optional) {String} name of the key to observe
   # * `callback` {Function} to call when the value of the key changes.
-  #   * `value` the new value of the key
   #   * `event` {Object}
-  #     * `previous` the prior value of the key.
+  #     * `newValue` the new value of the key
+  #     * `oldValue` the prior value of the key.
+  #     * `keyPath` the keyPath of the changed key
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
