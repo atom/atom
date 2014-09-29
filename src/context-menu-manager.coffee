@@ -82,7 +82,9 @@ class ContextMenuManager
       for {items} in matchingItemSets
         for item in items
           continue if item.devMode and not @devMode
-          item = _.clone(item)
+          item = Object.create(item)
+          if typeof item.shouldDisplay is 'function'
+            continue unless item.shouldDisplay(event)
           item.created?(event)
           templateItem = _.pick(item, 'type', 'label', 'command', 'submenu', 'commandOptions')
           MenuHelpers.merge(template, templateItem)

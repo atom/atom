@@ -122,17 +122,24 @@ describe "ContextMenuManager", ->
       expect(item.command).toBe 'a' # doesn't modify original item template
       expect(createdEvent).toBe dispatchedEvent
 
-  describe "executeBuildHandlers", ->
-    menuTemplate = [
-        label: 'label'
-        executeAtBuild: ->
-      ]
-    event =
-      target: null
+    it "allows items to be associated with `shouldDisplay` hooks which are invoked on construction to determine whether the item should be included", ->
+      shouldDisplayEvent = null
+      shouldDisplay = true
 
-    it 'should invoke the executeAtBuild fn', ->
-      buildFn = spyOn(menuTemplate[0], 'executeAtBuild')
-      contextMenu.executeBuildHandlers(event, menuTemplate)
+      item = {
+        label: 'A',
+        command: 'a',
+        shouldDisplay: (event) ->
+          @foo = 'bar'
+          shouldDisplayEvent = event
+          shouldDisplay
+      }
+      contextMenu.add('.grandchild': [item])
 
-      expect(buildFn).toHaveBeenCalled()
-      expect(buildFn.mostRecentCall.args[0]).toBe event
+      dispatchedEvent = {target: grandchild}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual [{label: 'A', command: 'a'}]
+      expect(item.foo).toBeUndefined() # doesn't modify original item template
+      expect(shouldDisplayEvent).toBe dispatchedEvent
+
+      shouldDisplay = false
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual []
