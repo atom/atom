@@ -35,6 +35,9 @@ class MenuManager
   #   * `submenu` An optional {Array} of sub menu items.
   #   * `command` An optional {String} command to trigger when the item is
   #     clicked.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # added menu items.
   add: (items) ->
     @merge(@template, item) for item in items
     @update()
