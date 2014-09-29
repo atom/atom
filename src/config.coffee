@@ -556,14 +556,13 @@ class Config
     CSON.writeFileSync(@configFilePath, @settings)
 
   setRawValue: (keyPath, value) ->
-    if @get(keyPath) isnt value
-      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
-      value = undefined if _.isEqual(defaultValue, value)
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+    value = undefined if _.isEqual(defaultValue, value)
 
-      oldValue = _.clone(@get(keyPath))
-      _.setValueForKeyPath(@settings, keyPath, value)
-      newValue = @get(keyPath)
-      @emitter.emit 'did-change', {oldValue, newValue, keyPath}
+    oldValue = _.clone(@get(keyPath))
+    _.setValueForKeyPath(@settings, keyPath, value)
+    newValue = @get(keyPath)
+    @emitter.emit 'did-change', {oldValue, newValue, keyPath} if newValue isnt oldValue
 
   setRawDefault: (keyPath, value) ->
     oldValue = _.clone(@get(keyPath))
