@@ -39,14 +39,50 @@ class ContextMenuManager
     map = CSON.readFileSync(platformMenuPath)
     atom.contextMenu.add(platformMenuPath, map['context-menu'])
 
-  # Public: Creates menu definitions from the object specified by the menu
-  # JSON API.
+  # Public: Add context menu items scoped by CSS selectors.
   #
-  # * `name` The path of the file that contains the menu definitions.
-  # * `object` The 'context-menu' object specified in the menu JSON API.
-  # * `options` An optional {Object} with the following keys:
-  #   * `devMode` Determines whether the entries should only be shown when
-  #     the window is in dev mode.
+  # ## Examples
+  #
+  # To add a context menu, pass a selector matching the elements to which you
+  # want the menu to apply as the top level key, followed by a menu descriptor.
+  # The invocation below adds a global 'Help' context menu item and a 'History'
+  # submenu on the editor supporting undo/redo. This is just for example
+  # purposes and not the way the menu is actually configured in Atom by default.
+  #
+  # ```coffee
+  # atom.contextMenu.add {
+  #   '.workspace': [{label: 'Help', command: 'application:open-documentation'}]
+  #   '.editor':    [{
+  #     label: 'History',
+  #     submenu: [
+  #       {label: 'Undo': command:'core:undo'}
+  #       {label: 'Redo': command:'core:redo'}
+  #     ]
+  #   }]
+  # }
+  # ```
+  #
+  # ## Arguments
+  #
+  # * `items` An {Object} whose keys are CSS selectors and whose values are
+  #   {Array}s of item {Object}s containing the following keys:
+  #   * `label` (Optional) A {String} containing the menu item's label.
+  #   * `command` (Optional) A {String} containing the command to invoke on the
+  #     target of the right click that invoked the context menu.
+  #   * `submenu` (Optional) An {Array} of additional items.
+  #   * `type` (Optional) If you want to create a separator, provide an item
+  #      with `type: 'separator'` and no other keys.
+  #   * `created` (Optional) A {Function} that is called on the item each time a
+  #     context menu is created via a right click. You can assign properties to
+  #    `this` to dynamically compute the command, label, etc. This method is
+  #    actually called on a clone of the original item template to prevent state
+  #    from leaking across context menu deployments. Called with the following
+  #    argument:
+  #     * `event` The click event that deployed the context menu.
+  #   * `shouldDisplay` (Optional) A {Function} that is called to determine
+  #     whether to display this item on a given context menu deployment. Called
+  #     with the following argument:
+  #     * `event` The click event that deployed the context menu.
   add: (items) ->
     unless typeof arguments[0] is 'object'
       legacyItems = arguments[1]
