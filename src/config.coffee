@@ -401,14 +401,8 @@ class Config
       catch e
         return false
 
-    if @get(keyPath) isnt value
-      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
-      value = undefined if _.isEqual(defaultValue, value)
-
-      oldValue = _.clone(@get(keyPath))
-      _.setValueForKeyPath(@settings, keyPath, value)
-      newValue = @get(keyPath)
-      @update({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
+    @setRawValue(keyPath, value)
+    @save() unless @configFileHasErrors
     true
 
   # Extended: Restore the key path to its default value.
@@ -539,10 +533,8 @@ class Config
 
     try
       userConfig = CSON.readFileSync(@configFilePath)
-      @setAllRecursive(userConfig)
+      @setRecursive(null, userConfig)
       @configFileHasErrors = false
-      @emit 'updated'
-      @emitter.emit 'did-change'
     catch error
       @configFileHasErrors = true
       console.error "Failed to load user config '#{@configFilePath}'", error.message
@@ -560,49 +552,52 @@ class Config
     @watchSubscription?.close()
     @watchSubscription = null
 
-  update: (event) ->
-    return if @configFileHasErrors
-    @save()
-    @emit 'updated'
-    @emitter.emit 'did-change', event
-
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
 
-  setAllRecursive: (value) ->
-    @setRecursive(key, childValue) for key, childValue of value
-    return
+  setRawValue: (keyPath, value) ->
+    if @get(keyPath) isnt value
+      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+      value = undefined if _.isEqual(defaultValue, value)
+
+      oldValue = _.clone(@get(keyPath))
+      _.setValueForKeyPath(@settings, keyPath, value)
+      newValue = @get(keyPath)
+      @emitter.emit 'did-change', {oldValue, newValue, keyPath}
+
+  setRawDefault: (keyPath, value) ->
+    oldValue = _.clone(@get(keyPath))
+    _.setValueForKeyPath(@defaultSettings, keyPath, value)
+    newValue = @get(keyPath)
+    @emitter.emit 'did-change', {oldValue, newValue, keyPath} if newValue isnt oldValue
 
   setRecursive: (keyPath, value) ->
     if value? and isPlainObject(value)
-      keys = keyPath.split('.')
+      keys = if keyPath? then keyPath.split('.') else []
       for key, childValue of value
         continue unless value.hasOwnProperty(key)
         @setRecursive(keys.concat([key]).join('.'), childValue)
     else
       try
         value = @makeValueConformToSchema(keyPath, value)
-        defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
-        value = undefined if _.isEqual(defaultValue, value)
-        _.setValueForKeyPath(@settings, keyPath, value)
+        @setRawValue(keyPath, value)
       catch e
         console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
     return
 
   setDefaults: (keyPath, defaults) ->
-    unless isPlainObject(defaults)
-      return _.setValueForKeyPath(@defaultSettings, keyPath, defaults)
-
-    hash = @defaultSettings
-    if keyPath
-      for key in keyPath.split('.')
-        hash[key] ?= {}
-        hash = hash[key]
-
-    _.extend hash, defaults
-    @emit 'updated'
-    @emitter.emit 'did-change'
+    if defaults? and isPlainObject(defaults)
+      keys = if keyPath? then keyPath.split('.') else []
+      for key, childValue of defaults
+        continue unless defaults.hasOwnProperty(key)
+        @setDefaults(keys.concat([key]).join('.'), childValue)
+    else
+      try
+        defaults = @makeValueConformToSchema(keyPath, defaults)
+        @setRawDefault(keyPath, defaults)
+      catch e
+        console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
   setSchema: (keyPath, schema) ->
     unless isPlainObject(schema)
