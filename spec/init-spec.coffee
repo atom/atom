@@ -116,7 +116,7 @@ describe "apm init", ->
             @syntax-gutter-text-color: #080808;
             @syntax-gutter-text-color-selected: #080808;
             @syntax-gutter-background-color: #F5F5F5;
-            @syntax-gutter-background-color-selected: rgba(92, 108, 125, 0.07);
+            @syntax-gutter-background-color-selected: rgba(0, 108, 125, 0.07);
           """
           expect(fs.readFileSync(path.join(themePath, 'stylesheets', 'base.less'), 'utf8')).toContain """
             @import "syntax-variables";

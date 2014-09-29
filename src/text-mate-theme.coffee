@@ -152,16 +152,24 @@ class TextMateTheme
     properties
 
   translateColor: (textmateColor) ->
+    textmateColor = "##{textmateColor.replace(/^#+/, '')}"
     if textmateColor.length <= 7
       textmateColor
     else
-      r = parseInt(textmateColor[1..2], 16)
-      g = parseInt(textmateColor[3..4], 16)
-      b = parseInt(textmateColor[5..6], 16)
-      a = parseInt(textmateColor[7..8], 16)
+      r = @parseHexColor(textmateColor[1..2])
+      g = @parseHexColor(textmateColor[3..4])
+      b = @parseHexColor(textmateColor[5..6])
+      a = @parseHexColor(textmateColor[7..8])
       a = Math.round((a / 255.0) * 100) / 100
 
       "rgba(#{r}, #{g}, #{b}, #{a})"
+
+  parseHexColor: (color) ->
+    parsed = Math.min(255, Math.max(0, parseInt(color, 16)))
+    if isNaN(parsed)
+      0
+    else
+      parsed
 
 SyntaxVariablesTemplate = """
   // This defines all syntax variables that syntax themes must implement when they

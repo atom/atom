@@ -12,15 +12,15 @@
 			<key>settings</key>
 			<dict>
 				<key>background</key>
-				<string>#F5F5F5</string>
+				<string>##F5F5F5</string>
 				<key>caret</key>
 				<string>#000000</string>
 				<key>foreground</key>
-				<string>#080808</string>
+				<string>080808</string>
 				<key>invisibles</key>
 				<string>#4B4B7E80</string>
 				<key>lineHighlight</key>
-				<string>#5C6C7D12</string>
+				<string>##GG6C7D12</string>
 				<key>selection</key>
 				<string>#7496CF4D</string>
 			</dict>
