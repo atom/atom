@@ -163,7 +163,7 @@ class Package
 
   activateResources: ->
     atom.keymaps.add(keymapPath, map) for [keymapPath, map] in @keymaps
-    atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
+    atom.contextMenu.add(map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
 
     unless @grammarsActivated

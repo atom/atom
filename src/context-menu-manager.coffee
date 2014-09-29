@@ -65,8 +65,8 @@ class ContextMenuManager
   #
   # ## Arguments
   #
-  # * `items` An {Object} whose keys are CSS selectors and whose values are
-  #   {Array}s of item {Object}s containing the following keys:
+  # * `itemsBySelector` An {Object} whose keys are CSS selectors and whose
+  #   values are {Array}s of item {Object}s containing the following keys:
   #   * `label` (Optional) A {String} containing the menu item's label.
   #   * `command` (Optional) A {String} containing the command to invoke on the
   #     target of the right click that invoked the context menu.
@@ -84,15 +84,19 @@ class ContextMenuManager
   #     whether to display this item on a given context menu deployment. Called
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
-  add: (items) ->
-    unless typeof arguments[0] is 'object'
+  add: (itemsBySelector) ->
+    # Detect deprecated file path as first argument
+    unless typeof itemsBySelector is 'object'
       Grim.deprecate("ContextMenuManage::add has changed to take a single object as its argument. Please consult the documentation.")
-      legacyItems = arguments[1]
+      itemsBySelector = arguments[1]
       devMode = arguments[2]?.devMode
-      return @add(@convertLegacyItems(legacyItems, devMode))
 
-    itemsBySelector = arguments[0]
-    devMode = arguments[1]?.devMode ? false
+    # Detect deprecated format for items object
+    for key, value of itemsBySelector
+      unless _.isArray(value)
+        Grim.deprecate("The format for declaring context menu items has changed. Please consult the documentation.")
+        itemsBySelector = @convertLegacyItems(itemsBySelector, devMode)
+
     addedItemSets = []
 
     for selector, items of itemsBySelector
