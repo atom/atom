@@ -139,7 +139,7 @@ class Workspace extends Model
     if projectPath = atom.project?.getPath()
       if item = @getActivePaneItem()
         document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
-        atom.setRepresentedFilename(item.getPath?())
+        atom.setRepresentedFilename(item.getPath?() ? projectPath)
       else
         document.title = projectPath
         atom.setRepresentedFilename(projectPath)
