@@ -15,11 +15,12 @@ unmerge = (menu, item) ->
     unless matchingItem.submenu?.length > 0
       menu.splice(menu.indexOf(matchingItem), 1)
 
-findMatchingItem = (menu, {label, submenu}) ->
+findMatchingItem = (menu, {type, label, submenu}) ->
+  return if type is 'separator'
   for item in menu
     if normalizeLabel(item.label) is normalizeLabel(label) and item.submenu? is submenu?
       return item
-  null
+  return
 
 normalizeLabel = (label) ->
   return undefined unless label?
