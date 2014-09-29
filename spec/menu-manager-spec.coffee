@@ -1,43 +1,48 @@
+MenuManager = require '../src/menu-manager'
+
 describe "MenuManager", ->
+  menu = null
+
+  beforeEach ->
+    menu = new MenuManager(resourcePath: atom.getLoadSettings().resourcePath)
+
   describe "::add(items)", ->
     it "can add new menus that can be removed with the returned disposable", ->
-      originalItemCount = atom.menu.template.length
-      disposable = atom.menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
-      expect(atom.menu.template[originalItemCount]).toEqual {label: "A", submenu: [{label: "B", command: "b"}]}
+      disposable = menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      expect(menu.template).toEqual [{label: "A", submenu: [{label: "B", command: "b"}]}]
       disposable.dispose()
-      expect(atom.menu.template.length).toBe originalItemCount
+      expect(menu.template).toEqual []
 
     it "can add submenu items to existing menus that can be removed with the returned disposable", ->
-      originalItemCount = atom.menu.template.length
-      disposable1 = atom.menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
-      disposable2 = atom.menu.add [{label: "A", submenu: [{label: "C", submenu: [{label: "D", command: 'd'}]}]}]
-      disposable3 = atom.menu.add [{label: "A", submenu: [{label: "C", submenu: [{label: "E", command: 'e'}]}]}]
+      disposable1 = menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      disposable2 = menu.add [{label: "A", submenu: [{label: "C", submenu: [{label: "D", command: 'd'}]}]}]
+      disposable3 = menu.add [{label: "A", submenu: [{label: "C", submenu: [{label: "E", command: 'e'}]}]}]
 
-      expect(atom.menu.template[originalItemCount]).toEqual {
+      expect(menu.template).toEqual [{
         label: "A",
         submenu: [
           {label: "B", command: "b"},
           {label: "C", submenu: [{label: 'D', command: 'd'}, {label: 'E', command: 'e'}]}
         ]
-      }
+      }]
 
       disposable3.dispose()
-      expect(atom.menu.template[originalItemCount]).toEqual {
+      expect(menu.template).toEqual [{
         label: "A",
         submenu: [
           {label: "B", command: "b"},
           {label: "C", submenu: [{label: 'D', command: 'd'}]}
         ]
-      }
+      }]
 
       disposable2.dispose()
-      expect(atom.menu.template[originalItemCount]).toEqual {label: "A", submenu: [{label: "B", command: "b"}]}
+      expect(menu.template).toEqual [{label: "A", submenu: [{label: "B", command: "b"}]}]
 
       disposable1.dispose()
-      expect(atom.menu.template.length).toBe originalItemCount
+      expect(menu.template).toEqual []
 
     it "does not add duplicate labels to the same menu", ->
-      originalItemCount = atom.menu.template.length
-      atom.menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
-      atom.menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
-      expect(atom.menu.template[originalItemCount]).toEqual {label: "A", submenu: [{label: "B", command: "b"}]}
+      originalItemCount = menu.template.length
+      menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      expect(menu.template[originalItemCount]).toEqual {label: "A", submenu: [{label: "B", command: "b"}]}
