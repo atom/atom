@@ -35,7 +35,7 @@ class TokenizedBuffer extends Model
 
     @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
 
-    @subscribe atom.config.onDidChange 'editor.tabLength', (value) => @setTabLength(value)
+    @subscribe atom.config.onDidChange 'editor.tabLength', ({newValue}) => @setTabLength(newValue)
 
     @reloadGrammar()
 
