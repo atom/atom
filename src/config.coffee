@@ -34,8 +34,8 @@ pathWatcher = require 'pathwatcher'
 # If you want a notification only when the value changes, use {::onDidChange}.
 #
 # ```coffee
-# atom.config.onDidChange 'my-package.myKey', (newValue) ->
-#   console.log 'My configuration changed:', newValue
+# atom.config.onDidChange 'my-package.myKey', ({newValue, oldValue}) ->
+#   console.log 'My configuration changed:', newValue, oldValue
 # ```
 #
 # ### Value Coercion
