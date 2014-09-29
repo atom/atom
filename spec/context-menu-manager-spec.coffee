@@ -104,6 +104,24 @@ describe "ContextMenuManager", ->
       contextMenu.devMode = true
       expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'A', command: 'a'}, {label: 'B', command: 'b'}]
 
+    it "allows items to be associated with `created` hooks which are invoked on template construction with the item and event", ->
+      createdEvent = null
+
+      item = {
+        label: 'A',
+        command: 'a',
+        created: (event) ->
+          @command = 'b'
+          createdEvent = event
+      }
+
+      contextMenu.add('.grandchild': [item])
+
+      dispatchedEvent = {target: grandchild}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual [{label: 'A', command: 'b'}]
+      expect(item.command).toBe 'a' # doesn't modify original item template
+      expect(createdEvent).toBe dispatchedEvent
+
   describe "executeBuildHandlers", ->
     menuTemplate = [
         label: 'label'

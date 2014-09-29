@@ -19,17 +19,17 @@ SequenceCount = 0
 module.exports =
 class ContextMenuManager
   constructor: ({@resourcePath, @devMode}) ->
-    @definitions = {'.overlayer': []} # TODO: Remove once color picker package stops touching private data
     @activeElement = null
-
     @itemSets = []
+    @definitions = {'.overlayer': []} # TODO: Remove once color picker package stops touching private data
 
-    # @devModeDefinitions['.workspace'] = [
-    #   label: 'Inspect Element'
-    #   command: 'application:inspect'
-    #   executeAtBuild: (e) ->
-    #     @commandOptions = x: e.pageX, y: e.pageY
-    # ]
+    @add '.workspace': [{
+      label: 'Inspect Element'
+      command: 'application:inspect'
+      created: (item, event) ->
+        {pageX, pageY} = event
+        item.commandOptions = {x: pageX, y: pageY}
+    }]
 
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
 
@@ -53,12 +53,12 @@ class ContextMenuManager
       devMode = arguments[2]?.devMode
       return @add(@convertLegacyItems(legacyItems, devMode))
 
-    itemsBySelector = _.deepClone(arguments[0])
+    itemsBySelector = arguments[0]
     devMode = arguments[1]?.devMode ? false
     addedItemSets = []
 
     for selector, items of itemsBySelector
-      itemSet = new ContextMenuItemSet(selector, items)
+      itemSet = new ContextMenuItemSet(selector, items.slice())
       addedItemSets.push(itemSet)
       @itemSets.push(itemSet)
 
@@ -66,9 +66,12 @@ class ContextMenuManager
       for itemSet in addedItemSets
         @itemSets.splice(@itemSets.indexOf(itemSet), 1)
 
-  templateForElement: (element) ->
+  templateForElement: (target) ->
+    @templateForEvent({target})
+
+  templateForEvent: (event) ->
     template = []
-    currentTarget = element
+    currentTarget = event.target
 
     while currentTarget?
       matchingItemSets =
@@ -79,8 +82,10 @@ class ContextMenuManager
       for {items} in matchingItemSets
         for item in items
           continue if item.devMode and not @devMode
-          item = _.pick(item, 'type', 'label', 'command')
-          MenuHelpers.merge(template, item)
+          item = _.clone(item)
+          item.created?(event)
+          templateItem = _.pick(item, 'type', 'label', 'command', 'submenu', 'commandOptions')
+          MenuHelpers.merge(template, templateItem)
 
       currentTarget = currentTarget.parentElement
 
@@ -107,7 +112,7 @@ class ContextMenuManager
   # * `event` A DOM event.
   showForEvent: (event) ->
     @activeElement = event.target
-    menuTemplate = @templateForElement(@activeElement)
+    menuTemplate = @templateForEvent(event)
 
     return unless menuTemplate?.length > 0
     # @executeBuildHandlers(event, menuTemplate)
