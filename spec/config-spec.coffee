@@ -359,10 +359,18 @@ describe "Config", ->
     describe "when the config file contains valid cson", ->
       beforeEach ->
         fs.writeFileSync(atom.config.configFilePath, "foo: bar: 'baz'")
-        atom.config.loadUserConfig()
 
       it "updates the config data based on the file contents", ->
+        atom.config.loadUserConfig()
         expect(atom.config.get("foo.bar")).toBe 'baz'
+
+      it "notifies observers for updated keypaths on load", ->
+        observeHandler = jasmine.createSpy("observeHandler")
+        observeSubscription = atom.config.observe "foo.bar", observeHandler
+
+        atom.config.loadUserConfig()
+
+        expect(observeHandler).toHaveBeenCalledWith 'baz'
 
     describe "when the config file contains invalid cson", ->
       beforeEach ->
