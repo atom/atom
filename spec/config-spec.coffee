@@ -433,7 +433,7 @@ describe "Config", ->
       atom.config.loadUserConfig()
       atom.config.observeUserConfig()
       updatedHandler = jasmine.createSpy("updatedHandler")
-      atom.config.on 'updated', updatedHandler
+      atom.config.onDidChange updatedHandler
 
     afterEach ->
       atom.config.unobserveUserConfig()
@@ -461,7 +461,7 @@ describe "Config", ->
 
       describe "when the config file subsequently changes again to contain valid cson", ->
         beforeEach ->
-          fs.writeFileSync(atom.config.configFilePath, "foo: bar: 'baz'")
+          fs.writeFileSync(atom.config.configFilePath, "foo: bar: 'newVal'")
           waitsFor 'update event', -> updatedHandler.callCount > 0
 
         it "updates the config data and resumes saving", ->
