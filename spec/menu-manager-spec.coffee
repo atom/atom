@@ -35,3 +35,9 @@ describe "MenuManager", ->
 
       disposable1.dispose()
       expect(atom.menu.template.length).toBe originalItemCount
+
+    it "does not add duplicate labels to the same menu", ->
+      originalItemCount = atom.menu.template.length
+      atom.menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      atom.menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      expect(atom.menu.template[originalItemCount]).toEqual {label: "A", submenu: [{label: "B", command: "b"}]}

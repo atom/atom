@@ -106,8 +106,9 @@ class MenuManager
     item = _.deepClone(item)
     matchingItem = @findMatchingItem(menu, item)
 
-    if matchingItem? and item.submenu?
-      @merge(matchingItem.submenu, submenuItem) for submenuItem in item.submenu
+    if matchingItem?
+      if item.submenu?
+        @merge(matchingItem.submenu, submenuItem) for submenuItem in item.submenu
     else
       menu.push(item)
 
