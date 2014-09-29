@@ -667,12 +667,10 @@ Config.addSchemaEnforcers
           throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a boolean or the string 'true' or 'false'")
 
   'string':
-    coerce: (keyPath, value, schema) ->
-      switch typeof value
-        when 'number', 'string'
-          value.toString()
-        else
-          throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a string or number")
+    validate: (keyPath, value, schema) ->
+      unless typeof value is 'string'
+        throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a string")
+      value
 
   'null':
     # null sort of isnt supported. It will just unset in this case

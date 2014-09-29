@@ -701,21 +701,21 @@ describe "Config", ->
         atom.config.set('foo.bar.aString', 'yep')
         expect(atom.config.get('foo.bar.aString')).toBe 'yep'
 
-      it 'will only set strings, numbers and booleans', ->
-        expect(atom.config.set('foo.bar.aString', 123)).toBe true
-        expect(atom.config.get('foo.bar.aString')).toBe '123'
+      it 'will only set strings', ->
+        expect(atom.config.set('foo.bar.aString', 123)).toBe false
+        expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
         expect(atom.config.set('foo.bar.aString', true)).toBe false
-        expect(atom.config.get('foo.bar.aString')).toBe '123'
+        expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
         expect(atom.config.set('foo.bar.aString', null)).toBe false
-        expect(atom.config.get('foo.bar.aString')).toBe '123'
+        expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
         expect(atom.config.set('foo.bar.aString', [])).toBe false
-        expect(atom.config.get('foo.bar.aString')).toBe '123'
+        expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
         expect(atom.config.set('foo.bar.aString', nope: 'nope')).toBe false
-        expect(atom.config.get('foo.bar.aString')).toBe '123'
+        expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
     describe 'when the value has an "object" type', ->
       beforeEach ->
