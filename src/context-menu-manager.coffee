@@ -38,7 +38,7 @@ class ContextMenuManager
     menusDirPath = path.join(@resourcePath, 'menus')
     platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
     map = CSON.readFileSync(platformMenuPath)
-    atom.contextMenu.add(platformMenuPath, map['context-menu'])
+    atom.contextMenu.add(map['context-menu'])
 
   # Public: Add context menu items scoped by CSS selectors.
   #
