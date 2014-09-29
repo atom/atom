@@ -47,9 +47,11 @@ class ContextMenuManager
   # * `options` An optional {Object} with the following keys:
   #   * `devMode` Determines whether the entries should only be shown when
   #     the window is in dev mode.
-  add: (name, object, {devMode}={}) ->
+  add: (items) ->
     unless typeof arguments[0] is 'object'
-      return @add(@convertLegacyItems(object), {devMode})
+      legacyItems = arguments[1]
+      devMode = arguments[2]?.devMode
+      return @add(@convertLegacyItems(legacyItems, devMode))
 
     itemsBySelector = _.deepClone(arguments[0])
     devMode = arguments[1]?.devMode ? false
@@ -75,13 +77,16 @@ class ContextMenuManager
           .sort (a, b) -> a.compare(b)
 
       for {items} in matchingItemSets
-        MenuHelpers.merge(template, item) for item in items
+        for item in items
+          continue if item.devMode and not @devMode
+          item = _.pick(item, 'type', 'label', 'command')
+          MenuHelpers.merge(template, item)
 
       currentTarget = currentTarget.parentElement
 
     template
 
-  convertLegacyItems: (legacyItems) ->
+  convertLegacyItems: (legacyItems, devMode) ->
     itemsBySelector = {}
 
     for selector, commandsByLabel of legacyItems
@@ -89,11 +94,11 @@ class ContextMenuManager
 
       for label, commandOrSubmenu of commandsByLabel
         if typeof commandOrSubmenu is 'object'
-          items.push({label, submenu: @convertLegacyItems(commandOrSubmenu)})
+          items.push({label, submenu: @convertLegacyItems(commandOrSubmenu, devMode), devMode})
         else if commandOrSubmenu is '-'
           items.push({type: 'separator'})
         else
-          items.push({label, command: commandOrSubmenu})
+          items.push({label, command: commandOrSubmenu, devMode})
 
     itemsBySelector
 

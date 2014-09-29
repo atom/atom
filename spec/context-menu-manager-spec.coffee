@@ -95,6 +95,15 @@ describe "ContextMenuManager", ->
         {label: 'C', command: 'c'}
       ]
 
+    it "excludes items marked for display in devMode unless in dev mode", ->
+      disposable1 = contextMenu.add
+        '.grandchild': [{label: 'A', command: 'a', devMode: true}, {label: 'B', command: 'b', devMode: false}]
+
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'B', command: 'b'}]
+
+      contextMenu.devMode = true
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'A', command: 'a'}, {label: 'B', command: 'b'}]
+
   describe "executeBuildHandlers", ->
     menuTemplate = [
         label: 'label'
