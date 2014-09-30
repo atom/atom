@@ -162,7 +162,7 @@ class ContextMenuManager
       devMode: true
       created: (event) ->
         {pageX, pageY} = event
-        @commandOptions = {x: pageX, y: pageY}
+        @commandDetail = {x: pageX, y: pageY}
     }]
 
 class ContextMenuItemSet
