@@ -389,7 +389,7 @@ class Install extends Command
       catch error
         return callback(false)
 
-      callback(atomMetadata?.packageDependencies?[packageName]?)
+      callback(atomMetadata?.packageDependencies?.hasOwnProperty(packageName))
 
   run: (options) ->
     {callback} = options
