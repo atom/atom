@@ -5,11 +5,11 @@ PaneView = require '../src/pane-view'
 {$, View, $$} = require 'atom'
 
 describe "PaneContainerView", ->
-  [TestView, container, pane1, pane2, pane3] = []
+  [TestView, container, pane1, pane2, pane3, deserializerDisposable] = []
 
   beforeEach ->
     class TestView extends View
-      atom.deserializers.add(this)
+      deserializerDisposable = atom.deserializers.add(this)
       @deserialize: ({name}) -> new TestView(name)
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
@@ -25,7 +25,7 @@ describe "PaneContainerView", ->
     pane3 = pane2.splitDown(new TestView('3'))
 
   afterEach ->
-    atom.deserializers.remove(TestView)
+    deserializerDisposable.dispose()
 
   describe ".getActivePaneView()", ->
     it "returns the most-recently focused pane", ->

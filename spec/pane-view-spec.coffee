@@ -7,7 +7,7 @@ path = require 'path'
 temp = require 'temp'
 
 describe "PaneView", ->
-  [container, containerModel, view1, view2, editor1, editor2, pane, paneModel] = []
+  [container, containerModel, view1, view2, editor1, editor2, pane, paneModel, deserializerDisposable] = []
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
@@ -23,7 +23,7 @@ describe "PaneView", ->
       @emitter.on 'did-change-title', callback
 
   beforeEach ->
-    atom.deserializers.add(TestView)
+    deserializerDisposable = atom.deserializers.add(TestView)
     container = new PaneContainerView
     containerModel = container.model
     view1 = new TestView(id: 'view-1', text: 'View 1')
@@ -40,7 +40,7 @@ describe "PaneView", ->
       paneModel.addItems([view1, editor1, view2, editor2])
 
   afterEach ->
-    atom.deserializers.remove(TestView)
+    deserializerDisposable.dispose()
 
   describe "when the active pane item changes", ->
     it "hides all item views except the active one", ->
