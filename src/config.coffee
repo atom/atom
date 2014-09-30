@@ -335,7 +335,7 @@ class Config
       deprecate "Config::observe no longer supports options. #{message}"
 
     callback(_.clone(@get(keyPath))) unless options.callNow == false
-    @emitter.on 'did-change', (event) =>
+    @emitter.on 'did-change', (event) ->
       callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
 
   # Essential: Add a listener for changes to a given key path. If `keyPath` is
@@ -355,7 +355,7 @@ class Config
       callback = keyPath
       keyPath = undefined
 
-    @emitter.on 'did-change', (event) =>
+    @emitter.on 'did-change', (event) ->
       callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
 
   ###
