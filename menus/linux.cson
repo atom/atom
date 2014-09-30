@@ -153,7 +153,7 @@
 ]
 
 'context-menu':
-  '.editor': [
+  '.overlayer': [
     {label: 'Undo', command: 'core:undo'}
     {label: 'Redo', command: 'core:redo'}
     {type: 'separator'}
