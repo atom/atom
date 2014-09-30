@@ -184,7 +184,7 @@ class Install extends Command
         message = body.message ? body.error ? body
         callback("Request for package information failed: #{message}")
       else
-        if latestVersion = body.releases.latest
+        if body.releases.latest
           callback(null, body)
         else
           callback("No releases available for #{packageName}")
