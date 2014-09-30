@@ -160,7 +160,6 @@ class ContextMenuManager
     menuTemplate = @templateForEvent(event)
 
     return unless menuTemplate?.length > 0
-    # @executeBuildHandlers(event, menuTemplate)
     remote.getCurrentWindow().emit('context-menu', menuTemplate)
     return
 
