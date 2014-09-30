@@ -14,6 +14,7 @@ module.exports =
       excludeVcsIgnoredPaths:
         type: 'boolean'
         default: true
+        title: 'Exclude VCS Ignored Paths'
       disabledPackages:
         type: 'array'
         default: []
