@@ -68,6 +68,8 @@ describe "ContextMenuManager", ->
         '.grandchild.foo': [{label: 'A', command: 'b'}]
       disposable3 = contextMenu.add
         '.grandchild': [{label: 'A', command: 'c'}]
+      disposable4 = contextMenu.add
+        '.child': [{label: 'A', command: 'd'}]
 
       expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'A', command: 'b'}]
 
@@ -76,6 +78,9 @@ describe "ContextMenuManager", ->
 
       disposable3.dispose()
       expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'A', command: 'a'}]
+
+      disposable1.dispose()
+      expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'A', command: 'd'}]
 
     it "allows multiple separators", ->
       contextMenu.add

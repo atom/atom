@@ -10,7 +10,6 @@ Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
 
 SpecificityCache = {}
-SequenceCount = 0
 
 # Extended: Provides a registry for commands that you'd like to appear in the
 # context menu.
@@ -91,7 +90,7 @@ class ContextMenuManager
     addedItemSets = []
 
     for selector, items of itemsBySelector
-      itemSet = new ContextMenuItemSet(selector, items.slice())
+      itemSet = new ContextMenuItemSet(selector, items)
       addedItemSets.push(itemSet)
       @itemSets.push(itemSet)
 
@@ -107,19 +106,21 @@ class ContextMenuManager
     currentTarget = event.target
 
     while currentTarget?
+      currentTargetItems = []
       matchingItemSets =
-        @itemSets
-          .filter (itemSet) -> currentTarget.webkitMatchesSelector(itemSet.selector)
-          .sort (a, b) -> a.compare(b)
+        @itemSets.filter (itemSet) -> currentTarget.webkitMatchesSelector(itemSet.selector)
 
-      for {items} in matchingItemSets
-        for item in items
+      for itemSet in matchingItemSets
+        for item in itemSet.items
           continue if item.devMode and not @devMode
           item = Object.create(item)
           if typeof item.shouldDisplay is 'function'
             continue unless item.shouldDisplay(event)
           item.created?(event)
-          MenuHelpers.merge(template, MenuHelpers.cloneMenuItem(item))
+          MenuHelpers.merge(currentTargetItems, MenuHelpers.cloneMenuItem(item), itemSet.specificity)
+
+      for item in currentTargetItems
+        MenuHelpers.merge(template, item, false)
 
       currentTarget = currentTarget.parentElement
 
@@ -167,9 +168,3 @@ class ContextMenuManager
 class ContextMenuItemSet
   constructor: (@selector, @items) ->
     @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
-    @sequenceNumber = SequenceCount++
-
-  # more specific / recent item sets sort later, because we clobber existing menu items
-  compare: (other) ->
-    @specificity - other.specificity or
-      @sequenceNumber - other.sequenceNumber

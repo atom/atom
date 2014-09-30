@@ -1,14 +1,18 @@
 _ = require 'underscore-plus'
 
-merge = (menu, item) ->
+ItemSpecificities = new WeakMap
+
+merge = (menu, item, itemSpecificity=Infinity) ->
+  ItemSpecificities.set(item, itemSpecificity) if itemSpecificity
   matchingItemIndex = findMatchingItemIndex(menu, item)
   matchingItem = menu[matchingItemIndex] unless matchingItemIndex is - 1
 
   if matchingItem?
     if item.submenu?
-      merge(matchingItem.submenu, submenuItem) for submenuItem in item.submenu
-    else
-      menu[matchingItemIndex] = item
+      merge(matchingItem.submenu, submenuItem, itemSpecificity) for submenuItem in item.submenu
+    else if itemSpecificity
+      unless itemSpecificity < ItemSpecificities.get(matchingItem)
+        menu[matchingItemIndex] = item
   else
     menu.push(item)
 
