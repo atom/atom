@@ -345,12 +345,12 @@ class Project extends Model
 
   # Deprecated: delegate
   registerOpener: (opener) ->
-    deprecate("Use Workspace::registerOpener instead")
+    deprecate("Use Workspace::addOpener instead")
     atom.workspace.registerOpener(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
-    deprecate("Use Workspace::unregisterOpener instead")
+    deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
     atom.workspace.unregisterOpener(opener)
 
   # Deprecated: delegate
