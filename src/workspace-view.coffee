@@ -6,7 +6,6 @@ Delegator = require 'delegato'
 {deprecate, logDeprecationWarnings} = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
-fs = require 'fs-plus'
 Workspace = require './workspace'
 CommandInstaller = require './command-installer'
 PaneView = require './pane-view'
@@ -66,15 +65,6 @@ class WorkspaceView extends View
     'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'
 
   @version: 4
-
-  @configDefaults:
-    ignoredNames: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
-    excludeVcsIgnoredPaths: true
-    disabledPackages: []
-    themes: ['atom-dark-ui', 'atom-dark-syntax']
-    projectHome: path.join(fs.getHomeDirectory(), 'github')
-    audioBeep: true
-    destroyEmptyPanes: true
 
   @content: ->
     @div class: 'workspace', tabindex: -1, =>
@@ -155,11 +145,11 @@ class WorkspaceView extends View
     @command 'window:focus-pane-on-left', => @focusPaneViewOnLeft()
     @command 'window:focus-pane-on-right', => @focusPaneViewOnRight()
     @command 'window:save-all', => @saveAll()
-    @command 'window:toggle-invisibles', -> atom.config.toggle("editor.showInvisibles")
+    @command 'window:toggle-invisibles', -> atom.config.set("editor.showInvisibles", not atom.config.get("editor.showInvisibles"))
     @command 'window:log-deprecation-warnings', -> logDeprecationWarnings()
 
     @command 'window:toggle-auto-indent', ->
-      atom.config.toggle("editor.autoIndent")
+      atom.config.set("editor.autoIndent", not atom.config.get("editor.autoIndent"))
 
     @command 'pane:reopen-closed-item', => @getModel().reopenItem()
 

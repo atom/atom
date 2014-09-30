@@ -466,9 +466,7 @@ class Atom extends Model
       console.warn error.message if error?
 
     dimensions = @restoreWindowDimensions()
-    @config.load()
-    @config.setDefaults('core', require('./workspace-view').configDefaults)
-    @config.setDefaults('editor', require('./text-editor-view').configDefaults)
+    @loadConfig()
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
@@ -603,6 +601,10 @@ class Atom extends Model
     @deserializePackageStates()
     @deserializeProject()
     @deserializeWorkspaceView()
+
+  loadConfig: ->
+    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
+    @config.load()
 
   loadThemes: ->
     @themes.load()

@@ -321,6 +321,29 @@ extensions your grammar supports:
 ]
 ```
 
+## Adding Configuration Settings
+
+You can support config settings in your package that are editable in the
+settings view. Specify a `config` key in your package main:
+
+```coffeescript
+module.exports =
+  # Your config schema!
+  config:
+    someInt:
+      type: 'integer'
+      default: 23
+      minimum: 1
+  activate: (state) -> # ...
+  # ...
+```
+
+To define the configuration, we use [json schema][json-schema] which allows you
+to indicate the type your value should be, its default, etc.
+
+See the [Config API Docs](https://atom.io/docs/api/latest/Config) for more
+details specifying your configuration.
+
 ## Bundle External Resources
 
 It's common to ship external resources like images and fonts in the package, to
@@ -392,3 +415,4 @@ all the other available commands.
 [first-package]: your-first-package.html
 [convert-bundle]: converting-a-text-mate-bundle.html
 [convert-theme]: converting-a-text-mate-theme.html
+[json-schema]: http://json-schema.org/

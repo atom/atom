@@ -59,10 +59,10 @@ class DisplayBuffer extends Model
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
-    @subscribe atom.config.observe 'editor.preferredLineLength', callNow: false, =>
+    @subscribe atom.config.onDidChange 'editor.preferredLineLength', =>
       @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength')
 
-    @subscribe atom.config.observe 'editor.softWrapAtPreferredLineLength', callNow: false, =>
+    @subscribe atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', =>
       @updateWrappedScreenLines() if @isSoftWrapped()
 
     @updateAllScreenLines()
@@ -439,7 +439,7 @@ class DisplayBuffer extends Model
 
   getSoftWrapColumn: ->
     if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.getPositiveInt('editor.preferredLineLength', @getEditorWidthInChars()))
+      Math.min(@getEditorWidthInChars(), atom.config.get('editor.preferredLineLength'))
     else
       @getEditorWidthInChars()
 
