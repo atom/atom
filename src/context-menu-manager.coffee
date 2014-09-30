@@ -20,18 +20,8 @@ SequenceCount = 0
 module.exports =
 class ContextMenuManager
   constructor: ({@resourcePath, @devMode}) ->
-    @activeElement = null
-    @itemSets = []
     @definitions = {'.overlayer': []} # TODO: Remove once color picker package stops touching private data
-
-    @add '.workspace': [{
-      label: 'Inspect Element'
-      command: 'application:inspect'
-      devMode: true
-      created: (event) ->
-        {pageX, pageY} = event
-        @commandOptions = {x: pageX, y: pageY}
-    }]
+    @clear()
 
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
 
@@ -162,6 +152,18 @@ class ContextMenuManager
     return unless menuTemplate?.length > 0
     remote.getCurrentWindow().emit('context-menu', menuTemplate)
     return
+
+  clear: ->
+    @activeElement = null
+    @itemSets = []
+    @add '.workspace': [{
+      label: 'Inspect Element'
+      command: 'application:inspect'
+      devMode: true
+      created: (event) ->
+        {pageX, pageY} = event
+        @commandOptions = {x: pageX, y: pageY}
+    }]
 
 class ContextMenuItemSet
   constructor: (@selector, @items) ->
