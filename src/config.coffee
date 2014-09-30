@@ -534,7 +534,7 @@ class Config
     try
       userConfig = CSON.readFileSync(@configFilePath)
       @settings = {} # Reset to the defaults
-      if userConfig
+      if isPlainObject(userConfig)
         @setRecursive(null, userConfig)
       else
         @emitter.emit 'did-change'
