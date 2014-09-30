@@ -426,6 +426,7 @@ describe "Config", ->
     updatedHandler = null
 
     beforeEach ->
+      atom.config.setDefaults('foo', bar: 'def')
       atom.config.configDirPath = dotAtomPath
       atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
       expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
@@ -446,6 +447,34 @@ describe "Config", ->
         runs ->
           expect(atom.config.get('foo.bar')).toBe 'quux'
           expect(atom.config.get('foo.baz')).toBe 'bar'
+
+    describe "when the config file changes to omit a setting with a default", ->
+      it "resets the setting back to the default", ->
+        fs.writeFileSync(atom.config.configFilePath, "foo: { baz: 'new'}")
+        waitsFor 'update event', -> updatedHandler.callCount > 0
+        runs ->
+          expect(atom.config.get('foo.bar')).toBe 'def'
+          expect(atom.config.get('foo.baz')).toBe 'new'
+
+    describe "when the config file changes to be empty", ->
+      beforeEach ->
+        fs.writeFileSync(atom.config.configFilePath, "")
+        waitsFor 'update event', -> updatedHandler.callCount > 0
+
+      it "resets all settings back to the defaults", ->
+        expect(updatedHandler.callCount).toBe 1
+        expect(atom.config.get('foo.bar')).toBe 'def'
+        atom.config.set("hair", "blonde") # trigger a save
+        expect(atom.config.save).toHaveBeenCalled()
+
+      describe "when the config file subsequently changes again to contain configuration", ->
+        beforeEach ->
+          updatedHandler.reset()
+          fs.writeFileSync(atom.config.configFilePath, "foo: bar: 'newVal'")
+          waitsFor 'update event', -> updatedHandler.callCount > 0
+
+        it "sets the setting to the value specified in the config file", ->
+          expect(atom.config.get('foo.bar')).toBe 'newVal'
 
     describe "when the config file changes to contain invalid cson", ->
       beforeEach ->

@@ -4,6 +4,8 @@ PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->
+  deserializerDisposable = null
+
   class Item extends Model
     @deserialize: ({name, uri}) -> new this(name, uri)
     constructor: (@name, @uri) ->
@@ -13,10 +15,10 @@ describe "Pane", ->
     isEqual: (other) -> @name is other?.name
 
   beforeEach ->
-    atom.deserializers.add(Item)
+    deserializerDisposable = atom.deserializers.add(Item)
 
   afterEach ->
-    atom.deserializers.remove(Item)
+    deserializerDisposable.dispose()
 
   describe "construction", ->
     it "sets the active item to the first item", ->
