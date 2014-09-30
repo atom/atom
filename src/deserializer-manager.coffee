@@ -1,4 +1,5 @@
 {Disposable} = require 'event-kit'
+Grim = require 'grim'
 
 # Extended: Manages the deserializers used for serialized state
 #
@@ -35,10 +36,8 @@ class DeserializerManager
     new Disposable =>
       delete @deserializers[deserializer.name] for deserializer in deserializers
 
-  # Public: Remove the given class(es) as deserializers.
-  #
-  # * `classes` One or more classes to remove.
   remove: (classes...) ->
+    Grim.deprecate("Call .dispose() on the Disposable return from ::add instead")
     delete @deserializers[name] for {name} in classes
 
   # Public: Deserialize the state and params.
