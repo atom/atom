@@ -1,3 +1,5 @@
+{Disposable} = require 'event-kit'
+
 # Extended: Manages the deserializers used for serialized state
 #
 # An instance of this class is always available as the `atom.deserializers`
@@ -27,6 +29,8 @@ class DeserializerManager
   # * `classes` One or more classes to register.
   add: (classes...) ->
     @deserializers[klass.name] = klass for klass in classes
+    new Disposable =>
+      delete @deserializers[klass.name] for klass in classes
 
   # Public: Remove the given class(es) as deserializers.
   #
