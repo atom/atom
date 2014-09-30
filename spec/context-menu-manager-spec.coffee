@@ -82,12 +82,14 @@ describe "ContextMenuManager", ->
       disposable1.dispose()
       expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'A', command: 'd'}]
 
-    it "allows multiple separators", ->
+    it "allows multiple separators, but not adjacent to each other", ->
       contextMenu.add
         '.grandchild': [
           {label: 'A', command: 'a'},
           {type: 'separator'},
+          {type: 'separator'},
           {label: 'B', command: 'b'},
+          {type: 'separator'},
           {type: 'separator'},
           {label: 'C', command: 'c'}
         ]

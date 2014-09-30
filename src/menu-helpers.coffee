@@ -13,7 +13,7 @@ merge = (menu, item, itemSpecificity=Infinity) ->
     else if itemSpecificity
       unless itemSpecificity < ItemSpecificities.get(matchingItem)
         menu[matchingItemIndex] = item
-  else
+  else unless item.type is 'separator' and _.last(menu)?.type is 'separator'
     menu.push(item)
 
 unmerge = (menu, item) ->
