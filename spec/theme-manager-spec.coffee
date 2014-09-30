@@ -185,18 +185,17 @@ describe "ThemeManager", ->
       $('head style[id*="css.css"]').remove()
       $('head style[id*="sample.less"]').remove()
 
-  describe ".removeStylesheet(path)", ->
-    it "removes styling applied by given stylesheet path", ->
+    it "returns a disposable allowing styles applied by the given path to be removed", ->
       cssPath = require.resolve('./fixtures/css.css')
 
       expect($(document.body).css('font-weight')).not.toBe("bold")
-      themeManager.requireStylesheet(cssPath)
+      disposable = themeManager.requireStylesheet(cssPath)
       expect($(document.body).css('font-weight')).toBe("bold")
 
       themeManager.onDidRemoveStylesheet stylesheetRemovedHandler = jasmine.createSpy("stylesheetRemovedHandler")
       themeManager.onDidChangeStylesheets stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
 
-      themeManager.removeStylesheet(cssPath)
+      disposable.dispose()
 
       expect($(document.body).css('font-weight')).not.toBe("bold")
 

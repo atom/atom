@@ -2,7 +2,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Emitter, Disposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
@@ -187,10 +187,9 @@ class ThemeManager
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
       @applyStylesheet(fullPath, content, type)
+      new Disposable => @removeStylesheet(fullPath)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
-
-    fullPath
 
   unwatchUserStylesheet: ->
     @userStylesheetFile?.off()
