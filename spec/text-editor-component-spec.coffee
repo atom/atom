@@ -2264,6 +2264,10 @@ describe "TextEditorComponent", ->
       wrapperView.detach()
       wrapperView.attachToDom()
 
+      wrapperView.trigger('core:move-right')
+
+      expect(editor.getCursorBufferPosition()).toEqual [0, 1]
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     properties.detail ?= 1
