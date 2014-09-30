@@ -212,3 +212,11 @@
     {label: 'Split Right', command: 'pane:split-right'}
     {type: 'separator'}
   ]
+  '.pane': [
+    {type: 'separator'}
+    {label: 'Split Up', command: 'pane:split-up'}
+    {label: 'Split Down', command: 'pane:split-down'}
+    {label: 'Split Left', command: 'pane:split-left'}
+    {label: 'Split Right', command: 'pane:split-right'}
+    {type: 'separator'}
+  ]
