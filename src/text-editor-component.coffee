@@ -514,8 +514,8 @@ TextEditorComponent = React.createClass
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
 
-    addListener = (command, listener) ->
-      parentView.command command, (event) ->
+    addListener = (command, listener) =>
+      @subscribe parentView.command command, (event) ->
         event.stopPropagation()
         listener(event)
 
