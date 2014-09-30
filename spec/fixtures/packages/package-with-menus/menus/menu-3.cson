@@ -3,5 +3,6 @@
 ]
 
 'context-menu':
-  '.test-1':
-    'Menu item 3': 'command-3'
+  '.test-1': [
+    {label: 'Menu item 3', command: 'command-3'}
+  ]
