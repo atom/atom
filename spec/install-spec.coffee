@@ -1,4 +1,5 @@
 path = require 'path'
+CSON = require 'season'
 fs = require 'fs-plus'
 temp = require 'temp'
 express = require 'express'
@@ -7,7 +8,7 @@ wrench = require 'wrench'
 apm = require '../lib/apm-cli'
 
 describe 'apm install', ->
-  atomHome = null
+  [atomHome, resourcePath] = []
 
   beforeEach ->
     spyOnToken()
@@ -15,6 +16,9 @@ describe 'apm install', ->
 
     atomHome = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_HOME = atomHome
+
+    resourcePath = temp.mkdirSync('atom-resource-path-')
+    process.env.ATOM_RESOURCE_PATH = resourcePath
 
   describe "when installing an atom package", ->
     server = null
@@ -200,3 +204,16 @@ describe 'apm install', ->
 
         runs ->
           expect(callback.mostRecentCall.args[0]).not.toBeNull()
+
+    describe 'when the package is bundled with Atom', ->
+      it 'logs a message to standard error', ->
+        CSON.writeFileSync(path.join(resourcePath, 'package.json'), packageDependencies: 'test-module': '1.0')
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', 'test-module'], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0

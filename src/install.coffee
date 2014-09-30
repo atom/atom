@@ -376,6 +376,21 @@ class Install extends Command
     packages = fs.readFileSync(filePath, 'utf8')
     @sanitizePackageNames(packages.split(/\s/))
 
+  getResourcePath: (callback) ->
+    if @resourcePath
+      process.nextTick => callback(@resourcePath)
+    else
+      config.getResourcePath (@resourcePath) => callback(@resourcePath)
+
+  isBundledPackage: (packageName, callback) ->
+    @getResourcePath (resourcePath) ->
+      try
+        atomMetadata = JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))
+      catch error
+        return callback(false)
+
+      callback(atomMetadata?.packageDependencies?[packageName]?)
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -393,7 +408,11 @@ class Install extends Command
         if atIndex > 0
           version = name.substring(atIndex + 1)
           name = name.substring(0, atIndex)
-        @installPackage({name, version}, options, callback)
+
+        @isBundledPackage name, (isBundledPackage) =>
+          if isBundledPackage
+            console.error "The #{name} package is bundled with Atom and should not be explicitly installed.".yellow
+          @installPackage({name, version}, options, callback)
 
     commands = []
     if packagesFilePath
