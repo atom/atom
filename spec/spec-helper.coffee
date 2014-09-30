@@ -125,6 +125,7 @@ beforeEach ->
 afterEach ->
   atom.packages.deactivatePackages()
   atom.menu.template = []
+  atom.contextMenu.clear()
 
   atom.workspaceView?.remove?()
   atom.workspaceView = null
