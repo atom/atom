@@ -533,7 +533,11 @@ class Config
 
     try
       userConfig = CSON.readFileSync(@configFilePath)
-      @setRecursive(null, userConfig)
+      @settings = {} # Reset to the defaults
+      if userConfig
+        @setRecursive(null, userConfig)
+      else
+        @emitter.emit 'did-change'
       @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
