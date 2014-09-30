@@ -52,7 +52,7 @@ describe "ThemeManager", ->
 
       expect(themeManager.getEnabledThemeNames()).toEqual ['atom-dark-ui', 'atom-light-ui']
 
-  describe "getImportPaths()", ->
+  describe "::getImportPaths()", ->
     it "returns the theme directories before the themes are loaded", ->
       atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui', 'atom-light-ui'])
 
@@ -129,7 +129,7 @@ describe "ThemeManager", ->
       spyOn(console, 'warn')
       expect(-> atom.packages.activatePackage('a-theme-that-will-not-be-found')).toThrow()
 
-  describe "requireStylesheet(path)", ->
+  describe "::requireStylesheet(path)", ->
     it "synchronously loads css at the given path and installs a style tag for it in the head", ->
       themeManager.onDidChangeStylesheets stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
       themeManager.onDidAddStylesheet stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
