@@ -97,9 +97,7 @@ class ContextMenuManager
 
     new Disposable =>
       for itemSet in addedItemSets
-        console.log "removing", itemSet, @itemSets.indexOf(itemSet)
         @itemSets.splice(@itemSets.indexOf(itemSet), 1)
-        console.log "remaining", @itemSets.slice()
 
   templateForElement: (target) ->
     @templateForEvent({target})
