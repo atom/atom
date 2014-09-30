@@ -5,7 +5,7 @@ _ = require 'underscore-plus'
 Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
-{Emitter} = require 'event-kit'
+{Emitter, Disposable} = require 'event-kit'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -363,11 +363,16 @@ class Workspace extends Model
   # ```
   #
   # * `opener` A {Function} to be called when a path is being opened.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # opener.
   registerOpener: (opener) ->
     @openers.push(opener)
+    new Disposable => _.remove(@openers, opener)
 
   # Unregister an opener registered with {::registerOpener}.
   unregisterOpener: (opener) ->
+    Grim.deprecate("Call .dispose() on the Disposable returned from ::registerOpener instead")
     _.remove(@openers, opener)
 
   getOpeners: ->
