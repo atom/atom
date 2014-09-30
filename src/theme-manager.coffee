@@ -182,7 +182,8 @@ class ThemeManager
   # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
   #   path or a relative path that will be resolved against the load path.
   #
-  # Returns the absolute path to the required stylesheet.
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # required stylesheet.
   requireStylesheet: (stylesheetPath, type='bundled') ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
