@@ -237,9 +237,9 @@ describe "PackageManager", ->
             expect(atom.menu.template.length).toBe 2
             expect(atom.menu.template[0].label).toBe "Second to Last"
             expect(atom.menu.template[1].label).toBe "Last"
-            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 3"
+            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 1"
             expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 2"
-            expect(atom.contextMenu.templateForElement(element)[2].label).toBe "Menu item 1"
+            expect(atom.contextMenu.templateForElement(element)[2].label).toBe "Menu item 3"
 
         describe "when the metadata contains a 'menus' manifest", ->
           it "loads only the menus specified by the manifest, in the specified order", ->
@@ -251,8 +251,8 @@ describe "PackageManager", ->
 
             expect(atom.menu.template[0].label).toBe "Second to Last"
             expect(atom.menu.template[1].label).toBe "Last"
-            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 1"
-            expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 2"
+            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 2"
+            expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 1"
             expect(atom.contextMenu.templateForElement(element)[2]).toBeUndefined()
 
       describe "stylesheet loading", ->

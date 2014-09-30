@@ -97,7 +97,9 @@ class ContextMenuManager
 
     new Disposable =>
       for itemSet in addedItemSets
+        console.log "removing", itemSet, @itemSets.indexOf(itemSet)
         @itemSets.splice(@itemSets.indexOf(itemSet), 1)
+        console.log "remaining", @itemSets.slice()
 
   templateForElement: (target) ->
     @templateForEvent({target})
@@ -119,8 +121,7 @@ class ContextMenuManager
           if typeof item.shouldDisplay is 'function'
             continue unless item.shouldDisplay(event)
           item.created?(event)
-          templateItem = _.pick(item, 'type', 'label', 'command', 'submenu', 'commandOptions')
-          MenuHelpers.merge(template, templateItem)
+          MenuHelpers.merge(template, MenuHelpers.cloneMenuItem(item))
 
       currentTarget = currentTarget.parentElement
 
@@ -170,6 +171,7 @@ class ContextMenuItemSet
     @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
     @sequenceNumber = SequenceCount++
 
+  # more specific / recent item sets sort later, because we clobber existing menu items
   compare: (other) ->
-    other.specificity - @specificity  or
-      other.sequenceNumber - @sequenceNumber
+    @specificity - other.specificity or
+      @sequenceNumber - other.sequenceNumber

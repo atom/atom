@@ -1,26 +1,34 @@
+_ = require 'underscore-plus'
+
 merge = (menu, item) ->
-  matchingItem = findMatchingItem(menu, item)
+  matchingItemIndex = findMatchingItemIndex(menu, item)
+  matchingItem = menu[matchingItemIndex] unless matchingItemIndex is - 1
 
   if matchingItem?
     if item.submenu?
       merge(matchingItem.submenu, submenuItem) for submenuItem in item.submenu
+    else
+      menu[matchingItemIndex] = item
   else
     menu.push(item)
 
 unmerge = (menu, item) ->
-  if matchingItem = findMatchingItem(menu, item)
+  matchingItemIndex = findMatchingItemIndex(menu, item)
+  matchingItem = menu[matchingItemIndex] unless matchingItemIndex is - 1
+
+  if matchingItem?
     if item.submenu?
       unmerge(matchingItem.submenu, submenuItem) for submenuItem in item.submenu
 
     unless matchingItem.submenu?.length > 0
-      menu.splice(menu.indexOf(matchingItem), 1)
+      menu.splice(matchingItemIndex, 1)
 
-findMatchingItem = (menu, {type, label, submenu}) ->
-  return if type is 'separator'
-  for item in menu
+findMatchingItemIndex = (menu, {type, label, submenu}) ->
+  return -1 if type is 'separator'
+  for item, index in menu
     if normalizeLabel(item.label) is normalizeLabel(label) and item.submenu? is submenu?
-      return item
-  return
+      return index
+  -1
 
 normalizeLabel = (label) ->
   return undefined unless label?
@@ -30,4 +38,11 @@ normalizeLabel = (label) ->
   else
     label.replace(/\&/g, '')
 
-module.exports = {merge, unmerge, findMatchingItem, normalizeLabel}
+
+cloneMenuItem = (item) ->
+  item = _.pick(item, 'type', 'label', 'command', 'submenu', 'commandOptions')
+  if item.submenu?
+    item.submenu = item.submenu.map (submenuItem) -> cloneMenuItem(submenuItem)
+  item
+
+module.exports = {merge, unmerge, normalizeLabel, cloneMenuItem}

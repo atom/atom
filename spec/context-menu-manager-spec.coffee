@@ -43,8 +43,8 @@ describe "ContextMenuManager", ->
       expect(contextMenu.templateForElement(grandchild)).toEqual [{
         label: 'A',
         submenu: [
-          {label: 'C', command: 'c'}
           {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
         ]
       }]
 
