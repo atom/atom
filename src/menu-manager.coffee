@@ -122,7 +122,6 @@ class MenuManager
 
   # find an existing menu item matching the given item
   findMatchingItem: (menu, {label, submenu}) ->
-    debugger unless menu?
     for item in menu
       if @normalizeLabel(item.label) is @normalizeLabel(label) and item.submenu? is submenu?
         return item
