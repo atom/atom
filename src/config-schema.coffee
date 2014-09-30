@@ -97,6 +97,7 @@ module.exports =
       confirmCheckoutHeadRevision:
         type: 'boolean'
         default: true
+        title: 'Confirm Checkout HEAD Revision'
       invisibles:
         type: 'object'
         properties:
