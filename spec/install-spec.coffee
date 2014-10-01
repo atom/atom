@@ -107,6 +107,20 @@ describe 'apm install', ->
             expect(JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'))).version).toBe "1.0.0"
             expect(callback.mostRecentCall.args[0]).toBeNull()
 
+        it 'logs an error when no compatible versions are available', ->
+          CSON.writeFileSync(path.join(resourcePath, 'package.json'), version: '0.9.0')
+          packageDirectory = path.join(atomHome, 'packages', 'test-module')
+
+          callback = jasmine.createSpy('callback')
+          apm.run(['install', 'multi-module'], callback)
+
+          waitsFor 'waiting for install to complete', 600000, ->
+            callback.callCount is 1
+
+          runs ->
+            expect(fs.existsSync(packageDirectory)).toBeFalsy()
+            expect(callback.mostRecentCall.args[0]).not.toBeNull()
+
     describe 'when multiple package names are specified', ->
       it 'installs all packages', ->
         testModuleDirectory = path.join(atomHome, 'packages', 'test-module')
