@@ -8,6 +8,8 @@ async = require 'async'
 pathWatcher = require 'pathwatcher'
 {deprecate} = require 'grim'
 
+ScopedPropertyStore = require 'scoped-property-store'
+
 # Essential: Used to access all of Atom's configuration details.
 #
 # An instance of this class is always available as the `atom.config` global.
@@ -307,6 +309,7 @@ class Config
       properties: {}
     @defaultSettings = {}
     @settings = {}
+    @scopedSettingsStore = new ScopedPropertyStore
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
@@ -368,20 +371,16 @@ class Config
   #
   # Returns the value from Atom's default settings, the user's configuration
   # file in the type specified by the configuration schema.
-  get: (keyPath) ->
-    value = _.valueForKeyPath(@settings, keyPath)
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+  get: (scopeDescriptor, keyPath) ->
+    if arguments.length == 1
+      keyPath = scopeDescriptor
+      scopeDescriptor = undefined
 
-    if value?
-      value = _.deepClone(value)
-      valueIsObject = _.isObject(value) and not _.isArray(value)
-      defaultValueIsObject = _.isObject(defaultValue) and not _.isArray(defaultValue)
-      if valueIsObject and defaultValueIsObject
-        _.defaults(value, defaultValue)
-    else
-      value = _.deepClone(defaultValue)
+    if scopeDescriptor?
+      value = @getRawScopedValue(scopeDescriptor, keyPath)
+      return value if value?
 
-    value
+    @getRawValue(keyPath)
 
   # Essential: Sets the value for a configuration setting.
   #
@@ -394,14 +393,23 @@ class Config
   # Returns a {Boolean}
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set: (keyPath, value) ->
+  set: (scope, keyPath, value) ->
     unless value == undefined
       try
         value = @makeValueConformToSchema(keyPath, value)
       catch e
         return false
 
-    @setRawValue(keyPath, value)
+    if arguments.length < 3
+      value = keyPath
+      keyPath = scope
+      scope = undefined
+
+    if scope?
+      @addRawScopedValue(scope, keyPath, value)
+    else
+      @setRawValue(keyPath, value)
+
     @save() unless @configFileHasErrors
     true
 
@@ -578,6 +586,18 @@ class Config
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
 
+  getRawValue: (keyPath) ->
+    value = _.valueForKeyPath(@settings, keyPath)
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+
+    if value?
+      value = _.deepClone(value)
+      _.defaults(value, defaultValue) if isPlainObject(defaultValue) and isPlainObject(defaultValue)
+    else
+      value = _.deepClone(defaultValue)
+
+    value
+
   setRawValue: (keyPath, value) ->
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
@@ -650,6 +670,43 @@ class Config
   makeValueConformToSchema: (keyPath, value) ->
     value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
     value
+
+  ###
+  Section: Private Scoped Settings
+  ###
+
+  addScopedDefaults: (name, selector, value) ->
+    if arguments.length < 3
+      value = selector
+      selector = name
+      name = null
+
+    name = "#{name ? ''}+default"
+    settingsBySelector = {}
+    settingsBySelector[selector] = value
+    @scopedSettingsStore.addProperties(name, settingsBySelector)
+
+  addRawScopedValue: (selector, keyPath, value) ->
+    if keyPath?
+      newValue = {}
+      _.setValueForKeyPath(newValue, keyPath, value)
+      value = newValue
+
+    settingsBySelector = {}
+    settingsBySelector[selector] = value
+    @scopedSettingsStore.addProperties(name, settingsBySelector)
+
+  getRawScopedValue: (scopeDescriptor, keyPath) ->
+    scopeChain = scopeDescriptor
+      .map (scope) ->
+        scope = ".#{scope}" unless scope[0] is '.'
+        scope
+      .join(' ')
+    @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
+
+  removeScopedSettingsForName: (name) ->
+    @scopedSettingsStore.removeProperties(name)
+    @scopedSettingsStore.removeProperties("#{name}+default")
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
