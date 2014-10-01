@@ -120,7 +120,11 @@ class DedupePackageModules extends Command
         @movePackagesToPackagesFolder(packagePaths)
       return callback(error)
 
-    @dedupeModules modulesToDedupe, =>
-      @movePackagesToPackagesFolder(packagePaths)
-      @deletePackageJson()
-      callback()
+    @dedupeModules modulesToDedupe, (dedupeError) =>
+      try
+        @movePackagesToPackagesFolder(packagePaths)
+        @deletePackageJson()
+      catch error
+        return callback(error) unless dedupeError?
+
+      callback(dedupeError)
