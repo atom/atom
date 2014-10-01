@@ -448,6 +448,32 @@ describe "Config", ->
           expect(atom.config.get('foo.bar')).toBe 'quux'
           expect(atom.config.get('foo.baz')).toBe 'bar'
 
+      it "does not fire a change event for paths that did not change", ->
+        atom.config.onDidChange 'foo.bar', noChangeSpy = jasmine.createSpy()
+
+        fs.writeFileSync(atom.config.configFilePath, "foo: { bar: 'baz', omg: 'ok'}")
+        waitsFor 'update event', -> updatedHandler.callCount > 0
+        runs ->
+          expect(noChangeSpy).not.toHaveBeenCalled()
+          expect(atom.config.get('foo.bar')).toBe 'baz'
+          expect(atom.config.get('foo.omg')).toBe 'ok'
+
+      describe 'when the default value is a complex value', ->
+        beforeEach ->
+          fs.writeFileSync(atom.config.configFilePath, "foo: { bar: ['baz', 'ok']}")
+          waitsFor 'update event', -> updatedHandler.callCount > 0
+          runs -> updatedHandler.reset()
+
+        it "does not fire a change event for paths that did not change", ->
+          atom.config.onDidChange 'foo.bar', noChangeSpy = jasmine.createSpy()
+
+          fs.writeFileSync(atom.config.configFilePath, "foo: { bar: ['baz', 'ok'], omg: 'another'}")
+          waitsFor 'update event', -> updatedHandler.callCount > 0
+          runs ->
+            expect(noChangeSpy).not.toHaveBeenCalled()
+            expect(atom.config.get('foo.bar')).toEqual ['baz', 'ok']
+            expect(atom.config.get('foo.omg')).toBe 'another'
+
     describe "when the config file changes to omit a setting with a default", ->
       it "resets the setting back to the default", ->
         fs.writeFileSync(atom.config.configFilePath, "foo: { baz: 'new'}")
