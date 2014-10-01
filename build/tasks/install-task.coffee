@@ -3,6 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 runas = null
+temp = require 'temp'
 
 module.exports = (grunt) ->
   {cp, mkdir, rm} = require('./task-helpers')(grunt)
@@ -22,7 +23,11 @@ module.exports = (grunt) ->
     else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)
-      cp shellAppDir, installDir
+
+      tempFolder = temp.path()
+      mkdir tempFolder
+      cp shellAppDir, tempFolder
+      fs.renameSync(tempFolder, installDir)
     else
       binDir = path.join(installDir, 'bin')
       shareDir = path.join(installDir, 'share', 'atom')

@@ -8,7 +8,6 @@
   "dependencies": {
     "async": "~0.2.9",
     "donna": "1.0.1",
-    "tello": "1.0.3",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
     "github-releases": "~0.2.0",
@@ -35,6 +34,8 @@
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
     "runas": "~1.0.1",
+    "tello": "1.0.3",
+    "temp": "~0.8.1",
     "underscore-plus": "1.x",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0"

@@ -7,6 +7,7 @@ Delegator = require 'delegato'
 scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
+Workspace = require './workspace'
 PaneView = require './pane-view'
 PaneContainerView = require './pane-container-view'
 TextEditor = require './text-editor'
@@ -55,15 +56,6 @@ class WorkspaceView extends View
   @delegatesMethods 'open', 'openSync',
     'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
     'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'
-
-  @configDefaults:
-    ignoredNames: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
-    excludeVcsIgnoredPaths: true
-    disabledPackages: []
-    themes: ['atom-dark-ui', 'atom-dark-syntax']
-    projectHome: path.join(fs.getHomeDirectory(), 'github')
-    audioBeep: true
-    destroyEmptyPanes: true
 
   constructor: (@element) ->
     unless @element?

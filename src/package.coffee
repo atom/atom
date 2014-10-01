@@ -143,7 +143,13 @@ class Package
 
     @requireMainModule()
     if @mainModule?
-      atom.config.setDefaults(@name, @mainModule.configDefaults)
+      if @mainModule.config? and typeof @mainModule.config is 'object'
+        atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
+      else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
+        deprecate """Use a config schema instead. See the configuration section
+        of https://atom.io/docs/latest/creating-a-package and
+        https://atom.io/docs/api/latest/Config for more details"""
+        atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
 
@@ -157,7 +163,7 @@ class Package
 
   activateResources: ->
     atom.keymaps.add(keymapPath, map) for [keymapPath, map] in @keymaps
-    atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
+    atom.contextMenu.add(map['context-menu']) for [menuPath, map] in @menus
     atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
 
     unless @grammarsActivated

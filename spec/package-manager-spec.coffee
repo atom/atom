@@ -82,7 +82,21 @@ describe "PackageManager", ->
               expect(indexModule.activate).toHaveBeenCalled()
               expect(pack.mainModule).toBe indexModule
 
-        it "assigns config defaults from the module", ->
+        it "assigns config schema, including defaults when package contains a schema", ->
+          expect(atom.config.get('package-with-config-schema.numbers.one')).toBeUndefined()
+
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-config-schema')
+
+          runs ->
+            expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 1
+            expect(atom.config.get('package-with-config-schema.numbers.two')).toBe 2
+
+            expect(atom.config.set('package-with-config-schema.numbers.one', 'nope')).toBe false
+            expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe true
+            expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 10
+
+        it "still assigns configDefaults from the module though deprecated", ->
           expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
 
           waitsForPromise ->
@@ -216,30 +230,30 @@ describe "PackageManager", ->
           it "loads all the .cson/.json files in the menus directory", ->
             element = ($$ -> @div class: 'test-1')[0]
 
-            expect(atom.contextMenu.definitionsForElement(element)).toEqual []
+            expect(atom.contextMenu.templateForElement(element)).toEqual []
 
             atom.packages.activatePackage("package-with-menus")
 
             expect(atom.menu.template.length).toBe 2
             expect(atom.menu.template[0].label).toBe "Second to Last"
             expect(atom.menu.template[1].label).toBe "Last"
-            expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 1"
-            expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 2"
-            expect(atom.contextMenu.definitionsForElement(element)[2].label).toBe "Menu item 3"
+            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 1"
+            expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 2"
+            expect(atom.contextMenu.templateForElement(element)[2].label).toBe "Menu item 3"
 
         describe "when the metadata contains a 'menus' manifest", ->
           it "loads only the menus specified by the manifest, in the specified order", ->
             element = ($$ -> @div class: 'test-1')[0]
 
-            expect(atom.contextMenu.definitionsForElement(element)).toEqual []
+            expect(atom.contextMenu.templateForElement(element)).toEqual []
 
             atom.packages.activatePackage("package-with-menus-manifest")
 
             expect(atom.menu.template[0].label).toBe "Second to Last"
             expect(atom.menu.template[1].label).toBe "Last"
-            expect(atom.contextMenu.definitionsForElement(element)[0].label).toBe "Menu item 2"
-            expect(atom.contextMenu.definitionsForElement(element)[1].label).toBe "Menu item 1"
-            expect(atom.contextMenu.definitionsForElement(element)[2]).toBeUndefined()
+            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 2"
+            expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 1"
+            expect(atom.contextMenu.templateForElement(element)[2]).toBeUndefined()
 
       describe "stylesheet loading", ->
         describe "when the metadata contains a 'stylesheets' manifest", ->

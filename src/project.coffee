@@ -6,10 +6,12 @@ fs = require 'fs-plus'
 Q = require 'q'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
+{Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 {Directory} = require 'pathwatcher'
+Grim = require 'grim'
 
 TextEditor = require './text-editor'
 Task = require './task'
@@ -33,14 +35,17 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  constructor: ({path, @buffers}={}) ->
+  constructor: ({path, paths, @buffers}={}) ->
+    @emitter = new Emitter
     @buffers ?= []
 
     for buffer in @buffers
       do (buffer) =>
         buffer.onDidDestroy => @removeBuffer(buffer)
 
-    @setPath(path)
+    Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor") if path?
+    paths ?= _.compact([path])
+    @setPaths(paths)
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
@@ -66,25 +71,47 @@ class Project extends Model
     params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
     params
 
+
+  ###
+  Section: Event Subscription
+  ###
+
+  onDidChangePaths: (callback) ->
+    @emitter.on 'did-change-paths', callback
+
+  on: (eventName) ->
+    if eventName is 'path-changed'
+      Grim.deprecate("Use Project::onDidChangePaths instead")
+    super
+
   ###
   Section: Accessing the git repository
   ###
 
-  # Public: Returns the {GitRepository} if available.
-  getRepo: -> @repo
+  # Public: Get an {Array} of {GitRepository}s associated with the project's
+  # directories.
+  getRepositories: -> _.compact([@repo])
+  getRepo: ->
+    Grim.deprecate("Use ::getRepositories instead")
+    @repo
 
   ###
   Section: Managing Paths
   ###
 
-  # Public: Returns the project's {String} fullpath.
+
+  # Public: Get an {Array} of {String}s containing the paths of the project's
+  # directories.
+  getPaths: -> _.compact([@rootDirectory?.path])
   getPath: ->
+    Grim.deprecate("Use ::getPaths instead")
     @rootDirectory?.path
 
-  # Public: Sets the project's fullpath.
+  # Public: Set the paths of the project's directories.
   #
-  # * `projectPath` {String} path
-  setPath: (projectPath) ->
+  # * `projectPaths` {Array} of {String} paths.
+  setPaths: (projectPaths) ->
+    [projectPath] = projectPaths
     projectPath = path.normalize(projectPath) if projectPath
     @path = projectPath
     @rootDirectory?.off()
@@ -100,9 +127,16 @@ class Project extends Model
       @rootDirectory = null
 
     @emit "path-changed"
+    @emitter.emit 'did-change-paths', projectPaths
+  setPath: (path) ->
+    Grim.deprecate("Use ::setPaths instead")
+    @setPaths([path])
 
-  # Public: Returns the root {Directory} object for this project.
+  # Public: Get an {Array} of {Directory}s associated with this project.
+  getDirectories: ->
+    [@rootDirectory]
   getRootDirectory: ->
+    Grim.deprecate("Use ::getDirectories instead")
     @rootDirectory
 
   # Public: Given a uri, this resolves it relative to the project directory. If
@@ -120,7 +154,7 @@ class Project extends Model
     else
       if fs.isAbsolute(uri)
         path.normalize(fs.absolute(uri))
-      else if projectPath = @getPath()
+      else if projectPath = @getPaths()[0]
         path.normalize(fs.absolute(path.join(projectPath, uri)))
       else
         undefined
@@ -345,12 +379,12 @@ class Project extends Model
 
   # Deprecated: delegate
   registerOpener: (opener) ->
-    deprecate("Use Workspace::registerOpener instead")
+    deprecate("Use Workspace::addOpener instead")
     atom.workspace.registerOpener(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
-    deprecate("Use Workspace::unregisterOpener instead")
+    deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
     atom.workspace.unregisterOpener(opener)
 
   # Deprecated: delegate

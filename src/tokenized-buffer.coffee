@@ -25,7 +25,7 @@ class TokenizedBuffer extends Model
   constructor: ({@buffer, @tabLength, @invisibles}) ->
     @emitter = new Emitter
 
-    @tabLength ?= atom.config.getPositiveInt('editor.tabLength', 2)
+    @tabLength ?= atom.config.get('editor.tabLength')
 
     @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
     @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
@@ -35,8 +35,7 @@ class TokenizedBuffer extends Model
 
     @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
 
-    @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
-      @setTabLength(atom.config.getPositiveInt('editor.tabLength', 2))
+    @subscribe atom.config.onDidChange 'editor.tabLength', ({newValue}) => @setTabLength(newValue)
 
     @reloadGrammar()
 

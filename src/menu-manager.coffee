@@ -4,6 +4,9 @@ _ = require 'underscore-plus'
 ipc = require 'ipc'
 CSON = require 'season'
 fs = require 'fs-plus'
+{Disposable} = require 'event-kit'
+
+MenuHelpers = require './menu-helpers'
 
 # Extended: Provides a registry for menu items that you'd like to appear in the
 # application menu.
@@ -34,10 +37,18 @@ class MenuManager
   #   * `submenu` An optional {Array} of sub menu items.
   #   * `command` An optional {String} command to trigger when the item is
   #     clicked.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # added menu items.
   add: (items) ->
+    items = _.deepClone(items)
     @merge(@template, item) for item in items
     @update()
-    undefined
+    new Disposable => @remove(items)
+
+  remove: (items) ->
+    @unmerge(@template, item) for item in items
+    @update()
 
   # Should the binding for the given selector be included in the menu
   # commands.
@@ -95,12 +106,10 @@ class MenuManager
   # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
-    item = _.deepClone(item)
+    MenuHelpers.merge(menu, item)
 
-    if item.submenu? and match = _.find(menu, ({label, submenu}) => submenu? and label and @normalizeLabel(label) is @normalizeLabel(item.label))
-      @merge(match.submenu, i) for i in item.submenu
-    else
-      menu.push(item) unless _.find(menu, ({label}) => label and @normalizeLabel(label) is @normalizeLabel(item.label))
+  unmerge: (menu, item) ->
+    MenuHelpers.unmerge(menu, item)
 
   # OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
@@ -119,25 +128,17 @@ class MenuManager
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipc.send 'update-application-menu', template, keystrokesByCommand
 
-  normalizeLabel: (label) ->
-    return undefined unless label?
-
-    if process.platform is 'darwin'
-      label
-    else
-      label.replace(/\&/g, '')
-
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->
     element?.classList.toString().split(' ') ? []
 
   sortPackagesMenu: ->
-    packagesMenu = @template.find ({label}) => @normalizeLabel(label) is 'Packages'
+    packagesMenu = @template.find ({label}) => MenuHelpers.normalizeLabel(label) is 'Packages'
     return unless packagesMenu?.submenu?
 
     packagesMenu.submenu.sort (item1, item2) =>
       if item1.label and item2.label
-        @normalizeLabel(item1.label).localeCompare(@normalizeLabel(item2.label))
+        MenuHelpers.normalizeLabel(item1.label).localeCompare(MenuHelpers.normalizeLabel(item2.label))
       else
         0
     @update()

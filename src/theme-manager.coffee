@@ -2,7 +2,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Emitter, Disposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
@@ -182,15 +182,15 @@ class ThemeManager
   # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
   #   path or a relative path that will be resolved against the load path.
   #
-  # Returns the absolute path to the required stylesheet.
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # required stylesheet.
   requireStylesheet: (stylesheetPath, type='bundled') ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
       @applyStylesheet(fullPath, content, type)
+      new Disposable => @removeStylesheet(fullPath)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
-
-    fullPath
 
   unwatchUserStylesheet: ->
     @userStylesheetFile?.off()

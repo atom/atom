@@ -26,7 +26,7 @@ module.exports = (grunt) ->
     switch process.platform
       when 'darwin'
         cmd = 'codesign'
-        args = ['-f', '-v', '-s', 'Developer ID Application: GitHub', grunt.config.get('atom.shellAppDir')]
+        args = ['--deep', '--force', '--verbose', '--sign', 'Developer ID Application: GitHub', grunt.config.get('atom.shellAppDir')]
         spawn {cmd, args}, (error) -> callback(error)
       when 'win32'
         spawn {cmd: 'taskkill', args: ['/F', '/IM', 'atom.exe']}, ->

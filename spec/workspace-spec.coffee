@@ -7,7 +7,7 @@ describe "Workspace", ->
   workspace = null
 
   beforeEach ->
-    atom.project.setPath(atom.project.resolve('dir'))
+    atom.project.setPaths([atom.project.resolve('dir')])
     atom.workspace = workspace = new Workspace
 
   describe "::open(uri, options)", ->
@@ -222,8 +222,8 @@ describe "Workspace", ->
       it "returns the resource returned by the custom opener", ->
         fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
         barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
-        workspace.registerOpener(fooOpener)
-        workspace.registerOpener(barOpener)
+        workspace.addOpener(fooOpener)
+        workspace.addOpener(barOpener)
 
         waitsForPromise ->
           pathToOpen = atom.project.resolve('a.foo')
@@ -387,25 +387,25 @@ describe "Workspace", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.workspace.getActivePaneItem()
           console.log item.getTitle()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          expect(document.title).toBe "#{editor.getTitle()} - #{atom.project.getPath()}"
+          expect(document.title).toBe "#{editor.getTitle()} - #{atom.project.getPaths()[0]}"
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.workspace.getActivePane().activateNextItem()
           item = atom.workspace.getActivePaneItem()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          expect(document.title).toBe atom.project.getPath()
+          expect(document.title).toBe atom.project.getPaths()[0]
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
@@ -424,7 +424,7 @@ describe "Workspace", ->
         console.log atom.workspace.getActivePaneItem()
         workspace2 = atom.workspace.testSerialization()
         item = atom.workspace.getActivePaneItem()
-        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPath()}"
+        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
         workspace2.destroy()
 
   describe "document edited status", ->

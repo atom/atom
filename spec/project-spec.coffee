@@ -9,7 +9,7 @@ BufferedProcess = require '../src/buffered-process'
 
 describe "Project", ->
   beforeEach ->
-    atom.project.setPath(atom.project.resolve('dir'))
+    atom.project.setPaths([atom.project.resolve('dir')])
 
   describe "serialization", ->
     deserializedProject = null
@@ -41,8 +41,8 @@ describe "Project", ->
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
-      atom.project.setPath(undefined)
-      expect(atom.project.getPath()).toBeUndefined()
+      atom.project.setPaths([])
+      expect(atom.project.getPaths()[0]).toBeUndefined()
       editor = null
 
       waitsForPromise ->
@@ -50,7 +50,7 @@ describe "Project", ->
 
       runs ->
         editor.saveAs(tempFile)
-        expect(atom.project.getPath()).toBe path.dirname(tempFile)
+        expect(atom.project.getPaths()[0]).toBe path.dirname(tempFile)
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []
@@ -164,7 +164,7 @@ describe "Project", ->
 
     describe "when the project has no path", ->
       it "returns undefined for relative URIs", ->
-        atom.project.setPath()
+        atom.project.setPaths([])
         expect(atom.project.resolve('test.txt')).toBeUndefined()
         expect(atom.project.resolve('http://github.com')).toBe 'http://github.com'
         absolutePath = fs.absolute(__dirname)
@@ -173,33 +173,33 @@ describe "Project", ->
   describe ".setPath(path)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
-        atom.project.setPath(require.resolve('./fixtures/dir/a'))
-        expect(atom.project.getPath()).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+        atom.project.setPaths([require.resolve('./fixtures/dir/a')])
+        expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
         expect(atom.project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
     describe "when path is a directory", ->
       it "sets its path to the directory and updates the root directory", ->
         directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
-        atom.project.setPath(directory)
-        expect(atom.project.getPath()).toEqual directory
+        atom.project.setPaths([directory])
+        expect(atom.project.getPaths()[0]).toEqual directory
         expect(atom.project.getRootDirectory().path).toEqual directory
 
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
-        atom.project.setPath(null)
-        expect(atom.project.getPath()?).toBeFalsy()
+        atom.project.setPaths([])
+        expect(atom.project.getPaths()[0]?).toBeFalsy()
         expect(atom.project.getRootDirectory()?).toBeFalsy()
 
     it "normalizes the path to remove consecutive slashes, ., and .. segments", ->
-      atom.project.setPath("#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}..")
-      expect(atom.project.getPath()).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+      atom.project.setPaths(["#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}.."])
+      expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
       expect(atom.project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
   describe ".replace()", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
 
     beforeEach ->
-      atom.project.setPath(atom.project.resolve('../'))
+      atom.project.setPaths([atom.project.resolve('../')])
 
       filePath = atom.project.resolve('sample.js')
       commentFilePath = atom.project.resolve('sample-with-comments.js')
@@ -332,7 +332,7 @@ describe "Project", ->
 
       it "works on evil filenames", ->
         platform.generateEvilFiles()
-        atom.project.setPath(path.join(__dirname, 'fixtures', 'evil-files'))
+        atom.project.setPaths([path.join(__dirname, 'fixtures', 'evil-files')])
         paths = []
         matches = []
         waitsForPromise ->
@@ -387,7 +387,7 @@ describe "Project", ->
           fs.removeSync(projectPath) if fs.existsSync(projectPath)
 
         it "excludes ignored files", ->
-          atom.project.setPath(projectPath)
+          atom.project.setPaths([projectPath])
           atom.config.set('core.excludeVcsIgnoredPaths', true)
           resultHandler = jasmine.createSpy("result found")
           waitsForPromise ->
@@ -399,7 +399,7 @@ describe "Project", ->
 
       it "includes only files when a directory filter is specified", ->
         projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
-        atom.project.setPath(projectPath)
+        atom.project.setPaths([projectPath])
 
         filePath = path.join(projectPath, 'a-dir', 'oh-git')
 
@@ -419,7 +419,7 @@ describe "Project", ->
         projectPath = temp.mkdirSync()
         filePath = path.join(projectPath, '.text')
         fs.writeFileSync(filePath, 'match this')
-        atom.project.setPath(projectPath)
+        atom.project.setPaths([projectPath])
         paths = []
         matches = []
         waitsForPromise ->

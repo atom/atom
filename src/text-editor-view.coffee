@@ -37,31 +37,6 @@ TextEditorComponent = require './text-editor-component'
 # ```
 module.exports =
 class TextEditorView extends View
-  @configDefaults:
-    fontFamily: ''
-    fontSize: 16
-    lineHeight: 1.3
-    showInvisibles: false
-    showIndentGuide: false
-    showLineNumbers: true
-    autoIndent: true
-    normalizeIndentOnPaste: true
-    nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
-    preferredLineLength: 80
-    tabLength: 2
-    softWrap: false
-    softTabs: true
-    softWrapAtPreferredLineLength: false
-    scrollSensitivity: 40
-    useHardwareAcceleration: true
-    confirmCheckoutHeadRevision: true
-    invisibles:
-      eol: '\u00ac'
-      space: '\u00b7'
-      tab: '\u00bb'
-      cr: '\u00a4'
-    scrollPastEnd: false
-
   @content: (params) ->
     attributes = params.attributes ? {}
     attributes.class = 'editor react editor-colors'

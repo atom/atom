@@ -113,8 +113,8 @@ class TextEditor extends Model
       @emit 'scroll-left-changed', scrollLeft
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
-    @subscribe atom.config.observe 'editor.showInvisibles', callNow: false, (show) => @updateInvisibles()
-    @subscribe atom.config.observe 'editor.invisibles', callNow: false, => @updateInvisibles()
+    @subscribe atom.config.onDidChange 'editor.showInvisibles', => @updateInvisibles()
+    @subscribe atom.config.onDidChange 'editor.invisibles', => @updateInvisibles()
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -133,8 +133,8 @@ class TextEditor extends Model
   subscribeToBuffer: ->
     @buffer.retain()
     @subscribe @buffer.onDidChangePath =>
-      unless atom.project.getPath()?
-        atom.project.setPath(path.dirname(@getPath()))
+      unless atom.project.getPaths()[0]?
+        atom.project.setPaths([path.dirname(@getPath())])
       @emit "title-changed"
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"

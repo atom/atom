@@ -10,7 +10,7 @@ describe "WorkspaceView", ->
   pathToOpen = null
 
   beforeEach ->
-    atom.project.setPath(atom.project.resolve('dir'))
+    atom.project.setPaths([atom.project.resolve('dir')])
     pathToOpen = atom.project.resolve('a')
     atom.workspace = new Workspace
     atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
@@ -49,7 +49,7 @@ describe "WorkspaceView", ->
 
           expect(atom.workspaceView.getEditorViews().length).toBe 2
           expect(atom.workspaceView.getActivePaneView()).toBe atom.workspaceView.getPaneViews()[1]
-          expect(document.title).toBe "untitled - #{atom.project.getPath()}"
+          expect(document.title).toBe "untitled - #{atom.project.getPaths()[0]}"
 
     describe "when there are open editors", ->
       it "constructs the view with the same panes", ->
@@ -106,7 +106,7 @@ describe "WorkspaceView", ->
           expect(editorView3).not.toHaveFocus()
           expect(editorView4).not.toHaveFocus()
 
-          expect(document.title).toBe "#{path.basename(editorView2.getEditor().getPath())} - #{atom.project.getPath()}"
+          expect(document.title).toBe "#{path.basename(editorView2.getEditor().getPath())} - #{atom.project.getPaths()[0]}"
 
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->

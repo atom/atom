@@ -500,22 +500,22 @@ TextEditorComponent = React.createClass
         'editor:fold-at-indent-level-9': -> editor.foldAllAtIndentLevel(8)
         'editor:toggle-line-comments': -> editor.toggleLineCommentsInSelection()
         'editor:log-cursor-scope': -> editor.logCursorScope()
-        'editor:checkout-head-revision': -> atom.project.getRepo()?.checkoutHeadForEditor(editor)
+        'editor:checkout-head-revision': -> atom.project.getRepositories()[0]()?.checkoutHeadForEditor(editor)
         'editor:copy-path': -> editor.copyPathToClipboard()
         'editor:move-line-up': -> editor.moveLineUp()
         'editor:move-line-down': -> editor.moveLineDown()
         'editor:duplicate-lines': -> editor.duplicateLines()
         'editor:join-lines': -> editor.joinLines()
-        'editor:toggle-indent-guide': -> atom.config.toggle('editor.showIndentGuide')
-        'editor:toggle-line-numbers': ->  atom.config.toggle('editor.showLineNumbers')
+        'editor:toggle-indent-guide': -> atom.config.set('editor.showIndentGuide', not atom.config.get('editor.showIndentGuide'))
+        'editor:toggle-line-numbers': ->  atom.config.set('editor.showLineNumbers', not atom.config.get('editor.showLineNumbers'))
         'editor:scroll-to-cursor': -> editor.scrollToCursorPosition()
         'benchmark:scroll': @runScrollBenchmark
 
   addCommandListeners: (listenersByCommandName) ->
     {parentView} = @props
 
-    addListener = (command, listener) ->
-      parentView.command command, (event) ->
+    addListener = (command, listener) =>
+      @subscribe parentView.command command, (event) ->
         event.stopPropagation()
         listener(event)
 

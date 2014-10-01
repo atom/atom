@@ -28,6 +28,7 @@ class AtomWindow
       title: 'Atom'
       icon: @constructor.iconPath
       'web-preferences':
+        'direct-write': false
         'subpixel-font-scaling': false
     global.atomApplication.addWindow(this)
 

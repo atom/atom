@@ -13,12 +13,12 @@ class ContextMenu
   createClickHandlers: (template) ->
     for item in template
       if item.command
-        item.commandOptions ?= {}
-        item.commandOptions.contextCommand = true
-        item.commandOptions.atomWindow = @atomWindow
+        item.commandDetail ?= {}
+        item.commandDetail.contextCommand = true
+        item.commandDetail.atomWindow = @atomWindow
         do (item) =>
           item.click = =>
-            global.atomApplication.sendCommandToWindow(item.command, @atomWindow, item.commandOptions)
+            global.atomApplication.sendCommandToWindow(item.command, @atomWindow, item.commandDetail)
       else if item.submenu
         @createClickHandlers(item.submenu)
       item

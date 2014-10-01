@@ -171,11 +171,27 @@
 ]
 
 'context-menu':
-  '.overlayer':
-    'Undo': 'core:undo'
-    'Redo': 'core:redo'
-    'Cut': 'core:cut'
-    'Copy': 'core:copy'
-    'Paste': 'core:paste'
-    'Delete': 'core:delete'
-    'Select All': 'core:select-all'
+  '.overlayer': [
+    {label: 'Undo', command: 'core:undo'}
+    {label: 'Redo', command: 'core:redo'}
+    {type: 'separator'}
+    {label: 'Cut', command: 'core:cut'}
+    {label: 'Copy', command: 'core:copy'}
+    {label: 'Paste', command: 'core:paste'}
+    {label: 'Delete', command: 'core:delete'}
+    {label: 'Select All', command: 'core:select-all'}
+    {type: 'separator'}
+    {label: 'Split Up', command: 'pane:split-up'}
+    {label: 'Split Down', command: 'pane:split-down'}
+    {label: 'Split Left', command: 'pane:split-left'}
+    {label: 'Split Right', command: 'pane:split-right'}
+    {type: 'separator'}
+  ]
+  '.pane': [
+    {type: 'separator'}
+    {label: 'Split Up', command: 'pane:split-up'}
+    {label: 'Split Down', command: 'pane:split-down'}
+    {label: 'Split Left', command: 'pane:split-left'}
+    {label: 'Split Right', command: 'pane:split-right'}
+    {type: 'separator'}
+  ]

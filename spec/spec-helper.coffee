@@ -69,7 +69,7 @@ beforeEach ->
   $.fx.off = true
   documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
-  atom.project = new Project(path: projectPath)
+  atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.setRootNode(document.body)
@@ -98,16 +98,16 @@ beforeEach ->
   config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
   spyOn(config, 'load')
   spyOn(config, 'save')
-  config.setDefaults('core', WorkspaceView.configDefaults)
-  config.setDefaults('editor', TextEditorView.configDefaults)
+  atom.config = config
+  atom.loadConfig()
   config.set "core.destroyEmptyPanes", false
   config.set "editor.fontFamily", "Courier"
   config.set "editor.fontSize", 16
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
+  config.load.reset()
   config.save.reset()
-  atom.config = config
 
   # make editor display updates synchronous
   spyOn(TextEditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
@@ -132,6 +132,7 @@ beforeEach ->
 afterEach ->
   atom.packages.deactivatePackages()
   atom.menu.template = []
+  atom.contextMenu.clear()
 
   atom.workspaceView?.remove?()
   atom.workspaceView = null

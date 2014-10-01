@@ -586,7 +586,7 @@ describe "TokenizedBuffer", ->
       atom.config.set('editor.tabLength', 1)
       expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
       atom.config.set('editor.tabLength', 0)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
 
   describe "when the invisibles value changes", ->
     beforeEach ->
