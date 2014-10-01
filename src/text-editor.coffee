@@ -162,9 +162,6 @@ class TextEditor extends Model
     @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
-  getViewClass: ->
-    require './text-editor-view'
-
   destroyed: ->
     @unsubscribe()
     selection.destroy() for selection in @getSelections()

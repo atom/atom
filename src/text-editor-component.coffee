@@ -193,7 +193,7 @@ TextEditorComponent = React.createClass
   componentWillUnmount: ->
     {editor, parentView} = @props
 
-    parentView.trigger 'editor:will-be-removed', [parentView]
+    parentView.__spacePenView.trigger 'editor:will-be-removed', [parentView.__spacePenView]
     @unsubscribe()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
@@ -212,9 +212,9 @@ TextEditorComponent = React.createClass
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
       @updateParentViewMiniClassIfNeeded(prevState)
-      @props.parentView.trigger 'cursor:moved' if cursorMoved
-      @props.parentView.trigger 'selection:changed' if selectionChanged
-      @props.parentView.trigger 'editor:display-updated'
+      @props.parentView.__spacePenView.trigger 'cursor:moved' if cursorMoved
+      @props.parentView.__spacePenView.trigger 'selection:changed' if selectionChanged
+      @props.parentView.__spacePenView.trigger 'editor:display-updated'
 
   becameVisible: ->
     @updatesPaused = true
@@ -255,7 +255,7 @@ TextEditorComponent = React.createClass
         @forceUpdate()
 
   getTopmostDOMNode: ->
-    @props.parentView.element
+    @props.parentView
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -515,7 +515,7 @@ TextEditorComponent = React.createClass
     {parentView} = @props
 
     addListener = (command, listener) =>
-      @subscribe parentView.command command, (event) ->
+      @subscribe parentView.__spacePenView.command command, (event) ->
         event.stopPropagation()
         listener(event)
 
@@ -864,10 +864,9 @@ TextEditorComponent = React.createClass
     return unless @isMounted()
 
     {editor, parentView} = @props
-    parentNode = parentView.element
     scrollViewNode = @refs.scrollView.getDOMNode()
-    {position} = getComputedStyle(parentNode)
-    {height} = parentNode.style
+    {position} = getComputedStyle(parentView)
+    {height} = parentView.style
 
     if position is 'absolute' or height
       if @autoHeight
@@ -901,7 +900,7 @@ TextEditorComponent = React.createClass
   sampleBackgroundColors: (suppressUpdate) ->
     {parentView} = @props
     {showLineNumbers} = @state
-    {backgroundColor} = getComputedStyle(parentView.element)
+    {backgroundColor} = getComputedStyle(parentView)
 
     if backgroundColor isnt @backgroundColor
       @backgroundColor = backgroundColor
@@ -1070,11 +1069,11 @@ TextEditorComponent = React.createClass
 
   updateParentViewFocusedClassIfNeeded: (prevState) ->
     if prevState.focused isnt @state.focused
-      @props.parentView.toggleClass('is-focused', @props.focused)
+      @props.parentView.classList.toggle('is-focused', @state.focused)
 
   updateParentViewMiniClassIfNeeded: (prevProps) ->
     if prevProps.mini isnt @props.mini
-      @props.parentView.toggleClass('mini', @props.mini)
+      @props.parentView.classList.toggle('mini', @props.mini)
 
   runScrollBenchmark: ->
     unless process.env.NODE_ENV is 'production'
