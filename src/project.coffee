@@ -6,7 +6,8 @@ fs = require 'fs-plus'
 Q = require 'q'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
-{Emitter, Subscriber} = require 'emissary'
+{Subscriber} = require 'emissary'
+{Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 {Directory} = require 'pathwatcher'
@@ -35,6 +36,7 @@ class Project extends Model
   ###
 
   constructor: ({path, paths, @buffers}={}) ->
+    @emitter = new Emitter
     @buffers ?= []
 
     for buffer in @buffers
@@ -68,6 +70,19 @@ class Project extends Model
   deserializeParams: (params) ->
     params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
     params
+
+
+  ###
+  Section: Event Subscription
+  ###
+
+  onDidChangePaths: (callback) ->
+    @emitter.on 'did-change-paths', callback
+
+  on: (eventName) ->
+    if eventName is 'path-changed'
+      Grim.deprecate("Use Project::onDidChangePaths instead")
+    super
 
   ###
   Section: Accessing the git repository
@@ -112,6 +127,7 @@ class Project extends Model
       @rootDirectory = null
 
     @emit "path-changed"
+    @emitter.emit 'did-change-paths', projectPaths
   setPath: (path) ->
     Grim.deprecate("Use ::setPaths instead")
     @setPaths([path])

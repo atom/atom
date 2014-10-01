@@ -620,7 +620,7 @@ class Atom extends Model
   watchProjectPath: ->
     onProjectPathChanged = =>
       ipc.send('window-command', 'project-path-changed', @project.getPaths()[0])
-    @subscribe @project, 'path-changed', onProjectPathChanged
+    @subscribe @project.onDidChangePaths(onProjectPathChanged)
     onProjectPathChanged()
 
   exit: (status) ->

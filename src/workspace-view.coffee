@@ -102,7 +102,7 @@ class WorkspaceView extends View
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
-    atom.project.on 'path-changed', => @updateTitle()
+    atom.project.onDidChangePaths => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
     @on 'pane:active-item-modified-status-changed', '.active.pane', => @updateDocumentEdited()
