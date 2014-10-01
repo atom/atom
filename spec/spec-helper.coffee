@@ -62,7 +62,7 @@ beforeEach ->
   Grim.clearDeprecations() if isCoreSpec
   $.fx.off = true
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
-  atom.project = new Project(path: projectPath)
+  atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.setRootNode(document.body)

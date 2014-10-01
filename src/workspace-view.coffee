@@ -102,7 +102,7 @@ class WorkspaceView extends View
     @subscribe $(window), 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
 
-    atom.project.on 'path-changed', => @updateTitle()
+    atom.project.onDidChangePaths => @updateTitle()
     @on 'pane-container:active-pane-item-changed', => @updateTitle()
     @on 'pane:active-item-title-changed', '.active.pane', => @updateTitle()
     @on 'pane:active-item-modified-status-changed', '.active.pane', => @updateDocumentEdited()
@@ -136,7 +136,7 @@ class WorkspaceView extends View
     if process.platform is 'darwin'
       @command 'window:install-shell-commands', => @installShellCommands()
 
-    @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
+    @command 'window:run-package-specs', -> ipc.send('run-package-specs', path.join(atom.project.getPaths()[0], 'spec'))
 
     @command 'window:focus-next-pane', => @focusNextPaneView()
     @command 'window:focus-previous-pane', => @focusPreviousPaneView()
@@ -367,7 +367,7 @@ class WorkspaceView extends View
   # Updates the application's title and proxy icon based on whichever file is
   # open.
   updateTitle: ->
-    if projectPath = atom.project.getPath()
+    if projectPath = atom.project.getPaths()[0]
       if item = @getModel().getActivePaneItem()
         title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
         @setTitle(title, item.getPath?())

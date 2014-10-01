@@ -577,7 +577,7 @@ class Atom extends Model
     Project = require './project'
 
     startTime = Date.now()
-    @project ?= @deserializers.deserialize(@state.project) ? new Project(path: @getLoadSettings().initialPath)
+    @project ?= @deserializers.deserialize(@state.project) ? new Project(paths: [@getLoadSettings().initialPath])
     @deserializeTimings.project = Date.now() - startTime
 
   deserializeWorkspaceView: ->
@@ -619,8 +619,8 @@ class Atom extends Model
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     onProjectPathChanged = =>
-      ipc.send('window-command', 'project-path-changed', @project.getPath())
-    @subscribe @project, 'path-changed', onProjectPathChanged
+      ipc.send('window-command', 'project-path-changed', @project.getPaths()[0])
+    @subscribe @project.onDidChangePaths(onProjectPathChanged)
     onProjectPathChanged()
 
   exit: (status) ->
