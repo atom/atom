@@ -484,7 +484,7 @@ class Config
     deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
   ###
-  Section: Private
+  Section: Internal to Core
   ###
 
   pushAtKeyPath: (keyPath, value) ->
@@ -505,6 +505,34 @@ class Config
     @set(keyPath, arrayValue)
     result
 
+  setSchema: (keyPath, schema) ->
+    unless isPlainObject(schema)
+      throw new Error("Error loading schema for #{keyPath}: schemas can only be objects!")
+
+    unless typeof schema.type?
+      throw new Error("Error loading schema for #{keyPath}: schema objects must have a type attribute")
+
+    rootSchema = @schema
+    if keyPath
+      for key in keyPath.split('.')
+        rootSchema.type = 'object'
+        rootSchema.properties ?= {}
+        properties = rootSchema.properties
+        properties[key] ?= {}
+        rootSchema = properties[key]
+
+    _.extend rootSchema, schema
+    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
+
+  load: ->
+    @initializeConfigDirectory()
+    @loadUserConfig()
+    @observeUserConfig()
+
+  ###
+  Section: Private
+  ###
+
   initializeConfigDirectory: (done) ->
     return if fs.existsSync(@configDirPath)
 
@@ -520,11 +548,6 @@ class Config
       destinationPath = path.join(@configDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
-
-  load: ->
-    @initializeConfigDirectory()
-    @loadUserConfig()
-    @observeUserConfig()
 
   loadUserConfig: ->
     unless fs.existsSync(@configFilePath)
@@ -614,25 +637,6 @@ class Config
         @setRawDefault(keyPath, defaults)
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
-
-  setSchema: (keyPath, schema) ->
-    unless isPlainObject(schema)
-      throw new Error("Error loading schema for #{keyPath}: schemas can only be objects!")
-
-    unless typeof schema.type?
-      throw new Error("Error loading schema for #{keyPath}: schema objects must have a type attribute")
-
-    rootSchema = @schema
-    if keyPath
-      for key in keyPath.split('.')
-        rootSchema.type = 'object'
-        rootSchema.properties ?= {}
-        properties = rootSchema.properties
-        properties[key] ?= {}
-        rootSchema = properties[key]
-
-    _.extend rootSchema, schema
-    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
 
   extractDefaultsFromSchema: (schema) ->
     if schema.default?
