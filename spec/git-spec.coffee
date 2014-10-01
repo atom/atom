@@ -223,7 +223,7 @@ describe "GitRepository", ->
     [editor] = []
 
     beforeEach ->
-      atom.project.setPath(copyRepository())
+      atom.project.setPaths([copyRepository()])
 
       waitsForPromise ->
         atom.workspace.open('other.txt').then (o) -> editor = o
@@ -232,7 +232,7 @@ describe "GitRepository", ->
       editor.insertNewline()
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepo().onDidChangeStatus statusHandler
+      atom.project.getRepositories()[0].onDidChangeStatus statusHandler
       editor.save()
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
@@ -241,7 +241,7 @@ describe "GitRepository", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepo().onDidChangeStatus statusHandler
+      atom.project.getRepositories()[0].onDidChangeStatus statusHandler
       editor.getBuffer().reload()
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
@@ -252,7 +252,7 @@ describe "GitRepository", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepo().onDidChangeStatus statusHandler
+      atom.project.getRepositories()[0].onDidChangeStatus statusHandler
       editor.getBuffer().emitter.emit 'did-change-path'
       expect(statusHandler.callCount).toBe 1
       expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
@@ -266,7 +266,7 @@ describe "GitRepository", ->
       project2?.destroy()
 
     it "subscribes to all the serialized buffers in the project", ->
-      atom.project.setPath(copyRepository())
+      atom.project.setPaths([copyRepository()])
 
       waitsForPromise ->
         atom.workspace.open('file.txt')
@@ -283,7 +283,7 @@ describe "GitRepository", ->
         buffer.append('changes')
 
         statusHandler = jasmine.createSpy('statusHandler')
-        project2.getRepo().onDidChangeStatus statusHandler
+        project2.getRepositories()[0].onDidChangeStatus statusHandler
         buffer.save()
         expect(statusHandler.callCount).toBe 1
         expect(statusHandler).toHaveBeenCalledWith {path: buffer.getPath(), pathStatus: 256}

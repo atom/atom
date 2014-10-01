@@ -500,7 +500,7 @@ TextEditorComponent = React.createClass
         'editor:fold-at-indent-level-9': -> editor.foldAllAtIndentLevel(8)
         'editor:toggle-line-comments': -> editor.toggleLineCommentsInSelection()
         'editor:log-cursor-scope': -> editor.logCursorScope()
-        'editor:checkout-head-revision': -> atom.project.getRepo()?.checkoutHeadForEditor(editor)
+        'editor:checkout-head-revision': -> atom.project.getRepositories()[0]()?.checkoutHeadForEditor(editor)
         'editor:copy-path': -> editor.copyPathToClipboard()
         'editor:move-line-up': -> editor.moveLineUp()
         'editor:move-line-down': -> editor.moveLineDown()

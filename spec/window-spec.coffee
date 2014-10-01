@@ -8,7 +8,7 @@ describe "Window", ->
 
   beforeEach ->
     spyOn(atom, 'hide')
-    initialPath = atom.project.getPath()
+    initialPath = atom.project.getPaths()[0]
     spyOn(atom, 'getLoadSettings').andCallFake ->
       loadSettings = atom.getLoadSettings.originalValue.call(atom)
       loadSettings.initialPath = initialPath
@@ -16,7 +16,7 @@ describe "Window", ->
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler()
     atom.deserializeEditorWindow()
-    projectPath = atom.project.getPath()
+    projectPath = atom.project.getPaths()[0]
 
   afterEach ->
     windowEventHandler.unsubscribe()
@@ -263,19 +263,19 @@ describe "Window", ->
 
     describe "when the project does not have a path", ->
       beforeEach ->
-        atom.project.setPath()
+        atom.project.setPaths([])
 
       describe "when the opened path exists", ->
         it "sets the project path to the opened path", ->
           $(window).trigger('window:open-path', [{pathToOpen: __filename}])
 
-          expect(atom.project.getPath()).toBe __dirname
+          expect(atom.project.getPaths()[0]).toBe __dirname
 
       describe "when the opened path does not exist but its parent directory does", ->
         it "sets the project path to the opened path's parent directory", ->
           $(window).trigger('window:open-path', [{pathToOpen: path.join(__dirname, 'this-path-does-not-exist.txt')}])
 
-          expect(atom.project.getPath()).toBe __dirname
+          expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path is a file", ->
       it "opens it in the workspace", ->

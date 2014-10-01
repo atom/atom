@@ -133,8 +133,8 @@ class TextEditor extends Model
   subscribeToBuffer: ->
     @buffer.retain()
     @subscribe @buffer.onDidChangePath =>
-      unless atom.project.getPath()?
-        atom.project.setPath(path.dirname(@getPath()))
+      unless atom.project.getPaths()[0]?
+        atom.project.setPaths([path.dirname(@getPath())])
       @emit "title-changed"
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
