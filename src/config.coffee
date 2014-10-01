@@ -492,7 +492,7 @@ class Config
     deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
   ###
-  Section: Internal to Core
+  Section: Internal methods used by core
   ###
 
   pushAtKeyPath: (keyPath, value) ->
@@ -538,7 +538,7 @@ class Config
     @observeUserConfig()
 
   ###
-  Section: Private
+  Section: Private methods managing the user's config file
   ###
 
   initializeConfigDirectory: (done) ->
@@ -586,6 +586,42 @@ class Config
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
 
+  ###
+  Section: Private methods managing global settings
+  ###
+
+  setAll: (newSettings) ->
+    unless isPlainObject(newSettings)
+      @settings = {}
+      @emitter.emit 'did-change'
+      return
+
+    unsetUnspecifiedValues = (keyPath, value) =>
+      if isPlainObject(value)
+        keys = if keyPath? then keyPath.split('.') else []
+        for key, childValue of value
+          continue unless value.hasOwnProperty(key)
+          unsetUnspecifiedValues(keys.concat([key]).join('.'), childValue)
+      else
+        @setRawValue(keyPath, undefined) unless _.valueForKeyPath(newSettings, keyPath)?
+      return
+
+    @setRecursive(null, newSettings)
+    unsetUnspecifiedValues(null, @settings)
+
+  setRecursive: (keyPath, value) ->
+    if isPlainObject(value)
+      keys = if keyPath? then keyPath.split('.') else []
+      for key, childValue of value
+        continue unless value.hasOwnProperty(key)
+        @setRecursive(keys.concat([key]).join('.'), childValue)
+    else
+      try
+        value = @makeValueConformToSchema(keyPath, value)
+        @setRawValue(keyPath, value)
+      catch e
+        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+
   getRawValue: (keyPath) ->
     value = _.valueForKeyPath(@settings, keyPath)
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
@@ -612,38 +648,6 @@ class Config
     _.setValueForKeyPath(@defaultSettings, keyPath, value)
     newValue = @get(keyPath)
     @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
-
-  setRecursive: (keyPath, value) ->
-    if isPlainObject(value)
-      keys = if keyPath? then keyPath.split('.') else []
-      for key, childValue of value
-        continue unless value.hasOwnProperty(key)
-        @setRecursive(keys.concat([key]).join('.'), childValue)
-    else
-      try
-        value = @makeValueConformToSchema(keyPath, value)
-        @setRawValue(keyPath, value)
-      catch e
-        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
-
-  setAll: (newSettings) ->
-    unless isPlainObject(newSettings)
-      @settings = {}
-      @emitter.emit 'did-change'
-      return
-
-    unsetUnspecifiedValues = (keyPath, value) =>
-      if isPlainObject(value)
-        keys = if keyPath? then keyPath.split('.') else []
-        for key, childValue of value
-          continue unless value.hasOwnProperty(key)
-          unsetUnspecifiedValues(keys.concat([key]).join('.'), childValue)
-      else
-        @setRawValue(keyPath, undefined) unless _.valueForKeyPath(newSettings, keyPath)?
-      return
-
-    @setRecursive(null, newSettings)
-    unsetUnspecifiedValues(null, @settings)
 
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
