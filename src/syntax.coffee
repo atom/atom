@@ -82,6 +82,3 @@ class Syntax extends GrammarRegistry
       .join(' ')
 
     @propertyStore.getProperties(scopeChain, keyPath)
-
-  cssSelectorFromScopeSelector: (scopeSelector) ->
-    new ScopeSelector(scopeSelector).toCssSelector()
