@@ -12,10 +12,10 @@ pathWatcher = require 'pathwatcher'
 #
 # An instance of this class is always available as the `atom.config` global.
 #
-# ## Getting and setting config settings. Note that with no value set, {::get}
-# returns the setting's default value.
+# ## Getting and setting config settings.
 #
 # ```coffee
+# # Note that with no value set, ::get returns the setting's default value.
 # atom.config.get('my-package.myKey') # -> 'defaultValue'
 #
 # atom.config.set('my-package.myKey', 'value')
