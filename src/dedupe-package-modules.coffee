@@ -103,13 +103,24 @@ class DedupePackageModules extends Command
     for packagePath in packagePaths
       delete moduleNames[path.basename(packagePath)]
 
-  run: ->
+  run: (options) ->
+    {callback, cwd} = options
+    options = @parseOptions(options.commandArgs)
+
     packagePaths = @getInstalledPackages()
     @createPackageJson(packagePaths)
     modulesToDedupe = @getModulesToDedupe(packagePaths)
     @removePackageNames(packagePaths, modulesToDedupe)
-    @movePackagesToNodeModulesFolder(packagePaths)
+
+    try
+      @movePackagesToNodeModulesFolder(packagePaths)
+    catch error
+      # Move packages back, something went wrong
+      try
+        @movePackagesToPackagesFolder(packagePaths)
+      return callback(error)
 
     @dedupeModules modulesToDedupe, =>
       @movePackagesToPackagesFolder(packagePaths)
       @deletePackageJson()
+      callback()
