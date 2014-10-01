@@ -628,7 +628,7 @@ class Config
 
     if value?
       value = _.deepClone(value)
-      _.defaults(value, defaultValue) if isPlainObject(defaultValue) and isPlainObject(defaultValue)
+      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
       value = _.deepClone(defaultValue)
 
