@@ -440,7 +440,10 @@ class Install extends Command
 
         @isBundledPackage name, (isBundledPackage) =>
           if isBundledPackage
-            console.error "The #{name} package is bundled with Atom and should not be explicitly installed.".yellow
+            console.error """
+              The #{name} package is bundled with Atom and should not be explicitly installed.
+              You can run `apm uninstall #{name}` to uninstall it.
+            """.yellow
           @installPackage({name, version}, options, callback)
 
     if packagesFilePath
