@@ -120,6 +120,10 @@ class TextEditorView extends View
     @trigger 'editor:detached', [this]
     @attached = false
 
+  remove: (selector, keepData) ->
+    @model.destroy() unless keepData
+    super
+
   scrollTop: (scrollTop) ->
     if scrollTop?
       @model.setScrollTop(scrollTop)
