@@ -4,6 +4,7 @@ async = require 'async'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 CSON = require 'season'
+semver = require 'semver'
 temp = require 'temp'
 
 config = require './config'
@@ -273,14 +274,18 @@ class Install extends Command
         @logFailure()
         callback(error)
       else
-        commands = []
-        packageVersion ?= pack.releases.latest
+        packageVersion ?= @getLatestCompatibleVersion(pack)
+        unless packageVersion
+          @logFailure()
+          callback("No available version compatible with the installed Atom version: #{@installedAtomVersion}")
+
         {tarball} = pack.versions[packageVersion]?.dist ? {}
         unless tarball
           @logFailure()
           callback("Package version: #{packageVersion} not found")
           return
 
+        commands = []
         commands.push (callback) =>
           if packagePath = @getPackageCachePath(packageName, packageVersion)
             callback(null, packagePath)
@@ -391,6 +396,30 @@ class Install extends Command
 
       callback(atomMetadata?.packageDependencies?.hasOwnProperty(packageName))
 
+  getLatestCompatibleVersion: (pack) ->
+    return pack.releases.latest unless @installedAtomVersion
+
+    latestVersion = null
+    for version, metadata of pack.versions ? {}
+      continue unless semver.valid(version)
+      continue unless metadata
+
+      engine = metadata.engines?.atom ? '*'
+      continue unless semver.validRange(engine)
+      continue unless semver.satisfies(@installedAtomVersion, engine)
+
+      latestVersion ?= version
+      latestVersion = version if semver.gt(version, latestVersion)
+
+    latestVersion
+
+  loadInstalledAtomVersion: (callback) ->
+    @getResourcePath (resourcePath) =>
+      try
+        {version} = require(path.join(resourcePath, 'package.json')) ? {}
+        @installedAtomVersion = version if semver.valid(version)
+      callback()
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -414,7 +443,6 @@ class Install extends Command
             console.error "The #{name} package is bundled with Atom and should not be explicitly installed.".yellow
           @installPackage({name, version}, options, callback)
 
-    commands = []
     if packagesFilePath
       try
         packageNames = @packageNamesFromPath(packagesFilePath)
@@ -423,6 +451,9 @@ class Install extends Command
     else
       packageNames = @packageNamesFromArgv(options.argv)
       packageNames.push('.') if packageNames.length is 0
+
+    commands = []
+    commands.push (callback) => @loadInstalledAtomVersion(callback)
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
     async.waterfall(commands, callback)

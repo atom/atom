@@ -45,6 +45,8 @@ describe 'apm install', ->
         response.sendfile path.join(__dirname, 'fixtures', 'test-module-with-symlink-5.0.0.tgz')
       app.get '/tarball/test-module-with-bin-2.0.0.tgz', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'test-module-with-bin-2.0.0.tgz')
+      app.get '/packages/multi-module', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'install-multi-version.json')
 
       server =  http.createServer(app)
       server.listen(3000)
@@ -89,6 +91,21 @@ describe 'apm install', ->
           expect(fs.existsSync(path.join(testModuleDirectory, 'index.js'))).toBeTruthy()
           expect(fs.existsSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
           expect(callback.mostRecentCall.args[0]).toBeNull()
+
+      describe 'when multiple releases are available', ->
+        it 'installs the latest compatible version', ->
+          CSON.writeFileSync(path.join(resourcePath, 'package.json'), version: '1.5.0')
+          packageDirectory = path.join(atomHome, 'packages', 'test-module')
+
+          callback = jasmine.createSpy('callback')
+          apm.run(['install', 'multi-module'], callback)
+
+          waitsFor 'waiting for install to complete', 600000, ->
+            callback.callCount is 1
+
+          runs ->
+            expect(JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'))).version).toBe "1.0.0"
+            expect(callback.mostRecentCall.args[0]).toBeNull()
 
     describe 'when multiple package names are specified', ->
       it 'installs all packages', ->
