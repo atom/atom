@@ -73,7 +73,7 @@ module.exports =
       tabLength:
         type: 'integer'
         default: 2
-        minimum: 1
+        enum: [1, 2, 4, 6, 8]
       softWrap:
         type: 'boolean'
         default: false
@@ -94,6 +94,7 @@ module.exports =
       useHardwareAcceleration:
         type: 'boolean'
         default: true
+        description: 'Disabling will improve editor font rendering but reduce scrolling performance.'
       confirmCheckoutHeadRevision:
         type: 'boolean'
         default: true
