@@ -51,7 +51,10 @@ class DedupePackageModules extends Command
   # Move Atom packages from ~/.atom/packages/node_modules to  ~/.atom/packages
   movePackagesToPackagesFolder: (packagePaths) ->
     for packagePath in packagePaths
-      fs.renameSync(path.join(@userPackagesDirectory, 'node_modules', path.basename(packagePath)), packagePath)
+      packageName = path.basename(packagePath)
+      nodeModulesPath = path.join(@userPackagesDirectory, 'node_modules', packageName)
+      if fs.isDirectorySync(nodeModulesPath)
+        fs.renameSync(nodeModulesPath, packagePath)
 
     return
 
