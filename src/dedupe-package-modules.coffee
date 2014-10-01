@@ -57,8 +57,8 @@ class DedupePackageModules extends Command
       if fs.isDirectorySync(nodeModulesPath)
         try
           fs.renameSync(nodeModulesPath, packagePath)
-        catch error
-          firstError ?= error
+        catch moveError
+          firstError ?= moveError
 
     throw firstError if firstError?
     return
@@ -134,7 +134,7 @@ class DedupePackageModules extends Command
       try
         @movePackagesToPackagesFolder(packagePaths)
         @deletePackageJson()
-      catch error
-        return callback(error) unless dedupeError?
+      catch moveError
+        return callback(moveError) unless dedupeError?
 
       callback(dedupeError)
