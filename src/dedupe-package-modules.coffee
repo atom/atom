@@ -79,7 +79,12 @@ class DedupePackageModules extends Command
     metadataPath = path.join(modulePath, 'package.json')
     return unless fs.isFileSync(metadataPath)
 
-    for dependency, version of CSON.readFileSync(metadataPath)?.dependencies
+    try
+      metadata = CSON.readFileSync(metadataPath)
+    catch error
+      return
+
+    for dependency, version of metadata?.dependencies
       dependencies[dependency] ?= version
 
     return
