@@ -18,7 +18,6 @@ class DedupePackageModules extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
-
   run: ->
     # Move packages to ~/.atom/packages/node_modules
     # Build package.json with packages as dependencies to ~/.atom/packages/package.json
