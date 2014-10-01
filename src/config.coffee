@@ -394,16 +394,16 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: (scope, keyPath, value) ->
+    if arguments.length < 3
+      value = keyPath
+      keyPath = scope
+      scope = undefined
+
     unless value == undefined
       try
         value = @makeValueConformToSchema(keyPath, value)
       catch e
         return false
-
-    if arguments.length < 3
-      value = keyPath
-      keyPath = scope
-      scope = undefined
 
     if scope?
       @addRawScopedValue(scope, keyPath, value)
