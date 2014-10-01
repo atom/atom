@@ -533,11 +533,7 @@ class Config
 
     try
       userConfig = CSON.readFileSync(@configFilePath)
-      @settings = {} # Reset to the defaults
-      if isPlainObject(userConfig)
-        @setRecursive(null, userConfig)
-      else
-        @emitter.emit 'did-change'
+      @setAll(userConfig)
       @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
@@ -566,16 +562,16 @@ class Config
     oldValue = _.clone(@get(keyPath))
     _.setValueForKeyPath(@settings, keyPath, value)
     newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} if newValue isnt oldValue
+    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
 
   setRawDefault: (keyPath, value) ->
     oldValue = _.clone(@get(keyPath))
     _.setValueForKeyPath(@defaultSettings, keyPath, value)
     newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} if newValue isnt oldValue
+    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
 
   setRecursive: (keyPath, value) ->
-    if value? and isPlainObject(value)
+    if isPlainObject(value)
       keys = if keyPath? then keyPath.split('.') else []
       for key, childValue of value
         continue unless value.hasOwnProperty(key)
@@ -587,7 +583,24 @@ class Config
       catch e
         console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
-    return
+  setAll: (newSettings) ->
+    unless isPlainObject(newSettings)
+      @settings = {}
+      @emitter.emit 'did-change'
+      return
+
+    unsetUnspecifiedValues = (keyPath, value) =>
+      if isPlainObject(value)
+        keys = if keyPath? then keyPath.split('.') else []
+        for key, childValue of value
+          continue unless value.hasOwnProperty(key)
+          unsetUnspecifiedValues(keys.concat([key]).join('.'), childValue)
+      else
+        @setRawValue(keyPath, undefined) unless _.valueForKeyPath(newSettings, keyPath)?
+      return
+
+    @setRecursive(null, newSettings)
+    unsetUnspecifiedValues(null, @settings)
 
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
