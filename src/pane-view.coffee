@@ -149,7 +149,7 @@ class PaneView extends View
   onItemMoved: ({item, newIndex}) =>
     @trigger 'pane:item-moved', [item, newIndex]
 
-  onBeforeItemDestroyed: (item) =>
+  onBeforeItemDestroyed: ({item}) =>
     @unsubscribe(item) if typeof item.off is 'function'
     @trigger 'pane:before-item-destroyed', [item]
 
