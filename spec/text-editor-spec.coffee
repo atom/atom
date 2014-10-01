@@ -113,7 +113,7 @@ describe "TextEditor", ->
         expect(editor1.isSoftWrapped()).toBe true
         expect(editor1.getSoftTabs()).toBe false
 
-        atom.config.set('editor.tabLength', 100)
+        atom.config.set('editor.tabLength', 8)
         atom.config.set('editor.softWrap', false)
         atom.config.set('editor.softTabs', true)
 
@@ -121,7 +121,7 @@ describe "TextEditor", ->
         atom.workspace.open('b').then (o) -> editor2 = o
 
       runs ->
-        expect(editor2.getTabLength()).toBe 100
+        expect(editor2.getTabLength()).toBe 8
         expect(editor2.isSoftWrapped()).toBe false
         expect(editor2.getSoftTabs()).toBe true
 
