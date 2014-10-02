@@ -337,9 +337,7 @@ class Config
       message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
       deprecate "Config::observe no longer supports options. #{message}"
 
-    callback(_.clone(@get(keyPath))) unless options.callNow == false
-    @emitter.on 'did-change', (event) ->
-      callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
+    @observeKeyPath(keyPath, options ? {}, callback)
 
   # Essential: Add a listener for changes to a given key path. If `keyPath` is
   # not specified, your callback will be called on changes to any key.
@@ -358,8 +356,7 @@ class Config
       callback = keyPath
       keyPath = undefined
 
-    @emitter.on 'did-change', (event) ->
-      callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
+    @onDidChangeKeyPath(keyPath, callback)
 
   ###
   Section: Managing Settings
@@ -642,6 +639,15 @@ class Config
     _.setValueForKeyPath(@settings, keyPath, value)
     newValue = @get(keyPath)
     @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
+
+  observeKeyPath: (keyPath, options, callback) ->
+    callback(_.clone(@get(keyPath))) unless options.callNow == false
+    @emitter.on 'did-change', (event) ->
+      callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
+
+  onDidChangeKeyPath: (keyPath, callback) ->
+    @emitter.on 'did-change', (event) ->
+      callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
 
   setRawDefault: (keyPath, value) ->
     oldValue = _.clone(@get(keyPath))
