@@ -13,7 +13,7 @@ class ScopedProperties
 
   activate: ->
     for selector, properties of @scopedProperties
-      atom.syntax.addProperties(@path, selector, properties)
+      atom.config.addScopedDefaults(@path, selector, properties)
 
   deactivate: ->
-    atom.syntax.removeProperties(@path)
+    atom.config.removeScopedSettingsForName(@path)
