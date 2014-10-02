@@ -176,7 +176,6 @@ TextEditorComponent = React.createClass
 
     @observeEditor()
     @listenForDOMEvents()
-    @listenForCommands()
 
     @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
     @subscribe atom.themes.onDidUpdateStylesheet @onStylesheetsChanged
@@ -405,123 +404,6 @@ TextEditorComponent = React.createClass
     node.addEventListener 'compositionend', (event) ->
       editor.insertText(selectedText, select: true, undo: 'skip')
       event.target.value = ''
-
-  listenForCommands: ->
-    {parentView, editor, mini} = @props
-
-    @addCommandListeners
-      'core:move-left': -> editor.moveLeft()
-      'core:move-right': -> editor.moveRight()
-      'core:select-left': -> editor.selectLeft()
-      'core:select-right': -> editor.selectRight()
-      'core:select-all': -> editor.selectAll()
-      'core:backspace': -> editor.backspace()
-      'core:delete': -> editor.delete()
-      'core:undo': -> editor.undo()
-      'core:redo': -> editor.redo()
-      'core:cut': -> editor.cutSelectedText()
-      'core:copy': -> editor.copySelectedText()
-      'core:paste': -> editor.pasteText()
-      'editor:move-to-previous-word': -> editor.moveToPreviousWord()
-      'editor:select-word': -> editor.selectWordsContainingCursors()
-      'editor:consolidate-selections': @consolidateSelections
-      'editor:delete-to-beginning-of-word': -> editor.deleteToBeginningOfWord()
-      'editor:delete-to-beginning-of-line': -> editor.deleteToBeginningOfLine()
-      'editor:delete-to-end-of-line': -> editor.deleteToEndOfLine()
-      'editor:delete-to-end-of-word': -> editor.deleteToEndOfWord()
-      'editor:delete-line': -> editor.deleteLine()
-      'editor:cut-to-end-of-line': -> editor.cutToEndOfLine()
-      'editor:move-to-beginning-of-next-paragraph': -> editor.moveToBeginningOfNextParagraph()
-      'editor:move-to-beginning-of-previous-paragraph': -> editor.moveToBeginningOfPreviousParagraph()
-      'editor:move-to-beginning-of-screen-line': -> editor.moveToBeginningOfScreenLine()
-      'editor:move-to-beginning-of-line': -> editor.moveToBeginningOfLine()
-      'editor:move-to-end-of-screen-line': -> editor.moveToEndOfScreenLine()
-      'editor:move-to-end-of-line': -> editor.moveToEndOfLine()
-      'editor:move-to-first-character-of-line': -> editor.moveToFirstCharacterOfLine()
-      'editor:move-to-beginning-of-word': -> editor.moveToBeginningOfWord()
-      'editor:move-to-end-of-word': -> editor.moveToEndOfWord()
-      'editor:move-to-beginning-of-next-word': -> editor.moveToBeginningOfNextWord()
-      'editor:move-to-previous-word-boundary': -> editor.moveToPreviousWordBoundary()
-      'editor:move-to-next-word-boundary': -> editor.moveToNextWordBoundary()
-      'editor:select-to-beginning-of-next-paragraph': -> editor.selectToBeginningOfNextParagraph()
-      'editor:select-to-beginning-of-previous-paragraph': -> editor.selectToBeginningOfPreviousParagraph()
-      'editor:select-to-end-of-line': -> editor.selectToEndOfLine()
-      'editor:select-to-beginning-of-line': -> editor.selectToBeginningOfLine()
-      'editor:select-to-end-of-word': -> editor.selectToEndOfWord()
-      'editor:select-to-beginning-of-word': -> editor.selectToBeginningOfWord()
-      'editor:select-to-beginning-of-next-word': -> editor.selectToBeginningOfNextWord()
-      'editor:select-to-next-word-boundary': -> editor.selectToNextWordBoundary()
-      'editor:select-to-previous-word-boundary': -> editor.selectToPreviousWordBoundary()
-      'editor:select-to-first-character-of-line': -> editor.selectToFirstCharacterOfLine()
-      'editor:select-line': -> editor.selectLinesContainingCursors()
-      'editor:transpose': -> editor.transpose()
-      'editor:upper-case': -> editor.upperCase()
-      'editor:lower-case': -> editor.lowerCase()
-
-    unless mini
-      @addCommandListeners
-        'core:move-up': -> editor.moveUp()
-        'core:move-down': -> editor.moveDown()
-        'core:move-to-top': -> editor.moveToTop()
-        'core:move-to-bottom': -> editor.moveToBottom()
-        'core:page-up': -> editor.pageUp()
-        'core:page-down': -> editor.pageDown()
-        'core:select-up': -> editor.selectUp()
-        'core:select-down': -> editor.selectDown()
-        'core:select-to-top': -> editor.selectToTop()
-        'core:select-to-bottom': -> editor.selectToBottom()
-        'core:select-page-up': -> editor.selectPageUp()
-        'core:select-page-down': -> editor.selectPageDown()
-        'editor:indent': -> editor.indent()
-        'editor:auto-indent': -> editor.autoIndentSelectedRows()
-        'editor:indent-selected-rows': -> editor.indentSelectedRows()
-        'editor:outdent-selected-rows': -> editor.outdentSelectedRows()
-        'editor:newline': -> editor.insertNewline()
-        'editor:newline-below': -> editor.insertNewlineBelow()
-        'editor:newline-above': -> editor.insertNewlineAbove()
-        'editor:add-selection-below': -> editor.addSelectionBelow()
-        'editor:add-selection-above': -> editor.addSelectionAbove()
-        'editor:split-selections-into-lines': -> editor.splitSelectionsIntoLines()
-        'editor:toggle-soft-tabs': -> editor.toggleSoftTabs()
-        'editor:toggle-soft-wrap': -> editor.toggleSoftWrapped()
-        'editor:fold-all': -> editor.foldAll()
-        'editor:unfold-all': -> editor.unfoldAll()
-        'editor:fold-current-row': -> editor.foldCurrentRow()
-        'editor:unfold-current-row': -> editor.unfoldCurrentRow()
-        'editor:fold-selection': -> editor.foldSelectedLines()
-        'editor:fold-at-indent-level-1': -> editor.foldAllAtIndentLevel(0)
-        'editor:fold-at-indent-level-2': -> editor.foldAllAtIndentLevel(1)
-        'editor:fold-at-indent-level-3': -> editor.foldAllAtIndentLevel(2)
-        'editor:fold-at-indent-level-4': -> editor.foldAllAtIndentLevel(3)
-        'editor:fold-at-indent-level-5': -> editor.foldAllAtIndentLevel(4)
-        'editor:fold-at-indent-level-6': -> editor.foldAllAtIndentLevel(5)
-        'editor:fold-at-indent-level-7': -> editor.foldAllAtIndentLevel(6)
-        'editor:fold-at-indent-level-8': -> editor.foldAllAtIndentLevel(7)
-        'editor:fold-at-indent-level-9': -> editor.foldAllAtIndentLevel(8)
-        'editor:toggle-line-comments': -> editor.toggleLineCommentsInSelection()
-        'editor:log-cursor-scope': -> editor.logCursorScope()
-        'editor:checkout-head-revision': -> atom.project.getRepositories()[0]?.checkoutHeadForEditor(editor)
-        'editor:copy-path': -> editor.copyPathToClipboard()
-        'editor:move-line-up': -> editor.moveLineUp()
-        'editor:move-line-down': -> editor.moveLineDown()
-        'editor:duplicate-lines': -> editor.duplicateLines()
-        'editor:join-lines': -> editor.joinLines()
-        'editor:toggle-indent-guide': -> atom.config.set('editor.showIndentGuide', not atom.config.get('editor.showIndentGuide'))
-        'editor:toggle-line-numbers': ->  atom.config.set('editor.showLineNumbers', not atom.config.get('editor.showLineNumbers'))
-        'editor:scroll-to-cursor': -> editor.scrollToCursorPosition()
-        'benchmark:scroll': @runScrollBenchmark
-
-  addCommandListeners: (listenersByCommandName) ->
-    {parentView} = @props
-
-    addListener = (command, listener) =>
-      @subscribe parentView.__spacePenView.command command, (event) ->
-        event.stopPropagation()
-        listener(event)
-
-    addListener(command, listener) for command, listener of listenersByCommandName
-
-    return
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.showIndentGuide', @setShowIndentGuide
