@@ -88,7 +88,6 @@ class Dedupe extends Command
     env.USERPROFILE = env.HOME if config.isWin32()
     dedupeOptions = {env}
     dedupeOptions.cwd = options.cwd if options.cwd
-    dedupeOptions.streaming = true
 
     @fork(@atomNpmPath, dedupeArgs, dedupeOptions, callback)
 
