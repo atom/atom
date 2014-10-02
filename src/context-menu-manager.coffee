@@ -85,7 +85,7 @@ class ContextMenuManager
     for key, value of itemsBySelector
       unless _.isArray(value)
         Grim.deprecate("The format for declaring context menu items has changed. Please consult the documentation.")
-        itemsBySelector = @convertLegacyItems(itemsBySelector, devMode)
+        itemsBySelector = @convertLegacyItemsBySelector(itemsBySelector, devMode)
 
     addedItemSets = []
 
@@ -126,21 +126,26 @@ class ContextMenuManager
 
     template
 
-  convertLegacyItems: (legacyItems, devMode) ->
+  convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
     itemsBySelector = {}
 
-    for selector, commandsByLabel of legacyItems
-      itemsBySelector[selector] = items = []
-
-      for label, commandOrSubmenu of commandsByLabel
-        if typeof commandOrSubmenu is 'object'
-          items.push({label, submenu: @convertLegacyItems(commandOrSubmenu, devMode), devMode})
-        else if commandOrSubmenu is '-'
-          items.push({type: 'separator'})
-        else
-          items.push({label, command: commandOrSubmenu, devMode})
+    for selector, commandsByLabel of legacyItemsBySelector
+      itemsBySelector[selector] = @convertLegacyItems(commandsByLabel, devMode)
 
     itemsBySelector
+
+  convertLegacyItems: (legacyItems, devMode) ->
+    items = []
+
+    for label, commandOrSubmenu of legacyItems
+      if typeof commandOrSubmenu is 'object'
+        items.push({label, submenu: @convertLegacyItems(commandOrSubmenu, devMode), devMode})
+      else if commandOrSubmenu is '-'
+        items.push({type: 'separator'})
+      else
+        items.push({label, command: commandOrSubmenu, devMode})
+
+    items
 
   # Public: Request a context menu to be displayed.
   #
