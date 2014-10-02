@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Disposable, Emitter} = require 'event-kit'
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
@@ -328,16 +328,29 @@ class Config
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  observe: (keyPath, options={}, callback) ->
-    if _.isFunction(options)
-      callback = options
-      options = {}
-    else
+  observe: (scopeDescriptor, keyPath, options, callback) ->
+    args = Array::slice.call(arguments)
+    if args.length is 2
+      # observe(keyPath, callback)
+      [keyPath, callback, scopeDescriptor, options] = args
+    else if args.length is 3 and Array.isArray(scopeDescriptor)
+      # observe(scopeDescriptor, keyPath, callback)
+      [scopeDescriptor, keyPath, callback, options] = args
+    else if args.length is 3 and _.isString(scopeDescriptor) and _.isObject(keyPath)
+      # observe(keyPath, options, callback) # Deprecated!
+      [keyPath, options, callback, scopeDescriptor] = args
+
       message = ""
       message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
-      deprecate "Config::observe no longer supports options. #{message}"
+      deprecate "Config::observe no longer supports options; see https://atom.io/docs/api/latest/Config. #{message}"
+    else
+      console.warn 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
+      return
 
-    @observeKeyPath(keyPath, options ? {}, callback)
+    if scopeDescriptor?
+      @observeScopedKeyPath(scopeDescriptor, keyPath, callback)
+    else
+      @observeKeyPath(keyPath, options ? {}, callback)
 
   # Essential: Add a listener for changes to a given key path. If `keyPath` is
   # not specified, your callback will be called on changes to any key.
@@ -351,12 +364,17 @@ class Config
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  onDidChange: (keyPath, callback) ->
+  onDidChange: (scopeDescriptor, keyPath, callback) ->
+    args = Array::slice.call(arguments)
     if arguments.length is 1
-      callback = keyPath
-      keyPath = undefined
+      [callback, scopeDescriptor, keyPath] = args
+    else if arguments.length is 2
+      [keyPath, callback, scopeDescriptor] = args
 
-    @onDidChangeKeyPath(keyPath, callback)
+    if scopeDescriptor?
+      @onDidChangeScopedKeyPath(scopeDescriptor, keyPath, callback)
+    else
+      @onDidChangeKeyPath(keyPath, callback)
 
   ###
   Section: Managing Settings
@@ -693,17 +711,18 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @scopedSettingsStore.addProperties(name, settingsBySelector)
+    disposable = @scopedSettingsStore.addProperties(name, settingsBySelector)
+    @emitter.emit 'did-change'
+    new Disposable =>
+      disposable.dispose()
+      @emitter.emit 'did-change'
 
   addRawScopedValue: (selector, keyPath, value) ->
     if keyPath?
       newValue = {}
       _.setValueForKeyPath(newValue, keyPath, value)
       value = newValue
-
-    settingsBySelector = {}
-    settingsBySelector[selector] = value
-    @scopedSettingsStore.addProperties(name, settingsBySelector)
+    @addScopedSettings(null, selector, value)
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->
     scopeChain = scopeDescriptor
@@ -712,6 +731,27 @@ class Config
         scope
       .join(' ')
     @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
+
+  observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
+    oldValue = @get(scopeDescriptor, keyPath)
+
+    callback(oldValue)
+
+    didChange = =>
+      newValue = @get(scopeDescriptor, keyPath)
+      callback(newValue) unless _.isEqual(oldValue, newValue)
+      oldValue = newValue
+
+    @emitter.on 'did-change', didChange
+
+  onDidChangeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
+    oldValue = @get(scopeDescriptor, keyPath)
+    didChange = =>
+      newValue = @get(scopeDescriptor, keyPath)
+      callback({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
+      oldValue = newValue
+
+    @emitter.on 'did-change', didChange
 
   # TODO: figure out how to change / remove this. The return value is awkward.
   # * language mode uses it for one thing.
