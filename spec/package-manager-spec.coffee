@@ -335,6 +335,9 @@ describe "PackageManager", ->
           expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
   describe "::deactivatePackage(id)", ->
+    afterEach ->
+      atom.packages.unloadPackages()
+
     describe "atom packages", ->
       it "calls `deactivate` on the package's main module if activate was successful", ->
         pack = null

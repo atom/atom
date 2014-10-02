@@ -717,10 +717,6 @@ class Config
       .join(' ')
     @scopedSettingsStore.getProperties(scopeChain, keyPath)
 
-  removeScopedSettingsForName: (name) ->
-    @scopedSettingsStore.removeProperties(name)
-    @scopedSettingsStore.removeProperties("#{name}+default")
-
   clearScopedSettings: ->
     @scopedSettingsStore = new ScopedPropertyStore
 
