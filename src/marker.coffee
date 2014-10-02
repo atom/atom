@@ -160,7 +160,7 @@ class Marker
   getProperties: ->
     @bufferMarker.getProperties()
   getAttributes: ->
-    deprecate 'Use Marker::getProperties instead'
+    Grim.deprecate 'Use Marker::getProperties instead'
     @getProperties()
 
   # Essential: Merges an {Object} containing new properties into the marker's
@@ -170,14 +170,14 @@ class Marker
   setProperties: (properties) ->
     @bufferMarker.setProperties(properties)
   setAttributes: (properties) ->
-    deprecate 'Use Marker::getProperties instead'
+    Grim.deprecate 'Use Marker::getProperties instead'
     @setProperties(properties)
 
   matchesProperties: (attributes) ->
     attributes = @displayBuffer.translateToBufferMarkerParams(attributes)
     @bufferMarker.matchesParams(attributes)
   matchesAttributes: (attributes) ->
-    deprecate 'Use Marker::matchesProperties instead'
+    Grim.deprecate 'Use Marker::matchesProperties instead'
     @matchesProperties(attributes)
 
   ###
