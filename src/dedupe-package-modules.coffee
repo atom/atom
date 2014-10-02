@@ -154,6 +154,6 @@ class DedupePackageModules extends Command
         updatedModulePaths = @getInstalledModules()
         for modulePath in updatedModulePaths
           if currentModulePaths.indexOf(modulePath) is -1
-            console.log "Deduped #{path.basename(modulePath)}"
+            console.log "Moved #{path.basename(modulePath)} to #{path.join(@userPackagesDirectory, 'node_modules')}"
 
       callback(dedupeError)
