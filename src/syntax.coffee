@@ -28,7 +28,6 @@ class Syntax extends GrammarRegistry
 
   constructor: ->
     super(maxTokensPerLine: 100)
-    @propertyStore = new ScopedPropertyStore
 
   serialize: ->
     {deserializer: @constructor.name, @grammarOverridesByPath}
@@ -41,44 +40,16 @@ class Syntax extends GrammarRegistry
     @propertyStore.propertySets
 
   addProperties: (args...) ->
-    name = args.shift() if args.length > 2
-    [selector, properties] = args
-    propertiesBySelector = {}
-    propertiesBySelector[selector] = properties
-    @propertyStore.addProperties(name, propertiesBySelector)
+    atom.config.addScopedDefaults(args...)
 
   removeProperties: (name) ->
-    @propertyStore.removeProperties(name)
+    atom.config.removeScopedSettingsForName(name)
 
   clearProperties: ->
-    @propertyStore = new ScopedPropertyStore
+    atom.config.clearScopedSettings()
 
-  # Public: Get a property for the given scope and key path.
-  #
-  # ## Examples
-  #
-  # ```coffee
-  # comment = atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')
-  # console.log(comment) # '# '
-  # ```
-  #
-  # * `scope` An {Array} of {String} scopes.
-  # * `keyPath` A {String} key path.
-  #
-  # Returns a {String} property value or undefined.
   getProperty: (scope, keyPath) ->
-    scopeChain = scope
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
-    @propertyStore.getPropertyValue(scopeChain, keyPath)
+    atom.config.getRawScopedValue(scope, keyPath)
 
   propertiesForScope: (scope, keyPath) ->
-    scopeChain = scope
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
-
-    @propertyStore.getProperties(scopeChain, keyPath)
+    atom.config.settingsForScopeDescriptor(scope, keyPath)

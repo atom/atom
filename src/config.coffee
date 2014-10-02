@@ -708,9 +708,21 @@ class Config
       .join(' ')
     @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
 
+  # TODO: figure out how to remove this. Only language mode uses it for one thing.
+  settingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
+    scopeChain = scopeDescriptor
+      .map (scope) ->
+        scope = ".#{scope}" unless scope[0] is '.'
+        scope
+      .join(' ')
+    @scopedSettingsStore.getProperties(scopeChain, keyPath)
+
   removeScopedSettingsForName: (name) ->
     @scopedSettingsStore.removeProperties(name)
     @scopedSettingsStore.removeProperties("#{name}+default")
+
+  clearScopedSettings: ->
+    @scopedSettingsStore = new ScopedPropertyStore
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
