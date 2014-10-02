@@ -707,7 +707,7 @@ class Config
       .join(' ')
     @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
 
-  # TODO: figure out how to change / remove this. The return value is awkward. 
+  # TODO: figure out how to change / remove this. The return value is awkward.
   # * language mode uses it for one thing.
   # * autocomplete uses it for editor.completions
   settingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
@@ -717,9 +717,6 @@ class Config
         scope
       .join(' ')
     @scopedSettingsStore.getProperties(scopeChain, keyPath)
-
-  clearScopedSettings: ->
-    @scopedSettingsStore = new ScopedPropertyStore
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error

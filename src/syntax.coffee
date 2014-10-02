@@ -47,10 +47,6 @@ class Syntax extends GrammarRegistry
     deprecate 'atom.config.addScopedDefaults() now returns a disposable you can call .dispose() on'
     atom.config.scopedSettingsStore.removeProperties(name)
 
-  clearProperties: ->
-    deprecate 'A direct (but private) replacement is available at atom.config.clearScopedSettings().'
-    atom.config.clearScopedSettings()
-
   getProperty: (scope, keyPath) ->
     deprecate 'A direct (but private) replacement is available at atom.config.getRawScopedValue().'
     atom.config.getRawScopedValue(scope, keyPath)
