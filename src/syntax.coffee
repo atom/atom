@@ -40,16 +40,21 @@ class Syntax extends GrammarRegistry
     @propertyStore.propertySets
 
   addProperties: (args...) ->
+    deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedDefaults().'
     atom.config.addScopedDefaults(args...)
 
   removeProperties: (name) ->
+    deprecate 'A direct (but private) replacement is available at atom.config.removeScopedSettingsForName().'
     atom.config.removeScopedSettingsForName(name)
 
   clearProperties: ->
+    deprecate 'A direct (but private) replacement is available at atom.config.clearScopedSettings().'
     atom.config.clearScopedSettings()
 
   getProperty: (scope, keyPath) ->
+    deprecate 'A direct (but private) replacement is available at atom.config.getRawScopedValue().'
     atom.config.getRawScopedValue(scope, keyPath)
 
   propertiesForScope: (scope, keyPath) ->
+    deprecate 'A direct (but private) replacement is available at atom.config.settingsForScopeDescriptor().'
     atom.config.settingsForScopeDescriptor(scope, keyPath)
