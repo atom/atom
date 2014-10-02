@@ -26,6 +26,7 @@ class DedupePackageModules extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
+  # Get all the packages installed to ~/.atom/packages
   getInstalledPackages: ->
     packagePaths = []
     for child in fs.list(@userPackagesDirectory)
