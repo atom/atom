@@ -376,10 +376,11 @@ class AtomApplication
   # Kill the process with the given pid.
   killProcess: (pid) ->
     try
-      process.kill(pid)
+      parsedPid = parseInt(pid)
+      process.kill(parsedPid) unless isNaN(parsedPid)
     catch error
       if error.code isnt 'ESRCH'
-        console.log("Killing process #{pid} failed: #{error.code}")
+        console.log("Killing process #{pid} failed: #{error.code ? error.message}")
     delete @pidsToOpenWindows[pid]
 
   # Open an atom:// url.
