@@ -39,6 +39,17 @@ class DedupePackageModules extends Command
 
     packagePaths
 
+  # Get all the modules installed to ~/.atom/packages/node_modules
+  getInstalledModules: ->
+    modulePaths = []
+    nodeModulesPath = path.join(@userPackagesDirectory, 'node_modules')
+    for child in fs.list(nodeModulesPath)
+      modulePath = path.join(nodeModulesPath, child)
+      continue unless fs.isDirectorySync(modulePath)
+      modulePaths.push(modulePath)
+
+    modulePaths
+
   # Move Atom packages from ~/.atom/packages to  ~/.atom/packages/node_modules
   movePackagesToNodeModulesFolder: (packagePaths) ->
     nodeModulesPath = path.join(@userPackagesDirectory, 'node_modules')
@@ -119,6 +130,7 @@ class DedupePackageModules extends Command
     options = @parseOptions(options.commandArgs)
 
     packagePaths = @getInstalledPackages()
+    currentModulePaths = @getInstalledModules()
     @createPackageJson(packagePaths)
     modulesToDedupe = @getModulesToDedupe(packagePaths)
     @removePackageNames(packagePaths, modulesToDedupe)
@@ -137,5 +149,11 @@ class DedupePackageModules extends Command
         @deletePackageJson()
       catch moveError
         return callback(moveError) unless dedupeError?
+
+      unless dedupeError?
+        updatedModulePaths = @getInstalledModules()
+        for modulePath in updatedModulePaths
+          if currentModulePaths.indexOf(modulePath) is -1
+            console.log "Deduped #{path.basename(modulePath)}"
 
       callback(dedupeError)
