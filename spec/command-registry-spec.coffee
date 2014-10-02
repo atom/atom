@@ -99,8 +99,6 @@ describe "CommandRegistry", ->
       expect(dispatchedEvent.stopImmediatePropagation).toHaveBeenCalled()
 
     it "forwards .preventDefault() calls from the synthetic event to the original", ->
-      calls = []
-
       registry.add '.child', 'command', (event) -> event.preventDefault()
 
       dispatchedEvent = new CustomEvent('command', bubbles: true)
@@ -109,8 +107,6 @@ describe "CommandRegistry", ->
       expect(dispatchedEvent.preventDefault).toHaveBeenCalled()
 
     it "forwards .abortKeyBinding() calls from the synthetic event to the original", ->
-      calls = []
-
       registry.add '.child', 'command', (event) -> event.abortKeyBinding()
 
       dispatchedEvent = new CustomEvent('command', bubbles: true)
