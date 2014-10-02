@@ -708,15 +708,6 @@ class Config
       .join(' ')
     @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
 
-  # TODO: figure out how to remove this. Only language mode uses it for one thing.
-  scopedSettingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
-    scopeChain = scopeDescriptor
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
-    @scopedSettingsStore.getProperties(scopeChain, keyPath)
-
   clearScopedSettings: ->
     @scopedSettingsStore = new ScopedPropertyStore
 
