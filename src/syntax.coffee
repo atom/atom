@@ -35,9 +35,9 @@ class Syntax extends GrammarRegistry
   createToken: (value, scopes) -> new Token({value, scopes})
 
   # Deprecated: Used by settings-view to display snippets for packages
-  @::accessor 'scopedProperties', ->
-    deprecate("Use Syntax::getProperty instead")
-    @propertyStore.propertySets
+  @::accessor 'propertyStore', ->
+    deprecate("Do not use this. Use a public method on Config")
+    atom.config.scopedSettingsStore
 
   addProperties: (args...) ->
     deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedDefaults().'
