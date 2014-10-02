@@ -377,7 +377,7 @@ class AtomApplication
   killProcess: (pid) ->
     try
       parsedPid = parseInt(pid)
-      process.kill(parsedPid) unless isNaN(parsedPid)
+      process.kill(parsedPid) unless isFinite(parsedPid)
     catch error
       if error.code isnt 'ESRCH'
         console.log("Killing process #{pid} failed: #{error.code ? error.message}")
