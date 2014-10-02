@@ -40,11 +40,11 @@ class Syntax extends GrammarRegistry
     atom.config.scopedSettingsStore
 
   addProperties: (args...) ->
-    deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedDefaults().'
-    atom.config.addScopedDefaults(args...)
+    deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedSettings().'
+    atom.config.addScopedSettings(args...)
 
   removeProperties: (name) ->
-    deprecate 'atom.config.addScopedDefaults() now returns a disposable you can call .dispose() on'
+    deprecate 'atom.config.addScopedSettings() now returns a disposable you can call .dispose() on'
     atom.config.scopedSettingsStore.removeProperties(name)
 
   getProperty: (scope, keyPath) ->

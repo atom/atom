@@ -866,9 +866,9 @@ describe "Config", ->
   describe "scoped settings", ->
     describe ".get(scopeDescriptor, keyPath)", ->
       it "returns the property with the most specific scope selector", ->
-        atom.config.addScopedDefaults(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        atom.config.addScopedDefaults(".source .string.quoted.double", foo: bar: baz: 22)
-        atom.config.addScopedDefaults(".source", foo: bar: baz: 11)
+        atom.config.addScopedSettings(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings(".source", foo: bar: baz: 11)
 
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
         expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBe 22
@@ -876,8 +876,8 @@ describe "Config", ->
         expect(atom.config.get([".text"], "foo.bar.baz")).toBeUndefined()
 
       it "favors the most recently added properties in the event of a specificity tie", ->
-        atom.config.addScopedDefaults(".source.coffee .string.quoted.single", foo: bar: baz: 42)
-        atom.config.addScopedDefaults(".source.coffee .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings(".source.coffee .string.quoted.single", foo: bar: baz: 42)
+        atom.config.addScopedSettings(".source.coffee .string.quoted.double", foo: bar: baz: 22)
 
         expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.bar.baz")).toBe 42
         expect(atom.config.get([".source.coffee", ".string.quoted.single.double"], "foo.bar.baz")).toBe 22
@@ -891,9 +891,9 @@ describe "Config", ->
 
     describe ".set(scope, keyPath, value)", ->
       it "sets the value and overrides the others", ->
-        atom.config.addScopedDefaults(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        atom.config.addScopedDefaults(".source .string.quoted.double", foo: bar: baz: 22)
-        atom.config.addScopedDefaults(".source", foo: bar: baz: 11)
+        atom.config.addScopedSettings(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings(".source", foo: bar: baz: 11)
 
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
 
@@ -902,8 +902,8 @@ describe "Config", ->
 
     describe ".removeScopedSettingsForName(name)", ->
       it "allows properties to be removed by name", ->
-        disposable1 = atom.config.addScopedDefaults("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        disposable2 = atom.config.addScopedDefaults("b", ".source .string.quoted.double", foo: bar: baz: 22)
+        disposable1 = atom.config.addScopedSettings("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        disposable2 = atom.config.addScopedSettings("b", ".source .string.quoted.double", foo: bar: baz: 22)
 
         disposable2.dispose()
         expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBeUndefined()

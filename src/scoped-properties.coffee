@@ -15,7 +15,7 @@ class ScopedProperties
 
   activate: ->
     for selector, properties of @scopedProperties
-      @propertyDisposable.add atom.config.addScopedDefaults(@path, selector, properties)
+      @propertyDisposable.add atom.config.addScopedSettings(@path, selector, properties)
     return
 
   deactivate: ->

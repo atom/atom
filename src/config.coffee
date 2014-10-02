@@ -679,7 +679,7 @@ class Config
   Section: Private Scoped Settings
   ###
 
-  addScopedDefaults: (name, selector, value) ->
+  addScopedSettings: (name, selector, value) ->
     if arguments.length < 3
       value = selector
       selector = name
