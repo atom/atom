@@ -902,9 +902,9 @@ describe "Config", ->
 
     describe ".removeScopedSettingsForName(name)", ->
       it "allows properties to be removed by name", ->
-        atom.config.addScopedDefaults("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        atom.config.addScopedDefaults("b", ".source .string.quoted.double", foo: bar: baz: 22)
+        disposable1 = atom.config.addScopedDefaults("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        disposable2 = atom.config.addScopedDefaults("b", ".source .string.quoted.double", foo: bar: baz: 22)
 
-        atom.config.removeScopedSettingsForName("b")
+        disposable2.dispose()
         expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBeUndefined()
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
