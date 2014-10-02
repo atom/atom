@@ -685,7 +685,6 @@ class Config
       selector = name
       name = null
 
-    name = "#{name ? ''}+default"
     settingsBySelector = {}
     settingsBySelector[selector] = value
     @scopedSettingsStore.addProperties(name, settingsBySelector)
