@@ -57,4 +57,4 @@ class Syntax extends GrammarRegistry
 
   propertiesForScope: (scope, keyPath) ->
     deprecate 'A direct (but private) replacement is available at atom.config.scopedSettingsForScopeDescriptor().'
-    atom.config.scopedSettingsForScopeDescriptor(scope, keyPath)
+    atom.config.settingsForScopeDescriptor(scope, keyPath)
