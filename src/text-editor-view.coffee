@@ -51,7 +51,7 @@ class TextEditorView extends View
       if modelOrParams instanceof TextEditor
         model = modelOrParams
       else
-        {editor, mini, placeholderText} = modelOrParams
+        {editor, mini, placeholderText, attributes} = modelOrParams
         model = editor ? new TextEditor
           buffer: new TextBuffer
           softWrapped: false
@@ -62,6 +62,7 @@ class TextEditorView extends View
 
       element = new TextEditorElement
       element.lineOverdrawMargin = props?.lineOverdrawMargin
+      element.setAttribute(name, value) for name, value of attributes if attributes?
       element.setModel(model)
       return element.__spacePenView
 
