@@ -207,37 +207,44 @@ specific parts of the interface, like adding a file in the tree-view:
 
 ```coffeescript
 'context-menu':
-  '.tree-view':
-    'Add file': 'tree-view:add-file'
-  '.workspace':
-    'Inspect Element': 'core:inspect'
+  '.tree-view': [
+    {label: 'Add file', command: 'tree-view:add-file'}
+  ]
+  '.workspace': [
+    {label: 'Inspect Element', command: 'core:inspect'}
+  ]
 ```
 
 To add your own item to the application menu simply create a top level
 `context-menu` key in any menu configuration file in _menus_. This can be a
 JSON or [CSON] file.
 
-Context menus are created by determining which element was selected and
-then adding all of the menu items whose selectors match that element (in
-the order which they were loaded). The process is then repeated for the
-elements until reaching the top of the DOM tree.
+Context menus are created by determining which element was selected and then
+adding all of the menu items whose selectors match that element (in the order
+which they were loaded). The process is then repeated for the elements until
+reaching the top of the DOM tree.
 
 In the example above, the `Add file` item will only appear when the focused item
 or one of its parents has the `tree-view` class applied to it.
 
 You can also add separators and submenus to your context menus. To add a
-submenu, pass in another object instead of a command. To add a separator, use
-`-` for the command of the item.
+submenu, provide a `submenu` key instead of a command. To add a separator, add
+an item with a single `type: 'separator'` key/value pair.
 
 ```coffeescript
 'context-menu':
-  '.workspace':
-    'Inspect Element': 'core:inspect'
-    'Separator': '-'
-    'Text':
-      'Select All': 'core:select-all'
-      'Another Separator': '-'
-      'Deleted Selected Text': 'core:delete'
+  '.workspace': [
+    {
+      label: 'Text'
+      submenu: [
+        {label: 'Inspect Element', command: 'core:inspect'}
+        {type: 'separator'}
+        {label: 'Selector All', command: 'core:select-all'}
+        {type: 'separator'}
+        {label: 'Deleted Selected Text', command: 'core:delete'}
+      ]
+    }
+  ]
 ```
 
 ## Snippets
