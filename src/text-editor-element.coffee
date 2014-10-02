@@ -18,6 +18,8 @@ class TextEditorElement extends HTMLElement
     @initializeContent()
     @createSpacePenShim()
     @addEventListener 'focus', @focused.bind(this)
+    @addEventListener 'focusout', @focusedOut.bind(this)
+    @addEventListener 'blur', @blurred.bind(this)
 
   initializeContent: (attributes) ->
     @classList.add('editor', 'react', 'editor-colors')
@@ -51,8 +53,8 @@ class TextEditorElement extends HTMLElement
       softWrapped: false
       tabLength: 2
       softTabs: true
-      mini: @getAttribute('mini')
-      placeholderText: placeholderText
+      mini: @hasAttribute('mini')
+      placeholderText: @getAttribute('placeholder-text')
     ))
 
   mountComponent: ->
@@ -75,9 +77,18 @@ class TextEditorElement extends HTMLElement
     else
       @focusOnAttach = true
 
+  focusedOut: (event) ->
+    event.stopImmediatePropagation() if @contains(event.relatedTarget)
+
+  blurred: (event) ->
+    event.stopImmediatePropagation() if @contains(event.relatedTarget)
+
   addGrammarScopeAttribute: ->
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
     @setAttribute('data-grammar', grammarScope)
+
+  hasFocus: ->
+    this is document.activeElement or @contains(document.activeElement)
 
 stopCommandEventPropagation = (commandListeners) ->
   newCommandListeners = {}

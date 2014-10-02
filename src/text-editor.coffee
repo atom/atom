@@ -501,6 +501,8 @@ class TextEditor extends Model
       @mini = mini
       @updateInvisibles()
 
+  isMini: -> @mini
+
   # Set the number of characters that can be displayed horizontally in the
   # editor.
   #
