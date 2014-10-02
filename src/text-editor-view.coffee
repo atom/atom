@@ -109,7 +109,7 @@ class TextEditorView extends View
   Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
   Object.defineProperty @::, 'mini', get: -> @component?.props.mini
-  Object.defineProperty @::, 'component', get: -> @element.component
+  Object.defineProperty @::, 'component', get: -> @element?.component
 
   afterAttach: (onDom) ->
     return unless onDom
