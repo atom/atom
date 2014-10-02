@@ -190,7 +190,7 @@ atom.commands.add '[is=atom-text-editor]:not(.mini)', stopCommandEventPropagatio
   'editor:fold-at-indent-level-9': -> @getModel().foldAllAtIndentLevel(8)
   'editor:toggle-line-comments': -> @getModel().toggleLineCommentsInSelection()
   'editor:log-cursor-scope': -> @getModel().logCursorScope()
-  'editor:checkout-head-revision': -> atom.project.getRepositories()[0]?.checkoutHeadForEditor(editor)
+  'editor:checkout-head-revision': -> atom.project.getRepositories()[0]?.checkoutHeadForEditor(@getModel())
   'editor:copy-path': -> @getModel().copyPathToClipboard()
   'editor:move-line-up': -> @getModel().moveLineUp()
   'editor:move-line-down': -> @getModel().moveLineDown()
