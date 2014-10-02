@@ -63,9 +63,9 @@ describe "Window", ->
       beforeUnloadEvent = $.Event(new Event('beforeunload'))
 
     describe "when pane items are are modified", ->
-      it "prompts user to save and and calls workspaceView.confirmClose", ->
+      it "prompts user to save and calls atom.workspace.confirmClose", ->
         editor = null
-        spyOn(atom.workspaceView, 'confirmClose').andCallThrough()
+        spyOn(atom.workspace, 'confirmClose').andCallThrough()
         spyOn(atom, "confirm").andReturn(2)
 
         waitsForPromise ->
@@ -74,7 +74,7 @@ describe "Window", ->
         runs ->
           editor.insertText("I look different, I feel different.")
           $(window).trigger(beforeUnloadEvent)
-          expect(atom.workspaceView.confirmClose).toHaveBeenCalled()
+          expect(atom.workspace.confirmClose).toHaveBeenCalled()
           expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and handler returns true if don't save", ->

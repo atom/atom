@@ -49,7 +49,7 @@ describe "WorkspaceView", ->
 
           expect(atom.workspaceView.getEditorViews().length).toBe 2
           expect(atom.workspaceView.getActivePaneView()).toBe atom.workspaceView.getPaneViews()[1]
-          expect(atom.workspaceView.title).toBe "untitled - #{atom.project.getPaths()[0]}"
+          expect(document.title).toBe "untitled - #{atom.project.getPaths()[0]}"
 
     describe "when there are open editors", ->
       it "constructs the view with the same panes", ->
@@ -106,7 +106,7 @@ describe "WorkspaceView", ->
           expect(editorView3).not.toHaveFocus()
           expect(editorView4).not.toHaveFocus()
 
-          expect(atom.workspaceView.title).toBe "#{path.basename(editorView2.getEditor().getPath())} - #{atom.project.getPaths()[0]}"
+          expect(document.title).toBe "#{path.basename(editorView2.getEditor().getPath())} - #{atom.project.getPaths()[0]}"
 
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
@@ -140,56 +140,6 @@ describe "WorkspaceView", ->
 
         atom.workspaceView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
-
-  describe "window title", ->
-    describe "when the project has no path", ->
-      it "sets the title to 'untitled'", ->
-        atom.project.setPaths([])
-        expect(atom.workspaceView.title).toBe 'untitled'
-
-    describe "when the project has a path", ->
-      beforeEach ->
-        waitsForPromise ->
-          atom.workspace.open('b')
-
-      describe "when there is an active pane item", ->
-        it "sets the title to the pane item's title plus the project path", ->
-          item = atom.workspace.getActivePaneItem()
-          expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
-
-      describe "when the title of the active pane item changes", ->
-        it "updates the window title based on the item's new title", ->
-          editor = atom.workspace.getActivePaneItem()
-          editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          expect(atom.workspaceView.title).toBe "#{editor.getTitle()} - #{atom.project.getPaths()[0]}"
-
-      describe "when the active pane's item changes", ->
-        it "updates the title to the new item's title plus the project path", ->
-          atom.workspaceView.getActivePaneView().activateNextItem()
-          item = atom.workspace.getActivePaneItem()
-          expect(atom.workspaceView.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
-
-      describe "when the last pane item is removed", ->
-        it "updates the title to contain the project's path", ->
-          atom.workspaceView.getActivePaneView().remove()
-          expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          expect(atom.workspaceView.title).toBe atom.project.getPaths()[0]
-
-      describe "when an inactive pane's item changes", ->
-        it "does not update the title", ->
-          pane = atom.workspaceView.getActivePaneView()
-          pane.splitRight()
-          initialTitle = atom.workspaceView.title
-          pane.activateNextItem()
-          expect(atom.workspaceView.title).toBe initialTitle
-
-    describe "when the root view is deserialized", ->
-      it "updates the title to contain the project's path", ->
-        workspace2 = atom.workspace.testSerialization()
-        workspaceView2 = workspace2.getView(workspace2).__spacePenView
-        item = atom.workspace.getActivePaneItem()
-        expect(workspaceView2.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
-        workspaceView2.remove()
 
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->

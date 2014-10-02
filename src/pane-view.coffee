@@ -17,12 +17,6 @@ class PaneView extends View
   Delegator.includeInto(this)
   PropertyAccessors.includeInto(this)
 
-  @version: 1
-
-  @content: (wrappedView) ->
-    @div class: 'pane', tabindex: -1, =>
-      @div class: 'item-views', outlet: 'itemViews'
-
   @delegatesProperties 'items', 'activeItem', toProperty: 'model'
   @delegatesMethods 'getItems', 'activateNextItem', 'activatePreviousItem', 'getActiveItemIndex',
     'activateItemAtIndex', 'activateItem', 'addItem', 'itemAtIndex', 'moveItem', 'moveItemToPane',
@@ -32,49 +26,33 @@ class PaneView extends View
     'activate', 'getActiveItem', toProperty: 'model'
 
   previousActiveItem: null
+  attached: false
 
-  initialize: (@model) ->
+  constructor: (@element) ->
+    @itemViews = $(element.itemViews)
+    super
+
+  setModel: (@model) ->
     @subscriptions = new CompositeDisposable
-    @onItemAdded(item) for item in @items
-    @handleEvents()
-
-  handleEvents: ->
     @subscriptions.add @model.observeActiveItem(@onActiveItemChanged)
     @subscriptions.add @model.onDidAddItem(@onItemAdded)
     @subscriptions.add @model.onDidRemoveItem(@onItemRemoved)
     @subscriptions.add @model.onDidMoveItem(@onItemMoved)
     @subscriptions.add @model.onWillDestroyItem(@onBeforeItemDestroyed)
-    @subscriptions.add @model.onDidActivate(@onActivated)
     @subscriptions.add @model.observeActive(@onActiveStatusChanged)
+    @subscriptions.add @model.onDidDestroy(@onPaneDestroyed)
 
-    @subscribe this, 'focusin', => @model.focus()
-    @subscribe this, 'focusout', => @model.blur()
-    @subscribe this, 'focus', =>
-      @activeView?.focus()
-      false
+  afterAttach: ->
+    @container ?= @closest('.panes').view()
+    @trigger('pane:attached', [this]) unless @attached
+    @attached = true
 
-    @command 'pane:save-items', => @saveItems()
-    @command 'pane:show-next-item', => @activateNextItem()
-    @command 'pane:show-previous-item', => @activatePreviousItem()
+  onPaneDestroyed: =>
+    @container?.trigger 'pane:removed', [this]
+    @subscriptions.dispose()
 
-    @command 'pane:show-item-1', => @activateItemAtIndex(0)
-    @command 'pane:show-item-2', => @activateItemAtIndex(1)
-    @command 'pane:show-item-3', => @activateItemAtIndex(2)
-    @command 'pane:show-item-4', => @activateItemAtIndex(3)
-    @command 'pane:show-item-5', => @activateItemAtIndex(4)
-    @command 'pane:show-item-6', => @activateItemAtIndex(5)
-    @command 'pane:show-item-7', => @activateItemAtIndex(6)
-    @command 'pane:show-item-8', => @activateItemAtIndex(7)
-    @command 'pane:show-item-9', => @activateItemAtIndex(8)
-
-    @command 'pane:split-left', => @model.splitLeft(copyActiveItem: true)
-    @command 'pane:split-right', => @model.splitRight(copyActiveItem: true)
-    @command 'pane:split-up', => @model.splitUp(copyActiveItem: true)
-    @command 'pane:split-down', => @model.splitDown(copyActiveItem: true)
-    @command 'pane:close', =>
-      @model.destroyItems()
-      @model.destroy()
-    @command 'pane:close-other-items', => @destroyInactiveItems()
+  remove: ->
+    @model.destroy() unless @model.isDestroyed()
 
   # Essential: Returns the {Pane} model underlying this pane view
   getModel: -> @model
@@ -109,23 +87,10 @@ class PaneView extends View
     deprecate("Use PaneView::activatePreviousItem instead")
     @activatePreviousItem()
 
-  afterAttach: (onDom) ->
-    @focus() if @model.focused and onDom
-
-    return if @attached
-    @container = @closest('.panes').view()
-    @attached = true
-    @trigger 'pane:attached', [this]
-
-  onActivated: =>
-    @focus() unless @hasFocus()
-
   onActiveStatusChanged: (active) =>
     if active
-      @addClass('active')
       @trigger 'pane:became-active'
     else
-      @removeClass('active')
       @trigger 'pane:became-inactive'
 
   # Public: Returns the next pane, ordered by creation.
@@ -179,23 +144,12 @@ class PaneView extends View
     @trigger 'pane:item-added', [item, index]
 
   onItemRemoved: ({item, index, destroyed}) =>
-    if item instanceof $
-      viewToRemove = item
-    else
-      viewToRemove = @model.getView(item).__spacePenView
-
-    if viewToRemove?
-      if destroyed
-        viewToRemove.remove()
-      else
-        viewToRemove.detach()
-
     @trigger 'pane:item-removed', [item, index]
 
   onItemMoved: ({item, newIndex}) =>
     @trigger 'pane:item-moved', [item, newIndex]
 
-  onBeforeItemDestroyed: (item) =>
+  onBeforeItemDestroyed: ({item}) =>
     @unsubscribe(item) if typeof item.off is 'function'
     @trigger 'pane:before-item-destroyed', [item]
 
@@ -215,17 +169,7 @@ class PaneView extends View
 
   splitDown: (items...) -> @model.getView(@model.splitDown({items})).__spacePenView
 
-  # Public: Get the container view housing this pane.
-  #
-  # Returns a {View}.
-  getContainer: ->
-    @closest('.panes').view()
+  getContainer: -> @closest('.panes').view()
 
-  beforeRemove: ->
-    @subscriptions.dispose()
-    @model.destroy() unless @model.isDestroyed()
-
-  remove: (selector, keepData) ->
-    return super if keepData
-    @unsubscribe()
-    super
+  focus: ->
+    @element.focus()

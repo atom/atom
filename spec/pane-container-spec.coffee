@@ -115,3 +115,29 @@ describe "PaneContainer", ->
       pane3.addItems([new Object, new Object])
 
       expect(observed).toEqual container.getPaneItems()
+
+  describe "::confirmClose()", ->
+    [container, pane1, pane2] = []
+
+    beforeEach ->
+      class TestItem
+        shouldPromptToSave: -> true
+        getUri: -> 'test'
+
+      container = new PaneContainer
+      container.getRoot().splitRight()
+      [pane1, pane2] = container.getPanes()
+      pane1.addItem(new TestItem)
+      pane2.addItem(new TestItem)
+
+    it "returns true if the user saves all modified files when prompted", ->
+      spyOn(atom, "confirm").andReturn(0)
+      saved = container.confirmClose()
+      expect(saved).toBeTruthy()
+      expect(atom.confirm).toHaveBeenCalled()
+
+    it "returns false if the user cancels saving any modified file", ->
+      spyOn(atom, "confirm").andReturn(1)
+      saved = container.confirmClose()
+      expect(saved).toBeFalsy()
+      expect(atom.confirm).toHaveBeenCalled()

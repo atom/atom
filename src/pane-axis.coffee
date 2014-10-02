@@ -3,9 +3,6 @@
 {flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
 
-PaneRowView = null
-PaneColumnView = null
-
 module.exports =
 class PaneAxis extends Model
   atom.deserializers.add(this)
@@ -40,11 +37,7 @@ class PaneAxis extends Model
 
   setContainer: (@container) -> @container
 
-  getViewClass: ->
-    if @orientation is 'vertical'
-      PaneColumnView ?= require './pane-column-view'
-    else
-      PaneRowView ?= require './pane-row-view'
+  getOrientation: -> @orientation
 
   getView: (object) ->
     @container.getView(object)

@@ -3,9 +3,12 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
 Pane = require './pane'
+PaneElement = require './pane-element'
+PaneContainerElement = require './pane-container-element'
+PaneAxisElement = require './pane-axis-element'
+PaneAxis = require './pane-axis'
 ViewRegistry = require './view-registry'
 ItemRegistry = require './item-registry'
-PaneContainerView = null
 
 module.exports =
 class PaneContainer extends Model
@@ -30,8 +33,10 @@ class PaneContainer extends Model
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
-    @viewRegistry = params?.viewRegistry ? new ViewRegistry
     @itemRegistry = new ItemRegistry
+    @viewRegistry = params?.viewRegistry ? new ViewRegistry
+    @registerViewProviders()
+
     @setRoot(params?.root ? new Pane)
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
@@ -48,8 +53,18 @@ class PaneContainer extends Model
     root: @root?.serialize()
     activePaneId: @activePane.id
 
-  getViewClass: ->
-    PaneContainerView ?= require './pane-container-view'
+  registerViewProviders: ->
+    @viewRegistry.addViewProvider
+      modelConstructor: PaneContainer
+      viewConstructor: PaneContainerElement
+
+    @viewRegistry.addViewProvider
+      modelConstructor: PaneAxis
+      viewConstructor: PaneAxisElement
+
+    @viewRegistry.addViewProvider
+      modelConstructor: Pane
+      viewConstructor: PaneElement
 
   getView: (object) ->
     @viewRegistry.getView(object)
@@ -128,6 +143,17 @@ class PaneContainer extends Model
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
+
+  confirmClose: ->
+    allSaved = true
+
+    for pane in @getPanes()
+      for item in pane.getItems()
+        unless pane.promptToSaveItem(item)
+          allSaved = false
+          break
+
+    allSaved
 
   activateNextPane: ->
     panes = @getPanes()

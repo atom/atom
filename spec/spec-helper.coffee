@@ -29,11 +29,17 @@ atom.keymaps.loadBundledKeymaps()
 keyBindingsToRestore = atom.keymaps.getKeyBindings()
 commandsToRestore = atom.commands.getSnapshot()
 
-$(window).on 'core:close', -> window.close()
-$(window).on 'beforeunload', ->
+window.addEventListener 'core:close', -> window.close()
+window.addEventListener 'beforeunload', ->
   atom.storeWindowDimensions()
   atom.saveSync()
 $('html,body').css('overflow', 'auto')
+
+# Allow document.title to be assigned in specs without screwing up spec window title
+documentTitle = null
+Object.defineProperty document, 'title',
+  get: -> documentTitle
+  set: (title) -> documentTitle = title
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
@@ -61,6 +67,7 @@ isCoreSpec = specDirectory == fs.realpathSync(__dirname)
 beforeEach ->
   Grim.clearDeprecations() if isCoreSpec
   $.fx.off = true
+  documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
@@ -106,7 +113,7 @@ beforeEach ->
   spyOn(TextEditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   TextEditorComponent.performSyncUpdates = true
 
-  spyOn(WorkspaceView.prototype, 'setTitle').andCallFake (@title) ->
+  spyOn(atom, "setRepresentedFilename")
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
@@ -351,7 +358,7 @@ $.fn.enableKeymap = ->
     not e.originalEvent.defaultPrevented
 
 $.fn.attachToDom = ->
-  @appendTo($('#jasmine-content'))
+  @appendTo($('#jasmine-content')) unless @isOnDom()
 
 $.fn.simulateDomAttachment = ->
   $('<html>').append(this)

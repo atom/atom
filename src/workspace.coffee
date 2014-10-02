@@ -5,13 +5,13 @@ _ = require 'underscore-plus'
 Q = require 'q'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
-{Emitter, Disposable} = require 'event-kit'
+{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 ViewRegistry = require './view-registry'
-WorkspaceView = null
+WorkspaceElement = require './workspace-element'
 
 # Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
@@ -30,11 +30,12 @@ class Workspace extends Model
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
 
   @properties
+    viewRegistry: null
     paneContainer: null
     fullScreen: false
     destroyedItemUris: -> []
 
-  constructor: ->
+  constructor: (params) ->
     super
 
     @emitter = new Emitter
@@ -43,6 +44,8 @@ class Workspace extends Model
     @viewRegistry ?= new ViewRegistry
     @paneContainer ?= new PaneContainer({@viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
+
+    @subscribeToActiveItem()
 
     @addOpener (filePath) =>
       switch filePath
@@ -54,6 +57,10 @@ class Workspace extends Model
           @open(atom.config.getUserConfigPath())
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
+
+    @addViewProvider
+      modelConstructor: Workspace
+      viewConstructor: WorkspaceElement
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
@@ -70,9 +77,6 @@ class Workspace extends Model
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
     packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
-
-  getViewClass: ->
-    WorkspaceView ?= require './workspace-view'
 
   getPackageNamesWithActiveGrammars: ->
     packageNames = []
@@ -97,6 +101,58 @@ class Workspace extends Model
   editorAdded: (editor) ->
     @emit 'editor-created', editor
 
+  installShellCommands: ->
+    CommandInstaller.installShellCommandsInteractively()
+
+  subscribeToActiveItem: ->
+    @updateWindowTitle()
+    @updateDocumentEdited()
+    atom.project.onDidChangePaths @updateWindowTitle
+
+    @observeActivePaneItem (item) =>
+      @updateWindowTitle()
+      @updateDocumentEdited()
+
+      @activeItemSubscriptions?.dispose()
+      @activeItemSubscriptions = new CompositeDisposable
+
+      if typeof item?.onDidChangeTitle is 'function'
+        titleSubscription = item.onDidChangeTitle(@updateWindowTitle)
+      else if typeof item?.on is 'function'
+        titleSubscription = item.on('title-changed', @updateWindowTitle)
+        unless typeof titleSubscription?.dispose is 'function'
+          titleSubscription = new Disposable => item.off('title-changed', @updateWindowTitle)
+
+      if typeof item?.onDidChangeModified is 'function'
+        modifiedSubscription = item.onDidChangeModified(@updateDocumentEdited)
+      else if typeof item?.on? is 'function'
+        modifiedSubscription = item.on('modified-status-changed', @updateDocumentEdited)
+        unless typeof modifiedSubscription?.dispose is 'function'
+          modifiedSubscription = new Disposable => item.off('modified-status-changed', @updateDocumentEdited)
+
+      @activeItemSubscriptions.add(titleSubscription) if titleSubscription?
+      @activeItemSubscriptions.add(modifiedSubscription) if modifiedSubscription?
+
+  # Updates the application's title and proxy icon based on whichever file is
+  # open.
+  updateWindowTitle: =>
+    if projectPath = atom.project?.getPaths()[0]
+      if item = @getActivePaneItem()
+        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        atom.setRepresentedFilename(item.getPath?() ? projectPath)
+      else
+        document.title = projectPath
+        atom.setRepresentedFilename(projectPath)
+    else
+      document.title = 'untitled'
+      atom.setRepresentedFilename('')
+
+  # On OS X, fades the application window's proxy icon when the current file
+  # has been modified.
+  updateDocumentEdited: =>
+    modified = @getActivePaneItem()?.isModified?() ? false
+    atom.setDocumentEdited(modified)
+
   ###
   Section: Event Subscription
   ###
@@ -113,8 +169,8 @@ class Workspace extends Model
     callback(textEditor) for textEditor in @getTextEditors()
     @onDidAddTextEditor ({textEditor}) -> callback(textEditor)
 
-  # Essential: Invoke the given callback with all current and future panes items in
-  # the workspace.
+  # Essential: Invoke the given callback with all current and future panes items
+  # in the workspace.
   #
   # * `callback` {Function} to be called with current and future pane items.
   #   * `item` An item that is present in {::getPaneItems} at the time of
@@ -131,6 +187,15 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
+
+  # Essential: Invoke the given callback with the current active pane item and
+  # with all future active pane items in the workspace.
+  #
+  # * `callback` {Function} to be called when the active pane item changes.
+  #   * `item` The current active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeActivePaneItem: (callback) -> @paneContainer.observeActivePaneItem(callback)
 
   # Essential: Invoke the given callback whenever an item is opened. Unlike
   # {::onDidAddPaneItem}, observers will be notified for items that are already
@@ -417,6 +482,9 @@ class Workspace extends Model
   saveAll: ->
     @paneContainer.saveAll()
 
+  confirmClose: ->
+    @paneContainer.confirmClose()
+
   # Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's
@@ -477,6 +545,10 @@ class Workspace extends Model
   destroyActivePane: ->
     @activePane?.destroy()
 
+  # Destroy the active pane item or the active pane if it is empty.
+  destroyActivePaneItemOrEmptyPane: ->
+    if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
+
   # Increase the editor font size by 1px.
   increaseFontSize: ->
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
@@ -503,6 +575,7 @@ class Workspace extends Model
   # Called by Model superclass when destroyed
   destroyed: ->
     @paneContainer.destroy()
+    @activeItemSubscriptions?.dispose()
 
   ###
   Section: View Management
