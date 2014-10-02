@@ -115,7 +115,7 @@ class DedupePackageModules extends Command
       delete moduleNames[path.basename(packagePath)]
 
   run: (options) ->
-    {callback, cwd} = options
+    {callback} = options
     options = @parseOptions(options.commandArgs)
 
     packagePaths = @getInstalledPackages()
