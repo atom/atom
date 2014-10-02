@@ -56,5 +56,5 @@ class Syntax extends GrammarRegistry
     atom.config.getRawScopedValue(scope, keyPath)
 
   propertiesForScope: (scope, keyPath) ->
-    deprecate 'A direct (but private) replacement is available at atom.config.settingsForScopeDescriptor().'
-    atom.config.settingsForScopeDescriptor(scope, keyPath)
+    deprecate 'A direct (but private) replacement is available at atom.config.scopedSettingsForScopeDescriptor().'
+    atom.config.scopedSettingsForScopeDescriptor(scope, keyPath)

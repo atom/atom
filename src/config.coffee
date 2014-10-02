@@ -709,7 +709,7 @@ class Config
     @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
 
   # TODO: figure out how to remove this. Only language mode uses it for one thing.
-  settingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
+  scopedSettingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
     scopeChain = scopeDescriptor
       .map (scope) ->
         scope = ".#{scope}" unless scope[0] is '.'
