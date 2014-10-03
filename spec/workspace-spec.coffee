@@ -3,7 +3,7 @@ temp = require 'temp'
 Workspace = require '../src/workspace'
 {View} = require '../src/space-pen-extensions'
 
-describe "Workspace", ->
+fdescribe "Workspace", ->
   workspace = null
 
   beforeEach ->
@@ -386,7 +386,6 @@ describe "Workspace", ->
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.workspace.getActivePaneItem()
-          console.log item.getTitle()
           expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
 
       describe "when the title of the active pane item changes", ->
@@ -421,7 +420,6 @@ describe "Workspace", ->
 
       it "updates the title to contain the project's path", ->
         document.title = null
-        console.log atom.workspace.getActivePaneItem()
         workspace2 = atom.workspace.testSerialization()
         item = atom.workspace.getActivePaneItem()
         expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
