@@ -133,10 +133,10 @@ class MenuManager
     element?.classList.toString().split(' ') ? []
 
   sortPackagesMenu: ->
-    packagesMenu = @template.find ({label}) => MenuHelpers.normalizeLabel(label) is 'Packages'
+    packagesMenu = @template.find ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
     return unless packagesMenu?.submenu?
 
-    packagesMenu.submenu.sort (item1, item2) =>
+    packagesMenu.submenu.sort (item1, item2) ->
       if item1.label and item2.label
         MenuHelpers.normalizeLabel(item1.label).localeCompare(MenuHelpers.normalizeLabel(item2.label))
       else

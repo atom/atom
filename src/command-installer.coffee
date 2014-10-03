@@ -41,7 +41,7 @@ module.exports =
       if error?
         showErrorDialog(error)
       else
-        @installApmCommand resourcePath, true, (error) =>
+        @installApmCommand resourcePath, true, (error) ->
           if error?
             showErrorDialog(error)
           else

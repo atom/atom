@@ -65,7 +65,7 @@ class WorkspaceElement extends HTMLElement
     @addEventListener 'focus', @handleFocus.bind(this)
     handleWindowFocus = @handleWindowFocus.bind(this)
     window.addEventListener 'focus', handleWindowFocus
-    @subscriptions.add(new Disposable => window.removeEventListener 'focus', handleWindowFocus)
+    @subscriptions.add(new Disposable -> window.removeEventListener 'focus', handleWindowFocus)
 
     @__spacePenView.setModel(@model)
 
