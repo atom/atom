@@ -38,6 +38,19 @@ module.exports =
   editor:
     type: 'object'
     properties:
+      # These settings are used in scoped fashion only. No defaults.
+      commentStart:
+        type: 'string'
+      commentEnd:
+        type: 'string'
+      increaseIndentPattern:
+        type: 'string'
+      decreaseIndentPattern:
+        type: 'string'
+      foldEndPattern:
+        type: 'string'
+
+      # These can be used as globals or scoped, thus defaults.
       fontFamily:
         type: 'string'
         default: ''
