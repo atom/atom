@@ -3,6 +3,8 @@
 PaneView = require './pane-view'
 
 class PaneElement extends HTMLElement
+  attached: false
+
   createdCallback: ->
     @attached = false
     @subscriptions = new CompositeDisposable
