@@ -4,13 +4,18 @@ PaneView = require './pane-view'
 
 class PaneElement extends HTMLElement
   createdCallback: ->
+    @attached = false
     @subscriptions = new CompositeDisposable
     @initializeContent()
     @subscribeToDOMEvents()
     @createSpacePenShim()
 
   attachedCallback: ->
+    @attached = true
     @focus() if @model.isFocused()
+
+  detachedCallback: ->
+    @attached = false
 
   initializeContent: ->
     @setAttribute 'class', 'pane'
@@ -52,7 +57,7 @@ class PaneElement extends HTMLElement
     view = @model.getView(item).__spacePenView
     otherView.hide() for otherView in $itemViews.children().not(view).views()
     $itemViews.append(view) unless view.parent().is($itemViews)
-    view.show()
+    view.show() if @attached
     view.focus() if @hasFocus()
 
   itemRemoved: ({item, index, destroyed}) ->
