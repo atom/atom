@@ -862,3 +862,106 @@ describe "Config", ->
 
         expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
         expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
+
+  describe "scoped settings", ->
+    describe ".get(scopeDescriptor, keyPath)", ->
+      it "returns the property with the most specific scope selector", ->
+        atom.config.addScopedSettings(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings(".source", foo: bar: baz: 11)
+
+        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
+        expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBe 22
+        expect(atom.config.get([".source.js", ".variable.assignment.js"], "foo.bar.baz")).toBe 11
+        expect(atom.config.get([".text"], "foo.bar.baz")).toBeUndefined()
+
+      it "favors the most recently added properties in the event of a specificity tie", ->
+        atom.config.addScopedSettings(".source.coffee .string.quoted.single", foo: bar: baz: 42)
+        atom.config.addScopedSettings(".source.coffee .string.quoted.double", foo: bar: baz: 22)
+
+        expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.bar.baz")).toBe 42
+        expect(atom.config.get([".source.coffee", ".string.quoted.single.double"], "foo.bar.baz")).toBe 22
+
+      describe 'when there are global defaults', ->
+        it 'falls back to the global when there is no scoped property specified', ->
+          atom.config.setDefaults("foo", hasDefault: 'ok')
+          expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.hasDefault")).toBe 'ok'
+
+    describe ".set(scope, keyPath, value)", ->
+      it "sets the value and overrides the others", ->
+        atom.config.addScopedSettings(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings(".source", foo: bar: baz: 11)
+
+        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
+
+        expect(atom.config.set(".source.coffee .string.quoted.double.coffee", "foo.bar.baz", 100)).toBe true
+        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 100
+
+    describe ".removeScopedSettingsForName(name)", ->
+      it "allows properties to be removed by name", ->
+        disposable1 = atom.config.addScopedSettings("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        disposable2 = atom.config.addScopedSettings("b", ".source .string.quoted.double", foo: bar: baz: 22)
+
+        disposable2.dispose()
+        expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBeUndefined()
+        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
+
+    describe ".observe(scopeDescriptor, keyPath)", ->
+      it 'calls the supplied callback when the value at the descriptor/keypath changes', ->
+        atom.config.observe [".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz", changeSpy = jasmine.createSpy()
+        expect(changeSpy).toHaveBeenCalledWith(undefined)
+        changeSpy.reset()
+
+        atom.config.set("foo.bar.baz", 12)
+        expect(changeSpy).toHaveBeenCalledWith(12)
+        changeSpy.reset()
+
+        disposable1 = atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        expect(changeSpy).toHaveBeenCalledWith(22)
+        changeSpy.reset()
+
+        disposable2 = atom.config.addScopedSettings("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        expect(changeSpy).toHaveBeenCalledWith(42)
+        changeSpy.reset()
+
+        disposable2.dispose()
+        expect(changeSpy).toHaveBeenCalledWith(22)
+        changeSpy.reset()
+
+        disposable1.dispose()
+        expect(changeSpy).toHaveBeenCalledWith(12)
+        changeSpy.reset()
+
+        atom.config.set("foo.bar.baz", undefined)
+        expect(changeSpy).toHaveBeenCalledWith(undefined)
+        changeSpy.reset()
+
+    describe ".onDidChange(scopeDescriptor, keyPath)", ->
+      it 'calls the supplied callback when the value at the descriptor/keypath changes', ->
+        keyPath = "foo.bar.baz"
+        atom.config.onDidChange [".source.coffee", ".string.quoted.double.coffee"], keyPath, changeSpy = jasmine.createSpy()
+
+        atom.config.set("foo.bar.baz", 12)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12, keyPath})
+        changeSpy.reset()
+
+        disposable1 = atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: 22, keyPath})
+        changeSpy.reset()
+
+        disposable2 = atom.config.addScopedSettings("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 42, keyPath})
+        changeSpy.reset()
+
+        disposable2.dispose()
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 42, newValue: 22, keyPath})
+        changeSpy.reset()
+
+        disposable1.dispose()
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 12, keyPath})
+        changeSpy.reset()
+
+        atom.config.set("foo.bar.baz", undefined)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: undefined, keyPath})
+        changeSpy.reset()

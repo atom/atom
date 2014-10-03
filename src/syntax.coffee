@@ -28,7 +28,6 @@ class Syntax extends GrammarRegistry
 
   constructor: ->
     super(maxTokensPerLine: 100)
-    @propertyStore = new ScopedPropertyStore
 
   serialize: ->
     {deserializer: @constructor.name, @grammarOverridesByPath}
@@ -36,52 +35,22 @@ class Syntax extends GrammarRegistry
   createToken: (value, scopes) -> new Token({value, scopes})
 
   # Deprecated: Used by settings-view to display snippets for packages
-  @::accessor 'scopedProperties', ->
-    deprecate("Use Syntax::getProperty instead")
-    @propertyStore.propertySets
+  @::accessor 'propertyStore', ->
+    deprecate("Do not use this. Use a public method on Config")
+    atom.config.scopedSettingsStore
 
   addProperties: (args...) ->
-    name = args.shift() if args.length > 2
-    [selector, properties] = args
-    propertiesBySelector = {}
-    propertiesBySelector[selector] = properties
-    @propertyStore.addProperties(name, propertiesBySelector)
+    deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedSettings().'
+    atom.config.addScopedSettings(args...)
 
   removeProperties: (name) ->
-    @propertyStore.removeProperties(name)
+    deprecate 'atom.config.addScopedSettings() now returns a disposable you can call .dispose() on'
+    atom.config.scopedSettingsStore.removeProperties(name)
 
-  clearProperties: ->
-    @propertyStore = new ScopedPropertyStore
-
-  # Public: Get a property for the given scope and key path.
-  #
-  # ## Examples
-  #
-  # ```coffee
-  # comment = atom.syntax.getProperty(['.source.ruby'], 'editor.commentStart')
-  # console.log(comment) # '# '
-  # ```
-  #
-  # * `scope` An {Array} of {String} scopes.
-  # * `keyPath` A {String} key path.
-  #
-  # Returns a {String} property value or undefined.
   getProperty: (scope, keyPath) ->
-    scopeChain = scope
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
-    @propertyStore.getPropertyValue(scopeChain, keyPath)
+    deprecate 'A direct (but private) replacement is available at atom.config.getRawScopedValue().'
+    atom.config.getRawScopedValue(scope, keyPath)
 
   propertiesForScope: (scope, keyPath) ->
-    scopeChain = scope
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
-
-    @propertyStore.getProperties(scopeChain, keyPath)
-
-  cssSelectorFromScopeSelector: (scopeSelector) ->
-    new ScopeSelector(scopeSelector).toCssSelector()
+    deprecate 'A direct (but private) replacement is available at atom.config.scopedSettingsForScopeDescriptor().'
+    atom.config.settingsForScopeDescriptor(scope, keyPath)

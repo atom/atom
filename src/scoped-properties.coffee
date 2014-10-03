@@ -1,4 +1,5 @@
 CSON = require 'season'
+{CompositeDisposable} = require 'event-kit'
 
 module.exports =
 class ScopedProperties
@@ -10,10 +11,12 @@ class ScopedProperties
         callback(null, new ScopedProperties(scopedPropertiesPath, scopedProperties))
 
   constructor: (@path, @scopedProperties) ->
+    @propertyDisposable = new CompositeDisposable
 
   activate: ->
     for selector, properties of @scopedProperties
-      atom.syntax.addProperties(@path, selector, properties)
+      @propertyDisposable.add atom.config.addScopedSettings(@path, selector, properties)
+    return
 
   deactivate: ->
-    atom.syntax.removeProperties(@path)
+    @propertyDisposable.dispose()

@@ -1,12 +1,14 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Disposable, Emitter} = require 'event-kit'
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
 {deprecate} = require 'grim'
+
+ScopedPropertyStore = require 'scoped-property-store'
 
 # Essential: Used to access all of Atom's configuration details.
 #
@@ -219,7 +221,7 @@ pathWatcher = require 'pathwatcher'
 #
 # All types support an `enum` key. The enum key lets you specify all values
 # that the config setting can possibly be. `enum` _must_ be an array of values
-# of your specified type.
+# of your specified type. Schema:
 #
 # ```coffee
 # config:
@@ -228,6 +230,8 @@ pathWatcher = require 'pathwatcher'
 #     default: 4
 #     enum: [2, 4, 6, 8]
 # ```
+#
+# Usage:
 #
 # ```coffee
 # atom.config.set('my-package.someSetting', '2')
@@ -307,6 +311,7 @@ class Config
       properties: {}
     @defaultSettings = {}
     @settings = {}
+    @scopedSettingsStore = new ScopedPropertyStore
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
@@ -319,29 +324,57 @@ class Config
   # than {::onDidChange} in that it will immediately call your callback with the
   # current value of the config entry.
   #
+  # ### Examples
+  #
+  # You might want to be notified when the themes change. We'll watch
+  # `core.themes` for changes
+  #
+  # ```coffee
+  # atom.config.observe 'core.themes', (value) ->
+  #   # do stuff with value
+  # ```
+  #
+  # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
+  #   the root of the syntax tree to a token. Get one by calling
+  #   {TextEditor::scopesAtCursor}. See {::get} for examples.
   # * `keyPath` {String} name of the key to observe
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  observe: (keyPath, options={}, callback) ->
-    if _.isFunction(options)
-      callback = options
-      options = {}
-    else
+  observe: (scopeDescriptor, keyPath, options, callback) ->
+    args = Array::slice.call(arguments)
+    if args.length is 2
+      # observe(keyPath, callback)
+      [keyPath, callback, scopeDescriptor, options] = args
+    else if args.length is 3 and Array.isArray(scopeDescriptor)
+      # observe(scopeDescriptor, keyPath, callback)
+      [scopeDescriptor, keyPath, callback, options] = args
+    else if args.length is 3 and _.isString(scopeDescriptor) and _.isObject(keyPath)
+      # observe(keyPath, options, callback) # Deprecated!
+      [keyPath, options, callback, scopeDescriptor] = args
+
       message = ""
       message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
-      deprecate "Config::observe no longer supports options. #{message}"
+      deprecate "Config::observe no longer supports options; see https://atom.io/docs/api/latest/Config. #{message}"
+    else
+      console.error 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
+      return
 
-    callback(_.clone(@get(keyPath))) unless options.callNow == false
-    @emitter.on 'did-change', (event) ->
-      callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
+    if scopeDescriptor?
+      @observeScopedKeyPath(scopeDescriptor, keyPath, callback)
+    else
+      @observeKeyPath(keyPath, options ? {}, callback)
 
   # Essential: Add a listener for changes to a given key path. If `keyPath` is
   # not specified, your callback will be called on changes to any key.
   #
-  # * `keyPath` (optional) {String} name of the key to observe
+  # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
+  #   the root of the syntax tree to a token. Get one by calling
+  #   {TextEditor::scopesAtCursor}. See {::get} for examples.
+  # * `keyPath` (optional) {String} name of the key to observe. Must be
+  #   specified if `scopeDescriptor` is specified.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
   #     * `newValue` the new value of the key
@@ -350,13 +383,17 @@ class Config
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  onDidChange: (keyPath, callback) ->
+  onDidChange: (scopeDescriptor, keyPath, callback) ->
+    args = Array::slice.call(arguments)
     if arguments.length is 1
-      callback = keyPath
-      keyPath = undefined
+      [callback, scopeDescriptor, keyPath] = args
+    else if arguments.length is 2
+      [keyPath, callback, scopeDescriptor] = args
 
-    @emitter.on 'did-change', (event) ->
-      callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
+    if scopeDescriptor?
+      @onDidChangeScopedKeyPath(scopeDescriptor, keyPath, callback)
+    else
+      @onDidChangeKeyPath(keyPath, callback)
 
   ###
   Section: Managing Settings
@@ -364,29 +401,84 @@ class Config
 
   # Essential: Retrieves the setting for the given key.
   #
+  # ### Examples
+  #
+  # You might want to know what themes are enabled, so check `core.themes`
+  #
+  # ```coffee
+  # atom.config.get('core.themes')
+  # ```
+  #
+  # With scope descriptors you can get settings within a specific editor
+  # scope. For example, you might want to know `editor.tabLength` for ruby
+  # files.
+  #
+  # ```coffee
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # ```
+  #
+  # This setting in ruby files might be different than the global tabLength setting
+  #
+  # ```coffee
+  # atom.config.get('editor.tabLength') # => 4
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # ```
+  #
+  # Additionally, you can get the setting at the specific cursor position.
+  #
+  # ```coffee
+  # scopeDescriptor = @editor.scopesAtCursor()
+  # atom.config.get(scopeDescriptor, 'editor.tabLength') # => 2
+  # ```
+  #
+  # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
+  #   the root of the syntax tree to a token. Get one by calling
+  #   {TextEditor::scopesAtCursor}
   # * `keyPath` The {String} name of the key to retrieve.
   #
   # Returns the value from Atom's default settings, the user's configuration
   # file in the type specified by the configuration schema.
-  get: (keyPath) ->
-    value = _.valueForKeyPath(@settings, keyPath)
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+  get: (scopeDescriptor, keyPath) ->
+    if arguments.length == 1
+      keyPath = scopeDescriptor
+      scopeDescriptor = undefined
 
-    if value?
-      value = _.deepClone(value)
-      valueIsObject = _.isObject(value) and not _.isArray(value)
-      defaultValueIsObject = _.isObject(defaultValue) and not _.isArray(defaultValue)
-      if valueIsObject and defaultValueIsObject
-        _.defaults(value, defaultValue)
-    else
-      value = _.deepClone(defaultValue)
+    if scopeDescriptor?
+      value = @getRawScopedValue(scopeDescriptor, keyPath)
+      return value if value?
 
-    value
+    @getRawValue(keyPath)
 
   # Essential: Sets the value for a configuration setting.
   #
   # This value is stored in Atom's internal configuration file.
   #
+  # ### Examples
+  #
+  # You might want to change the themes programmatically:
+  #
+  # ```coffee
+  # atom.config.set('core.themes', ['atom-light-ui', 'atom-light-syntax'])
+  # ```
+  #
+  # You can also set scoped settings. For example, you might want change the
+  # `editor.tabLength` only for ruby files.
+  #
+  # ```coffee
+  # atom.config.get('editor.tabLength') # => 4
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 4
+  # atom.config.get(['source.js'], 'editor.tabLength') # => 4
+  #
+  # # Set ruby to 2
+  # atom.config.set('source.ruby', 'editor.tabLength', 2) # => true
+  #
+  # # Notice it's only set to 2 in the case of ruby
+  # atom.config.get('editor.tabLength') # => 4
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # atom.config.get(['source.js'], 'editor.tabLength') # => 4
+  # ```
+  #
+  # * `scope` (optional) {String}. eg. '.source.ruby'
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting. Passing `undefined` will revert the
   #   setting to the default value.
@@ -394,18 +486,27 @@ class Config
   # Returns a {Boolean}
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set: (keyPath, value) ->
+  set: (scope, keyPath, value) ->
+    if arguments.length < 3
+      value = keyPath
+      keyPath = scope
+      scope = undefined
+
     unless value == undefined
       try
         value = @makeValueConformToSchema(keyPath, value)
       catch e
         return false
 
-    @setRawValue(keyPath, value)
+    if scope?
+      @setRawScopedValue(scope, keyPath, value)
+    else
+      @setRawValue(keyPath, value)
+
     @save() unless @configFileHasErrors
     true
 
-  # Extended: Restore the key path to its default value.
+  # Extended: Restore the global setting at `keyPath` to its default value.
   #
   # * `keyPath` The {String} name of the key.
   #
@@ -414,7 +515,7 @@ class Config
     @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
     @get(keyPath)
 
-  # Extended: Get the default value of the key path. _Please note_ that in most
+  # Extended: Get the global default value of the key path. _Please note_ that in most
   # cases calling this is not necessary! {::get} returns the default value when
   # a custom value is not specified.
   #
@@ -425,7 +526,7 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     _.deepClone(defaultValue)
 
-  # Extended: Is the key path value its default value?
+  # Extended: Is the value at `keyPath` its default value?
   #
   # * `keyPath` The {String} name of the key.
   #
@@ -434,7 +535,7 @@ class Config
   isDefault: (keyPath) ->
     not _.valueForKeyPath(@settings, keyPath)?
 
-  # Extended: Retrieve the schema for a specific key path. The shema will tell
+  # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
   # option.
   #
@@ -450,7 +551,8 @@ class Config
       schema = schema.properties[key]
     schema
 
-  # Extended: Returns a new {Object} containing all of settings and defaults.
+  # Extended: Returns a new {Object} containing all of the global settings and
+  # defaults. This does not include scoped settings.
   getSettings: ->
     _.deepExtend(@settings, @defaultSettings)
 
@@ -484,7 +586,7 @@ class Config
     deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
   ###
-  Section: Private
+  Section: Internal methods used by core
   ###
 
   pushAtKeyPath: (keyPath, value) ->
@@ -505,6 +607,34 @@ class Config
     @set(keyPath, arrayValue)
     result
 
+  setSchema: (keyPath, schema) ->
+    unless isPlainObject(schema)
+      throw new Error("Error loading schema for #{keyPath}: schemas can only be objects!")
+
+    unless typeof schema.type?
+      throw new Error("Error loading schema for #{keyPath}: schema objects must have a type attribute")
+
+    rootSchema = @schema
+    if keyPath
+      for key in keyPath.split('.')
+        rootSchema.type = 'object'
+        rootSchema.properties ?= {}
+        properties = rootSchema.properties
+        properties[key] ?= {}
+        rootSchema = properties[key]
+
+    _.extend rootSchema, schema
+    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
+
+  load: ->
+    @initializeConfigDirectory()
+    @loadUserConfig()
+    @observeUserConfig()
+
+  ###
+  Section: Private methods managing the user's config file
+  ###
+
   initializeConfigDirectory: (done) ->
     return if fs.existsSync(@configDirPath)
 
@@ -520,11 +650,6 @@ class Config
       destinationPath = path.join(@configDirPath, relativePath)
       queue.push({sourcePath, destinationPath})
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
-
-  load: ->
-    @initializeConfigDirectory()
-    @loadUserConfig()
-    @observeUserConfig()
 
   loadUserConfig: ->
     unless fs.existsSync(@configFilePath)
@@ -555,33 +680,9 @@ class Config
   save: ->
     CSON.writeFileSync(@configFilePath, @settings)
 
-  setRawValue: (keyPath, value) ->
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
-    value = undefined if _.isEqual(defaultValue, value)
-
-    oldValue = _.clone(@get(keyPath))
-    _.setValueForKeyPath(@settings, keyPath, value)
-    newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
-
-  setRawDefault: (keyPath, value) ->
-    oldValue = _.clone(@get(keyPath))
-    _.setValueForKeyPath(@defaultSettings, keyPath, value)
-    newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
-
-  setRecursive: (keyPath, value) ->
-    if isPlainObject(value)
-      keys = if keyPath? then keyPath.split('.') else []
-      for key, childValue of value
-        continue unless value.hasOwnProperty(key)
-        @setRecursive(keys.concat([key]).join('.'), childValue)
-    else
-      try
-        value = @makeValueConformToSchema(keyPath, value)
-        @setRawValue(keyPath, value)
-      catch e
-        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+  ###
+  Section: Private methods managing global settings
+  ###
 
   setAll: (newSettings) ->
     unless isPlainObject(newSettings)
@@ -602,6 +703,55 @@ class Config
     @setRecursive(null, newSettings)
     unsetUnspecifiedValues(null, @settings)
 
+  setRecursive: (keyPath, value) ->
+    if isPlainObject(value)
+      keys = if keyPath? then keyPath.split('.') else []
+      for key, childValue of value
+        continue unless value.hasOwnProperty(key)
+        @setRecursive(keys.concat([key]).join('.'), childValue)
+    else
+      try
+        value = @makeValueConformToSchema(keyPath, value)
+        @setRawValue(keyPath, value)
+      catch e
+        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+
+  getRawValue: (keyPath) ->
+    value = _.valueForKeyPath(@settings, keyPath)
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+
+    if value?
+      value = _.deepClone(value)
+      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+    else
+      value = _.deepClone(defaultValue)
+
+    value
+
+  setRawValue: (keyPath, value) ->
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+    value = undefined if _.isEqual(defaultValue, value)
+
+    oldValue = _.clone(@get(keyPath))
+    _.setValueForKeyPath(@settings, keyPath, value)
+    newValue = @get(keyPath)
+    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
+
+  observeKeyPath: (keyPath, options, callback) ->
+    callback(_.clone(@get(keyPath))) unless options.callNow == false
+    @emitter.on 'did-change', (event) ->
+      callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
+
+  onDidChangeKeyPath: (keyPath, callback) ->
+    @emitter.on 'did-change', (event) ->
+      callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
+
+  setRawDefault: (keyPath, value) ->
+    oldValue = _.clone(@get(keyPath))
+    _.setValueForKeyPath(@defaultSettings, keyPath, value)
+    newValue = @get(keyPath)
+    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
+
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
       keys = if keyPath? then keyPath.split('.') else []
@@ -615,25 +765,6 @@ class Config
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
-  setSchema: (keyPath, schema) ->
-    unless isPlainObject(schema)
-      throw new Error("Error loading schema for #{keyPath}: schemas can only be objects!")
-
-    unless typeof schema.type?
-      throw new Error("Error loading schema for #{keyPath}: schema objects must have a type attribute")
-
-    rootSchema = @schema
-    if keyPath
-      for key in keyPath.split('.')
-        rootSchema.type = 'object'
-        rootSchema.properties ?= {}
-        properties = rootSchema.properties
-        properties[key] ?= {}
-        rootSchema = properties[key]
-
-    _.extend rootSchema, schema
-    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
-
   extractDefaultsFromSchema: (schema) ->
     if schema.default?
       schema.default
@@ -646,6 +777,71 @@ class Config
   makeValueConformToSchema: (keyPath, value) ->
     value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
     value
+
+  ###
+  Section: Private Scoped Settings
+  ###
+
+  addScopedSettings: (name, selector, value) ->
+    if arguments.length < 3
+      value = selector
+      selector = name
+      name = null
+
+    settingsBySelector = {}
+    settingsBySelector[selector] = value
+    disposable = @scopedSettingsStore.addProperties(name, settingsBySelector)
+    @emitter.emit 'did-change'
+    new Disposable =>
+      disposable.dispose()
+      @emitter.emit 'did-change'
+
+  setRawScopedValue: (selector, keyPath, value) ->
+    if keyPath?
+      newValue = {}
+      _.setValueForKeyPath(newValue, keyPath, value)
+      value = newValue
+    @addScopedSettings(null, selector, value)
+
+  getRawScopedValue: (scopeDescriptor, keyPath) ->
+    scopeChain = scopeDescriptor
+      .map (scope) ->
+        scope = ".#{scope}" unless scope[0] is '.'
+        scope
+      .join(' ')
+    @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
+
+  observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
+    oldValue = @get(scopeDescriptor, keyPath)
+
+    callback(oldValue)
+
+    didChange = =>
+      newValue = @get(scopeDescriptor, keyPath)
+      callback(newValue) unless _.isEqual(oldValue, newValue)
+      oldValue = newValue
+
+    @emitter.on 'did-change', didChange
+
+  onDidChangeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
+    oldValue = @get(scopeDescriptor, keyPath)
+    didChange = =>
+      newValue = @get(scopeDescriptor, keyPath)
+      callback({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
+      oldValue = newValue
+
+    @emitter.on 'did-change', didChange
+
+  # TODO: figure out how to change / remove this. The return value is awkward.
+  # * language mode uses it for one thing.
+  # * autocomplete uses it for editor.completions
+  settingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
+    scopeChain = scopeDescriptor
+      .map (scope) ->
+        scope = ".#{scope}" unless scope[0] is '.'
+        scope
+      .join(' ')
+    @scopedSettingsStore.getProperties(scopeChain, keyPath)
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
@@ -692,7 +888,7 @@ Config.addSchemaEnforcers
   'null':
     # null sort of isnt supported. It will just unset in this case
     coerce: (keyPath, value, schema) ->
-      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be null") unless value == null
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be null") unless value in [undefined, null]
       value
 
   'object':

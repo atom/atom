@@ -1,7 +1,8 @@
 path = require 'path'
 fs = require 'fs-plus'
 
-# This is loaded by atom.coffee
+# This is loaded by atom.coffee. See https://atom.io/docs/api/latest/Config for
+# more information about config schemas.
 module.exports =
   core:
     type: 'object'
@@ -38,6 +39,19 @@ module.exports =
   editor:
     type: 'object'
     properties:
+      # These settings are used in scoped fashion only. No defaults.
+      commentStart:
+        type: ['string', 'null']
+      commentEnd:
+        type: ['string', 'null']
+      increaseIndentPattern:
+        type: ['string', 'null']
+      decreaseIndentPattern:
+        type: ['string', 'null']
+      foldEndPattern:
+        type: ['string', 'null']
+
+      # These can be used as globals or scoped, thus defaults.
       fontFamily:
         type: 'string'
         default: ''
