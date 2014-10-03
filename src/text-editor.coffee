@@ -485,10 +485,9 @@ class TextEditor extends Model
 
   # Create an {TextEditor} with its initial state based on this object
   copy: ->
-    tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new TextEditor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
+    newEditor = new TextEditor({@buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor

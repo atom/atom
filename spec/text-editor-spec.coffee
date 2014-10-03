@@ -3057,6 +3057,24 @@ describe "TextEditor", ->
         coffeeEditor.setCursorBufferPosition [0, 10]
         expect(coffeeEditor.getTabLength(coffeeEditor.scopesAtCursor())).toBe 4
 
+      it 'will retokenize when the tab length is updated', ->
+        expect(editor.getTabLength()).toBe 2
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+
+        atom.config.set '.source.js', 'editor.tabLength', 6
+        expect(editor.getTabLength()).toBe 6
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+
+      it 'will update the tab length when the grammar changes', ->
+        atom.config.set '.source.coffee', 'editor.tabLength', 6
+
+        expect(editor.getTabLength()).toBe 2
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+
+        editor.setGrammar(coffeeEditor.getGrammar())
+        expect(editor.getTabLength()).toBe 6
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->
       expect(editor.indentLevelForLine("    hello")).toBe(2)

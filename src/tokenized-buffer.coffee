@@ -31,10 +31,6 @@ class TokenizedBuffer extends Model
     @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
-    # TODO: FIXME: make this work for scoped properties
-    @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
-    @subscribe atom.config.onDidChange 'editor.tabLength', ({newValue}) => @setTabLength(newValue)
-
     @reloadGrammar()
 
   serializeParams: ->
@@ -83,6 +79,12 @@ class TokenizedBuffer extends Model
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
     @retokenizeLines()
+
+    @grammarTabLengthSubscription?.dispose()
+    @grammarTabLengthSubscription = atom.config.onDidChange @grammarScopeDescriptor, 'editor.tabLength', =>
+      @retokenizeLines()
+    @subscribe @grammarTabLengthSubscription
+
     @emit 'grammar-changed', grammar
     @emitter.emit 'did-change-grammar', grammar
 
