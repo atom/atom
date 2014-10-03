@@ -16,7 +16,7 @@ describe "CommandRegistry", ->
 
     registry = new CommandRegistry(parent)
 
-  describe "command dispatch", ->
+  describe "when a command event is dispatched on an element", ->
     it "invokes callbacks with selectors matching the target", ->
       called = false
       registry.add '.grandchild', 'command', (event) ->
