@@ -48,6 +48,16 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['child', 'parent']
 
+    it "invokes inline listeners prior to listeners applied via selectors", ->
+      calls = []
+      registry.add '.grandchild', 'command', -> calls.push('grandchild')
+      registry.add child, 'command', -> calls.push('child-inline')
+      registry.add '.child', 'command', -> calls.push('child')
+      registry.add '.parent', 'command', -> calls.push('parent')
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(calls).toEqual ['grandchild', 'child-inline', 'child', 'parent']
+
     it "orders multiple matching listeners for an element by selector specificity", ->
       child.classList.add('foo', 'bar')
       calls = []

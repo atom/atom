@@ -44,17 +44,18 @@ module.exports =
 # ```
 class CommandRegistry
   constructor: (@rootNode) ->
-    @listenersByCommandName = {}
+    @registeredCommands = {}
+    @selectorBasedListenersByCommandName = {}
+    @inlineListenersByCommandName = {}
 
   getRootNode: -> @rootNode
 
   setRootNode: (newRootNode) ->
     oldRootNode = @rootNode
     @rootNode = newRootNode
-
-    for commandName of @listenersByCommandName
-      @removeCommandListener(oldRootNode, commandName)
-      @addCommandListener(newRootNode, commandName)
+    for commandName of @registeredCommands
+      @removeDOMListener(oldRootNode, commandName)
+      @addDOMListener(newRootNode, commandName)
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -81,27 +82,47 @@ class CommandRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added command handler(s).
-  add: (selector, commandName, callback) ->
+  add: (target, commandName, callback) ->
     if typeof commandName is 'object'
       commands = commandName
       disposable = new CompositeDisposable
       for commandName, callback of commands
-        disposable.add @add(selector, commandName, callback)
+        disposable.add @add(target, commandName, callback)
       return disposable
 
-    unless @listenersByCommandName[commandName]?
-      @addCommandListener(@rootNode, commandName)
-      @listenersByCommandName[commandName] = []
+    if typeof target is 'string'
+      @addSelectorBasedListener(target, commandName, callback)
+    else
+      @addInlineListener(target, commandName, callback)
 
-    listener = new CommandListener(selector, callback)
-    listenersForCommand = @listenersByCommandName[commandName]
+  addSelectorBasedListener: (selector, commandName, callback) ->
+    @selectorBasedListenersByCommandName[commandName] ?= []
+    listenersForCommand = @selectorBasedListenersByCommandName[commandName]
+    listener = new SelectorBasedListener(selector, callback)
     listenersForCommand.push(listener)
+
+    @commandRegistered(commandName)
 
     new Disposable =>
       listenersForCommand.splice(listenersForCommand.indexOf(listener), 1)
-      if listenersForCommand.length is 0
-        delete @listenersByCommandName[commandName]
-        @removeCommandListener(@rootNode, commandName)
+      delete @selectorBasedListenersByCommandName[commandName] if listenersForCommand.length is 0
+
+  addInlineListener: (element, commandName, callback) ->
+    @inlineListenersByCommandName[commandName] ?= new WeakMap
+
+    listenersForCommand = @inlineListenersByCommandName[commandName]
+    unless listenersForElement = listenersForCommand.get(element)
+      listenersForElement = []
+      listenersForCommand.set(element, listenersForElement)
+    listener = new InlineListener(callback)
+    listenersForElement.push(listener)
+
+    @commandRegistered(commandName)
+
+    new Disposable =>
+      listenersForElement.splice(listenersForElement.indexOf(listener), 1)
+      listenersForCommand.delete(element) if listenersForElement.length is 0
+      @listenerRemovedForCommand(commandName)
 
   # Public: Find all registered commands matching a query.
   #
@@ -119,7 +140,7 @@ class CommandRegistry
     target = @rootNode unless @rootNode.contains(target)
     currentTarget = target
     loop
-      for commandName, listeners of @listenersByCommandName
+      for commandName, listeners of @selectorBasedListenersByCommandName
         for listener in listeners
           if currentTarget.webkitMatchesSelector(listener.selector)
             commands.push
@@ -154,16 +175,19 @@ class CommandRegistry
 
   getSnapshot: ->
     snapshot = {}
-    for commandName, listeners of @listenersByCommandName
+    for commandName, listeners of @selectorBasedListenersByCommandName
       snapshot[commandName] = listeners.slice()
     snapshot
 
   restoreSnapshot: (snapshot) ->
     rootNode = @getRootNode()
     @setRootNode(null) # clear listeners for current commands
-    @listenersByCommandName = {}
+    @registeredCommands = {}
+    @inlineListenersByCommandName = {}
+    @selectorBasedListenersByCommandName = {}
     for commandName, listeners of snapshot
-      @listenersByCommandName[commandName] = listeners.slice()
+      @selectorBasedListenersByCommandName[commandName] = listeners.slice()
+      @registeredCommands[commandName] = true
     @setRootNode(rootNode) # restore listeners for commands in snapshot
 
   handleCommandEvent: (originalEvent) =>
@@ -190,14 +214,15 @@ class CommandRegistry
         -> listener.enabled = true for listener in invokedListeners
 
     loop
-      matchingListeners =
-        (@listenersByCommandName[originalEvent.type] ? [])
+      inlineListeners = @inlineListenersByCommandName[originalEvent.type]?.get(currentTarget) ? []
+      selectorBasedListeners =
+        (@selectorBasedListenersByCommandName[originalEvent.type] ? [])
           .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
           .sort (a, b) -> a.compare(b)
+      listeners = inlineListeners.concat(selectorBasedListeners)
+      matched = true if listeners.length > 0
 
-      matched = true if matchingListeners.length > 0
-
-      for listener in matchingListeners when listener.enabled
+      for listener in listeners when listener.enabled
         break if immediatePropagationStopped
         invokedListeners.push(listener)
         listener.callback.call(currentTarget, syntheticEvent)
@@ -212,15 +237,20 @@ class CommandRegistry
   handleJQueryCommandEvent: (event) =>
     @handleCommandEvent(event) unless event.originalEvent?.__handledByCommandRegistry
 
-  addCommandListener: (node, commandName, listener) ->
+  commandRegistered: (commandName) ->
+    unless @registeredCommands[commandName]
+      @addDOMListener(@rootNode, commandName)
+      @registeredCommands[commandName] = true
+
+  addDOMListener: (node, commandName) ->
     node?.addEventListener(commandName, @handleCommandEvent, true)
     $(node).on commandName, @handleJQueryCommandEvent
 
-  removeCommandListener: (node, commandName) ->
+  removeDOMListener: (node, commandName) ->
     node?.removeEventListener(commandName, @handleCommandEvent, true)
     $(node).off commandName, @handleJQueryCommandEvent
 
-class CommandListener
+class SelectorBasedListener
   enabled: true
 
   constructor: (@selector, @callback) ->
@@ -230,3 +260,8 @@ class CommandListener
   compare: (other) ->
     other.specificity - @specificity  or
       other.sequenceNumber - @sequenceNumber
+
+class InlineListener
+  enabled: true
+
+  constructor: (@callback) ->
