@@ -1,7 +1,8 @@
 path = require 'path'
 fs = require 'fs-plus'
 
-# This is loaded by atom.coffee
+# This is loaded by atom.coffee. See https://atom.io/docs/api/latest/Config for
+# more information about config schemas.
 module.exports =
   core:
     type: 'object'
