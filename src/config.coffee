@@ -221,7 +221,7 @@ ScopedPropertyStore = require 'scoped-property-store'
 #
 # All types support an `enum` key. The enum key lets you specify all values
 # that the config setting can possibly be. `enum` _must_ be an array of values
-# of your specified type.
+# of your specified type. Schema:
 #
 # ```coffee
 # config:
@@ -230,6 +230,8 @@ ScopedPropertyStore = require 'scoped-property-store'
 #     default: 4
 #     enum: [2, 4, 6, 8]
 # ```
+#
+# Usage:
 #
 # ```coffee
 # atom.config.set('my-package.someSetting', '2')
@@ -322,6 +324,17 @@ class Config
   # than {::onDidChange} in that it will immediately call your callback with the
   # current value of the config entry.
   #
+  # ### Examples
+  #
+  # You might want to be notified when the themes change. We'll watch
+  # `core.themes` for changes
+  #
+  # ```coffee
+  # atom.config.observe 'core.themes', (value) ->
+  #   # do stuff with value
+  # ```
+  #
+  # * `scopeDescriptor` (optional) {Array} of {String}s. See {::get} for examples
   # * `keyPath` {String} name of the key to observe
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
@@ -355,7 +368,9 @@ class Config
   # Essential: Add a listener for changes to a given key path. If `keyPath` is
   # not specified, your callback will be called on changes to any key.
   #
-  # * `keyPath` (optional) {String} name of the key to observe
+  # * `scopeDescriptor` (optional) {Array} of {String}s. See {::get} for examples
+  # * `keyPath` (optional) {String} name of the key to observe. Must be
+  #   specified if `scopeDescriptor` is specified.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
   #     * `newValue` the new value of the key
@@ -382,6 +397,37 @@ class Config
 
   # Essential: Retrieves the setting for the given key.
   #
+  # ### Examples
+  #
+  # You might want to know what themes are enabled, so check `core.themes`
+  #
+  # ```coffee
+  # atom.config.get('core.themes')
+  # ```
+  #
+  # With scope descriptors you can get settings within a specific editor
+  # scope. For example, you might want to know `editor.tabLength` for ruby
+  # files.
+  #
+  # ```coffee
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # ```
+  #
+  # This setting in ruby files might be different than the global tabLength setting
+  #
+  # ```coffee
+  # atom.config.get('editor.tabLength') # => 4
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # ```
+  #
+  # Additionally, you can get the setting at the specific cursor position.
+  #
+  # ```coffee
+  # scopeDescriptor = @editor.scopesForBufferPosition(@editor.getCursorBufferPosition())
+  # atom.config.get(scopeDescriptor, 'editor.tabLength') # => 2
+  # ```
+  #
+  # * `scopeDescriptor` (optional) {Array} of {String}s.
   # * `keyPath` The {String} name of the key to retrieve.
   #
   # Returns the value from Atom's default settings, the user's configuration
@@ -401,6 +447,32 @@ class Config
   #
   # This value is stored in Atom's internal configuration file.
   #
+  # ### Examples
+  #
+  # You might want to change the themes programmatically:
+  #
+  # ```coffee
+  # atom.config.set('core.themes', ['atom-light-ui', 'atom-light-syntax'])
+  # ```
+  #
+  # You can also set scoped settings. For example, you might want change the
+  # `editor.tabLength` only for ruby files.
+  #
+  # ```coffee
+  # atom.config.get('editor.tabLength') # => 4
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 4
+  # atom.config.get(['source.js'], 'editor.tabLength') # => 4
+  #
+  # # Set ruby to 2
+  # atom.config.set('source.ruby', 'editor.tabLength', 2) # => true
+  #
+  # # Notice it's only set to 2 in the case of ruby
+  # atom.config.get('editor.tabLength') # => 4
+  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # atom.config.get(['source.js'], 'editor.tabLength') # => 4
+  # ```
+  #
+  # * `scope` (optional) {String}. eg. '.source.ruby'
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting. Passing `undefined` will revert the
   #   setting to the default value.
@@ -428,7 +500,7 @@ class Config
     @save() unless @configFileHasErrors
     true
 
-  # Extended: Restore the key path to its default value.
+  # Extended: Restore the global setting at `keyPath` to its default value.
   #
   # * `keyPath` The {String} name of the key.
   #
@@ -437,7 +509,7 @@ class Config
     @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
     @get(keyPath)
 
-  # Extended: Get the default value of the key path. _Please note_ that in most
+  # Extended: Get the global default value of the key path. _Please note_ that in most
   # cases calling this is not necessary! {::get} returns the default value when
   # a custom value is not specified.
   #
@@ -448,7 +520,7 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     _.deepClone(defaultValue)
 
-  # Extended: Is the key path value its default value?
+  # Extended: Is the value at `keyPath` its default value?
   #
   # * `keyPath` The {String} name of the key.
   #
@@ -457,7 +529,7 @@ class Config
   isDefault: (keyPath) ->
     not _.valueForKeyPath(@settings, keyPath)?
 
-  # Extended: Retrieve the schema for a specific key path. The shema will tell
+  # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
   # option.
   #
@@ -473,7 +545,8 @@ class Config
       schema = schema.properties[key]
     schema
 
-  # Extended: Returns a new {Object} containing all of settings and defaults.
+  # Extended: Returns a new {Object} containing all of the global settings and
+  # defaults. This does not include scoped settings.
   getSettings: ->
     _.deepExtend(@settings, @defaultSettings)
 
