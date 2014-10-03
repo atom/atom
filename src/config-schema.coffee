@@ -41,15 +41,15 @@ module.exports =
     properties:
       # These settings are used in scoped fashion only. No defaults.
       commentStart:
-        type: 'string'
+        type: ['string', 'null']
       commentEnd:
-        type: 'string'
+        type: ['string', 'null']
       increaseIndentPattern:
-        type: 'string'
+        type: ['string', 'null']
       decreaseIndentPattern:
-        type: 'string'
+        type: ['string', 'null']
       foldEndPattern:
-        type: 'string'
+        type: ['string', 'null']
 
       # These can be used as globals or scoped, thus defaults.
       fontFamily:

@@ -882,7 +882,7 @@ Config.addSchemaEnforcers
   'null':
     # null sort of isnt supported. It will just unset in this case
     coerce: (keyPath, value, schema) ->
-      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be null") unless value == null
+      throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be null") unless value in [undefined, null]
       value
 
   'object':
