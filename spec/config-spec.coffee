@@ -883,10 +883,8 @@ describe "Config", ->
         expect(atom.config.get([".source.coffee", ".string.quoted.single.double"], "foo.bar.baz")).toBe 22
 
       describe 'when there are global defaults', ->
-        beforeEach ->
-          atom.config.setDefaults("foo", hasDefault: 'ok')
-
         it 'falls back to the global when there is no scoped property specified', ->
+          atom.config.setDefaults("foo", hasDefault: 'ok')
           expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.hasDefault")).toBe 'ok'
 
     describe ".set(scope, keyPath, value)", ->

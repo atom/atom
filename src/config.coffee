@@ -357,7 +357,7 @@ class Config
       message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
       deprecate "Config::observe no longer supports options; see https://atom.io/docs/api/latest/Config. #{message}"
     else
-      console.warn 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
+      console.error 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
       return
 
     if scopeDescriptor?
