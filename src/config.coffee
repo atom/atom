@@ -499,7 +499,7 @@ class Config
         return false
 
     if scope?
-      @addRawScopedValue(scope, keyPath, value)
+      @setRawScopedValue(scope, keyPath, value)
     else
       @setRawValue(keyPath, value)
 
@@ -796,7 +796,7 @@ class Config
       disposable.dispose()
       @emitter.emit 'did-change'
 
-  addRawScopedValue: (selector, keyPath, value) ->
+  setRawScopedValue: (selector, keyPath, value) ->
     if keyPath?
       newValue = {}
       _.setValueForKeyPath(newValue, keyPath, value)
