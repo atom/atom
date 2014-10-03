@@ -3,7 +3,7 @@ temp = require 'temp'
 Workspace = require '../src/workspace'
 {View} = require '../src/space-pen-extensions'
 
-fdescribe "Workspace", ->
+describe "Workspace", ->
   workspace = null
 
   beforeEach ->
