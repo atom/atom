@@ -3038,6 +3038,25 @@ describe "TextEditor", ->
         atom.workspace.open(null, softTabs: false).then (editor) ->
           expect(editor.getSoftTabs()).toBeFalsy()
 
+  describe '.getTabLength(scopeDescriptor)', ->
+    describe 'when scoped settings are used', ->
+      coffeeEditor = null
+      beforeEach ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+        waitsForPromise ->
+          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+      it 'will return correct values based on the scope of the set grammars', ->
+        atom.config.set '.source.coffee', 'editor.tabLength', 6
+        atom.config.set '.source.coffee .class', 'editor.tabLength', 4
+
+        expect(editor.getTabLength()).toBe 2
+        expect(coffeeEditor.getTabLength()).toBe 6
+
+        coffeeEditor.setCursorBufferPosition [0, 10]
+        expect(coffeeEditor.getTabLength(coffeeEditor.scopesAtCursor())).toBe 4
+
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->
       expect(editor.indentLevelForLine("    hello")).toBe(2)

@@ -2173,12 +2173,16 @@ class TextEditor extends Model
 
   # Essential: Get the on-screen length of tab characters.
   #
-  # Returns a {Number}.
-  getTabLength: -> @displayBuffer.getTabLength()
-
-  # Essential: Set the on-screen length of tab characters.
+  # * `scopeDescriptor` (optional) {Array} of {String}s.
   #
-  # * `tabLength` {Number} length of a single tab
+  # Returns a {Number}.
+  getTabLength: (scopeDescriptor) -> @displayBuffer.getTabLength(scopeDescriptor)
+
+  # Essential: Set the on-screen length of tab characters. Setting this to a
+  # {Number} This will override the `editor.tabLength` setting.
+  #
+  # * `tabLength` {Number} length of a single tab. Setting to `null` will
+  #   fallback to using the `editor.tabLength` config setting
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
   # Extended: Determine if the buffer uses hard or soft tabs.

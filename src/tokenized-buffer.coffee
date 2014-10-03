@@ -25,16 +25,14 @@ class TokenizedBuffer extends Model
   constructor: ({@buffer, @tabLength, @invisibles}) ->
     @emitter = new Emitter
 
-    @tabLength ?= atom.config.get('editor.tabLength')
-
     @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
     @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
     @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
+    # TODO: FIXME: make this work for scoped properties
     @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
-
     @subscribe atom.config.onDidChange 'editor.tabLength', ({newValue}) => @setTabLength(newValue)
 
     @reloadGrammar()
@@ -81,6 +79,7 @@ class TokenizedBuffer extends Model
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
+    @grammarScopeDescriptor = [@grammar.scopeName]
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
     @retokenizeLines()
@@ -112,15 +111,9 @@ class TokenizedBuffer extends Model
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
-  # Retrieves the current tab length.
-  #
-  # Returns a {Number}.
-  getTabLength: ->
-    @tabLength
+  getTabLength: (scopeDescriptor) ->
+    @tabLength ? atom.config.get(scopeDescriptor ? @grammarScopeDescriptor, 'editor.tabLength')
 
-  # Specifies the tab length.
-  #
-  # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
 
   setInvisibles: (invisibles) ->
