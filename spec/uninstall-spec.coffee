@@ -7,6 +7,7 @@ describe 'apm uninstall', ->
   beforeEach ->
     silenceOutput()
     spyOnToken()
+    process.env.ATOM_API_URL = 'http://localhost:5432'
 
   describe 'when no package is specified', ->
     it 'logs an error and exits', ->

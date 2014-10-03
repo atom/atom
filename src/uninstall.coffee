@@ -1,10 +1,14 @@
 path = require 'path'
 
-config = require './config'
+async = require 'async'
+CSON = require 'season'
 optimist = require 'optimist'
 
+auth = require './auth'
 Command = require './command'
+config = require './config'
 fs = require './fs'
+request = require './request'
 
 module.exports =
 class Uninstall extends Command
@@ -22,6 +26,26 @@ class Uninstall extends Command
     options.alias('d', 'dev').boolean('dev').describe('dev', 'Uninstall from ~/.atom/dev/packages')
     options.boolean('hard').describe('hard', 'Uninstall from ~/.atom/packages and ~/.atom/dev/packages')
 
+  getPackageVersion: (packageDirectory) ->
+    try
+      CSON.readFileSync(path.join(packageDirectory, 'package.json'))?.version
+    catch error
+      null
+
+  registerUninstall: ({packageName, packageVersion}, callback) ->
+    return callback() unless packageVersion
+
+    auth.getToken (error, token) ->
+      return callback() unless token
+
+      requestOptions =
+        url: "#{config.getAtomPackagesUrl()}/#{packageName}/versions/#{packageVersion}/events/uninstall"
+        json: true
+        headers:
+          authorization: token
+
+      request.post requestOptions, (error, response, body) -> callback()
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -34,11 +58,18 @@ class Uninstall extends Command
     packagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     devPackagesDirectory = path.join(config.getAtomDirectory(), 'dev', 'packages')
 
+    uninstallsToRegister = []
+    uninstallError = null
+
     for packageName in packageNames
       process.stdout.write "Uninstalling #{packageName} "
       try
         unless options.argv.dev
-          fs.removeSync(path.join(packagesDirectory, packageName))
+          packageDirectory = path.join(packagesDirectory, packageName)
+          packageVersion = @getPackageVersion(packageDirectory)
+          fs.removeSync(packageDirectory)
+          if packageVersion
+            uninstallsToRegister.push({packageName, packageVersion})
 
         if options.argv.hard or options.argv.dev
           fs.removeSync(path.join(devPackagesDirectory, packageName))
@@ -46,7 +77,8 @@ class Uninstall extends Command
         @logSuccess()
       catch error
         @logFailure()
-        callback("Failed to delete #{packageName}: #{error.message}")
-        return
+        uninstallError = new Error("Failed to delete #{packageName}: #{error.message}")
+        break
 
-    callback()
+    async.eachSeries uninstallsToRegister, @registerUninstall.bind(this), ->
+      callback(uninstallError)
