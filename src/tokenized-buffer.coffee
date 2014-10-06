@@ -117,6 +117,7 @@ class TokenizedBuffer extends Model
     @tabLength ? atom.config.get(scopeDescriptor ? @grammarScopeDescriptor, 'editor.tabLength')
 
   setTabLength: (@tabLength) ->
+    @retokenizeLines()
 
   setInvisibles: (invisibles) ->
     unless _.isEqual(invisibles, @invisibles)

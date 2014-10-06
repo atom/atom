@@ -3057,7 +3057,15 @@ describe "TextEditor", ->
         coffeeEditor.setCursorBufferPosition [0, 10]
         expect(coffeeEditor.getTabLength(coffeeEditor.scopesAtCursor())).toBe 4
 
-      it 'will retokenize when the tab length is updated', ->
+      it 'will retokenize when the tab length is updated via .setTabLength()', ->
+        expect(editor.getTabLength()).toBe 2
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+
+        editor.setTabLength(6)
+        expect(editor.getTabLength()).toBe 6
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+
+      it 'will retokenize when the editor.tabLength setting is updated', ->
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
 
