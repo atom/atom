@@ -597,7 +597,7 @@ TextEditorComponent = React.createClass
       else if wheelDeltaY < 0
         amount = -1
       atom.config.set("editor.fontSize", currentFontSize + amount)
-      e.preventDefault()
+      event.preventDefault()
     else
       # Only scroll in one direction at a time
       if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
