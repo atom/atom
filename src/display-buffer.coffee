@@ -66,7 +66,7 @@ class DisplayBuffer extends Model
     @softWrapConfigSubscriptions?.dispose()
     @softWrapConfigSubscriptions = new CompositeDisposable
 
-    scopeDescriptor = @getCurrentScopeDescriptor()
+    scopeDescriptor = @getGrammarScopeDescriptor()
 
     @softWrapConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
       @updateWrappedScreenLines()
@@ -329,7 +329,7 @@ class DisplayBuffer extends Model
     return 0 unless lineHeight > 0
 
     scrollHeight = @getLineCount() * lineHeight
-    if @height? and atom.config.get('editor.scrollPastEnd')
+    if @height? and atom.config.get(@getGrammarScopeDescriptor(), 'editor.scrollPastEnd')
       scrollHeight = scrollHeight + @height - (lineHeight * 3)
 
     scrollHeight
@@ -430,7 +430,7 @@ class DisplayBuffer extends Model
       @isSoftWrapped()
 
   isSoftWrapped: ->
-    @softWrapped ? atom.config.get(@getCurrentScopeDescriptor(), 'editor.softWrap') ? false
+    @softWrapped ? atom.config.get(@getGrammarScopeDescriptor(), 'editor.softWrap') ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -452,8 +452,8 @@ class DisplayBuffer extends Model
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get(@getCurrentScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.get(@getCurrentScopeDescriptor(), 'editor.preferredLineLength'))
+    if atom.config.get(@getGrammarScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
+      Math.min(@getEditorWidthInChars(), atom.config.get(@getGrammarScopeDescriptor(), 'editor.preferredLineLength'))
     else
       @getEditorWidthInChars()
 
@@ -1048,7 +1048,7 @@ class DisplayBuffer extends Model
       line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
-  getCurrentScopeDescriptor: ->
+  getGrammarScopeDescriptor: ->
     @tokenizedBuffer.grammarScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
