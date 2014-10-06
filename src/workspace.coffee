@@ -102,7 +102,7 @@ class Workspace extends Model
     @emit 'editor-created', editor
 
   installShellCommands: ->
-    CommandInstaller.installShellCommandsInteractively()
+    require('./command-installer').installShellCommandsInteractively()
 
   subscribeToActiveItem: ->
     @updateWindowTitle()
