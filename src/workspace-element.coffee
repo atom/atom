@@ -107,6 +107,9 @@ class WorkspaceElement extends HTMLElement
       'core:save-as': -> @getModel().saveActivePaneItemAs()
     )
 
+    if process.platform is 'darwin'
+      addCommands 'window:install-shell-commands': -> @getModel().installShellCommands()
+
   getModel: -> @model
 
   setModel: (@model) ->
@@ -134,9 +137,6 @@ class WorkspaceElement extends HTMLElement
 
   handleWindowFocus: (event) ->
     @handleFocus(event) if document.activeElement is document.body
-
-if process.platform is 'darwin'
-  atom.commands.add '.workspace', 'window:install-shell-commands', -> @getModel().installShellCommands()
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace',
   prototype: WorkspaceElement.prototype
