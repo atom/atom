@@ -335,6 +335,7 @@ class Package
     for selector, commands of @getActivationCommands()
       for command in commands
         do (selector, command) =>
+          atom.commands.commandRegistered(command)
           @activationCommandSubscriptions.add(atom.commands.onWillDispatch (event) =>
             return unless event.type is command
             currentTarget = event.target
