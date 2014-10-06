@@ -589,7 +589,7 @@ TextEditorComponent = React.createClass
     {editor} = @props
     {wheelDeltaX, wheelDeltaY} = event
 
-    if event.ctrlKey
+    if event.ctrlKey and process.platform isnt 'darwin'
       # Ctrl+MouseWheel adjusts font size.
       if wheelDeltaY > 0
         atom.workspaceView.increaseFontSize()
