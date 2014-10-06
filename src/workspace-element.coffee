@@ -10,7 +10,6 @@ module.exports =
 class WorkspaceElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
-    atom.commands.setRootNode(this)
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()

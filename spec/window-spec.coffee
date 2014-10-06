@@ -47,14 +47,6 @@ describe "Window", ->
       $(window).trigger 'window:close'
       expect(atom.close).toHaveBeenCalled()
 
-    it "emits the beforeunload event", ->
-      $(window).off 'beforeunload'
-      beforeunload = jasmine.createSpy('beforeunload').andReturn(false)
-      $(window).on 'beforeunload', beforeunload
-
-      $(window).trigger 'window:close'
-      expect(beforeunload).toHaveBeenCalled()
-
   describe "beforeunload event", ->
     [beforeUnloadEvent] = []
 

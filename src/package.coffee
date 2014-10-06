@@ -334,9 +334,17 @@ class Package
     @activationCommandSubscriptions = new CompositeDisposable
     for selector, commands of @getActivationCommands()
       for command in commands
-        @activationCommandSubscriptions.add(
-          atom.commands.add(selector, command, @handleActivationCommand)
-        )
+        do (selector, command) =>
+          @activationCommandSubscriptions.add(atom.commands.onWillDispatch (event) =>
+            return unless event.type is command
+            currentTarget = event.target
+            while currentTarget
+              if currentTarget.webkitMatchesSelector(selector)
+                @activationCommandSubscriptions.dispose()
+                @activateNow()
+                break
+              currentTarget = currentTarget.parentElement
+          )
 
   getActivationCommands: ->
     return @activationCommands if @activationCommands?
@@ -367,14 +375,6 @@ class Package
           @activationCommands[selector].push(eventName)
 
     @activationCommands
-
-  handleActivationCommand: (event) =>
-    event.stopImmediatePropagation()
-    @activationCommandSubscriptions.dispose()
-    reenableInvokedListeners = event.disableInvokedListeners()
-    @activateNow()
-    event.target.dispatchEvent(new CustomEvent(event.type, bubbles: true))
-    reenableInvokedListeners()
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->

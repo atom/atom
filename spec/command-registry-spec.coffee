@@ -14,7 +14,10 @@ describe "CommandRegistry", ->
     parent.appendChild(child)
     document.querySelector('#jasmine-content').appendChild(parent)
 
-    registry = new CommandRegistry(parent)
+    registry = new CommandRegistry
+
+  afterEach ->
+    registry.destroy()
 
   describe "when a command event is dispatched on an element", ->
     it "invokes callbacks with selectors matching the target", ->
@@ -104,6 +107,16 @@ describe "CommandRegistry", ->
       spyOn(dispatchedEvent, 'preventDefault')
       grandchild.dispatchEvent(dispatchedEvent)
       expect(dispatchedEvent.preventDefault).toHaveBeenCalled()
+
+    it "forwards .abortKeyBinding() calls from the synthetic event to the original", ->
+      calls = []
+
+      registry.add '.child', 'command', (event) -> event.abortKeyBinding()
+
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      dispatchedEvent.abortKeyBinding = jasmine.createSpy('abortKeyBinding')
+      grandchild.dispatchEvent(dispatchedEvent)
+      expect(dispatchedEvent.abortKeyBinding).toHaveBeenCalled()
 
     it "allows listeners to be removed via a disposable returned by ::add", ->
       calls = []
