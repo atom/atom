@@ -64,7 +64,6 @@ jQuery.event.add = (elem, types, originalHandler, data, selector) ->
 
   HandlersByOriginalHandler.set(originalHandler, handler)
 
-  console.log "jquery.event.add...", elem, types if global.debug
   JQueryEventAdd.call(this, elem, types, handler, data, selector, AddEventListener if atom?.commands?)
 
 JQueryEventRemove = jQuery.event.remove
