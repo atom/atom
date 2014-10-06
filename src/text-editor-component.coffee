@@ -587,22 +587,31 @@ TextEditorComponent = React.createClass
 
   onMouseWheel: (event) ->
     {editor} = @props
-
-    # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
-    if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
-      # Scrolling horizontally
-      previousScrollLeft = editor.getScrollLeft()
-      editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
-      event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
+
+    if event.ctrlKey and (process.platform isnt 'darwin')
+      # Ctrl+MouseWheel adjusts font size.
+      currentFontSize = atom.config.get("editor.fontSize")
+      if wheelDeltaY > 0
+        amount = 1
+      else if wheelDeltaY < 0
+        amount = -1
+      atom.config.set("editor.fontSize", currentFontSize + amount)
+      event.preventDefault()
     else
-      # Scrolling vertically
-      @mouseWheelScreenRow = @screenRowForNode(event.target)
-      @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
-      @clearMouseWheelScreenRowAfterDelay()
-      previousScrollTop = editor.getScrollTop()
-      editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
-      event.preventDefault() unless previousScrollTop is editor.getScrollTop()
+      if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
+        # Scrolling horizontally
+        previousScrollLeft = editor.getScrollLeft()
+        editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
+        event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
+      else
+        # Scrolling vertically
+        @mouseWheelScreenRow = @screenRowForNode(event.target)
+        @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
+        @clearMouseWheelScreenRowAfterDelay()
+        previousScrollTop = editor.getScrollTop()
+        editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
+        event.preventDefault() unless previousScrollTop is editor.getScrollTop()
 
   onScrollViewScroll: ->
     if @isMounted()
