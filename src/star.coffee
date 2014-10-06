@@ -29,7 +29,7 @@ class Star extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.boolean('installed').describe('installed', 'Star all packages in ~/.atom/packages')
 
-  starPackage: (packageName, token, callback) ->
+  starPackage: (packageName, {ignoreUnpublishedPackages, token}={}, callback) ->
     process.stdout.write '\u2B50  ' if process.platform is 'darwin'
     process.stdout.write "Starring #{packageName} "
     requestSettings =
@@ -41,6 +41,9 @@ class Star extends Command
       if error?
         @logFailure()
         callback(error)
+      else if response.statusCode is 404 and ignoreUnpublishedPackages
+        process.stdout.write 'skipped (not published)\n'.yellow
+        callback()
       else if response.statusCode isnt 200
         @logFailure()
         message = body.message ? body.error ? body
@@ -81,6 +84,10 @@ class Star extends Command
     Login.getTokenOrLogin (error, token) =>
       return callback(error) if error?
 
+      starOptions =
+        ignoreUnpublishedPackages: options.argv.installed
+        token: token
+
       commands = packageNames.map (packageName) =>
-        (callback) => @starPackage(packageName, token, callback)
+        (callback) => @starPackage(packageName, starOptions, callback)
       async.waterfall(commands, callback)
