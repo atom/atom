@@ -591,12 +591,13 @@ TextEditorComponent = React.createClass
 
     if event.ctrlKey and process.platform isnt 'darwin'
       # Ctrl+MouseWheel adjusts font size.
+      currentFontSize = atom.config.get("editor.fontSize")
       if wheelDeltaY > 0
-        atom.workspaceView.increaseFontSize()
-        e.preventDefault()
+        amount = 1
       else if wheelDeltaY < 0
-        atom.workspaceView.decreaseFontSize()
-        e.preventDefault()
+        amount = -1
+      atom.config.set("editor.fontSize", currentFontSize + amount)
+      e.preventDefault()
     else
       # Only scroll in one direction at a time
       if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
