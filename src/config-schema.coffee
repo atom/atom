@@ -87,7 +87,7 @@ module.exports =
       tabLength:
         type: 'integer'
         default: 2
-        enum: [1, 2, 4, 6, 8]
+        enum: [1, 2, 3, 4, 6, 8]
       softWrap:
         type: 'boolean'
         default: false
