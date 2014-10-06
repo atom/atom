@@ -196,6 +196,8 @@ class CommandRegistry
     syntheticEvent = Object.create originalEvent,
       eventPhase: value: Event.BUBBLING_PHASE
       currentTarget: get: -> currentTarget
+      preventDefault: value: ->
+        originalEvent.preventDefault()
       stopPropagation: value: ->
         originalEvent.stopPropagation()
         propagationStopped = true
