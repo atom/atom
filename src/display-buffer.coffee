@@ -3,7 +3,7 @@ EmitterMixin = require('emissary').Emitter
 guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
@@ -45,7 +45,6 @@ class DisplayBuffer extends Model
 
     @emitter = new Emitter
 
-    @softWrapped ?= atom.config.get('editor.softWrap') ? false
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
@@ -56,16 +55,27 @@ class DisplayBuffer extends Model
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
+    @subscribe @tokenizedBuffer.onDidChangeGrammar @subscribeForSoftWrapConfigChanges
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
-    @subscribe atom.config.onDidChange 'editor.preferredLineLength', =>
-      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength')
+    @subscribeForSoftWrapConfigChanges()
+    @updateAllScreenLines()
 
-    @subscribe atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', =>
+  subscribeForSoftWrapConfigChanges: =>
+    @softWrapConfigSubscriptions?.dispose()
+    @softWrapConfigSubscriptions = new CompositeDisposable
+
+    scopeDescriptor = @getCurrentScopeDescriptor()
+
+    @softWrapConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
+      @updateWrappedScreenLines()
+
+    @softWrapConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', =>
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    @updateAllScreenLines()
+    @softWrapConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', =>
+      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
 
   serializeParams: ->
     id: @id
@@ -412,11 +422,15 @@ class DisplayBuffer extends Model
     if softWrapped isnt @softWrapped
       @softWrapped = softWrapped
       @updateWrappedScreenLines()
-      @emit 'soft-wrap-changed', @softWrapped
-      @emitter.emit 'did-change-soft-wrapped', @softWrapped
-    @softWrapped
+      softWrapped = @isSoftWrapped()
+      @emit 'soft-wrap-changed', softWrapped
+      @emitter.emit 'did-change-soft-wrapped', softWrapped
+      softWrapped
+    else
+      @isSoftWrapped()
 
-  isSoftWrapped: -> @softWrapped
+  isSoftWrapped: ->
+    @softWrapped ? atom.config.get(@getCurrentScopeDescriptor(), 'editor.softWrap') ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -438,8 +452,8 @@ class DisplayBuffer extends Model
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.get('editor.preferredLineLength'))
+    if atom.config.get(@getCurrentScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
+      Math.min(@getEditorWidthInChars(), atom.config.get(@getCurrentScopeDescriptor(), 'editor.preferredLineLength'))
     else
       @getEditorWidthInChars()
 
@@ -1033,6 +1047,9 @@ class DisplayBuffer extends Model
     for row in [start..end]
       line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
+
+  getCurrentScopeDescriptor: ->
+    @tokenizedBuffer.grammarScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
