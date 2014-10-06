@@ -5,7 +5,7 @@ Delegator = require 'delegato'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
@@ -84,13 +84,12 @@ class TextEditor extends Model
     @cursors = []
     @selections = []
 
-    if @shouldShowInvisibles()
-      invisibles = atom.config.get('editor.invisibles')
-
     @displayBuffer?.setInvisibles(invisibles)
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, invisibles})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+
+    @updateInvisibles()
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
@@ -98,6 +97,7 @@ class TextEditor extends Model
 
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
+    @subscribeToInvisiblesConfigChanges()
 
     if @getCursors().length is 0 and not suppressCursorCreation
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
@@ -112,9 +112,6 @@ class TextEditor extends Model
     @subscribe @$scrollLeft, (scrollLeft) =>
       @emit 'scroll-left-changed', scrollLeft
       @emitter.emit 'did-change-scroll-left', scrollLeft
-
-    @subscribe atom.config.onDidChange 'editor.showInvisibles', => @updateInvisibles()
-    @subscribe atom.config.onDidChange 'editor.invisibles', => @updateInvisibles()
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -161,6 +158,18 @@ class TextEditor extends Model
     @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
     @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
+
+  subscribeToInvisiblesConfigChanges: ->
+    @invisiblesConfigSubscriptions?.dispose()
+    @invisiblesConfigSubscriptions = new CompositeDisposable
+
+    scopeDescriptor = @getGrammarScopeDescriptor()
+
+    @invisiblesConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.showInvisibles', => @updateInvisibles()
+    @invisiblesConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.invisibles', => @updateInvisibles()
+
+  getViewClass: ->
+    require './text-editor-view'
 
   destroyed: ->
     @unsubscribe()
@@ -2354,7 +2363,11 @@ class TextEditor extends Model
   # position. See {::scopesForBufferPosition} for more information.
   #
   # Returns an {Array} of {String}s.
-  scopesAtCursor: -> @getLastCursor().getScopes()
+  scopesAtCursor: ->
+    if cursor = @getLastCursor()
+      cursor.getScopes()
+    else
+      @getGrammarScopeDescriptor()
   getCursorScopes: ->
     deprecate 'Use TextEditor::scopesAtCursor() instead'
     @scopesAtCursor()
@@ -2380,6 +2393,9 @@ class TextEditor extends Model
   # Returns a {Range}.
   bufferRangeForScopeAtCursor: (selector) ->
     @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
+
+  getGrammarScopeDescriptor: ->
+    @displayBuffer.getGrammarScopeDescriptor()
 
   logCursorScope: ->
     console.log @scopesAtCursor()
@@ -2653,11 +2669,11 @@ class TextEditor extends Model
     atom.config.get("editor.autoIndent")
 
   shouldShowInvisibles: ->
-    not @mini and atom.config.get('editor.showInvisibles')
+    not @mini and atom.config.get(@getGrammarScopeDescriptor(), 'editor.showInvisibles')
 
   updateInvisibles: ->
     if @shouldShowInvisibles()
-      @displayBuffer.setInvisibles(atom.config.get('editor.invisibles'))
+      @displayBuffer.setInvisibles(atom.config.get(@getGrammarScopeDescriptor(), 'editor.invisibles'))
     else
       @displayBuffer.setInvisibles(null)
 
@@ -2669,6 +2685,8 @@ class TextEditor extends Model
     @softTabs = @usesSoftTabs() ? @softTabs
 
   handleGrammarChange: ->
+    @updateInvisibles()
+    @subscribeToInvisiblesConfigChanges()
     @unfoldAll()
     @emit 'grammar-changed'
     @emitter.emit 'did-change-grammar'

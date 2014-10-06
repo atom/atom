@@ -2268,6 +2268,108 @@ describe "TextEditorComponent", ->
 
       expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 
+  describe 'scoped config settings', ->
+    [coffeeEditor, coffeeComponent] = []
+
+    beforeEach ->
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+      waitsForPromise ->
+        atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+    afterEach: ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
+    describe 'soft wrap settings', ->
+      beforeEach ->
+        atom.config.set '.source.coffee', 'editor.softWrap', true
+        atom.config.set '.source.coffee', 'editor.preferredLineLength', 17
+        atom.config.set '.source.coffee', 'editor.softWrapAtPreferredLineLength', true
+
+        editor.setEditorWidthInChars(20)
+        coffeeEditor.setEditorWidthInChars(20)
+
+      it 'isSoftWrapped() returns true for coffeescript', ->
+        expect(editor.isSoftWrapped()).toBe false
+        expect(coffeeEditor.isSoftWrapped()).toBe true
+
+      it 'correctly wraps coffeescript file', ->
+        expect(editor.lineTextForScreenRow(2)).toEqual '    if (items.length <= 1) return items;'
+        expect(coffeeEditor.lineTextForScreenRow(3)).toEqual '    return items '
+
+      it 'updates the wrapped lines when editor.preferredLineLength changes', ->
+        atom.config.set '.source.coffee', 'editor.preferredLineLength', 20
+        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual '    return items if '
+
+      it 'updates the wrapped lines when editor.softWrapAtPreferredLineLength changes', ->
+        atom.config.set '.source.coffee', 'editor.softWrapAtPreferredLineLength', false
+        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual '    return items if '
+
+      it 'updates the wrapped lines when editor.softWrap changes', ->
+        atom.config.set '.source.coffee', 'editor.softWrap', false
+        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual '    return items if items.length <= 1'
+
+        atom.config.set '.source.coffee', 'editor.softWrap', true
+        expect(coffeeEditor.lineTextForScreenRow(3)).toEqual '    return items '
+
+      it 'updates the wrapped lines when the grammar changes', ->
+        editor.setGrammar(coffeeEditor.getGrammar())
+        expect(editor.isSoftWrapped()).toBe true
+        expect(editor.lineTextForScreenRow(0)).toEqual 'var quicksort = '
+
+    describe 'invisibles settings', ->
+      [jsInvisibles, coffeeInvisibles] = []
+      beforeEach ->
+        jsInvisibles =
+          eol: 'J'
+          space: 'A'
+          tab: 'V'
+          cr: 'A'
+
+        coffeeInvisibles =
+          eol: 'C'
+          space: 'O'
+          tab: 'F'
+          cr: 'E'
+
+        atom.config.set '.source.js', 'editor.showInvisibles', true
+        atom.config.set '.source.js', 'editor.invisibles', jsInvisibles
+
+        atom.config.set '.source.coffee', 'editor.showInvisibles', false
+        atom.config.set '.source.coffee', 'editor.invisibles', coffeeInvisibles
+
+        editor.setText " a line with tabs\tand spaces \n"
+        nextAnimationFrame()
+
+      it "renders the invisibles for the javascript scoped invisibles", ->
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
+
+      it "does not renders the invisibles for the coffeescript scope because editor.showInvisibles is false", ->
+        editor.setGrammar(coffeeEditor.getGrammar())
+        nextAnimationFrame()
+        expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
+
+      it "re-renders the invisibles for the when the invisible settings change", ->
+        jsGrammar = editor.getGrammar()
+        editor.setGrammar(coffeeEditor.getGrammar())
+        atom.config.set '.source.coffee', 'editor.showInvisibles', true
+        nextAnimationFrame()
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{coffeeInvisibles.space}a line with tabs#{coffeeInvisibles.tab}and spaces#{coffeeInvisibles.space}#{coffeeInvisibles.eol}"
+
+        newInvisibles =
+          eol: 'N'
+          space: 'E'
+          tab: 'W'
+          cr: 'I'
+        atom.config.set '.source.coffee', 'editor.invisibles', newInvisibles
+        nextAnimationFrame()
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{newInvisibles.space}a line with tabs#{newInvisibles.tab}and spaces#{newInvisibles.space}#{newInvisibles.eol}"
+
+        editor.setGrammar(jsGrammar)
+        nextAnimationFrame()
+        expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     properties.detail ?= 1
