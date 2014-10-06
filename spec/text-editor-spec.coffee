@@ -3047,6 +3047,10 @@ describe "TextEditor", ->
         waitsForPromise ->
           atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
+      afterEach: ->
+        atom.packages.deactivatePackages()
+        atom.packages.unloadPackages()
+
       it 'will return correct values based on the scope of the set grammars', ->
         atom.config.set '.source.coffee', 'editor.tabLength', 6
         atom.config.set '.source.coffee .class', 'editor.tabLength', 4
@@ -3297,19 +3301,24 @@ describe "TextEditor", ->
       expect(editor.lineTextForBufferRow(5)).toBe "    i=1"
 
   describe "soft and hard tabs", ->
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
     it "resets the tab style when tokenization is complete", ->
       editor.destroy()
-      atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
-      expect(editor.softTabs).toBe true
+
+      waitsForPromise ->
+        atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+
+      runs ->
+        expect(editor.softTabs).toBe true
 
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
 
       runs ->
         expect(editor.softTabs).toBe false
-
-        atom.packages.deactivatePackage('language-coffee-script')
-        atom.packages.unloadPackage('language-coffee-script')
 
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
