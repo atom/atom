@@ -1,10 +1,9 @@
 Module = require 'module'
 path = require 'path'
 fs = require 'fs-plus'
+semver = require 'semver'
 
 nativeModules = process.binding('natives')
-
-originalResolveFilename = Module._resolveFilename
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   nodeModulesPath = path.join(modulePath, 'node_modules')
@@ -58,8 +57,6 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
     loadFolderCompatibility(childPath, rootPath, rootMetadata, moduleCache)
 
-# Precompute versions of all modules in node_modules
-# Precompute the version each file is compatible
 exports.generateDependencies = (modulePath) ->
   metadataPath = path.join(modulePath, 'package.json')
   metadata = JSON.parse(fs.readFileSync(metadataPath))
@@ -68,6 +65,7 @@ exports.generateDependencies = (modulePath) ->
     version: 1
     dependencies: []
     folders: []
+
   loadDependencies(modulePath, modulePath, metadata, moduleCache)
   loadFolderCompatibility(modulePath, modulePath, metadata, moduleCache)
 
@@ -83,7 +81,17 @@ getCachedModulePath = (relativePath, parentModule) ->
   return if relativePath[relativePath.length - 1] is '/'
   return if fs.isAbsolute(relativePath)
 
-  console.log "looking up #{relativePath} from #{parentModule.id}"
+  folderPath = path.dirname(parentModule.id)
+
+  dependency = folders[folderPath]?[relativePath]
+  return unless dependency?
+
+  candidates = dependencies[relativePath]
+  return unless candidates?
+
+  for version, resolvedPath of candidates
+    if Module._cache[resolvedPath] and semver.satisfies(version, dependency)
+      return resolvedPath
 
   undefined
 
@@ -91,6 +99,7 @@ registered = false
 exports.register = ->
   return if registered
 
+  originalResolveFilename = Module._resolveFilename
   Module._resolveFilename = (relativePath, parentModule) ->
     resolvedPath = getCachedModulePath(relativePath, parentModule)
     resolvedPath ? originalResolveFilename(relativePath, parentModule)
