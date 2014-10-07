@@ -35,6 +35,7 @@
     "git-utils": "^2.1.5",
     "grim": "0.12.0",
     "guid": "0.0.10",
+    "jasmine-json": "~0.0",
     "jasmine-tagged": "^1.1.2",
     "less-cache": "0.15.0",
     "mixto": "^1",
