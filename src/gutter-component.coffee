@@ -40,6 +40,7 @@ GutterComponent = React.createClass
     @lineNumberIdsByScreenRow = {}
     @screenRowsByLineNumberId = {}
     @renderedDecorationsByLineNumberId = {}
+    @observeConfig()
 
   componentDidMount: ->
     @appendDummyLineNumber()
@@ -234,3 +235,9 @@ GutterComponent = React.createClass
         editor.unfoldBufferRow(bufferRow)
       else
         editor.foldBufferRow(bufferRow)
+
+  observeConfig: ->
+    @subscribe atom.config.observe 'editor.enableFolding', @setEnableFolding
+
+  setEnableFolding: (enableFolding=true) ->
+    @updateLineNumbers() if @props.performedInitialMeasurement
