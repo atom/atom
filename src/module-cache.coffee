@@ -45,10 +45,8 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
     try
       new semver.Range(version)
     catch error
-      invalidVersion = version
-      version = JSON.parse(fs.readFileSync(path.join(nodeModulesPath, name, 'package.json')))?.version
-      dependencies[name] = version
-      console.log "Normalized #{name}: #{invalidVersion} -> #{version}"
+      delete dependencies[name]
+      console.log "Ignoring invalid range: #{name} #{version}"
 
   onDirectory = (childPath) ->
     path.basename(childPath) isnt 'node_modules'
