@@ -2448,7 +2448,7 @@ class TextEditor extends Model
 
       return
 
-    else if atom.config.get("editor.normalizeIndentOnPaste") and metadata?.indentBasis?
+    else if atom.config.get(@scopesAtCursor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
       if !@getLastCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 

@@ -3126,14 +3126,15 @@ describe "TextEditor", ->
         expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
-    copyText = (text, {startColumn}={}) ->
+    copyText = (text, {startColumn, textEditor}={}) ->
       startColumn ?= 0
-      editor.setCursorBufferPosition([0, 0])
-      editor.insertText(text)
+      textEditor ?= editor
+      textEditor.setCursorBufferPosition([0, 0])
+      textEditor.insertText(text)
       numberOfNewlines = text.match(/\n/g)?.length
       endColumn = text.match(/[^\n]*$/)[0]?.length
-      editor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
-      editor.cutSelectedText()
+      textEditor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
+      textEditor.cutSelectedText()
 
     describe "editor.autoIndent", ->
       describe "when editor.autoIndent is false (default)", ->
@@ -3288,6 +3289,37 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    foo();"
             expect(editor.lineTextForBufferRow(3)).toBe "  }"
             expect(editor.lineTextForBufferRow(4)).toBe ""
+
+      describe 'when scoped settings are used', ->
+        coffeeEditor = null
+        beforeEach ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-coffee-script')
+          waitsForPromise ->
+            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+          runs ->
+            atom.config.set('.source.js', 'editor.normalizeIndentOnPaste', true)
+            atom.config.set('.source.coffee', 'editor.normalizeIndentOnPaste', false)
+
+        afterEach: ->
+          atom.packages.deactivatePackages()
+          atom.packages.unloadPackages()
+
+        it "does not normalize the indentation level for coffee files, but does for js files", ->
+          copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2, textEditor: coffeeEditor})
+          coffeeEditor.setCursorBufferPosition([4, 4])
+          coffeeEditor.pasteText()
+          expect(coffeeEditor.lineTextForBufferRow(4)).toBe "      while (true) {"
+          expect(coffeeEditor.lineTextForBufferRow(5)).toBe "      foo();"
+          expect(coffeeEditor.lineTextForBufferRow(6)).toBe "    }"
+
+          copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2})
+          editor.setCursorBufferPosition([3, 4])
+          editor.pasteText()
+          expect(editor.lineTextForBufferRow(3)).toBe "    while (true) {"
+          expect(editor.lineTextForBufferRow(4)).toBe "      foo();"
+          expect(editor.lineTextForBufferRow(5)).toBe "    }"
 
     it "autoIndentSelectedRows auto-indents the selection", ->
       editor.setCursorBufferPosition([2, 0])
