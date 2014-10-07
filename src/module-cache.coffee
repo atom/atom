@@ -7,28 +7,21 @@ nativeModules = process.binding('natives')
 originalResolveFilename = Module._resolveFilename
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
-  return unless fs.isDirectorySync(modulePath)
-
   nodeModulesPath = path.join(modulePath, 'node_modules')
-  return unless fs.isDirectorySync(nodeModulesPath)
+  for childPath in fs.listSync(nodeModulesPath)
+    continue if path.basename(childPath) is '.bin'
+    continue if rootPath is modulePath and rootMetadata.packageDependencies?.hasOwnProperty(path.basename(childPath))
 
-  for child in fs.readdirSync(nodeModulesPath)
-    continue if child is '.bin'
-    continue if rootPath is modulePath and rootMetadata.packageDependencies?.hasOwnProperty(child)
+    childMetadataPath = path.join(childPath, 'package.json')
+    continue unless fs.isFileSync(childMetadataPath)
 
-    childPath = path.join(nodeModulesPath, child)
-    childMetadatapath = path.join(nodeModulesPath, child, 'package.json')
-    continue unless fs.isFileSync(childMetadatapath)
-
-    childMetadata = JSON.parse(fs.readFileSync(childMetadatapath))
+    childMetadata = JSON.parse(fs.readFileSync(childMetadataPath))
     if childMetadata?.version
       relativePath = path.relative(rootPath, childPath)
       moduleCache.dependencies[relativePath] = childMetadata.version
       loadDependencies(childPath, rootPath, rootMetadata, moduleCache)
 
 loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
-  return unless fs.isDirectorySync(modulePath)
-
   metadataPath = path.join(modulePath, 'package.json')
   return unless fs.isFileSync(metadataPath)
 
@@ -51,12 +44,11 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
   if paths.length > 0 and Object.keys(dependencies).length > 0
     moduleCache.folders.push({paths, dependencies})
 
-  if fs.isDirectorySync(nodeModulesPath)
-    for child in fs.readdirSync(nodeModulesPath)
-      continue if child is '.bin'
-      continue if rootPath is modulePath and rootMetadata.packageDependencies?.hasOwnProperty(child)
+  for childPath in fs.listSync(nodeModulesPath)
+    continue if path.basename(childPath) is '.bin'
+    continue if rootPath is modulePath and rootMetadata.packageDependencies?.hasOwnProperty(path.basename(childPath))
 
-      loadFolderCompatibility(path.join(nodeModulesPath, child), rootPath, rootMetadata, moduleCache)
+    loadFolderCompatibility(childPath, rootPath, rootMetadata, moduleCache)
 
 # Precompute versions of all modules in node_modules
 # Precompute the version each file is compatible
