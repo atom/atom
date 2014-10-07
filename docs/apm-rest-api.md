@@ -61,6 +61,18 @@ Link: <https://www.atom.io/api/packages?page=1>; rel="self",
 
 By default, results are sorted by download count, descending.
 
+#### GET /api/packages/search
+
+Parameters:
+
+- **q** String query to search
+- **sort** (optional, values: `created_at`, `updated_at`, `downloads`)
+- **direction** (optional, values: `asc`, `desc`)
+
+Returns a list of all packages in the same format as `/api/packages`.
+
+By default, results sorted by relevance to search query.
+
 ### Showing package details
 
 #### GET /api/packages/:package_name
