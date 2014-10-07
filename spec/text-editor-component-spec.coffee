@@ -2283,11 +2283,7 @@ describe "TextEditorComponent", ->
         editor.setEditorWidthInChars(20)
         coffeeEditor.setEditorWidthInChars(20)
 
-      it 'isSoftWrapped() returns true for coffeescript', ->
-        expect(editor.isSoftWrapped()).toBe false
-        expect(coffeeEditor.isSoftWrapped()).toBe true
-
-      it 'correctly wraps coffeescript file', ->
+      it 'wraps only the editor with scoped `editor.softWrap` set to true', ->
         expect(editor.lineTextForScreenRow(2)).toEqual '    if (items.length <= 1) return items;'
         expect(coffeeEditor.lineTextForScreenRow(3)).toEqual '    return items '
 
@@ -2310,6 +2306,11 @@ describe "TextEditorComponent", ->
         editor.setGrammar(coffeeEditor.getGrammar())
         expect(editor.isSoftWrapped()).toBe true
         expect(editor.lineTextForScreenRow(0)).toEqual 'var quicksort = '
+
+      describe '::isSoftWrapped()', ->
+        it 'returns the correct value based on the scoped settings', ->
+          expect(editor.isSoftWrapped()).toBe false
+          expect(coffeeEditor.isSoftWrapped()).toBe true
 
     describe 'invisibles settings', ->
       [jsInvisibles, coffeeInvisibles] = []
@@ -2335,10 +2336,10 @@ describe "TextEditorComponent", ->
         editor.setText " a line with tabs\tand spaces \n"
         nextAnimationFrame()
 
-      it "renders the invisibles for the javascript scoped invisibles", ->
+      it "renders the invisibles for the editor when scoped editor.showInvisibles is true", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
 
-      it "does not renders the invisibles for the coffeescript scope because editor.showInvisibles is false", ->
+      it "does not renders the invisibles for when scoped editor.showInvisibles is false", ->
         editor.setGrammar(coffeeEditor.getGrammar())
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
@@ -2368,7 +2369,7 @@ describe "TextEditorComponent", ->
         atom.config.set '.source.js', 'editor.showIndentGuide', true
         atom.config.set '.source.coffee', 'editor.showIndentGuide', false
 
-      it "has an 'indent-guide' class when using the javascript grammar, but not when using the coffeescript grammar", ->
+      it "has an 'indent-guide' class when scoped editor.showIndentGuide is true, but not when scoped editor.showIndentGuide is false", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
@@ -2381,7 +2382,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
-      it "removes the 'indent-guide' class unsetting the value for javascript", ->
+      it "removes the 'indent-guide' class when setting scoped editor.showIndentGuide to false", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
