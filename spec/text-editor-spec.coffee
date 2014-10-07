@@ -3241,6 +3241,31 @@ describe "TextEditor", ->
             editor.insertText('foo')
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
+      describe 'when scoped settings are used', ->
+        coffeeEditor = null
+        beforeEach ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-coffee-script')
+          waitsForPromise ->
+            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+          runs ->
+            atom.config.set('.source.js', 'editor.autoIndent', true)
+            atom.config.set('.source.coffee', 'editor.autoIndent', false)
+
+        afterEach: ->
+          atom.packages.deactivatePackages()
+          atom.packages.unloadPackages()
+
+        it "does not auto-indent the line for javascript files", ->
+          editor.setCursorBufferPosition([1, 30])
+          editor.insertText("\n")
+          expect(editor.lineTextForBufferRow(2)).toBe "    "
+
+          coffeeEditor.setCursorBufferPosition([1, 18])
+          coffeeEditor.insertText("\n")
+          expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
+
     describe "editor.normalizeIndentOnPaste", ->
       beforeEach ->
         atom.config.set('editor.normalizeIndentOnPaste', true)
