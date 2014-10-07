@@ -1,5 +1,5 @@
 {CompositeDisposable} = require 'event-kit'
-{$} = require './space-pen-extensions'
+{$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
 PaneView = require './pane-view'
 
 class PaneElement extends HTMLElement
@@ -8,6 +8,8 @@ class PaneElement extends HTMLElement
   createdCallback: ->
     @attached = false
     @subscriptions = new CompositeDisposable
+    @inlineDisplayStyles = new WeakMap
+
     @initializeContent()
     @subscribeToDOMEvents()
     @createSpacePenShim()
@@ -81,12 +83,32 @@ class PaneElement extends HTMLElement
   activeItemChanged: (item) ->
     return unless item?
 
-    $itemViews = $(@itemViews)
-    view = @model.getView(item).__spacePenView
-    otherView.hide() for otherView in $itemViews.children().not(view).views()
-    $itemViews.append(view) unless view.parent().is($itemViews)
-    view.show() if @attached
-    view.focus() if @hasFocus()
+    hasFocus = @hasFocus()
+    itemView = @model.getView(item)
+
+    for child in @itemViews.children
+      if child is itemView
+        @showItemView(child) if @attached
+      else
+        @hideItemView(child)
+
+    unless @itemViews.contains(itemView)
+      @itemViews.appendChild(itemView)
+      callAttachHooks(itemView)
+
+    itemView.focus() if hasFocus
+
+  showItemView: (itemView) ->
+    inlineDisplayStyle = @inlineDisplayStyles.get(itemView)
+    if inlineDisplayStyle?
+      itemView.style.display = inlineDisplayStyle
+    else
+      itemView.style.display = ''
+
+  hideItemView: (itemView) ->
+    inlineDisplayStyle = itemView.style.display
+    @inlineDisplayStyles.set(itemView, inlineDisplayStyle) if inlineDisplayStyle?
+    itemView.style.display = 'none'
 
   itemRemoved: ({item, index, destroyed}) ->
     if item instanceof $
