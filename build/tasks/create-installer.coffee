@@ -40,10 +40,6 @@ module.exports = (grunt) ->
 
         pkgs = pkg for pkg in fs.readdirSync(buildDir) when path.extname(pkg) is '.nupkg'
 
-        # NB: Gonna clear Releases for now, in the future we need to pull down
-        # the existing version
-        rm(releasesDir)
-
         cmd = 'build/windows/update.com'
         args = ['--releasify', path.join(buildDir, pkgs), '-r', releasesDir, '-g', 'build/windows/install-spinner.gif']
         spawn {cmd, args}, (error, result, code) -> done(error)
