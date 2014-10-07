@@ -103,12 +103,12 @@ debug = false
 if debug
   global.loadCount = 0
   global.requireTime = 0
+  global.moduleCache = cache
 
   originalLoad = Module::load
   Module::load = ->
     global.loadCount++
     originalLoad.apply(this, arguments)
-
 
   originalRequire = Module::require
   Module::require = ->
