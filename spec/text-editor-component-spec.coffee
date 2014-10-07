@@ -446,12 +446,6 @@ describe "TextEditorComponent", ->
         foldedLineNode = component.lineNodeForScreenRow(4)
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
-    getLeafNodes = (node) ->
-      if node.children.length > 0
-        flatten(toArray(node.children).map(getLeafNodes))
-      else
-        [node]
-
   describe "gutter rendering", ->
     [gutter] = []
 
@@ -2370,6 +2364,38 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
 
+    describe 'editor.showIndentGuide', ->
+      beforeEach ->
+        atom.config.set '.source.js', 'editor.showIndentGuide', true
+        atom.config.set '.source.coffee', 'editor.showIndentGuide', false
+
+      it "has an 'indent-guide' class when using the javascript grammar, but not when using the coffeescript grammar", ->
+        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
+        expect(line1LeafNodes[0].textContent).toBe '  '
+        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
+
+        editor.setGrammar(coffeeEditor.getGrammar())
+
+        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
+        expect(line1LeafNodes[0].textContent).toBe '  '
+        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
+        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
+
+      it "removes the 'indent-guide' class unsetting the value for javascript", ->
+        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
+        expect(line1LeafNodes[0].textContent).toBe '  '
+        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
+
+        atom.config.set '.source.js', 'editor.showIndentGuide', false
+
+        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
+        expect(line1LeafNodes[0].textContent).toBe '  '
+        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
+        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
+
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     properties.detail ?= 1
@@ -2406,3 +2432,9 @@ describe "TextEditorComponent", ->
 
   lineHasClass = (screenRow, klass) ->
     component.lineNodeForScreenRow(screenRow).classList.contains(klass)
+
+  getLeafNodes = (node) ->
+    if node.children.length > 0
+      flatten(toArray(node.children).map(getLeafNodes))
+    else
+      [node]
