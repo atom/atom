@@ -413,8 +413,8 @@ TextEditorComponent = React.createClass
   onGrammarChanged: ->
     {editor} = @props
 
-    @scopedPropertySubscriptions?.dispose()
-    @scopedPropertySubscriptions = subscriptions = new CompositeDisposable
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = editor.getGrammarScopeDescriptor()
 

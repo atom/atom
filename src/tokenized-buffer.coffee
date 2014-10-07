@@ -42,6 +42,10 @@ class TokenizedBuffer extends Model
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
     params
 
+  observeGrammar: (callback) ->
+    callback(@grammar)
+    @onDidChangeGrammar(callback)
+
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 

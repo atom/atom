@@ -54,27 +54,26 @@ class DisplayBuffer extends Model
     @decorationsByMarkerId = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
+    @subscribe @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
-    @subscribe @tokenizedBuffer.onDidChangeGrammar @subscribeForSoftWrapConfigChanges
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
-    @subscribeForSoftWrapConfigChanges()
     @updateAllScreenLines()
 
-  subscribeForSoftWrapConfigChanges: =>
-    @softWrapConfigSubscriptions?.dispose()
-    @softWrapConfigSubscriptions = new CompositeDisposable
+  subscribeToScopedConfigSettings: =>
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = @getGrammarScopeDescriptor()
 
-    @softWrapConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
       @updateWrappedScreenLines()
 
-    @softWrapConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', =>
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', =>
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    @softWrapConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', =>
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', =>
       @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
 
   serializeParams: ->

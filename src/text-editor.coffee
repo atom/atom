@@ -96,7 +96,6 @@ class TextEditor extends Model
 
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
-    @subscribeToInvisiblesConfigChanges()
 
     if @getCursors().length is 0 and not suppressCursorCreation
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
@@ -158,14 +157,16 @@ class TextEditor extends Model
     @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
-  subscribeToInvisiblesConfigChanges: ->
-    @invisiblesConfigSubscriptions?.dispose()
-    @invisiblesConfigSubscriptions = new CompositeDisposable
+    @subscribeToScopedConfigSettings()
+
+  subscribeToScopedConfigSettings: ->
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = @getGrammarScopeDescriptor()
 
-    @invisiblesConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.showInvisibles', => @updateInvisibles()
-    @invisiblesConfigSubscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.invisibles', => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.showInvisibles', => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.invisibles', => @updateInvisibles()
 
   getViewClass: ->
     require './text-editor-view'
@@ -2689,7 +2690,7 @@ class TextEditor extends Model
 
   handleGrammarChange: ->
     @updateInvisibles()
-    @subscribeToInvisiblesConfigChanges()
+    @subscribeToScopedConfigSettings()
     @unfoldAll()
     @emit 'grammar-changed'
     @emitter.emit 'did-change-grammar'
