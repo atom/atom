@@ -131,5 +131,5 @@ module.exports =
       enableFolding:
         type: 'boolean'
         default: true
-        description: 'Enable Code Folding'
+        title: 'Enable Folding'
         
