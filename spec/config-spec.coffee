@@ -200,7 +200,7 @@ describe "Config", ->
 
         expect(CSON.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.json"))
         writtenConfig = CSON.writeFileSync.argsForCall[0][1]
-        expect(writtenConfig).toBe atom.config.settings
+        expect(writtenConfig).toEqual global: atom.config.settings
 
     describe "when ~/.atom/config.json doesn't exist", ->
       it "writes any non-default properties to ~/.atom/config.cson", ->
@@ -214,9 +214,29 @@ describe "Config", ->
         atom.config.save()
 
         expect(CSON.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.cson"))
-        CoffeeScript = require 'coffee-script'
         writtenConfig = CSON.writeFileSync.argsForCall[0][1]
-        expect(writtenConfig).toEqual atom.config.settings
+        expect(writtenConfig).toEqual global: atom.config.settings
+
+    describe "when scoped settings are defined", ->
+      it 'writes out explicitly set config settings', ->
+        atom.config.set('.source.ruby', 'foo.bar', 'ruby')
+        atom.config.set('.source.ruby', 'foo.omg', 'wow')
+        atom.config.set('.source.coffee', 'foo.bar', 'coffee')
+
+        CSON.writeFileSync.reset()
+        atom.config.save()
+
+        writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+        expect(writtenConfig).toEqualJson
+          global:
+            atom.config.settings
+          '*.ruby.source':
+            foo:
+              bar: 'ruby'
+              omg: 'wow'
+          '*.coffee.source':
+            foo:
+              bar: 'coffee'
 
   describe ".setDefaults(keyPath, defaults)", ->
     it "assigns any previously-unassigned keys to the object at the key path", ->
@@ -356,6 +376,23 @@ describe "Config", ->
     afterEach ->
       fs.removeSync(dotAtomPath)
 
+    describe "when the config file contains scoped settings", ->
+      beforeEach ->
+        fs.writeFileSync atom.config.configFilePath, """
+          global:
+            foo:
+              bar: 'baz'
+
+          '.source.ruby':
+            foo:
+              bar: 'more-specific'
+        """
+        atom.config.loadUserConfig()
+
+      it "updates the config data based on the file contents", ->
+        expect(atom.config.get("foo.bar")).toBe 'baz'
+        expect(atom.config.get(['.source.ruby'], "foo.bar")).toBe 'more-specific'
+
     describe "when the config file contains valid cson", ->
       beforeEach ->
         fs.writeFileSync(atom.config.configFilePath, "foo: bar: 'baz'")
@@ -430,7 +467,15 @@ describe "Config", ->
       atom.config.configDirPath = dotAtomPath
       atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
       expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
-      fs.writeFileSync(atom.config.configFilePath, "foo: bar: 'baz'")
+      fs.writeFileSync atom.config.configFilePath, """
+        global:
+          foo:
+            bar: 'baz'
+            scoped: false
+        '.source.ruby':
+          foo:
+            scoped: true
+      """
       atom.config.loadUserConfig()
       atom.config.observeUserConfig()
       updatedHandler = jasmine.createSpy("updatedHandler")
@@ -473,6 +518,38 @@ describe "Config", ->
             expect(noChangeSpy).not.toHaveBeenCalled()
             expect(atom.config.get('foo.bar')).toEqual ['baz', 'ok']
             expect(atom.config.get('foo.omg')).toBe 'another'
+
+      describe 'when scoped settings are used', ->
+        it "fires a change event for scoped settings that are removed", ->
+          atom.config.onDidChange ['.source.ruby'], 'foo.scoped', scopedSpy = jasmine.createSpy()
+
+          fs.writeFileSync atom.config.configFilePath, """
+            global:
+              foo:
+                scoped: false
+          """
+          waitsFor 'update event', -> updatedHandler.callCount > 0
+          runs ->
+            expect(scopedSpy).toHaveBeenCalled()
+            expect(atom.config.get(['.source.ruby'], 'foo.scoped')).toBe false
+
+        it "does not fire a change event for paths that did not change", ->
+          atom.config.onDidChange ['.source.ruby'], 'foo.scoped', noChangeSpy = jasmine.createSpy()
+
+          fs.writeFileSync atom.config.configFilePath, """
+            global:
+              foo:
+                bar: 'baz'
+            '.source.ruby':
+              foo:
+                scoped: true
+          """
+          waitsFor 'update event', -> updatedHandler.callCount > 0
+          runs ->
+            expect(noChangeSpy).not.toHaveBeenCalled()
+            expect(atom.config.get(['.source.ruby'], 'foo.bar')).toBe 'baz'
+            expect(atom.config.get(['.source.ruby'], 'foo.scoped')).toBe true
+
 
     describe "when the config file changes to omit a setting with a default", ->
       it "resets the setting back to the default", ->
@@ -866,9 +943,9 @@ describe "Config", ->
   describe "scoped settings", ->
     describe ".get(scopeDescriptor, keyPath)", ->
       it "returns the property with the most specific scope selector", ->
-        atom.config.addScopedSettings(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
-        atom.config.addScopedSettings(".source", foo: bar: baz: 11)
+        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.addScopedSettings("config", ".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings("config", ".source", foo: bar: baz: 11)
 
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
         expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBe 22
@@ -876,8 +953,8 @@ describe "Config", ->
         expect(atom.config.get([".text"], "foo.bar.baz")).toBeUndefined()
 
       it "favors the most recently added properties in the event of a specificity tie", ->
-        atom.config.addScopedSettings(".source.coffee .string.quoted.single", foo: bar: baz: 42)
-        atom.config.addScopedSettings(".source.coffee .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.single", foo: bar: baz: 42)
+        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double", foo: bar: baz: 22)
 
         expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.bar.baz")).toBe 42
         expect(atom.config.get([".source.coffee", ".string.quoted.single.double"], "foo.bar.baz")).toBe 22
@@ -889,9 +966,9 @@ describe "Config", ->
 
     describe ".set(scope, keyPath, value)", ->
       it "sets the value and overrides the others", ->
-        atom.config.addScopedSettings(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
-        atom.config.addScopedSettings(".source", foo: bar: baz: 11)
+        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.addScopedSettings("config", ".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.addScopedSettings("config", ".source", foo: bar: baz: 11)
 
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
 
@@ -917,11 +994,11 @@ describe "Config", ->
         expect(changeSpy).toHaveBeenCalledWith(12)
         changeSpy.reset()
 
-        disposable1 = atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        disposable1 = atom.config.addScopedSettings("a", ".source .string.quoted.double", foo: bar: baz: 22)
         expect(changeSpy).toHaveBeenCalledWith(22)
         changeSpy.reset()
 
-        disposable2 = atom.config.addScopedSettings("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        disposable2 = atom.config.addScopedSettings("b", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
         expect(changeSpy).toHaveBeenCalledWith(42)
         changeSpy.reset()
 
@@ -946,11 +1023,11 @@ describe "Config", ->
         expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12, keyPath})
         changeSpy.reset()
 
-        disposable1 = atom.config.addScopedSettings(".source .string.quoted.double", foo: bar: baz: 22)
+        disposable1 = atom.config.addScopedSettings("a", ".source .string.quoted.double", foo: bar: baz: 22)
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: 22, keyPath})
         changeSpy.reset()
 
-        disposable2 = atom.config.addScopedSettings("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        disposable2 = atom.config.addScopedSettings("b", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 42, keyPath})
         changeSpy.reset()
 
