@@ -1050,6 +1050,8 @@ TextEditorComponent = React.createClass
       @requestUpdate()
 
   setEnableFolding: (enableFolding=true) ->
+      if not(enableFolding)
+        @props.editor.unfoldAll()
       @requestUpdate()
 
   screenPositionForMouseEvent: (event) ->
