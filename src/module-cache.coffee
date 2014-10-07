@@ -17,11 +17,17 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
     childMetadata = JSON.parse(fs.readFileSync(childMetadataPath))
     if childMetadata?.version
-      relativePath = path.relative(rootPath, childPath)
-      moduleCache.dependencies.push
-        name: childMetadata.name
-        version: childMetadata.version
-        path: relativePath
+      try
+        mainPath = require.resolve(childPath)
+      catch error
+        console.log "Skipping #{childPath}, no main module"
+
+      if mainPath
+        moduleCache.dependencies.push
+          name: childMetadata.name
+          version: childMetadata.version
+          path: path.relative(rootPath, mainPath)
+
       loadDependencies(childPath, rootPath, rootMetadata, moduleCache)
 
 loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
