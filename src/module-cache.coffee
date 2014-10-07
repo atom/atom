@@ -3,6 +3,11 @@ fs = require 'fs-plus'
 
 nativeModules = process.binding('natives')
 
+try
+  resourcePath = JSON.parse(decodeURIComponent(location.search.substr(14)))?.resourcePath
+catch error
+  return
+
 originalResolveFilename = Module._resolveFilename
 
 # Precompute versions of all modules in node_modules
