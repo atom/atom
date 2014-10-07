@@ -1,6 +1,8 @@
 Module = require 'module'
 fs = require 'fs-plus'
 
+nativeModules = process.binding('natives')
+
 originalResolveFilename = Module._resolveFilename
 
 # Precompute versions of all modules in node_modules
@@ -13,6 +15,7 @@ getCachedModulePath = (relative, parent) ->
   return if relative[0] is '.'
   return if relative[relative.length - 1] is '/'
   return if fs.isAbsolute(relative)
+  return if nativeModules.hasOwnProperty(relative)
 
   console.log "looking up #{relative} from #{parent.id}"
 
