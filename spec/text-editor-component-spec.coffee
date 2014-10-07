@@ -2208,7 +2208,6 @@ describe "TextEditorComponent", ->
     it "does not render invisible characters", ->
       atom.config.set('editor.invisibles', eol: 'E')
       atom.config.set('editor.showInvisibles', true)
-      nextAnimationFrame()
       expect(component.lineNodeForScreenRow(0).textContent).toBe 'var quicksort = function () {'
 
     it "does not assign an explicit line-height on the editor contents", ->
