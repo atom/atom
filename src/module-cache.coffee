@@ -123,8 +123,8 @@ exports.register = ->
 
   originalResolveFilename = Module._resolveFilename
   Module._resolveFilename = (relativePath, parentModule) ->
-    # resolvedPath = getCachedModulePath(relativePath, parentModule)
-    originalResolveFilename(relativePath, parentModule)
+    resolvedPath = getCachedModulePath(relativePath, parentModule)
+    resolvedPath ? originalResolveFilename(relativePath, parentModule)
   registered = true
 
 exports.add = (directoryPath) ->
