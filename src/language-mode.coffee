@@ -185,7 +185,7 @@ class LanguageMode
   # foldable row range. Rows that are "foldable" have a fold icon next to their
   # icon in the gutter in the default configuration.
   isFoldableAtBufferRow: (bufferRow) ->
-    enableFolding = editor.config.get('editor.enableFolding')
+    enableFolding = atom.config.get('editor.enableFolding')
     return false if enableFolding? and enableFolding is false
     @isFoldableCodeAtBufferRow(bufferRow) or @isFoldableCommentAtBufferRow(bufferRow)
 
