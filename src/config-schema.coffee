@@ -128,3 +128,7 @@ module.exports =
           cr:
             type: ['boolean', 'string']
             default: '\u00a4'
+      enableFolding:
+          type: 'boolean'
+          default: true
+          title: 'Enable Code Folding'
