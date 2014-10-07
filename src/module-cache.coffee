@@ -77,7 +77,7 @@ getCachedModulePath = (relativePath, parentModule) ->
   return if relativePath[relativePath.length - 1] is '/'
   return if fs.isAbsolute(relativePath)
 
-  console.log "looking up #{relative} from #{parentModule.id}"
+  console.log "looking up #{relativePath} from #{parentModule.id}"
 
   undefined
 
