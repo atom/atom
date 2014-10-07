@@ -85,7 +85,10 @@ class Package
   measure: (key, fn) ->
     startTime = Date.now()
     value = fn()
-    @[key] = Date.now() - startTime
+    endTime = Date.now()
+    @[key + 'Start'] = startTime
+    @[key + 'End'] = endTime
+    @[key] = endTime - startTime
     value
 
   getType: -> 'atom'

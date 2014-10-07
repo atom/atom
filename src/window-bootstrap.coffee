@@ -7,7 +7,10 @@ Atom = require './atom'
 window.atom = Atom.loadOrCreate('editor')
 atom.initialize()
 atom.startEditorWindow()
-window.atom.loadTime = Date.now() - startTime
+endTime = Date.now()
+atom.loadTimeStart = startTime
+atom.loadTimeEnd = endTime
+atom.loadTime = endTime - startTime
 console.log "Window load time: #{atom.getWindowLoadTime()}ms"
 
 # Workaround for focus getting cleared upon window creation
