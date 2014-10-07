@@ -26,5 +26,11 @@ getCachedModulePath = (relativePath, parentModule) ->
 
   undefined
 
-Module._resolveFilename = (relativePath, parentModule) ->
-  getCachedModulePath(relativePath, parentModule) ? originalResolveFilename(relativePath, parentModule)
+registered = false
+exports.register = ->
+  return if registered
+
+  Module._resolveFilename = (relativePath, parentModule) ->
+    resolvedPath = getCachedModulePath(relativePath, parentModule)
+    resolvedPath ? originalResolveFilename(relativePath, parentModule)
+  registered = true
