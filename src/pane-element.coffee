@@ -111,16 +111,9 @@ class PaneElement extends HTMLElement
     itemView.style.display = 'none'
 
   itemRemoved: ({item, index, destroyed}) ->
-    if item instanceof $
-      viewToRemove = item
-    else
-      viewToRemove = @model.getView(item).__spacePenView
-
-    if viewToRemove?
-      if destroyed
-        viewToRemove.remove()
-      else
-        viewToRemove.detach()
+    if viewToRemove = @model.getView(item)
+      callRemoveHooks(viewToRemove)
+      viewToRemove.remove()
 
   paneDestroyed: ->
     @subscriptions.dispose()
