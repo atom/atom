@@ -84,7 +84,6 @@ class TextEditor extends Model
     @cursors = []
     @selections = []
 
-    @displayBuffer?.setInvisibles(invisibles)
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
