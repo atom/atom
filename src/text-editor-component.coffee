@@ -587,9 +587,16 @@ TextEditorComponent = React.createClass
 
   onMouseWheel: (event) ->
     {editor} = @props
-    {wheelDeltaX, wheelDeltaY} = event
 
-    if event.ctrlKey and (process.platform isnt 'darwin')
+    # Only scroll in one direction at a time
+    {wheelDeltaX, wheelDeltaY} = event
+    if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
+      # Scrolling horizontally
+      previousScrollLeft = editor.getScrollLeft()
+      editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
+      event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
+      return
+    else if event.ctrlKey and (process.platform isnt 'darwin')
       # Ctrl+MouseWheel adjusts font size.
       currentFontSize = atom.config.get("editor.fontSize")
       if wheelDeltaY > 0
@@ -598,20 +605,15 @@ TextEditorComponent = React.createClass
         amount = -1
       atom.config.set("editor.fontSize", currentFontSize + amount)
       event.preventDefault()
+      return
     else
-      if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
-        # Scrolling horizontally
-        previousScrollLeft = editor.getScrollLeft()
-        editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
-        event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
-      else
-        # Scrolling vertically
-        @mouseWheelScreenRow = @screenRowForNode(event.target)
-        @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
-        @clearMouseWheelScreenRowAfterDelay()
-        previousScrollTop = editor.getScrollTop()
-        editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
-        event.preventDefault() unless previousScrollTop is editor.getScrollTop()
+      # Scrolling vertically
+      @mouseWheelScreenRow = @screenRowForNode(event.target)
+      @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
+      @clearMouseWheelScreenRowAfterDelay()
+      previousScrollTop = editor.getScrollTop()
+      editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
+      event.preventDefault() unless previousScrollTop is editor.getScrollTop()
 
   onScrollViewScroll: ->
     if @isMounted()
