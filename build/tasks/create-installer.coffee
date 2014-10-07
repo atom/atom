@@ -17,7 +17,7 @@ module.exports = (grunt) ->
 
     packageInfo = grunt.file.readJSON(path.join(atomDir, 'resources', 'app', 'package.json'))
     inputTemplate = grunt.file.read(path.join('build', 'windows', 'atom.nuspec.erb'))
-    
+
     # NB: Build server has some sort of stamp on the version number
     packageInfo.version = packageInfo.version.replace(/-.*$/, '')
 
