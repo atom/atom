@@ -18,7 +18,10 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
     childMetadata = JSON.parse(fs.readFileSync(childMetadataPath))
     if childMetadata?.version
       relativePath = path.relative(rootPath, childPath)
-      moduleCache.dependencies[relativePath] = childMetadata.version
+      moduleCache.dependencies.push
+        name: childMetadata.name
+        version: childMetadata.version
+        path: relativePath
       loadDependencies(childPath, rootPath, rootMetadata, moduleCache)
 
 loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
@@ -39,7 +42,6 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
       paths[relativePath] = true
   fs.traverseTreeSync(modulePath, onFile, onDirectory)
 
-  moduleCache.folders ?= []
   paths = Object.keys(paths)
   if paths.length > 0 and Object.keys(dependencies).length > 0
     moduleCache.folders.push({paths, dependencies})
@@ -58,7 +60,8 @@ exports.generateDependencies = (modulePath) ->
 
   moduleCache =
     version: 1
-    dependencies: {}
+    dependencies: []
+    folders: []
   loadDependencies(modulePath, modulePath, metadata, moduleCache)
   loadFolderCompatibility(modulePath, modulePath, metadata, moduleCache)
 
