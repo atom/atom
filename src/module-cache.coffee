@@ -8,6 +8,7 @@ nativeModules = process.binding('natives')
 cache =
   dependencies: {}
   folders: {}
+  ranges: {}
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   nodeModulesPath = path.join(modulePath, 'node_modules')
@@ -39,6 +40,15 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
   nodeModulesPath = path.join(modulePath, 'node_modules')
   dependencies = JSON.parse(fs.readFileSync(metadataPath))?.dependencies ? {}
+
+  for name, version of dependencies
+    try
+      new semver.Range(version)
+    catch error
+      invalidVersion = version
+      version = JSON.parse(fs.readFileSync(path.join(nodeModulesPath, name, 'package.json')))?.version
+      dependencies[name] = version
+      console.log "Normalized #{name}: #{invalidVersion} -> #{version}"
 
   onDirectory = (childPath) ->
     path.basename(childPath) isnt 'node_modules'
@@ -76,6 +86,12 @@ exports.generateDependencies = (modulePath) ->
   metadata._atomModuleCache = moduleCache
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
 
+satisfies = (version, rawRange) ->
+  unless parsedRange = cache.ranges[rawRange]
+    parsedRange = new semver.Range(rawRange)
+    cache.ranges[rawRange] = parsedRange
+  parsedRange.test(version)
+
 getCachedModulePath = (relativePath, parentModule) ->
   return unless relativePath
   return unless parentModule?.id
@@ -87,14 +103,14 @@ getCachedModulePath = (relativePath, parentModule) ->
 
   folderPath = path.dirname(parentModule.id)
 
-  dependency = cache.folders[folderPath]?[relativePath]
-  return unless dependency?
+  range = cache.folders[folderPath]?[relativePath]
+  return unless range?
 
   candidates = cache.dependencies[relativePath]
   return unless candidates?
 
   for version, resolvedPath of candidates
-    if Module._cache[resolvedPath] and semver.satisfies(version, dependency)
+    if Module._cache[resolvedPath] and satisfies(version, range)
       return resolvedPath
 
   undefined
