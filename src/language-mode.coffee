@@ -185,6 +185,8 @@ class LanguageMode
   # foldable row range. Rows that are "foldable" have a fold icon next to their
   # icon in the gutter in the default configuration.
   isFoldableAtBufferRow: (bufferRow) ->
+    isFoldEnabled = editor.config.get('editor.isFoldEnabled')
+    return false if isFoldEnabled? and isFoldEnabled is false
     @isFoldableCodeAtBufferRow(bufferRow) or @isFoldableCommentAtBufferRow(bufferRow)
 
   # Returns a {Boolean} indicating whether the given buffer row starts
