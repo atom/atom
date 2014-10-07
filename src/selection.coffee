@@ -461,7 +461,8 @@ class Selection extends Model
         end--
       @editor.buffer.deleteRows(start, end)
 
-  # Public: Joins the current line with the one below it.
+  # Public: Joins the current line with the one below it. Lines will
+  # be separated by a single space.
   #
   # If there selection spans more than one line, all the lines are joined together.
   joinLines: ->
@@ -479,15 +480,20 @@ class Selection extends Model
       if nextRow <= @editor.buffer.getLastRow() and @editor.buffer.lineLengthForRow(nextRow) > 0
         @insertText(' ')
         @cursor.moveToEndOfLine()
-      @modifySelection =>
-        @cursor.moveRight()
-        @cursor.moveToFirstCharacterOfLine()
-      @deleteSelectedText()
+        @selectToPreviousWordBoundary()
+        @deleteSelectedText()
+        @modifySelection =>
+          @cursor.moveRight()
+          @cursor.moveToFirstCharacterOfLine()
+        @deleteSelectedText()
+        @insertText(' ')
 
     if joinMarker?
       newSelectedRange = joinMarker.getBufferRange()
       @setBufferRange(newSelectedRange)
       joinMarker.destroy()
+
+    @cursor.moveLeft()
 
   # Public: Removes one level of indent from the currently selected rows.
   outdentSelectedRows: ->
