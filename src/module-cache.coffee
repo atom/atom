@@ -5,6 +5,10 @@ semver = require 'semver'
 
 nativeModules = process.binding('natives')
 
+cache =
+  dependencies: {}
+  folders: {}
+
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   nodeModulesPath = path.join(modulePath, 'node_modules')
   for childPath in fs.listSync(nodeModulesPath)
@@ -83,10 +87,10 @@ getCachedModulePath = (relativePath, parentModule) ->
 
   folderPath = path.dirname(parentModule.id)
 
-  dependency = folders[folderPath]?[relativePath]
+  dependency = cache.folders[folderPath]?[relativePath]
   return unless dependency?
 
-  candidates = dependencies[relativePath]
+  candidates = cache.dependencies[relativePath]
   return unless candidates?
 
   for version, resolvedPath of candidates
@@ -101,21 +105,23 @@ exports.register = ->
 
   originalResolveFilename = Module._resolveFilename
   Module._resolveFilename = (relativePath, parentModule) ->
-    resolvedPath = getCachedModulePath(relativePath, parentModule)
-    resolvedPath ? originalResolveFilename(relativePath, parentModule)
+    # resolvedPath = getCachedModulePath(relativePath, parentModule)
+    originalResolveFilename(relativePath, parentModule)
   registered = true
 
-dependencies = {}
-folders = {}
-
-global.mc = {dependencies, folders}
-
 exports.add = (directoryPath) ->
-  cache = require(path.join(directoryPath, 'package.json'))?._atomModuleCache
-  for dependency in cache?.dependencies ? []
-    dependencies[dependency.name] ?= {}
-    dependencies[dependency.name][dependency.version] = path.join(directoryPath, dependency.path)
+  try
+    metadata = require(path.join(directoryPath, 'package.json'))
+  catch error
+    return
 
-  for entry in cache?.folders ? []
+  cacheToAdd = metadata?._atomModuleCache
+  for dependency in cacheToAdd?.dependencies ? []
+    cache.dependencies[dependency.name] ?= {}
+    cache.dependencies[dependency.name][dependency.version] = path.join(directoryPath, dependency.path)
+
+  for entry in cacheToAdd?.folders ? []
     for folderPath in entry.paths
-      folders[path.join(directoryPath, folderPath)] = entry.dependencies
+      cache.folders[path.join(directoryPath, folderPath)] = entry.dependencies
+
+  undefined
