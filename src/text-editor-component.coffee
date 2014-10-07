@@ -528,6 +528,7 @@ TextEditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
+    @subscribe atom.config.observe 'editor.enableFolding', @setEnableFolding
 
   onFocus: ->
     @refs.input.focus() if @isMounted()
@@ -1046,6 +1047,9 @@ TextEditorComponent = React.createClass
   setUseHardwareAcceleration: (useHardwareAcceleration=true) ->
     unless @useHardwareAcceleration is useHardwareAcceleration
       @useHardwareAcceleration = useHardwareAcceleration
+      @requestUpdate()
+
+  setEnableFolding: (enableFolding=true) ->
       @requestUpdate()
 
   screenPositionForMouseEvent: (event) ->
