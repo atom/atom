@@ -1,6 +1,7 @@
 # Like sands through the hourglass, so are the days of our lives.
 startTime = Date.now()
 
+require './module-cache'
 require './window'
 
 Atom = require './atom'
