@@ -95,3 +95,18 @@ exports.register = ->
     resolvedPath = getCachedModulePath(relativePath, parentModule)
     resolvedPath ? originalResolveFilename(relativePath, parentModule)
   registered = true
+
+dependencies = {}
+folders = {}
+
+global.mc = {dependencies, folders}
+
+exports.add = (directoryPath) ->
+  cache = require(path.join(directoryPath, 'package.json'))?._atomModuleCache
+  for dependency in cache?.dependencies ? []
+    dependencies[dependency.name] ?= {}
+    dependencies[dependency.name][dependency.version] = path.join(directoryPath, dependency.path)
+
+  for entry in cache?.folders ? []
+    for folderPath in entry.paths
+      folders[path.join(directoryPath, folderPath)] = entry.dependencies
