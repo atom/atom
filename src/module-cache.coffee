@@ -12,10 +12,10 @@ getCachedModulePath = (relative, parent) ->
   return unless relative
   return unless parent?.id
 
+  return if nativeModules.hasOwnProperty(relative)
   return if relative[0] is '.'
   return if relative[relative.length - 1] is '/'
   return if fs.isAbsolute(relative)
-  return if nativeModules.hasOwnProperty(relative)
 
   console.log "looking up #{relative} from #{parent.id}"
 
