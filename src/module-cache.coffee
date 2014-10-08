@@ -95,7 +95,7 @@ getCachedModulePath = (relativePath, parentModule) ->
   return unless candidates?
 
   for version, resolvedPath of candidates
-    if Module._cache[resolvedPath] and satisfies(version, range)
+    if Module._cache.hasOwnProperty(resolvedPath) and satisfies(version, range)
       return resolvedPath
 
   undefined
