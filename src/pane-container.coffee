@@ -7,6 +7,8 @@ PaneElement = require './pane-element'
 PaneContainerElement = require './pane-container-element'
 PaneAxisElement = require './pane-axis-element'
 PaneAxis = require './pane-axis'
+TextEditor = require './text-editor'
+TextEditorElement = require './text-editor-element'
 ViewRegistry = require './view-registry'
 ItemRegistry = require './item-registry'
 
@@ -65,6 +67,10 @@ class PaneContainer extends Model
     @viewRegistry.addViewProvider
       modelConstructor: Pane
       viewConstructor: PaneElement
+
+    @viewRegistry.addViewProvider
+      modelConstructor: TextEditor
+      viewConstructor: TextEditorElement
 
   getView: (object) ->
     @viewRegistry.getView(object)

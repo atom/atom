@@ -162,9 +162,6 @@ class TextEditor extends Model
     @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
-  getViewClass: ->
-    require './text-editor-view'
-
   destroyed: ->
     @unsubscribe()
     selection.destroy() for selection in @getSelections()
@@ -503,6 +500,8 @@ class TextEditor extends Model
     if mini isnt @mini
       @mini = mini
       @updateInvisibles()
+
+  isMini: -> @mini
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.
