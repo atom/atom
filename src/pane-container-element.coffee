@@ -75,6 +75,4 @@ class PaneContainerElement extends HTMLElement
     top: {x: boundingBox.left, y: boundingBox.top}
     bottom: {x: boundingBox.left, y: boundingBox.bottom}
 
-module.exports = PaneContainerElement = document.registerElement 'atom-pane-container',
-  prototype: PaneContainerElement.prototype
-  extends: 'div'
+module.exports = PaneContainerElement = document.registerElement 'atom-pane-container', prototype: PaneContainerElement.prototype

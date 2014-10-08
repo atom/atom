@@ -66,7 +66,7 @@ class WorkspaceView extends View
   setModel: (@model) ->
     @horizontal = @find('.horizontal')
     @vertical = @find('.vertical')
-    @panes = @find('.panes').view()
+    @panes = @find('atom-pane-container').view()
     @subscribe @model.onDidOpen => @trigger 'uri-opened'
 
   beforeRemove: ->
