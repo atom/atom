@@ -2283,7 +2283,7 @@ describe "TextEditorComponent", ->
         editor.setEditorWidthInChars(20)
         coffeeEditor.setEditorWidthInChars(20)
 
-      it 'wraps only the editor with scoped `editor.softWrap` set to true', ->
+      it "wraps lines when editor.softWrap is true for a matching scope", ->
         expect(editor.lineTextForScreenRow(2)).toEqual '    if (items.length <= 1) return items;'
         expect(coffeeEditor.lineTextForScreenRow(3)).toEqual '    return items '
 
@@ -2336,10 +2336,10 @@ describe "TextEditorComponent", ->
         editor.setText " a line with tabs\tand spaces \n"
         nextAnimationFrame()
 
-      it "renders the invisibles for the editor when scoped editor.showInvisibles is true", ->
+      it "renders the invisibles when editor.showInvisibles is true for a given grammar", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
 
-      it "does not renders the invisibles for when scoped editor.showInvisibles is false", ->
+      it "does not render the invisibles when editor.showInvisibles is false for a given grammar", ->
         editor.setGrammar(coffeeEditor.getGrammar())
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
@@ -2382,7 +2382,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
-      it "removes the 'indent-guide' class when setting scoped editor.showIndentGuide to false", ->
+      it "removes the 'indent-guide' class when editor.showIndentGuide to false", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
@@ -2394,7 +2394,6 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].textContent).toBe '  '
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
-
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
