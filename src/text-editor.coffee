@@ -260,14 +260,23 @@ class TextEditor extends Model
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
 
+  # Extended: Calls your `callback` when the grammar that interprets and
+  # colorizes the text has been changed. Immediately calls your callback with
+  # the current grammar.
+  #
+  # * `callback` {Function}
+  #   * `grammar` {Grammar}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeGrammar: (callback) ->
     callback(@getGrammar())
     @onDidChangeGrammar(callback)
 
-  # Extended: Calls your `callback` when the grammar that interprets and colorizes the text has
-  # been changed.
+  # Extended: Calls your `callback` when the grammar that interprets and
+  # colorizes the text has been changed.
   #
   # * `callback` {Function}
+  #   * `grammar` {Grammar}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeGrammar: (callback) ->
