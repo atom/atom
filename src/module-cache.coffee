@@ -29,8 +29,6 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
     if childMetadata?.version
       try
         mainPath = require.resolve(childPath)
-      catch error
-        console.log "Skipping #{childPath}, no main module"
 
       if mainPath
         moduleCache.dependencies.push
