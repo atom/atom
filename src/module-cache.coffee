@@ -162,7 +162,7 @@ exports.add = (directoryPath, metadata) ->
   cacheToAdd = metadata?._atomModuleCache
   for dependency in cacheToAdd?.dependencies ? []
     cache.dependencies[dependency.name] ?= {}
-    cache.dependencies[dependency.name][dependency.version] = path.join(directoryPath, dependency.path)
+    cache.dependencies[dependency.name][dependency.version] ?= path.join(directoryPath, dependency.path)
 
   for entry in cacheToAdd?.folders ? []
     for folderPath in entry.paths
