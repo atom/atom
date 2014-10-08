@@ -26,7 +26,7 @@ class ViewRegistry
     if object instanceof HTMLElement
       object
     else if object instanceof jQuery
-      object[0].__spacePenView ?= object
+      object[0]?.__spacePenView ?= object
       object[0]
     else if provider = @findProvider(object)
       element = provider.createView?(object)
