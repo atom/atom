@@ -11,8 +11,7 @@ cache =
   ranges: {}
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
-  nodeModulesPath = path.join(modulePath, 'node_modules')
-  for childPath in fs.listSync(nodeModulesPath)
+  for childPath in fs.listSync(path.join(modulePath, 'node_modules'))
     continue if path.basename(childPath) is '.bin'
     continue if rootPath is modulePath and rootMetadata.packageDependencies?.hasOwnProperty(path.basename(childPath))
 
@@ -40,7 +39,6 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
   metadataPath = path.join(modulePath, 'package.json')
   return unless fs.isFileSync(metadataPath)
 
-  nodeModulesPath = path.join(modulePath, 'node_modules')
   dependencies = JSON.parse(fs.readFileSync(metadataPath))?.dependencies ? {}
 
   for name, version of dependencies
@@ -65,7 +63,7 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
   if paths.length > 0 and Object.keys(dependencies).length > 0
     moduleCache.folders.push({paths, dependencies})
 
-  for childPath in fs.listSync(nodeModulesPath)
+  for childPath in fs.listSync(path.join(modulePath, 'node_modules'))
     continue if path.basename(childPath) is '.bin'
     continue if rootPath is modulePath and rootMetadata.packageDependencies?.hasOwnProperty(path.basename(childPath))
 
