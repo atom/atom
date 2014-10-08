@@ -15,7 +15,7 @@ window.onload = function() {
 
     require('vm-compatibility-layer');
     require('coffee-script').register();
-    require('../src/coffee-cache')).register();
+    require('../src/coffee-cache').register();
 
     ModuleCache = require('../src/module-cache');
     ModuleCache.add(loadSettings.resourcePath);
