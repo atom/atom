@@ -163,3 +163,5 @@ exports.add = (directoryPath, metadata) ->
       cache.folders[path.join(directoryPath, folderPath)] = entry.dependencies
 
   undefined
+
+exports.cache = cache
