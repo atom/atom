@@ -28,14 +28,14 @@ atom-workspace {
   background-color: @app-background-color;
   font-family: @font-family;
 
-  > .horizontal {
+  atom-workspace-axis.horizontal {
     display: -webkit-flex;
     height: 100%;
+  }
 
-    > .vertical {
-      display: -webkit-flex;
-      -webkit-flex: 1;
-      -webkit-flex-flow: column;
-    }
+  atom-workspace-axis.vertical {
+    display: -webkit-flex;
+    -webkit-flex: 1;
+    -webkit-flex-flow: column;
   }
 }

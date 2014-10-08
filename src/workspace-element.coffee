@@ -26,11 +26,10 @@ class WorkspaceElement extends HTMLElement
     @classList.add 'workspace'
     @setAttribute 'tabindex', -1
 
-
-    @verticalAxis = document.createElement('div')
+    @verticalAxis = document.createElement('atom-workspace-axis')
     @verticalAxis.classList.add('vertical')
 
-    @horizontalAxis = document.createElement('div')
+    @horizontalAxis = document.createElement('atom-workspace-axis')
     @horizontalAxis.classList.add('horizontal')
     @horizontalAxis.appendChild(@verticalAxis)
 
