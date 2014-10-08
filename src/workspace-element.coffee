@@ -138,6 +138,14 @@ class WorkspaceElement extends HTMLElement
   handleWindowFocus: (event) ->
     @handleFocus(event) if document.activeElement is document.body
 
+  focusPaneViewAbove: -> @paneContainer.focusPaneViewAbove()
+
+  focusPaneViewBelow: -> @paneContainer.focusPaneViewBelow()
+
+  focusPaneViewOnLeft: -> @paneContainer.focusPaneViewOnLeft()
+
+  focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
+
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace',
   prototype: WorkspaceElement.prototype
   extends: 'div'
