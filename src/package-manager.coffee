@@ -256,7 +256,7 @@ class PackageManager
     metadata?.engines?.atom?
 
   unobserveDisabledPackages: ->
-    @disabledPackagesSubscription?.off()
+    @disabledPackagesSubscription?.dispose()
     @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
