@@ -230,11 +230,11 @@ describe "Config", ->
         expect(writtenConfig).toEqualJson
           global:
             atom.config.settings
-          '*.ruby.source':
+          '.ruby.source':
             foo:
               bar: 'ruby'
               omg: 'wow'
-          '*.coffee.source':
+          '.coffee.source':
             foo:
               bar: 'coffee'
 
