@@ -128,6 +128,7 @@ class Install extends Command
               commands.push (callback) -> fs.cp(source, destination, callback)
 
           commands.push (callback) => @buildModuleCache(pack.name, callback)
+          commands.push (callback) => @warmCompileCache(pack.name, callback)
 
           async.waterfall commands, (error) =>
             if error?
@@ -397,6 +398,22 @@ class Install extends Command
       try
         ModuleCache = require(path.join(resourcePath, 'src', 'module-cache'))
         ModuleCache.create(packageDirectory)
+      callback(null)
+
+  warmCompileCache: (packageName, callback) ->
+    packageDirectory = path.join(@atomPackagesDirectory, packageName)
+
+    @getResourcePath (resourcePath) ->
+      try
+        CoffeeCache = require(path.join(resourcePath, 'src', 'coffee-cache'))
+
+        onDirectory = (directoryPath) ->
+          path.basename(directoryPath) isnt 'node_modules'
+
+        onFile = (filePath) ->
+          CoffeeCache.addPathToCache(filePath)
+
+        fs.traverseTreeSync(packageDirectory, onFile, onDirectory)
       callback(null)
 
   isBundledPackage: (packageName, callback) ->
