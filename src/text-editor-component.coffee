@@ -528,6 +528,7 @@ TextEditorComponent = React.createClass
     @subscribe atom.config.observe 'editor.showLineNumbers', @setShowLineNumbers
     @subscribe atom.config.observe 'editor.scrollSensitivity', @setScrollSensitivity
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
+    @subscribe atom.config.observe 'editor.enableFolding', @setEnableFolding
 
   onFocus: ->
     @refs.input.focus() if @isMounted()
@@ -1047,6 +1048,30 @@ TextEditorComponent = React.createClass
     unless @useHardwareAcceleration is useHardwareAcceleration
       @useHardwareAcceleration = useHardwareAcceleration
       @requestUpdate()
+
+  # Flattens the given menu template into an single Array.
+  #
+  # template - An object describing the menu item.
+  #
+  # Returns an Array of native menu items.
+  flattenMenuTemplate: (template) ->
+    items = []
+    for item in template
+      items.push(item)
+      items = items.concat(@flattenMenuTemplate(item.submenu)) if item.submenu
+    items
+
+  findMenuTemplateItem: (label) ->
+    for index, item of @flattenMenuTemplate(atom.menu.template)
+      return item if item.label is label
+
+  setEnableFolding: (enableFolding=true) ->
+    @props.editor.unfoldAll() if enableFolding is false
+    foldMenuItem = @findMenuTemplateItem("Folding")
+    if foldMenuItem?
+      foldMenuItem.enabled = enableFolding
+      atom.menu.update()
+    @requestUpdate()
 
   screenPositionForMouseEvent: (event) ->
     pixelPosition = @pixelPositionForMouseEvent(event)
