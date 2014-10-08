@@ -6,7 +6,7 @@ semver = require 'semver'
 nativeModules = process.binding('natives')
 
 cache =
-  debug: true
+  debug: false
   dependencies: {}
   folders: {}
   ranges: {}
