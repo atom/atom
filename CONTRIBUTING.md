@@ -62,6 +62,8 @@ For more information on how to work with Atom's official packages, see
     * Use `path.join()` to concatenate filenames.
     * Use `os.tmpdir()` rather than `/tmp` when you need to reference the
       temporary directory.
+* Using a plain `return` when returning explicitly at the end of a function.
+    * Not `return null`, `return undefined`, `null`, or `undefined`
 
 ## Git Commit Messages
 
