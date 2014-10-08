@@ -73,22 +73,6 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
   undefined
 
-exports.create = (modulePath) ->
-  metadataPath = path.join(modulePath, 'package.json')
-  metadata = JSON.parse(fs.readFileSync(metadataPath))
-
-  moduleCache =
-    version: 1
-    dependencies: []
-    folders: []
-
-  loadDependencies(modulePath, modulePath, metadata, moduleCache)
-  loadFolderCompatibility(modulePath, modulePath, metadata, moduleCache)
-
-  metadata._atomModuleCache = moduleCache
-  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
-  undefined
-
 satisfies = (version, rawRange) ->
   unless parsedRange = cache.ranges[rawRange]
     parsedRange = new semver.Range(rawRange)
@@ -135,6 +119,22 @@ if debug
     exports = originalRequire.apply(this, arguments)
     global.requireTime += Date.now() - startTime
     exports
+
+exports.create = (modulePath) ->
+  metadataPath = path.join(modulePath, 'package.json')
+  metadata = JSON.parse(fs.readFileSync(metadataPath))
+
+  moduleCache =
+    version: 1
+    dependencies: []
+    folders: []
+
+  loadDependencies(modulePath, modulePath, metadata, moduleCache)
+  loadFolderCompatibility(modulePath, modulePath, metadata, moduleCache)
+
+  metadata._atomModuleCache = moduleCache
+  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
+  undefined
 
 registered = false
 exports.register = ->

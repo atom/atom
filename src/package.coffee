@@ -10,6 +10,7 @@ Q = require 'q'
 {deprecate} = require 'grim'
 
 $ = null # Defer require in case this is in the window-less browser process
+ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
 # Loads and activates a package's main module and resources such as
@@ -47,6 +48,7 @@ class Package
     @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
     @name = @metadata?.name ? path.basename(@path)
+    ModuleCache.add(@path, @metadata)
     @reset()
 
   ###
