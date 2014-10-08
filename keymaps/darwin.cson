@@ -100,7 +100,7 @@
   'cmd-8': 'pane:show-item-8'
   'cmd-9': 'pane:show-item-9'
 
-'.editor':
+'atom-text-editor':
   # Platform Bindings
   'alt-left': 'editor:move-to-beginning-of-word'
   'alt-right': 'editor:move-to-end-of-word'
@@ -134,7 +134,7 @@
   'cmd-l': 'editor:select-line'
   'ctrl-t': 'editor:transpose'
 
-'atom-workspace .editor:not(.mini)':
+'atom-workspace atom-text-editor:not(.mini)':
   # Atom specific
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'

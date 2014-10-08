@@ -131,9 +131,9 @@ describe "PaneView", ->
     describe "when the destroyed item is a model", ->
       it "removes the associated view", ->
         paneModel.activateItem(editor1)
-        expect(pane.itemViews.find('.editor').length).toBe 1
+        expect(pane.itemViews.find('atom-text-editor').length).toBe 1
         pane.destroyItem(editor1)
-        expect(pane.itemViews.find('.editor').length).toBe 0
+        expect(pane.itemViews.find('atom-text-editor').length).toBe 0
 
   describe "when an item is moved within the same pane", ->
     it "emits a 'pane:item-moved' event with the item and the new index", ->

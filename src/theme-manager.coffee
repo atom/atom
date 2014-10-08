@@ -361,7 +361,7 @@ class ThemeManager
 
   updateGlobalEditorStyle: (property, value) ->
     unless styleNode = @stylesheetElementForId('global-editor-styles')
-      @applyStylesheet('global-editor-styles', '.editor {}')
+      @applyStylesheet('global-editor-styles', 'atom-text-editor {}')
       styleNode = @stylesheetElementForId('global-editor-styles')
 
     {sheet} = styleNode

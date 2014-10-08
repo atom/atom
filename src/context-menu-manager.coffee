@@ -43,7 +43,7 @@ class ContextMenuManager
   # ```coffee
   # atom.contextMenu.add {
   #   'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
-  #   '.editor':    [{
+  #   'atom-text-editor': [{
   #     label: 'History',
   #     submenu: [
   #       {label: 'Undo': command:'core:undo'}

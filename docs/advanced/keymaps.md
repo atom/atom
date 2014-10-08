@@ -6,25 +6,25 @@ Keymap files are encoded as JSON or CSON files containing nested hashes. They
 work much like stylesheets, but instead of applying style properties to elements
 matching the selector, they specify the meaning of keystrokes on elements
 matching the selector. Here is an example of some bindings that apply when
-keystrokes pass through elements with the class `.editor`:
+keystrokes pass through `atom-text-editor` elements:
 
 ```coffee
-'.editor':
+'atom-text-editor':
   'cmd-delete': 'editor:delete-to-beginning-of-line'
   'alt-backspace': 'editor:delete-to-beginning-of-word'
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-shift-e': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
 
-'.editor:not(.mini)'
+'atom-text-editor:not(.mini)'
   'cmd-alt-[': 'editor:fold-current-row'
   'cmd-alt-]': 'editor:unfold-current-row'
 ```
 
 Beneath the first selector are several bindings, mapping specific *keystroke
-patterns* to *commands*. When an element with the `.editor` class is focused and
+patterns* to *commands*. When an element with the `atom-text-editor` class is focused and
 `cmd-delete` is pressed, an custom DOM event called
-`editor:delete-to-beginning-of-line` is emitted on the `.editor` element.
+`editor:delete-to-beginning-of-line` is emitted on the `atom-text-editor` element.
 
 The second selector group also targets editors, but only if they don't have the
 `.mini` class. In this example, the commands for code folding don't really make
@@ -91,7 +91,7 @@ the current keystroke sequence and continue searching from its parent. If you
 want to remove a binding from a keymap you don't control, such as keymaps in
 Atom core or in packages, use the `unset!` directive.
 
-For example, the following code removes the keybinding for `a` in the Tree View, 
+For example, the following code removes the keybinding for `a` in the Tree View,
 which is normally used to trigger the `tree-view:add-file` command:
 
 ```coffee

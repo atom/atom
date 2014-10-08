@@ -63,7 +63,7 @@ class MenuManager
       # Selector isn't valid
       return false
 
-    # Simulate an .editor element attached to a atom-workspace element attached
+    # Simulate an atom-text-editor element attached to a atom-workspace element attached
     # to a body element that has the same classes as the current body element.
     unless @testEditor?
       testBody = document.createElement('body')

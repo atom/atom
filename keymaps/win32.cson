@@ -74,7 +74,7 @@
   'ctrl-k ctrl-left':  'window:focus-pane-on-left'
   'ctrl-k ctrl-right': 'window:focus-pane-on-right'
 
-'atom-workspace .editor':
+'atom-workspace atom-text-editor':
   # Platform Bindings
   'ctrl-left': 'editor:move-to-beginning-of-word'
   'ctrl-right': 'editor:move-to-end-of-word'
@@ -94,7 +94,7 @@
   'ctrl-k ctrl-l': 'editor:lower-case'
   'ctrl-l': 'editor:select-line'
 
-'atom-workspace .editor:not(.mini)':
+'atom-workspace atom-text-editor:not(.mini)':
   # Atom specific
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'

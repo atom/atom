@@ -91,13 +91,13 @@ _keymaps/ascii-art.cson_ and add a key binding linking `ctrl-alt-a` to the
 you don't need it anymore. When finished, the file will look like this:
 
 ```coffeescript
-'.editor':
+'atom-text-editor':
   'cmd-alt-a': 'ascii-art:convert'
 ```
 
-Notice `.editor` on the first line. Just like CSS, keymap selectors *scope* key
+Notice `atom-text-editor` on the first line. Just like CSS, keymap selectors *scope* key
 bindings so they only apply to specific elements. In this case, our binding is
-only active for elements matching the `.editor` selector. If the Tree View has
+only active for elements matching the `atom-text-editor` selector. If the Tree View has
 focus, pressing `cmd-alt-a` won't trigger the `ascii-art:convert` command. But
 if the editor has focus, the `ascii-art:convert` method *will* be triggered.
 More information on key bindings can be found in the

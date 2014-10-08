@@ -209,7 +209,7 @@ describe "ThemeManager", ->
   describe "base stylesheet loading", ->
     beforeEach ->
       atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
-      atom.workspaceView.append $$ -> @div class: 'editor'
+      atom.workspaceView.append $('<atom-text-editor>')
       atom.workspaceView.attachToDom()
 
       waitsForPromise ->
@@ -227,9 +227,9 @@ describe "ThemeManager", ->
         expect(atom.workspaceView.css("background-color")).toBe "rgb(0, 0, 255)"
 
         # from within the theme itself
-        expect($(".editor").css("padding-top")).toBe "150px"
-        expect($(".editor").css("padding-right")).toBe "150px"
-        expect($(".editor").css("padding-bottom")).toBe "150px"
+        expect($("atom-text-editor").css("padding-top")).toBe "150px"
+        expect($("atom-text-editor").css("padding-right")).toBe "150px"
+        expect($("atom-text-editor").css("padding-bottom")).toBe "150px"
 
     describe "when there is a theme with incomplete variables", ->
       it "loads the correct values from the fallback ui-variables", ->
@@ -244,7 +244,7 @@ describe "ThemeManager", ->
           expect(atom.workspaceView.css("background-color")).toBe "rgb(0, 0, 255)"
 
           # from within the theme itself
-          expect($(".editor").css("background-color")).toBe "rgb(0, 152, 255)"
+          expect($("atom-text-editor").css("background-color")).toBe "rgb(0, 152, 255)"
 
     describe "theme classes on the workspace", ->
       it 'adds theme-* classes to the workspace for each active theme', ->
