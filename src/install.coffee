@@ -126,6 +126,9 @@ class Install extends Command
             destination = path.join(@atomPackagesDirectory, child)
             do (source, destination) ->
               commands.push (callback) -> fs.cp(source, destination, callback)
+
+          commands.push (callback) => @buildModuleCache(pack.name, callback)
+
           async.waterfall commands, (error) =>
             if error?
               @logFailure()
@@ -386,6 +389,14 @@ class Install extends Command
       process.nextTick => callback(@resourcePath)
     else
       config.getResourcePath (@resourcePath) => callback(@resourcePath)
+
+  buildModuleCache: (packageName, callback) ->
+    packageDirectory = path.join(@atomPackagesDirectory, packageName)
+
+    config.getResourcePath (resourcePath) ->
+      ModuleCache = require(path.join(resourcePath, 'src', 'module-cache'))
+      ModuleCache.create(packageDirectory)
+      callback()
 
   isBundledPackage: (packageName, callback) ->
     @getResourcePath (resourcePath) ->
