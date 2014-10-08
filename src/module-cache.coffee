@@ -34,6 +34,8 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
       loadDependencies(childPath, rootPath, rootMetadata, moduleCache)
 
+  undefined
+
 loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
   metadataPath = path.join(modulePath, 'package.json')
   return unless fs.isFileSync(metadataPath)
@@ -69,6 +71,8 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
     loadFolderCompatibility(childPath, rootPath, rootMetadata, moduleCache)
 
+  undefined
+
 exports.generateDependencies = (modulePath) ->
   metadataPath = path.join(modulePath, 'package.json')
   metadata = JSON.parse(fs.readFileSync(metadataPath))
@@ -83,6 +87,7 @@ exports.generateDependencies = (modulePath) ->
 
   metadata._atomModuleCache = moduleCache
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
+  undefined
 
 satisfies = (version, rawRange) ->
   unless parsedRange = cache.ranges[rawRange]
@@ -141,11 +146,14 @@ exports.register = ->
     resolvedPath ? originalResolveFilename(relativePath, parentModule)
   registered = true
 
-exports.add = (directoryPath) ->
-  try
-    metadata = require(path.join(directoryPath, 'package.json'))
-  catch error
-    return
+  undefined
+
+exports.add = (directoryPath, metadata) ->
+  unless metadata?
+    try
+      metadata = require(path.join(directoryPath, 'package.json'))
+    catch error
+      return
 
   cacheToAdd = metadata?._atomModuleCache
   for dependency in cacheToAdd?.dependencies ? []
