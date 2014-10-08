@@ -210,7 +210,7 @@ class CommandRegistry
 
     loop
       listeners = @inlineListenersByCommandName[originalEvent.type]?.get(currentTarget) ? []
-      unless currentTarget is window or currentTarget is document
+      if currentTarget.webkitMatchesSelector?
         selectorBasedListeners =
           (@selectorBasedListenersByCommandName[originalEvent.type] ? [])
             .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
