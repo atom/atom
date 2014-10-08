@@ -4,6 +4,7 @@ ItemSpecificities = new WeakMap
 
 merge = (menu, item, itemSpecificity=Infinity) ->
   ItemSpecificities.set(item, itemSpecificity) if itemSpecificity
+  item = cloneMenuItem(item)
   matchingItemIndex = findMatchingItemIndex(menu, item)
   matchingItem = menu[matchingItemIndex] unless matchingItemIndex is - 1
 
