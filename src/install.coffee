@@ -393,7 +393,7 @@ class Install extends Command
   buildModuleCache: (packageName, callback) ->
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
 
-    config.getResourcePath (resourcePath) ->
+    @getResourcePath (resourcePath) ->
       try
         ModuleCache = require(path.join(resourcePath, 'src', 'module-cache'))
         ModuleCache.create(packageDirectory)
