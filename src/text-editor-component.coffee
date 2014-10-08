@@ -416,7 +416,7 @@ TextEditorComponent = React.createClass
     @scopedConfigSubscriptions?.dispose()
     @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
-    scopeDescriptor = editor.getGrammarScopeDescriptor()
+    scopeDescriptor = editor.getRootScopeDescriptor()
 
     subscriptions.add atom.config.observe scopeDescriptor, 'editor.showIndentGuide', @setShowIndentGuide
     subscriptions.add atom.config.observe scopeDescriptor, 'editor.showLineNumbers', @setShowLineNumbers

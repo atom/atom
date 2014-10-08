@@ -65,7 +65,7 @@ class DisplayBuffer extends Model
     @scopedConfigSubscriptions?.dispose()
     @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
-    scopeDescriptor = @getGrammarScopeDescriptor()
+    scopeDescriptor = @getRootScopeDescriptor()
 
     subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
       @updateWrappedScreenLines()
@@ -328,7 +328,7 @@ class DisplayBuffer extends Model
     return 0 unless lineHeight > 0
 
     scrollHeight = @getLineCount() * lineHeight
-    if @height? and atom.config.get(@getGrammarScopeDescriptor(), 'editor.scrollPastEnd')
+    if @height? and atom.config.get(@getRootScopeDescriptor(), 'editor.scrollPastEnd')
       scrollHeight = scrollHeight + @height - (lineHeight * 3)
 
     scrollHeight
@@ -429,7 +429,7 @@ class DisplayBuffer extends Model
       @isSoftWrapped()
 
   isSoftWrapped: ->
-    @softWrapped ? atom.config.get(@getGrammarScopeDescriptor(), 'editor.softWrap') ? false
+    @softWrapped ? atom.config.get(@getRootScopeDescriptor(), 'editor.softWrap') ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -451,8 +451,8 @@ class DisplayBuffer extends Model
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get(@getGrammarScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.get(@getGrammarScopeDescriptor(), 'editor.preferredLineLength'))
+    if atom.config.get(@getRootScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
+      Math.min(@getEditorWidthInChars(), atom.config.get(@getRootScopeDescriptor(), 'editor.preferredLineLength'))
     else
       @getEditorWidthInChars()
 
@@ -1047,7 +1047,7 @@ class DisplayBuffer extends Model
       line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
-  getGrammarScopeDescriptor: ->
+  getRootScopeDescriptor: ->
     @tokenizedBuffer.grammarScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
