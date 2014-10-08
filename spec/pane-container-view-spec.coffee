@@ -91,7 +91,7 @@ describe "PaneContainerView", ->
         it "leaves the empty panes intact", ->
           newContainer = atom.workspace.getView(container.model.testSerialization()).__spacePenView
           expect(newContainer.find('.pane-row > :contains(1)')).toExist()
-          expect(newContainer.find('.pane-row > .pane-column > .pane').length).toBe 2
+          expect(newContainer.find('.pane-row > .pane-column > atom-pane').length).toBe 2
 
       describe "if the 'core.destroyEmptyPanes' config option is true", ->
         it "removes empty panes on deserialization", ->

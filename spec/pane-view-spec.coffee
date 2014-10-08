@@ -300,11 +300,11 @@ describe "PaneView", ->
       pane2 = containerModel.getView(pane2Model).__spacePenView
       pane3 = containerModel.getView(pane3Model).__spacePenView
 
-      expect(container.find('> .pane-row > .pane').toArray()).toEqual [pane1[0]]
-      expect(container.find('> .pane-row > .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> .pane-row > atom-pane').toArray()).toEqual [pane1[0]]
+      expect(container.find('> .pane-row > .pane-column > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
       pane1Model.destroy()
-      expect(container.find('> .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> .pane-column > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
   describe "serialization", ->
     it "focuses the pane after attach only if had focus when serialized", ->

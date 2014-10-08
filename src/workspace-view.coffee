@@ -234,7 +234,7 @@ class WorkspaceView extends View
   #
   # Returns an {Array} of {TextEditorView}s.
   getEditorViews: ->
-    for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
+    for editorElement in @panes.element.querySelectorAll('atom-pane > .item-views > .editor')
       $(editorElement).view()
 
 

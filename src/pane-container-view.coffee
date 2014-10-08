@@ -33,7 +33,7 @@ class PaneContainerView extends View
     @model.confirmClose()
 
   getPaneViews: ->
-    @find('.pane').views()
+    @find('atom-pane').views()
 
   indexOfPane: (paneView) ->
     @getPaneViews().indexOf(paneView.view())
@@ -48,7 +48,7 @@ class PaneContainerView extends View
     off: => @off 'pane:attached', paneViewAttached
 
   getFocusedPane: ->
-    @find('.pane:has(:focus)').view()
+    @find('atom-pane:has(:focus)').view()
 
   getActivePane: ->
     deprecate("Use PaneContainerView::getActivePaneView instead.")
