@@ -1,5 +1,4 @@
 window.onload = function() {
-  var path = require('path');
   var ipc = require('ipc');
   try {
     // Skip "?loadSettings=".
@@ -16,9 +15,9 @@ window.onload = function() {
 
     require('vm-compatibility-layer');
     require('coffee-script').register();
-    require(path.resolve(__dirname, '..', 'src', 'coffee-cache')).register();
+    require('../src/coffee-cache')).register();
 
-    ModuleCache = require(path.resolve(__dirname, '..', 'src', 'module-cache'));
+    ModuleCache = require('../src/module-cache');
     ModuleCache.add(loadSettings.resourcePath);
     ModuleCache.register();
 
