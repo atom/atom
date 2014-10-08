@@ -117,8 +117,8 @@ class TokenizedBuffer extends Model
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
-  getTabLength: (scopeDescriptor) ->
-    @tabLength ? atom.config.get(scopeDescriptor ? @grammarScopeDescriptor, 'editor.tabLength')
+  getTabLength: ->
+    @tabLength ? atom.config.get(@grammarScopeDescriptor, 'editor.tabLength')
 
   setTabLength: (@tabLength) ->
     @retokenizeLines()

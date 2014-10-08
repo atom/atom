@@ -405,8 +405,8 @@ class DisplayBuffer extends Model
   # Retrieves the current tab length.
   #
   # Returns a {Number}.
-  getTabLength: (scopeDescriptor) ->
-    @tokenizedBuffer.getTabLength(scopeDescriptor)
+  getTabLength: ->
+    @tokenizedBuffer.getTabLength()
 
   # Specifies the tab length.
   #
