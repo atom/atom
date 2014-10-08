@@ -17,6 +17,11 @@ window.onload = function() {
     require('vm-compatibility-layer');
     require('coffee-script').register();
     require(path.resolve(__dirname, '..', 'src', 'coffee-cache')).register();
+
+    ModuleCache = require('./module-cache');
+    ModuleCache.add(loadSettings.resourcePath);
+    ModuleCache.register();
+
     require(loadSettings.bootstrapScript);
     ipc.sendChannel('window-command', 'window:loaded')
   }

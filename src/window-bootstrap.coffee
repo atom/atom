@@ -1,10 +1,6 @@
 # Like sands through the hourglass, so are the days of our lives.
 startTime = Date.now()
 
-ModuleCache = require('./module-cache')
-ModuleCache.add(JSON.parse(decodeURIComponent(location.search.substr(14))).resourcePath)
-ModuleCache.register()
-
 require './window'
 
 Atom = require './atom'
