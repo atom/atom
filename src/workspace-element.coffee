@@ -10,7 +10,6 @@ module.exports =
 class WorkspaceElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
-    atom.commands.setRootNode(this)
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
@@ -56,60 +55,6 @@ class WorkspaceElement extends HTMLElement
     WorkspaceView ?= require './workspace-view'
     @__spacePenView = new WorkspaceView(this)
 
-    addCommands = (handlersByName) =>
-      for name, handler of handlersByName
-        do (handler) =>
-          @__spacePenView.command name, => handler.apply(this, arguments)
-
-    addCommands(
-      'window:increase-font-size': -> @getModel().increaseFontSize()
-      'window:decrease-font-size': -> @getModel().decreaseFontSize()
-      'window:reset-font-size': -> @getModel().resetFontSize()
-      'application:about': -> ipc.send('command', 'application:about')
-      'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
-      'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
-      'application:show-settings': -> ipc.send('command', 'application:show-settings')
-      'application:quit': -> ipc.send('command', 'application:quit')
-      'application:hide': -> ipc.send('command', 'application:hide')
-      'application:hide-other-applications': -> ipc.send('command', 'application:hide-other-applications')
-      'application:install-update': -> ipc.send('command', 'application:install-update')
-      'application:unhide-all-applications': -> ipc.send('command', 'application:unhide-all-applications')
-      'application:new-window': -> ipc.send('command', 'application:new-window')
-      'application:new-file': -> ipc.send('command', 'application:new-file')
-      'application:open': -> ipc.send('command', 'application:open')
-      'application:open-file': -> ipc.send('command', 'application:open-file')
-      'application:open-folder': -> ipc.send('command', 'application:open-folder')
-      'application:open-dev': -> ipc.send('command', 'application:open-dev')
-      'application:open-safe': -> ipc.send('command', 'application:open-safe')
-      'application:minimize': -> ipc.send('command', 'application:minimize')
-      'application:zoom': -> ipc.send('command', 'application:zoom')
-      'application:bring-all-windows-to-front': -> ipc.send('command', 'application:bring-all-windows-to-front')
-      'application:open-your-config': -> ipc.send('command', 'application:open-your-config')
-      'application:open-your-init-script': -> ipc.send('command', 'application:open-your-init-script')
-      'application:open-your-keymap': -> ipc.send('command', 'application:open-your-keymap')
-      'application:open-your-snippets': -> ipc.send('command', 'application:open-your-snippets')
-      'application:open-your-stylesheet': -> ipc.send('command', 'application:open-your-stylesheet')
-      'application:open-license': -> @getModel().openLicense()
-      'window:run-package-specs': -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
-      'window:focus-next-pane': -> @getModel().activateNextPane()
-      'window:focus-previous-pane': -> @getModel().activatePreviousPane()
-      'window:focus-pane-above': -> @focusPaneViewAbove()
-      'window:focus-pane-below': -> @focusPaneViewBelow()
-      'window:focus-pane-on-left': -> @focusPaneViewOnLeft()
-      'window:focus-pane-on-right': -> @focusPaneViewOnRight()
-      'window:save-all': -> @getModel().saveAll()
-      'window:toggle-invisibles': -> atom.config.toggle("editor.showInvisibles")
-      'window:log-deprecation-warnings': -> Grim.logDeprecationWarnings()
-      'window:toggle-auto-indent': -> atom.config.toggle("editor.autoIndent")
-      'pane:reopen-closed-item': -> @getModel().reopenItem()
-      'core:close': -> @getModel().destroyActivePaneItemOrEmptyPane()
-      'core:save': -> @getModel().saveActivePaneItem()
-      'core:save-as': -> @getModel().saveActivePaneItemAs()
-    )
-
-    if process.platform is 'darwin'
-      addCommands 'window:install-shell-commands': -> @getModel().installShellCommands()
-
   getModel: -> @model
 
   setModel: (@model) ->
@@ -145,6 +90,54 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnLeft: -> @paneContainer.focusPaneViewOnLeft()
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
+
+atom.commands.add '.workspace',
+  'window:increase-font-size': -> @getModel().increaseFontSize()
+  'window:decrease-font-size': -> @getModel().decreaseFontSize()
+  'window:reset-font-size': -> @getModel().resetFontSize()
+  'application:about': -> ipc.send('command', 'application:about')
+  'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
+  'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
+  'application:show-settings': -> ipc.send('command', 'application:show-settings')
+  'application:quit': -> ipc.send('command', 'application:quit')
+  'application:hide': -> ipc.send('command', 'application:hide')
+  'application:hide-other-applications': -> ipc.send('command', 'application:hide-other-applications')
+  'application:install-update': -> ipc.send('command', 'application:install-update')
+  'application:unhide-all-applications': -> ipc.send('command', 'application:unhide-all-applications')
+  'application:new-window': -> ipc.send('command', 'application:new-window')
+  'application:new-file': -> ipc.send('command', 'application:new-file')
+  'application:open': -> ipc.send('command', 'application:open')
+  'application:open-file': -> ipc.send('command', 'application:open-file')
+  'application:open-folder': -> ipc.send('command', 'application:open-folder')
+  'application:open-dev': -> ipc.send('command', 'application:open-dev')
+  'application:open-safe': -> ipc.send('command', 'application:open-safe')
+  'application:minimize': -> ipc.send('command', 'application:minimize')
+  'application:zoom': -> ipc.send('command', 'application:zoom')
+  'application:bring-all-windows-to-front': -> ipc.send('command', 'application:bring-all-windows-to-front')
+  'application:open-your-config': -> ipc.send('command', 'application:open-your-config')
+  'application:open-your-init-script': -> ipc.send('command', 'application:open-your-init-script')
+  'application:open-your-keymap': -> ipc.send('command', 'application:open-your-keymap')
+  'application:open-your-snippets': -> ipc.send('command', 'application:open-your-snippets')
+  'application:open-your-stylesheet': -> ipc.send('command', 'application:open-your-stylesheet')
+  'application:open-license': -> @getModel().openLicense()
+  'window:run-package-specs': -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
+  'window:focus-next-pane': -> @getModel().activateNextPane()
+  'window:focus-previous-pane': -> @getModel().activatePreviousPane()
+  'window:focus-pane-above': -> @focusPaneViewAbove()
+  'window:focus-pane-below': -> @focusPaneViewBelow()
+  'window:focus-pane-on-left': -> @focusPaneViewOnLeft()
+  'window:focus-pane-on-right': -> @focusPaneViewOnRight()
+  'window:save-all': -> @getModel().saveAll()
+  'window:toggle-invisibles': -> atom.config.toggle("editor.showInvisibles")
+  'window:log-deprecation-warnings': -> Grim.logDeprecationWarnings()
+  'window:toggle-auto-indent': -> atom.config.toggle("editor.autoIndent")
+  'pane:reopen-closed-item': -> @getModel().reopenItem()
+  'core:close': -> @getModel().destroyActivePaneItemOrEmptyPane()
+  'core:save': -> @getModel().saveActivePaneItem()
+  'core:save-as': -> @getModel().saveActivePaneItemAs()
+
+if process.platform is 'darwin'
+  atom.commands.add '.workspace', 'window:install-shell-commands', -> @getModel().installShellCommands()
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace',
   prototype: WorkspaceElement.prototype

@@ -127,15 +127,11 @@ describe "WorkspaceView", ->
       expect(activePane).toHaveFocus()
 
   describe "keymap wiring", ->
-    commandHandler = null
-    beforeEach ->
-      commandHandler = jasmine.createSpy('commandHandler')
-      atom.workspaceView.on('foo-command', commandHandler)
-
-      atom.keymaps.add('name', '*': {'x': 'foo-command'})
-
     describe "when a keydown event is triggered in the WorkspaceView", ->
       it "triggers matching keybindings for that event", ->
+        commandHandler = jasmine.createSpy('commandHandler')
+        atom.workspaceView.on('foo-command', commandHandler)
+        atom.keymaps.add('name', '*': {'x': 'foo-command'})
         event = keydownEvent 'x', target: atom.workspaceView[0]
 
         atom.workspaceView.trigger(event)

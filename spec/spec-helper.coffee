@@ -72,7 +72,6 @@ beforeEach ->
   atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
-  atom.commands.setRootNode(document.body)
   atom.commands.restoreSnapshot(commandsToRestore)
 
   window.resetTimeouts()
