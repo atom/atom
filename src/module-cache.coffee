@@ -16,6 +16,7 @@ cache =
   folders: {}
   ranges: {}
   registered: false
+  resourcePath: null
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   for childPath in fs.listSync(path.join(modulePath, 'node_modules'))
@@ -99,8 +100,8 @@ getCachedModulePath = (relativePath, parentModule) ->
   return unless candidates?
 
   for version, resolvedPath of candidates
-    if Module._cache.hasOwnProperty(resolvedPath) and satisfies(version, range)
-      return resolvedPath
+    if Module._cache.hasOwnProperty(resolvedPath) or resolvedPath.indexOf(cache.resourcePath) is 0
+      return resolvedPath if satisfies(version, range)
 
   undefined
 
@@ -138,14 +139,16 @@ exports.create = (modulePath) ->
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
   undefined
 
-exports.register = ->
+exports.register = (resourcePath) ->
   return if cache.registered
 
   originalResolveFilename = Module._resolveFilename
   Module._resolveFilename = (relativePath, parentModule) ->
     resolvedPath = getCachedModulePath(relativePath, parentModule)
     resolvedPath ? originalResolveFilename(relativePath, parentModule)
+
   cache.registered = true
+  cache.resourcePath = resourcePath
 
   undefined
 

@@ -18,8 +18,8 @@ window.onload = function() {
     require('../src/coffee-cache').register();
 
     ModuleCache = require('../src/module-cache');
+    ModuleCache.register(loadSettings.resourcePath);
     ModuleCache.add(loadSettings.resourcePath);
-    ModuleCache.register();
 
     require(loadSettings.bootstrapScript);
     ipc.sendChannel('window-command', 'window:loaded')
