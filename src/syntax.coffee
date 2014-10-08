@@ -40,6 +40,7 @@ class Syntax extends GrammarRegistry
     atom.config.scopedSettingsStore
 
   addProperties: (args...) ->
+    args.unshift(null) if args.length == 2
     deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedSettings().'
     atom.config.addScopedSettings(args...)
 

@@ -3,7 +3,7 @@ EmitterMixin = require('emissary').Emitter
 guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
@@ -45,7 +45,6 @@ class DisplayBuffer extends Model
 
     @emitter = new Emitter
 
-    @softWrapped ?= atom.config.get('editor.softWrap') ? false
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
@@ -55,17 +54,27 @@ class DisplayBuffer extends Model
     @decorationsByMarkerId = {}
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
+    @subscribe @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
 
-    @subscribe atom.config.onDidChange 'editor.preferredLineLength', =>
-      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength')
+    @updateAllScreenLines()
 
-    @subscribe atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', =>
+  subscribeToScopedConfigSettings: =>
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
+
+    scopeDescriptor = @getRootScopeDescriptor()
+
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
+      @updateWrappedScreenLines()
+
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', =>
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    @updateAllScreenLines()
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', =>
+      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
 
   serializeParams: ->
     id: @id
@@ -319,7 +328,7 @@ class DisplayBuffer extends Model
     return 0 unless lineHeight > 0
 
     scrollHeight = @getLineCount() * lineHeight
-    if @height? and atom.config.get('editor.scrollPastEnd')
+    if @height? and atom.config.get(@getRootScopeDescriptor(), 'editor.scrollPastEnd')
       scrollHeight = scrollHeight + @height - (lineHeight * 3)
 
     scrollHeight
@@ -412,11 +421,15 @@ class DisplayBuffer extends Model
     if softWrapped isnt @softWrapped
       @softWrapped = softWrapped
       @updateWrappedScreenLines()
-      @emit 'soft-wrap-changed', @softWrapped
-      @emitter.emit 'did-change-soft-wrapped', @softWrapped
-    @softWrapped
+      softWrapped = @isSoftWrapped()
+      @emit 'soft-wrap-changed', softWrapped
+      @emitter.emit 'did-change-soft-wrapped', softWrapped
+      softWrapped
+    else
+      @isSoftWrapped()
 
-  isSoftWrapped: -> @softWrapped
+  isSoftWrapped: ->
+    @softWrapped ? atom.config.get(@getRootScopeDescriptor(), 'editor.softWrap') ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -438,8 +451,8 @@ class DisplayBuffer extends Model
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.get('editor.preferredLineLength'))
+    if atom.config.get(@getRootScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
+      Math.min(@getEditorWidthInChars(), atom.config.get(@getRootScopeDescriptor(), 'editor.preferredLineLength'))
     else
       @getEditorWidthInChars()
 
@@ -1033,6 +1046,9 @@ class DisplayBuffer extends Model
     for row in [start..end]
       line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
+
+  getRootScopeDescriptor: ->
+    @tokenizedBuffer.grammarScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange

@@ -1259,7 +1259,6 @@ describe "TextEditor", ->
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'var'
 
-
       describe "when the cursor is inside a region of whitespace", ->
         it "selects the whitespace region", ->
           editor.setCursorScreenPosition([5, 2])
@@ -1276,6 +1275,29 @@ describe "TextEditor", ->
           editor.moveToBottom()
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
+
+      describe 'when editor.nonWordCharacters is set scoped to a grammar', ->
+        coffeeEditor = null
+        beforeEach ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-coffee-script')
+          waitsForPromise ->
+            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+        it 'selects the correct surrounding word for the given scoped setting', ->
+          coffeeEditor.setCursorBufferPosition [0, 9] # in the middle of quicksort
+          coffeeEditor.selectWordsContainingCursors()
+          expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 6], [0, 15]]
+
+          atom.config.set '.source.coffee', 'editor.nonWordCharacters', 'qusort'
+
+          coffeeEditor.setCursorBufferPosition [0, 9]
+          coffeeEditor.selectWordsContainingCursors()
+          expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 8], [0, 11]]
+
+          editor.setCursorBufferPosition [0, 7]
+          editor.selectWordsContainingCursors()
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 13]]
 
     describe ".selectToFirstCharacterOfLine()", ->
       it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
@@ -3038,6 +3060,51 @@ describe "TextEditor", ->
         atom.workspace.open(null, softTabs: false).then (editor) ->
           expect(editor.getSoftTabs()).toBeFalsy()
 
+  describe '.getTabLength()', ->
+    describe 'when scoped settings are used', ->
+      coffeeEditor = null
+      beforeEach ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+        waitsForPromise ->
+          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+      afterEach: ->
+        atom.packages.deactivatePackages()
+        atom.packages.unloadPackages()
+
+      it 'returns correct values based on the scope of the set grammars', ->
+        atom.config.set '.source.coffee', 'editor.tabLength', 6
+
+        expect(editor.getTabLength()).toBe 2
+        expect(coffeeEditor.getTabLength()).toBe 6
+
+      it 'retokenizes when the tab length is updated via .setTabLength()', ->
+        expect(editor.getTabLength()).toBe 2
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+
+        editor.setTabLength(6)
+        expect(editor.getTabLength()).toBe 6
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+
+      it 'retokenizes when the editor.tabLength setting is updated', ->
+        expect(editor.getTabLength()).toBe 2
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+
+        atom.config.set '.source.js', 'editor.tabLength', 6
+        expect(editor.getTabLength()).toBe 6
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+
+      it 'updates the tab length when the grammar changes', ->
+        atom.config.set '.source.coffee', 'editor.tabLength', 6
+
+        expect(editor.getTabLength()).toBe 2
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+
+        editor.setGrammar(coffeeEditor.getGrammar())
+        expect(editor.getTabLength()).toBe 6
+        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->
       expect(editor.indentLevelForLine("    hello")).toBe(2)
@@ -3077,14 +3144,15 @@ describe "TextEditor", ->
         expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
   describe "auto-indent", ->
-    copyText = (text, {startColumn}={}) ->
+    copyText = (text, {startColumn, textEditor}={}) ->
       startColumn ?= 0
-      editor.setCursorBufferPosition([0, 0])
-      editor.insertText(text)
+      textEditor ?= editor
+      textEditor.setCursorBufferPosition([0, 0])
+      textEditor.insertText(text)
       numberOfNewlines = text.match(/\n/g)?.length
       endColumn = text.match(/[^\n]*$/)[0]?.length
-      editor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
-      editor.cutSelectedText()
+      textEditor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
+      textEditor.cutSelectedText()
 
     describe "editor.autoIndent", ->
       describe "when editor.autoIndent is false (default)", ->
@@ -3191,6 +3259,31 @@ describe "TextEditor", ->
             editor.insertText('foo')
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
+      describe 'when scoped settings are used', ->
+        coffeeEditor = null
+        beforeEach ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-coffee-script')
+          waitsForPromise ->
+            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+          runs ->
+            atom.config.set('.source.js', 'editor.autoIndent', true)
+            atom.config.set('.source.coffee', 'editor.autoIndent', false)
+
+        afterEach: ->
+          atom.packages.deactivatePackages()
+          atom.packages.unloadPackages()
+
+        it "does not auto-indent the line for javascript files", ->
+          editor.setCursorBufferPosition([1, 30])
+          editor.insertText("\n")
+          expect(editor.lineTextForBufferRow(2)).toBe "    "
+
+          coffeeEditor.setCursorBufferPosition([1, 18])
+          coffeeEditor.insertText("\n")
+          expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
+
     describe "editor.normalizeIndentOnPaste", ->
       beforeEach ->
         atom.config.set('editor.normalizeIndentOnPaste', true)
@@ -3240,6 +3333,37 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(3)).toBe "  }"
             expect(editor.lineTextForBufferRow(4)).toBe ""
 
+      describe 'when scoped settings are used', ->
+        coffeeEditor = null
+        beforeEach ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-coffee-script')
+          waitsForPromise ->
+            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+          runs ->
+            atom.config.set('.source.js', 'editor.normalizeIndentOnPaste', true)
+            atom.config.set('.source.coffee', 'editor.normalizeIndentOnPaste', false)
+
+        afterEach: ->
+          atom.packages.deactivatePackages()
+          atom.packages.unloadPackages()
+
+        it "normalizes the indentation level based on scoped settings", ->
+          copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2, textEditor: coffeeEditor})
+          coffeeEditor.setCursorBufferPosition([4, 4])
+          coffeeEditor.pasteText()
+          expect(coffeeEditor.lineTextForBufferRow(4)).toBe "      while (true) {"
+          expect(coffeeEditor.lineTextForBufferRow(5)).toBe "      foo();"
+          expect(coffeeEditor.lineTextForBufferRow(6)).toBe "    }"
+
+          copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2})
+          editor.setCursorBufferPosition([3, 4])
+          editor.pasteText()
+          expect(editor.lineTextForBufferRow(3)).toBe "    while (true) {"
+          expect(editor.lineTextForBufferRow(4)).toBe "      foo();"
+          expect(editor.lineTextForBufferRow(5)).toBe "    }"
+
     it "autoIndentSelectedRows auto-indents the selection", ->
       editor.setCursorBufferPosition([2, 0])
       editor.insertText("function() {\ninside=true\n}\n  i=1\n")
@@ -3252,19 +3376,24 @@ describe "TextEditor", ->
       expect(editor.lineTextForBufferRow(5)).toBe "    i=1"
 
   describe "soft and hard tabs", ->
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
     it "resets the tab style when tokenization is complete", ->
       editor.destroy()
-      atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
-      expect(editor.softTabs).toBe true
+
+      waitsForPromise ->
+        atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+
+      runs ->
+        expect(editor.softTabs).toBe true
 
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
 
       runs ->
         expect(editor.softTabs).toBe false
-
-        atom.packages.deactivatePackage('language-coffee-script')
-        atom.packages.unloadPackage('language-coffee-script')
 
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
