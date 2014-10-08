@@ -2344,7 +2344,7 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
 
-      it "re-renders the invisibles for the when the invisible settings change", ->
+      it "re-renders the invisibles when the invisible settings change", ->
         jsGrammar = editor.getGrammar()
         editor.setGrammar(coffeeEditor.getGrammar())
         atom.config.set '.source.coffee', 'editor.showInvisibles', true

@@ -3038,7 +3038,7 @@ describe "TextEditor", ->
         atom.workspace.open(null, softTabs: false).then (editor) ->
           expect(editor.getSoftTabs()).toBeFalsy()
 
-  describe '.getTabLength(scopeDescriptor)', ->
+  describe '.getTabLength()', ->
     describe 'when scoped settings are used', ->
       coffeeEditor = null
       beforeEach ->
@@ -3061,7 +3061,7 @@ describe "TextEditor", ->
         coffeeEditor.setCursorBufferPosition [0, 10]
         expect(coffeeEditor.getTabLength(coffeeEditor.scopesAtCursor())).toBe 4
 
-      it 'will retokenize when the tab length is updated via .setTabLength()', ->
+      it 'retokenizes when the tab length is updated via .setTabLength()', ->
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
 
@@ -3069,7 +3069,7 @@ describe "TextEditor", ->
         expect(editor.getTabLength()).toBe 6
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
 
-      it 'will retokenize when the editor.tabLength setting is updated', ->
+      it 'retokenizes when the editor.tabLength setting is updated', ->
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
 
@@ -3077,7 +3077,7 @@ describe "TextEditor", ->
         expect(editor.getTabLength()).toBe 6
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
 
-      it 'will update the tab length when the grammar changes', ->
+      it 'updates the tab length when the grammar changes', ->
         atom.config.set '.source.coffee', 'editor.tabLength', 6
 
         expect(editor.getTabLength()).toBe 2
