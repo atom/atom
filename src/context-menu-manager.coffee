@@ -42,7 +42,7 @@ class ContextMenuManager
   #
   # ```coffee
   # atom.contextMenu.add {
-  #   '.workspace': [{label: 'Help', command: 'application:open-documentation'}]
+  #   'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
   #   '.editor':    [{
   #     label: 'History',
   #     submenu: [
@@ -161,7 +161,7 @@ class ContextMenuManager
   clear: ->
     @activeElement = null
     @itemSets = []
-    @add '.workspace': [{
+    @add 'atom-workspace': [{
       label: 'Inspect Element'
       command: 'application:inspect'
       devMode: true

@@ -63,14 +63,14 @@ class MenuManager
       # Selector isn't valid
       return false
 
-    # Simulate an .editor element attached to a .workspace element attached to
-    # a body element that has the same classes as the current body element.
+    # Simulate an .editor element attached to a atom-workspace element attached
+    # to a body element that has the same classes as the current body element.
     unless @testEditor?
       testBody = document.createElement('body')
       testBody.classList.add(@classesForElement(document.body)...)
 
       testWorkspace = document.createElement('div')
-      workspaceClasses = @classesForElement(document.body.querySelector('.workspace'))
+      workspaceClasses = @classesForElement(document.body.querySelector('atom-workspace'))
       workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
 

@@ -134,7 +134,7 @@
   'cmd-l': 'editor:select-line'
   'ctrl-t': 'editor:transpose'
 
-'.workspace .editor:not(.mini)':
+'atom-workspace .editor:not(.mini)':
   # Atom specific
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'

@@ -79,7 +79,7 @@
   'alt-8': 'pane:show-item-8'
   'alt-9': 'pane:show-item-9'
 
-'.workspace .editor':
+'atom-workspace .editor':
   # Platform Bindings
   'ctrl-left': 'editor:move-to-beginning-of-word'
   'ctrl-right': 'editor:move-to-end-of-word'
@@ -99,7 +99,7 @@
   'ctrl-k ctrl-l': 'editor:lower-case'
   'ctrl-l': 'editor:select-line'
 
-'.workspace .editor:not(.mini)':
+'atom-workspace .editor:not(.mini)':
   # Atom specific
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'
