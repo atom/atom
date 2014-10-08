@@ -6,6 +6,7 @@ semver = require 'semver'
 nativeModules = process.binding('natives')
 
 cache =
+  debug: true
   dependencies: {}
   folders: {}
   ranges: {}
@@ -101,22 +102,21 @@ getCachedModulePath = (relativePath, parentModule) ->
 
   undefined
 
-debug = false
-if debug
-  global.loadCount = 0
-  global.requireTime = 0
+if cache.debug
+  cache.loadCount = 0
+  cache.requireTime = 0
   global.moduleCache = cache
 
   originalLoad = Module::load
   Module::load = ->
-    global.loadCount++
+    cache.loadCount++
     originalLoad.apply(this, arguments)
 
   originalRequire = Module::require
   Module::require = ->
     startTime = Date.now()
     exports = originalRequire.apply(this, arguments)
-    global.requireTime += Date.now() - startTime
+    cache.requireTime += Date.now() - startTime
     exports
 
 exports.create = (modulePath) ->
