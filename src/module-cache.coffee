@@ -120,6 +120,7 @@ if cache.debug
     exports
 
 exports.create = (modulePath) ->
+  modulePath = fs.realpathSync(modulePath)
   metadataPath = path.join(modulePath, 'package.json')
   metadata = JSON.parse(fs.readFileSync(metadataPath))
 
