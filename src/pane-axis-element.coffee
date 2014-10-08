@@ -17,9 +17,9 @@ class PaneAxisElement extends HTMLElement
 
     switch @model.getOrientation()
       when 'horizontal'
-        @classList.add('pane-row')
+        @classList.add('horizontal', 'pane-row')
       when 'vertical'
-        @classList.add('pane-column')
+        @classList.add('vertical', 'pane-column')
 
   childAdded: ({child, index}) ->
     view = @model.getView(child)
@@ -39,6 +39,4 @@ class PaneAxisElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-module.exports = PaneAxisElement = document.registerElement 'atom-pane-axis',
-  prototype: PaneAxisElement.prototype
-  extends: 'div'
+module.exports = PaneAxisElement = document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype

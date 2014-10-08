@@ -28,14 +28,14 @@ h6 {
   background-color: @app-background-color;
   font-family: @font-family;
 
-  .horizontal {
+  > .horizontal {
     display: -webkit-flex;
     height: 100%;
-  }
 
-  .vertical {
-    display: -webkit-flex;
-    -webkit-flex: 1;
-    -webkit-flex-flow: column;
+    > .vertical {
+      display: -webkit-flex;
+      -webkit-flex: 1;
+      -webkit-flex-flow: column;
+    }
   }
 }

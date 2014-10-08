@@ -289,7 +289,7 @@ describe "PaneView", ->
       expect(paneModel.isActive()).toBe true
 
   describe "when a pane is split", ->
-    it "builds the appropriate pane-row and pane-column views", ->
+    it "builds the appropriateatom-pane-axis.horizontal and pane-column views", ->
       pane1 = pane
       pane1Model = pane.getModel()
       pane.activateItem(editor1)
@@ -300,11 +300,11 @@ describe "PaneView", ->
       pane2 = containerModel.getView(pane2Model).__spacePenView
       pane3 = containerModel.getView(pane3Model).__spacePenView
 
-      expect(container.find('> .pane-row > atom-pane').toArray()).toEqual [pane1[0]]
-      expect(container.find('> .pane-row > .pane-column > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> atom-pane-axis.horizontal > atom-pane').toArray()).toEqual [pane1[0]]
+      expect(container.find('> atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
       pane1Model.destroy()
-      expect(container.find('> .pane-column > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
   describe "serialization", ->
     it "focuses the pane after attach only if had focus when serialized", ->
