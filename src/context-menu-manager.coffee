@@ -117,7 +117,7 @@ class ContextMenuManager
           if typeof item.shouldDisplay is 'function'
             continue unless item.shouldDisplay(event)
           item.created?(event)
-          MenuHelpers.merge(currentTargetItems, MenuHelpers.cloneMenuItem(item), itemSet.specificity)
+          MenuHelpers.merge(currentTargetItems, item, itemSet.specificity)
 
       for item in currentTargetItems
         MenuHelpers.merge(template, item, false)
