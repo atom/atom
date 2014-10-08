@@ -1259,7 +1259,6 @@ describe "TextEditor", ->
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedText()).toBe 'var'
 
-
       describe "when the cursor is inside a region of whitespace", ->
         it "selects the whitespace region", ->
           editor.setCursorScreenPosition([5, 2])
@@ -1276,6 +1275,29 @@ describe "TextEditor", ->
           editor.moveToBottom()
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
+
+      describe 'when editor.nonWordCharacters is set scoped to a grammar', ->
+        coffeeEditor = null
+        beforeEach ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-coffee-script')
+          waitsForPromise ->
+            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+        it 'selects the correct surrounding word for the given scoped setting', ->
+          coffeeEditor.setCursorBufferPosition [0, 9] # in the middle of quicksort
+          coffeeEditor.selectWordsContainingCursors()
+          expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 6], [0, 15]]
+
+          atom.config.set '.source.coffee', 'editor.nonWordCharacters', 'qusort'
+
+          coffeeEditor.setCursorBufferPosition [0, 9]
+          coffeeEditor.selectWordsContainingCursors()
+          expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 8], [0, 11]]
+
+          editor.setCursorBufferPosition [0, 7]
+          editor.selectWordsContainingCursors()
+          expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 13]]
 
     describe ".selectToFirstCharacterOfLine()", ->
       it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
@@ -3327,7 +3349,7 @@ describe "TextEditor", ->
           atom.packages.deactivatePackages()
           atom.packages.unloadPackages()
 
-        it "does not normalize the indentation level for coffee files, but does for js files", ->
+        it "normalizes the indentation level based on scoped settings", ->
           copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2, textEditor: coffeeEditor})
           coffeeEditor.setCursorBufferPosition([4, 4])
           coffeeEditor.pasteText()
@@ -3793,32 +3815,3 @@ describe "TextEditor", ->
       editor.setPlaceholderText('OK')
       expect(handler).toHaveBeenCalledWith 'OK'
       expect(editor.getPlaceholderText()).toBe 'OK'
-
-  describe '.selectWordsContainingCursors()', ->
-    it 'selects the word containing the cursor', ->
-      editor.setCursorBufferPosition [0, 7] # in the middle of quicksort
-      editor.selectWordsContainingCursors()
-      expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 13]]
-
-    describe 'when editor.nonWordCharacters is set scoped to editor.coffee', ->
-      coffeeEditor = null
-      beforeEach ->
-        waitsForPromise ->
-          atom.packages.activatePackage('language-coffee-script')
-        waitsForPromise ->
-          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
-
-      it 'selects to the bounds set by the new config in coffee files, but not in js files', ->
-        coffeeEditor.setCursorBufferPosition [0, 9] # in the middle of quicksort
-        coffeeEditor.selectWordsContainingCursors()
-        expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 6], [0, 15]]
-
-        atom.config.set '.source.coffee', 'editor.nonWordCharacters', 'qusort'
-
-        coffeeEditor.setCursorBufferPosition [0, 9]
-        coffeeEditor.selectWordsContainingCursors()
-        expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 8], [0, 11]]
-
-        editor.setCursorBufferPosition [0, 7]
-        editor.selectWordsContainingCursors()
-        expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 13]]
