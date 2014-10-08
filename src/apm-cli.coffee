@@ -24,7 +24,6 @@ setupTempDirectory()
 commandClasses = [
   require './clean'
   require './dedupe'
-  require './dedupe-package-modules'
   require './develop'
   require './docs'
   require './featured'
