@@ -3051,15 +3051,11 @@ describe "TextEditor", ->
         atom.packages.deactivatePackages()
         atom.packages.unloadPackages()
 
-      it 'will return correct values based on the scope of the set grammars', ->
+      it 'returns correct values based on the scope of the set grammars', ->
         atom.config.set '.source.coffee', 'editor.tabLength', 6
-        atom.config.set '.source.coffee .class', 'editor.tabLength', 4
 
         expect(editor.getTabLength()).toBe 2
         expect(coffeeEditor.getTabLength()).toBe 6
-
-        coffeeEditor.setCursorBufferPosition [0, 10]
-        expect(coffeeEditor.getTabLength(coffeeEditor.scopesAtCursor())).toBe 4
 
       it 'retokenizes when the tab length is updated via .setTabLength()', ->
         expect(editor.getTabLength()).toBe 2
