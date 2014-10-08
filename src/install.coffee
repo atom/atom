@@ -394,8 +394,9 @@ class Install extends Command
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
 
     config.getResourcePath (resourcePath) ->
-      ModuleCache = require(path.join(resourcePath, 'src', 'module-cache'))
-      ModuleCache.create(packageDirectory)
+      try
+        ModuleCache = require(path.join(resourcePath, 'src', 'module-cache'))
+        ModuleCache.create(packageDirectory)
       callback()
 
   isBundledPackage: (packageName, callback) ->
