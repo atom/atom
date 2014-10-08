@@ -162,9 +162,10 @@ class Package
     @stylesheetsActivated = true
 
   activateResources: ->
-    atom.keymaps.add(keymapPath, map) for [keymapPath, map] in @keymaps
-    atom.contextMenu.add(map['context-menu']) for [menuPath, map] in @menus
-    atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
+    @activationDisposables = new CompositeDisposable
+    @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus
+    @activationDisposables.add(atom.menu.add(map.menu)) for [menuPath, map] in @menus when map.menu
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
@@ -294,8 +295,8 @@ class Package
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
     scopedProperties.deactivate() for scopedProperties in @scopedProperties
-    atom.keymaps.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    @activationDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
     @scopedPropertiesActivated = false
