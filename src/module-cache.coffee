@@ -9,6 +9,7 @@ cache =
   dependencies: {}
   folders: {}
   ranges: {}
+  registered: false
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   for childPath in fs.listSync(path.join(modulePath, 'node_modules'))
@@ -134,15 +135,14 @@ exports.create = (modulePath) ->
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
   undefined
 
-registered = false
 exports.register = ->
-  return if registered
+  return if cache.registered
 
   originalResolveFilename = Module._resolveFilename
   Module._resolveFilename = (relativePath, parentModule) ->
     resolvedPath = getCachedModulePath(relativePath, parentModule)
     resolvedPath ? originalResolveFilename(relativePath, parentModule)
-  registered = true
+  cache.registered = true
 
   undefined
 
