@@ -71,9 +71,7 @@ elif [ $OS == 'Linux' ]; then
   ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
   DOT_ATOM_DIR="$HOME/.atom"
 
-  if [ ! -d "$DOT_ATOM_DIR" ]; then
-    mkdir -p "$DOT_ATOM_DIR"
-  fi
+  mkdir -p "$DOT_ATOM_DIR"
 
   : ${TMPDIR:=/tmp}
 
