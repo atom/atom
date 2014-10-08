@@ -153,7 +153,7 @@ module.exports = (grunt) ->
       fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
       fs.writeFileSync path.join(shellAppDir, 'atom.exe.gui'), ''
 
-    dependencies = ['compile', "generate-license:save"]
+    dependencies = ['compile', 'generate-license:save', 'generate-module-cache']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
     grunt.task.run(dependencies...)
