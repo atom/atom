@@ -39,7 +39,7 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
       loadDependencies(childPath, rootPath, rootMetadata, moduleCache)
 
-  undefined
+  return
 
 loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
   metadataPath = path.join(modulePath, 'package.json')
@@ -74,7 +74,7 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
     loadFolderCompatibility(childPath, rootPath, rootMetadata, moduleCache)
 
-  undefined
+  return
 
 satisfies = (version, rawRange) ->
   unless parsedRange = cache.ranges[rawRange]
@@ -103,7 +103,7 @@ getCachedModulePath = (relativePath, parentModule) ->
     if Module._cache.hasOwnProperty(resolvedPath) or resolvedPath.indexOf(cache.resourcePath) is 0
       return resolvedPath if satisfies(version, range)
 
-  undefined
+  return
 
 if cache.debug
   cache.loadCount = 0
@@ -137,7 +137,8 @@ exports.create = (modulePath) ->
 
   metadata._atomModuleCache = moduleCache
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
-  undefined
+
+  return
 
 exports.register = (resourcePath) ->
   return if cache.registered
@@ -150,7 +151,7 @@ exports.register = (resourcePath) ->
   cache.registered = true
   cache.resourcePath = resourcePath
 
-  undefined
+  return
 
 exports.add = (directoryPath, metadata) ->
   unless metadata?
@@ -168,6 +169,6 @@ exports.add = (directoryPath, metadata) ->
     for folderPath in entry.paths
       cache.folders[path.join(directoryPath, folderPath)] = entry.dependencies
 
-  undefined
+  return
 
 exports.cache = cache
