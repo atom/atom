@@ -186,8 +186,6 @@ class CommandRegistry
       @selectorBasedListenersByCommandName[commandName] = listeners.slice()
 
   handleCommandEvent: (originalEvent) =>
-    originalEvent.__handledByCommandRegistry = true
-
     propagationStopped = false
     immediatePropagationStopped = false
     matched = false
