@@ -397,7 +397,7 @@ class Install extends Command
       try
         ModuleCache = require(path.join(resourcePath, 'src', 'module-cache'))
         ModuleCache.create(packageDirectory)
-      callback()
+      callback(null)
 
   isBundledPackage: (packageName, callback) ->
     @getResourcePath (resourcePath) ->
