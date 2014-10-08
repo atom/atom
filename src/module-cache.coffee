@@ -3,6 +3,11 @@ path = require 'path'
 fs = require 'fs-plus'
 semver = require 'semver'
 
+# Make sure CoffeeScript is required when this file is required directly
+# by apm
+unless require.extensions['.coffee']
+  require('coffee-script').register()
+
 nativeModules = process.binding('natives')
 
 cache =
