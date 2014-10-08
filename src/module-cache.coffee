@@ -51,7 +51,6 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
       new semver.Range(version)
     catch error
       delete dependencies[name]
-      console.log "Ignoring invalid range: #{name} #{version}"
 
   onDirectory = (childPath) ->
     path.basename(childPath) isnt 'node_modules'
