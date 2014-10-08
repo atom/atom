@@ -73,7 +73,7 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
   undefined
 
-exports.generateDependencies = (modulePath) ->
+exports.create = (modulePath) ->
   metadataPath = path.join(modulePath, 'package.json')
   metadata = JSON.parse(fs.readFileSync(metadataPath))
 

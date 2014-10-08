@@ -6,6 +6,6 @@ module.exports = (grunt) ->
     {packageDependencies} = grunt.file.readJSON('package.json')
 
     for packageName, version of packageDependencies
-      ModuleCache.generateDependencies(path.join(process.cwd(), 'node_modules', packageName))
+      ModuleCache.create(path.join(process.cwd(), 'node_modules', packageName))
 
-    ModuleCache.generateDependencies(process.cwd())
+    ModuleCache.create(process.cwd())
