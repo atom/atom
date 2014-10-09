@@ -16,7 +16,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### Ubuntu / Debian
 
-* `sudo apt-get install build-essential git libgnome-keyring-dev`
+* `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
 
 ### Fedora
