@@ -1,5 +1,4 @@
 window.onload = function() {
-  var ipc = require('ipc');
   try {
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
@@ -22,7 +21,7 @@ window.onload = function() {
     ModuleCache.add(loadSettings.resourcePath);
 
     require(loadSettings.bootstrapScript);
-    ipc.sendChannel('window-command', 'window:loaded')
+    require('ipc').sendChannel('window-command', 'window:loaded')
   }
   catch (error) {
     var currentWindow = require('remote').getCurrentWindow();
