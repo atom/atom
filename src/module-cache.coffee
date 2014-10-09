@@ -1,8 +1,6 @@
 Module = require 'module'
 path = require 'path'
-
-fs = null     # Defer so the cache is used
-semver = null # Defer so the cache is used
+semver = require 'semver'
 
 nativeModules = process.binding('natives')
 
@@ -16,10 +14,6 @@ cache =
   registered: false
   resourcePath: null
 
-requireDependencies = ->
-  fs ?= require 'fs-plus'
-  semver ?= require 'semver'
-
 # isAbsolute is inlined from fs-plus so that fs-plust itself can be required
 # from this cache.
 if process.platform is 'win32'
@@ -30,6 +24,8 @@ else
     pathToCheck and pathToCheck[0] is '/'
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
+  fs = require 'fs-plus'
+
   for childPath in fs.listSync(path.join(modulePath, 'node_modules'))
     continue if path.basename(childPath) is '.bin'
     continue if rootPath is modulePath and rootMetadata.packageDependencies?.hasOwnProperty(path.basename(childPath))
@@ -53,6 +49,8 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   return
 
 loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
+  fs = require 'fs-plus'
+
   metadataPath = path.join(modulePath, 'package.json')
   return unless fs.isFileSync(metadataPath)
 
@@ -186,7 +184,7 @@ if cache.debug
     foundPath
 
 exports.create = (modulePath) ->
-  requireDependencies()
+  fs = require 'fs-plus'
 
   modulePath = fs.realpathSync(modulePath)
   metadataPath = path.join(modulePath, 'package.json')
