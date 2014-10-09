@@ -22,8 +22,12 @@ class TextEditorElement extends HTMLElement
     @addEventListener 'blur', @blurred.bind(this)
 
   initializeContent: (attributes) ->
-    @classList.add('editor', 'react', 'editor-colors')
+    @classList.add('editor')
     @setAttribute('tabindex', -1)
+    @shadowRoot = @createShadowRoot()
+    @root = document.createElement('div')
+    @root.classList.add('editor', 'editor-colors')
+    @shadowRoot.appendChild(@root)
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
@@ -69,7 +73,7 @@ class TextEditorElement extends HTMLElement
       mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin
     )
-    @component = React.renderComponent(@componentDescriptor, this)
+    @component = React.renderComponent(@componentDescriptor, @root)
 
   unmountComponent: ->
     return unless @component?.isMounted()

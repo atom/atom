@@ -2,8 +2,9 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
-atom-text-editor.react {
-  .editor-contents {
+atom-text-editor::shadow {
+  .editor, .editor-contents {
+    height: 100%;
     width: 100%;
   }
 
@@ -85,7 +86,7 @@ atom-text-editor.react {
   }
 }
 
-atom-text-editor.mini {
+atom-text-editor.mini::shadow {
   font-size: @input-font-size;
   line-height: @component-line-height;
   max-height: @component-line-height + 2; // +2 for borders
@@ -96,13 +97,13 @@ atom-text-editor.mini {
   }
 }
 
-atom-text-editor {
+atom-text-editor::shadow {
   z-index: 0;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   line-height: 1.3;
 }
 
-atom-text-editor, .editor-contents {
+atom-text-editor::shadow, atom-text-editor::shadow .editor-contents {
   overflow: hidden;
   cursor: text;
   display: -webkit-flex;
@@ -110,11 +111,11 @@ atom-text-editor, .editor-contents {
   position: relative;
 }
 
-atom-text-editor .gutter .line-number.cursor-line {
+atom-text-editor::shadow .gutter .line-number.cursor-line {
   opacity: 1;
 }
 
-atom-text-editor .gutter {
+atom-text-editor::shadow .gutter {
   overflow: hidden;
   text-align: right;
   cursor: default;
@@ -122,20 +123,20 @@ atom-text-editor .gutter {
   box-sizing: border-box;
 }
 
-atom-text-editor .gutter .line-number {
+atom-text-editor::shadow .gutter .line-number {
   padding-left: .5em;
   opacity: 0.6;
 }
 
-atom-text-editor .gutter .line-numbers {
+atom-text-editor::shadow .gutter .line-numbers {
   position: relative;
 }
 
-atom-text-editor .gutter .line-number.folded.cursor-line {
+atom-text-editor::shadow .gutter .line-number.folded.cursor-line {
   opacity: 1;
 }
 
-atom-text-editor .gutter .line-number .icon-right {
+atom-text-editor::shadow .gutter .line-number .icon-right {
   .octicon(chevron-down, 0.8em);
   display: inline-block;
   visibility: hidden;
@@ -144,7 +145,7 @@ atom-text-editor .gutter .line-number .icon-right {
   opacity: .6;
 }
 
-atom-text-editor .gutter:hover .line-number.foldable .icon-right {
+atom-text-editor::shadow .gutter:hover .line-number.foldable .icon-right {
   visibility: visible;
 
   &:before {
@@ -156,7 +157,7 @@ atom-text-editor .gutter:hover .line-number.foldable .icon-right {
   }
 }
 
-atom-text-editor .gutter, atom-text-editor .gutter:hover {
+atom-text-editor::shadow .gutter, atom-text-editor::shadow .gutter:hover {
   .line-number.folded .icon-right {
     .octicon(chevron-right, 0.8em);
     visibility: visible;
@@ -169,40 +170,40 @@ atom-text-editor .gutter, atom-text-editor .gutter:hover {
   }
 }
 
-atom-text-editor .fold-marker {
+atom-text-editor::shadow .fold-marker {
   cursor: default;
 }
 
-atom-text-editor .fold-marker:after {
+atom-text-editor::shadow .fold-marker:after {
   .icon(0.8em, inline);
   content: @ellipsis;
   padding-left: 0.2em;
 }
 
-atom-text-editor .line.cursor-line .fold-marker:after {
+atom-text-editor::shadow .line.cursor-line .fold-marker:after {
   opacity: 1;
 }
 
-atom-text-editor.is-blurred .line.cursor-line {
+atom-text-editor::shadow.is-blurred .line.cursor-line {
   background: rgba(0, 0, 0, 0);
 }
 
-atom-text-editor .invisible-character {
+atom-text-editor::shadow .invisible-character {
   font-weight: normal !important;
   font-style: normal !important;
 }
 
-atom-text-editor .indent-guide {
+atom-text-editor::shadow .indent-guide {
   display: inline-block;
   box-shadow: inset 1px 0;
 }
 
-atom-text-editor .vertical-scrollbar,
-atom-text-editor .horizontal-scrollbar {
+atom-text-editor::shadow .vertical-scrollbar,
+atom-text-editor::shadow .horizontal-scrollbar {
   cursor: default;
 }
 
-atom-text-editor .vertical-scrollbar {
+atom-text-editor::shadow .vertical-scrollbar {
   position: absolute;
   top: 0;
   right: 0;
@@ -213,7 +214,7 @@ atom-text-editor .vertical-scrollbar {
   z-index: 3;
 }
 
-atom-text-editor .scroll-view {
+atom-text-editor::shadow .scroll-view {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-flex: 1;
@@ -221,45 +222,45 @@ atom-text-editor .scroll-view {
   position: relative;
 }
 
-atom-text-editor.soft-wrap .scroll-view {
+atom-text-editor::shadow.soft-wrap .scroll-view {
   overflow-x: hidden;
 }
 
-atom-text-editor .underlayer {
+atom-text-editor::shadow .underlayer {
   z-index: 0;
   position: absolute;
   min-height: 100%;
 }
 
-atom-text-editor .lines {
+atom-text-editor::shadow .lines {
   position: relative;
   z-index: 1;
 }
 
-atom-text-editor .overlayer {
+atom-text-editor::shadow .overlayer {
   z-index: 2;
   position: absolute;
 }
 
-atom-text-editor .line {
+atom-text-editor::shadow .line {
   white-space: pre;
 }
 
-atom-text-editor .line span {
+atom-text-editor::shadow .line span {
   vertical-align: top;
 }
 
-atom-text-editor .cursor {
+atom-text-editor::shadow .cursor {
   position: absolute;
   border-left: 1px solid;
 }
 
-atom-text-editor .cursor,
-atom-text-editor.is-focused .cursor.blink-off {
+atom-text-editor::shadow .cursor,
+atom-text-editor::shadow.is-focused .cursor.blink-off {
   visibility: hidden;
 }
 
-atom-text-editor.is-focused .cursor {
+atom-text-editor::shadow.is-focused .cursor {
   visibility: visible;
 }
 
@@ -267,7 +268,7 @@ atom-text-editor.is-focused .cursor {
   display: none;
 }
 
-atom-text-editor .hidden-input {
+atom-text-editor::shadow .hidden-input {
   padding: 0;
   border: 0;
   position: absolute;
@@ -278,33 +279,14 @@ atom-text-editor .hidden-input {
   width: 1px;
 }
 
-atom-text-editor .highlight {
+atom-text-editor::shadow .highlight {
   background: none;
   padding: 0;
 }
 
-atom-text-editor .highlight .region,
-atom-text-editor .selection .region {
+atom-text-editor::shadow .highlight .region,
+atom-text-editor::shadow .selection .region {
   position: absolute;
   pointer-events: none;
   z-index: -1;
-}
-
-atom-text-editor.mini:not(.react) {
-  height: auto;
-  line-height: 25px;
-
-  .cursor {
-    width: 2px;
-    line-height: 20px;
-    margin-top: 2px;
-  }
-
-  .gutter {
-    display: none;
-  }
-
-  .scroll-view {
-    overflow: hidden;
-  }
 }
