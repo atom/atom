@@ -11,8 +11,8 @@ unless require.extensions['.coffee']
 nativeModules = process.binding('natives')
 
 cache =
-  debug: false
   builtins: {}
+  debug: false
   dependencies: {}
   extensions: {}
   folders: {}
