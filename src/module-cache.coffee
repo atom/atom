@@ -138,7 +138,7 @@ registerBuiltins = (devMode) ->
   atomShellRoot = path.resolve(window.location.pathname, '..', '..', '..', 'atom')
 
   commonRoot = path.join(atomShellRoot, 'common', 'api', 'lib')
-  commonBuiltins = ['callbacks-registry', 'screen', 'shell']
+  commonBuiltins = ['callbacks-registry', 'clipboard', 'screen', 'shell']
   for builtin in commonBuiltins
     cache.builtins[builtin] = path.join(commonRoot, "#{builtin}.js")
 
