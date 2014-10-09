@@ -102,8 +102,6 @@ resolveFilePath = (relativePath, parentModule) ->
   return
 
 resolveModulePath = (relativePath, parentModule) ->
-  return cache.atomExportsPath if relativePath is 'atom'
-
   return unless relativePath
   return unless parentModule?.id
 
@@ -115,7 +113,11 @@ resolveModulePath = (relativePath, parentModule) ->
   folderPath = path.dirname(parentModule.id)
 
   range = cache.folders[folderPath]?[relativePath]
-  return unless range?
+  unless range?
+    if relativePath is 'atom'
+      return cache.atomExportsPath
+    else
+      return
 
   candidates = cache.dependencies[relativePath]
   return unless candidates?
