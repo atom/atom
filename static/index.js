@@ -3,6 +3,11 @@ window.onload = function() {
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
+    // Require before the module cache in dev mode
+    if (loadSettings.devMode) {
+      require('coffee-script').register();
+    }
+
     ModuleCache = require('../src/module-cache');
     ModuleCache.register(loadSettings);
     ModuleCache.add(loadSettings.resourcePath);
@@ -17,7 +22,11 @@ window.onload = function() {
     });
 
     require('vm-compatibility-layer');
-    require('coffee-script').register();
+
+    if (!loadSettings.devMode) {
+      require('coffee-script').register();
+    }
+
     require('../src/coffee-cache').register();
 
     require(loadSettings.bootstrapScript);
