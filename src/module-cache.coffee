@@ -222,26 +222,29 @@ exports.register = ({resourcePath, devMode}={}) ->
   return
 
 exports.add = (directoryPath, metadata) ->
+  # path.join isn't used in this function for speed since path.join calls
+  # path.normalize and all the paths are already normalized here.
+
   unless metadata?
     try
-      metadata = require(path.join(directoryPath, 'package.json'))
+      metadata = require("#{directoryPath}#{path.sep}package.json")
     catch error
       return
 
   cacheToAdd = metadata?._atomModuleCache
   for dependency in cacheToAdd?.dependencies ? []
     cache.dependencies[dependency.name] ?= {}
-    cache.dependencies[dependency.name][dependency.version] ?= path.join(directoryPath, dependency.path)
+    cache.dependencies[dependency.name][dependency.version] ?= "#{directoryPath}#{path.sep}#{dependency.path}"
 
   for entry in cacheToAdd?.folders ? []
     for folderPath in entry.paths
-      cache.folders[path.join(directoryPath, folderPath)] = entry.dependencies
+      cache.folders["#{directoryPath}#{path.sep}#{folderPath}"] = entry.dependencies
 
   if directoryPath is cache.resourcePath
     for extension, paths of cacheToAdd?.extensions
       cache.extensions[extension] ?= new Set()
       for filePath in paths
-        cache.extensions[extension].add(path.join(directoryPath, filePath))
+        cache.extensions[extension].add("#{directoryPath}#{path.sep}#{filePath}")
 
   return
 
