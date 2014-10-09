@@ -215,7 +215,6 @@ exports.register = ({resourcePath, devMode}={}) ->
   cache.registered = true
   cache.resourcePath = resourcePath
   registerBuiltins(devMode)
-  requireDependencies()
 
   return
 
