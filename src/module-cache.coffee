@@ -142,7 +142,7 @@ registerBuiltins = (devMode) ->
   else
     cache.builtins.atom = path.join(cache.resourcePath, 'exports', 'atom.js')
 
-  atomShellRoot = path.resolve(window.location.pathname, '..', '..', '..', 'atom')
+  atomShellRoot = path.join(process.resourcesPath, 'atom')
 
   commonRoot = path.join(atomShellRoot, 'common', 'api', 'lib')
   commonBuiltins = ['callbacks-registry', 'clipboard', 'crash-reporter', 'screen', 'shell']
