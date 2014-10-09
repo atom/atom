@@ -3,6 +3,10 @@ window.onload = function() {
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
+    ModuleCache = require('../src/module-cache');
+    ModuleCache.register(loadSettings);
+    ModuleCache.add(loadSettings.resourcePath);
+
     // Start the crash reporter before anything else.
     require('crash-reporter').start({
       productName: 'Atom',
@@ -15,10 +19,6 @@ window.onload = function() {
     require('vm-compatibility-layer');
     require('coffee-script').register();
     require('../src/coffee-cache').register();
-
-    ModuleCache = require('../src/module-cache');
-    ModuleCache.register(loadSettings);
-    ModuleCache.add(loadSettings.resourcePath);
 
     require(loadSettings.bootstrapScript);
     require('ipc').sendChannel('window-command', 'window:loaded')
