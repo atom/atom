@@ -83,6 +83,23 @@ satisfies = (version, rawRange) ->
     cache.ranges[rawRange] = parsedRange
   parsedRange.test(version)
 
+resolveFilePath = (relativePath, parentModule) ->
+  return unless relativePath
+  return unless parentModule?.id
+  return if relativePath[relativePath.length - 1] is '/'
+
+  resolvedPath = path.resolve(path.dirname(parentModule.id), relativePath)
+  if resolvedPath.indexOf(cache.resourcePath) is 0
+    extension = path.extname(resolvedPath)
+    if extension
+      return resolvedPath if cache.extensions[extension]?.has(resolvedPath)
+    else
+      for extension, paths of cache.extensions
+        resolvedPathWithExtension = "#{resolvedPath}#{extension}"
+        return resolvedPathWithExtension if paths.has(resolvedPathWithExtension)
+
+  return
+
 getCachedModulePath = (relativePath, parentModule) ->
   return unless relativePath
   return unless parentModule?.id
@@ -129,6 +146,7 @@ if cache.debug
   Module._findPath = (request, paths) ->
     cacheKey = JSON.stringify({request, paths})
     cache.findPathCount++ unless Module._pathCache[cacheKey]
+
     startTime = Date.now()
     foundPath = originalFindPath.apply(global, arguments)
     cache.findPathTime += Date.now() - startTime
@@ -158,6 +176,7 @@ exports.register = (resourcePath) ->
   originalResolveFilename = Module._resolveFilename
   Module._resolveFilename = (relativePath, parentModule) ->
     resolvedPath = getCachedModulePath(relativePath, parentModule)
+    resolvedPath ?= resolveFilePath(relativePath, parentModule)
     resolvedPath ? originalResolveFilename(relativePath, parentModule)
 
   cache.registered = true
@@ -180,6 +199,12 @@ exports.add = (directoryPath, metadata) ->
   for entry in cacheToAdd?.folders ? []
     for folderPath in entry.paths
       cache.folders[path.join(directoryPath, folderPath)] = entry.dependencies
+
+  if directoryPath is cache.resourcePath
+    for extension, paths of cacheToAdd?.extensions
+      cache.extensions[extension] ?= new Set()
+      for filePath in paths
+        cache.extensions[extension].add(path.join(directoryPath, filePath))
 
   return
 
