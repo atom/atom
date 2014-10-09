@@ -100,7 +100,7 @@ resolveFilePath = (relativePath, parentModule) ->
 
   return
 
-getCachedModulePath = (relativePath, parentModule) ->
+resolveModulePath = (relativePath, parentModule) ->
   return unless relativePath
   return unless parentModule?.id
 
@@ -175,7 +175,7 @@ exports.register = (resourcePath) ->
 
   originalResolveFilename = Module._resolveFilename
   Module._resolveFilename = (relativePath, parentModule) ->
-    resolvedPath = getCachedModulePath(relativePath, parentModule)
+    resolvedPath = resolveModulePath(relativePath, parentModule)
     resolvedPath ?= resolveFilePath(relativePath, parentModule)
     resolvedPath ? originalResolveFilename(relativePath, parentModule)
 
