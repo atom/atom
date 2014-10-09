@@ -12,7 +12,7 @@ nativeModules = process.binding('natives')
 
 cache =
   debug: false
-  atomExportsPath: null
+  builtins: {}
   dependencies: {}
   extensions: {}
   folders: {}
@@ -114,8 +114,8 @@ resolveModulePath = (relativePath, parentModule) ->
 
   range = cache.folders[folderPath]?[relativePath]
   unless range?
-    if relativePath is 'atom'
-      return cache.atomExportsPath
+    if builtinPath = cache.builtins[relativePath]
+      return builtinPath
     else
       return
 
@@ -127,6 +127,24 @@ resolveModulePath = (relativePath, parentModule) ->
       return resolvedPath if satisfies(version, range)
 
   return
+
+registerBuiltins = (devMode) ->
+  if devMode
+    cache.builtins.atom = path.join(cache.resourcePath, 'exports', 'atom.coffee')
+  else
+    cache.builtins.atom = path.join(cache.resourcePath, 'exports', 'atom.js')
+
+  atomShellRoot = path.resolve(window.location.pathname, '..', '..', '..', 'atom')
+
+  commonRoot = path.join(atomShellRoot, 'common', 'api', 'lib')
+  commonBuiltins = ['callbacks-registry', 'screen', 'shell']
+  for builtin in commonBuiltins
+    cache.builtins[builtin] = path.join(commonRoot, "#{builtin}.js")
+
+  rendererRoot = path.join(atomShellRoot, 'renderer', 'api', 'lib')
+  rendererBuiltins = ['ipc', 'remote']
+  for builtin in rendererBuiltins
+    cache.builtins[builtin] = path.join(rendererRoot, "#{builtin}.js")
 
 if cache.debug
   cache.findPathCount = 0
@@ -186,11 +204,7 @@ exports.register = ({resourcePath, devMode}={}) ->
 
   cache.registered = true
   cache.resourcePath = resourcePath
-
-  if devMode
-    cache.atomExportsPath = path.join(resourcePath, 'exports', 'atom.coffee')
-  else
-    cache.atomExportsPath = path.join(resourcePath, 'exports', 'atom.js')
+  registerBuiltins(devMode)
 
   return
 
