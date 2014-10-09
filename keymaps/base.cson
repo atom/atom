@@ -1,11 +1,11 @@
-'.editor':
+'atom-text-editor':
   # Platform Bindings
   'home': 'editor:move-to-first-character-of-line'
   'end': 'editor:move-to-end-of-screen-line'
   'shift-home': 'editor:select-to-first-character-of-line'
   'shift-end': 'editor:select-to-end-of-line'
 
-'.editor:not(.mini)':
+'atom-text-editor:not(.mini)':
   # Atom Specific
   'ctrl-C': 'editor:copy-path'
 
@@ -18,7 +18,7 @@
 '.tool-panel.panel-left, .tool-panel.panel-right':
   'escape': 'tool-panel:unfocus'
 
-'.editor !important, .editor.mini !important':
+'atom-text-editor !important, atom-text-editor.mini !important':
   'escape': 'editor:consolidate-selections'
 
 # allow standard input fields to work correctly

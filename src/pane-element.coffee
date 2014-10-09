@@ -123,6 +123,4 @@ class PaneElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-module.exports = PaneElement = document.registerElement 'atom-pane',
-  prototype: PaneElement.prototype
-  extends: 'div'
+module.exports = PaneElement = document.registerElement 'atom-pane', prototype: PaneElement.prototype

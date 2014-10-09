@@ -48,7 +48,7 @@ class PaneContainerElement extends HTMLElement
     paneView = @model.getView(@model.getActivePane())
     box = @boundingBoxForPaneView(paneView)
 
-    paneViews = _.toArray(@querySelectorAll('.pane'))
+    paneViews = _.toArray(@querySelectorAll('atom-pane'))
       .filter (otherPaneView) =>
         otherBox = @boundingBoxForPaneView(otherPaneView)
         switch direction
@@ -75,6 +75,4 @@ class PaneContainerElement extends HTMLElement
     top: {x: boundingBox.left, y: boundingBox.top}
     bottom: {x: boundingBox.left, y: boundingBox.bottom}
 
-module.exports = PaneContainerElement = document.registerElement 'atom-pane-container',
-  prototype: PaneContainerElement.prototype
-  extends: 'div'
+module.exports = PaneContainerElement = document.registerElement 'atom-pane-container', prototype: PaneContainerElement.prototype

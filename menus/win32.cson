@@ -187,7 +187,7 @@
     {label: 'Split Right', command: 'pane:split-right'}
     {type: 'separator'}
   ]
-  '.pane': [
+  'atom-pane': [
     {type: 'separator'}
     {label: 'Split Up', command: 'pane:split-up'}
     {label: 'Split Down', command: 'pane:split-down'}

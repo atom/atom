@@ -10,12 +10,12 @@ describe "TextEditorElement", ->
 
   describe "instantiation", ->
     it "honors the mini attribute", ->
-      jasmineContent.innerHTML = "<div is='atom-text-editor' mini>"
+      jasmineContent.innerHTML = "<atom-text-editor mini>"
       element = jasmineContent.firstChild
       expect(element.getModel().isMini()).toBe true
 
     it "honors the placeholder-text attribute", ->
-      jasmineContent.innerHTML = "<div is='atom-text-editor' placeholder-text='testing'>"
+      jasmineContent.innerHTML = "<atom-text-editor placeholder-text='testing'>"
       element = jasmineContent.firstChild
       expect(element.getModel().getPlaceholderText()).toBe 'testing'
 

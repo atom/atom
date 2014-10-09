@@ -11,7 +11,7 @@ have methods that are view-specific. For example, you could call both general
 and view-specific on the global `atom.workspaceView` instance:
 
 ```coffeescript
-atom.workspaceView.find('.editor.active') # standard jQuery method
+atom.workspaceView.find('atom-text-editor.active') # standard jQuery method
 atom.workspaceView.getActiveEditor()      # view-specific method
 ```
 
@@ -20,7 +20,7 @@ If you retrieve a jQuery wrapper for an element associated with a view, use the
 
 ```coffeescript
 # this is a plain jQuery object; you can't call view-specific methods
-editorElement = atom.workspaceView.find('.editor.active')
+editorElement = atom.workspaceView.find('atom-text-editor.active')
 
 # get the view object by calling `.view()` to call view-specific methods
 editorView = editorElement.view()

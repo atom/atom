@@ -138,7 +138,7 @@ describe "PackageManager", ->
               legacyCommandListener = jasmine.createSpy("legacyCommandListener")
               editorView.command 'activation-command', legacyCommandListener
               editorCommandListener = jasmine.createSpy("editorCommandListener")
-              atom.commands.add '.editor', 'activation-command', editorCommandListener
+              atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
               editorView[0].dispatchEvent(new CustomEvent('activation-command', bubbles: true))
               expect(mainModule.activate.callCount).toBe 1
               expect(mainModule.legacyActivationCommandCallCount).toBe 1

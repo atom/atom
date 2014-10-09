@@ -2,7 +2,7 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
-.editor.react {
+atom-text-editor.react {
   .editor-contents {
     width: 100%;
   }
@@ -85,7 +85,7 @@
   }
 }
 
-.editor.mini {
+atom-text-editor.mini {
   font-size: @input-font-size;
   line-height: @component-line-height;
   max-height: @component-line-height + 2; // +2 for borders
@@ -96,13 +96,13 @@
   }
 }
 
-.editor {
+atom-text-editor {
   z-index: 0;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   line-height: 1.3;
 }
 
-.editor, .editor-contents {
+atom-text-editor, .editor-contents {
   overflow: hidden;
   cursor: text;
   display: -webkit-flex;
@@ -110,11 +110,11 @@
   position: relative;
 }
 
-.editor .gutter .line-number.cursor-line {
+atom-text-editor .gutter .line-number.cursor-line {
   opacity: 1;
 }
 
-.editor .gutter {
+atom-text-editor .gutter {
   overflow: hidden;
   text-align: right;
   cursor: default;
@@ -122,20 +122,20 @@
   box-sizing: border-box;
 }
 
-.editor .gutter .line-number {
+atom-text-editor .gutter .line-number {
   padding-left: .5em;
   opacity: 0.6;
 }
 
-.editor .gutter .line-numbers {
+atom-text-editor .gutter .line-numbers {
   position: relative;
 }
 
-.editor .gutter .line-number.folded.cursor-line {
+atom-text-editor .gutter .line-number.folded.cursor-line {
   opacity: 1;
 }
 
-.editor .gutter .line-number .icon-right {
+atom-text-editor .gutter .line-number .icon-right {
   .octicon(chevron-down, 0.8em);
   display: inline-block;
   visibility: hidden;
@@ -144,7 +144,7 @@
   opacity: .6;
 }
 
-.editor .gutter:hover .line-number.foldable .icon-right {
+atom-text-editor .gutter:hover .line-number.foldable .icon-right {
   visibility: visible;
 
   &:before {
@@ -156,7 +156,7 @@
   }
 }
 
-.editor .gutter, .editor .gutter:hover {
+atom-text-editor .gutter, atom-text-editor .gutter:hover {
   .line-number.folded .icon-right {
     .octicon(chevron-right, 0.8em);
     visibility: visible;
@@ -169,40 +169,40 @@
   }
 }
 
-.editor .fold-marker {
+atom-text-editor .fold-marker {
   cursor: default;
 }
 
-.editor .fold-marker:after {
+atom-text-editor .fold-marker:after {
   .icon(0.8em, inline);
   content: @ellipsis;
   padding-left: 0.2em;
 }
 
-.editor .line.cursor-line .fold-marker:after {
+atom-text-editor .line.cursor-line .fold-marker:after {
   opacity: 1;
 }
 
-.editor.is-blurred .line.cursor-line {
+atom-text-editor.is-blurred .line.cursor-line {
   background: rgba(0, 0, 0, 0);
 }
 
-.editor .invisible-character {
+atom-text-editor .invisible-character {
   font-weight: normal !important;
   font-style: normal !important;
 }
 
-.editor .indent-guide {
+atom-text-editor .indent-guide {
   display: inline-block;
   box-shadow: inset 1px 0;
 }
 
-.editor .vertical-scrollbar,
-.editor .horizontal-scrollbar {
+atom-text-editor .vertical-scrollbar,
+atom-text-editor .horizontal-scrollbar {
   cursor: default;
 }
 
-.editor .vertical-scrollbar {
+atom-text-editor .vertical-scrollbar {
   position: absolute;
   top: 0;
   right: 0;
@@ -213,7 +213,7 @@
   z-index: 3;
 }
 
-.editor .scroll-view {
+atom-text-editor .scroll-view {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-flex: 1;
@@ -221,45 +221,45 @@
   position: relative;
 }
 
-.editor.soft-wrap .scroll-view {
+atom-text-editor.soft-wrap .scroll-view {
   overflow-x: hidden;
 }
 
-.editor .underlayer {
+atom-text-editor .underlayer {
   z-index: 0;
   position: absolute;
   min-height: 100%;
 }
 
-.editor .lines {
+atom-text-editor .lines {
   position: relative;
   z-index: 1;
 }
 
-.editor .overlayer {
+atom-text-editor .overlayer {
   z-index: 2;
   position: absolute;
 }
 
-.editor .line {
+atom-text-editor .line {
   white-space: pre;
 }
 
-.editor .line span {
+atom-text-editor .line span {
   vertical-align: top;
 }
 
-.editor .cursor {
+atom-text-editor .cursor {
   position: absolute;
   border-left: 1px solid;
 }
 
-.editor .cursor,
-.editor.is-focused .cursor.blink-off {
+atom-text-editor .cursor,
+atom-text-editor.is-focused .cursor.blink-off {
   visibility: hidden;
 }
 
-.editor.is-focused .cursor {
+atom-text-editor.is-focused .cursor {
   visibility: visible;
 }
 
@@ -267,7 +267,7 @@
   display: none;
 }
 
-.editor .hidden-input {
+atom-text-editor .hidden-input {
   padding: 0;
   border: 0;
   position: absolute;
@@ -278,19 +278,19 @@
   width: 1px;
 }
 
-.editor .highlight {
+atom-text-editor .highlight {
   background: none;
   padding: 0;
 }
 
-.editor .highlight .region,
-.editor .selection .region {
+atom-text-editor .highlight .region,
+atom-text-editor .selection .region {
   position: absolute;
   pointer-events: none;
   z-index: -1;
 }
 
-.editor.mini:not(.react) {
+atom-text-editor.mini:not(.react) {
   height: auto;
   line-height: 25px;
 

@@ -60,10 +60,10 @@ with events in specific contexts. Here's a small example, excerpted from Atom's
 built-in keymaps:
 
 ```coffee
-'.editor':
+'atom-text-editor':
   'enter': 'editor:newline'
 
-'.mini.editor input':
+'atom-text-editor.mini input':
   'enter': 'core:confirm'
 ```
 
@@ -169,7 +169,7 @@ For example, to change the color of the cursor, you could add the following
 rule to your _~/.atom/styles.less_ file:
 
 ```less
-.editor.is-focused .cursor {
+atom-text-editor.is-focused .cursor {
   border-color: pink;
 }
 ```

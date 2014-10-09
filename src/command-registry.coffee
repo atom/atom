@@ -35,7 +35,7 @@ module.exports =
 # Here is a command that inserts the current date in an editor:
 #
 # ```coffee
-# atom.commands.add '.editor',
+# atom.commands.add 'atom-text-editor',
 #   'user:insert-date': (event) ->
 #     editor = $(this).view().getModel()
 #     # soon the above above line will be:

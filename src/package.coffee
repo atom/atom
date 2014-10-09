@@ -364,15 +364,15 @@ class Package
     if @metadata.activationEvents?
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
-          @activationCommands['.workspace'] ?= []
-          @activationCommands['.workspace'].push(eventName)
+          @activationCommands['atom-workspace'] ?= []
+          @activationCommands['atom-workspace'].push(eventName)
       else if _.isString(@metadata.activationEvents)
         eventName = @metadata.activationEvents
-        @activationCommands['.workspace'] ?= []
-        @activationCommands['.workspace'].push(eventName)
+        @activationCommands['atom-workspace'] ?= []
+        @activationCommands['atom-workspace'].push(eventName)
       else
         for eventName, selector of @metadata.activationEvents
-          selector ?= '.workspace'
+          selector ?= 'atom-workspace'
           @activationCommands[selector] ?= []
           @activationCommands[selector].push(eventName)
 

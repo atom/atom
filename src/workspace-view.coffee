@@ -66,7 +66,7 @@ class WorkspaceView extends View
   setModel: (@model) ->
     @horizontal = @find('.horizontal')
     @vertical = @find('.vertical')
-    @panes = @find('.panes').view()
+    @panes = @find('atom-pane-container').view()
     @subscribe @model.onDidOpen => @trigger 'uri-opened'
 
   beforeRemove: ->
@@ -234,7 +234,7 @@ class WorkspaceView extends View
   #
   # Returns an {Array} of {TextEditorView}s.
   getEditorViews: ->
-    for editorElement in @panes.element.querySelectorAll('.pane > .item-views > .editor')
+    for editorElement in @panes.element.querySelectorAll('atom-pane > .item-views > atom-text-editor')
       $(editorElement).view()
 
 
