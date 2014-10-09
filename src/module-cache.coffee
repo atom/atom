@@ -127,7 +127,7 @@ if cache.debug
 
   originalFindPath = Module._findPath
   Module._findPath = (request, paths) ->
-    cacheKey = JSON.stringify({request, paths});
+    cacheKey = JSON.stringify({request, paths})
     cache.findPathCount++ unless Module._pathCache[cacheKey]
     startTime = Date.now()
     foundPath = originalFindPath.apply(global, arguments)
