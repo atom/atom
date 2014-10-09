@@ -12,6 +12,7 @@ nativeModules = process.binding('natives')
 
 cache =
   debug: false
+  atomExportsPath: null
   dependencies: {}
   extensions: {}
   folders: {}
@@ -101,6 +102,8 @@ resolveFilePath = (relativePath, parentModule) ->
   return
 
 resolveModulePath = (relativePath, parentModule) ->
+  return cache.atomExportsPath if relativePath is 'atom'
+
   return unless relativePath
   return unless parentModule?.id
 
@@ -170,7 +173,7 @@ exports.create = (modulePath) ->
 
   return
 
-exports.register = (resourcePath) ->
+exports.register = ({resourcePath, devMode}={}) ->
   return if cache.registered
 
   originalResolveFilename = Module._resolveFilename
@@ -181,6 +184,11 @@ exports.register = (resourcePath) ->
 
   cache.registered = true
   cache.resourcePath = resourcePath
+
+  if devMode
+    cache.atomExportsPath = path.join(resourcePath, 'exports', 'atom.coffee')
+  else
+    cache.atomExportsPath = path.join(resourcePath, 'exports', 'atom.js')
 
   return
 
