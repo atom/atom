@@ -1,7 +1,8 @@
 Module = require 'module'
 path = require 'path'
-fs = require 'fs-plus'
-semver = require 'semver'
+
+fs = null     # Defer so the cache is used
+semver = null # Defer so the cache is used
 
 nativeModules = process.binding('natives')
 
@@ -14,6 +15,10 @@ cache =
   ranges: {}
   registered: false
   resourcePath: null
+
+requireDependencies = ->
+  fs ?= require 'fs-plus'
+  semver ?= require 'semver'
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   for childPath in fs.listSync(path.join(modulePath, 'node_modules'))
@@ -172,6 +177,8 @@ if cache.debug
     foundPath
 
 exports.create = (modulePath) ->
+  requireDependencies()
+
   modulePath = fs.realpathSync(modulePath)
   metadataPath = path.join(modulePath, 'package.json')
   metadata = JSON.parse(fs.readFileSync(metadataPath))
@@ -201,6 +208,7 @@ exports.register = ({resourcePath, devMode}={}) ->
   cache.registered = true
   cache.resourcePath = resourcePath
   registerBuiltins(devMode)
+  requireDependencies()
 
   return
 
