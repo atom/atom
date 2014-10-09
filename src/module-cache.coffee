@@ -13,6 +13,7 @@ nativeModules = process.binding('natives')
 cache =
   debug: false
   dependencies: {}
+  extensions: {}
   folders: {}
   ranges: {}
   registered: false
@@ -106,6 +107,8 @@ getCachedModulePath = (relativePath, parentModule) ->
   return
 
 if cache.debug
+  cache.findPathCount = 0
+  cache.findPathTime = 0
   cache.loadCount = 0
   cache.requireTime = 0
   global.moduleCache = cache
@@ -121,6 +124,15 @@ if cache.debug
     exports = originalRequire.apply(this, arguments)
     cache.requireTime += Date.now() - startTime
     exports
+
+  originalFindPath = Module._findPath
+  Module._findPath = (request, paths) ->
+    cacheKey = JSON.stringify({request, paths});
+    cache.findPathCount++ unless Module._pathCache[cacheKey]
+    startTime = Date.now()
+    foundPath = originalFindPath.apply(global, arguments)
+    cache.findPathTime += Date.now() - startTime
+    foundPath
 
 exports.create = (modulePath) ->
   modulePath = fs.realpathSync(modulePath)
