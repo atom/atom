@@ -81,11 +81,11 @@ satisfies = (version, rawRange) ->
 
 resolveFilePath = (relativePath, parentModule) ->
   return unless relativePath
-  return unless parentModule?.id
+  return unless parentModule?.filename
   return unless relativePath[0] is '.' or fs.isAbsolute(relativePath)
   return if relativePath[relativePath.length - 1] is '/'
 
-  resolvedPath = path.resolve(path.dirname(parentModule.id), relativePath)
+  resolvedPath = path.resolve(path.dirname(parentModule.filename), relativePath)
   if resolvedPath.indexOf(cache.resourcePath) is 0
     extension = path.extname(resolvedPath)
     if extension
@@ -99,14 +99,14 @@ resolveFilePath = (relativePath, parentModule) ->
 
 resolveModulePath = (relativePath, parentModule) ->
   return unless relativePath
-  return unless parentModule?.id
+  return unless parentModule?.filename
 
   return if nativeModules.hasOwnProperty(relativePath)
   return if relativePath[0] is '.'
   return if relativePath[relativePath.length - 1] is '/'
   return if fs.isAbsolute(relativePath)
 
-  folderPath = path.dirname(parentModule.id)
+  folderPath = path.dirname(parentModule.filename)
 
   range = cache.folders[folderPath]?[relativePath]
   unless range?
