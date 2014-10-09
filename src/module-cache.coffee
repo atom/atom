@@ -20,6 +20,15 @@ requireDependencies = ->
   fs ?= require 'fs-plus'
   semver ?= require 'semver'
 
+# isAbsolute is inlined from fs-plus so that fs-plust itself can be required
+# from this cache.
+if process.platform is 'win32'
+  isAbsolute = (pathToCheck) ->
+    pathToCheck and (pathToCheck[1] is ':' or (pathToCheck[0] is '\\' and pathToCheck[1] is '\\'))
+else
+  isAbsolute = (pathToCheck) ->
+    pathToCheck and pathToCheck[0] is '/'
+
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   for childPath in fs.listSync(path.join(modulePath, 'node_modules'))
     continue if path.basename(childPath) is '.bin'
@@ -87,7 +96,7 @@ satisfies = (version, rawRange) ->
 resolveFilePath = (relativePath, parentModule) ->
   return unless relativePath
   return unless parentModule?.filename
-  return unless relativePath[0] is '.' or fs.isAbsolute(relativePath)
+  return unless relativePath[0] is '.' or isAbsolute(relativePath)
   return if relativePath[relativePath.length - 1] is '/'
 
   resolvedPath = path.resolve(path.dirname(parentModule.filename), relativePath)
@@ -109,7 +118,7 @@ resolveModulePath = (relativePath, parentModule) ->
   return if nativeModules.hasOwnProperty(relativePath)
   return if relativePath[0] is '.'
   return if relativePath[relativePath.length - 1] is '/'
-  return if fs.isAbsolute(relativePath)
+  return if isAbsolute(relativePath)
 
   folderPath = path.dirname(parentModule.filename)
 
