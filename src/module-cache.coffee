@@ -87,6 +87,7 @@ satisfies = (version, rawRange) ->
 resolveFilePath = (relativePath, parentModule) ->
   return unless relativePath
   return unless parentModule?.id
+  return unless relativePath[0] is '.' or fs.isAbsolute(relativePath)
   return if relativePath[relativePath.length - 1] is '/'
 
   resolvedPath = path.resolve(path.dirname(parentModule.id), relativePath)
