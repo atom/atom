@@ -27,6 +27,15 @@ module.exports = (grunt) ->
           'vendor'
         ]
 
+    # Reactionary does not have an explicit react dependency
+    metadata._atomModuleCache.folders.push
+      paths: [
+        'node_modules/reactionary-atom-fork/lib'
+      ]
+      dependencies: {
+        'react-atom-fork': metadata.dependencies['react-atom-fork']
+      }
+
     validExtensions = ['.js', '.coffee', '.json', '.node']
 
     extensions = {}
