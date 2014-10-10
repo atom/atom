@@ -14,7 +14,7 @@ cache =
   registered: false
   resourcePath: null
 
-# isAbsolute is inlined from fs-plus so that fs-plust itself can be required
+# isAbsolute is inlined from fs-plus so that fs-plus itself can be required
 # from this cache.
 if process.platform is 'win32'
   isAbsolute = (pathToCheck) ->
