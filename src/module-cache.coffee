@@ -99,7 +99,6 @@ resolveFilePath = (relativePath, parentModule) ->
   return unless relativePath
   return unless parentModule?.filename
   return unless relativePath[0] is '.' or isAbsolute(relativePath)
-  return if relativePath[relativePath.length - 1] is '/'
 
   resolvedPath = path.resolve(path.dirname(parentModule.filename), relativePath)
   return unless isCorePath(resolvedPath)
@@ -120,7 +119,6 @@ resolveModulePath = (relativePath, parentModule) ->
 
   return if nativeModules.hasOwnProperty(relativePath)
   return if relativePath[0] is '.'
-  return if relativePath[relativePath.length - 1] is '/'
   return if isAbsolute(relativePath)
 
   folderPath = path.dirname(parentModule.filename)
