@@ -25,7 +25,7 @@ else
     pathToCheck and pathToCheck[0] is '/'
 
 isCorePath = (pathToCheck) ->
-  pathToCheck.indexOf(cache.resourcePathWithTrailingSlash) is 0
+  pathToCheck.startsWith(cache.resourcePathWithTrailingSlash)
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   fs = require 'fs-plus'
