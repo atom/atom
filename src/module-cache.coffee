@@ -13,6 +13,7 @@ cache =
   ranges: {}
   registered: false
   resourcePath: null
+  resourcePathWithTrailingSlash: null
 
 # isAbsolute is inlined from fs-plus so that fs-plus itself can be required
 # from this cache.
@@ -22,6 +23,9 @@ if process.platform is 'win32'
 else
   isAbsolute = (pathToCheck) ->
     pathToCheck and pathToCheck[0] is '/'
+
+isCorePath = (pathToCheck) ->
+  pathToCheck.indexOf(cache.resourcePathWithTrailingSlash) is 0
 
 loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
   fs = require 'fs-plus'
@@ -98,14 +102,15 @@ resolveFilePath = (relativePath, parentModule) ->
   return if relativePath[relativePath.length - 1] is '/'
 
   resolvedPath = path.resolve(path.dirname(parentModule.filename), relativePath)
-  if resolvedPath.indexOf(cache.resourcePath) is 0
-    extension = path.extname(resolvedPath)
-    if extension
-      return resolvedPath if cache.extensions[extension]?.has(resolvedPath)
-    else
-      for extension, paths of cache.extensions
-        resolvedPathWithExtension = "#{resolvedPath}#{extension}"
-        return resolvedPathWithExtension if paths.has(resolvedPathWithExtension)
+  return unless isCorePath(resolvedPath)
+
+  extension = path.extname(resolvedPath)
+  if extension
+    return resolvedPath if cache.extensions[extension]?.has(resolvedPath)
+  else
+    for extension, paths of cache.extensions
+      resolvedPathWithExtension = "#{resolvedPath}#{extension}"
+      return resolvedPathWithExtension if paths.has(resolvedPathWithExtension)
 
   return
 
@@ -131,7 +136,7 @@ resolveModulePath = (relativePath, parentModule) ->
   return unless candidates?
 
   for version, resolvedPath of candidates
-    if Module._cache.hasOwnProperty(resolvedPath) or resolvedPath.indexOf(cache.resourcePath) is 0
+    if Module._cache.hasOwnProperty(resolvedPath) or isCorePath(resolvedPath)
       return resolvedPath if satisfies(version, range)
 
   return
@@ -214,6 +219,7 @@ exports.register = ({resourcePath, devMode}={}) ->
 
   cache.registered = true
   cache.resourcePath = resourcePath
+  cache.resourcePathWithTrailingSlash = "#{resourcePath}#{path.sep}"
   registerBuiltins(devMode)
 
   return
