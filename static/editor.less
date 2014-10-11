@@ -88,17 +88,17 @@ atom-text-editor::shadow {
       }
     }
   }
-}
-
-atom-text-editor.mini::shadow {
-  font-size: @input-font-size;
-  line-height: @component-line-height;
-  max-height: @component-line-height + 2; // +2 for borders
 
   .placeholder-text {
     position: absolute;
     color: @text-color-subtle;
   }
+}
+
+atom-text-editor.mini {
+  font-size: @input-font-size;
+  line-height: @component-line-height;
+  max-height: @component-line-height + 2; // +2 for borders
 }
 
 atom-text-editor::shadow {
