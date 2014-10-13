@@ -233,11 +233,13 @@ exports.add = (directoryPath, metadata) ->
       return
 
   cacheToAdd = metadata?._atomModuleCache
-  for dependency in cacheToAdd?.dependencies ? []
+  return unless cacheToAdd?
+
+  for dependency in cacheToAdd.dependencies ? []
     cache.dependencies[dependency.name] ?= {}
     cache.dependencies[dependency.name][dependency.version] ?= "#{directoryPath}#{path.sep}#{dependency.path}"
 
-  for entry in cacheToAdd?.folders ? []
+  for entry in cacheToAdd.folders ? []
     for folderPath in entry.paths
       if folderPath
         cache.folders["#{directoryPath}#{path.sep}#{folderPath}"] = entry.dependencies
@@ -245,7 +247,7 @@ exports.add = (directoryPath, metadata) ->
         cache.folders[directoryPath] = entry.dependencies
 
   if directoryPath is cache.resourcePath
-    for extension, paths of cacheToAdd?.extensions
+    for extension, paths of cacheToAdd.extensions
       cache.extensions[extension] ?= new Set()
       for filePath in paths
         cache.extensions[extension].add("#{directoryPath}#{path.sep}#{filePath}")
