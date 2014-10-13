@@ -182,6 +182,7 @@ class Atom extends Model
     Clipboard = require './clipboard'
     Syntax = require './syntax'
     ThemeManager = require './theme-manager'
+    StyleManager = require './style-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
@@ -202,6 +203,7 @@ class Atom extends Model
     @commands = new CommandRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
+    @styles = new StyleManager({resourcePath})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()

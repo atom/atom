@@ -74,6 +74,7 @@ beforeEach ->
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
+  atom.styles.clear()
 
   window.resetTimeouts()
   atom.packages.packageStates = {}

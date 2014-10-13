@@ -61,3 +61,7 @@ class StyleManager
       sourcePath = params?.sourcePath
       delete @styleElementsBySourcePath[sourcePath] if sourcePath?
       @emitter.emit 'did-remove-style-element', styleElement
+
+  clear: ->
+    @styleElements = []
+    @styleElementsBySourcePath = {}
