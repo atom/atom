@@ -2416,7 +2416,7 @@ class TextEditor extends Model
 
   scopesAtCursor: ->
     deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
-    cursor.getScopeDescriptor()
+    @getLastCursor().getScopeDescriptor()
   getCursorScopes: ->
     deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
     @scopesAtCursor()
