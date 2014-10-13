@@ -26,7 +26,9 @@ class Token
     @hasPairedCharacter = textUtils.hasPairedCharacter(@value)
 
   isEqual: (other) ->
-    @value == other.value and _.isEqual(@scopeDescriptor, other.scopeDescriptor) and !!@isAtomic == !!other.isAtomic
+    # TODO: scopes is deprecated. This is here for the sake of lang package tests
+    scopeDescriptor = other.scopeDescriptor ? other.scopes
+    @value == other.value and _.isEqual(@scopeDescriptor, scopeDescriptor) and !!@isAtomic == !!other.isAtomic
 
   isBracket: ->
     /^meta\.brace\b/.test(_.last(@scopeDescriptor))
