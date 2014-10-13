@@ -121,9 +121,6 @@ resolveModulePath = (relativePath, parentModule) ->
   return if relativePath[0] is '.'
   return if isAbsolute(relativePath)
 
-  candidates = cache.dependencies[relativePath]
-  return unless candidates?
-
   folderPath = path.dirname(parentModule.filename)
 
   range = cache.folders[folderPath]?[relativePath]
@@ -132,6 +129,9 @@ resolveModulePath = (relativePath, parentModule) ->
       return builtinPath
     else
       return
+
+  candidates = cache.dependencies[relativePath]
+  return unless candidates?
 
   for version, resolvedPath of candidates
     if Module._cache.hasOwnProperty(resolvedPath) or isCorePath(resolvedPath)
