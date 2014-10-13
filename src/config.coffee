@@ -425,6 +425,14 @@ class Config
   # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
   # ```
   #
+  # You can get the language scope descriptor via
+  # {TextEditor::getRootScopeDescriptor}. This will get the setting specifically
+  # for the editor's language.
+  #
+  # ```coffee
+  # atom.config.get(@editor.getRootScopeDescriptor(), 'editor.tabLength') # => 2
+  # ```
+  #
   # Additionally, you can get the setting at the specific cursor position.
   #
   # ```coffee
