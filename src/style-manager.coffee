@@ -21,20 +21,31 @@ class StyleManager
 
   addStyleSheet: (source, params) ->
     sourcePath = params?.sourcePath
+    group = params?.group
+
     if sourcePath? and styleElement = @styleElementsBySourcePath[sourcePath]
       updated = true
     else
       styleElement = document.createElement('style')
+      styleElement.group = group if group?
 
     styleElement.textContent = source
 
-    @styleElements.push(styleElement)
+    if group?
+      for existingElement, index in @styleElements
+        if existingElement.group is group
+          insertIndex = index + 1
+        else
+          break if insertIndex?
+    insertIndex ?= @styleElements.length
+
+    @styleElements.splice(insertIndex, 0, styleElement)
     @styleElementsBySourcePath[sourcePath] ?= styleElement if sourcePath?
 
     if updated
-      @emitter.emit 'did-update-style-sheet', {styleElement, sourcePath}
+      @emitter.emit 'did-update-style-sheet', {styleElement, sourcePath, group}
     else
-      @emitter.emit 'did-add-style-sheet', {styleElement, sourcePath}
+      @emitter.emit 'did-add-style-sheet', {styleElement, sourcePath, group}
 
     new Disposable => @removeStyleElement(styleElement, params)
 
