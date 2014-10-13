@@ -12,6 +12,8 @@ module.exports = (grunt) ->
 
     buildDir = grunt.config.get('atom.buildDir')
     atomDir = path.join(buildDir, 'Atom')
+    releasesDir = path.join(buildDir, 'Releases')
+    atomGitHubToken = process.env.ATOM_ACCESS_TOKEN
 
     packageInfo = grunt.file.readJSON(path.join(atomDir, 'resources', 'app', 'package.json'))
     inputTemplate = grunt.file.read(path.join('build', 'windows', 'atom.nuspec.erb'))
@@ -22,20 +24,22 @@ module.exports = (grunt) ->
     targetNuspecPath = path.join(buildDir, 'atom.nuspec')
     grunt.file.write(targetNuspecPath, _.template(inputTemplate, packageInfo))
 
-    cmd = 'build/windows/nuget.exe'
-    args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
+    # We use the previous releases to build deltas for the current release,
+    # sync down the existing releases directory by rolling through GitHub releases
+    cmd = 'build/windows/SyncGitHubReleases.exe'
+    args = ['-r', releasesDir, '-u', 'https://github.com/atom/atom', '-t', atomGitHubToken]
 
     spawn {cmd, args}, (error, result, code) ->
       return done(error) if error?
 
-      pkgs = pkg for pkg in fs.readdirSync(buildDir) when path.extname(pkg) is '.nupkg'
+      cmd = 'build/windows/nuget.exe'
+      args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
 
-      releasesDir = path.join(buildDir, 'Releases')
+      spawn {cmd, args}, (error, result, code) ->
+        return done(error) if error?
 
-      # NB: Gonna clear Releases for now, in the future we need to pull down
-      # the existing version
-      rm(releasesDir)
+        pkgs = pkg for pkg in fs.readdirSync(buildDir) when path.extname(pkg) is '.nupkg'
 
-      cmd = 'build/windows/update.com'
-      args = ['--releasify', path.join(buildDir, pkgs), '-r', releasesDir, '-g', 'build/windows/install-spinner.gif']
-      spawn {cmd, args}, (error, result, code) -> done(error)
+        cmd = 'build/windows/update.com'
+        args = ['--releasify', path.join(buildDir, pkgs), '-r', releasesDir, '-g', 'build/windows/install-spinner.gif']
+        spawn {cmd, args}, (error, result, code) -> done(error)
