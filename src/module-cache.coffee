@@ -2,6 +2,19 @@ Module = require 'module'
 path = require 'path'
 semver = require 'semver'
 
+# Extend semver.Range to memoize matched versions for speed
+class Range extends semver.Range
+  constructor: ->
+    super
+    @matchedVersions = new Set()
+
+  test: (version) ->
+    return true if @matchedVersions.has(version)
+
+    matches = super
+    @matchedVersions.add(version) if matches
+    matches
+
 nativeModules = process.binding('natives')
 
 cache =
@@ -91,7 +104,7 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
 satisfies = (version, rawRange) ->
   unless parsedRange = cache.ranges[rawRange]
-    parsedRange = new semver.Range(rawRange)
+    parsedRange = new Range(rawRange)
     cache.ranges[rawRange] = parsedRange
   parsedRange.test(version)
 
