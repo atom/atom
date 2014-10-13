@@ -340,6 +340,14 @@ describe "Config", ->
       atom.config.set('foo.bar.baz', "value 2")
       expect(observeHandler).not.toHaveBeenCalled()
 
+    it 'does not fire the callback for a similarly named keyPath', ->
+      bazCatHandler = jasmine.createSpy("bazCatHandler")
+      observeSubscription = atom.config.observe "foo.bar.bazCat", bazCatHandler
+
+      bazCatHandler.reset()
+      atom.config.set('foo.bar.baz', "value 10")
+      expect(bazCatHandler).not.toHaveBeenCalled()
+
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
       if fs.existsSync(dotAtomPath)

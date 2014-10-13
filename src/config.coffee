@@ -747,12 +747,18 @@ class Config
 
   observeKeyPath: (keyPath, options, callback) ->
     callback(_.clone(@get(keyPath))) unless options.callNow == false
-    @emitter.on 'did-change', (event) ->
-      callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
+    @emitter.on 'did-change', (event) =>
+      callback(event.newValue) if keyPath? and @isSubKeyPath(keyPath, event?.keyPath)
 
   onDidChangeKeyPath: (keyPath, callback) ->
-    @emitter.on 'did-change', (event) ->
-      callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
+    @emitter.on 'did-change', (event) =>
+      callback(event) if not keyPath? or (keyPath? and @isSubKeyPath(keyPath, event?.keyPath))
+
+  isSubKeyPath: (keyPath, subKeyPath) ->
+    return false unless keyPath? and subKeyPath?
+    pathSubTokens = subKeyPath.split('.')
+    pathTokens = keyPath.split('.').slice(0, pathSubTokens.length)
+    _.isEqual(pathTokens, pathSubTokens)
 
   setRawDefault: (keyPath, value) ->
     oldValue = _.clone(@get(keyPath))
