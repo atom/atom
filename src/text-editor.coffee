@@ -2381,7 +2381,10 @@ class TextEditor extends Model
   # * `bufferPosition` A {Point} or {Array} of [row, column].
   #
   # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+  scopeDescriptorForBufferPosition: (bufferPosition) -> @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
+  scopesForBufferPosition: (bufferPosition) ->
+    deprecate 'Use ::scopeDescriptorForBufferPosition instead'
+    @scopeDescriptorForBufferPosition(bufferPosition)
 
   # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.

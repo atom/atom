@@ -29,7 +29,7 @@ class LanguageMode
   #
   # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
-    scopes = @editor.scopesForBufferPosition([start, 0])
+    scopes = @editor.scopeDescriptorForBufferPosition([start, 0])
     properties = atom.config.settingsForScopeDescriptor(scopes, 'editor.commentStart')[0]
     return unless properties
 
@@ -168,7 +168,7 @@ class LanguageMode
     return null unless @isFoldableAtBufferRow(bufferRow)
 
     startIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopes = @editor.scopesForBufferPosition([bufferRow, 0])
+    scopes = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     for row in [(bufferRow + 1)..@editor.getLastBufferRow()]
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
@@ -246,7 +246,7 @@ class LanguageMode
   # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow) ->
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopes = @editor.scopesForBufferPosition([bufferRow, 0])
+    scopes = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
 
     currentLine = @buffer.lineForRow(bufferRow)
@@ -292,7 +292,7 @@ class LanguageMode
   #
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
-    scopes = @editor.scopesForBufferPosition([bufferRow, 0])
+    scopes = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
     decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
     return unless increaseIndentRegex and decreaseIndentRegex
