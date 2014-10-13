@@ -302,7 +302,7 @@ class TokenizedBuffer extends Model
     else
       0
 
-  scopesForPosition: (position) ->
+  scopeDescriptorForPosition: (position) ->
     @tokenForPosition(position).scopes
 
   tokenForPosition: (position) ->
