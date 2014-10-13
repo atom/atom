@@ -441,7 +441,9 @@ class Config
   # file in the type specified by the configuration schema.
   get: (scopeDescriptor, keyPath) ->
     if arguments.length == 1
-      @getRawValue(scopeDescriptor)
+      # cannot assign to keyPath for the sake of v8 optimization 
+      globalKeyPath = scopeDescriptor
+      @getRawValue(globalKeyPath)
     else
       value = @getRawScopedValue(scopeDescriptor, keyPath)
       value ?= @getRawValue(keyPath)
