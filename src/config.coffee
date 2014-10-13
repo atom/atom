@@ -337,7 +337,7 @@ class Config
   #
   # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
   #   the root of the syntax tree to a token. Get one by calling
-  #   {TextEditor::scopesAtCursor}. See {::get} for examples.
+  #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   # * `keyPath` {String} name of the key to observe
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
@@ -373,7 +373,7 @@ class Config
   #
   # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
   #   the root of the syntax tree to a token. Get one by calling
-  #   {TextEditor::scopesAtCursor}. See {::get} for examples.
+  #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
   # * `callback` {Function} to call when the value of the key changes.
@@ -428,13 +428,13 @@ class Config
   # Additionally, you can get the setting at the specific cursor position.
   #
   # ```coffee
-  # scopeDescriptor = @editor.scopesAtCursor()
+  # scopeDescriptor = @editor.getLastCursor().getScopeDescriptor()
   # atom.config.get(scopeDescriptor, 'editor.tabLength') # => 2
   # ```
   #
   # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
   #   the root of the syntax tree to a token. Get one by calling
-  #   {TextEditor::scopesAtCursor}
+  #   {editor.getLastCursor().getScopeDescriptor()}
   # * `keyPath` The {String} name of the key to retrieve.
   #
   # Returns the value from Atom's default settings, the user's configuration

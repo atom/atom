@@ -2370,18 +2370,6 @@ class TextEditor extends Model
   Section: Managing Syntax Scopes
   ###
 
-  # Public: Get the syntactic scopes for the most recently added cursor's
-  # position. See {::scopesForBufferPosition} for more information.
-  #
-  # Returns an {Array} of {String}s.
-  scopesAtCursor: ->
-    if cursor = @getLastCursor()
-      cursor.getScopes()
-    else
-      @getRootScopeDescriptor()
-  getCursorScopes: ->
-    deprecate 'Use TextEditor::scopesAtCursor() instead'
-    @scopesAtCursor()
 
   # Essential: Get the syntactic scopes for the given position in buffer
   # coordinates.
@@ -2421,6 +2409,17 @@ class TextEditor extends Model
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
       @commentScopeSelector.matches(scopes)
 
+
+  scopesAtCursor: ->
+    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    if cursor = @getLastCursor()
+      cursor.getScopes()
+    else
+      @getRootScopeDescriptor()
+  getCursorScopes: ->
+    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    @scopesAtCursor()
+
   ###
   Section: Clipboard Operations
   ###
@@ -2459,7 +2458,7 @@ class TextEditor extends Model
 
       return
 
-    else if atom.config.get(@scopesAtCursor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
+    else if atom.config.get(@getLastCursor().getScopeDescriptor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
       if !@getLastCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 
