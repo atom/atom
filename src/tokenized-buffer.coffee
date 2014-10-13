@@ -82,12 +82,16 @@ class TokenizedBuffer extends Model
     @grammarScopeDescriptor = [@grammar.scopeName]
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
-    @retokenizeLines()
+
+    @configSettings = tabLength: atom.config.get(@grammarScopeDescriptor, 'editor.tabLength')
 
     @grammarTabLengthSubscription?.dispose()
-    @grammarTabLengthSubscription = atom.config.onDidChange @grammarScopeDescriptor, 'editor.tabLength', =>
+    @grammarTabLengthSubscription = atom.config.onDidChange @grammarScopeDescriptor, 'editor.tabLength', ({newValue}) =>
+      @configSettings.tabLength = newValue
       @retokenizeLines()
     @subscribe @grammarTabLengthSubscription
+
+    @retokenizeLines()
 
     @emit 'grammar-changed', grammar
     @emitter.emit 'did-change-grammar', grammar
@@ -118,7 +122,7 @@ class TokenizedBuffer extends Model
     @tokenizeInBackground() if @visible
 
   getTabLength: ->
-    @tabLength ? atom.config.get(@grammarScopeDescriptor, 'editor.tabLength')
+    @tabLength ? @configSettings.tabLength
 
   setTabLength: (@tabLength) ->
     @retokenizeLines()
