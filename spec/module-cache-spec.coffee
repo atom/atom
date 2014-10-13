@@ -46,7 +46,7 @@ describe 'ModuleCache', ->
 
     indexPath = path.join(packagePath, 'index.js')
     fs.writeFileSync indexPath, """
-      exports.load = function() {require('underscore-plus');};
+      exports.load = function() { require('underscore-plus'); };
     """
 
     packageMain = require(indexPath)
