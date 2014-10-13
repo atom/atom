@@ -7,14 +7,18 @@ class StyleManager
     @styleElements = []
     @styleElementsBySourcePath = {}
 
-  onDidAddStyleSheet: (callback) ->
-    @emitter.on 'did-add-style-sheet', callback
+  observeStyleElements: (callback) ->
+    callback(styleElement) for styleElement in @getStyleElements()
+    @onDidAddStyleElement(callback)
 
-  onDidRemoveStyleSheet: (callback) ->
-    @emitter.on 'did-remove-style-sheet', callback
+  onDidAddStyleElement: (callback) ->
+    @emitter.on 'did-add-style-element', callback
 
-  onDidUpdateStyleSheet: (callback) ->
-    @emitter.on 'did-update-style-sheet', callback
+  onDidRemoveStyleElement: (callback) ->
+    @emitter.on 'did-remove-style-element', callback
+
+  onDidUpdateStyleElement: (callback) ->
+    @emitter.on 'did-update-style-element', callback
 
   getStyleElements: ->
     @styleElements.slice()
@@ -27,6 +31,7 @@ class StyleManager
       updated = true
     else
       styleElement = document.createElement('style')
+      styleElement.sourcePath = sourcePath if sourcePath?
       styleElement.group = group if group?
 
     styleElement.textContent = source
@@ -43,9 +48,9 @@ class StyleManager
     @styleElementsBySourcePath[sourcePath] ?= styleElement if sourcePath?
 
     if updated
-      @emitter.emit 'did-update-style-sheet', {styleElement, sourcePath, group}
+      @emitter.emit 'did-update-style-element', styleElement
     else
-      @emitter.emit 'did-add-style-sheet', {styleElement, sourcePath, group}
+      @emitter.emit 'did-add-style-element', styleElement
 
     new Disposable => @removeStyleElement(styleElement, params)
 
@@ -55,4 +60,4 @@ class StyleManager
       @styleElements.splice(index, 1)
       sourcePath = params?.sourcePath
       delete @styleElementsBySourcePath[sourcePath] if sourcePath?
-      @emitter.emit 'did-remove-style-sheet', {styleElement}
+      @emitter.emit 'did-remove-style-element', styleElement

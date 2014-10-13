@@ -1,28 +1,24 @@
 StyleManager = require '../src/style-manager'
 
 describe "StyleManager", ->
-  manager = null
+  [manager, addEvents, removeEvents, updateEvents] = []
 
   beforeEach ->
     manager = new StyleManager
+    addEvents = []
+    removeEvents = []
+    updateEvents = []
+
+    manager.onDidAddStyleElement (event) -> addEvents.push(event)
+    manager.onDidRemoveStyleElement (event) -> removeEvents.push(event)
+    manager.onDidUpdateStyleElement (event) -> updateEvents.push(event)
 
   describe "::addStyleSheet(source, params)", ->
-    [addEvents, removeEvents, updateEvents] = []
-
-    beforeEach ->
-      addEvents = []
-      removeEvents = []
-      updateEvents = []
-
-      manager.onDidAddStyleSheet (event) -> addEvents.push(event)
-      manager.onDidRemoveStyleSheet (event) -> removeEvents.push(event)
-      manager.onDidUpdateStyleSheet (event) -> updateEvents.push(event)
-
     it "adds a stylesheet based on the given source and returns a disposable allowing it to be removed", ->
       disposable = manager.addStyleSheet("a {color: red;}")
 
       expect(addEvents.length).toBe 1
-      expect(addEvents[0].styleElement.textContent).toBe "a {color: red;}"
+      expect(addEvents[0].textContent).toBe "a {color: red;}"
 
       styleElements = manager.getStyleElements()
       expect(styleElements.length).toBe 1
@@ -31,7 +27,7 @@ describe "StyleManager", ->
       disposable.dispose()
 
       expect(removeEvents.length).toBe 1
-      expect(removeEvents[0].styleElement.textContent).toBe "a {color: red;}"
+      expect(removeEvents[0].textContent).toBe "a {color: red;}"
       expect(manager.getStyleElements().length).toBe 0
 
     describe "when a sourcePath parameter is specified", ->
@@ -46,7 +42,7 @@ describe "StyleManager", ->
         expect(addEvents.length).toBe 1
         expect(updateEvents.length).toBe 1
         expect(updateEvents[0].sourcePath).toBe '/foo/bar'
-        expect(updateEvents[0].styleElement.textContent).toBe "a {color: blue;}"
+        expect(updateEvents[0].textContent).toBe "a {color: blue;}"
 
         disposable2.dispose()
         addEvents = []
@@ -55,7 +51,7 @@ describe "StyleManager", ->
 
         expect(addEvents.length).toBe 1
         expect(addEvents[0].sourcePath).toBe '/foo/bar'
-        expect(addEvents[0].styleElement.textContent).toBe "a {color: yellow;}"
+        expect(addEvents[0].textContent).toBe "a {color: yellow;}"
 
     describe "when a group parameter is specified", ->
       it "inserts the stylesheet at the end of any existing stylesheets for the same group", ->
