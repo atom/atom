@@ -311,6 +311,7 @@ class Config
       properties: {}
     @defaultSettings = {}
     @settings = {}
+    @settingsCache = null
     @scopedSettingsStore = new ScopedPropertyStore
     @usersScopedSettings = new CompositeDisposable
     @configFileHasErrors = false
@@ -439,13 +440,23 @@ class Config
   #
   # Returns the value from Atom's default settings, the user's configuration
   # file in the type specified by the configuration schema.
-  get: (scopeDescriptor, keyPath) ->
-    if arguments.length == 1
-      @getRawValue(scopeDescriptor)
+  get: (scopeDescriptorArg, keyPathArg) ->
+    if keyPathArg?
+      keyPath = keyPathArg
+      scopeDescriptor = scopeDescriptorArg
     else
-      value = @getRawScopedValue(scopeDescriptor, keyPath)
-      value ?= @getRawValue(keyPath)
-      value
+      keyPath = scopeDescriptorArg
+      scopeDescriptor = 'global'
+
+    if @hasCachedValue(scopeDescriptor, keyPath)
+      @getCachedValue(scopeDescriptor, keyPath)
+    else
+      if scopeDescriptor == 'global'
+        @setCachedValue(scopeDescriptor, keyPath, @getRawValue(keyPath))
+      else
+        value = @getRawScopedValue(scopeDescriptor, keyPath)
+        value ?= @getRawValue(keyPath)
+        @setCachedValue(scopeDescriptor, keyPath, value)
 
   # Essential: Sets the value for a configuration setting.
   #
@@ -738,13 +749,14 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
 
-    oldValue = _.clone(@get(keyPath))
+    oldValue = @getRawValue(keyPath)
     _.setValueForKeyPath(@settings, keyPath, value)
-    newValue = @get(keyPath)
+    @bustGlobalCache()
+    newValue = @getRawValue(keyPath)
     @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
 
   observeKeyPath: (keyPath, options, callback) ->
-    callback(_.clone(@get(keyPath))) unless options.callNow == false
+    callback(_.clone(@getRawValue(keyPath))) unless options.callNow == false
     @emitter.on 'did-change', (event) ->
       callback(event.newValue) if keyPath? and keyPath.indexOf(event?.keyPath) is 0
 
@@ -753,9 +765,9 @@ class Config
       callback(event) if not keyPath? or (keyPath? and keyPath.indexOf(event?.keyPath) is 0)
 
   setRawDefault: (keyPath, value) ->
-    oldValue = _.clone(@get(keyPath))
+    oldValue = _.clone(@getRawValue(keyPath))
     _.setValueForKeyPath(@defaultSettings, keyPath, value)
-    newValue = @get(keyPath)
+    newValue = @getRawValue(keyPath)
     @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
 
   setDefaults: (keyPath, defaults) ->
@@ -770,6 +782,7 @@ class Config
         @setRawDefault(keyPath, defaults)
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+    @bustCache()
 
   extractDefaultsFromSchema: (schema) ->
     if schema.default?
@@ -812,6 +825,7 @@ class Config
     settingsBySelector = {}
     settingsBySelector[selector] = value
     @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', settingsBySelector)
+    @bustCache()
     @emitter.emit 'did-change'
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->
@@ -823,11 +837,13 @@ class Config
     @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
 
   observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
+    @bustCache()
     oldValue = @get(scopeDescriptor, keyPath)
 
     callback(oldValue)
 
     didChange = =>
+      @bustCache()
       newValue = @get(scopeDescriptor, keyPath)
       callback(newValue) unless _.isEqual(oldValue, newValue)
       oldValue = newValue
@@ -835,8 +851,10 @@ class Config
     @emitter.on 'did-change', didChange
 
   onDidChangeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
+    @bustCache()
     oldValue = @get(scopeDescriptor, keyPath)
     didChange = =>
+      @bustCache()
       newValue = @get(scopeDescriptor, keyPath)
       callback({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
       oldValue = newValue
@@ -853,6 +871,34 @@ class Config
         scope
       .join(' ')
     @scopedSettingsStore.getProperties(scopeChain, keyPath)
+
+  ###
+  Section: value caching
+  ###
+
+  hasCachedValue: (scopeDescriptor, keyPath) ->
+    @settingsCache ?= {}
+    @settingsCache[scopeDescriptor] ?= {}
+    return false unless keyPath of @settingsCache[scopeDescriptor]
+    true
+
+  getCachedValue: (scopeDescriptor, keyPath) ->
+    _.deepClone(@settingsCache?[scopeDescriptor]?[keyPath])
+
+  setCachedValue: (scopeDescriptor, keyPath, value) ->
+    @settingsCache ?= {}
+    @settingsCache[scopeDescriptor] ?= {}
+    @settingsCache[scopeDescriptor][keyPath] = _.deepClone(value)
+    value
+
+  bustGlobalCache: ->
+    @settingsCache.global = null if @settingsCache?
+
+  bustScopedCache: ->
+    @settingsCache = {global: @settingsCache.global} if @settingsCache?
+
+  bustCache: ->
+    @settingsCache = null
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
