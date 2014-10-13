@@ -2370,9 +2370,14 @@ class TextEditor extends Model
   Section: Managing Syntax Scopes
   ###
 
+  # Essential: Returns the scope descriptor that includes the language. eg.
+  # `['.source.ruby']`, or `['.source.coffee']`. You can use this with
+  # {Config::get} to get language specific config values.
+  getRootScopeDescriptor: ->
+    @displayBuffer.getRootScopeDescriptor()
 
   # Essential: Get the syntactic scopes for the given position in buffer
-  # coordinates.
+  # coordinates. Useful with {Config::get}.
   #
   # For example, if called with a position inside the parameter list of an
   # anonymous CoffeeScript function, the method returns the following array:
@@ -2396,15 +2401,6 @@ class TextEditor extends Model
   bufferRangeForScopeAtCursor: (selector) ->
     @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
 
-  getRootScopeDescriptor: ->
-    @displayBuffer.getRootScopeDescriptor()
-
-  logCursorScope: ->
-    console.log @scopesAtCursor()
-
-  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
-  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
-
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
@@ -2412,6 +2408,11 @@ class TextEditor extends Model
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
       @commentScopeSelector.matches(scopes)
 
+  logCursorScope: ->
+    console.log @getLastCursor().getScopeDescriptor()
+
+  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
+  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
   scopesAtCursor: ->
     deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
