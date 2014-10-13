@@ -1,5 +1,7 @@
 window.onload = function() {
   try {
+    var startTime = Date.now();
+
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
@@ -30,7 +32,12 @@ window.onload = function() {
     require('../src/coffee-cache').register();
 
     require(loadSettings.bootstrapScript);
-    require('ipc').sendChannel('window-command', 'window:loaded')
+    require('ipc').sendChannel('window-command', 'window:loaded');
+
+    if (global.atom) {
+      global.atom.loadTime = Date.now() - startTime;
+      console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms');
+    }
   }
   catch (error) {
     var currentWindow = require('remote').getCurrentWindow();
