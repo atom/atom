@@ -242,7 +242,7 @@ exports.add = (directoryPath, metadata) ->
       if folderPath
         cache.folders["#{directoryPath}#{path.sep}#{folderPath}"] = entry.dependencies
       else
-        cache.folders["#{directoryPath}"] = entry.dependencies
+        cache.folders[directoryPath] = entry.dependencies
 
   if directoryPath is cache.resourcePath
     for extension, paths of cacheToAdd?.extensions
