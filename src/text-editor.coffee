@@ -2376,7 +2376,7 @@ class TextEditor extends Model
   getRootScopeDescriptor: ->
     @displayBuffer.getRootScopeDescriptor()
 
-  # Essential: Get the syntactic scopes for the given position in buffer
+  # Essential: Get the syntactic scopeDescriptor for the given position in buffer
   # coordinates. Useful with {Config::get}.
   #
   # For example, if called with a position inside the parameter list of an
@@ -2404,9 +2404,9 @@ class TextEditor extends Model
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
-      scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
+      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopeDescriptor
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
-      @commentScopeSelector.matches(scopes)
+      @commentScopeSelector.matches(scopeDescriptor)
 
   logCursorScope: ->
     console.log @getLastCursor().getScopeDescriptor()
@@ -2416,10 +2416,7 @@ class TextEditor extends Model
 
   scopesAtCursor: ->
     deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
-    if cursor = @getLastCursor()
-      cursor.getScopes()
-    else
-      @getRootScopeDescriptor()
+    cursor.getScopeDescriptor()
   getCursorScopes: ->
     deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
     @scopesAtCursor()

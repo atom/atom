@@ -19,16 +19,16 @@ describe "TokenizedLine", ->
       expect(editor.tokenizedLineForScreenRow(2).isOnlyWhitespace()).toBe false
 
   describe "::getScopeTree()", ->
-    it "returns a tree whose inner nodes are scopes and whose leaf nodes are tokens in those scopes", ->
+    it "returns a tree whose inner nodes are scopeDescriptor and whose leaf nodes are tokens in those scopeDescriptor", ->
       [tokens, tokenIndex] = []
 
-      ensureValidScopeTree = (scopeTree, scopes=[]) ->
+      ensureValidScopeTree = (scopeTree, scopeDescriptor=[]) ->
         if scopeTree.children?
           for child in scopeTree.children
-            ensureValidScopeTree(child, scopes.concat([scopeTree.scope]))
+            ensureValidScopeTree(child, scopeDescriptor.concat([scopeTree.scope]))
         else
           expect(scopeTree).toBe tokens[tokenIndex++]
-          expect(scopes).toEqual scopeTree.scopes
+          expect(scopeDescriptor).toEqual scopeTree.scopeDescriptor
 
       waitsForPromise ->
         atom.project.open('coffee.coffee').then (o) -> editor = o

@@ -3650,10 +3650,10 @@ describe "TextEditor", ->
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
         expect(tokens[0].value).toBe "var"
-        expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
+        expect(tokens[0].scopeDescriptor).toEqual ["source.js", "storage.modifier.js"]
 
         expect(tokens[6].value).toBe "http://github.com"
-        expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+        expect(tokens[6].scopeDescriptor).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
 
     describe "when the grammar is added", ->
       it "retokenizes existing buffers that contain tokens that match the injection selector", ->
@@ -3665,7 +3665,7 @@ describe "TextEditor", ->
 
           {tokens} = editor.tokenizedLineForScreenRow(0)
           expect(tokens[1].value).toBe " http://github.com"
-          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+          expect(tokens[1].scopeDescriptor).toEqual ["source.js", "comment.line.double-slash.js"]
 
         waitsForPromise ->
           atom.packages.activatePackage('language-hyperlink')
@@ -3673,7 +3673,7 @@ describe "TextEditor", ->
         runs ->
           {tokens} = editor.tokenizedLineForScreenRow(0)
           expect(tokens[2].value).toBe "http://github.com"
-          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+          expect(tokens[2].scopeDescriptor).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
@@ -3685,7 +3685,7 @@ describe "TextEditor", ->
 
             {tokens} = editor.tokenizedLineForScreenRow(0)
             expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-            expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+            expect(tokens[1].scopeDescriptor).toEqual ["source.js", "comment.line.double-slash.js"]
 
           waitsForPromise ->
             atom.packages.activatePackage('package-with-injection-selector')
@@ -3693,7 +3693,7 @@ describe "TextEditor", ->
           runs ->
             {tokens} = editor.tokenizedLineForScreenRow(0)
             expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-            expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+            expect(tokens[1].scopeDescriptor).toEqual ["source.js", "comment.line.double-slash.js"]
 
           waitsForPromise ->
             atom.packages.activatePackage('language-sql')
@@ -3701,7 +3701,7 @@ describe "TextEditor", ->
           runs ->
             {tokens} = editor.tokenizedLineForScreenRow(0)
             expect(tokens[2].value).toBe "SELECT"
-            expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
+            expect(tokens[2].scopeDescriptor).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
 
   describe ".normalizeTabsInBufferRange()", ->
     it "normalizes tabs depending on the editor's soft tab/tab length settings", ->
