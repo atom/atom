@@ -27,12 +27,12 @@ class AutoUpdater
       return
 
     args = ['--update', @updateUrl]
-    updateJson = ""
+    updateOutput = ""
 
     ps = new BufferedProcess
       command: updateDotExe,
       args,
-      stdout: (output) -> updateJson += output
+      stdout: (output) -> updateOutput += output
       exit: (exitCode) ->
         unless exitCode is 0
           console.log 'Failed to update: ' + exitCode + ' - ' + updateJson
@@ -41,9 +41,14 @@ class AutoUpdater
 
         updateInfo = null
         try
-          updateInfo = JSON.parse updateJson
+          # NB: Update.exe spits out the progress as ints until it completes,
+          # then the JSON is the last line of the output. We don't support progress
+          # so just drop the last lines
+          json = updateOutput.split("\n").reverse()[0]
+
+          updateInfo = JSON.parse json
         catch ex
-          console.log "Update JSON isn't valid: " + updateJson
+          console.log "Update output isn't valid: " + updateOutput
           emit 'update-not-available'
           return
 
