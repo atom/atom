@@ -1061,7 +1061,7 @@ class DisplayBuffer extends Model
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
   getRootScopeDescriptor: ->
-    @tokenizedBuffer.grammarScopeDescriptor
+    @tokenizedBuffer.rootScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
