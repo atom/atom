@@ -220,7 +220,7 @@ class Cursor extends Model
   getScopeDescriptor: ->
     @editor.scopeDescriptorForBufferPosition(@getBufferPosition())
   getScopes: ->
-    deprecate 'Use Cursor::getScopeDescriptor() instead'
+    Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
     @getScopeDescriptor()
 
   # Public: Returns true if this cursor has no non-whitespace characters before
