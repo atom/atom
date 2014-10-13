@@ -52,14 +52,12 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @updateAllScreenLines()
-    @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
-
     @updateAllScreenLines()
+    @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
   subscribeToScopedConfigSettings: =>
     @scopedConfigSubscriptions?.dispose()
@@ -67,14 +65,29 @@ class DisplayBuffer extends Model
 
     scopeDescriptor = @getRootScopeDescriptor()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
+    oldConfigSettings = @configSettings
+    @configSettings =
+      scrollPastEnd: atom.config.get(scopeDescriptor, 'editor.scrollPastEnd')
+      softWrap: atom.config.get(scopeDescriptor, 'editor.softWrap')
+      softWrapAtPreferredLineLength: atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
+      preferredLineLength: atom.config.get(scopeDescriptor, 'editor.preferredLineLength')
+
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', ({newValue}) =>
+      @configSettings.softWrap = newValue
       @updateWrappedScreenLines()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', =>
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', ({newValue}) =>
+      @configSettings.softWrapAtPreferredLineLength = newValue
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', =>
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', ({newValue}) =>
+      @configSettings.preferredLineLength = newValue
       @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
+
+    subscriptions.add atom.config.observe scopeDescriptor, 'editor.scrollPastEnd', (value) =>
+      @configSettings.scrollPastEnd = value
+
+    @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
 
   serializeParams: ->
     id: @id
@@ -328,7 +341,7 @@ class DisplayBuffer extends Model
     return 0 unless lineHeight > 0
 
     scrollHeight = @getLineCount() * lineHeight
-    if @height? and atom.config.get(@getRootScopeDescriptor(), 'editor.scrollPastEnd')
+    if @height? and @configSettings.scrollPastEnd
       scrollHeight = scrollHeight + @height - (lineHeight * 3)
 
     scrollHeight
@@ -429,7 +442,7 @@ class DisplayBuffer extends Model
       @isSoftWrapped()
 
   isSoftWrapped: ->
-    @softWrapped ? atom.config.get(@getRootScopeDescriptor(), 'editor.softWrap') ? false
+    @softWrapped ? @configSettings.softWrap ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -451,8 +464,8 @@ class DisplayBuffer extends Model
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get(@getRootScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.get(@getRootScopeDescriptor(), 'editor.preferredLineLength'))
+    if @configSettings.softWrapAtPreferredLineLength
+      Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
     else
       @getEditorWidthInChars()
 
