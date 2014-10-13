@@ -29,7 +29,7 @@ describe 'ModuleCache', ->
       _atomModuleCache:
         folders: [{
           paths: [
-            ""
+            ''
           ]
           dependencies:
             'underscore-plus': '*'
