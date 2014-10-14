@@ -23,19 +23,23 @@ class ThemeManager
     @lessCache = null
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
+    @sheetsByStyleElement = new WeakMap
 
     stylesElement = document.head.querySelector('atom-styles')
     stylesElement.onDidAddStyleElement @styleElementAdded.bind(this)
     stylesElement.onDidRemoveStyleElement @styleElementRemoved.bind(this)
     stylesElement.onDidUpdateStyleElement @styleElementUpdated.bind(this)
 
-  styleElementAdded: ({sheet}) ->
+  styleElementAdded: (styleElement) ->
+    {sheet} = styleElement
+    @sheetsByStyleElement.set(styleElement, sheet)
     @emit 'stylesheet-added', sheet
     @emitter.emit 'did-add-stylesheet', sheet
     @emit 'stylesheets-changed'
     @emitter.emit 'did-change-stylesheets'
 
-  styleElementRemoved: ({sheet}) ->
+  styleElementRemoved: (styleElement) ->
+    sheet = @sheetsByStyleElement.get(styleElement)
     @emit 'stylesheet-removed', sheet
     @emitter.emit 'did-remove-stylesheet', sheet
     @emit 'stylesheets-changed'
