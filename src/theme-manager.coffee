@@ -24,36 +24,30 @@ class ThemeManager
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
 
-    atom.styles.onDidAddStyleElement @styleElementAdded.bind(this)
-    atom.styles.onDidRemoveStyleElement @styleElementRemoved.bind(this)
-    atom.styles.onDidUpdateStyleElement @styleElementUpdated.bind(this)
+    stylesElement = document.head.querySelector('atom-styles')
+    stylesElement.onDidAddStyleElement @styleElementAdded.bind(this)
+    stylesElement.onDidRemoveStyleElement @styleElementRemoved.bind(this)
+    stylesElement.onDidUpdateStyleElement @styleElementUpdated.bind(this)
 
-  styleElementAdded: (element) ->
-    sheet = @styleSheetForElement(element)
+  styleElementAdded: ({sheet}) ->
     @emit 'stylesheet-added', sheet
     @emitter.emit 'did-add-stylesheet', sheet
     @emit 'stylesheets-changed'
     @emitter.emit 'did-change-stylesheets'
 
-  styleElementRemoved: (element) ->
-    sheet = @styleSheetForElement(element)
+  styleElementRemoved: ({sheet}) ->
     @emit 'stylesheet-removed', sheet
     @emitter.emit 'did-remove-stylesheet', sheet
     @emit 'stylesheets-changed'
     @emitter.emit 'did-change-stylesheets'
 
-  styleElementUpdated: (element) ->
-    sheet = @styleSheetForElement(element)
+  styleElementUpdated: ({sheet}) ->
     @emit 'stylesheet-removed', sheet
     @emitter.emit 'did-remove-stylesheet', sheet
     @emit 'stylesheet-added', sheet
     @emitter.emit 'did-add-stylesheet', sheet
     @emit 'stylesheets-changed'
     @emitter.emit 'did-change-stylesheets'
-
-  styleSheetForElement: (element) ->
-    @stylesElement ?= document.head.querySelector('atom-styles')
-    @stylesElement.styleElementClonesByOriginalElement.get(element)?.sheet
 
   ###
   Section: Event Subscription

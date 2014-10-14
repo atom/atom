@@ -204,6 +204,7 @@ class Atom extends Model
     @commands = new CommandRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @styles = new StyleManager
+    document.head.appendChild(new StylesElement)
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
@@ -221,8 +222,6 @@ class Atom extends Model
     TextEditor = require './text-editor'
 
     @windowEventHandler = new WindowEventHandler
-
-    document.head.appendChild(new StylesElement)
 
   ###
   Section: Event Subscription
