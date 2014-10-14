@@ -21,6 +21,10 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
+  Object.defineProperty @::, 'scopes', get: ->
+    deprecate 'Use ::scopeDescriptor instead'
+    @scopeDescriptor
+
   constructor: ({@value, @scopeDescriptor, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
