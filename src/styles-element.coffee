@@ -3,6 +3,7 @@
 class StylesElement extends HTMLElement
   createdCallback: ->
     @emitter = new Emitter
+    @styleElementClonesByOriginalElement = new WeakMap
     @context = @getAttribute('context') ? undefined
 
   attributeChangedCallback: (attrName, oldVal, newVal) ->
@@ -19,7 +20,6 @@ class StylesElement extends HTMLElement
 
   attachedCallback: ->
     @subscriptions = new CompositeDisposable
-    @styleElementClonesByOriginalElement = new WeakMap
     @subscriptions.add atom.styles.observeStyleElements(@styleElementAdded.bind(this))
     @subscriptions.add atom.styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
     @subscriptions.add atom.styles.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
