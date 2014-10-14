@@ -338,6 +338,8 @@ class Config
   # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
   #   the root of the syntax tree to a token. Get one by calling
   #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #   for more information.
   # * `keyPath` {String} name of the key to observe
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
@@ -374,6 +376,8 @@ class Config
   # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
   #   the root of the syntax tree to a token. Get one by calling
   #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #   for more information.
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
   # * `callback` {Function} to call when the value of the key changes.
@@ -443,6 +447,8 @@ class Config
   # * `scopeDescriptor` (optional) {Array} of {String}s describing a path from
   #   the root of the syntax tree to a token. Get one by calling
   #   {editor.getLastCursor().getScopeDescriptor()}
+  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #   for more information.
   # * `keyPath` The {String} name of the key to retrieve.
   #
   # Returns the value from Atom's default settings, the user's configuration
@@ -487,6 +493,8 @@ class Config
   # ```
   #
   # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
+  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #   for more information.
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting. Passing `undefined` will revert the
   #   setting to the default value.
