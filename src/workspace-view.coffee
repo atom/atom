@@ -64,8 +64,8 @@ class WorkspaceView extends View
     @deprecateViewEvents()
 
   setModel: (@model) ->
-    @horizontal = @find('.horizontal')
-    @vertical = @find('.vertical')
+    @horizontal = @find('atom-workspace-axis.horizontal')
+    @vertical = @find('atom-workspace-axis.vertical')
     @panes = @find('atom-pane-container').view()
     @subscribe @model.onDidOpen => @trigger 'uri-opened'
 
