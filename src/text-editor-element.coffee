@@ -26,6 +26,10 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
     @shadowRoot = @createShadowRoot()
 
+    stylesElement = document.createElement('atom-styles')
+    stylesElement.setAttribute('context', 'atom-text-editor')
+    @shadowRoot.appendChild(stylesElement)
+
     for styleElement in document.querySelectorAll('head style.syntax-theme')
       @shadowRoot.appendChild(styleElement.cloneNode(true))
 

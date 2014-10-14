@@ -2,112 +2,106 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
-atom-text-editor {
+:host {
   display: block;
 }
 
-atom-text-editor::shadow {
-  .editor, .editor-contents {
-    height: 100%;
-    width: 100%;
-  }
+.editor, .editor-contents {
+  height: 100%;
+  width: 100%;
+}
 
-  .underlayer {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: -2;
-  }
+.underlayer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: -2;
+}
 
-  .lines {
-    min-width: 100%;
-  }
+.lines {
+  min-width: 100%;
+}
 
-  .cursor {
-    z-index: 4;
-    pointer-events: none;
-  }
+.cursor {
+  z-index: 4;
+  pointer-events: none;
+}
 
-  .editor-contents.is-focused .cursor {
-    visibility: visible;
-  }
+.cursors.blink-off .cursor {
+  opacity: 0;
+}
 
-  .cursors.blink-off .cursor {
-    opacity: 0;
-  }
+.horizontal-scrollbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
 
-  .horizontal-scrollbar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
+  height: 15px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  z-index: 3;
 
+  .scrollbar-content {
     height: 15px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    z-index: 3;
-
-    .scrollbar-content {
-      height: 15px;
-    }
-  }
-
-  .vertical-scrollbar {
-    overflow-x: hidden;
-  }
-
-  .scrollbar-corner {
-    position: absolute;
-    overflow: auto;
-    bottom: 0;
-    right: 0;
-  }
-
-  .scroll-view {
-    overflow: hidden;
-    z-index: 0;
-  }
-
-  .scroll-view-content {
-    position: relative;
-    width: 100%;
-  }
-
-  .gutter {
-    .line-number {
-      white-space: nowrap;
-      padding-left: .5em;
-
-      .icon-right {
-        padding: 0 .4em;
-        &:before {
-          text-align: center;
-        }
-      }
-    }
-  }
-
-  .placeholder-text {
-    position: absolute;
-    color: @text-color-subtle;
   }
 }
 
-atom-text-editor.mini {
+.vertical-scrollbar {
+  overflow-x: hidden;
+}
+
+.scrollbar-corner {
+  position: absolute;
+  overflow: auto;
+  bottom: 0;
+  right: 0;
+}
+
+.scroll-view {
+  overflow: hidden;
+  z-index: 0;
+}
+
+.scroll-view-content {
+  position: relative;
+  width: 100%;
+}
+
+.gutter {
+  .line-number {
+    white-space: nowrap;
+    padding-left: .5em;
+
+    .icon-right {
+      padding: 0 .4em;
+      &:before {
+        text-align: center;
+      }
+    }
+  }
+}
+
+.placeholder-text {
+  position: absolute;
+  color: @text-color-subtle;
+}
+
+:host(.mini) {
   font-size: @input-font-size;
   line-height: @component-line-height;
   max-height: @component-line-height + 2; // +2 for borders
 }
 
-atom-text-editor::shadow {
+.editor {
   z-index: 0;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   line-height: 1.3;
 }
 
-atom-text-editor::shadow, atom-text-editor::shadow .editor-contents {
+.editor, .editor-contents {
   overflow: hidden;
   cursor: text;
   display: -webkit-flex;
@@ -115,11 +109,11 @@ atom-text-editor::shadow, atom-text-editor::shadow .editor-contents {
   position: relative;
 }
 
-atom-text-editor::shadow .gutter .line-number.cursor-line {
+.gutter .line-number.cursor-line {
   opacity: 1;
 }
 
-atom-text-editor::shadow .gutter {
+.gutter {
   overflow: hidden;
   text-align: right;
   cursor: default;
@@ -127,20 +121,20 @@ atom-text-editor::shadow .gutter {
   box-sizing: border-box;
 }
 
-atom-text-editor::shadow .gutter .line-number {
+.gutter .line-number {
   padding-left: .5em;
   opacity: 0.6;
 }
 
-atom-text-editor::shadow .gutter .line-numbers {
+.gutter .line-numbers {
   position: relative;
 }
 
-atom-text-editor::shadow .gutter .line-number.folded.cursor-line {
+.gutter .line-number.folded.cursor-line {
   opacity: 1;
 }
 
-atom-text-editor::shadow .gutter .line-number .icon-right {
+.gutter .line-number .icon-right {
   .octicon(chevron-down, 0.8em);
   display: inline-block;
   visibility: hidden;
@@ -149,7 +143,7 @@ atom-text-editor::shadow .gutter .line-number .icon-right {
   opacity: .6;
 }
 
-atom-text-editor::shadow .gutter:hover .line-number.foldable .icon-right {
+.gutter:hover .line-number.foldable .icon-right {
   visibility: visible;
 
   &:before {
@@ -161,7 +155,7 @@ atom-text-editor::shadow .gutter:hover .line-number.foldable .icon-right {
   }
 }
 
-atom-text-editor::shadow .gutter, atom-text-editor::shadow .gutter:hover {
+.gutter, .gutter:hover {
   .line-number.folded .icon-right {
     .octicon(chevron-right, 0.8em);
     visibility: visible;
@@ -174,17 +168,17 @@ atom-text-editor::shadow .gutter, atom-text-editor::shadow .gutter:hover {
   }
 }
 
-atom-text-editor::shadow .fold-marker {
+.fold-marker {
   cursor: default;
 }
 
-atom-text-editor::shadow .fold-marker:after {
+.fold-marker:after {
   .icon(0.8em, inline);
   content: @ellipsis;
   padding-left: 0.2em;
 }
 
-atom-text-editor::shadow .line.cursor-line .fold-marker:after {
+.line.cursor-line .fold-marker:after {
   opacity: 1;
 }
 
@@ -192,22 +186,22 @@ atom-text-editor::shadow.is-blurred .line.cursor-line {
   background: rgba(0, 0, 0, 0);
 }
 
-atom-text-editor::shadow .invisible-character {
+.invisible-character {
   font-weight: normal !important;
   font-style: normal !important;
 }
 
-atom-text-editor::shadow .indent-guide {
+.indent-guide {
   display: inline-block;
   box-shadow: inset 1px 0;
 }
 
-atom-text-editor::shadow .vertical-scrollbar,
-atom-text-editor::shadow .horizontal-scrollbar {
+.vertical-scrollbar,
+.horizontal-scrollbar {
   cursor: default;
 }
 
-atom-text-editor::shadow .vertical-scrollbar {
+.vertical-scrollbar {
   position: absolute;
   top: 0;
   right: 0;
@@ -218,7 +212,7 @@ atom-text-editor::shadow .vertical-scrollbar {
   z-index: 3;
 }
 
-atom-text-editor::shadow .scroll-view {
+.scroll-view {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-flex: 1;
@@ -230,49 +224,52 @@ atom-text-editor::shadow.soft-wrap .scroll-view {
   overflow-x: hidden;
 }
 
-atom-text-editor::shadow .underlayer {
+.underlayer {
   z-index: 0;
   position: absolute;
   min-height: 100%;
 }
 
-atom-text-editor::shadow .lines {
+.lines {
   position: relative;
   z-index: 1;
 }
 
-atom-text-editor::shadow .overlayer {
+.overlayer {
   z-index: 2;
   position: absolute;
 }
 
-atom-text-editor::shadow .line {
+.line {
   white-space: pre;
 }
 
-atom-text-editor::shadow .line span {
+.line span {
   vertical-align: top;
 }
 
-atom-text-editor::shadow .cursor {
+.cursor {
   position: absolute;
   border-left: 1px solid;
 }
 
-atom-text-editor::shadow .cursor,
-atom-text-editor::shadow.is-focused .cursor.blink-off {
+.cursor {
   visibility: hidden;
 }
 
-atom-text-editor::shadow.is-focused .cursor {
+.is-focused .cursor {
   visibility: visible;
+}
+
+.is-focused .cursor.blink-off {
+  visibility: hidden;
 }
 
 .cursor.hidden-cursor {
   display: none;
 }
 
-atom-text-editor::shadow .hidden-input {
+.hidden-input {
   padding: 0;
   border: 0;
   position: absolute;
@@ -283,13 +280,13 @@ atom-text-editor::shadow .hidden-input {
   width: 1px;
 }
 
-atom-text-editor::shadow .highlight {
+.highlight {
   background: none;
   padding: 0;
 }
 
-atom-text-editor::shadow .highlight .region,
-atom-text-editor::shadow .selection .region {
+.highlight .region,
+.selection .region {
   position: absolute;
   pointer-events: none;
   z-index: -1;
