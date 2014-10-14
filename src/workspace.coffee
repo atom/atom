@@ -136,8 +136,8 @@ class Workspace extends Model
   # Updates the application's title and proxy icon based on whichever file is
   # open.
   updateWindowTitle: =>
+    appName = 'Atom'
     if projectPath = atom.project?.getPaths()[0]
-      appName = 'Atom'
       if item = @getActivePaneItem()
         document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath} - #{appName}"
         atom.setRepresentedFilename(item.getPath?() ? projectPath)

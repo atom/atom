@@ -686,8 +686,8 @@ class Config
     @watchSubscription = null
 
   save: ->
-    allSettings = @scopedSettingsStore.propertiesForSource('user-config')
-    allSettings.global = @settings
+    allSettings = global: @settings
+    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource('user-config')
     CSON.writeFileSync(@configFilePath, allSettings)
 
   ###
