@@ -32,7 +32,7 @@ class Syntax extends GrammarRegistry
   serialize: ->
     {deserializer: @constructor.name, @grammarOverridesByPath}
 
-  createToken: (value, scopes) -> new Token({value, scopes})
+  createToken: (value, scopeDescriptor) -> new Token({value, scopeDescriptor})
 
   # Deprecated: Used by settings-view to display snippets for packages
   @::accessor 'propertyStore', ->

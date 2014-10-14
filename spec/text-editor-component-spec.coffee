@@ -277,7 +277,7 @@ describe "TextEditorComponent", ->
         expect(leafNodes[0].classList.contains('invisible-character')).toBe true
         expect(leafNodes[leafNodes.length - 1].classList.contains('invisible-character')).toBe true
 
-      it "displays newlines as their own token outside of the other tokens' scopes", ->
+      it "displays newlines as their own token outside of the other tokens' scopeDescriptor", ->
         editor.setText "var\n"
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"

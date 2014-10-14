@@ -2370,21 +2370,14 @@ class TextEditor extends Model
   Section: Managing Syntax Scopes
   ###
 
-  # Public: Get the syntactic scopes for the most recently added cursor's
-  # position. See {::scopesForBufferPosition} for more information.
-  #
-  # Returns an {Array} of {String}s.
-  scopesAtCursor: ->
-    if cursor = @getLastCursor()
-      cursor.getScopes()
-    else
-      @getRootScopeDescriptor()
-  getCursorScopes: ->
-    deprecate 'Use TextEditor::scopesAtCursor() instead'
-    @scopesAtCursor()
+  # Essential: Returns the scope descriptor that includes the language. eg.
+  # `['.source.ruby']`, or `['.source.coffee']`. You can use this with
+  # {Config::get} to get language specific config values.
+  getRootScopeDescriptor: ->
+    @displayBuffer.getRootScopeDescriptor()
 
-  # Essential: Get the syntactic scopes for the given position in buffer
-  # coordinates.
+  # Essential: Get the syntactic scopeDescriptor for the given position in buffer
+  # coordinates. Useful with {Config::get}.
   #
   # For example, if called with a position inside the parameter list of an
   # anonymous CoffeeScript function, the method returns the following array:
@@ -2393,7 +2386,10 @@ class TextEditor extends Model
   # * `bufferPosition` A {Point} or {Array} of [row, column].
   #
   # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+  scopeDescriptorForBufferPosition: (bufferPosition) -> @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
+  scopesForBufferPosition: (bufferPosition) ->
+    deprecate 'Use ::scopeDescriptorForBufferPosition instead'
+    @scopeDescriptorForBufferPosition(bufferPosition)
 
   # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
@@ -2405,21 +2401,25 @@ class TextEditor extends Model
   bufferRangeForScopeAtCursor: (selector) ->
     @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
 
-  getRootScopeDescriptor: ->
-    @displayBuffer.getRootScopeDescriptor()
+  # Extended: Determine if the given row is entirely a comment
+  isBufferRowCommented: (bufferRow) ->
+    if match = @lineTextForBufferRow(bufferRow).match(/\S/)
+      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopeDescriptor
+      @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
+      @commentScopeSelector.matches(scopeDescriptor)
 
   logCursorScope: ->
-    console.log @scopesAtCursor()
+    console.log @getLastCursor().getScopeDescriptor()
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
-  # Extended: Determine if the given row is entirely a comment
-  isBufferRowCommented: (bufferRow) ->
-    if match = @lineTextForBufferRow(bufferRow).match(/\S/)
-      scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
-      @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
-      @commentScopeSelector.matches(scopes)
+  scopesAtCursor: ->
+    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    @getLastCursor().getScopeDescriptor()
+  getCursorScopes: ->
+    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    @scopesAtCursor()
 
   ###
   Section: Clipboard Operations
@@ -2459,7 +2459,7 @@ class TextEditor extends Model
 
       return
 
-    else if atom.config.get(@scopesAtCursor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
+    else if atom.config.get(@getLastCursor().getScopeDescriptor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
       if !@getLastCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 

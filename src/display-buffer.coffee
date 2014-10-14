@@ -650,7 +650,7 @@ class DisplayBuffer extends Model
     left = 0
     column = 0
     for token in @tokenizedLineForScreenRow(targetRow).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
+      charWidths = @getScopedCharWidths(token.scopeDescriptor)
       for char in token.value
         return {top, left} if column is targetColumn
         left += charWidths[char] ? defaultCharWidth unless char is '\0'
@@ -668,7 +668,7 @@ class DisplayBuffer extends Model
     left = 0
     column = 0
     for token in @tokenizedLineForScreenRow(row).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
+      charWidths = @getScopedCharWidths(token.scopeDescriptor)
       for char in token.value
         charWidth = charWidths[char] ? defaultCharWidth
         break if targetLeft <= left + (charWidth / 2)
@@ -752,13 +752,13 @@ class DisplayBuffer extends Model
     [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
     new Point(bufferRow, @screenLines[row].bufferColumnForScreenColumn(column))
 
-  # Retrieves the grammar's token scopes for a buffer position.
+  # Retrieves the grammar's token scopeDescriptor for a buffer position.
   #
   # bufferPosition - A {Point} in the {TextBuffer}
   #
   # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) ->
-    @tokenizedBuffer.scopesForPosition(bufferPosition)
+  scopeDescriptorForBufferPosition: (bufferPosition) ->
+    @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
     @tokenizedBuffer.bufferRangeForScopeAtPosition(selector, position)
@@ -1061,7 +1061,7 @@ class DisplayBuffer extends Model
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
   getRootScopeDescriptor: ->
-    @tokenizedBuffer.grammarScopeDescriptor
+    @tokenizedBuffer.rootScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange

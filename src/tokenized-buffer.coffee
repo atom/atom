@@ -79,14 +79,14 @@ class TokenizedBuffer extends Model
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
-    @grammarScopeDescriptor = [@grammar.scopeName]
+    @rootScopeDescriptor = [@grammar.scopeName]
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
 
-    @configSettings = tabLength: atom.config.get(@grammarScopeDescriptor, 'editor.tabLength')
+    @configSettings = tabLength: atom.config.get(@rootScopeDescriptor, 'editor.tabLength')
 
     @grammarTabLengthSubscription?.dispose()
-    @grammarTabLengthSubscription = atom.config.onDidChange @grammarScopeDescriptor, 'editor.tabLength', ({newValue}) =>
+    @grammarTabLengthSubscription = atom.config.onDidChange @rootScopeDescriptor, 'editor.tabLength', ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
     @subscribe @grammarTabLengthSubscription
@@ -105,7 +105,7 @@ class TokenizedBuffer extends Model
   hasTokenForSelector: (selector) ->
     for {tokens} in @tokenizedLines
       for token in tokens
-        return true if selector.matches(token.scopes)
+        return true if selector.matches(token.scopeDescriptor)
     false
 
   retokenizeLines: ->
@@ -247,7 +247,7 @@ class TokenizedBuffer extends Model
 
   buildPlaceholderTokenizedLineForRow: (row) ->
     line = @buffer.lineForRow(row)
-    tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
+    tokens = [new Token(value: line, scopeDescriptor: [@grammar.scopeName])]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
@@ -302,8 +302,8 @@ class TokenizedBuffer extends Model
     else
       0
 
-  scopesForPosition: (position) ->
-    @tokenForPosition(position).scopes
+  scopeDescriptorForPosition: (position) ->
+    @tokenForPosition(position).scopeDescriptor
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)

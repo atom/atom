@@ -198,7 +198,7 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = atom.config.get(@getScopes(), 'editor.nonWordCharacters').split('')
+    nonWordCharacters = atom.config.get(@getScopeDescriptor(), 'editor.nonWordCharacters').split('')
     _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
@@ -214,11 +214,14 @@ class Cursor extends Model
     else
       @getBufferColumn()
 
-  # Public: Retrieves the grammar's token scopes for the line.
+  # Public: Retrieves the scope descriptor for the cursor's current position.
   #
   # Returns an {Array} of {String}s.
+  getScopeDescriptor: ->
+    @editor.scopeDescriptorForBufferPosition(@getBufferPosition())
   getScopes: ->
-    @editor.scopesForBufferPosition(@getBufferPosition())
+    Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
+    @getScopeDescriptor()
 
   # Public: Returns true if this cursor has no non-whitespace characters before
   # its current position.
@@ -617,7 +620,7 @@ class Cursor extends Model
   # Returns a {RegExp}.
   wordRegExp: ({includeNonWordCharacters}={}) ->
     includeNonWordCharacters ?= true
-    nonWordCharacters = atom.config.get(@getScopes(), 'editor.nonWordCharacters')
+    nonWordCharacters = atom.config.get(@getScopeDescriptor(), 'editor.nonWordCharacters')
     segments = ["^[\t ]*$"]
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
     if includeNonWordCharacters

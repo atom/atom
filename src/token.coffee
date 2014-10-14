@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+{deprecate} = require 'grim'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
@@ -13,27 +14,35 @@ module.exports =
 class Token
   value: null
   hasPairedCharacter: false
-  scopes: null
+  scopeDescriptor: null
   isAtomic: null
   isHardTab: null
   firstNonWhitespaceIndex: null
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
+  Object.defineProperty @::, 'scopes', get: ->
+    deprecate 'Use ::scopeDescriptor instead'
+    @scopeDescriptor
+
+  constructor: ({@value, @scopeDescriptor, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter = textUtils.hasPairedCharacter(@value)
 
   isEqual: (other) ->
-    @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic
+    # TODO: scopes is deprecated. This is here for the sake of lang package tests
+    scopeDescriptor = other.scopeDescriptor ? other.scopes
+    deprecate 'Test the Token for `scopeDescriptor` rather than `scopes`' if other.scopes?
+
+    @value == other.value and _.isEqual(@scopeDescriptor, scopeDescriptor) and !!@isAtomic == !!other.isAtomic
 
   isBracket: ->
-    /^meta\.brace\b/.test(_.last(@scopes))
+    /^meta\.brace\b/.test(_.last(@scopeDescriptor))
 
   splitAt: (splitIndex) ->
-    leftToken = new Token(value: @value.substring(0, splitIndex), scopes: @scopes)
-    rightToken = new Token(value: @value.substring(splitIndex), scopes: @scopes)
+    leftToken = new Token(value: @value.substring(0, splitIndex), scopeDescriptor: @scopeDescriptor)
+    rightToken = new Token(value: @value.substring(splitIndex), scopeDescriptor: @scopeDescriptor)
 
     if @firstNonWhitespaceIndex?
       leftToken.firstNonWhitespaceIndex = Math.min(splitIndex, @firstNonWhitespaceIndex)
@@ -92,7 +101,7 @@ class Token
         else
           breakOutLeadingSoftTabs = false
           value = match[0]
-          token = new Token({value, @scopes})
+          token = new Token({value, @scopeDescriptor})
         column += token.value.length
         outputTokens.push(token)
 
@@ -106,7 +115,7 @@ class Token
     while index < @value.length
       if textUtils.isPairedCharacter(@value, index)
         if nonPairStart isnt index
-          outputTokens.push(new Token({value: @value[nonPairStart...index], @scopes}))
+          outputTokens.push(new Token({value: @value[nonPairStart...index], @scopeDescriptor}))
         outputTokens.push(@buildPairedCharacterToken(@value, index))
         index += 2
         nonPairStart = index
@@ -114,14 +123,14 @@ class Token
         index++
 
     if nonPairStart isnt index
-      outputTokens.push(new Token({value: @value[nonPairStart...index], @scopes}))
+      outputTokens.push(new Token({value: @value[nonPairStart...index], @scopeDescriptor}))
 
     outputTokens
 
   buildPairedCharacterToken: (value, index) ->
     new Token(
       value: value[index..index + 1]
-      scopes: @scopes
+      scopeDescriptor: @scopeDescriptor
       isAtomic: true
     )
 
@@ -135,7 +144,7 @@ class Token
     tabStop = tabLength - (column % tabLength)
     new Token(
       value: _.multiplyString(" ", tabStop)
-      scopes: @scopes
+      scopeDescriptor: @scopeDescriptor
       bufferDelta: if isHardTab then 1 else tabStop
       isAtomic: true
       isHardTab: isHardTab
@@ -146,7 +155,7 @@ class Token
 
   matchesScopeSelector: (selector) ->
     targetClasses = selector.replace(StartDotRegex, '').split('.')
-    _.any @scopes, (scope) ->
+    _.any @scopeDescriptor, (scope) ->
       scopeClasses = scope.split('.')
       _.isSubset(targetClasses, scopeClasses)
 
