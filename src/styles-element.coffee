@@ -10,11 +10,15 @@ class StylesElement extends HTMLElement
   onDidRemoveStyleElement: (callback) ->
     @emitter.on 'did-remove-style-element', callback
 
+  onDidUpdateStyleElement: (callback) ->
+    @emitter.on 'did-update-style-element', callback
+
   attachedCallback: ->
     @subscriptions = new CompositeDisposable
     @styleElementClonesByOriginalElement = new WeakMap
     @subscriptions.add atom.styles.observeStyleElements(@styleElementAdded.bind(this))
     @subscriptions.add atom.styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
+    @subscriptions.add atom.styles.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
 
   styleElementAdded: (styleElement) ->
     styleElementClone = styleElement.cloneNode(true)
@@ -34,6 +38,11 @@ class StylesElement extends HTMLElement
     styleElementClone = @styleElementClonesByOriginalElement.get(styleElement)
     styleElementClone.remove()
     @emitter.emit 'did-remove-style-element', styleElementClone
+
+  styleElementUpdated: (styleElement) ->
+    styleElementClone = @styleElementClonesByOriginalElement.get(styleElement)
+    styleElementClone.textContent = styleElement.textContent
+    @emitter.emit 'did-update-style-element', styleElementClone
 
   detachedCallback: ->
     @subscriptions.dispose()

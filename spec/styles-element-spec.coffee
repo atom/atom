@@ -2,15 +2,17 @@ StylesElement = require '../src/styles-element'
 StyleManager = require '../src/style-manager'
 
 describe "StylesElement", ->
-  [element, addedStyleElements, removedStyleElements] = []
+  [element, addedStyleElements, removedStyleElements, updatedStyleElements] = []
 
   beforeEach ->
     element = new StylesElement
     document.querySelector('#jasmine-content').appendChild(element)
     addedStyleElements = []
     removedStyleElements = []
+    updatedStyleElements = []
     element.onDidAddStyleElement (element) -> addedStyleElements.push(element)
     element.onDidRemoveStyleElement (element) -> removedStyleElements.push(element)
+    element.onDidUpdateStyleElement (element) -> updatedStyleElements.push(element)
 
   it "renders a style tag for all currently active stylesheets in the style manager", ->
     initialChildCount = element.children.length
@@ -40,3 +42,13 @@ describe "StylesElement", ->
     expect(element.children[initialChildCount].textContent).toBe "a {color: red}"
     expect(element.children[initialChildCount + 1].textContent).toBe "a {color: green}"
     expect(element.children[initialChildCount + 2].textContent).toBe "a {color: blue}"
+
+  it "updates existing style nodes when style elements are updated", ->
+    initialChildCount = element.children.length
+
+    atom.styles.addStyleSheet("a {color: red;}", sourcePath: '/foo/bar')
+    atom.styles.addStyleSheet("a {color: blue;}", sourcePath: '/foo/bar')
+
+    expect(element.children.length).toBe initialChildCount + 1
+    expect(element.children[initialChildCount].textContent).toBe "a {color: blue;}"
+    expect(updatedStyleElements).toEqual [element.children[initialChildCount]]
