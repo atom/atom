@@ -31,25 +31,33 @@ class StyleManager
       updated = true
     else
       styleElement = document.createElement('style')
-      styleElement.setAttribute('source-path', sourcePath) if sourcePath?
-      styleElement.setAttribute('group', group) if group?
+      if sourcePath?
+        styleElement.sourcePath = sourcePath
+        styleElement.setAttribute('source-path', sourcePath)
+
+      if context?
+        styleElement.context = context
+        styleElement.setAttribute('context', context)
+
+      if group?
+        styleElement.group = group
+        styleElement.setAttribute('group', group)
 
     styleElement.textContent = source
 
     if updated
       @emitter.emit 'did-update-style-element', styleElement
     else
-      @addStyleElement(styleElement, params)
+      @addStyleElement(styleElement)
 
     new Disposable => @removeStyleElement(styleElement)
 
-  addStyleElement: (styleElement, params) ->
-    sourcePath = params?.sourcePath
-    group = params?.group
+  addStyleElement: (styleElement) ->
+    {sourcePath, group} = styleElement
 
     if group?
       for existingElement, index in @styleElements
-        if existingElement.getAttribute('group') is group
+        if existingElement.group is group
           insertIndex = index + 1
         else
           break if insertIndex?
@@ -59,12 +67,11 @@ class StyleManager
     @styleElementsBySourcePath[sourcePath] ?= styleElement if sourcePath?
     @emitter.emit 'did-add-style-element', styleElement
 
-  removeStyleElement: (styleElement, params) ->
+  removeStyleElement: (styleElement) ->
     index = @styleElements.indexOf(styleElement)
     unless index is -1
       @styleElements.splice(index, 1)
-      if sourcePath = styleElement.getAttribute('source-path')
-        delete @styleElementsBySourcePath[sourcePath]
+      delete @styleElementsBySourcePath[styleElement.sourcePath] if styleElement.sourcePath?
       @emitter.emit 'did-remove-style-element', styleElement
 
   getSnapshot: ->
@@ -76,7 +83,4 @@ class StyleManager
 
     existingStyleElements = @getStyleElements()
     for styleElement in styleElementsToRestore
-      unless styleElement in existingStyleElements
-        sourcePath = styleElement.getAttribute('source-path')
-        group = styleElement.getAttribute('group')
-        @addStyleElement(styleElement, {sourcePath, group})
+      @addStyleElement(styleElement) unless styleElement in existingStyleElements
