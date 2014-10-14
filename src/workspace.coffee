@@ -137,14 +137,15 @@ class Workspace extends Model
   # open.
   updateWindowTitle: =>
     if projectPath = atom.project?.getPaths()[0]
+      titleAddition = '- Atom'
       if item = @getActivePaneItem()
-        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath} #{titleAddition}"
         atom.setRepresentedFilename(item.getPath?() ? projectPath)
       else
-        document.title = projectPath
+        document.title = "#{projectPath} #{titleAddition}"
         atom.setRepresentedFilename(projectPath)
     else
-      document.title = 'untitled'
+      document.title = "untitled #{titleAddition}"
       atom.setRepresentedFilename('')
 
   # On OS X, fades the application window's proxy icon when the current file
