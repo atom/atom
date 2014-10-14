@@ -35,13 +35,13 @@ describe "StyleManager", ->
         disposable1 = manager.addStyleSheet("a {color: red;}", sourcePath: '/foo/bar')
 
         expect(addEvents.length).toBe 1
-        expect(addEvents[0].sourcePath).toBe '/foo/bar'
+        expect(addEvents[0].getAttribute('source-path')).toBe '/foo/bar'
 
         disposable2 = manager.addStyleSheet("a {color: blue;}", sourcePath: '/foo/bar')
 
         expect(addEvents.length).toBe 1
         expect(updateEvents.length).toBe 1
-        expect(updateEvents[0].sourcePath).toBe '/foo/bar'
+        expect(updateEvents[0].getAttribute('source-path')).toBe '/foo/bar'
         expect(updateEvents[0].textContent).toBe "a {color: blue;}"
 
         disposable2.dispose()
@@ -50,7 +50,7 @@ describe "StyleManager", ->
         manager.addStyleSheet("a {color: yellow;}", sourcePath: '/foo/bar')
 
         expect(addEvents.length).toBe 1
-        expect(addEvents[0].sourcePath).toBe '/foo/bar'
+        expect(addEvents[0].getAttribute('source-path')).toBe '/foo/bar'
         expect(addEvents[0].textContent).toBe "a {color: yellow;}"
 
     describe "when a group parameter is specified", ->

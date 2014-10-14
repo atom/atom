@@ -8,8 +8,11 @@ WorkspaceView = null
 
 module.exports =
 class WorkspaceElement extends HTMLElement
+  globalTextEditorStyleSheet: null
+
   createdCallback: ->
     @subscriptions = new CompositeDisposable
+    @initializeGlobalTextEditorStyleSheet()
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
@@ -21,6 +24,10 @@ class WorkspaceElement extends HTMLElement
 
   detachedCallback: ->
     @model.destroy()
+
+  initializeGlobalTextEditorStyleSheet: ->
+    atom.styles.addStyleSheet('atom-text-editor {}', sourcePath: 'global-text-editor-styles')
+    @globalTextEditorStyleSheet = document.head.querySelector('style[source-path="global-text-editor-styles"]').sheet
 
   initializeContent: ->
     @classList.add 'workspace'
@@ -46,9 +53,9 @@ class WorkspaceElement extends HTMLElement
           @classList.add("scrollbars-visible-when-scrolling")
 
   observeTextEditorFontConfig: ->
-    @subscriptions.add atom.config.observe 'editor.fontSize', @setTextEditorFontSize
-    @subscriptions.add atom.config.observe 'editor.fontFamily', @setTextEditorFontFamily
-    @subscriptions.add atom.config.observe 'editor.lineHeight', @setTextEditorLineHeight
+    @subscriptions.add atom.config.observe 'editor.fontSize', @setTextEditorFontSize.bind(this)
+    @subscriptions.add atom.config.observe 'editor.fontFamily', @setTextEditorFontFamily.bind(this)
+    @subscriptions.add atom.config.observe 'editor.lineHeight', @setTextEditorLineHeight.bind(this)
 
   createSpacePenShim: ->
     WorkspaceView ?= require './workspace-view'
@@ -68,13 +75,18 @@ class WorkspaceElement extends HTMLElement
     @__spacePenView.setModel(@model)
 
   setTextEditorFontSize: (fontSize) ->
-    atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
+    @updateGlobalEditorStyle('font-size', fontSize + 'px')
 
   setTextEditorFontFamily: (fontFamily) ->
-    atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
+    @updateGlobalEditorStyle('font-family', fontFamily)
 
   setTextEditorLineHeight: (lineHeight) ->
-    atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
+    @updateGlobalEditorStyle('line-height', lineHeight)
+
+  updateGlobalEditorStyle: (property, value) ->
+    editorRule = @globalTextEditorStyleSheet.cssRules[0]
+    editorRule.style[property] = value
+    atom.themes.emitter.emit 'did-update-stylesheet', @globalTextEditorStyleSheet
 
   handleFocus: (event) ->
     @model.getActivePane().activate()

@@ -29,6 +29,7 @@ atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 atom.keymaps.loadBundledKeymaps()
 keyBindingsToRestore = atom.keymaps.getKeyBindings()
 commandsToRestore = atom.commands.getSnapshot()
+styleElementsToRestore = atom.styles.getSnapshot()
 
 window.addEventListener 'core:close', -> window.close()
 window.addEventListener 'beforeunload', ->
@@ -74,7 +75,7 @@ beforeEach ->
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
-  atom.styles.clear()
+  atom.styles.restoreSnapshot(styleElementsToRestore)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}

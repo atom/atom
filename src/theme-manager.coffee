@@ -19,9 +19,41 @@ class ThemeManager
 
   constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
     @emitter = new Emitter
+    @styleSheetDisposablesBySourcePath = {}
     @lessCache = null
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
+
+    atom.styles.onDidAddStyleElement @styleElementAdded.bind(this)
+    atom.styles.onDidRemoveStyleElement @styleElementRemoved.bind(this)
+    atom.styles.onDidUpdateStyleElement @styleElementUpdated.bind(this)
+
+  styleElementAdded: (element) ->
+    sheet = @styleSheetForElement(element)
+    @emit 'stylesheet-added', sheet
+    @emitter.emit 'did-add-stylesheet', sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  styleElementRemoved: (element) ->
+    sheet = @styleSheetForElement(element)
+    @emit 'stylesheet-removed', sheet
+    @emitter.emit 'did-remove-stylesheet', sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  styleElementUpdated: (element) ->
+    sheet = @styleSheetForElement(element)
+    @emit 'stylesheet-removed', sheet
+    @emitter.emit 'did-remove-stylesheet', sheet
+    @emit 'stylesheet-added', sheet
+    @emitter.emit 'did-add-stylesheet', sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  styleSheetForElement: (element) ->
+    @stylesElement ?= document.head.querySelector('atom-styles')
+    @stylesElement.styleElementClonesByOriginalElement.get(element)?.sheet
 
   ###
   Section: Event Subscription
@@ -188,7 +220,6 @@ class ThemeManager
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
       @applyStylesheet(fullPath, content, type)
-      new Disposable => @removeStylesheet(fullPath)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -204,8 +235,7 @@ class ThemeManager
 
     @userStylesheetPath = userStylesheetPath
     @userStylesheetFile = new File(userStylesheetPath)
-    @userStylesheetFile.on 'contents-changed moved removed', =>
-      @loadUserStylesheet()
+    @userStylesheetFile.on 'contents-changed moved removed', => @loadUserStylesheet()
     userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
     @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
@@ -219,7 +249,7 @@ class ThemeManager
       @requireStylesheet(nativeStylesheetPath)
 
   stylesheetElementForId: (id) ->
-    document.head.querySelector("""style[id="#{id}"]""")
+    document.head.querySelector("atom-styles style[source-path=\"#{id}\"]")
 
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
@@ -256,40 +286,10 @@ class ThemeManager
       """
 
   removeStylesheet: (stylesheetPath) ->
-    fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
-    element = @stylesheetElementForId(@stringToId(fullPath))
-    if element?
-      {sheet} = element
-      element.remove()
-      @emit 'stylesheet-removed', sheet
-      @emitter.emit 'did-remove-stylesheet', sheet
-      @emit 'stylesheets-changed'
-      @emitter.emit 'did-change-stylesheets'
+    @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
 
   applyStylesheet: (path, text, type='bundled') ->
-    styleId = @stringToId(path)
-    styleElement = @stylesheetElementForId(styleId)
-
-    if styleElement?
-      @emit 'stylesheet-removed', styleElement.sheet
-      @emitter.emit 'did-remove-stylesheet', styleElement.sheet
-      styleElement.textContent = text
-    else
-      styleElement = document.createElement('style')
-      styleElement.setAttribute('class', type)
-      styleElement.setAttribute('id', styleId)
-      styleElement.textContent = text
-
-      elementToInsertBefore = _.last(document.head.querySelectorAll("style.#{type}"))?.nextElementSibling
-      if elementToInsertBefore?
-        document.head.insertBefore(styleElement, elementToInsertBefore)
-      else
-        document.head.appendChild(styleElement)
-
-    @emit 'stylesheet-added', styleElement.sheet
-    @emitter.emit 'did-add-stylesheet', styleElement.sheet
-    @emit 'stylesheets-changed'
-    @emitter.emit 'did-change-stylesheets'
+    @styleSheetDisposablesBySourcePath[path] = atom.styles.addStyleSheet(text, sourcePath: path, group: type)
 
   ###
   Section: Private
@@ -358,17 +358,3 @@ class ThemeManager
           themePaths.push(path.join(themePath, Package.stylesheetsDir))
 
     themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
-
-  updateGlobalEditorStyle: (property, value) ->
-    unless styleNode = @stylesheetElementForId('global-editor-styles')
-      @applyStylesheet('global-editor-styles', 'atom-text-editor {}')
-      styleNode = @stylesheetElementForId('global-editor-styles')
-
-    {sheet} = styleNode
-    editorRule = sheet.cssRules[0]
-    editorRule.style[property] = value
-
-    @emit 'stylesheet-updated', sheet
-    @emitter.emit 'did-update-stylesheet', sheet
-    @emit 'stylesheets-changed'
-    @emitter.emit 'did-change-stylesheets'

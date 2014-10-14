@@ -31,14 +31,25 @@ class StyleManager
       updated = true
     else
       styleElement = document.createElement('style')
-      styleElement.sourcePath = sourcePath if sourcePath?
-      styleElement.group = group if group?
+      styleElement.setAttribute('source-path', sourcePath) if sourcePath?
+      styleElement.setAttribute('group', group) if group?
 
     styleElement.textContent = source
 
+    if updated
+      @emitter.emit 'did-update-style-element', styleElement
+    else
+      @addStyleElement(styleElement, params)
+
+    new Disposable => @removeStyleElement(styleElement)
+
+  addStyleElement: (styleElement, params) ->
+    sourcePath = params?.sourcePath
+    group = params?.group
+
     if group?
       for existingElement, index in @styleElements
-        if existingElement.group is group
+        if existingElement.getAttribute('group') is group
           insertIndex = index + 1
         else
           break if insertIndex?
@@ -46,22 +57,26 @@ class StyleManager
 
     @styleElements.splice(insertIndex, 0, styleElement)
     @styleElementsBySourcePath[sourcePath] ?= styleElement if sourcePath?
-
-    if updated
-      @emitter.emit 'did-update-style-element', styleElement
-    else
-      @emitter.emit 'did-add-style-element', styleElement
-
-    new Disposable => @removeStyleElement(styleElement, params)
+    @emitter.emit 'did-add-style-element', styleElement
 
   removeStyleElement: (styleElement, params) ->
     index = @styleElements.indexOf(styleElement)
     unless index is -1
       @styleElements.splice(index, 1)
-      sourcePath = params?.sourcePath
-      delete @styleElementsBySourcePath[sourcePath] if sourcePath?
+      if sourcePath = styleElement.getAttribute('source-path')
+        delete @styleElementsBySourcePath[sourcePath]
       @emitter.emit 'did-remove-style-element', styleElement
 
-  clear: ->
-    @styleElements = []
-    @styleElementsBySourcePath = {}
+  getSnapshot: ->
+    @styleElements.slice()
+
+  restoreSnapshot: (styleElementsToRestore) ->
+    for styleElement in @getStyleElements()
+      @removeStyleElement(styleElement) unless styleElement in styleElementsToRestore
+
+    existingStyleElements = @getStyleElements()
+    for styleElement in styleElementsToRestore
+      unless styleElement in existingStyleElements
+        sourcePath = styleElement.getAttribute('source-path')
+        group = styleElement.getAttribute('group')
+        @addStyleElement(styleElement, {sourcePath, group})

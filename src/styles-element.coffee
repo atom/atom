@@ -8,14 +8,13 @@ class StylesElement extends HTMLElement
     @subscriptions.add atom.styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
 
   styleElementAdded: (styleElement) ->
-    {group} = styleElement
     styleElementClone = styleElement.cloneNode(true)
-    styleElementClone.group = group
     @styleElementClonesByOriginalElement.set(styleElement, styleElementClone)
 
+    group = styleElement.getAttribute('group')
     if group?
       for child in @children
-        if child.group is group and child.nextSibling?.group isnt group
+        if child.getAttribute('group') is group and child.nextSibling?.getAttribute('group') isnt group
           insertBefore = child.nextSibling
           break
 

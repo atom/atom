@@ -14,6 +14,7 @@ fs = require 'fs-plus'
 
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
+StylesElement = require './styles-element'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -202,8 +203,8 @@ class Atom extends Model
     @keymap = @keymaps # Deprecated
     @commands = new CommandRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
+    @styles = new StyleManager
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
-    @styles = new StyleManager({resourcePath})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
@@ -220,6 +221,8 @@ class Atom extends Model
     TextEditor = require './text-editor'
 
     @windowEventHandler = new WindowEventHandler
+
+    document.head.appendChild(new StylesElement)
 
   ###
   Section: Event Subscription
