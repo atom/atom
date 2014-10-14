@@ -3,6 +3,10 @@
 class StylesElement extends HTMLElement
   createdCallback: ->
     @emitter = new Emitter
+    @context = @getAttribute('context') ? undefined
+
+  attributeChangedCallback: (attrName, oldVal, newVal) ->
+    @contextChanged() if attrName is 'context'
 
   onDidAddStyleElement: (callback) ->
     @emitter.on 'did-add-style-element', callback
@@ -21,7 +25,10 @@ class StylesElement extends HTMLElement
     @subscriptions.add atom.styles.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
 
   styleElementAdded: (styleElement) ->
+    return unless styleElement.context is @context
+
     styleElementClone = styleElement.cloneNode(true)
+    styleElementClone.context = styleElement.context
     @styleElementClonesByOriginalElement.set(styleElement, styleElementClone)
 
     group = styleElement.getAttribute('group')
@@ -35,14 +42,23 @@ class StylesElement extends HTMLElement
     @emitter.emit 'did-add-style-element', styleElementClone
 
   styleElementRemoved: (styleElement) ->
-    styleElementClone = @styleElementClonesByOriginalElement.get(styleElement)
+    return unless styleElement.context is @context
+
+    styleElementClone = @styleElementClonesByOriginalElement.get(styleElement) ? styleElement
     styleElementClone.remove()
     @emitter.emit 'did-remove-style-element', styleElementClone
 
   styleElementUpdated: (styleElement) ->
+    return unless styleElement.context is @context
+
     styleElementClone = @styleElementClonesByOriginalElement.get(styleElement)
     styleElementClone.textContent = styleElement.textContent
     @emitter.emit 'did-update-style-element', styleElementClone
+
+  contextChanged: ->
+    @styleElementRemoved(child) for child in Array::slice.call(@children)
+    @context = @getAttribute('context')
+    @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
 
   detachedCallback: ->
     @subscriptions.dispose()
