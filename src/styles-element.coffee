@@ -1,6 +1,15 @@
-{CompositeDisposable} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 
 class StylesElement extends HTMLElement
+  createdCallback: ->
+    @emitter = new Emitter
+
+  onDidAddStyleElement: (callback) ->
+    @emitter.on 'did-add-style-element', callback
+
+  onDidRemoveStyleElement: (callback) ->
+    @emitter.on 'did-remove-style-element', callback
+
   attachedCallback: ->
     @subscriptions = new CompositeDisposable
     @styleElementClonesByOriginalElement = new WeakMap
@@ -19,9 +28,12 @@ class StylesElement extends HTMLElement
           break
 
     @insertBefore(styleElementClone, insertBefore)
+    @emitter.emit 'did-add-style-element', styleElementClone
 
   styleElementRemoved: (styleElement) ->
-    @styleElementClonesByOriginalElement.get(styleElement).remove()
+    styleElementClone = @styleElementClonesByOriginalElement.get(styleElement)
+    styleElementClone.remove()
+    @emitter.emit 'did-remove-style-element', styleElementClone
 
   detachedCallback: ->
     @subscriptions.dispose()
