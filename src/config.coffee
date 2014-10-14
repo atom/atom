@@ -486,7 +486,7 @@ class Config
   # atom.config.get(['source.js'], 'editor.tabLength') # => 4
   # ```
   #
-  # * `scope` (optional) {String}. eg. '.source.ruby'
+  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting. Passing `undefined` will revert the
   #   setting to the default value.
@@ -494,11 +494,11 @@ class Config
   # Returns a {Boolean}
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set: (scope, keyPath, value) ->
+  set: (scopeSelector, keyPath, value) ->
     if arguments.length < 3
       value = keyPath
-      keyPath = scope
-      scope = undefined
+      keyPath = scopeSelector
+      scopeSelector = undefined
 
     unless value == undefined
       try
@@ -506,8 +506,8 @@ class Config
       catch e
         return false
 
-    if scope?
-      @setRawScopedValue(scope, keyPath, value)
+    if scopeSelector?
+      @setRawScopedValue(scopeSelector, keyPath, value)
     else
       @setRawValue(keyPath, value)
 
