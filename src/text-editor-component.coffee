@@ -102,7 +102,7 @@ TextEditorComponent = React.createClass
           @useHardwareAcceleration, @performedInitialMeasurement, @backgroundColor, @gutterBackgroundColor
         }
 
-      div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
+      div ref: 'scrollView', className: 'scroll-view',
         InputComponent
           ref: 'input'
           className: 'hidden-input'
@@ -380,6 +380,7 @@ TextEditorComponent = React.createClass
     node.addEventListener 'mousewheel', @onMouseWheel
     node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
     node.addEventListener 'textInput', @onTextInput
+    @refs.scrollView.getDOMNode().addEventListener 'mousedown', @onMouseDown
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll

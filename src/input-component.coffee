@@ -7,9 +7,9 @@ InputComponent = React.createClass
   displayName: 'InputComponent'
 
   render: ->
-    {className, style, onFocus, onBlur} = @props
+    {className, style} = @props
 
-    input {className, style, onFocus, onBlur, 'data-react-skip-selection-restoration': true}
+    input {className, style, 'data-react-skip-selection-restoration': true}
 
   getInitialState: ->
     {lastChar: ''}
@@ -17,6 +17,8 @@ InputComponent = React.createClass
   componentDidMount: ->
     @getDOMNode().addEventListener 'paste', @onPaste
     @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
+    @getDOMNode().addEventListener 'focus', @onFocus
+    @getDOMNode().addEventListener 'blur', @onBlur
 
   # Don't let text accumulate in the input forever, but avoid excessive reflows
   componentDidUpdate: ->
