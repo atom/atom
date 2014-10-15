@@ -30,7 +30,8 @@ module.exports = (grunt) ->
     args = ['-r', releasesDir, '-u', 'https://github.com/atom/atom', '-t', atomGitHubToken]
 
     spawn {cmd, args}, (error, result, code) ->
-      return done(error) if error?
+      if error?
+        grunt.log.error "ATOM_ACCESS_TOKEN environment variable not set or invalid, can't download old releases; continuing anyways"
 
       cmd = 'build/windows/nuget.exe'
       args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
