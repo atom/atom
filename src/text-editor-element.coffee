@@ -30,12 +30,6 @@ class TextEditorElement extends HTMLElement
     stylesElement.setAttribute('context', 'atom-text-editor')
     @shadowRoot.appendChild(stylesElement)
 
-    for styleElement in document.querySelectorAll('head style.syntax-theme')
-      @shadowRoot.appendChild(styleElement.cloneNode(true))
-
-    atom.themes.onDidAddStylesheet (sheet) =>
-      @shadowRoot.appendChild(sheet.ownerNode.cloneNode(true))
-
     @root = document.createElement('div')
     @root.classList.add('editor', 'editor-colors')
     @shadowRoot.appendChild(@root)

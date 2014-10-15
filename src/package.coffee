@@ -176,9 +176,10 @@ class Package
   activateStylesheets: ->
     return if @stylesheetsActivated
 
+    context = 'atom-text-editor' if @metadata.theme is 'syntax'
     group = @getStylesheetType()
     for [sourcePath, source] in @stylesheets
-      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, sourcePath}))
+      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, sourcePath, context}))
     @stylesheetsActivated = true
 
   activateResources: ->
