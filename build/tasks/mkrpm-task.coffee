@@ -24,6 +24,7 @@ module.exports = (grunt) ->
       return done("Unsupported arch #{process.arch}")
 
     {name, version, description} = grunt.file.readJSON('package.json')
+    buildDir = grunt.config.get('atom.buildDir')
     installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
     iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
