@@ -5,7 +5,7 @@ set -e
 SPEC_FILE="$1"
 DESKTOP_FILE="$2"
 
-RPM_BUILD_ROOT=~/rpmbuild
+RPM_BUILD_ROOT="`mktemp -d`"
 ARCH=`uname -m`
 
 rpmdev-setuptree
