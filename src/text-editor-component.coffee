@@ -487,6 +487,17 @@ TextEditorComponent = React.createClass
       previousScrollLeft = editor.getScrollLeft()
       editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
       event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
+      return
+    else if event.ctrlKey and (process.platform isnt 'darwin')
+      # Ctrl+MouseWheel adjusts font size.
+      currentFontSize = atom.config.get("editor.fontSize")
+      if wheelDeltaY > 0
+        amount = 1
+      else if wheelDeltaY < 0
+        amount = -1
+      atom.config.set("editor.fontSize", currentFontSize + amount)
+      event.preventDefault()
+      return
     else
       # Scrolling vertically
       @mouseWheelScreenRow = @screenRowForNode(event.target)
