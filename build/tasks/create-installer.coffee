@@ -31,7 +31,7 @@ module.exports = (grunt) ->
 
     spawn {cmd, args}, (error, result, code) ->
       if error?
-        grunt.log.error "ATOM_ACCESS_TOKEN not set, can't download old releases; continuing anyways"
+        grunt.log.error "ATOM_ACCESS_TOKEN environment variable not set or invalid, can't download old releases; continuing anyways"
 
       cmd = 'build/windows/nuget.exe'
       args = ['pack', targetNuspecPath, '-BasePath', atomDir, '-OutputDirectory', buildDir]
