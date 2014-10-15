@@ -1,5 +1,5 @@
 {CompositeDisposable} = require 'event-kit'
-{$} = require './space-pen-extensions'
+{$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
 PaneView = require './pane-view'
 
 class PaneElement extends HTMLElement
@@ -8,6 +8,8 @@ class PaneElement extends HTMLElement
   createdCallback: ->
     @attached = false
     @subscriptions = new CompositeDisposable
+    @inlineDisplayStyles = new WeakMap
+
     @initializeContent()
     @subscribeToDOMEvents()
     @createSpacePenShim()
@@ -33,6 +35,32 @@ class PaneElement extends HTMLElement
   createSpacePenShim: ->
     @__spacePenView = new PaneView(this)
 
+    addCommands = (handlersByName) =>
+      for name, handler of handlersByName
+        do (handler) =>
+          @__spacePenView.command name, => handler.apply(this, arguments)
+
+    addCommands(
+      'pane:save-items': -> @getModel().saveItems()
+      'pane:show-next-item': -> @getModel().activateNextItem()
+      'pane:show-previous-item': -> @getModel().activatePreviousItem()
+      'pane:show-item-1': -> @getModel().activateItemAtIndex(0)
+      'pane:show-item-2': -> @getModel().activateItemAtIndex(1)
+      'pane:show-item-3': -> @getModel().activateItemAtIndex(2)
+      'pane:show-item-4': -> @getModel().activateItemAtIndex(3)
+      'pane:show-item-5': -> @getModel().activateItemAtIndex(4)
+      'pane:show-item-6': -> @getModel().activateItemAtIndex(5)
+      'pane:show-item-7': -> @getModel().activateItemAtIndex(6)
+      'pane:show-item-8': -> @getModel().activateItemAtIndex(7)
+      'pane:show-item-9': -> @getModel().activateItemAtIndex(8)
+      'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
+      'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
+      'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
+      'pane:split-down': -> @getModel().splitDown(copyActiveItem: true)
+      'pane:close': -> @getModel().destroy()
+      'pane:close-other-items': -> @getModel().destroyInactiveItems()
+    )
+
   getModel: -> @model
 
   setModel: (@model) ->
@@ -55,24 +83,37 @@ class PaneElement extends HTMLElement
   activeItemChanged: (item) ->
     return unless item?
 
-    $itemViews = $(@itemViews)
-    view = @model.getView(item).__spacePenView
-    otherView.hide() for otherView in $itemViews.children().not(view).views()
-    $itemViews.append(view) unless view.parent().is($itemViews)
-    view.show() if @attached
-    view.focus() if @hasFocus()
+    hasFocus = @hasFocus()
+    itemView = @model.getView(item)
+
+    for child in @itemViews.children
+      if child is itemView
+        @showItemView(child) if @attached
+      else
+        @hideItemView(child)
+
+    unless @itemViews.contains(itemView)
+      @itemViews.appendChild(itemView)
+      callAttachHooks(itemView)
+
+    itemView.focus() if hasFocus
+
+  showItemView: (itemView) ->
+    inlineDisplayStyle = @inlineDisplayStyles.get(itemView)
+    if inlineDisplayStyle?
+      itemView.style.display = inlineDisplayStyle
+    else
+      itemView.style.display = ''
+
+  hideItemView: (itemView) ->
+    inlineDisplayStyle = itemView.style.display
+    @inlineDisplayStyles.set(itemView, inlineDisplayStyle) if inlineDisplayStyle?
+    itemView.style.display = 'none'
 
   itemRemoved: ({item, index, destroyed}) ->
-    if item instanceof $
-      viewToRemove = item
-    else
-      viewToRemove = @model.getView(item).__spacePenView
-
-    if viewToRemove?
-      if destroyed
-        viewToRemove.remove()
-      else
-        viewToRemove.detach()
+    if viewToRemove = @model.getView(item)
+      callRemoveHooks(viewToRemove)
+      viewToRemove.remove()
 
   paneDestroyed: ->
     @subscriptions.dispose()
@@ -82,26 +123,4 @@ class PaneElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-atom.commands.add '.pane',
-  'pane:save-items': -> @getModel().saveItems()
-  'pane:show-next-item': -> @getModel().activateNextItem()
-  'pane:show-previous-item': -> @getModel().activatePreviousItem()
-  'pane:show-item-1': -> @getModel().activateItemAtIndex(0)
-  'pane:show-item-2': -> @getModel().activateItemAtIndex(1)
-  'pane:show-item-3': -> @getModel().activateItemAtIndex(2)
-  'pane:show-item-4': -> @getModel().activateItemAtIndex(3)
-  'pane:show-item-5': -> @getModel().activateItemAtIndex(4)
-  'pane:show-item-6': -> @getModel().activateItemAtIndex(5)
-  'pane:show-item-7': -> @getModel().activateItemAtIndex(6)
-  'pane:show-item-8': -> @getModel().activateItemAtIndex(7)
-  'pane:show-item-9': -> @getModel().activateItemAtIndex(8)
-  'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
-  'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
-  'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
-  'pane:split-down': -> @getModel().splitDown(copyActiveItem: true)
-  'pane:close': -> @getModel().destroy()
-  'pane:close-other-items': -> @getModel().destroyInactiveItems()
-
-module.exports = PaneElement = document.registerElement 'atom-pane',
-  prototype: PaneElement.prototype
-  extends: 'div'
+module.exports = PaneElement = document.registerElement 'atom-pane', prototype: PaneElement.prototype

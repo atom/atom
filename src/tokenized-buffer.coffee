@@ -25,17 +25,11 @@ class TokenizedBuffer extends Model
   constructor: ({@buffer, @tabLength, @invisibles}) ->
     @emitter = new Emitter
 
-    @tabLength ?= atom.config.get('editor.tabLength')
-
     @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
     @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
     @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
-
-    @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
-
-    @subscribe atom.config.onDidChange 'editor.tabLength', ({newValue}) => @setTabLength(newValue)
 
     @reloadGrammar()
 
@@ -47,6 +41,10 @@ class TokenizedBuffer extends Model
   deserializeParams: (params) ->
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
     params
+
+  observeGrammar: (callback) ->
+    callback(@grammar)
+    @onDidChangeGrammar(callback)
 
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
@@ -81,9 +79,20 @@ class TokenizedBuffer extends Model
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
+    @rootScopeDescriptor = [@grammar.scopeName]
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
+
+    @configSettings = tabLength: atom.config.get(@rootScopeDescriptor, 'editor.tabLength')
+
+    @grammarTabLengthSubscription?.dispose()
+    @grammarTabLengthSubscription = atom.config.onDidChange @rootScopeDescriptor, 'editor.tabLength', ({newValue}) =>
+      @configSettings.tabLength = newValue
+      @retokenizeLines()
+    @subscribe @grammarTabLengthSubscription
+
     @retokenizeLines()
+
     @emit 'grammar-changed', grammar
     @emitter.emit 'did-change-grammar', grammar
 
@@ -96,7 +105,7 @@ class TokenizedBuffer extends Model
   hasTokenForSelector: (selector) ->
     for {tokens} in @tokenizedLines
       for token in tokens
-        return true if selector.matches(token.scopes)
+        return true if selector.matches(token.scopeDescriptor)
     false
 
   retokenizeLines: ->
@@ -112,16 +121,11 @@ class TokenizedBuffer extends Model
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
-  # Retrieves the current tab length.
-  #
-  # Returns a {Number}.
   getTabLength: ->
-    @tabLength
+    @tabLength ? @configSettings.tabLength
 
-  # Specifies the tab length.
-  #
-  # tabLength - A {Number} that defines the new tab length.
   setTabLength: (@tabLength) ->
+    @retokenizeLines()
 
   setInvisibles: (invisibles) ->
     unless _.isEqual(invisibles, @invisibles)
@@ -243,7 +247,7 @@ class TokenizedBuffer extends Model
 
   buildPlaceholderTokenizedLineForRow: (row) ->
     line = @buffer.lineForRow(row)
-    tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
+    tokens = [new Token(value: line, scopeDescriptor: [@grammar.scopeName])]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
@@ -298,8 +302,8 @@ class TokenizedBuffer extends Model
     else
       0
 
-  scopesForPosition: (position) ->
-    @tokenForPosition(position).scopes
+  scopeDescriptorForPosition: (position) ->
+    @tokenForPosition(position).scopeDescriptor
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)

@@ -42,8 +42,8 @@ class ContextMenuManager
   #
   # ```coffee
   # atom.contextMenu.add {
-  #   '.workspace': [{label: 'Help', command: 'application:open-documentation'}]
-  #   '.editor':    [{
+  #   'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+  #   'atom-text-editor': [{
   #     label: 'History',
   #     submenu: [
   #       {label: 'Undo': command:'core:undo'}
@@ -117,7 +117,7 @@ class ContextMenuManager
           if typeof item.shouldDisplay is 'function'
             continue unless item.shouldDisplay(event)
           item.created?(event)
-          MenuHelpers.merge(currentTargetItems, MenuHelpers.cloneMenuItem(item), itemSet.specificity)
+          MenuHelpers.merge(currentTargetItems, item, itemSet.specificity)
 
       for item in currentTargetItems
         MenuHelpers.merge(template, item, false)
@@ -161,7 +161,7 @@ class ContextMenuManager
   clear: ->
     @activeElement = null
     @itemSets = []
-    @add '.workspace': [{
+    @add 'atom-workspace': [{
       label: 'Inspect Element'
       command: 'application:inspect'
       devMode: true

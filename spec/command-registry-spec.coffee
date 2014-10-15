@@ -14,9 +14,12 @@ describe "CommandRegistry", ->
     parent.appendChild(child)
     document.querySelector('#jasmine-content').appendChild(parent)
 
-    registry = new CommandRegistry(parent)
+    registry = new CommandRegistry
 
-  describe "command dispatch", ->
+  afterEach ->
+    registry.destroy()
+
+  describe "when a command event is dispatched on an element", ->
     it "invokes callbacks with selectors matching the target", ->
       called = false
       registry.add '.grandchild', 'command', (event) ->
@@ -47,6 +50,16 @@ describe "CommandRegistry", ->
 
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['child', 'parent']
+
+    it "invokes inline listeners prior to listeners applied via selectors", ->
+      calls = []
+      registry.add '.grandchild', 'command', -> calls.push('grandchild')
+      registry.add child, 'command', -> calls.push('child-inline')
+      registry.add '.child', 'command', -> calls.push('child')
+      registry.add '.parent', 'command', -> calls.push('parent')
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(calls).toEqual ['grandchild', 'child-inline', 'child', 'parent']
 
     it "orders multiple matching listeners for an element by selector specificity", ->
       child.classList.add('foo', 'bar')
@@ -86,14 +99,20 @@ describe "CommandRegistry", ->
       expect(dispatchedEvent.stopImmediatePropagation).toHaveBeenCalled()
 
     it "forwards .preventDefault() calls from the synthetic event to the original", ->
-      calls = []
-
       registry.add '.child', 'command', (event) -> event.preventDefault()
 
       dispatchedEvent = new CustomEvent('command', bubbles: true)
       spyOn(dispatchedEvent, 'preventDefault')
       grandchild.dispatchEvent(dispatchedEvent)
       expect(dispatchedEvent.preventDefault).toHaveBeenCalled()
+
+    it "forwards .abortKeyBinding() calls from the synthetic event to the original", ->
+      registry.add '.child', 'command', (event) -> event.abortKeyBinding()
+
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      dispatchedEvent.abortKeyBinding = jasmine.createSpy('abortKeyBinding')
+      grandchild.dispatchEvent(dispatchedEvent)
+      expect(dispatchedEvent.abortKeyBinding).toHaveBeenCalled()
 
     it "allows listeners to be removed via a disposable returned by ::add", ->
       calls = []

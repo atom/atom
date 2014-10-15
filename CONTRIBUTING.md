@@ -12,14 +12,14 @@ propose changes to this document in a pull request.
 ## Submitting Issues
 
 * Check the [debugging guide](https://atom.io/docs/latest/debugging) for tips
-  on debugging. You might be able to find the cause of the problem and fix 
+  on debugging. You might be able to find the cause of the problem and fix
   things yourself.
 * Include the version of Atom you are using and the OS.
 * Include screenshots and animated GIFs whenever possible; they are immensely
   helpful.
 * Include the behavior you expected and other places you've seen that behavior
   such as Emacs, vi, Xcode, etc.
-* Check the dev tools (`alt-cmd-i`) for errors to include. If the dev tools 
+* Check the dev tools (`alt-cmd-i`) for errors to include. If the dev tools
   are open _before_ the error is triggered, a full stack trace for the error
   will be logged. If you can reproduce the error, use this approach to get the
   full stack trace and include it in the issue.
@@ -62,6 +62,8 @@ For more information on how to work with Atom's official packages, see
     * Use `path.join()` to concatenate filenames.
     * Use `os.tmpdir()` rather than `/tmp` when you need to reference the
       temporary directory.
+* Using a plain `return` when returning explicitly at the end of a function.
+    * Not `return null`, `return undefined`, `null`, or `undefined`
 
 ## Git Commit Messages
 
@@ -82,6 +84,7 @@ For more information on how to work with Atom's official packages, see
     * :green_heart: `:green_heart:` when fixing the CI build
     * :white_check_mark: `:white_check_mark:` when adding tests
     * :lock: `:lock:` when dealing with security
+    * :arrow_up: `:arrow_up:` when upgrading dependencies
 
 ## CoffeeScript Styleguide
 

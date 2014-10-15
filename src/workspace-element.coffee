@@ -10,7 +10,6 @@ module.exports =
 class WorkspaceElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
-    atom.commands.setRootNode(this)
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
@@ -27,11 +26,10 @@ class WorkspaceElement extends HTMLElement
     @classList.add 'workspace'
     @setAttribute 'tabindex', -1
 
-
-    @verticalAxis = document.createElement('div')
+    @verticalAxis = document.createElement('atom-workspace-axis')
     @verticalAxis.classList.add('vertical')
 
-    @horizontalAxis = document.createElement('div')
+    @horizontalAxis = document.createElement('atom-workspace-axis')
     @horizontalAxis.classList.add('horizontal')
     @horizontalAxis.appendChild(@verticalAxis)
 
@@ -84,10 +82,15 @@ class WorkspaceElement extends HTMLElement
   handleWindowFocus: (event) ->
     @handleFocus(event) if document.activeElement is document.body
 
-if process.platform is 'darwin'
-  atom.commands.add '.workspace', 'window:install-shell-commands', -> @getModel().installShellCommands()
+  focusPaneViewAbove: -> @paneContainer.focusPaneViewAbove()
 
-atom.commands.add '.workspace',
+  focusPaneViewBelow: -> @paneContainer.focusPaneViewBelow()
+
+  focusPaneViewOnLeft: -> @paneContainer.focusPaneViewOnLeft()
+
+  focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
+
+atom.commands.add 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
   'window:decrease-font-size': -> @getModel().decreaseFontSize()
   'window:reset-font-size': -> @getModel().resetFontSize()
@@ -132,6 +135,7 @@ atom.commands.add '.workspace',
   'core:save': -> @getModel().saveActivePaneItem()
   'core:save-as': -> @getModel().saveActivePaneItemAs()
 
-module.exports = WorkspaceElement = document.registerElement 'atom-workspace',
-  prototype: WorkspaceElement.prototype
-  extends: 'div'
+if process.platform is 'darwin'
+  atom.commands.add 'atom-workspace', 'window:install-shell-commands', -> @getModel().installShellCommands()
+
+module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype

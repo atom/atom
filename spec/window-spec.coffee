@@ -47,14 +47,6 @@ describe "Window", ->
       $(window).trigger 'window:close'
       expect(atom.close).toHaveBeenCalled()
 
-    it "emits the beforeunload event", ->
-      $(window).off 'beforeunload'
-      beforeunload = jasmine.createSpy('beforeunload').andReturn(false)
-      $(window).on 'beforeunload', beforeunload
-
-      $(window).trigger 'window:close'
-      expect(beforeunload).toHaveBeenCalled()
-
   describe "beforeunload event", ->
     [beforeUnloadEvent] = []
 
@@ -122,7 +114,7 @@ describe "Window", ->
         buffer = atom.workspace.getActivePaneItem().buffer
         pane = atom.workspaceView.getActivePaneView()
         pane.splitRight(pane.copyActiveItem())
-        expect(atom.workspaceView.find('.editor').length).toBe 2
+        expect(atom.workspaceView.find('atom-text-editor').length).toBe 2
 
         atom.removeEditorWindow()
 

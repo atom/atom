@@ -131,9 +131,9 @@ describe "PaneView", ->
     describe "when the destroyed item is a model", ->
       it "removes the associated view", ->
         paneModel.activateItem(editor1)
-        expect(pane.itemViews.find('.editor').length).toBe 1
+        expect(pane.itemViews.find('atom-text-editor').length).toBe 1
         pane.destroyItem(editor1)
-        expect(pane.itemViews.find('.editor').length).toBe 0
+        expect(pane.itemViews.find('atom-text-editor').length).toBe 0
 
   describe "when an item is moved within the same pane", ->
     it "emits a 'pane:item-moved' event with the item and the new index", ->
@@ -289,7 +289,7 @@ describe "PaneView", ->
       expect(paneModel.isActive()).toBe true
 
   describe "when a pane is split", ->
-    it "builds the appropriate pane-row and pane-column views", ->
+    it "builds the appropriateatom-pane-axis.horizontal and pane-column views", ->
       pane1 = pane
       pane1Model = pane.getModel()
       pane.activateItem(editor1)
@@ -300,11 +300,11 @@ describe "PaneView", ->
       pane2 = containerModel.getView(pane2Model).__spacePenView
       pane3 = containerModel.getView(pane3Model).__spacePenView
 
-      expect(container.find('> .pane-row > .pane').toArray()).toEqual [pane1[0]]
-      expect(container.find('> .pane-row > .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> atom-pane-axis.horizontal > atom-pane').toArray()).toEqual [pane1[0]]
+      expect(container.find('> atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
       pane1Model.destroy()
-      expect(container.find('> .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
   describe "serialization", ->
     it "focuses the pane after attach only if had focus when serialized", ->

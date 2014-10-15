@@ -40,11 +40,11 @@ module.exports = (grunt) ->
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir
 
-      # Create Atom.desktop if installation not in temporary folder
+      # Create atom.desktop if installation not in temporary folder
       tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
       if installDir.indexOf(tmpDir) isnt 0
-        desktopFile = path.join('resources', 'linux', 'Atom.desktop.in')
-        desktopInstallFile = path.join(installDir, 'share', 'applications', 'Atom.desktop')
+        desktopFile = path.join('resources', 'linux', 'atom.desktop.in')
+        desktopInstallFile = path.join(installDir, 'share', 'applications', 'atom.desktop')
 
         {description} = grunt.file.readJSON('package.json')
         iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')

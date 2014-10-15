@@ -3,6 +3,7 @@ React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
+TextEditorElement = require './text-editor-element'
 TextEditorComponent = require './text-editor-component'
 {deprecate} = require 'grim'
 
@@ -37,51 +38,48 @@ TextEditorComponent = require './text-editor-component'
 # ```
 module.exports =
 class TextEditorView extends View
-  @content: (params) ->
-    attributes = params.attributes ? {}
-    attributes.class = 'editor react editor-colors'
-    attributes.tabIndex = -1
-    @div attributes
-
-  focusOnAttach: false
-
   # The constructor for setting up an `TextEditorView` instance.
   #
-  # * `editorOrParams` Either an {TextEditor}, or an object with one property, `mini`.
+  # * `modelOrParams` Either an {TextEditor}, or an object with one property, `mini`.
   #    If `mini` is `true`, a "miniature" `TextEditor` is constructed.
   #    Typically, this is ideal for scenarios where you need an Atom editor,
   #    but without all the chrome, like scrollbars, gutter, _e.t.c._.
   #
-  constructor: (editorOrParams, props) ->
+  constructor: (modelOrParams, props) ->
+    # Handle direct construction with an editor or params
+    unless modelOrParams instanceof HTMLElement
+      if modelOrParams instanceof TextEditor
+        model = modelOrParams
+      else
+        {editor, mini, placeholderText, attributes} = modelOrParams
+        model = editor ? new TextEditor
+          buffer: new TextBuffer
+          softWrapped: false
+          tabLength: 2
+          softTabs: true
+          mini: mini
+          placeholderText: placeholderText
+
+      element = new TextEditorElement
+      element.lineOverdrawMargin = props?.lineOverdrawMargin
+      element.setAttribute(name, value) for name, value of attributes if attributes?
+      element.setModel(model)
+      return element.__spacePenView
+
+    # Handle construction with an element
+    @element = modelOrParams
     super
 
-    if editorOrParams instanceof TextEditor
-      @editor = editorOrParams
-    else
-      {@editor, mini, placeholderText} = editorOrParams
-      props ?= {}
-      props.mini = mini
-      @editor ?= new TextEditor
-        buffer: new TextBuffer
-        softWrapped: false
-        tabLength: 2
-        softTabs: true
-        mini: mini
-        placeholderText: placeholderText
+  setModel: (@model) ->
+    @editor = @model
 
-    props = defaults({@editor, parentView: this}, props)
-    @componentDescriptor = TextEditorComponent(props)
-    @component = React.renderComponent(@componentDescriptor, @element)
-
-    node = @component.getDOMNode()
-
-    @scrollView = $(node).find('.scroll-view')
-    @underlayer = $(node).find('.highlights').addClass('underlayer')
-    @overlayer = $(node).find('.lines').addClass('overlayer')
-    @hiddenInput = $(node).find('.hidden-input')
+    @scrollView = @find('.scroll-view')
+    @underlayer = @find('.highlights').addClass('underlayer')
+    @overlayer = @find('.lines').addClass('overlayer')
+    @hiddenInput = @.find('.hidden-input')
 
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
-      @gutter = $(node).find('.gutter')
+      @gutter = @find('.gutter')
 
       @gutter.removeClassFromAllLines = (klass) =>
         deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
@@ -97,98 +95,76 @@ class TextEditorView extends View
         lines.addClass(klass)
         lines.length > 0
 
-    @on 'focus', =>
-      if @component?
-        @component.onFocus()
-      else
-        @focusOnAttach = true
-
   # Public: Get the underlying editor model for this view.
   #
   # Returns an {TextEditor}
-  getModel: -> @editor
+  getModel: -> @model
 
-  getEditor: -> @editor
+  getEditor: -> @model
 
-  Object.defineProperty @::, 'lineHeight', get: -> @editor.getLineHeightInPixels()
-  Object.defineProperty @::, 'charWidth', get: -> @editor.getDefaultCharWidth()
+  Object.defineProperty @::, 'lineHeight', get: -> @model.getLineHeightInPixels()
+  Object.defineProperty @::, 'charWidth', get: -> @model.getDefaultCharWidth()
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
   Object.defineProperty @::, 'mini', get: -> @component?.props.mini
+  Object.defineProperty @::, 'component', get: -> @element?.component
 
   afterAttach: (onDom) ->
     return unless onDom
     return if @attached
     @attached = true
-    @component = React.renderComponent(@componentDescriptor, @element) unless @component.isMounted()
-    @component.checkForVisibilityChange()
-
-    @focus() if @focusOnAttach
-
-    @addGrammarScopeAttribute()
-    @subscribe @editor.onDidChangeGrammar => @addGrammarScopeAttribute()
-
     @trigger 'editor:attached', [this]
 
-  addGrammarScopeAttribute: ->
-    grammarScope = @editor.getGrammar()?.scopeName?.replace(/\./g, ' ')
-    @attr('data-grammar', grammarScope)
+  beforeRemove: ->
+    @trigger 'editor:detached', [this]
+    @attached = false
+
+  remove: (selector, keepData) ->
+    @model.destroy() unless keepData
+    super
 
   scrollTop: (scrollTop) ->
     if scrollTop?
-      @editor.setScrollTop(scrollTop)
+      @model.setScrollTop(scrollTop)
     else
-      @editor.getScrollTop()
+      @model.getScrollTop()
 
   scrollLeft: (scrollLeft) ->
     if scrollLeft?
-      @editor.setScrollLeft(scrollLeft)
+      @model.setScrollLeft(scrollLeft)
     else
-      @editor.getScrollLeft()
+      @model.getScrollLeft()
 
   scrollToBottom: ->
     deprecate 'Use TextEditor::scrollToBottom instead. You can get the editor via editorView.getModel()'
-    @editor.setScrollBottom(Infinity)
+    @model.setScrollBottom(Infinity)
 
   scrollToScreenPosition: (screenPosition, options) ->
     deprecate 'Use TextEditor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
-    @editor.scrollToScreenPosition(screenPosition, options)
+    @model.scrollToScreenPosition(screenPosition, options)
 
   scrollToBufferPosition: (bufferPosition, options) ->
     deprecate 'Use TextEditor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
-    @editor.scrollToBufferPosition(bufferPosition, options)
+    @model.scrollToBufferPosition(bufferPosition, options)
 
   scrollToCursorPosition: ->
     deprecate 'Use TextEditor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
-    @editor.scrollToCursorPosition()
+    @model.scrollToCursorPosition()
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     deprecate 'Use TextEditor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
-    @editor.pixelPositionForBufferPosition(bufferPosition)
+    @model.pixelPositionForBufferPosition(bufferPosition)
 
   pixelPositionForScreenPosition: (screenPosition) ->
     deprecate 'Use TextEditor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
-    @editor.pixelPositionForScreenPosition(screenPosition)
+    @model.pixelPositionForScreenPosition(screenPosition)
 
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
     view.css('z-index', 1)
     @find('.lines').prepend(view)
-
-  detach: ->
-    return unless @attached
-    super
-    @attached = false
-    @unmountComponent()
-
-  beforeRemove: ->
-    return unless @attached
-    @attached = false
-    @unmountComponent()
-    @editor.destroy()
-    @trigger 'editor:detached', this
 
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()
@@ -233,7 +209,7 @@ class TextEditorView extends View
   #
   # Returns a {PaneView}
   getPaneView: ->
-    @parent('.item-views').parents('.pane').view()
+    @parent('.item-views').parents('atom-pane').view()
   getPane: ->
     deprecate 'Use TextEditorView::getPaneView() instead'
     @getPaneView()
@@ -248,19 +224,19 @@ class TextEditorView extends View
 
   pageDown: ->
     deprecate('Use editorView.getModel().pageDown()')
-    @editor.pageDown()
+    @model.pageDown()
 
   pageUp: ->
     deprecate('Use editorView.getModel().pageUp()')
-    @editor.pageUp()
+    @model.pageUp()
 
   getFirstVisibleScreenRow: ->
     deprecate 'Use TextEditor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
-    @editor.getFirstVisibleScreenRow()
+    @model.getFirstVisibleScreenRow()
 
   getLastVisibleScreenRow: ->
     deprecate 'Use TextEditor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
-    @editor.getLastVisibleScreenRow()
+    @model.getLastVisibleScreenRow()
 
   getFontFamily: ->
     deprecate 'This is going away. Use atom.config.get("editor.fontFamily") instead'
@@ -283,7 +259,7 @@ class TextEditorView extends View
     @component.setLineHeight(lineHeight)
 
   setWidthInChars: (widthInChars) ->
-    @component.getDOMNode().style.width = (@editor.getDefaultCharWidth() * widthInChars) + 'px'
+    @component.getDOMNode().style.width = (@model.getDefaultCharWidth() * widthInChars) + 'px'
 
   setShowIndentGuide: (showIndentGuide) ->
     deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
@@ -291,20 +267,20 @@ class TextEditorView extends View
 
   setSoftWrap: (softWrapped) ->
     deprecate 'Use TextEditor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
-    @editor.setSoftWrapped(softWrapped)
+    @model.setSoftWrapped(softWrapped)
 
   setShowInvisibles: (showInvisibles) ->
     deprecate 'This is going away. Use atom.config.set("editor.showInvisibles", true|false) instead'
     @component.setShowInvisibles(showInvisibles)
 
   getText: ->
-    @editor.getText()
+    @model.getText()
 
   setText: (text) ->
-    @editor.setText(text)
+    @model.setText(text)
 
   insertText: (text) ->
-    @editor.insertText(text)
+    @model.insertText(text)
 
   isInputEnabled: ->
     @component.isInputEnabled()
@@ -326,7 +302,7 @@ class TextEditorView extends View
 
   setPlaceholderText: (placeholderText) ->
     deprecate('Use TextEditor::setPlaceholderText instead. eg. editorView.getModel().setPlaceholderText(text)')
-    @getModel().setPlaceholderText(placeholderText)
+    @model.setPlaceholderText(placeholderText)
 
   lineElementForScreenRow: (screenRow) ->
     $(@component.lineNodeForScreenRow(screenRow))

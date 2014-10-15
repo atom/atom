@@ -5,7 +5,7 @@ Delegator = require 'delegato'
 {deprecate} = require 'grim'
 {Model} = require 'theorist'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
@@ -84,13 +84,11 @@ class TextEditor extends Model
     @cursors = []
     @selections = []
 
-    if @shouldShowInvisibles()
-      invisibles = atom.config.get('editor.invisibles')
-
-    @displayBuffer?.setInvisibles(invisibles)
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, invisibles})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+
+    @updateInvisibles()
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
@@ -112,9 +110,6 @@ class TextEditor extends Model
     @subscribe @$scrollLeft, (scrollLeft) =>
       @emit 'scroll-left-changed', scrollLeft
       @emitter.emit 'did-change-scroll-left', scrollLeft
-
-    @subscribe atom.config.onDidChange 'editor.showInvisibles', => @updateInvisibles()
-    @subscribe atom.config.onDidChange 'editor.invisibles', => @updateInvisibles()
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -161,6 +156,17 @@ class TextEditor extends Model
     @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
     @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
     @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
+
+    @subscribeToScopedConfigSettings()
+
+  subscribeToScopedConfigSettings: ->
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
+
+    scopeDescriptor = @getRootScopeDescriptor()
+
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.showInvisibles', => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.invisibles', => @updateInvisibles()
 
   getViewClass: ->
     require './text-editor-view'
@@ -254,10 +260,23 @@ class TextEditor extends Model
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
 
-  # Extended: Calls your `callback` when the grammar that interprets and colorizes the text has
-  # been changed.
+  # Extended: Calls your `callback` when the grammar that interprets and
+  # colorizes the text has been changed. Immediately calls your callback with
+  # the current grammar.
   #
   # * `callback` {Function}
+  #   * `grammar` {Grammar}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeGrammar: (callback) ->
+    callback(@getGrammar())
+    @onDidChangeGrammar(callback)
+
+  # Extended: Calls your `callback` when the grammar that interprets and
+  # colorizes the text has been changed.
+  #
+  # * `callback` {Function}
+  #   * `grammar` {Grammar}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeGrammar: (callback) ->
@@ -488,10 +507,9 @@ class TextEditor extends Model
 
   # Create an {TextEditor} with its initial state based on this object
   copy: ->
-    tabLength = @getTabLength()
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new TextEditor({@buffer, displayBuffer, tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
+    newEditor = new TextEditor({@buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
@@ -503,6 +521,8 @@ class TextEditor extends Model
     if mini isnt @mini
       @mini = mini
       @updateInvisibles()
+
+  isMini: -> @mini
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.
@@ -2177,9 +2197,11 @@ class TextEditor extends Model
   # Returns a {Number}.
   getTabLength: -> @displayBuffer.getTabLength()
 
-  # Essential: Set the on-screen length of tab characters.
+  # Essential: Set the on-screen length of tab characters. Setting this to a
+  # {Number} This will override the `editor.tabLength` setting.
   #
-  # * `tabLength` {Number} length of a single tab
+  # * `tabLength` {Number} length of a single tab. Setting to `null` will
+  #   fallback to using the `editor.tabLength` config setting
   setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
   # Extended: Determine if the buffer uses hard or soft tabs.
@@ -2348,17 +2370,14 @@ class TextEditor extends Model
   Section: Managing Syntax Scopes
   ###
 
-  # Public: Get the syntactic scopes for the most recently added cursor's
-  # position. See {::scopesForBufferPosition} for more information.
-  #
-  # Returns an {Array} of {String}s.
-  scopesAtCursor: -> @getLastCursor().getScopes()
-  getCursorScopes: ->
-    deprecate 'Use TextEditor::scopesAtCursor() instead'
-    @scopesAtCursor()
+  # Essential: Returns the scope descriptor that includes the language. eg.
+  # `['.source.ruby']`, or `['.source.coffee']`. You can use this with
+  # {Config::get} to get language specific config values.
+  getRootScopeDescriptor: ->
+    @displayBuffer.getRootScopeDescriptor()
 
-  # Essential: Get the syntactic scopes for the given position in buffer
-  # coordinates.
+  # Essential: Get the syntactic scopeDescriptor for the given position in buffer
+  # coordinates. Useful with {Config::get}.
   #
   # For example, if called with a position inside the parameter list of an
   # anonymous CoffeeScript function, the method returns the following array:
@@ -2367,7 +2386,10 @@ class TextEditor extends Model
   # * `bufferPosition` A {Point} or {Array} of [row, column].
   #
   # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
+  scopeDescriptorForBufferPosition: (bufferPosition) -> @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
+  scopesForBufferPosition: (bufferPosition) ->
+    deprecate 'Use ::scopeDescriptorForBufferPosition instead'
+    @scopeDescriptorForBufferPosition(bufferPosition)
 
   # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
@@ -2379,18 +2401,25 @@ class TextEditor extends Model
   bufferRangeForScopeAtCursor: (selector) ->
     @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
 
+  # Extended: Determine if the given row is entirely a comment
+  isBufferRowCommented: (bufferRow) ->
+    if match = @lineTextForBufferRow(bufferRow).match(/\S/)
+      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopeDescriptor
+      @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
+      @commentScopeSelector.matches(scopeDescriptor)
+
   logCursorScope: ->
-    console.log @scopesAtCursor()
+    console.log @getLastCursor().getScopeDescriptor()
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
-  # Extended: Determine if the given row is entirely a comment
-  isBufferRowCommented: (bufferRow) ->
-    if match = @lineTextForBufferRow(bufferRow).match(/\S/)
-      scopes = @tokenForBufferPosition([bufferRow, match.index]).scopes
-      @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
-      @commentScopeSelector.matches(scopes)
+  scopesAtCursor: ->
+    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    @getLastCursor().getScopeDescriptor()
+  getCursorScopes: ->
+    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    @scopesAtCursor()
 
   ###
   Section: Clipboard Operations
@@ -2430,7 +2459,7 @@ class TextEditor extends Model
 
       return
 
-    else if atom.config.get("editor.normalizeIndentOnPaste") and metadata?.indentBasis?
+    else if atom.config.get(@getLastCursor().getScopeDescriptor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
       if !@getLastCursor().hasPrecedingCharactersOnLine() or containsNewlines
         options.indentBasis ?= metadata.indentBasis
 
@@ -2648,14 +2677,14 @@ class TextEditor extends Model
   ###
 
   shouldAutoIndent: ->
-    atom.config.get("editor.autoIndent")
+    atom.config.get(@getRootScopeDescriptor(), "editor.autoIndent")
 
   shouldShowInvisibles: ->
-    not @mini and atom.config.get('editor.showInvisibles')
+    not @mini and atom.config.get(@getRootScopeDescriptor(), 'editor.showInvisibles')
 
   updateInvisibles: ->
     if @shouldShowInvisibles()
-      @displayBuffer.setInvisibles(atom.config.get('editor.invisibles'))
+      @displayBuffer.setInvisibles(atom.config.get(@getRootScopeDescriptor(), 'editor.invisibles'))
     else
       @displayBuffer.setInvisibles(null)
 
@@ -2667,6 +2696,8 @@ class TextEditor extends Model
     @softTabs = @usesSoftTabs() ? @softTabs
 
   handleGrammarChange: ->
+    @updateInvisibles()
+    @subscribeToScopedConfigSettings()
     @unfoldAll()
     @emit 'grammar-changed'
     @emitter.emit 'did-change-grammar'

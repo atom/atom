@@ -200,7 +200,7 @@ LinesComponent = React.createClass
     firstTrailingWhitespacePosition = text.search(/\s*$/)
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopes)
+      innerHTML += @updateScopeStack(scopeStack, token.scopeDescriptor)
       hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
@@ -217,20 +217,20 @@ LinesComponent = React.createClass
         html += "<span class='invisible-character'>#{invisible}</span>"
     html
 
-  updateScopeStack: (scopeStack, desiredScopes) ->
+  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
     html = ""
 
     # Find a common prefix
-    for scope, i in desiredScopes
-      break unless scopeStack[i] is desiredScopes[i]
+    for scope, i in desiredScopeDescriptor
+      break unless scopeStack[i] is desiredScopeDescriptor[i]
 
-    # Pop scopes until we're at the common prefx
+    # Pop scopeDescriptor until we're at the common prefx
     until scopeStack.length is i
       html += @popScope(scopeStack)
 
-    # Push onto common prefix until scopeStack equals desiredScopes
-    for j in [i...desiredScopes.length]
-      html += @pushScope(scopeStack, desiredScopes[j])
+    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
+    for j in [i...desiredScopeDescriptor.length]
+      html += @pushScope(scopeStack, desiredScopeDescriptor[j])
 
     html
 
@@ -308,8 +308,8 @@ LinesComponent = React.createClass
     iterator = null
     charIndex = 0
 
-    for {value, scopes}, tokenIndex in tokenizedLine.tokens
-      charWidths = editor.getScopedCharWidths(scopes)
+    for {value, scopeDescriptor}, tokenIndex in tokenizedLine.tokens
+      charWidths = editor.getScopedCharWidths(scopeDescriptor)
 
       for char in value
         continue if char is '\0'
@@ -331,7 +331,7 @@ LinesComponent = React.createClass
           rangeForMeasurement.setStart(textNode, i)
           rangeForMeasurement.setEnd(textNode, i + 1)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
-          editor.setScopedCharWidth(scopes, char, charWidth)
+          editor.setScopedCharWidth(scopeDescriptor, char, charWidth)
 
         charIndex++
 

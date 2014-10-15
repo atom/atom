@@ -98,8 +98,7 @@ class Task
     taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    args = [bootstrap, '--harmony_collections']
-    @childProcess = child_process.fork '--eval', args, {env, cwd: __dirname}
+    @childProcess = child_process.fork '--eval', [bootstrap], {env, cwd: __dirname}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)

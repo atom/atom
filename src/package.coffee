@@ -10,6 +10,7 @@ Q = require 'q'
 {deprecate} = require 'grim'
 
 $ = null # Defer require in case this is in the window-less browser process
+ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
 # Loads and activates a package's main module and resources such as
@@ -47,6 +48,7 @@ class Package
     @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
     @name = @metadata?.name ? path.basename(@path)
+    ModuleCache.add(@path, @metadata)
     @reset()
 
   ###
@@ -162,9 +164,10 @@ class Package
     @stylesheetsActivated = true
 
   activateResources: ->
-    atom.keymaps.add(keymapPath, map) for [keymapPath, map] in @keymaps
-    atom.contextMenu.add(map['context-menu']) for [menuPath, map] in @menus
-    atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
+    @activationDisposables = new CompositeDisposable
+    @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus
+    @activationDisposables.add(atom.menu.add(map.menu)) for [menuPath, map] in @menus when map.menu
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
@@ -294,8 +297,8 @@ class Package
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
     scopedProperties.deactivate() for scopedProperties in @scopedProperties
-    atom.keymaps.remove(keymapPath) for [keymapPath] in @keymaps
     atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    @activationDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
     @scopedPropertiesActivated = false
@@ -334,9 +337,18 @@ class Package
     @activationCommandSubscriptions = new CompositeDisposable
     for selector, commands of @getActivationCommands()
       for command in commands
-        @activationCommandSubscriptions.add(
-          atom.commands.add(selector, command, @handleActivationCommand)
-        )
+        do (selector, command) =>
+          atom.commands.commandRegistered(command)
+          @activationCommandSubscriptions.add(atom.commands.onWillDispatch (event) =>
+            return unless event.type is command
+            currentTarget = event.target
+            while currentTarget
+              if currentTarget.webkitMatchesSelector(selector)
+                @activationCommandSubscriptions.dispose()
+                @activateNow()
+                break
+              currentTarget = currentTarget.parentElement
+          )
 
   getActivationCommands: ->
     return @activationCommands if @activationCommands?
@@ -354,27 +366,19 @@ class Package
     if @metadata.activationEvents?
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
-          @activationCommands['.workspace'] ?= []
-          @activationCommands['.workspace'].push(eventName)
+          @activationCommands['atom-workspace'] ?= []
+          @activationCommands['atom-workspace'].push(eventName)
       else if _.isString(@metadata.activationEvents)
         eventName = @metadata.activationEvents
-        @activationCommands['.workspace'] ?= []
-        @activationCommands['.workspace'].push(eventName)
+        @activationCommands['atom-workspace'] ?= []
+        @activationCommands['atom-workspace'].push(eventName)
       else
         for eventName, selector of @metadata.activationEvents
-          selector ?= '.workspace'
+          selector ?= 'atom-workspace'
           @activationCommands[selector] ?= []
           @activationCommands[selector].push(eventName)
 
     @activationCommands
-
-  handleActivationCommand: (event) =>
-    event.stopImmediatePropagation()
-    @activationCommandSubscriptions.dispose()
-    reenableInvokedListeners = event.disableInvokedListeners()
-    @activateNow()
-    event.target.dispatchEvent(new CustomEvent(event.type, bubbles: true))
-    reenableInvokedListeners()
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->

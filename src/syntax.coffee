@@ -32,7 +32,7 @@ class Syntax extends GrammarRegistry
   serialize: ->
     {deserializer: @constructor.name, @grammarOverridesByPath}
 
-  createToken: (value, scopes) -> new Token({value, scopes})
+  createToken: (value, scopeDescriptor) -> new Token({value, scopeDescriptor})
 
   # Deprecated: Used by settings-view to display snippets for packages
   @::accessor 'propertyStore', ->
@@ -40,6 +40,7 @@ class Syntax extends GrammarRegistry
     atom.config.scopedSettingsStore
 
   addProperties: (args...) ->
+    args.unshift(null) if args.length == 2
     deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedSettings().'
     atom.config.addScopedSettings(args...)
 

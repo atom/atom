@@ -9,7 +9,7 @@
 #
 # Here's an example taken from Atom's built-in keymap:
 #
-# '.editor':
+# 'atom-text-editor':
 #   'enter': 'editor:newline'
 #
 # '.workspace':

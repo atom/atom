@@ -120,7 +120,10 @@ module.exports = (grunt) ->
 
   for child in fs.readdirSync('node_modules') when child isnt '.bin'
     directory = path.join('node_modules', child)
-    {engines, theme} = grunt.file.readJSON(path.join(directory, 'package.json'))
+    metadataPath = path.join(directory, 'package.json')
+    continue unless grunt.file.isFile(metadataPath)
+
+    {engines, theme} = grunt.file.readJSON(metadataPath)
     if engines?.atom?
       coffeeConfig.glob_to_multiple.src.push("#{directory}/**/*.coffee")
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
