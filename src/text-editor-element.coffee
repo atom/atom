@@ -31,9 +31,9 @@ class TextEditorElement extends HTMLElement
     stylesElement.initialize()
     @shadowRoot.appendChild(stylesElement)
 
-    @root = document.createElement('div')
-    @root.classList.add('editor', 'editor-colors')
-    @shadowRoot.appendChild(@root)
+    @rootElement = document.createElement('div')
+    @rootElement.classList.add('editor', 'editor-colors')
+    @shadowRoot.appendChild(@rootElement)
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
@@ -74,12 +74,13 @@ class TextEditorElement extends HTMLElement
 
   mountComponent: ->
     @componentDescriptor ?= TextEditorComponent(
-      parentView: this
+      hostElement: this
+      rootElement: @rootElement
       editor: @model
       mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin
     )
-    @component = React.renderComponent(@componentDescriptor, @root)
+    @component = React.renderComponent(@componentDescriptor, @rootElement)
 
   unmountComponent: ->
     return unless @component?.isMounted()
