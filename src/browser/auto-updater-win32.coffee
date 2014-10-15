@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 path = require 'path'
 fs = require 'fs'
+shellAutoUpdater = require 'auto-updater'
 
 {EventEmitter} = require 'events'
 {BufferedProcess} = require 'atom'
@@ -13,7 +14,26 @@ class AutoUpdater
     @updateUrl = url
 
   quitAndInstall: ->
-    console.log 'quitAndInstall'
+    updateDotExe = path.join(path.dirName(process.execPath), '..', 'update.exe')
+      unless fs.existsSync(updateDotExe)
+        console.log 'Running developer or Chocolatey version of Atom, skipping'
+        return
+
+    updateOutput = ""
+    ps = new BufferedProcess
+      command: updateDotExe,
+      args: ['--update', @updateUrl]
+      stdout: (o) -> updateOutput += o
+      exit: (exitCode) ->
+        unless exitCode is 0
+          console.log 'Failed to update: ' + exitCode + ' - ' + updateOutput
+          return
+
+        dontcare = new BufferedProcess
+          command: updateDotExe,
+          args: ['--processStart', 'atom.exe']
+
+        shellAutoUpdater.quitAndInstall()
 
   checkForUpdates: ->
     throw new Error("Update URL is not set") unless @updateUrl
@@ -35,7 +55,7 @@ class AutoUpdater
       stdout: (output) -> updateOutput += output
       exit: (exitCode) ->
         unless exitCode is 0
-          console.log 'Failed to update: ' + exitCode + ' - ' + updateJson
+          console.log 'Failed to update: ' + exitCode + ' - ' + updateOutput
           emit 'update-not-available'
           return
 
@@ -57,7 +77,14 @@ class AutoUpdater
           emit 'update-not-available'
           return
 
+        latest = updateInfo.releasesToApply[updateInfo.ReleasesToApply.length-1]
+
         # We don't have separate "check for update" and "download" in Squirrel,
         # we always just download
         emit 'update-available'
-        emit 'update-downloaded', {}
+        emit 'update-downloaded',
+          releaseNotes: latest.releaseNotes,
+          releaseName: "Atom " + latest.version,
+          releaseDate: "",   # NB: Squirrel doesn't provide this :(
+          updateUrl: "https://atom.io",
+          quitAndUpdate: @quitAndInstall
