@@ -20,10 +20,10 @@ ln -sf /usr/local/share/atom/resources/app/apm/node_modules/.bin/apm %{buildroot
 cp atom.sh %{buildroot}/usr/local/bin/atom
 chmod 755 atom.sh
 mkdir -p %{buildroot}/usr/local/share/applications/
-mv Atom.desktop %{buildroot}/usr/local/share/applications/
+mv atom.desktop %{buildroot}/usr/local/share/applications/
 
 %files
 /usr/local/bin/atom
 /usr/local/bin/apm
 /usr/local/share/atom/
-/usr/local/share/applications/Atom.desktop
+/usr/local/share/applications/atom.desktop

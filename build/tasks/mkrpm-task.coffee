@@ -24,15 +24,13 @@ module.exports = (grunt) ->
       return done("Unsupported arch #{process.arch}")
 
     {name, version, description} = grunt.file.readJSON('package.json')
-    section = 'devel'
-    maintainer = 'GitHub <atom@github.com>'
     installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
     iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
 
-    data = {name, version, description, section, maintainer, installDir, iconName}
+    data = {name, version, description, installDir, iconName}
     specFilePath = fillTemplate(path.join('resources', 'linux', 'redhat', 'atom.spec'), data)
-    desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
+    desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
 
     cmd = path.join('script', 'mkrpm')
     args = [specFilePath, desktopFilePath]
