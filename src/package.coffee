@@ -62,6 +62,7 @@ class Package
 
   constructor: (@path, @metadata) ->
     @emitter = new Emitter
+    @stylesheetDisposables = new CompositeDisposable
     @metadata ?= Package.loadMetadata(@path)
     @bundledPackage = Package.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
@@ -175,9 +176,9 @@ class Package
   activateStylesheets: ->
     return if @stylesheetsActivated
 
-    type = @getStylesheetType()
-    for [stylesheetPath, content] in @stylesheets
-      atom.themes.applyStylesheet(stylesheetPath, content, type)
+    group = @getStylesheetType()
+    for [sourcePath, source] in @stylesheets
+      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, sourcePath}))
     @stylesheetsActivated = true
 
   activateResources: ->
@@ -329,11 +330,10 @@ class Package
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
-    @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
-
-  reloadStylesheet: (stylesheetPath, content) ->
-    atom.themes.applyStylesheet(stylesheetPath, content, @getStylesheetType())
+    @stylesheetDisposables.dispose()
+    @stylesheetDisposables = new CompositeDisposable
+    @stylesheetsActivated = false
+    @activateStylesheets()
 
   requireMainModule: ->
     return @mainModule if @mainModule?
