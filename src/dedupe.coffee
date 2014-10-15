@@ -96,8 +96,9 @@ class Dedupe extends Command
     fs.makeTreeSync(@atomNodeDirectory)
 
   run: (options) ->
-    {callback} = options
+    {callback, cwd} = options
     options = @parseOptions(options.commandArgs)
+    options.cwd = cwd
 
     @createAtomDirectories()
 

@@ -4,11 +4,13 @@ async = require 'async'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 CSON = require 'season'
+semver = require 'semver'
 temp = require 'temp'
 
 config = require './config'
 Command = require './command'
 fs = require './fs'
+RebuildModuleCache = require './rebuild-module-cache'
 request = require './request'
 
 module.exports =
@@ -125,6 +127,10 @@ class Install extends Command
             destination = path.join(@atomPackagesDirectory, child)
             do (source, destination) ->
               commands.push (callback) -> fs.cp(source, destination, callback)
+
+          commands.push (callback) => @buildModuleCache(pack.name, callback)
+          commands.push (callback) => @warmCompileCache(pack.name, callback)
+
           async.waterfall commands, (error) =>
             if error?
               @logFailure()
@@ -184,7 +190,7 @@ class Install extends Command
         message = body.message ? body.error ? body
         callback("Request for package information failed: #{message}")
       else
-        if latestVersion = body.releases.latest
+        if body.releases.latest
           callback(null, body)
         else
           callback("No releases available for #{packageName}")
@@ -273,14 +279,18 @@ class Install extends Command
         @logFailure()
         callback(error)
       else
-        commands = []
-        packageVersion ?= pack.releases.latest
+        packageVersion ?= @getLatestCompatibleVersion(pack)
+        unless packageVersion
+          @logFailure()
+          callback("No available version compatible with the installed Atom version: #{@installedAtomVersion}")
+
         {tarball} = pack.versions[packageVersion]?.dist ? {}
         unless tarball
           @logFailure()
           callback("Package version: #{packageVersion} not found")
           return
 
+        commands = []
         commands.push (callback) =>
           if packagePath = @getPackageCachePath(packageName, packageVersion)
             callback(null, packagePath)
@@ -376,6 +386,68 @@ class Install extends Command
     packages = fs.readFileSync(filePath, 'utf8')
     @sanitizePackageNames(packages.split(/\s/))
 
+  getResourcePath: (callback) ->
+    if @resourcePath
+      process.nextTick => callback(@resourcePath)
+    else
+      config.getResourcePath (@resourcePath) => callback(@resourcePath)
+
+  buildModuleCache: (packageName, callback) ->
+    packageDirectory = path.join(@atomPackagesDirectory, packageName)
+    rebuildCacheCommand = new RebuildModuleCache()
+    rebuildCacheCommand.rebuild packageDirectory, ->
+      # Ignore cache errors and just finish the install
+      callback()
+
+  warmCompileCache: (packageName, callback) ->
+    packageDirectory = path.join(@atomPackagesDirectory, packageName)
+
+    @getResourcePath (resourcePath) ->
+      try
+        CoffeeCache = require(path.join(resourcePath, 'src', 'coffee-cache'))
+
+        onDirectory = (directoryPath) ->
+          path.basename(directoryPath) isnt 'node_modules'
+
+        onFile = (filePath) ->
+          CoffeeCache.addPathToCache(filePath)
+
+        fs.traverseTreeSync(packageDirectory, onFile, onDirectory)
+      callback(null)
+
+  isBundledPackage: (packageName, callback) ->
+    @getResourcePath (resourcePath) ->
+      try
+        atomMetadata = JSON.parse(fs.readFileSync(path.join(resourcePath, 'package.json')))
+      catch error
+        return callback(false)
+
+      callback(atomMetadata?.packageDependencies?.hasOwnProperty(packageName))
+
+  getLatestCompatibleVersion: (pack) ->
+    return pack.releases.latest unless @installedAtomVersion
+
+    latestVersion = null
+    for version, metadata of pack.versions ? {}
+      continue unless semver.valid(version)
+      continue unless metadata
+
+      engine = metadata.engines?.atom ? '*'
+      continue unless semver.validRange(engine)
+      continue unless semver.satisfies(@installedAtomVersion, engine)
+
+      latestVersion ?= version
+      latestVersion = version if semver.gt(version, latestVersion)
+
+    latestVersion
+
+  loadInstalledAtomVersion: (callback) ->
+    @getResourcePath (resourcePath) =>
+      try
+        {version} = require(path.join(resourcePath, 'package.json')) ? {}
+        @installedAtomVersion = version if semver.valid(version)
+      callback()
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -393,9 +465,16 @@ class Install extends Command
         if atIndex > 0
           version = name.substring(atIndex + 1)
           name = name.substring(0, atIndex)
-        @installPackage({name, version}, options, callback)
 
-    commands = []
+        @isBundledPackage name, (isBundledPackage) =>
+          if isBundledPackage
+            console.error """
+              The #{name} package is bundled with Atom and should not be explicitly installed.
+              You can run `apm uninstall #{name}` to uninstall it and then the version bundled
+              with Atom will be used.
+            """.yellow
+          @installPackage({name, version}, options, callback)
+
     if packagesFilePath
       try
         packageNames = @packageNamesFromPath(packagesFilePath)
@@ -404,6 +483,9 @@ class Install extends Command
     else
       packageNames = @packageNamesFromArgv(options.argv)
       packageNames.push('.') if packageNames.length is 0
+
+    commands = []
+    commands.push (callback) => @loadInstalledAtomVersion(callback)
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
     async.waterfall(commands, callback)
