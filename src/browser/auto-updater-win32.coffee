@@ -15,9 +15,10 @@ class AutoUpdater
 
   quitAndInstall: ->
     updateDotExe = path.join(path.dirName(process.execPath), '..', 'update.exe')
-      unless fs.existsSync(updateDotExe)
-        console.log 'Running developer or Chocolatey version of Atom, skipping'
-        return
+    
+    unless fs.existsSync(updateDotExe)
+      console.log 'Running developer or Chocolatey version of Atom, skipping'
+      return
 
     updateOutput = ""
     ps = new BufferedProcess
