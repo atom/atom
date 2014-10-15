@@ -115,7 +115,7 @@ class CommandRegistry
 
     @commandRegistered(commandName)
 
-    new Disposable =>
+    new Disposable ->
       listenersForElement.splice(listenersForElement.indexOf(listener), 1)
       listenersForCommand.delete(element) if listenersForElement.length is 0
 
