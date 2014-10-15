@@ -1,0 +1,29 @@
+Name:           <%= name %>
+Version:        <%= version %>
+Release:        0.1%{?dist}
+Summary:        Atom is a hackable text editor for the 21st century
+License:        MIT
+URL:            https://atom.io/
+BuildConflicts: gyp
+BuildRequires:  make, gcc, gcc-c++, glibc-devel, git-core, libgnome-keyring-devel
+Requires:       libgnome-keyring
+AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
+
+%description
+<%= description %>
+
+%install
+mkdir -p %{buildroot}/usr/local/share/atom
+cp -r /tmp/atom-build/Atom/* %{buildroot}/usr/local/share/atom
+mkdir -p %{buildroot}/usr/local/bin/
+ln -sf /usr/local/share/atom/resources/app/apm/node_modules/.bin/apm %{buildroot}/usr/local/bin/apm
+cp atom.sh %{buildroot}/usr/local/bin/atom
+chmod 755 atom.sh
+mkdir -p %{buildroot}/usr/local/share/applications/
+mv atom.desktop %{buildroot}/usr/local/share/applications/
+
+%files
+/usr/local/bin/atom
+/usr/local/bin/apm
+/usr/local/share/atom/
+/usr/local/share/applications/atom.desktop
