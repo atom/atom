@@ -540,8 +540,16 @@ class Config
   #
   # Returns a {Boolean}, `true` if the current value is the default, `false`
   # otherwise.
-  isDefault: (keyPath) ->
-    not _.valueForKeyPath(@settings, keyPath)?
+  isDefault: (scopeSelector, keyPath) ->
+    if arguments.length == 1
+      keyPath = scopeSelector
+      scopeSelector = null
+
+    if scopeSelector?
+      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
+      not _.valueForKeyPath(settings, keyPath)?
+    else
+      not _.valueForKeyPath(@settings, keyPath)?
 
   # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config

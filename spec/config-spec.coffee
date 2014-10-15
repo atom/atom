@@ -99,6 +99,16 @@ describe "Config", ->
       expect(atom.config.isDefault('foo.same')).toBe false
       expect(atom.config.isDefault('foo.changes')).toBe false
 
+    describe "when scoped settings are used", ->
+      it "returns false when a scoped setting was set by the user", ->
+        expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
+
   describe ".toggle(keyPath)", ->
     it "negates the boolean value of the current key path value", ->
       atom.config.set('foo.a', 1)
