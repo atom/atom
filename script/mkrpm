@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 SPEC_FILE="$1"
 DESKTOP_FILE="$2"
 
