@@ -88,6 +88,19 @@ describe "Config", ->
       expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
       expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
 
+    describe "when scoped settings are used", ->
+      it "returns the global default when no scoped default set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 10
+
+      it "returns the scoped default when a scoped default is set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+
   describe ".isDefault(keyPath)", ->
     it "returns true when the value of the key path is its default value", ->
       atom.config.setDefaults("foo", same: 1, changes: 1)

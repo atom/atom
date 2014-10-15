@@ -530,8 +530,16 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns the default value.
-  getDefault: (keyPath) ->
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+  getDefault: (scopeSelector, keyPath) ->
+    if arguments.length == 1
+      keyPath = scopeSelector
+      scopeSelector = null
+
+    if scopeSelector?
+      defaultValue = @scopedSettingsStore.getPropertyValue(scopeSelector, keyPath, excludeSources: ['user-config'])
+      defaultValue ?= _.valueForKeyPath(@defaultSettings, keyPath)
+    else
+      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     _.deepClone(defaultValue)
 
   # Extended: Is the value at `keyPath` its default value?
