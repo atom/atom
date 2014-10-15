@@ -1,15 +1,8 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 
 class StylesElement extends HTMLElement
+  subscriptions: null
   context: null
-  attached: false
-
-  createdCallback: ->
-    @emitter = new Emitter
-    @styleElementClonesByOriginalElement = new WeakMap
-
-  attributeChangedCallback: (attrName, oldVal, newVal) ->
-    @contextChanged() if attrName is 'context'
 
   onDidAddStyleElement: (callback) ->
     @emitter.on 'did-add-style-element', callback
@@ -20,18 +13,36 @@ class StylesElement extends HTMLElement
   onDidUpdateStyleElement: (callback) ->
     @emitter.on 'did-update-style-element', callback
 
-  attachedCallback: ->
-    @attached = true
+  createdCallback: ->
+    @emitter = new Emitter
+    @styleElementClonesByOriginalElement = new WeakMap
 
-    @context = @getAttribute('context') ? undefined
+  attachedCallback: ->
+    @initialize()
+
+  detachedCallback: ->
+    @subscriptions.dispose()
+    @subscriptions = null
+
+  attributeChangedCallback: (attrName, oldVal, newVal) ->
+    @contextChanged() if attrName is 'context'
+
+  initialize: ->
+    return if @subscriptions?
+
     @subscriptions = new CompositeDisposable
+    @context = @getAttribute('context') ? undefined
+
     @subscriptions.add atom.styles.observeStyleElements(@styleElementAdded.bind(this))
     @subscriptions.add atom.styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
     @subscriptions.add atom.styles.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
 
-  detachedCallback: ->
-    @attached = false
-    @subscriptions.dispose()
+  contextChanged: ->
+    return unless @subscriptions?
+
+    @styleElementRemoved(child) for child in Array::slice.call(@children)
+    @context = @getAttribute('context')
+    @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
 
   styleElementAdded: (styleElement) ->
     return unless styleElement.context is @context
@@ -63,11 +74,5 @@ class StylesElement extends HTMLElement
     styleElementClone = @styleElementClonesByOriginalElement.get(styleElement)
     styleElementClone.textContent = styleElement.textContent
     @emitter.emit 'did-update-style-element', styleElementClone
-
-  contextChanged: ->
-    @context = @getAttribute('context')
-    if @attached
-      @styleElementRemoved(child) for child in Array::slice.call(@children)
-      @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
 
 module.exports = StylesElement = document.registerElement 'atom-styles', prototype: StylesElement.prototype

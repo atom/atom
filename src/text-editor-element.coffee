@@ -28,6 +28,7 @@ class TextEditorElement extends HTMLElement
 
     stylesElement = document.createElement('atom-styles')
     stylesElement.setAttribute('context', 'atom-text-editor')
+    stylesElement.initialize()
     @shadowRoot.appendChild(stylesElement)
 
     @root = document.createElement('div')
