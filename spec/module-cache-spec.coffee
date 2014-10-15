@@ -9,7 +9,12 @@ describe 'ModuleCache', ->
     spyOn(Module, '_findPath').andCallThrough()
 
   it 'resolves atom shell module paths without hitting the filesystem', ->
-    require.resolve('shell')
+    builtins = ModuleCache.cache.builtins
+    expect(Object.keys(builtins).length).toBeGreaterThan 0
+
+    for builtinName, builtinPath of builtins
+      expect(require.resolve(builtinName)).toBe builtinPath
+
     expect(Module._findPath.callCount).toBe 0
 
   it 'resolves relative core paths without hitting the filesystem', ->
