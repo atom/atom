@@ -128,3 +128,7 @@ module.exports =
           cr:
             type: ['boolean', 'string']
             default: '\u00a4'
+      zoomFontWhenCtrlScrolling:
+        type: 'boolean'
+        default: process.platform isnt 'darwin'
+        description: 'Increase/decrease the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
