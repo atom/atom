@@ -30,10 +30,10 @@ class RebuildModuleCache extends Command
     {callback} = options
 
     commands = []
-    for packageName in fs.list(@atomPackagesDirectory)
+    fs.list(@atomPackagesDirectory).forEach (packageName) =>
       packageDirectory = path.join(@atomPackagesDirectory, packageName)
-      continue if fs.isSymbolicLinkSync(packageDirectory)
-      continue unless fs.isDirectorySync(packageDirectory)
+      return if fs.isSymbolicLinkSync(packageDirectory)
+      return unless fs.isDirectorySync(packageDirectory)
 
       commands.push (callback) =>
         process.stdout.write "Rebuilding #{packageName} module cache "
