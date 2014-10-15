@@ -1,12 +1,12 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 
 class StylesElement extends HTMLElement
+  context: null
   attached: false
 
   createdCallback: ->
     @emitter = new Emitter
     @styleElementClonesByOriginalElement = new WeakMap
-    @context = @getAttribute('context') ? undefined
 
   attributeChangedCallback: (attrName, oldVal, newVal) ->
     @contextChanged() if attrName is 'context'
@@ -23,6 +23,7 @@ class StylesElement extends HTMLElement
   attachedCallback: ->
     @attached = true
 
+    @context = @getAttribute('context') ? undefined
     @subscriptions = new CompositeDisposable
     @subscriptions.add atom.styles.observeStyleElements(@styleElementAdded.bind(this))
     @subscriptions.add atom.styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
