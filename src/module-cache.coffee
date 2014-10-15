@@ -75,7 +75,7 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
   for name, version of dependencies
     try
-      new semver.Range(version)
+      new Range(version)
     catch error
       delete dependencies[name]
 
