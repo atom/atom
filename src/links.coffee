@@ -47,6 +47,9 @@ class Links extends Command
         realpath = '???'.red
       "#{path.basename(link).yellow} -> #{realpath}"
 
-  run: ->
+  run: (options) ->
+    {callback} = options
+
     @logLinks(@devPackagesPath)
     @logLinks(@packagesPath)
+    callback()
