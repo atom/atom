@@ -10,6 +10,8 @@ Grim = require 'grim'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
+Panel = require './panel'
+PanelElement = require './panel-element'
 ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
 
@@ -61,6 +63,10 @@ class Workspace extends Model
     @addViewProvider
       modelConstructor: Workspace
       viewConstructor: WorkspaceElement
+
+    @addViewProvider
+      modelConstructor: Panel
+      viewConstructor: PanelElement
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
@@ -276,6 +282,9 @@ class Workspace extends Model
   onDidAddTextEditor: (callback) ->
     @onDidAddPaneItem ({item, pane, index}) ->
       callback({textEditor: item, pane, index}) if item instanceof TextEditor
+
+  onDidAddPanel: (callback) ->
+    @emitter.on 'did-add-panel', callback
 
   eachEditor: (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
@@ -659,3 +668,12 @@ class Workspace extends Model
   # added provider.
   addViewProvider: (providerSpec) ->
     @viewRegistry.addViewProvider(providerSpec)
+
+  ###
+  Section: Panels
+  ###
+
+  addLeftPanel: (options) ->
+    panel = new Panel(_.extend(options, {@viewRegistry, orientation: 'left'}))
+    @emitter.emit('did-add-panel', panel)
+    panel

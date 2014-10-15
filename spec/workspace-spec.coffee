@@ -456,3 +456,15 @@ describe "Workspace", ->
 
       expect(item2.isModified()).toBe false
       expect(atom.setDocumentEdited).toHaveBeenCalledWith(false)
+
+  describe "adding panels", ->
+    class TestPanel
+      constructior: ->
+
+    describe '::addLeftPanel(model)', ->
+      it 'emits an onDidAddPanel event and returns a panel', ->
+        atom.workspace.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addLeftPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith(panel)

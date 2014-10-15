@@ -270,3 +270,40 @@ describe "WorkspaceView", ->
       atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorNode).lineHeight).toBe atom.config.get('editor.lineHeight')
       expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight
+
+  describe 'adding panels', ->
+    workspaceElement = null
+    class TestPanel
+      constructior: ->
+
+    class TestPanelElement extends HTMLElement
+      createdCallback: ->
+        @classList.add('test-root')
+      setModel: (@model) ->
+    TestPanelElement = document.registerElement 'atom-test-element', prototype: TestPanelElement.prototype
+
+    beforeEach ->
+      workspaceElement = atom.workspace.getView(atom.workspace)
+      atom.workspace.addViewProvider
+        modelConstructor: TestPanel
+        viewConstructor: TestPanelElement
+
+    describe 'Workspace::addLeftPanel(panel)', ->
+      it 'adds an atom-panel and removes it when Panel::destroy() is called', ->
+        panelNode = workspaceElement.querySelector('atom-panel')
+        expect(panelNode).toBe null
+
+        panel = atom.workspace.addLeftPanel(item: new TestPanel())
+
+        panelNode = workspaceElement.querySelector('atom-panel')
+        expect(panelNode instanceof HTMLElement).toBe true
+        expect(panelNode.childNodes[0]).toHaveClass 'test-root'
+
+        panel.destroy()
+        panelNode = workspaceElement.querySelector('atom-panel')
+        expect(panelNode).toBe null
+
+      it 'adds the panel before the vertical axis', ->
+        panel = atom.workspace.addLeftPanel(item: new TestPanel())
+        panelNode = workspaceElement.querySelector('atom-panel')
+        expect(panelNode.nextSibling).toBe workspaceElement.verticalAxis

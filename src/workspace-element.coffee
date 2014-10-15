@@ -65,6 +65,8 @@ class WorkspaceElement extends HTMLElement
     window.addEventListener 'focus', handleWindowFocus
     @subscriptions.add(new Disposable -> window.removeEventListener 'focus', handleWindowFocus)
 
+    @subscriptions.add @model.onDidAddPanel(@panelAdded.bind(this))
+
     @__spacePenView.setModel(@model)
 
   setTextEditorFontSize: (fontSize) ->
@@ -89,6 +91,13 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnLeft: -> @paneContainer.focusPaneViewOnLeft()
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
+
+  panelAdded: (panel) ->
+    panelView = @model.getView(panel)
+
+    switch panel.getOrientation()
+      when 'left'
+        @horizontalAxis.insertBefore(panelView, @verticalAxis)
 
 atom.commands.add 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
