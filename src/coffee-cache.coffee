@@ -45,3 +45,11 @@ module.exports =
       writable: false
       value: requireCoffeeScript
     })
+  addPathToCache: (filePath) ->
+    extension = path.extname(filePath)
+    if extension is '.coffee'
+      content = fs.readFileSync(filePath, 'utf8')
+      cachePath = getCachePath(coffee)
+      compileCoffeeScript(coffee, filePath, cachePath)
+    else if extension is '.cson'
+      CSON.readFileSync(filePath)
