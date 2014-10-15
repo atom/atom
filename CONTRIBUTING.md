@@ -82,7 +82,7 @@ For more information on how to work with Atom's official packages, see
     * :green_heart: `:green_heart:` when fixing the CI build
     * :white_check_mark: `:white_check_mark:` when adding tests
     * :lock: `:lock:` when dealing with security
-    * :arrow_up: `:arrow_up:` when upgrading deps
+    * :arrow_up: `:arrow_up:` when upgrading dependencies
 
 ## CoffeeScript Styleguide
 
