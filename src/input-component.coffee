@@ -15,10 +15,11 @@ InputComponent = React.createClass
     {lastChar: ''}
 
   componentDidMount: ->
-    @getDOMNode().addEventListener 'paste', @onPaste
-    @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
-    @getDOMNode().addEventListener 'focus', @onFocus
-    @getDOMNode().addEventListener 'blur', @onBlur
+    node = @getDOMNode()
+    node.addEventListener 'paste', @onPaste
+    node.addEventListener 'compositionupdate', @onCompositionUpdate
+    node.addEventListener 'focus', @onFocus
+    node.addEventListener 'blur', @onBlur
 
   # Don't let text accumulate in the input forever, but avoid excessive reflows
   componentDidUpdate: ->
