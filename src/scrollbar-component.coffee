@@ -23,7 +23,7 @@ ScrollbarComponent = React.createClass
         style.right = verticalScrollbarWidth if scrollableInOppositeDirection
         style.height = horizontalScrollbarHeight
 
-    div {className, style, @onScroll},
+    div {className, style},
       switch orientation
         when 'vertical'
           div className: 'scrollbar-content', style: {height: scrollHeight}
@@ -35,6 +35,8 @@ ScrollbarComponent = React.createClass
 
     unless orientation is 'vertical' or orientation is 'horizontal'
       throw new Error("Must specify an orientation property of 'vertical' or 'horizontal'")
+
+    @getDOMNode().addEventListener 'scroll', @onScroll
 
   shouldComponentUpdate: (newProps) ->
     return true if newProps.visible isnt @props.visible
