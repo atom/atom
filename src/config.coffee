@@ -826,10 +826,10 @@ class Config
     @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', newScopedSettings)
     @emitter.emit 'did-change'
 
-  addScopedSettings: (name, selector, value) ->
+  addScopedSettings: (source, selector, value) ->
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    disposable = @scopedSettingsStore.addProperties(name, settingsBySelector)
+    disposable = @scopedSettingsStore.addProperties(source, settingsBySelector)
     @emitter.emit 'did-change'
     new Disposable =>
       disposable.dispose()
