@@ -847,11 +847,7 @@ class Config
     @emitter.emit 'did-change'
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->
-    scopeChain = scopeDescriptor
-      .map (scope) ->
-        scope = ".#{scope}" unless scope[0] is '.'
-        scope
-      .join(' ')
+    scopeChain = @scopeChainForScopeDescriptor(scopeDescriptor)
     @scopedSettingsStore.getPropertyValue(scopeChain, keyPath)
 
   observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
@@ -885,6 +881,13 @@ class Config
         scope
       .join(' ')
     @scopedSettingsStore.getProperties(scopeChain, keyPath)
+
+  scopeChainForScopeDescriptor: (scopeDescriptor) ->
+    scopeDescriptor
+      .map (scope) ->
+        scope = ".#{scope}" unless scope[0] is '.'
+        scope
+      .join(' ')
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
