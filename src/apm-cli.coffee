@@ -35,6 +35,7 @@ commandClasses = [
   require './login'
   require './publish'
   require './rebuild'
+  require './rebuild-module-cache'
   require './search'
   require './star'
   require './stars'
