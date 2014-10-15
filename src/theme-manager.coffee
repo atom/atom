@@ -250,7 +250,7 @@ class ThemeManager
       @requireStylesheet(nativeStylesheetPath)
 
     textEditorStylesPath = path.join(@resourcePath, 'static', 'editor.less')
-    atom.styles.addStyleSheet(@loadLessStylesheet(textEditorStylesPath), sourcePath: 'textEditorStylesPath', context: 'atom-text-editor')
+    atom.styles.addStyleSheet(@loadLessStylesheet(textEditorStylesPath), sourcePath: textEditorStylesPath, context: 'atom-text-editor')
 
   stylesheetElementForId: (id) ->
     document.head.querySelector("atom-styles style[source-path=\"#{id}\"]")
