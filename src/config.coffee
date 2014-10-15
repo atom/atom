@@ -519,9 +519,20 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns the new value.
-  restoreDefault: (keyPath) ->
-    @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
-    @get(keyPath)
+  restoreDefault: (scopeSelector, keyPath) ->
+    if arguments.length == 1
+      keyPath = scopeSelector
+      scopeSelector = null
+
+    if scopeSelector?
+      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
+      @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
+      _.setValueForKeyPath(settings, keyPath, undefined)
+      @addScopedSettings('user-config', scopeSelector, settings)
+      @getDefault(scopeSelector, keyPath)
+    else
+      @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+      @get(keyPath)
 
   # Extended: Get the global default value of the key path. _Please note_ that in most
   # cases calling this is not necessary! {::get} returns the default value when

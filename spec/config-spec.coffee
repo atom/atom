@@ -153,6 +153,26 @@ describe "Config", ->
       atom.config.restoreDefault('a.c')
       expect(atom.config.get('a.c')).toBeUndefined()
 
+    describe "when scoped settings are used", ->
+      it "restores the global default when no scoped default set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 10
+
+      it "restores the scoped default when a scoped default is set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('.source.coffee', 'foo.bar.ok', 100)
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 42
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.ok')).toBe 100
+
   describe ".pushAtKeyPath(keyPath, value)", ->
     it "pushes the given value to the array at the key path and updates observers", ->
       atom.config.set("foo.bar.baz", ["a"])
