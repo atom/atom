@@ -4,18 +4,19 @@ set -e
 
 SPEC_FILE="$1"
 DESKTOP_FILE="$2"
+BUILD_DIRECTORY="$3"
 
 RPM_BUILD_ROOT="`mktemp -d`"
 ARCH=`uname -m`
 
 rpmdev-setuptree
 
-cp -r /tmp/atom-build/Atom/* $RPM_BUILD_ROOT/BUILD
+cp -r $BUILD_DIRECTORY/Atom/* $RPM_BUILD_ROOT/BUILD
 cp $SPEC_FILE $RPM_BUILD_ROOT/SPECS
 cp ./atom.sh $RPM_BUILD_ROOT/BUILD
 cp $DESKTOP_FILE $RPM_BUILD_ROOT/BUILD
 
 rpmbuild -ba $SPEC_FILE
-cp $RPM_BUILD_ROOT/RPMS/$ARCH/atom-*.rpm "./"
+cp $RPM_BUILD_ROOT/RPMS/$ARCH/atom-*.rpm $BUILD_DIRECTORY
 
 rm -rf $RPM_BUILD_ROOT

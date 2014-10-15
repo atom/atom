@@ -33,10 +33,10 @@ module.exports = (grunt) ->
     desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
 
     cmd = path.join('script', 'mkrpm')
-    args = [specFilePath, desktopFilePath]
+    args = [specFilePath, desktopFilePath, buildDir]
     spawn {cmd, args}, (error) ->
       if error?
         done(error)
       else
-        grunt.log.ok "Created rpm package"
+        grunt.log.ok "Created rpm package in #{buildDir}"
         done()
