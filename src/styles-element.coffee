@@ -1,6 +1,8 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 
 class StylesElement extends HTMLElement
+  attached: false
+
   createdCallback: ->
     @emitter = new Emitter
     @styleElementClonesByOriginalElement = new WeakMap
@@ -19,10 +21,16 @@ class StylesElement extends HTMLElement
     @emitter.on 'did-update-style-element', callback
 
   attachedCallback: ->
+    @attached = true
+
     @subscriptions = new CompositeDisposable
     @subscriptions.add atom.styles.observeStyleElements(@styleElementAdded.bind(this))
     @subscriptions.add atom.styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
     @subscriptions.add atom.styles.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
+
+  detachedCallback: ->
+    @attached = false
+    @subscriptions.dispose()
 
   styleElementAdded: (styleElement) ->
     return unless styleElement.context is @context
@@ -56,11 +64,9 @@ class StylesElement extends HTMLElement
     @emitter.emit 'did-update-style-element', styleElementClone
 
   contextChanged: ->
-    @styleElementRemoved(child) for child in Array::slice.call(@children)
     @context = @getAttribute('context')
-    @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
-
-  detachedCallback: ->
-    @subscriptions.dispose()
+    if @attached
+      @styleElementRemoved(child) for child in Array::slice.call(@children)
+      @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
 
 module.exports = StylesElement = document.registerElement 'atom-styles', prototype: StylesElement.prototype
