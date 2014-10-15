@@ -588,8 +588,14 @@ class Config
 
   # Extended: Returns a new {Object} containing all of the global settings and
   # defaults. This does not include scoped settings.
-  getSettings: ->
-    _.deepExtend(@settings, @defaultSettings)
+  getSettings: (scopeSelector) ->
+    settings = _.deepExtend(@settings, @defaultSettings)
+
+    if scopeSelector?
+      scopedSettings = @scopedSettingsStore.propertiesForSelector(scopeSelector)
+      settings = _.deepExtend(scopedSettings, settings)
+
+    settings
 
   # Extended: Get the {String} path to the config file being used.
   getUserConfigPath: ->
