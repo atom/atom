@@ -22,9 +22,10 @@ class RebuildModuleCache extends Command
       try
         @moduleCache ?= require(path.join(resourcePath, 'src', 'module-cache'))
         @moduleCache.create(packageDirectory)
-        callback()
       catch error
-        callback(error)
+        return callback(error)
+
+      callback()
 
   run: (options) ->
     {callback} = options
