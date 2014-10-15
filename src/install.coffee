@@ -10,6 +10,7 @@ temp = require 'temp'
 config = require './config'
 Command = require './command'
 fs = require './fs'
+RebuildModuleCache = require './rebuild-module-cache'
 request = require './request'
 
 module.exports =
@@ -393,12 +394,7 @@ class Install extends Command
 
   buildModuleCache: (packageName, callback) ->
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
-
-    @getResourcePath (resourcePath) ->
-      try
-        ModuleCache = require(path.join(resourcePath, 'src', 'module-cache'))
-        ModuleCache.create(packageDirectory)
-      callback(null)
+    RebuildModuleCache.buildCache packageDirectory, -> callback()
 
   warmCompileCache: (packageName, callback) ->
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
