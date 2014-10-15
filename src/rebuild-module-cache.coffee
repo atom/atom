@@ -1,5 +1,6 @@
 path = require 'path'
 async = require 'async'
+optimist = require 'optimist'
 Command = require './command'
 config = require './config'
 fs = require './fs'
@@ -10,6 +11,22 @@ class RebuildModuleCache extends Command
 
   constructor: ->
     @atomPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
+
+  parseOptions: (argv) ->
+    options = optimist(argv)
+    options.usage """
+
+      Usage: apm rebuild-module-cache
+
+      Rebuild the module cache for all the packages installed to
+      ~/.atom/packages
+
+      You can see the state of the module cache for a package by looking
+      at the _atomModuleCache property in the package's package.json file.
+
+      This command skips all linked packages.
+    """
+    options.alias('h', 'help').describe('help', 'Print this usage message')
 
   getResourcePath: (callback) ->
     if @resourcePath
