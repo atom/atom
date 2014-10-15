@@ -17,7 +17,7 @@ class RebuildModuleCache extends Command
     else
       config.getResourcePath (@resourcePath) => callback(@resourcePath)
 
-  buildCache: (packageDirectory, callback) ->
+  rebuild: (packageDirectory, callback) ->
     @getResourcePath (resourcePath) =>
       try
         @moduleCache ?= require(path.join(resourcePath, 'src', 'module-cache'))
@@ -36,7 +36,7 @@ class RebuildModuleCache extends Command
 
       commands.push (callback) =>
         process.stdout.write "Rebuilding #{packageName} module cache "
-        @buildCache packageDirectory, (error) =>
+        @rebuild packageDirectory, (error) =>
           if error?
             @logFailure()
           else

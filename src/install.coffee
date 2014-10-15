@@ -394,7 +394,8 @@ class Install extends Command
 
   buildModuleCache: (packageName, callback) ->
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
-    RebuildModuleCache.buildCache packageDirectory, ->
+    rebuildCacheCommand = new RebuildModuleCache()
+    rebuildCacheCommand.rebuild packageDirectory, ->
       # Ignore cache errors and just finish the install
       callback()
 
