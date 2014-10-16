@@ -491,10 +491,9 @@ class Selection extends Model
       insertSpace = nextRow <= @editor.buffer.getLastRow() and
                     @editor.buffer.lineLengthForRow(nextRow) > 0 and
                     @editor.buffer.lineLengthForRow(currentRow) > 0
+      @insertText(' ') if insertSpace
 
-      if insertSpace
-        @insertText(' ')
-        @cursor.moveToEndOfLine()
+      @cursor.moveToEndOfLine()
 
       # Remove leading whitespace from the line below
       @modifySelection =>
