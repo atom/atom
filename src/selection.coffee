@@ -477,7 +477,7 @@ class Selection extends Model
       @cursor.setBufferPosition([selectedRange.start.row])
       @cursor.moveToEndOfLine()
 
-      # Remove traing whitespace from current line
+      # Remove trailing whitespace from the current line
       scanRange = @cursor.getCurrentLineBufferRange()
       trailingWhitespaceRange = null
       @editor.scanInBufferRange /[ \t]+$/, scanRange, ({range}) ->
@@ -496,7 +496,7 @@ class Selection extends Model
         @insertText(' ')
         @cursor.moveToEndOfLine()
 
-      # Remove leading whitespace from line below
+      # Remove leading whitespace from the line below
       @modifySelection =>
         @cursor.moveRight()
         @cursor.moveToFirstCharacterOfLine()
