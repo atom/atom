@@ -1,14 +1,14 @@
 # Scoped Settings, Scopes and Scope Descriptors
 
-Atom supports language-specific settings. You can soft wrap only markdown files, or set the tab length to 4 in python files.
+Atom supports language-specific settings. You can soft wrap only Markdown files, or set the tab length to 4 in Python files.
 
-Language-specific settings are but a subset of something more general we call "scoped settings". Scoped settings allow targeting down to a specific syntax token type. For example, you could conceivably set a setting to target only ruby comments, only code inside markdown files, or even only JavaScript function names.
+Language-specific settings are a subset of something more general we call "scoped settings". Scoped settings allow targeting down to a specific syntax token type. For example, you could conceivably set a setting to target only Ruby comments, only code inside Markdown files, or even only JavaScript function names.
 
 ## Scope names in syntax tokens
 
 Each token in the editor has a collection of scope names. For example, the aformentioned JavaScript function name might have the scope names `function` and `name`. An open paren might have the scope names `punctuation`, `parameters`, `begin`.
 
-Scope names work just like CSS classes. In fact, in the editor, scope names are attached to a token's dom node as CSS classes.
+Scope names work just like CSS classes. In fact, in the editor, scope names are attached to a token's DOM node as CSS classes.
 
 Take this piece of JavaScript:
 
@@ -57,7 +57,7 @@ scopeDescriptor = ['source.js', 'meta.function.js', 'entity.name.function.js']
 value = atom.config.get(scopeDescriptor, 'my-package.my-setting')
 ```
 
-But, you are not meant to generate scope descriptors by hand. There are a couple methods available to get the scope descriptor from the editor:
+But, you do not need to generate scope descriptors by hand. There are a couple methods available to get the scope descriptor from the editor:
 
 * [Editor::getRootScopeDescriptor][editor-getRootScopeDescriptor] to get the language's descriptor. eg. `[".source.js"]`
 * [Editor::scopeDescriptorForBufferPosition][editor-scopeDescriptorForBufferPosition] to get the descriptor at a specific position in the buffer.
