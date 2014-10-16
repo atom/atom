@@ -154,9 +154,9 @@ resolveModulePath = (relativePath, parentModule) ->
 
 registerBuiltins = (devMode) ->
   if devMode
-    cache.builtins.atom = path.join(cache.resourcePath, 'exports', 'atom.coffee')
-  else
-    cache.builtins.atom = path.join(cache.resourcePath, 'exports', 'atom.js')
+    atomCoffeePath = path.join(cache.resourcePath, 'exports', 'atom.coffee')
+    cache.builtins.atom = atomCoffeePath if fs.isFileSync(atomCoffeePath)
+  cache.builtins.atom ?= path.join(cache.resourcePath, 'exports', 'atom.js')
 
   atomShellRoot = path.join(process.resourcesPath, 'atom')
 
