@@ -2,12 +2,6 @@
 @import "octicon-utf-codes";
 @import "octicon-mixins";
 
-:host {
-  display: block;
-  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
-  line-height: 1.3;
-}
-
 .editor, .editor-contents {
   height: 100%;
   width: 100%;
@@ -90,12 +84,6 @@
 .placeholder-text {
   position: absolute;
   color: @text-color-subtle;
-}
-
-:host(.mini) {
-  font-size: @input-font-size;
-  line-height: @component-line-height;
-  max-height: @component-line-height + 2; // +2 for borders
 }
 
 .editor {

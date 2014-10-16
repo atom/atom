@@ -249,7 +249,7 @@ class ThemeManager
     if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
       @requireStylesheet(nativeStylesheetPath)
 
-    textEditorStylesPath = path.join(@resourcePath, 'static', 'editor.less')
+    textEditorStylesPath = path.join(@resourcePath, 'static', 'text-editor-shadow.less')
     atom.styles.addStyleSheet(@loadLessStylesheet(textEditorStylesPath), sourcePath: textEditorStylesPath, context: 'atom-text-editor')
 
   stylesheetElementForId: (id) ->
