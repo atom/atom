@@ -626,7 +626,7 @@ TextEditorComponent = React.createClass
     return unless @performedInitialMeasurement
     return unless atom.themes.isInitialLoadComplete()
 
-    @refreshScrollbars() if not styleElement? or @containsScrollbarSelector(styleElement.sheet)
+    @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
