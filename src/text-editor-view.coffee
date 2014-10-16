@@ -73,16 +73,15 @@ class TextEditorView extends View
   setModel: (@model) ->
     @editor = @model
 
-    $root = $(@element.rootElement)
+    @root = $(@element.rootElement)
 
-    @scrollView = $root.find('.scroll-view')
-    @underlayer = $root.find('.highlights').addClass('underlayer')
-    @overlayer = $root.find('.lines').addClass('overlayer')
-    @hiddenInput = $root.find('.hidden-input')
-    @lines = $root.find('.lines')
+    @scrollView = @root.find('.scroll-view')
+    @underlayer = @root.find('.highlights').addClass('underlayer')
+    @overlayer = @root.find('.lines').addClass('overlayer')
+    @hiddenInput = @root.find('.hidden-input')
 
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
-      @gutter = $root.find('.gutter')
+      @gutter = @root.find('.gutter')
 
       @gutter.removeClassFromAllLines = (klass) =>
         deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
@@ -97,6 +96,9 @@ class TextEditorView extends View
         lines = @gutter.find("[data-buffer-row='#{bufferRow}']")
         lines.addClass(klass)
         lines.length > 0
+
+  find: ->
+    @root.find.apply(@root, arguments)
 
   # Public: Get the underlying editor model for this view.
   #
