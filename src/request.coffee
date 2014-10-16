@@ -13,10 +13,9 @@ configureRequest = (requestOptions, callback) ->
   loadNpm ->
     requestOptions.proxy ?= npm.config.get('https-proxy') or npm.config.get('proxy')
     requestOptions.strictSSL ?= npm.config.get('strict-ssl')
-    userAgent = npm.config.get('user-agent')
-    if userAgent?
-      requestOptions.headers ?= {}
-      requestOptions.headers['User-Agent'] ?= userAgent
+    userAgent = npm.config.get('user-agent') ? "AtomApm/#{require('../package.json').version}"
+    requestOptions.headers ?= {}
+    requestOptions.headers['User-Agent'] ?= userAgent
     callback()
 
 module.exports =

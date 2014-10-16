@@ -89,8 +89,6 @@ class Publish extends Command
     requestSettings =
       url: "https://api.github.com/repos/#{Packages.getRepository(pack)}/tags"
       json: true
-      headers:
-        'User-Agent': "AtomApm/#{require('../package.json').version}"
 
     requestTags = ->
       request.get requestSettings, (error, response, tags=[]) ->
