@@ -219,7 +219,7 @@ addCustomMatchers = (spec) ->
       @message = -> return "Expected element '" + @actual + "' or its descendants" + notText + " to have focus."
       element = @actual
       element = element.get(0) if element.jquery
-      element.webkitMatchesSelector(":focus") or element.querySelector(":focus")
+      element is document.activeElement or element.contains(document.activeElement)
 
     toShow: ->
       notText = if @isNot then " not" else ""
