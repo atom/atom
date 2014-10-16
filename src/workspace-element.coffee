@@ -65,7 +65,17 @@ class WorkspaceElement extends HTMLElement
     window.addEventListener 'focus', handleWindowFocus
     @subscriptions.add(new Disposable -> window.removeEventListener 'focus', handleWindowFocus)
 
-    @subscriptions.add @model.onDidAddPanel(@panelAdded.bind(this))
+    @panelContainers =
+      top: @model.panelContainers.top.getView()
+      left: @model.panelContainers.left.getView()
+      right: @model.panelContainers.right.getView()
+      bottom: @model.panelContainers.bottom.getView()
+
+    @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
+    @horizontalAxis.appendChild(@panelContainers.right)
+
+    @verticalAxis.insertBefore(@panelContainers.top, @paneContainer)
+    @verticalAxis.appendChild(@panelContainers.bottom)
 
     @__spacePenView.setModel(@model)
 
@@ -91,13 +101,6 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnLeft: -> @paneContainer.focusPaneViewOnLeft()
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
-
-  panelAdded: (panel) ->
-    panelView = @model.getView(panel)
-
-    switch panel.getOrientation()
-      when 'left'
-        @horizontalAxis.insertBefore(panelView, @verticalAxis)
 
 atom.commands.add 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()

@@ -12,6 +12,8 @@ PaneContainer = require './pane-container'
 Pane = require './pane'
 Panel = require './panel'
 PanelElement = require './panel-element'
+PanelContainer = require './panel-container'
+PanelContainerElement = require './panel-container-element'
 ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
 
@@ -47,6 +49,12 @@ class Workspace extends Model
     @paneContainer ?= new PaneContainer({@viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
 
+    @panelContainers =
+      top: new PanelContainer({@viewRegistry, orientation: 'top'})
+      left: new PanelContainer({@viewRegistry, orientation: 'left'})
+      right: new PanelContainer({@viewRegistry, orientation: 'right'})
+      bottom: new PanelContainer({@viewRegistry, orientation: 'bottom'})
+
     @subscribeToActiveItem()
 
     @addOpener (filePath) =>
@@ -63,6 +71,10 @@ class Workspace extends Model
     @addViewProvider
       modelConstructor: Workspace
       viewConstructor: WorkspaceElement
+
+    @addViewProvider
+      modelConstructor: PanelContainer
+      viewConstructor: PanelContainerElement
 
     @addViewProvider
       modelConstructor: Panel
@@ -282,9 +294,6 @@ class Workspace extends Model
   onDidAddTextEditor: (callback) ->
     @onDidAddPaneItem ({item, pane, index}) ->
       callback({textEditor: item, pane, index}) if item instanceof TextEditor
-
-  onDidAddPanel: (callback) ->
-    @emitter.on 'did-add-panel', callback
 
   eachEditor: (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
@@ -673,7 +682,19 @@ class Workspace extends Model
   Section: Panels
   ###
 
+  addTopPanel: (options) ->
+    @addPanel('top', options)
+
+  addBottomPanel: (options) ->
+    @addPanel('bottom', options)
+
   addLeftPanel: (options) ->
-    panel = new Panel(_.extend(options, {@viewRegistry, orientation: 'left'}))
-    @emitter.emit('did-add-panel', panel)
-    panel
+    @addPanel('left', options)
+
+  addRightPanel: (options) ->
+    @addPanel('right', options)
+
+  addPanel: (orientation, options) ->
+    options ?= {}
+    options.viewRegistry = @viewRegistry
+    @panelContainers[orientation].addPanel(new Panel(options))

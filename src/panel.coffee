@@ -3,15 +3,13 @@
 # Public:
 module.exports =
 class Panel
-  constructor: ({@viewRegistry, @item, @orientation}) ->
+  constructor: ({@viewRegistry, @item}) ->
     @emitter = new Emitter
 
   destroy: ->
     @emitter.emit 'did-destroy', this
 
   getView: -> @viewRegistry.getView(@item)
-
-  getOrientation: -> @orientation
 
   ###
   Section: Event Subscription

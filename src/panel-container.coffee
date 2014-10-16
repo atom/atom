@@ -42,6 +42,7 @@ class PanelContainer
     index = @panels.length
     @panels.push(panel)
     @emitter.emit 'did-add-panel', {panel, index}
+    panel
 
   panelDestoryed: (panel) ->
     index = @panels.indexOf(panel)
