@@ -496,7 +496,7 @@ class Selection extends Model
         @insertText(' ')
         @cursor.moveToEndOfLine()
 
-      # Remove leading whitespace form line below
+      # Remove leading whitespace from line below
       @modifySelection =>
         @cursor.moveRight()
         @cursor.moveToFirstCharacterOfLine()
