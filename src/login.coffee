@@ -45,9 +45,6 @@ class Login extends Command
     readPromise = Q.denodeify(read)
     readPromise(options)
 
-  getUserAgent: ->
-    "AtomPackageManager/#{require('../package.json').version}"
-
   welcomeMessage: (state) =>
     return Q(state) if state.token
 
