@@ -98,7 +98,7 @@ you don't need it anymore. When finished, the file will have this:
 Notice `.workspace` on the first line. Just like CSS, keymap selectors *scope* key
 bindings so they only apply to specific elements. In this case, our binding is
 only active for elements matching the `.workspace` selector. If the Tree View has
-focus, pressing `cmd-alt-a` won't trigger the `ascii-art:convert` command. But
+focus, pressing `ctrl-alt-a` won't trigger the `ascii-art:convert` command. But
 if the editor has focus, the `ascii-art:convert` method *will* be triggered.
 More information on key bindings can be found in the
 [keymaps](advanced/keymaps.html) documentation.
@@ -142,7 +142,7 @@ convert: ->
       selection.insertText("\n#{asciiArt}\n")
 ```
 
-Select some text in an editor window and hit `cmd-alt-a`. :tada: You're now an
+Select some text in an editor window and hit `ctrl-alt-a`. :tada: You're now an
 ASCII art professional!
 
 ## Further reading
