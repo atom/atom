@@ -908,10 +908,10 @@ TextEditorComponent = React.createClass
   lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
 
   screenRowForNode: (node) ->
-    while node isnt document
+    while node?
       if screenRow = node.dataset.screenRow
         return parseInt(screenRow)
-      node = node.parentNode
+      node = node.parentElement
     null
 
   getFontSize: ->
