@@ -3430,6 +3430,13 @@ describe "TextEditor", ->
           editor.joinLines()
           expect(editor.lineTextForBufferRow(12)).toBe '};'
 
+      describe "when the line is empty", ->
+        it "joins the line below with the current line with no added space", ->
+          editor.setCursorBufferPosition([10])
+          editor.joinLines()
+          expect(editor.lineTextForBufferRow(10)).toBe 'return sort(Array.apply(this, arguments));'
+          expect(editor.getCursorBufferPosition()).toEqual [10, 0]
+
     describe "when text is selected", ->
       describe "when the selection does not span multiple lines", ->
         it "joins the line below with the current line separated by a space and retains the selected text", ->
