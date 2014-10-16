@@ -169,7 +169,7 @@ class TextEditorView extends View
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
     view.css('z-index', 1)
-    @find('.lines').prepend(view)
+    @append(view)
 
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()

@@ -57,6 +57,10 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
     @renderedDecorationsByLineId = {}
 
+  componentDidMount: ->
+    node = @getDOMNode()
+    node.appendChild(document.createElement('content'))
+
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
