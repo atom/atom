@@ -88,6 +88,19 @@ describe "Config", ->
       expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
       expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
 
+    describe "when scoped settings are used", ->
+      it "returns the global default when no scoped default set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 10
+
+      it "returns the scoped default when a scoped default is set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+
   describe ".isDefault(keyPath)", ->
     it "returns true when the value of the key path is its default value", ->
       atom.config.setDefaults("foo", same: 1, changes: 1)
@@ -98,6 +111,16 @@ describe "Config", ->
       atom.config.set('foo.changes', 3)
       expect(atom.config.isDefault('foo.same')).toBe false
       expect(atom.config.isDefault('foo.changes')).toBe false
+
+    describe "when scoped settings are used", ->
+      it "returns false when a scoped setting was set by the user", ->
+        expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
 
   describe ".toggle(keyPath)", ->
     it "negates the boolean value of the current key path value", ->
@@ -129,6 +152,50 @@ describe "Config", ->
       expect(atom.config.get('a.c')).toBe 5
       atom.config.restoreDefault('a.c')
       expect(atom.config.get('a.c')).toBeUndefined()
+
+    describe "when scoped settings are used", ->
+      it "restores the global default when no scoped default set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 10
+
+      it "restores the scoped default when a scoped default is set", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('.source.coffee', 'foo.bar.ok', 100)
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 42
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.ok')).toBe 100
+
+  describe ".getSettings()", ->
+    it "returns all settings including defaults", ->
+      atom.config.setDefaults("foo", bar: baz: 10)
+      atom.config.set("foo.ok", 12)
+
+      expect(atom.config.getSettings().foo).toEqual
+        ok: 12
+        bar:
+          baz: 10
+
+    describe "when scoped settings are used", ->
+      it "returns all the scoped settings including all the defaults", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.set("foo.ok", 12)
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: omg: 'omg')
+
+        expect(atom.config.getSettings(".source.coffee").foo).toEqual
+          ok: 12
+          bar:
+            baz: 42
+            omg: 'omg'
+
 
   describe ".pushAtKeyPath(keyPath, value)", ->
     it "pushes the given value to the array at the key path and updates observers", ->
