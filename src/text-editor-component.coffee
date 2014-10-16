@@ -416,6 +416,9 @@ TextEditorComponent = React.createClass
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
+    @subscribe atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
+    @subscribe atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
+    @subscribe atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
 
   onGrammarChanged: ->
     {editor} = @props
