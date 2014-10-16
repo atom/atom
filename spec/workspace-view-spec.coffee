@@ -277,12 +277,12 @@ describe "WorkspaceView", ->
       workspaceElement = atom.workspace.getView(atom.workspace)
 
     it 'inserts panel container elements in the correct places in the DOM', ->
-      leftContainer = workspaceElement.querySelector('atom-panel-container[orientation="left"]')
-      rightContainer = workspaceElement.querySelector('atom-panel-container[orientation="right"]')
+      leftContainer = workspaceElement.querySelector('atom-panel-container[location="left"]')
+      rightContainer = workspaceElement.querySelector('atom-panel-container[location="right"]')
       expect(leftContainer.nextSibling).toBe workspaceElement.verticalAxis
       expect(rightContainer.previousSibling).toBe workspaceElement.verticalAxis
 
-      topContainer = workspaceElement.querySelector('atom-panel-container[orientation="top"]')
-      bottomContainer = workspaceElement.querySelector('atom-panel-container[orientation="bottom"]')
+      topContainer = workspaceElement.querySelector('atom-panel-container[location="top"]')
+      bottomContainer = workspaceElement.querySelector('atom-panel-container[location="bottom"]')
       expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
       expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer

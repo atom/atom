@@ -50,10 +50,10 @@ class Workspace extends Model
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
 
     @panelContainers =
-      top: new PanelContainer({@viewRegistry, orientation: 'top'})
-      left: new PanelContainer({@viewRegistry, orientation: 'left'})
-      right: new PanelContainer({@viewRegistry, orientation: 'right'})
-      bottom: new PanelContainer({@viewRegistry, orientation: 'bottom'})
+      top: new PanelContainer({@viewRegistry, location: 'top'})
+      left: new PanelContainer({@viewRegistry, location: 'left'})
+      right: new PanelContainer({@viewRegistry, location: 'right'})
+      bottom: new PanelContainer({@viewRegistry, location: 'bottom'})
 
     @subscribeToActiveItem()
 
@@ -694,7 +694,7 @@ class Workspace extends Model
   addRightPanel: (options) ->
     @addPanel('right', options)
 
-  addPanel: (orientation, options) ->
+  addPanel: (location, options) ->
     options ?= {}
     options.viewRegistry = @viewRegistry
-    @panelContainers[orientation].addPanel(new Panel(options))
+    @panelContainers[location].addPanel(new Panel(options))

@@ -30,12 +30,12 @@ describe "PanelContainerElement", ->
       modelConstructor: TestPanelItem
       viewConstructor: TestPanelItemElement
 
-    container = new PanelContainer({viewRegistry, orientation: 'left'})
+    container = new PanelContainer({viewRegistry, location: 'left'})
     element = container.getView()
     jasmineContent.appendChild(element)
 
   it 'has an oritation attribute with value from the model', ->
-    expect(element.getAttribute('orientation')).toBe 'left'
+    expect(element.getAttribute('location')).toBe 'left'
 
   it 'removes the element when the container is destroyed', ->
     expect(element.parentNode).toBe jasmineContent
@@ -46,13 +46,13 @@ describe "PanelContainerElement", ->
     it "adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed", ->
       expect(element.childNodes.length).toBe 0
 
-      panel1 = new Panel({viewRegistry, item: new TestPanelItem(), orientation: 'left'})
+      panel1 = new Panel({viewRegistry, item: new TestPanelItem(), location: 'left'})
       container.addPanel(panel1)
       expect(element.childNodes.length).toBe 1
 
       expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
 
-      panel2 = new Panel({viewRegistry, item: new TestPanelItem(), orientation: 'left'})
+      panel2 = new Panel({viewRegistry, item: new TestPanelItem(), location: 'left'})
       container.addPanel(panel2)
       expect(element.childNodes.length).toBe 2
 
