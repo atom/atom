@@ -7,7 +7,7 @@ class PanelElement extends HTMLElement
   getModel: -> @model
 
   setModel: (@model) ->
-    @appendChild(@model.getView())
+    @appendChild(@model.getItemView())
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
 
   destroyed: ->

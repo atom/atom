@@ -9,7 +9,9 @@ class Panel
   destroy: ->
     @emitter.emit 'did-destroy', this
 
-  getView: -> @viewRegistry.getView(@item)
+  getView: -> @viewRegistry.getView(this)
+
+  getItemView: -> @viewRegistry.getView(@item)
 
   ###
   Section: Event Subscription

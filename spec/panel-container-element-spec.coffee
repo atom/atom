@@ -50,6 +50,8 @@ describe "PanelContainerElement", ->
       container.addPanel(panel1)
       expect(element.childNodes.length).toBe 1
 
+      expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
+
       panel2 = new Panel({viewRegistry, item: new TestPanelItem(), orientation: 'left'})
       container.addPanel(panel2)
       expect(element.childNodes.length).toBe 2
