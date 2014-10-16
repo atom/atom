@@ -73,13 +73,16 @@ class TextEditorView extends View
   setModel: (@model) ->
     @editor = @model
 
-    @scrollView = @find('.scroll-view')
-    @underlayer = @find('.highlights').addClass('underlayer')
-    @overlayer = @find('.lines').addClass('overlayer')
-    @hiddenInput = @.find('.hidden-input')
+    $root = $(@element.rootElement)
+
+    @scrollView = $root.find('.scroll-view')
+    @underlayer = $root.find('.highlights').addClass('underlayer')
+    @overlayer = $root.find('.lines').addClass('overlayer')
+    @hiddenInput = $root.find('.hidden-input')
+    @lines = $root.find('.lines')
 
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
-      @gutter = @find('.gutter')
+      @gutter = $root.find('.gutter')
 
       @gutter.removeClassFromAllLines = (klass) =>
         deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
@@ -164,7 +167,7 @@ class TextEditorView extends View
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
     view.css('z-index', 1)
-    @find('.lines').prepend(view)
+    @lines.prepend(view)
 
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()
