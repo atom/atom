@@ -476,24 +476,36 @@ class Selection extends Model
     for row in [0...rowCount]
       @cursor.setBufferPosition([selectedRange.start.row])
       @cursor.moveToEndOfLine()
+
+      # Remove traing whitespace from line
+      scanRange = @cursor.getCurrentLineBufferRange()
+      trailingWhitespaceRange = null
+      @editor.scanInBufferRange /[ \t]+$/, scanRange, ({range}) ->
+        trailingWhitespaceRange = range
+      if trailingWhitespaceRange?
+        @setBufferRange(trailingWhitespaceRange)
+        @deleteSelectedText()
+
       nextRow = selectedRange.start.row + 1
-      if nextRow <= @editor.buffer.getLastRow() and @editor.buffer.lineLengthForRow(nextRow) > 0
+      insertSpace = nextRow <= @editor.buffer.getLastRow() and
+                    @editor.buffer.lineLengthForRow(nextRow) > 0 and
+                    @editor.buffer.lineLengthForRow(selectedRange.start.row) > 0
+
+      if insertSpace
         @insertText(' ')
         @cursor.moveToEndOfLine()
-        @selectToPreviousWordBoundary()
-        @deleteSelectedText()
-        @modifySelection =>
-          @cursor.moveRight()
-          @cursor.moveToFirstCharacterOfLine()
-        @deleteSelectedText()
-        @insertText(' ')
+
+      @modifySelection =>
+        @cursor.moveRight()
+        @cursor.moveToFirstCharacterOfLine()
+      @deleteSelectedText()
+
+      @cursor.moveLeft() if insertSpace
 
     if joinMarker?
       newSelectedRange = joinMarker.getBufferRange()
       @setBufferRange(newSelectedRange)
       joinMarker.destroy()
-
-    @cursor.moveLeft()
 
   # Public: Removes one level of indent from the currently selected rows.
   outdentSelectedRows: ->

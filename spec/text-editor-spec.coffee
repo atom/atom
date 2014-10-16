@@ -3414,7 +3414,7 @@ describe "TextEditor", ->
         it "joins the line below with the current line separated by a space and moves the cursor to the start of line that was moved up", ->
           editor.joinLines()
           expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () { var sort = function(items) {'
-          expect(editor.getCursorBufferPosition()).toEqual [0, 30]
+          expect(editor.getCursorBufferPosition()).toEqual [0, 29]
 
       describe "when the line below is empty", ->
         it "deletes the line below and moves the cursor to the end of the line", ->
