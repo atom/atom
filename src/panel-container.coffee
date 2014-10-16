@@ -1,6 +1,5 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 
-# Public:
 module.exports =
 class PanelContainer
   constructor: ({@viewRegistry, @orientation}) ->
