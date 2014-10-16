@@ -538,6 +538,7 @@ class Config
   # cases calling this is not necessary! {::get} returns the default value when
   # a custom value is not specified.
   #
+  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
   # * `keyPath` The {String} name of the key.
   #
   # Returns the default value.
@@ -555,6 +556,7 @@ class Config
 
   # Extended: Is the value at `keyPath` its default value?
   #
+  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
   # * `keyPath` The {String} name of the key.
   #
   # Returns a {Boolean}, `true` if the current value is the default, `false`
@@ -587,7 +589,9 @@ class Config
     schema
 
   # Extended: Returns a new {Object} containing all of the global settings and
-  # defaults. This does not include scoped settings.
+  # defaults. Returns the scoped settings when a `scopeSelector` is specified.
+  #
+  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
   getSettings: (scopeSelector) ->
     settings = _.deepExtend(@settings, @defaultSettings)
 
