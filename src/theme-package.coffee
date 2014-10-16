@@ -5,7 +5,7 @@ module.exports =
 class ThemePackage extends Package
   getType: -> 'theme'
 
-  getStylesheetType: -> "#{@metadata.theme}-theme"
+  getStylesheetType: -> "theme"
 
   enable: ->
     atom.config.unshiftAtKeyPath('core.themes', @name)
