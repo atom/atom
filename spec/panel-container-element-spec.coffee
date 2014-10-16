@@ -30,9 +30,12 @@ describe "PanelContainerElement", ->
       modelConstructor: TestPanelItem
       viewConstructor: TestPanelItemElement
 
-    container = new PanelContainer({viewRegistry})
+    container = new PanelContainer({viewRegistry, orientation: 'left'})
     element = container.getView()
     jasmineContent.appendChild(element)
+
+  it 'has an oritation attribute with value from the model', ->
+    expect(element.getAttribute('orientation')).toBe 'left'
 
   it 'removes the element when the container is destroyed', ->
     expect(element.parentNode).toBe jasmineContent

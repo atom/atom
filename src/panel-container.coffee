@@ -3,7 +3,7 @@
 # Public:
 module.exports =
 class PanelContainer
-  constructor: ({@viewRegistry}) ->
+  constructor: ({@viewRegistry, @orientation}) ->
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @panels = []
@@ -32,6 +32,8 @@ class PanelContainer
   ###
 
   getView: -> @viewRegistry.getView(this)
+
+  getOrientation: -> @orientation
 
   getPanels: -> @panels
 

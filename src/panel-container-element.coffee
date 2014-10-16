@@ -11,6 +11,8 @@ class PanelContainerElement extends HTMLElement
     @subscriptions.add @model.onDidRemovePanel(@panelRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
 
+    @setAttribute('orientation', @model.getOrientation())
+
   panelAdded: ({panel, index}) ->
     if index >= @childNodes.length
       @appendChild(panel.getView())
