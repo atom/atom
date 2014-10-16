@@ -33,4 +33,5 @@ describe "TextEditorElement", ->
       expect(focusoutCalled).toBe false
       expect(blurCalled).toBe false
       expect(element.hasFocus()).toBe true
-      expect(element.querySelector('input')).toBe document.activeElement
+      expect(document.activeElement).toBe element
+      expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
