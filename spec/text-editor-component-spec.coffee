@@ -721,11 +721,11 @@ describe "TextEditorComponent", ->
       editor.setCursorScreenPosition([0, 16])
       nextAnimationFrame()
 
-      atom.themes.applyStylesheet 'test', """
+      atom.styles.addStyleSheet """
         .function.js {
           font-weight: bold;
         }
-      """
+      """, context: 'atom-text-editor'
       nextAnimationFrame() # update based on new measurements
 
       cursor = componentNode.querySelector('.cursor')
@@ -1667,12 +1667,13 @@ describe "TextEditorComponent", ->
       component.measureHeightAndWidth()
       nextAnimationFrame()
 
-      atom.themes.applyStylesheet "test", """
+      atom.styles.addStyleSheet """
         ::-webkit-scrollbar {
           width: 8px;
           height: 8px;
         }
-      """
+      """, context: 'atom-text-editor'
+
       nextAnimationFrame()
 
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')

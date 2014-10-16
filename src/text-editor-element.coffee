@@ -24,12 +24,12 @@ class TextEditorElement extends HTMLElement
   initializeContent: (attributes) ->
     @classList.add('editor')
     @setAttribute('tabindex', -1)
-    @shadowRoot = @createShadowRoot()
+    @createShadowRoot()
 
-    stylesElement = document.createElement('atom-styles')
-    stylesElement.setAttribute('context', 'atom-text-editor')
-    stylesElement.initialize()
-    @shadowRoot.appendChild(stylesElement)
+    @stylesElement = document.createElement('atom-styles')
+    @stylesElement.setAttribute('context', 'atom-text-editor')
+    @stylesElement.initialize()
+    @shadowRoot.appendChild(@stylesElement)
 
     @rootElement = document.createElement('div')
     @rootElement.classList.add('editor', 'editor-colors')
@@ -76,6 +76,7 @@ class TextEditorElement extends HTMLElement
     @componentDescriptor ?= TextEditorComponent(
       hostElement: this
       rootElement: @rootElement
+      stylesElement: @stylesElement
       editor: @model
       mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin

@@ -175,14 +175,14 @@ TextEditorComponent = React.createClass
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
   componentDidMount: ->
-    {editor} = @props
+    {editor, stylesElement} = @props
 
     @observeEditor()
     @listenForDOMEvents()
 
-    @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
-    @subscribe atom.themes.onDidUpdateStylesheet @onStylesheetsChanged
-    @subscribe atom.themes.onDidRemoveStylesheet @onStylesheetsChanged
+    @subscribe stylesElement.onDidAddStyleElement @onStylesheetsChanged
+    @subscribe stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
+    @subscribe stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
     unless atom.themes.isInitialLoadComplete()
       @subscribe atom.themes.onDidReloadAll @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
@@ -622,11 +622,11 @@ TextEditorComponent = React.createClass
       else
         editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]], preserveFolds: true)
 
-  onStylesheetsChanged: (stylesheet) ->
+  onStylesheetsChanged: (styleElement) ->
     return unless @performedInitialMeasurement
     return unless atom.themes.isInitialLoadComplete()
 
-    @refreshScrollbars() if not stylesheet? or @containsScrollbarSelector(stylesheet)
+    @refreshScrollbars() if not styleElement? or @containsScrollbarSelector(styleElement.sheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
