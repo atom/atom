@@ -7,12 +7,17 @@ class Range extends semver.Range
   constructor: ->
     super
     @matchedVersions = new Set()
+    @unmatchedVersions = new Set()
 
   test: (version) ->
     return true if @matchedVersions.has(version)
+    return false if @unmatchedVersions.has(version)
 
     matches = super
-    @matchedVersions.add(version) if matches
+    if matches
+      @matchedVersions.add(version)
+    else
+      @unmatchedVersions.add(version)
     matches
 
 nativeModules = process.binding('natives')
