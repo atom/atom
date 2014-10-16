@@ -338,12 +338,8 @@ window.setEditorWidthInChars = (editorView, widthInChars, charWidth=editorView.c
   $(window).trigger 'resize' # update width of editor view's on-screen lines
 
 window.setEditorHeightInLines = (editorView, heightInLines, lineHeight=editorView.lineHeight) ->
-  if editorView.hasClass('react')
-    editorView.height(editorView.getEditor().getLineHeightInPixels() * heightInLines)
-    editorView.component?.measureHeightAndWidth()
-  else
-    editorView.height(lineHeight * heightInLines + editorView.renderedLines.position().top)
-    $(window).trigger 'resize' # update editor view's on-screen lines
+  editorView.height(editorView.getEditor().getLineHeightInPixels() * heightInLines)
+  editorView.component?.measureHeightAndWidth()
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
