@@ -338,7 +338,9 @@ class Package
     for selector, commands of @getActivationCommands()
       for command in commands
         do (selector, command) =>
-          atom.commands.commandRegistered(command)
+          # Add dummy command so it appears in menu.
+          # The real command will be registered on package activation
+          @activationCommandSubscriptions.add atom.commands.add selector, command, ->
           @activationCommandSubscriptions.add(atom.commands.onWillDispatch (event) =>
             return unless event.type is command
             currentTarget = event.target
