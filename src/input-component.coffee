@@ -18,8 +18,6 @@ InputComponent = React.createClass
     node = @getDOMNode()
     node.addEventListener 'paste', @onPaste
     node.addEventListener 'compositionupdate', @onCompositionUpdate
-    node.addEventListener 'focus', @onFocus
-    node.addEventListener 'blur', @onBlur
 
   # Don't let text accumulate in the input forever, but avoid excessive reflows
   componentDidUpdate: ->
@@ -36,12 +34,6 @@ InputComponent = React.createClass
 
   onPaste: (e) ->
     e.preventDefault()
-
-  onFocus: ->
-    @props.onFocus?()
-
-  onBlur: ->
-    @props.onBlur?()
 
   focus: ->
     @getDOMNode().focus()

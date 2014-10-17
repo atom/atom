@@ -91,7 +91,7 @@ class TextEditorElement extends HTMLElement
 
   focused: ->
     if @component?
-      @component.onFocus()
+      @component.focused()
     else
       @focusOnAttach = true
 
@@ -99,6 +99,7 @@ class TextEditorElement extends HTMLElement
     event.stopImmediatePropagation() if @contains(event.relatedTarget)
 
   blurred: (event) ->
+    @component.blurred()
     event.stopImmediatePropagation() if @contains(event.relatedTarget)
 
   addGrammarScopeAttribute: ->

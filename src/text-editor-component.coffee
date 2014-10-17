@@ -107,8 +107,6 @@ TextEditorComponent = React.createClass
           ref: 'input'
           className: 'hidden-input'
           style: hiddenInputStyle
-          onFocus: @onInputFocused
-          onBlur: @onInputBlurred
 
         LinesComponent {
           ref: 'lines',
@@ -378,7 +376,6 @@ TextEditorComponent = React.createClass
   listenForDOMEvents: ->
     node = @getDOMNode()
     node.addEventListener 'mousewheel', @onMouseWheel
-    node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
     node.addEventListener 'textInput', @onTextInput
     @refs.scrollView.getDOMNode().addEventListener 'mousedown', @onMouseDown
 
@@ -432,8 +429,13 @@ TextEditorComponent = React.createClass
     subscriptions.add atom.config.observe scopeDescriptor, 'editor.showLineNumbers', @setShowLineNumbers
     subscriptions.add atom.config.observe scopeDescriptor, 'editor.scrollSensitivity', @setScrollSensitivity
 
-  onFocus: ->
-    @refs.input.focus() if @isMounted()
+  focused: ->
+    if @isMounted()
+      @setState(focused: true)
+      @refs.input.focus()
+
+  blurred: ->
+    @setState(focused: false)
 
   onTextInput: (event) ->
     event.stopPropagation()
@@ -455,12 +457,6 @@ TextEditorComponent = React.createClass
     editor.selectLeft() if selectedLength is 1
 
     inputNode.value = event.data if editor.insertText(event.data)
-
-  onInputFocused: ->
-    @setState(focused: true)
-
-  onInputBlurred: ->
-    @setState(focused: false)
 
   onVerticalScroll: (scrollTop) ->
     {editor} = @props
