@@ -662,7 +662,7 @@ class DisplayBuffer extends Model
     targetLeft = pixelPosition.left
     defaultCharWidth = @defaultCharWidth
     row = Math.floor(targetTop / @getLineHeightInPixels())
-    pastLastRow = row > @getLastRow()
+    targetLeft = Infinity if row > @getLastRow()
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)
 
@@ -672,7 +672,7 @@ class DisplayBuffer extends Model
       charWidths = @getScopedCharWidths(token.scopeDescriptor)
       for char in token.value
         charWidth = charWidths[char] ? defaultCharWidth
-        break if not pastLastRow and targetLeft <= left + (charWidth / 2)
+        break if targetLeft <= left + (charWidth / 2)
         left += charWidth
         column++
 
