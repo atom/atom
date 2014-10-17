@@ -8,7 +8,17 @@ class PanelElement extends HTMLElement
 
   setModel: (@model) ->
     @appendChild(@model.getItemView())
+    @subscriptions.add @model.onDidChangeVisible(@visibleChanged.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
+
+  attachedCallback: ->
+    @visibleChanged(@model.isVisible())
+
+  visibleChanged: (visible) ->
+    if visible
+      @style.display = null
+    else
+      @style.display = 'none'
 
   destroyed: ->
     @subscriptions.dispose()
