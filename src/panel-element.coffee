@@ -1,4 +1,5 @@
 {CompositeDisposable} = require 'event-kit'
+{callAttachHooks} = require './space-pen-extensions'
 
 class PanelElement extends HTMLElement
   createdCallback: ->
@@ -7,7 +8,10 @@ class PanelElement extends HTMLElement
   getModel: -> @model
 
   setModel: (@model) ->
-    @appendChild(@model.getItemView())
+    view = @model.getItemView()
+    @appendChild(view)
+    callAttachHooks(view) # for backward compatibility with SpacePen views
+
     @subscriptions.add @model.onDidChangeVisible(@visibleChanged.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
 
