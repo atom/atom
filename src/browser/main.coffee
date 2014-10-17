@@ -80,6 +80,7 @@ parseCommandLine = ->
     opened or a new window if it hasn't.
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
+  options.alias('r', 'resource-path').string('r').describe('r', 'Set the path from which Atom loads internal resources and enable dev-mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
