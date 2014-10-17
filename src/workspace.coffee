@@ -682,15 +682,63 @@ class Workspace extends Model
   Section: Panels
   ###
 
+  # Essential: Adds a panel item to the top of the editor window above the tabs.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
   addTopPanel: (options) ->
     @addPanel('top', options)
 
+  # Essential: Adds a panel item to the bottom of the editor window.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
   addBottomPanel: (options) ->
     @addPanel('bottom', options)
 
+  # Essential: Adds a panel item to the left of the editor window.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
   addLeftPanel: (options) ->
     @addPanel('left', options)
 
+  # Essential: Adds a panel item to the right of the editor window.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
   addRightPanel: (options) ->
     @addPanel('right', options)
 
