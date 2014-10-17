@@ -141,59 +141,36 @@ class WorkspaceView extends View
   Section: Adding elements to the workspace
   ###
 
-  # Essential: Prepend an element or view to the panels at the top of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
   prependToTop: (element) ->
+    deprecate 'Please use Workspace::addTopPanel() instead'
     @vertical.prepend(element)
 
-  # Essential: Append an element or view to the panels at the top of the workspace.
-  #
-  # * `element` jQuery object or DOM element
   appendToTop: (element) ->
+    deprecate 'Please use Workspace::addTopPanel() instead'
     @panes.before(element)
 
-  # Essential: Prepend an element or view to the panels at the bottom of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
   prependToBottom: (element) ->
+    deprecate 'Please use Workspace::addBottomPanel() instead'
     @panes.after(element)
 
-  # Essential: Append an element or view to the panels at the bottom of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
   appendToBottom: (element) ->
+    deprecate 'Please use Workspace::addBottomPanel() instead'
     @vertical.append(element)
 
-  # Essential: Prepend an element or view to the panels at the left of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
   prependToLeft: (element) ->
+    deprecate 'Please use Workspace::addLeftPanel() instead'
     @horizontal.prepend(element)
 
-  # Essential: Append an element or view to the panels at the left of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
   appendToLeft: (element) ->
+    deprecate 'Please use Workspace::addLeftPanel() instead'
     @vertical.before(element)
 
-  # Essential: Prepend an element or view to the panels at the right of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
   prependToRight: (element) ->
+    deprecate 'Please use Workspace::addRightPanel() instead'
     @vertical.after(element)
 
-  # Essential: Append an element or view to the panels at the right of the
-  # workspace.
-  #
-  # * `element` jQuery object or DOM element
   appendToRight: (element) ->
+    deprecate 'Please use Workspace::addRightPanel() instead'
     @horizontal.append(element)
 
   ###
