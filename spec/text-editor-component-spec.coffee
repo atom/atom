@@ -1230,7 +1230,7 @@ describe "TextEditorComponent", ->
     beforeEach ->
       linesNode = componentNode.querySelector('.lines')
 
-    describe "when the mouse is clicked below the last line", ->
+    describe "when the mouse is single-clicked below the last line", ->
       it "moves the cursor to the end of file buffer position", ->
         editor.setText('foo')
         editor.setCursorBufferPosition([0, 0])
