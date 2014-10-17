@@ -3,7 +3,7 @@ Panel = require '../src/panel'
 PanelContainer = require '../src/panel-container'
 
 describe "PanelContainer", ->
-  [container] = []
+  [container, viewRegistry] = []
 
   class TestPanelItem
     constructior: ->
