@@ -57,7 +57,7 @@ class SelectListView extends View
   initialize: ->
     @filterEditorView.getEditor().getBuffer().onDidChange =>
       @schedulePopulateList()
-    @filterEditorView.hiddenInput.on 'focusout', =>
+    @filterEditorView.on 'blur', =>
       @cancel() unless @cancelling
 
     # This prevents the focusout event from firing on the filter editor view
