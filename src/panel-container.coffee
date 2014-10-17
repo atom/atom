@@ -38,8 +38,13 @@ class PanelContainer
 
   addPanel: (panel) ->
     @subscriptions.add panel.onDidDestroy(@panelDestoryed.bind(this))
-    index = @panels.length
-    @panels.push(panel)
+
+    index = @getPanelIndex(panel)
+    if index is @panels.length
+      @panels.push(panel)
+    else
+      @panels.splice(index, 0, panel)
+
     @emitter.emit 'did-add-panel', {panel, index}
     panel
 
@@ -48,3 +53,14 @@ class PanelContainer
     if index > -1
       @panels.splice(index, 1)
       @emitter.emit 'did-remove-panel', {panel, index}
+
+  getPanelIndex: (panel) ->
+    priority = panel.getPriority()
+    if @location in ['bottom', 'right']
+      for p, i in @panels by -1
+        return i + 1 if priority < p.getPriority()
+      0
+    else
+      for p, i in @panels
+        return i if priority < p.getPriority()
+      @panels.length

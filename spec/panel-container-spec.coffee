@@ -40,3 +40,57 @@ describe "PanelContainer", ->
 
       panel1.destroy()
       expect(removePanelSpy).toHaveBeenCalledWith({panel: panel1, index: 0})
+
+  describe "panel priority", ->
+    describe 'left panel container', ->
+      [initialPanel] = []
+      beforeEach ->
+        container = new PanelContainer({viewRegistry, location: 'left'})
+        initialPanel = new Panel(item: new TestPanelItem())
+        container.addPanel(initialPanel)
+
+      describe 'when a panel with low piority is added', ->
+        it 'is inserted at the beginning of the list', ->
+          container.onDidAddPanel addPanelSpy = jasmine.createSpy()
+          panel = new Panel(item: new TestPanelItem(), priority: 0)
+          container.addPanel(panel)
+
+          expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+          expect(container.getPanels()[0]).toBe panel
+
+      describe 'when a panel with piority between two other panels is added', ->
+        it 'is inserted at the between the two panels', ->
+          panel = new Panel(item: new TestPanelItem(), priority: 1000)
+          container.addPanel(panel)
+
+          container.onDidAddPanel addPanelSpy = jasmine.createSpy()
+          panel = new Panel(item: new TestPanelItem(), priority: 101)
+          container.addPanel(panel)
+
+          expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 1})
+          expect(container.getPanels()[1]).toBe panel
+
+    describe 'right panel container', ->
+      [initialPanel] = []
+      beforeEach ->
+        container = new PanelContainer({viewRegistry, location: 'right'})
+        initialPanel = new Panel(item: new TestPanelItem())
+        container.addPanel(initialPanel)
+
+      describe 'when a panel with high piority is added', ->
+        it 'is inserted at the beginning of the list', ->
+          container.onDidAddPanel addPanelSpy = jasmine.createSpy()
+          panel = new Panel(item: new TestPanelItem(), priority: 1000)
+          container.addPanel(panel)
+
+          expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+          expect(container.getPanels()[0]).toBe panel
+
+      describe 'when a panel with low piority is added', ->
+        it 'is inserted at the end of the list', ->
+          container.onDidAddPanel addPanelSpy = jasmine.createSpy()
+          panel = new Panel(item: new TestPanelItem(), priority: 0)
+          container.addPanel(panel)
+
+          expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 1})
+          expect(container.getPanels()[1]).toBe panel

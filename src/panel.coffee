@@ -3,9 +3,10 @@
 # Public:
 module.exports =
 class Panel
-  constructor: ({@viewRegistry, @item, @visible}) ->
+  constructor: ({@viewRegistry, @item, @visible, @priority}) ->
     @emitter = new Emitter
     @visible ?= true
+    @priority ?= 100
 
   destroy: ->
     @emitter.emit 'did-destroy', this
@@ -32,6 +33,8 @@ class Panel
   getView: -> @viewRegistry.getView(this)
 
   getItemView: -> @viewRegistry.getView(@item)
+
+  getPriority: -> @priority
 
   isVisible: -> @visible
 
