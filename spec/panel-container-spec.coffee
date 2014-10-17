@@ -16,11 +16,11 @@ describe "PanelContainer", ->
     it 'emits an onDidAddPanel event with the index the panel was inserted at', ->
       container.onDidAddPanel addPanelSpy = jasmine.createSpy()
 
-      panel1 = new Panel(item: new TestPanelItem(), location: 'left')
+      panel1 = new Panel(item: new TestPanelItem())
       container.addPanel(panel1)
       expect(addPanelSpy).toHaveBeenCalledWith({panel: panel1, index: 0})
 
-      panel2 = new Panel(item: new TestPanelItem(), location: 'left')
+      panel2 = new Panel(item: new TestPanelItem())
       container.addPanel(panel2)
       expect(addPanelSpy).toHaveBeenCalledWith({panel: panel2, index: 1})
 
@@ -28,9 +28,9 @@ describe "PanelContainer", ->
     it 'emits an onDidRemovePanel event with the index of the removed item', ->
       container.onDidRemovePanel removePanelSpy = jasmine.createSpy()
 
-      panel1 = new Panel(item: new TestPanelItem(), location: 'left')
+      panel1 = new Panel(item: new TestPanelItem())
       container.addPanel(panel1)
-      panel2 = new Panel(item: new TestPanelItem(), location: 'left')
+      panel2 = new Panel(item: new TestPanelItem())
       container.addPanel(panel2)
 
       expect(removePanelSpy).not.toHaveBeenCalled()
