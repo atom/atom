@@ -51,7 +51,7 @@ class RebuildModuleCache extends Command
     fs.list(@atomPackagesDirectory).forEach (packageName) =>
       packageDirectory = path.join(@atomPackagesDirectory, packageName)
       return if fs.isSymbolicLinkSync(packageDirectory)
-      return unless fs.isDirectorySync(packageDirectory)
+      return unless fs.isFileSync(path.join(packageDirectory, 'package.json'))
 
       commands.push (callback) =>
         process.stdout.write "Rebuilding #{packageName} module cache "
