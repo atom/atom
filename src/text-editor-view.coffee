@@ -98,7 +98,11 @@ class TextEditorView extends View
         lines.length > 0
 
   find: ->
-    @root.find.apply(@root, arguments)
+    shadowResult = @root.find.apply(@root, arguments)
+    if shadowResult.length > 0
+      shadowResult
+    else
+      super
 
   # Public: Get the underlying editor model for this view.
   #
