@@ -29,7 +29,10 @@ class Atom extends Model
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
-    @deserialize(@loadState(mode)) ? new this({mode, @version})
+    startTime = Date.now()
+    atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
+    atom.deserializeTimings.atom = Date.now() -  startTime
+    atom
 
   # Deserializes the Atom environment from a state object
   @deserialize: (state) ->
@@ -152,6 +155,7 @@ class Atom extends Model
     {@mode} = @state
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
+    @deserializeTimings = {}
 
   # Sets up the basic services that should be available in all modes
   # (both spec and application).
@@ -597,7 +601,6 @@ class Atom extends Model
     delete @state.packageStates
 
   deserializeEditorWindow: ->
-    @deserializeTimings = {}
     @deserializePackageStates()
     @deserializeProject()
     @deserializeWorkspaceView()
