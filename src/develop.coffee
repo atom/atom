@@ -50,7 +50,7 @@ class Develop extends Command
         else
           callback("No repository URL found for package: #{packageName}")
       else
-        message = body.message ? body.error ? body
+        message = request.getErrorMessage(response, body)
         callback("Request for package information failed: #{message}")
 
   cloneRepository: (repoUrl, packageDirectory, options) ->

@@ -45,7 +45,7 @@ class Search extends Command
         packages = packages.map ({readme, metadata, downloads, stargazers_count}) -> _.extend({}, metadata, {readme, downloads, stargazers_count})
         callback(null, packages)
       else
-        message = body.message ? body.error ? body
+        message = request.getErrorMessage(response, body)
         callback("Searching packages failed: #{message}")
 
   run: (options) ->

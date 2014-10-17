@@ -43,7 +43,7 @@ class Featured extends Command
         packages = _.sortBy(packages, 'name')
         callback(null, packages)
       else
-        message = body.message ? body.error ? body
+        message = request.getErrorMessage(response, body)
         callback("Requesting packages failed: #{message}")
 
   run: (options) ->

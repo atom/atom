@@ -156,7 +156,7 @@ class Publish extends Command
           if error?
             callback(error)
           else if response.statusCode isnt 201
-            message = body.message ? body.error ? body
+            message = request.getErrorMessage(response, body)
             @logFailure()
             callback("Registering package in #{repository} repository failed: #{message}")
           else
@@ -187,7 +187,7 @@ class Publish extends Command
         if error?
           callback(error)
         else if response.statusCode isnt 201
-          message = body.message ? body.error ? body
+          message = request.getErrorMessage(response, body)
           callback("Creating new version failed: #{message}")
         else
           callback()

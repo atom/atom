@@ -34,3 +34,9 @@ module.exports =
   createReadStream: (requestOptions, callback) ->
     configureRequest requestOptions, ->
       callback(request.get(requestOptions))
+
+  getErrorMessage: (response, body) ->
+    if response?.statusCode is 503
+      'atom.io is temporarily unavailable, please try again later.'
+    else
+      body?.message ? body?.error ? body
