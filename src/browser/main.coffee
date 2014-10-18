@@ -94,6 +94,14 @@ parseCommandLine = ->
 
   if args.help
     process.stdout.write(options.help())
+    process.stdout.write """
+
+      Environment Variables:
+      ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
+                              Defaults to `~/github/atom`.
+
+    """
+
     process.exit(0)
 
   if args.version
