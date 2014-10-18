@@ -254,7 +254,7 @@ class SelectListView extends View
   # Extended: Store the currently focused element. This element will be given
   # back focus when {::cancel} is called.
   storeFocusedElement: ->
-    @previouslyFocusedElement = $(':focus')
+    @previouslyFocusedElement = $(document.activeElement)
 
   ###
   Section: Private
