@@ -92,8 +92,8 @@ describe "ThemeManager", ->
 
       runs ->
         reloadHandler.reset()
-        expect($('style.theme')).toHaveLength 1
-        expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
+        expect($('style[group=theme]')).toHaveLength 1
+        expect($('style[group=theme]:eq(0)').attr('source-path')).toMatch /atom-dark-syntax/
         atom.config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
 
       waitsFor ->
@@ -101,9 +101,9 @@ describe "ThemeManager", ->
 
       runs ->
         reloadHandler.reset()
-        expect($('style.theme')).toHaveLength 2
-        expect($('style.theme:eq(0)').attr('id')).toMatch /atom-dark-syntax/
-        expect($('style.theme:eq(1)').attr('id')).toMatch /atom-light-syntax/
+        expect($('style[group=theme]')).toHaveLength 2
+        expect($('style[group=theme]:eq(0)').attr('source-path')).toMatch /atom-dark-syntax/
+        expect($('style[group=theme]:eq(1)').attr('source-path')).toMatch /atom-light-syntax/
         atom.config.set('core.themes', [])
 
       waitsFor ->
@@ -111,7 +111,7 @@ describe "ThemeManager", ->
 
       runs ->
         reloadHandler.reset()
-        expect($('style.theme')).toHaveLength 0
+        expect($('style[group=theme]')).toHaveLength 0
         # atom-dark-ui has an directory path, the syntax one doesn't
         atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
 
@@ -119,7 +119,7 @@ describe "ThemeManager", ->
         reloadHandler.callCount == 1
 
       runs ->
-        expect($('style.theme')).toHaveLength 2
+        expect($('style[group=theme]')).toHaveLength 2
         importPaths = themeManager.getImportPaths()
         expect(importPaths.length).toBe 1
         expect(importPaths[0]).toContain 'atom-dark-ui'
@@ -142,8 +142,8 @@ describe "ThemeManager", ->
       expect(stylesheetAddedHandler).toHaveBeenCalled()
       expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
-      element = $('head style[id*="css.css"]')
-      expect(element.attr('id')).toBe themeManager.stringToId(cssPath)
+      element = $('head style[source-path*="css.css"]')
+      expect(element.attr('source-path')).toBe themeManager.stringToId(cssPath)
       expect(element.text()).toBe fs.readFileSync(cssPath, 'utf8')
       expect(element[0].sheet).toBe stylesheetAddedHandler.argsForCall[0][0]
 
@@ -159,8 +159,8 @@ describe "ThemeManager", ->
       themeManager.requireStylesheet(lessPath)
       expect($('head style').length).toBe lengthBefore + 1
 
-      element = $('head style[id*="sample.less"]')
-      expect(element.attr('id')).toBe themeManager.stringToId(lessPath)
+      element = $('head style[source-path*="sample.less"]')
+      expect(element.attr('source-path')).toBe themeManager.stringToId(lessPath)
       expect(element.text()).toBe """
       #header {
         color: #4d926f;
@@ -178,9 +178,9 @@ describe "ThemeManager", ->
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect($('head style[id*="css.css"]').attr('id')).toBe themeManager.stringToId(atom.project.resolve('css.css'))
+      expect($('head style[source-path*="css.css"]').attr('source-path')).toBe themeManager.stringToId(atom.project.resolve('css.css'))
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect($('head style[id*="sample.less"]').attr('id')).toBe themeManager.stringToId(atom.project.resolve('sample.less'))
+      expect($('head style[source-path*="sample.less"]').attr('source-path')).toBe themeManager.stringToId(atom.project.resolve('sample.less'))
 
       $('head style[id*="css.css"]').remove()
       $('head style[id*="sample.less"]').remove()
