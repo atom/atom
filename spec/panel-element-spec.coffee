@@ -40,17 +40,17 @@ describe "PanelElement", ->
       element = panel.getView()
       jasmineContent.appendChild(element)
 
-      expect(element).toHide()
+      expect(element.style.display).toBe 'none'
 
     it 'hides and shows the panel element when Panel::hide() and Panel::show() are called', ->
       panel = new Panel({viewRegistry, item: new TestPanelItem})
       element = panel.getView()
       jasmineContent.appendChild(element)
 
-      expect(element).not.toHide()
+      expect(element.style.display).not.toBe 'none'
 
       panel.hide()
-      expect(element).toHide()
+      expect(element.style.display).toBe 'none'
 
       panel.show()
-      expect(element).not.toHide()
+      expect(element.style.display).not.toBe 'none'

@@ -227,13 +227,6 @@ addCustomMatchers = (spec) ->
       @message = -> return "Expected element '#{element}' or its descendants#{notText} to show."
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
-    toHide: ->
-      notText = if @isNot then " not" else ""
-      element = @actual
-      element = element.get(0) if element.jquery
-      @message = -> return "Expected element '#{element}' or its descendants#{notText} to hide."
-      element.style.display in ['none']
-
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
