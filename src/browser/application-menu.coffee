@@ -10,18 +10,23 @@ _ = require 'underscore-plus'
 module.exports =
 class ApplicationMenu
   constructor: (@version) ->
+    @windowTemplates = new WeakMap()
     @setActiveTemplate(@getDefaultTemplate())
     global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
       @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
+  # window - The BrowserWindow this menu is associated with.
   # template - The Object which describes the menu to display.
   # keystrokesByCommand - An Object where the keys are commands and the values
   #                       are Arrays containing the keystroke.
-  update: (template, keystrokesByCommand) ->
+  update: (window, template, keystrokesByCommand) ->
+    return unless window is @lastFocusedWindow
+
     @translateTemplate(template, keystrokesByCommand)
     @substituteVersion(template)
+    @windowTemplates.set(window, template)
     @setActiveTemplate(template)
 
     @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
@@ -29,6 +34,22 @@ class ApplicationMenu
   setActiveTemplate: (template) ->
     @menu = Menu.buildFromTemplate(_.deepClone(template))
     Menu.setApplicationMenu(@menu)
+
+  # Register a BrowserWindow with this application menu.
+  addWindow: (window) ->
+    @lastFocusedWindow ?= window
+
+    focusHandler = =>
+      @lastFocusedWindow = window
+      if template = @windowTemplates.get(window)
+        @setActiveTemplate(template)
+
+    window.on 'focus', focusHandler
+    window.once 'closed', =>
+      @windowTemplates.delete(window)
+      window.removeListener 'focus', focusHandler
+
+    @enableWindowSpecificItems(true)
 
   # Flattens the given menu and submenu items into an single Array.
   #

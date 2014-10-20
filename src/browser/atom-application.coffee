@@ -97,7 +97,7 @@ class AtomApplication
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
     @windows.push window
-    @applicationMenu?.enableWindowSpecificItems(true)
+    @applicationMenu?.addWindow(window.browserWindow)
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
@@ -215,7 +215,8 @@ class AtomApplication
         @promptForPath({window})
 
     ipc.on 'update-application-menu', (event, template, keystrokesByCommand) =>
-      @applicationMenu.update(template, keystrokesByCommand)
+      win = BrowserWindow.fromWebContents(event.sender)
+      @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, specDirectory) =>
       @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
