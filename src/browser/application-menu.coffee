@@ -17,7 +17,7 @@ class ApplicationMenu
 
   # Public: Updates the entire menu with the given keybindings.
   #
-  # window - The BrowserWindow this menu is associated with.
+  # window - The BrowserWindow this menu template is associated with.
   # template - The Object which describes the menu to display.
   # keystrokesByCommand - An Object where the keys are commands and the values
   #                       are Arrays containing the keystroke.
