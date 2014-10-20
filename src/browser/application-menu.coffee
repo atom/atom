@@ -10,8 +10,7 @@ _ = require 'underscore-plus'
 module.exports =
 class ApplicationMenu
   constructor: (@version) ->
-    @menu = Menu.buildFromTemplate @getDefaultTemplate()
-    Menu.setApplicationMenu @menu
+    @setActiveTemplate(@getDefaultTemplate())
     global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
       @showUpdateMenuItem(state)
 
@@ -23,10 +22,13 @@ class ApplicationMenu
   update: (template, keystrokesByCommand) ->
     @translateTemplate(template, keystrokesByCommand)
     @substituteVersion(template)
-    @menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(@menu)
+    @setActiveTemplate(template)
 
     @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
+
+  setActiveTemplate: (template) ->
+    @menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(@menu)
 
   # Flattens the given menu and submenu items into an single Array.
   #
