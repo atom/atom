@@ -32,8 +32,10 @@ class ApplicationMenu
     @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
 
   setActiveTemplate: (template) ->
-    @menu = Menu.buildFromTemplate(_.deepClone(template))
-    Menu.setApplicationMenu(@menu)
+    unless _.isEqual(template, @activeTemplate)
+      @activeTemplate = template
+      @menu = Menu.buildFromTemplate(_.deepClone(template))
+      Menu.setApplicationMenu(@menu)
 
   # Register a BrowserWindow with this application menu.
   addWindow: (window) ->
