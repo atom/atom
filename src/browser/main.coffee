@@ -123,7 +123,7 @@ parseCommandLine = ->
     devMode = true
     resourcePath = args['resource-path']
   else
-    # Set resourcePath based on to specDirectory if running specs on atom core
+    # Set resourcePath based on the specDirectory if running specs on atom core
     if specDirectory?
       packageDirectoryPath = path.join(specDirectory, '..')
       packageManifestPath = path.join(packageDirectoryPath, 'package.json')
