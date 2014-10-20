@@ -129,7 +129,7 @@ parseCommandLine = ->
       packageManifestPath = path.join(packageDirectoryPath, 'package.json')
       if fs.statSyncNoException(packageManifestPath)
         try
-          packageManifest = JSON.parse(fs.readFileSync(packageManifestPath, 'utf8'))
+          packageManifest = JSON.parse(fs.readFileSync(packageManifestPath))
           resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
 
     if devMode
