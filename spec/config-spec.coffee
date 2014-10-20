@@ -153,6 +153,14 @@ describe "Config", ->
       atom.config.restoreDefault('a.c')
       expect(atom.config.get('a.c')).toBeUndefined()
 
+    it "calls ::save()", ->
+      atom.config.setDefaults('a', b: 3)
+      atom.config.set('a.b', 4)
+      atom.config.save.reset()
+
+      atom.config.restoreDefault('a.c')
+      expect(atom.config.save.callCount).toBe 1
+
     describe "when scoped settings are used", ->
       it "restores the global default when no scoped default set", ->
         atom.config.setDefaults("foo", bar: baz: 10)
@@ -172,6 +180,15 @@ describe "Config", ->
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
         expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 42
         expect(atom.config.get(['.source.coffee'], 'foo.bar.ok')).toBe 100
+
+      it "calls ::save()", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.save.reset()
+
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        expect(atom.config.save.callCount).toBe 1
 
   describe ".getSettings()", ->
     it "returns all settings including defaults", ->

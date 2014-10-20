@@ -537,6 +537,7 @@ class Config
       @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
       _.setValueForKeyPath(settings, keyPath, undefined)
       @addScopedSettings('user-config', scopeSelector, settings)
+      @save() unless @configFileHasErrors
       @getDefault(scopeSelector, keyPath)
     else
       @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
