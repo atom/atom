@@ -78,10 +78,17 @@ jQuery.event.remove = (elem, types, originalHandler, selector, mappedTypes) ->
     handler = HandlersByOriginalHandler.get(originalHandler) ? originalHandler
   JQueryEventRemove(elem, types, handler, selector, mappedTypes, RemoveEventListener if atom?.commands?)
 
-jQuery.fn.position = ->
-  top = @[0].offsetTop
-  left = @[0].offsetLeft
-  {top, left}
+JQueryContains = jQuery.contains
+
+jQuery.contains = (a, b) ->
+  shadowRoot = null
+  currentNode = b
+  while currentNode
+    if currentNode instanceof ShadowRoot and a.contains(currentNode.host)
+      return true
+    currentNode = currentNode.parentNode
+
+  JQueryContains.call(this, a, b)
 
 tooltipDefaults =
   delay:
