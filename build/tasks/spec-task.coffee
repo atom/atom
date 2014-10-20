@@ -4,11 +4,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 
-if process.env.JANKY_SHA1
-  # Use all the cores on CI
-  concurrency = require('os').cpus().length
-else
-  concurrency = 2
+concurrency = 2
 
 module.exports = (grunt) ->
   {isAtomPackage, spawn} = require('./task-helpers')(grunt)
