@@ -9,6 +9,7 @@
 * [Converting a TextMate Bundle](converting-a-text-mate-bundle.md)
 * [Converting a TextMate Theme](converting-a-text-mate-theme.md)
 * [Contributing](contributing.md)
+* [Contributing to Core Packages](contributing-to-packages.md)
 * [Debugging](debugging.md)
 
 ### Advanced Topics
