@@ -78,6 +78,10 @@ parseCommandLine = ->
 
     Folder paths will open in an existing window if that folder has already been
     opened or a new window if it hasn't.
+
+    Environment Variables:
+    ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
+                            Defaults to `~/github/atom`.
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
@@ -94,14 +98,6 @@ parseCommandLine = ->
 
   if args.help
     process.stdout.write(options.help())
-    process.stdout.write """
-
-      Environment Variables:
-      ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
-                              Defaults to `~/github/atom`.
-
-    """
-
     process.exit(0)
 
   if args.version
