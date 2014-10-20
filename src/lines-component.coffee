@@ -58,8 +58,9 @@ LinesComponent = React.createClass
     @renderedDecorationsByLineId = {}
 
   componentDidMount: ->
-    node = @getDOMNode()
-    node.appendChild(document.createElement('content'))
+    insertionPoint = document.createElement('content')
+    insertionPoint.setAttribute('select', '.overlayer')
+    @getDOMNode().appendChild(insertionPoint)
 
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,

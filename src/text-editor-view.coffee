@@ -76,8 +76,8 @@ class TextEditorView extends View
     @root = $(@element.rootElement)
 
     @scrollView = @root.find('.scroll-view')
-    @underlayer = @root.find('.highlights').addClass('underlayer')
-    @overlayer = @root.find('.lines').addClass('overlayer')
+    @underlayer = $("<div class='underlayer'></div>").appendTo(this)
+    @overlayer = $("<div class='overlayer'></div>").appendTo(this)
     @hiddenInput = @root.find('.hidden-input')
 
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
@@ -173,7 +173,7 @@ class TextEditorView extends View
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
     view.css('z-index', 1)
-    @append(view)
+    @overlayer.append(view)
 
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()

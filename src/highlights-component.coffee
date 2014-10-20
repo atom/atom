@@ -21,5 +21,10 @@ HighlightsComponent = React.createClass
 
     highlightComponents
 
+  componentDidMount: ->
+    insertionPoint = document.createElement('content')
+    insertionPoint.setAttribute('select', '.underlayer')
+    @getDOMNode().appendChild(insertionPoint)
+
   shouldComponentUpdate: (newProps) ->
     not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth', 'scopedCharacterWidthsChangeCount')
