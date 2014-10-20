@@ -27,7 +27,7 @@ class ApplicationMenu
     @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
 
   setActiveTemplate: (template) ->
-    @menu = Menu.buildFromTemplate(template)
+    @menu = Menu.buildFromTemplate(_.deepClone(template))
     Menu.setApplicationMenu(@menu)
 
   # Flattens the given menu and submenu items into an single Array.
