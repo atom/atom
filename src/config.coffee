@@ -590,7 +590,7 @@ class Config
   # Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
   # Returns `null` when the keyPath has no schema specified.
   getSchema: (keyPath) ->
-    keys = keyPath.split('.')
+    keys = splitKeyPath(keyPath)
     schema = @schema
     for key in keys
       break unless schema?
@@ -670,7 +670,7 @@ class Config
 
     rootSchema = @schema
     if keyPath
-      for key in keyPath.split('.')
+      for key in splitKeyPath(keyPath)
         rootSchema.type = 'object'
         rootSchema.properties ?= {}
         properties = rootSchema.properties
@@ -755,7 +755,7 @@ class Config
 
     unsetUnspecifiedValues = (keyPath, value) =>
       if isPlainObject(value)
-        keys = if keyPath? then keyPath.split('.') else []
+        keys = splitKeyPath(keyPath)
         for key, childValue of value
           continue unless value.hasOwnProperty(key)
           unsetUnspecifiedValues(keys.concat([key]).join('.'), childValue)
@@ -768,7 +768,7 @@ class Config
 
   setRecursive: (keyPath, value) ->
     if isPlainObject(value)
-      keys = if keyPath? then keyPath.split('.') else []
+      keys = splitKeyPath(keyPath)
       for key, childValue of value
         continue unless value.hasOwnProperty(key)
         @setRecursive(keys.concat([key]).join('.'), childValue)
@@ -811,8 +811,8 @@ class Config
 
   isSubKeyPath: (keyPath, subKeyPath) ->
     return false unless keyPath? and subKeyPath?
-    pathSubTokens = subKeyPath.split('.')
-    pathTokens = keyPath.split('.').slice(0, pathSubTokens.length)
+    pathSubTokens = splitKeyPath(subKeyPath)
+    pathTokens = splitKeyPath(keyPath).slice(0, pathSubTokens.length)
     _.isEqual(pathTokens, pathSubTokens)
 
   setRawDefault: (keyPath, value) ->
@@ -823,7 +823,7 @@ class Config
 
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
-      keys = if keyPath? then keyPath.split('.') else []
+      keys = splitKeyPath(keyPath)
       for key, childValue of defaults
         continue unless defaults.hasOwnProperty(key)
         @setDefaults(keys.concat([key]).join('.'), childValue)
@@ -1044,3 +1044,14 @@ Config.addSchemaEnforcers
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value)
+
+splitKeyPath = (keyPath) ->
+  return [] unless keyPath?
+  startIndex = 0
+  keyPathArray = []
+  for char, i in keyPath
+    if char is '.' and (i is 0 or keyPath[i-1] != '\\')
+      keyPathArray.push keyPath.substring(startIndex, i)
+      startIndex = i + 1
+  keyPathArray.push keyPath.substr(startIndex, keyPath.length)
+  keyPathArray

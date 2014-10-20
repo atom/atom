@@ -122,6 +122,11 @@ describe "Config", ->
         atom.config.set('.source.coffee', 'foo.bar.baz', 55)
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
 
+  describe ".setDefaults(keyPath)", ->
+    it "sets a default when the setting's key contains an escaped dot", ->
+      atom.config.setDefaults("foo", 'a\\.b': 1, b: 2)
+      expect(atom.config.get("foo")).toEqual 'a\\.b': 1, b: 2
+
   describe ".toggle(keyPath)", ->
     it "negates the boolean value of the current key path value", ->
       atom.config.set('foo.a', 1)
@@ -212,7 +217,6 @@ describe "Config", ->
           bar:
             baz: 42
             omg: 'omg'
-
 
   describe ".pushAtKeyPath(keyPath, value)", ->
     it "pushes the given value to the array at the key path and updates observers", ->
