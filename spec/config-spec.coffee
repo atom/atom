@@ -1032,6 +1032,21 @@ describe "Config", ->
         expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
         expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
 
+    describe "when scoped settings are used", ->
+      beforeEach ->
+        schema =
+          type: 'string'
+          default: 'ok'
+          scopes:
+            '.source.js':
+              default: 'omg'
+        atom.config.setSchema('foo.bar.str', schema)
+
+      it 'it respects the scoped defaults', ->
+        expect(atom.config.get('foo.bar.str')).toBe 'ok'
+        expect(atom.config.get(['.source.js'], 'foo.bar.str')).toBe 'omg'
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.str')).toBe 'ok'
+
   describe "scoped settings", ->
     describe ".get(scopeDescriptor, keyPath)", ->
       it "returns the property with the most specific scope selector", ->

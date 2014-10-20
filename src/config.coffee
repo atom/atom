@@ -679,6 +679,7 @@ class Config
 
     _.extend rootSchema, schema
     @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
+    @setScopedDefaultsFromSchema(keyPath, schema)
 
   load: ->
     @initializeConfigDirectory()
@@ -832,6 +833,32 @@ class Config
         @setRawDefault(keyPath, defaults)
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+
+  # `schema` will look something like this
+  #
+  # ```coffee
+  # type: 'string'
+  # default: 'ok'
+  # scopes:
+  #   '.source.js':
+  #     default: 'omg'
+  # ```
+  setScopedDefaultsFromSchema: (keyPath, schema) ->
+    if schema.scopes? and isPlainObject(schema.scopes)
+      scopedDefaults = {}
+      for scope, scopeSchema of schema.scopes
+        continue unless scopeSchema.hasOwnProperty('default')
+        scopedDefaults[scope] = {}
+        _.setValueForKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default)
+      @scopedSettingsStore.addProperties('schema-default', scopedDefaults)
+
+    if schema.type is 'object' and schema.properties? and isPlainObject(schema.properties)
+      keys = if keyPath? then keyPath.split('.') else []
+      for key, childValue of schema.properties
+        continue unless schema.properties.hasOwnProperty(key)
+        @setScopedDefaultsFromSchema(keys.concat([key]).join('.'), childValue)
+
+    return
 
   extractDefaultsFromSchema: (schema) ->
     if schema.default?
