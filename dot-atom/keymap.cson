@@ -20,4 +20,6 @@
 # * https://atom.io/docs/latest/customizing-atom#customizing-key-bindings
 # * https://atom.io/docs/latest/advanced/keymaps
 #
-# Bindings not working? Be aware that cson follows CoffeeScript notation with differs from json. 
+# This file uses CoffeeScript Object Notation (CSON).
+# If you are unfamiliar with CSON, you can read more about it here:
+# https://github.com/bevry/cson#what-is-cson
