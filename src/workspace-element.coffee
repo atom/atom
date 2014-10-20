@@ -72,6 +72,18 @@ class WorkspaceElement extends HTMLElement
     window.addEventListener 'focus', handleWindowFocus
     @subscriptions.add(new Disposable -> window.removeEventListener 'focus', handleWindowFocus)
 
+    @panelContainers =
+      top: @model.panelContainers.top.getView()
+      left: @model.panelContainers.left.getView()
+      right: @model.panelContainers.right.getView()
+      bottom: @model.panelContainers.bottom.getView()
+
+    @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
+    @horizontalAxis.appendChild(@panelContainers.right)
+
+    @verticalAxis.insertBefore(@panelContainers.top, @paneContainer)
+    @verticalAxis.appendChild(@panelContainers.bottom)
+
     @__spacePenView.setModel(@model)
 
   setTextEditorFontSize: (fontSize) ->

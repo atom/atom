@@ -226,7 +226,7 @@ addCustomMatchers = (spec) ->
       notText = if @isNot then " not" else ""
       element = @actual
       element = element.get(0) if element.jquery
-      @message = -> return "Expected element '#{element}' or its descendants #{notText} to show."
+      @message = -> return "Expected element '#{element}' or its descendants#{notText} to show."
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
 window.keyIdentifierForKey = (key) ->

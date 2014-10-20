@@ -270,3 +270,19 @@ describe "WorkspaceView", ->
       atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorNode).lineHeight).toBe atom.config.get('editor.lineHeight')
       expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight
+
+  describe 'panel containers', ->
+    workspaceElement = null
+    beforeEach ->
+      workspaceElement = atom.workspace.getView(atom.workspace)
+
+    it 'inserts panel container elements in the correct places in the DOM', ->
+      leftContainer = workspaceElement.querySelector('atom-panel-container[location="left"]')
+      rightContainer = workspaceElement.querySelector('atom-panel-container[location="right"]')
+      expect(leftContainer.nextSibling).toBe workspaceElement.verticalAxis
+      expect(rightContainer.previousSibling).toBe workspaceElement.verticalAxis
+
+      topContainer = workspaceElement.querySelector('atom-panel-container[location="top"]')
+      bottomContainer = workspaceElement.querySelector('atom-panel-container[location="bottom"]')
+      expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
+      expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
