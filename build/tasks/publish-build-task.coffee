@@ -31,7 +31,13 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
-    done = @async()
+    doneCallback = @async()
+    startTime = Date.now()
+    done = (args...) ->
+      elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
+      grunt.log.ok("Upload time: #{elapsedTime}s")
+      doneCallback(args...)
+
     buildDir = grunt.config.get('atom.buildDir')
     assets = getAssets()
 
