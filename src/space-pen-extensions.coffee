@@ -78,6 +78,11 @@ jQuery.event.remove = (elem, types, originalHandler, selector, mappedTypes) ->
     handler = HandlersByOriginalHandler.get(originalHandler) ? originalHandler
   JQueryEventRemove(elem, types, handler, selector, mappedTypes, RemoveEventListener if atom?.commands?)
 
+jQuery.fn.position = ->
+  top = @[0].offsetTop
+  left = @[0].offsetLeft
+  {top, left}
+
 tooltipDefaults =
   delay:
     show: 1000
