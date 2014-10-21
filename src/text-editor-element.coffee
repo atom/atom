@@ -89,7 +89,11 @@ class TextEditorElement extends HTMLElement
     React.unmountComponentAtNode(this)
     @component = null
 
-  focused: ->
+  focused: (event) ->
+    if @hasFocus()
+      event.stopPropagation()
+      return
+
     if @component?
       @component.focused()
     else
