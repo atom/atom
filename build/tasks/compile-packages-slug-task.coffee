@@ -3,7 +3,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 
 module.exports = (grunt) ->
-  {spawn} = require('./task-helpers')(grunt)
+  {spawn, rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to to the main package.json file', ->
     appDir = grunt.config.get('atom.appDir')
@@ -14,18 +14,23 @@ module.exports = (grunt) ->
     for moduleDirectory in fs.listSync(modulesDirectory)
       continue if path.basename(moduleDirectory) is '.bin'
 
-      metadata = grunt.file.readJSON(path.join(moduleDirectory, 'package.json'))
+      metadataPath = path.join(moduleDirectory, 'package.json')
+      metadata = grunt.file.readJSON(metadataPath)
       continue unless metadata?.engines?.atom?
+
+      rm metadataPath
 
       pack = {metadata, keymaps: {}, menus: {}}
 
       for keymapPath in fs.listSync(path.join(moduleDirectory, 'keymaps'), ['.cson', '.json'])
         relativePath = path.relative(appDir, keymapPath)
         pack.keymaps[relativePath] = CSON.readFileSync(keymapPath)
+        rm keymapPath
 
       for menuPath in fs.listSync(path.join(moduleDirectory, 'menus'), ['.cson', '.json'])
         relativePath = path.relative(appDir, menuPath)
         pack.menus[relativePath] = CSON.readFileSync(menuPath)
+        rm menuPath
 
       packages[metadata.name] = pack
 
