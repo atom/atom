@@ -7,7 +7,7 @@ module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to to the main package.json file', ->
-    appDir = grunt.config.get('atom.appDir')
+    appDir = fs.realpathSync(grunt.config.get('atom.appDir'))
 
     modulesDirectory = path.join(appDir, 'node_modules')
     packages = {}
@@ -28,6 +28,10 @@ module.exports = (grunt) ->
         delete metadata[property]
 
       pack = {metadata, keymaps: {}, menus: {}}
+
+      if metadata.main
+        mainPath = require.resolve(path.resolve(moduleDirectory, metadata.main))
+        pack.main = path.relative(appDir, mainPath)
 
       for keymapPath in fs.listSync(path.join(moduleDirectory, 'keymaps'), ['.cson', '.json'])
         relativePath = path.relative(appDir, keymapPath)

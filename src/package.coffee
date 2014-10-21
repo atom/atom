@@ -349,12 +349,19 @@ class Package
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
-    mainModulePath =
-      if @metadata.main
-        path.join(@path, @metadata.main)
+
+    if @bundledPackage and packagesCache[@name]?
+      if packagesCache[@name].main
+        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{packagesCache[@name].main}"
       else
-        path.join(@path, 'index')
-    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+        @mainModulePath = null
+    else
+      mainModulePath =
+        if @metadata.main
+          path.join(@path, @metadata.main)
+        else
+          path.join(@path, 'index')
+      @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   hasActivationCommands: ->
     for selector, commands of @getActivationCommands()
