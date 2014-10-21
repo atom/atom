@@ -128,7 +128,7 @@ loadExtensions = (modulePath, rootPath, rootMetadata, moduleCache) ->
 
   onDirectory = (childPath) ->
     # Don't include extensions from bundled packages
-    # These are generated and store in the package's own metadata cache
+    # These are generated and stored in the package's own metadata cache
     if rootMetadata.name is 'atom'
       parentPath = path.dirname(childPath)
       if parentPath is nodeModulesPath
