@@ -487,7 +487,7 @@ class TextEditor extends Model
       when 'decoration-updated'
         deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `TextEditor::decorateMarker()`")
       when 'decoration-changed'
-        deprecate("Use Marker::onDidChange instead. eg. `editor::decorateMarker(...).getMarker().onDidChange()`")
+        deprecate("Use Marker::onDidChange instead. e.g. `editor::decorateMarker(...).getMarker().onDidChange()`")
 
       when 'screen-lines-changed'
         deprecate("Use TextEditor::onDidChange instead")
@@ -1216,7 +1216,7 @@ class TextEditor extends Model
   # ## Arguments
   #
   # * `marker` A {Marker} you want this decoration to follow.
-  # * `decorationParams` An {Object} representing the decoration eg. `{type: 'gutter', class: 'linter-error'}`
+  # * `decorationParams` An {Object} representing the decoration e.g. `{type: 'gutter', class: 'linter-error'}`
   #   * `type` There are a few supported decoration types: `gutter`, `line`, and `highlight`
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, or highlight.
@@ -2370,8 +2370,8 @@ class TextEditor extends Model
   Section: Managing Syntax Scopes
   ###
 
-  # Essential: Returns the scope descriptor that includes the language. eg.
-  # `['.source.ruby']`, or `['.source.coffee']`. You can use this with
+  # Essential: Returns a {ScopeDescriptor} that includes this editor's language.
+  # e.g. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   # {Config::get} to get language specific config values.
   getRootScopeDescriptor: ->
     @displayBuffer.getRootScopeDescriptor()
@@ -2385,11 +2385,12 @@ class TextEditor extends Model
   #
   # * `bufferPosition` A {Point} or {Array} of [row, column].
   #
-  # Returns an {Array} of {String}s.
-  scopeDescriptorForBufferPosition: (bufferPosition) -> @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
+  # Returns a {ScopeDescriptor}.
+  scopeDescriptorForBufferPosition: (bufferPosition) ->
+    @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
   scopesForBufferPosition: (bufferPosition) ->
-    deprecate 'Use ::scopeDescriptorForBufferPosition instead'
-    @scopeDescriptorForBufferPosition(bufferPosition)
+    deprecate 'Use ::scopeDescriptorForBufferPosition instead. The return value has changed! It now returns a `ScopeDescriptor`'
+    @scopeDescriptorForBufferPosition(bufferPosition).getScopesArray()
 
   # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
@@ -2397,14 +2398,16 @@ class TextEditor extends Model
   # For example, if you wanted to find the string surrounding the cursor, you
   # could call `editor.bufferRangeForScopeAtCursor(".string.quoted")`.
   #
+  # * `scopeSelector` {String} selector. e.g. `'.source.ruby'`
+  #
   # Returns a {Range}.
-  bufferRangeForScopeAtCursor: (selector) ->
-    @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
+  bufferRangeForScopeAtCursor: (scopeSelector) ->
+    @displayBuffer.bufferRangeForScopeAtPosition(scopeSelector, @getCursorBufferPosition())
 
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
-      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopeDescriptor
+      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopes
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
       @commentScopeSelector.matches(scopeDescriptor)
 
@@ -2415,10 +2418,10 @@ class TextEditor extends Model
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
   scopesAtCursor: ->
-    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
-    @getLastCursor().getScopeDescriptor()
+    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
+    @getLastCursor().getScopeDescriptor().getScopesArray()
   getCursorScopes: ->
-    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
     @scopesAtCursor()
 
   ###

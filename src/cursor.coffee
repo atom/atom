@@ -216,12 +216,12 @@ class Cursor extends Model
 
   # Public: Retrieves the scope descriptor for the cursor's current position.
   #
-  # Returns an {Array} of {String}s.
+  # Returns a {ScopeDescriptor}
   getScopeDescriptor: ->
     @editor.scopeDescriptorForBufferPosition(@getBufferPosition())
   getScopes: ->
     Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
-    @getScopeDescriptor()
+    @getScopeDescriptor().getScopesArray()
 
   # Public: Returns true if this cursor has no non-whitespace characters before
   # its current position.

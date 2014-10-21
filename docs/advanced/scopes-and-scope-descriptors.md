@@ -42,7 +42,9 @@ atom.config.set('.source.js .function.name', 'my-package.my-setting', 'special v
 
 ## Scope Descriptors
 
-A scope descriptor is an `Array` of `String`s describing a path from the root of the syntax tree to a token including _all_ scope names for the entire path.
+A scope descriptor is an [Object][scope-descriptor] that wraps an `Array` of
+`String`s. The Array describes a path from the root of the syntax tree to a
+token including _all_ scope names for the entire path.
 
 In our JavaScript example above, a scope descriptor for the function name token would be:
 
@@ -82,3 +84,4 @@ valueForLanguage = atom.config.get(editor.getRootScopeDescriptor(), 'my-package.
 [editor-scopeDescriptorForBufferPosition]:https://atom.io/docs/api/latest/TextEditor#instance-scopeDescriptorForBufferPosition
 
 [cursor-getScopeDescriptor]:https://atom.io/docs/api/latest/Cursor#instance-getScopeDescriptor
+[scope-descriptor]:https://atom.io/docs/api/latest/ScopeDescriptor

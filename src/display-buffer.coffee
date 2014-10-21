@@ -650,7 +650,7 @@ class DisplayBuffer extends Model
     left = 0
     column = 0
     for token in @tokenizedLineForScreenRow(targetRow).tokens
-      charWidths = @getScopedCharWidths(token.scopeDescriptor)
+      charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         return {top, left} if column is targetColumn
         left += charWidths[char] ? defaultCharWidth unless char is '\0'
@@ -669,7 +669,7 @@ class DisplayBuffer extends Model
     left = 0
     column = 0
     for token in @tokenizedLineForScreenRow(row).tokens
-      charWidths = @getScopedCharWidths(token.scopeDescriptor)
+      charWidths = @getScopedCharWidths(token.scopes)
       for char in token.value
         charWidth = charWidths[char] ? defaultCharWidth
         break if targetLeft <= left + (charWidth / 2)
@@ -757,7 +757,7 @@ class DisplayBuffer extends Model
   #
   # bufferPosition - A {Point} in the {TextBuffer}
   #
-  # Returns an {Array} of {String}s.
+  # Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 

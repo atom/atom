@@ -200,7 +200,7 @@ LinesComponent = React.createClass
     firstTrailingWhitespacePosition = text.search(/\s*$/)
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopeDescriptor)
+      innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
@@ -308,8 +308,8 @@ LinesComponent = React.createClass
     iterator = null
     charIndex = 0
 
-    for {value, scopeDescriptor}, tokenIndex in tokenizedLine.tokens
-      charWidths = editor.getScopedCharWidths(scopeDescriptor)
+    for {value, scopes}, tokenIndex in tokenizedLine.tokens
+      charWidths = editor.getScopedCharWidths(scopes)
 
       for char in value
         continue if char is '\0'
@@ -331,7 +331,7 @@ LinesComponent = React.createClass
           rangeForMeasurement.setStart(textNode, i)
           rangeForMeasurement.setEnd(textNode, i + 1)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
-          editor.setScopedCharWidth(scopeDescriptor, char, charWidth)
+          editor.setScopedCharWidth(scopes, char, charWidth)
 
         charIndex++
 
