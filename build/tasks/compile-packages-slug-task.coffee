@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
 
-  grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to to the main package.json file', ->
+  grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to the main package.json file', ->
     appDir = fs.realpathSync(grunt.config.get('atom.appDir'))
 
     modulesDirectory = path.join(appDir, 'node_modules')
