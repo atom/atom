@@ -20,6 +20,9 @@ module.exports = (grunt) ->
 
       rm metadataPath
 
+      for property in ['_from', '_id', 'dist', 'readme', 'readmeFilename']
+        delete metadata[property]
+
       pack = {metadata, keymaps: {}, menus: {}}
 
       for keymapPath in fs.listSync(path.join(moduleDirectory, 'keymaps'), ['.cson', '.json'])
