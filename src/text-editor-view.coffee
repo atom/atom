@@ -80,6 +80,10 @@ class TextEditorView extends View
     @overlayer = $("<div class='overlayer'></div>").appendTo(this)
     @hiddenInput = @root.find('.hidden-input')
 
+    @hiddenInput.on = (args...) =>
+      args[0] = 'blur' if args[0] is 'focusout'
+      $::on.apply(this, args)
+
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
       @gutter = @root.find('.gutter')
 
