@@ -27,7 +27,7 @@ class Package
   @stylesheetsDir: 'stylesheets'
 
   @isBundledPackagePath: (packagePath) ->
-    @resourcePathWithTrailingSlash ?= path.join(atom.getLoadSettings().resourcePath, path.sep)
+    @resourcePathWithTrailingSlash ?= "#{atom.getLoadSettings().resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->
