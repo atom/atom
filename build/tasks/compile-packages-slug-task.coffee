@@ -1,6 +1,7 @@
 path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
+_ = require 'underscore-plus'
 
 module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
@@ -18,7 +19,10 @@ module.exports = (grunt) ->
       metadata = grunt.file.readJSON(metadataPath)
       continue unless metadata?.engines?.atom?
 
+      moduleCache = metadata._atomModuleCache ? {}
+
       rm metadataPath
+      _.remove(moduleCache.extensions?['.json'] ? [], 'package.json')
 
       for property in ['_from', '_id', 'dist', 'readme', 'readmeFilename']
         delete metadata[property]
@@ -36,6 +40,10 @@ module.exports = (grunt) ->
         rm menuPath
 
       packages[metadata.name] = pack
+
+      for extension, paths of moduleCache.extensions
+        if paths.length is 0
+          delete metadata._atomModuleCache?.extensions[extension]
 
     metadata = grunt.file.readJSON(path.join(appDir, 'package.json'))
     metadata._atomPackages = packages
