@@ -16,11 +16,11 @@
 # for more information.
 module.exports =
 class ScopeDescriptor
-  @fromObject: (descriptor) ->
-    if descriptor instanceof ScopeDescriptor
-      descriptor
+  @fromObject: (scopes) ->
+    if scopes instanceof ScopeDescriptor
+      scopes
     else
-      new ScopeDescriptor({descriptor})
+      new ScopeDescriptor({scopes})
 
   ###
   Section: Construction and Destruction
@@ -29,11 +29,14 @@ class ScopeDescriptor
   # Public: Create a {ScopeDescriptor} object.
   #
   # * `object` {Object}
-  #   * `descriptor` {Array} of {String}s
-  constructor: ({@descriptor}) ->
+  #   * `scopes` {Array} of {String}s
+  constructor: ({@scopes}) ->
+
+  # Public: Returns an {Array} of {String}s
+  getScopesArray: -> @scopes
 
   getScopeChain: ->
-    @descriptor
+    @scopes
       .map (scope) ->
         scope = ".#{scope}" unless scope[0] is '.'
         scope

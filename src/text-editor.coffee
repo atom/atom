@@ -2386,10 +2386,11 @@ class TextEditor extends Model
   # * `bufferPosition` A {Point} or {Array} of [row, column].
   #
   # Returns a {ScopeDescriptor}.
-  scopeDescriptorForBufferPosition: (bufferPosition) -> @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
+  scopeDescriptorForBufferPosition: (bufferPosition) ->
+    @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
   scopesForBufferPosition: (bufferPosition) ->
-    deprecate 'Use ::scopeDescriptorForBufferPosition instead'
-    @scopeDescriptorForBufferPosition(bufferPosition)
+    deprecate 'Use ::scopeDescriptorForBufferPosition instead. The return value has changed! It now returns a `ScopeDescriptor`'
+    @scopeDescriptorForBufferPosition(bufferPosition).getScopesArray()
 
   # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
@@ -2417,11 +2418,11 @@ class TextEditor extends Model
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
   scopesAtCursor: ->
-    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
-    @getLastCursor().getScopeDescriptor()
+    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
+    @getLastCursor().getScopeDescriptor().getScopesArray()
   getCursorScopes: ->
-    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
-    @scopesAtCursor()
+    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
+    @scopesAtCursor().getScopesArray()
 
   ###
   Section: Clipboard Operations
