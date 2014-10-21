@@ -14,8 +14,8 @@ ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
 try
-  packagesCache = require('../package.json')
-catch
+  packagesCache = require('../package.json')?._atomPackages ? {}
+catch error
   packagesCache = {}
 
 # Loads and activates a package's main module and resources such as
