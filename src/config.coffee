@@ -853,7 +853,7 @@ class Config
       @scopedSettingsStore.addProperties('schema-default', scopedDefaults)
 
     if schema.type is 'object' and schema.properties? and isPlainObject(schema.properties)
-      keys = if keyPath? then keyPath.split('.') else []
+      keys = splitKeyPath(keyPath)
       for key, childValue of schema.properties
         continue unless schema.properties.hasOwnProperty(key)
         @setScopedDefaultsFromSchema(keys.concat([key]).join('.'), childValue)
