@@ -90,7 +90,7 @@ class TextEditorElement extends HTMLElement
     @component = null
 
   focused: (event) ->
-    if @hasFocus()
+    if @contains(event.relatedTarget) or this is event.relatedTarget
       event.stopPropagation()
       return
 
