@@ -28,7 +28,7 @@ class Package
 
   @isBundledPackagePath: (packagePath) ->
     if atom.packages.devMode
-      return atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
+      return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
 
     @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
