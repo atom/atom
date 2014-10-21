@@ -79,7 +79,7 @@ class TokenizedBuffer extends Model
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
-    @rootScopeDescriptor = [@grammar.scopeName]
+    @rootScopeDescriptor = new ScopeDescriptor(descriptor: [@grammar.scopeName])
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
 
@@ -303,7 +303,7 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    @tokenForPosition(position).scopeDescriptor
+    new ScopeDescriptor descriptor: @tokenForPosition(position).scopeDescriptor
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)

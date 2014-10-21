@@ -757,7 +757,7 @@ class DisplayBuffer extends Model
   #
   # bufferPosition - A {Point} in the {TextBuffer}
   #
-  # Returns an {Array} of {String}s.
+  # Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 

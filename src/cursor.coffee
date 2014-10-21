@@ -216,7 +216,7 @@ class Cursor extends Model
 
   # Public: Retrieves the scope descriptor for the cursor's current position.
   #
-  # Returns an {Array} of {String}s.
+  # Returns a {ScopeDescriptor}
   getScopeDescriptor: ->
     @editor.scopeDescriptorForBufferPosition(@getBufferPosition())
   getScopes: ->

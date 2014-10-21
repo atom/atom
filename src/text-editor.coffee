@@ -2370,8 +2370,8 @@ class TextEditor extends Model
   Section: Managing Syntax Scopes
   ###
 
-  # Essential: Returns the scope descriptor that includes the language. eg.
-  # `['.source.ruby']`, or `['.source.coffee']`. You can use this with
+  # Essential: Returns a {ScopeDescriptor} that includes this editor's language.
+  # eg. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   # {Config::get} to get language specific config values.
   getRootScopeDescriptor: ->
     @displayBuffer.getRootScopeDescriptor()
@@ -2385,7 +2385,7 @@ class TextEditor extends Model
   #
   # * `bufferPosition` A {Point} or {Array} of [row, column].
   #
-  # Returns an {Array} of {String}s.
+  # Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition: (bufferPosition) -> @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
   scopesForBufferPosition: (bufferPosition) ->
     deprecate 'Use ::scopeDescriptorForBufferPosition instead'
@@ -2397,9 +2397,11 @@ class TextEditor extends Model
   # For example, if you wanted to find the string surrounding the cursor, you
   # could call `editor.bufferRangeForScopeAtCursor(".string.quoted")`.
   #
+  # * `scopeSelector` {String} selector. eg. `'.source.ruby'`
+  #
   # Returns a {Range}.
-  bufferRangeForScopeAtCursor: (selector) ->
-    @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
+  bufferRangeForScopeAtCursor: (scopeSelector) ->
+    @displayBuffer.bufferRangeForScopeAtPosition(scopeSelector, @getCursorBufferPosition())
 
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
