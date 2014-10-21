@@ -298,6 +298,11 @@ describe "PackageManager", ->
             expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
             expect($('#jasmine-content').css('font-size')).toBe '3px'
 
+        it "assigns the stylesheet's context based on the filename", ->
+          atom.packages.activatePackage("package-with-stylesheets")
+          element = atom.styles.getStyleElements().find (element) -> element.context is 'test-context'
+          expect(element).toBeDefined()
+
       describe "grammar loading", ->
         it "loads the package's grammars", ->
           waitsForPromise ->

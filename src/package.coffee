@@ -176,10 +176,15 @@ class Package
   activateStylesheets: ->
     return if @stylesheetsActivated
 
-    context = 'atom-text-editor' if @metadata.theme is 'syntax'
+
     group = @getStylesheetType()
     @stylesheetDisposables = new CompositeDisposable
     for [sourcePath, source] in @stylesheets
+      if match = path.basename(sourcePath).match(/[^.]*\.([^.]*)\./)
+        context = match[1]
+      else if @metadata.theme is 'syntax'
+        context = 'atom-text-editor'
+
       @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, group, context}))
     @stylesheetsActivated = true
 
