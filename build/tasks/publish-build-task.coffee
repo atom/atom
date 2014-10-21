@@ -20,9 +20,9 @@ module.exports = (gruntObject) ->
   {cp} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
-    tasks = ['upload-assets']
-    tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
+    tasks = []
+    tasks.push('build-docs', 'prepare-docs') if process.platform is 'darwin'
+    tasks.push('upload-assets') if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
     grunt.task.run(tasks)
 
   grunt.registerTask 'prepare-docs', 'Move api.json to atom-api.json', ->
