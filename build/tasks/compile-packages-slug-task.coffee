@@ -32,4 +32,4 @@ module.exports = (grunt) ->
     metadata = grunt.file.readJSON(path.join(appDir, 'package.json'))
     metadata._atomPackages = packages
 
-    grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata, null, 2))
+    grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))

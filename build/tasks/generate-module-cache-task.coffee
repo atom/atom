@@ -36,4 +36,4 @@ module.exports = (grunt) ->
         'react-atom-fork': metadata.dependencies['react-atom-fork']
       }
 
-    grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata, null, 2))
+    grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
