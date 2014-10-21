@@ -20,12 +20,12 @@ module.exports = (grunt) ->
       pack = {metadata, keymaps: {}, menus: {}}
 
       for keymapPath in fs.listSync(path.join(moduleDirectory, 'keymaps'), ['.cson', '.json'])
-        keymapPath = path.relative(appDir, keymapPath)
-        pack.keymaps[keymapPath] = CSON.readFileSync(keymapPath)
+        relativePath = path.relative(appDir, keymapPath)
+        pack.keymaps[relativePath] = CSON.readFileSync(keymapPath)
 
       for menuPath in fs.listSync(path.join(moduleDirectory, 'menus'), ['.cson', '.json'])
-        menuPath = path.relative(appDir, menuPath)
-        pack.menus[menuPath] = CSON.readFileSync(menuPath)
+        relativePath = path.relative(appDir, menuPath)
+        pack.menus[relativePath] = CSON.readFileSync(menuPath)
 
       packages[metadata.name] = pack
 
