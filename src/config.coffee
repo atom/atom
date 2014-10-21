@@ -878,7 +878,7 @@ class Config
     @emitter.emit 'did-change'
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->
-    scopeDescriptor = ScopeDescriptor.create(scopeDescriptor)
+    scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
     @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath)
 
   observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
@@ -906,7 +906,7 @@ class Config
   # * language mode uses it for one thing.
   # * autocomplete uses it for editor.completions
   settingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
-    scopeDescriptor = ScopeDescriptor.create(scopeDescriptor)
+    scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
     @scopedSettingsStore.getProperties(scopeDescriptor.getScopeChain(), keyPath)
 
 # Base schema enforcers. These will coerce raw input into the specified type,

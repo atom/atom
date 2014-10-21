@@ -16,7 +16,7 @@
 # for more information.
 module.exports =
 class ScopeDescriptor
-  @create: (descriptor) ->
+  @fromObject: (descriptor) ->
     if descriptor instanceof ScopeDescriptor
       descriptor
     else
