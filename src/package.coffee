@@ -13,6 +13,11 @@ $ = null # Defer require in case this is in the window-less browser process
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
+try
+  packagesCache = require('../package.json')?._atomPackages ? {}
+catch error
+  packagesCache = {}
+
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
@@ -21,14 +26,25 @@ class Package
 
   @stylesheetsDir: 'stylesheets'
 
+  @isBundledPackagePath: (packagePath) ->
+    if atom.packages.devMode
+      return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
+
+    @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
-    if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
-      try
-        metadata = CSON.readFileSync(metadataPath)
-      catch error
-        throw error unless ignoreErrors
+    packageName = path.basename(packagePath)
+    if @isBundledPackagePath(packagePath)
+      metadata = packagesCache[packageName]?.metadata
+    unless metadata?
+      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
+        try
+          metadata = CSON.readFileSync(metadataPath)
+        catch error
+          throw error unless ignoreErrors
     metadata ?= {}
-    metadata.name = path.basename(packagePath)
+    metadata.name = packageName
     metadata
 
   keymaps: null
@@ -47,6 +63,7 @@ class Package
   constructor: (@path, @metadata) ->
     @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
+    @bundledPackage = Package.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
     ModuleCache.add(@path, @metadata)
     @reset()
@@ -177,10 +194,16 @@ class Package
     @scopedPropertiesActivated = true
 
   loadKeymaps: ->
-    @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
+    else
+      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
 
   loadMenus: ->
-    @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
+    else
+      @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
@@ -326,12 +349,19 @@ class Package
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
-    mainModulePath =
-      if @metadata.main
-        path.join(@path, @metadata.main)
+
+    if @bundledPackage and packagesCache[@name]?
+      if packagesCache[@name].main
+        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{packagesCache[@name].main}"
       else
-        path.join(@path, 'index')
-    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+        @mainModulePath = null
+    else
+      mainModulePath =
+        if @metadata.main
+          path.join(@path, @metadata.main)
+        else
+          path.join(@path, 'index')
+      @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   hasActivationCommands: ->
     for selector, commands of @getActivationCommands()
