@@ -26,9 +26,14 @@ class Package
 
   @stylesheetsDir: 'stylesheets'
 
+  @isBundledPackagePath: (packagePath) ->
+    @resourcePathWithTrailingSlash ?= path.join(atom.getLoadSettings().resourcePath, path.sep)
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
-    metadata = packagesCache[packageName]?.metadata
+    if @isBundledPackagePath(packagePath)
+      metadata = packagesCache[packageName]?.metadata
     unless metadata?
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
@@ -55,6 +60,7 @@ class Package
   constructor: (@path, @metadata) ->
     @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
+    @bundledPackage = Package.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
     ModuleCache.add(@path, @metadata)
     @reset()
@@ -185,13 +191,13 @@ class Package
     @scopedPropertiesActivated = true
 
   loadKeymaps: ->
-    if packagesCache[@name]?
+    if @bundledPackage and packagesCache[@name]?
       @keymaps = ([keymapPath, keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
 
   loadMenus: ->
-    if packagesCache[@name]?
+    if @bundledPackage and packagesCache[@name]?
       @menus = ([menuPath, menuObject] for menuPath, menuObject of packagesCache[@name].menus)
     else
       @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
