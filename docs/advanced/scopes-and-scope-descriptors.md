@@ -84,4 +84,4 @@ valueForLanguage = atom.config.get(editor.getRootScopeDescriptor(), 'my-package.
 [editor-scopeDescriptorForBufferPosition]:https://atom.io/docs/api/latest/TextEditor#instance-scopeDescriptorForBufferPosition
 
 [cursor-getScopeDescriptor]:https://atom.io/docs/api/latest/Cursor#instance-getScopeDescriptor
-[scope-desctiptor]:https://atom.io/docs/api/latest/ScopeDescriptor
+[scope-descriptor]:https://atom.io/docs/api/latest/ScopeDescriptor

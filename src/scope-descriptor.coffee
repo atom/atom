@@ -2,6 +2,9 @@
 # root of the syntax tree to a token including _all_ scope names for the entire
 # path.
 #
+# Methods that take a `ScopeDescriptor` will also accept an {Array} of {Strings}
+# scope names e.g. `['.source.js']`.
+#
 # You can use `ScopeDescriptor`s to get language-specific config settings via
 # {Config::get}.
 #

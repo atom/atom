@@ -487,7 +487,7 @@ class TextEditor extends Model
       when 'decoration-updated'
         deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `TextEditor::decorateMarker()`")
       when 'decoration-changed'
-        deprecate("Use Marker::onDidChange instead. eg. `editor::decorateMarker(...).getMarker().onDidChange()`")
+        deprecate("Use Marker::onDidChange instead. e.g. `editor::decorateMarker(...).getMarker().onDidChange()`")
 
       when 'screen-lines-changed'
         deprecate("Use TextEditor::onDidChange instead")
@@ -1216,7 +1216,7 @@ class TextEditor extends Model
   # ## Arguments
   #
   # * `marker` A {Marker} you want this decoration to follow.
-  # * `decorationParams` An {Object} representing the decoration eg. `{type: 'gutter', class: 'linter-error'}`
+  # * `decorationParams` An {Object} representing the decoration e.g. `{type: 'gutter', class: 'linter-error'}`
   #   * `type` There are a few supported decoration types: `gutter`, `line`, and `highlight`
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, or highlight.
@@ -2371,7 +2371,7 @@ class TextEditor extends Model
   ###
 
   # Essential: Returns a {ScopeDescriptor} that includes this editor's language.
-  # eg. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
+  # e.g. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   # {Config::get} to get language specific config values.
   getRootScopeDescriptor: ->
     @displayBuffer.getRootScopeDescriptor()
@@ -2398,7 +2398,7 @@ class TextEditor extends Model
   # For example, if you wanted to find the string surrounding the cursor, you
   # could call `editor.bufferRangeForScopeAtCursor(".string.quoted")`.
   #
-  # * `scopeSelector` {String} selector. eg. `'.source.ruby'`
+  # * `scopeSelector` {String} selector. e.g. `'.source.ruby'`
   #
   # Returns a {Range}.
   bufferRangeForScopeAtCursor: (scopeSelector) ->
