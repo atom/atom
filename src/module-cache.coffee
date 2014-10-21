@@ -110,6 +110,8 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
 loadExtensions = (modulePath, rootPath, rootMetadata, moduleCache) ->
   fs = require 'fs-plus'
   extensions = ['.js', '.coffee', '.json', '.node']
+  nodeModulesPath = path.join(rootPath, 'node_modules')
+
   onFile = (filePath) ->
     filePath = path.relative(rootPath, filePath)
     segments = filePath.split(path.sep)
@@ -124,7 +126,16 @@ loadExtensions = (modulePath, rootPath, rootMetadata, moduleCache) ->
       moduleCache.extensions[extension] ?= []
       moduleCache.extensions[extension].push(filePath)
 
-  onDirectory = -> true
+  onDirectory = (childPath) ->
+    # Don't include extensions from bundled packages
+    # These are generated and store in the package's own metadata cache
+    if rootMetadata.name is 'atom'
+      parentPath = path.dirname(childPath)
+      if parentPath is nodeModulesPath
+        packageName = path.basename(childPath)
+        return false if rootMetadata.packageDependencies?.hasOwnProperty(packageName)
+
+    true
 
   fs.traverseTreeSync(rootPath, onFile, onDirectory)
 
