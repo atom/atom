@@ -2422,7 +2422,7 @@ class TextEditor extends Model
     @getLastCursor().getScopeDescriptor().getScopesArray()
   getCursorScopes: ->
     deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
-    @scopesAtCursor().getScopesArray()
+    @scopesAtCursor()
 
   ###
   Section: Clipboard Operations
