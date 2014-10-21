@@ -5,7 +5,7 @@ fs = require 'fs-plus'
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
-  grunt.registerTask 'compile-packages-slug', 'Add package metadata information to to the main package.json file', ->
+  grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to to the main package.json file', ->
     appDir = grunt.config.get('atom.appDir')
 
     modulesDirectory = path.join(appDir, 'node_modules')
