@@ -308,8 +308,8 @@ LinesComponent = React.createClass
     iterator = null
     charIndex = 0
 
-    for {value, scopeDescriptor}, tokenIndex in tokenizedLine.tokens
-      charWidths = editor.getScopedCharWidths(scopeDescriptor)
+    for {value, scopes}, tokenIndex in tokenizedLine.tokens
+      charWidths = editor.getScopedCharWidths(scopes)
 
       for char in value
         continue if char is '\0'
@@ -331,7 +331,7 @@ LinesComponent = React.createClass
           rangeForMeasurement.setStart(textNode, i)
           rangeForMeasurement.setEnd(textNode, i + 1)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
-          editor.setScopedCharWidth(scopeDescriptor, char, charWidth)
+          editor.setScopedCharWidth(scopes, char, charWidth)
 
         charIndex++
 
