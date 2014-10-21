@@ -21,7 +21,7 @@ class AutoUpdateManager
 
   setupAutoUpdater: ->
     if process.platform is 'win32'
-      autoUpdater = require 'browser/auto-updater-win32'
+      autoUpdater = require './auto-updater-win32'
     else
       autoUpdater = require 'auto-updater'
 
