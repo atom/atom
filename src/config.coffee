@@ -352,7 +352,7 @@ class Config
     if args.length is 2
       # observe(keyPath, callback)
       [keyPath, callback, scopeDescriptor, options] = args
-    else if args.length is 3 and Array.isArray(scopeDescriptor)
+    else if args.length is 3 and (Array.isArray(scopeDescriptor) or scopeDescriptor instanceof ScopeDescriptor)
       # observe(scopeDescriptor, keyPath, callback)
       [scopeDescriptor, keyPath, callback, options] = args
     else if args.length is 3 and _.isString(scopeDescriptor) and _.isObject(keyPath)

@@ -6,6 +6,7 @@ EmitterMixin = require('emissary').Emitter
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
+ScopeDescriptor = require './scope-descriptor'
 Grim = require 'grim'
 
 module.exports =
@@ -303,7 +304,7 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    new ScopeDescriptor descriptor: @tokenForPosition(position).scopeDescriptor
+    new ScopeDescriptor(descriptor: @tokenForPosition(position).scopeDescriptor)
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)
