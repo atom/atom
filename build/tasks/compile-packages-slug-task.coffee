@@ -46,8 +46,7 @@ module.exports = (grunt) ->
       packages[metadata.name] = pack
 
       for extension, paths of moduleCache.extensions
-        if paths.length is 0
-          delete moduleCache.extensions[extension]
+        delete moduleCache.extensions[extension] if paths.length is 0
 
     metadata = grunt.file.readJSON(path.join(appDir, 'package.json'))
     metadata._atomPackages = packages
