@@ -106,7 +106,7 @@ class TokenizedBuffer extends Model
   hasTokenForSelector: (selector) ->
     for {tokens} in @tokenizedLines
       for token in tokens
-        return true if selector.matches(token.scopeDescriptor)
+        return true if selector.matches(token.scopes)
     false
 
   retokenizeLines: ->
@@ -248,7 +248,7 @@ class TokenizedBuffer extends Model
 
   buildPlaceholderTokenizedLineForRow: (row) ->
     line = @buffer.lineForRow(row)
-    tokens = [new Token(value: line, scopeDescriptor: [@grammar.scopeName])]
+    tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
@@ -304,7 +304,7 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    new ScopeDescriptor(scopes: @tokenForPosition(position).scopeDescriptor)
+    new ScopeDescriptor(scopes: @tokenForPosition(position).scopes)
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)
