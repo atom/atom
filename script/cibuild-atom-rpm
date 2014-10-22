@@ -1,0 +1,5 @@
+#!/bin/sh
+
+set -ex
+
+docker build -t atom-rpm resources/linux/redhat
