@@ -48,9 +48,10 @@ describe "PackageManager", ->
       describe "when called multiple times", ->
         it "it only calls activate on the package once", ->
           spyOn(Package.prototype, 'activateNow').andCallThrough()
-          atom.packages.activatePackage('package-with-index')
-          atom.packages.activatePackage('package-with-index')
-
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-index')
+          waitsForPromise ->
+            atom.packages.activatePackage('package-with-index')
           waitsForPromise ->
             atom.packages.activatePackage('package-with-index')
 
@@ -182,8 +183,10 @@ describe "PackageManager", ->
           pack.mainModule.someNumber = 77
           atom.packages.deactivatePackage("package-with-serialization")
           spyOn(pack.mainModule, 'activate').andCallThrough()
-          atom.packages.activatePackage("package-with-serialization")
-          expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-serialization")
+          runs ->
+            expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
       it "logs warning instead of throwing an exception if the package fails to load", ->
         atom.config.set("core.disabledPackages", [])
@@ -202,11 +205,13 @@ describe "PackageManager", ->
             expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])).toHaveLength 0
             expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
 
-            atom.packages.activatePackage("package-with-keymaps")
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-keymaps")
 
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe "test-1"
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])[0].command).toBe "test-2"
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
+            runs ->
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe "test-1"
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])[0].command).toBe "test-2"
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
 
         describe "when the metadata contains a 'keymaps' manifest", ->
           it "loads only the keymaps specified by the manifest, in the specified order", ->
@@ -215,11 +220,13 @@ describe "PackageManager", ->
 
             expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])).toHaveLength 0
 
-            atom.packages.activatePackage("package-with-keymaps-manifest")
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-keymaps-manifest")
 
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe 'keymap-1'
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-n', target:element1[0])[0].command).toBe 'keymap-2'
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-y', target:element3[0])).toHaveLength 0
+            runs ->
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe 'keymap-1'
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-n', target:element1[0])[0].command).toBe 'keymap-2'
+              expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-y', target:element3[0])).toHaveLength 0
 
       describe "menu loading", ->
         beforeEach ->
@@ -232,14 +239,16 @@ describe "PackageManager", ->
 
             expect(atom.contextMenu.templateForElement(element)).toEqual []
 
-            atom.packages.activatePackage("package-with-menus")
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-menus")
 
-            expect(atom.menu.template.length).toBe 2
-            expect(atom.menu.template[0].label).toBe "Second to Last"
-            expect(atom.menu.template[1].label).toBe "Last"
-            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 1"
-            expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 2"
-            expect(atom.contextMenu.templateForElement(element)[2].label).toBe "Menu item 3"
+            runs ->
+              expect(atom.menu.template.length).toBe 2
+              expect(atom.menu.template[0].label).toBe "Second to Last"
+              expect(atom.menu.template[1].label).toBe "Last"
+              expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 1"
+              expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 2"
+              expect(atom.contextMenu.templateForElement(element)[2].label).toBe "Menu item 3"
 
         describe "when the metadata contains a 'menus' manifest", ->
           it "loads only the menus specified by the manifest, in the specified order", ->
@@ -247,13 +256,15 @@ describe "PackageManager", ->
 
             expect(atom.contextMenu.templateForElement(element)).toEqual []
 
-            atom.packages.activatePackage("package-with-menus-manifest")
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-menus-manifest")
 
-            expect(atom.menu.template[0].label).toBe "Second to Last"
-            expect(atom.menu.template[1].label).toBe "Last"
-            expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 2"
-            expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 1"
-            expect(atom.contextMenu.templateForElement(element)[2]).toBeUndefined()
+            runs ->
+              expect(atom.menu.template[0].label).toBe "Second to Last"
+              expect(atom.menu.template[1].label).toBe "Last"
+              expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 2"
+              expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 1"
+              expect(atom.contextMenu.templateForElement(element)[2]).toBeUndefined()
 
       describe "stylesheet loading", ->
         describe "when the metadata contains a 'stylesheets' manifest", ->
@@ -270,12 +281,14 @@ describe "PackageManager", ->
             expect(atom.themes.stylesheetElementForId(two)).toBeNull()
             expect(atom.themes.stylesheetElementForId(three)).toBeNull()
 
-            atom.packages.activatePackage("package-with-stylesheets-manifest")
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-stylesheets-manifest")
 
-            expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(three)).toBeNull()
-            expect($('#jasmine-content').css('font-size')).toBe '1px'
+            runs ->
+              expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(three)).toBeNull()
+              expect($('#jasmine-content').css('font-size')).toBe '1px'
 
         describe "when the metadata does not contain a 'stylesheets' manifest", ->
           it "loads all stylesheets from the stylesheets directory", ->
@@ -292,16 +305,22 @@ describe "PackageManager", ->
             expect(atom.themes.stylesheetElementForId(two)).toBeNull()
             expect(atom.themes.stylesheetElementForId(three)).toBeNull()
 
-            atom.packages.activatePackage("package-with-stylesheets")
-            expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
-            expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
-            expect($('#jasmine-content').css('font-size')).toBe '3px'
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-stylesheets")
+
+            runs ->
+              expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
+              expect($('#jasmine-content').css('font-size')).toBe '3px'
 
         it "assigns the stylesheet's context based on the filename", ->
-          atom.packages.activatePackage("package-with-stylesheets")
-          element = atom.styles.getStyleElements().find (element) -> element.context is 'test-context'
-          expect(element).toBeDefined()
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-stylesheets")
+
+          runs ->
+            element = atom.styles.getStyleElements().find (element) -> element.context is 'test-context'
+            expect(element).toBeDefined()
 
       describe "grammar loading", ->
         it "loads the package's grammars", ->
