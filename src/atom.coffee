@@ -202,6 +202,9 @@ class Atom extends Model
     # Make react.js faster
     process.env.NODE_ENV ?= 'production' unless devMode
 
+    # Set Atom's home so packages don't have to guess it
+    process.env.ATOM_HOME = @getConfigDirPath()
+
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
