@@ -28,6 +28,7 @@ module.exports = (grunt) ->
 
     rpmDir = path.join(buildDir, 'rpm')
     rm rpmDir
+    mkdir rpmDir
 
     installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
