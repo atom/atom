@@ -3,4 +3,8 @@
 set -ex
 
 docker build -t atom-rpm .
-docker run atom-rpm /atom/script/dockerbuild
+docker run \
+ --env JANKYSHA1="$JANKYSHA1" \
+ --env JANKY_BRANCH="$JANKY_BRANCH" \
+ --env ATOM_ACCESS_TOKEN="$ATOM_ACCESS_TOKEN" \
+ atom-rpm /atom/script/dockerbuild
