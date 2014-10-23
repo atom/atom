@@ -79,6 +79,10 @@ getAssets = ->
       unless fs.isFileSync(sourcePath)
         rpmName = fs.readdirSync("#{buildDir}/rpm")[0]
         sourcePath = "#{buildDir}/rpm/#{rpmName}"
+        if process.arch is 'ia32'
+          arch = 'i386'
+        else
+          arch = 'x64_64'
         assetName = "atom.#{arch}.rpm"
 
       {cp} = require('./task-helpers')(grunt)
