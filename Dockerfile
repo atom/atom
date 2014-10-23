@@ -18,10 +18,5 @@ RUN yum install -y \
 RUN curl -sL https://rpm.nodesource.com/setup | bash -
 RUN yum install -y nodejs
 
-# Clone atom
-RUN git clone https://github.com/atom/atom /src
-WORKDIR /src
-RUN git reset -q --hard $JANKY_SHA1
-
-# Build the RPM
-RUN script/build && script/grunt mkrpm
+ADD . /atom
+WORKDIR /atom
