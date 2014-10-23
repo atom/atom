@@ -2,6 +2,7 @@ child_process = require 'child_process'
 fs = require './fs'
 path = require 'path'
 npm = require 'npm'
+semver = require 'semver'
 
 module.exports =
   getHomeDirectory: ->
@@ -36,22 +37,26 @@ module.exports =
               if fs.isDirectorySync(programFilesPath)
                 callback(programFilesPath)
               else
-                chocolateyAtomPath = @getChocolateyAtomPath()
-                child_process.exec "#{chocolateyAtomPath} --shimgen-waitforexit -v", (error, stdout='', stderr) ->
-                  output = stdout.split(' ')
-                  version = output[output.length - 1]
-                  if version
-                    if process.env.CHOCOLATEYINSTALL
-                      atomPath = path.join(process.env.CHOCOLATEYINSTALL, 'lib', "Atom.#{version}")
+                if process.env.CHOCOLATEYINSTALL
+                  chocolateyLibPath = path.join(process.env.CHOCOLATEYINSTALL, 'lib')
 
-                    if process.env.ALLUSERSPROFILE and not fs.isDirectorySync(atomPath)
-                      atomPath = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'lib', "Atom.#{version}")
+                if process.env.ALLUSERSPROFILE and not fs.isDirectorySync(chocolateyLibPath)
+                  chocolateyLibPath = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'lib')
 
-                    if fs.isDirectorySync(atomPath)
-                      appLocation = path.join(atomPath, 'tools', 'Atom', 'resources', 'app')
-                      callback(appLocation) if fs.isDirectorySync(appLocation)
+                latestVersion = null
+                try
+                  for child in fs.readdirSync(chocolateyLibPath)
+                    if child.indexOf('Atom.') is 0
+                      version = child.substring(5)
+                      if semver.valid(version)
+                        latestVersion ?= version
+                        latestVersion = version if semver.gt(version, latestVersion)
 
-                  callback(programFilesPath)
+                if latestVersion
+                  appLocation = path.join(chocolateyLibPath, "Atom.#{version}", 'tools', 'Atom', 'resources', 'app')
+                  return callback(appLocation) if fs.isDirectorySync(appLocation)
+
+                callback(programFilesPath)
 
   getReposDirectory: ->
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
