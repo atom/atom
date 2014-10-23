@@ -84,7 +84,7 @@ getAssets = ->
         if process.arch is 'ia32'
           arch = 'i386'
         else
-          arch = 'x64_64'
+          arch = 'x86_64'
         assetName = "atom.#{arch}.rpm"
 
       {cp} = require('./task-helpers')(grunt)
