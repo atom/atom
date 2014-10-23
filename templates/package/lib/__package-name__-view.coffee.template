@@ -4,7 +4,7 @@ module.exports =
 class __PackageName__View extends View
   @content: ->
     @div class: '__package-name__ overlay from-top', =>
-      @div "The __PackageName__ package is Alive! It's ALIVE!", class: "message"
+      @div "The __PackageName__ package is Alive! It's ALIVE!", class: 'message'
 
   initialize: (serializeState) ->
     atom.commands.add 'atom-workspace', '__package-name__:toggle': => @toggle()
@@ -17,7 +17,7 @@ class __PackageName__View extends View
     @detach()
 
   toggle: ->
-    console.log "__PackageName__View was toggled!"
+    console.log '__PackageName__View was toggled!'
     if @hasParent()
       @detach()
     else
