@@ -1,5 +1,5 @@
 # VERSION:        0.1
-# DESCRIPTION:    Create a .rpm file for the atom editor
+# DESCRIPTION:    Image to build Atom and create a .rpm file
 
 # Base docker image
 FROM fedora:20
