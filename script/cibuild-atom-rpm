@@ -7,4 +7,4 @@ docker run \
  --env JANKY_SHA1="$JANKYSHA1" \
  --env JANKY_BRANCH="$JANKY_BRANCH" \
  --env ATOM_ACCESS_TOKEN="$ATOM_ACCESS_TOKEN" \
- atom-rpm /atom/script/dockerbuild
+ atom-rpm /atom/script/rpmbuild
