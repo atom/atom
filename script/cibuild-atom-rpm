@@ -2,4 +2,9 @@
 
 set -ex
 
-docker build -t atom-rpm resources/linux/redhat
+rm -f atom-rpm.cid
+docker build -t atom-rpm .
+docker run --cidfile='atom-rpm.cid' atom-rpm /atom/script/dockerbuild
+
+CONTAINER_ID=`cat atom-rpm.cid`
+docker cp "$CONTAINER_ID:/tmp/atom-build/rpm" .
