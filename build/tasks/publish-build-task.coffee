@@ -73,9 +73,11 @@ getAssets = ->
         arch = 'amd64'
       {version} = grunt.file.readJSON('package.json')
 
+      # Check for a Debian build
       sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
       assetName = "atom-#{arch}.deb"
 
+      # Check for a Fedora build
       unless fs.isFileSync(sourcePath)
         rpmName = fs.readdirSync("#{buildDir}/rpm")[0]
         sourcePath = "#{buildDir}/rpm/#{rpmName}"
