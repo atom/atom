@@ -30,7 +30,28 @@ module.exports =
           when 'linux'
             process.nextTick -> callback('/usr/local/share/atom/resources/app')
           when 'win32'
-            process.nextTick -> callback(path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app'))
+            process.nextTick ->
+              programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app')
+
+              if fs.isDirectorySync(programFilesPath)
+                callback(programFilesPath)
+              else
+                chocolateyAtomPath = @getChocolateyAtomPath()
+                child_process.exec "#{chocolateyAtomPath} --shimgen-waitforexit -v", (error, stdout='', stderr) ->
+                  output = stdout.split(' ')
+                  version = output[output.length - 1]
+                  if version
+                    if process.env.CHOCOLATEYINSTALL
+                      atomPath = path.join(process.env.CHOCOLATEYINSTALL, 'lib', "Atom.#{version}")
+
+                    if process.env.ALLUSERSPROFILE and not fs.isDirectorySync(atomPath)
+                      atomPath = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'lib', "Atom.#{version}")
+
+                    if fs.isDirectorySync(atomPath)
+                      appLocation = path.join(atomPath, 'tools', 'Atom', 'resources', 'app')
+                      callback(appLocation) if fs.isDirectorySync(appLocation)
+
+                  callback(programFilesPath)
 
   getReposDirectory: ->
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
@@ -91,3 +112,14 @@ module.exports =
 
   getSetting: (key, callback) ->
     @loadNpm -> callback(npm.config.get(key))
+
+  getChocolateyAtomPath: ->
+    if process.env.CHOCOLATEYINSTALL
+      atomCommand = path.join(process.env.CHOCOLATEYINSTALL, 'bin', 'atom.exe')
+      return atomCommand if fs.existsSync(atomCommand)
+
+    if process.env.ALLUSERSPROFILE
+      atomCommand = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'bin', 'atom.exe')
+      return atomCommand if fs.existsSync(atomCommand)
+
+    null
