@@ -39,7 +39,7 @@ module.exports = (gruntObject) ->
       doneCallback(args...)
 
     unless token
-      done(new Error('ATOM_ACCESS_TOKEN environment variable not set'))
+      return done(new Error('ATOM_ACCESS_TOKEN environment variable not set'))
 
     buildDir = grunt.config.get('atom.buildDir')
     assets = getAssets()
