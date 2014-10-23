@@ -107,7 +107,7 @@ class Atom extends Model
   Section: Properties
   ###
 
-  # Experimental: A {CommandRegistry} instance
+  # Public: A {CommandRegistry} instance
   commands: null
 
   # Public: A {Config} instance

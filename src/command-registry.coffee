@@ -8,7 +8,7 @@ SpecificityCache = {}
 
 module.exports =
 
-# Experimental: Associates listener functions with commands in a
+# Public: Associates listener functions with commands in a
 # context-sensitive way using CSS selectors. You can access a global instance of
 # this class via `atom.commands`, and commands registered there will be
 # presented in the command palette.
