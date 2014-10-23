@@ -69,8 +69,14 @@ getAssets = ->
       else
         arch = 'amd64'
       {version} = grunt.file.readJSON('package.json')
+
       sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
       assetName = "atom-#{arch}.deb"
+
+      unless fs.isFileSync(sourcePath)
+        rpmName = fs.readdirSync("#{buildDir}/rpm")[0]
+        sourcePath = "#{buildDir}/rpm/#{rpmName}"
+        assetName = "atom.#{arch}.rpm"
 
       {cp} = require('./task-helpers')(grunt)
       cp sourcePath, path.join(buildDir, assetName)
