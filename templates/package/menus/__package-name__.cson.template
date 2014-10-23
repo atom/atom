@@ -12,7 +12,10 @@
     'submenu': [
       'label': '__package-name__'
       'submenu': [
-        { 'label': 'Toggle', 'command': '__package-name__:toggle' }
+        {
+          'label': 'Toggle'
+          'command': '__package-name__:toggle'
+        }
       ]
     ]
   }
