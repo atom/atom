@@ -19,12 +19,12 @@ describe "__PackageName__", ->
 
       # This is an activation event, triggering it will cause the package to be
       # activated.
-      atom.workspaceView.trigger '__package-name__:toggle'
+      atom.commands.dispatch atom.workspaceView.element, '__package-name__:toggle'
 
       waitsForPromise ->
         activationPromise
 
       runs ->
         expect(atom.workspaceView.find('.__package-name__')).toExist()
-        atom.workspaceView.trigger '__package-name__:toggle'
+        atom.commands.dispatch atom.workspaceView.element, '__package-name__:toggle'
         expect(atom.workspaceView.find('.__package-name__')).not.toExist()
