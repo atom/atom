@@ -38,7 +38,7 @@ module.exports = (grunt) ->
     desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
 
     cmd = path.join('script', 'mkrpm')
-    args = [specFilePath, desktopFilePath, rpmDir]
+    args = [specFilePath, desktopFilePath, buildDir]
     spawn {cmd, args}, (error) ->
       if error?
         done(error)
