@@ -1,12 +1,14 @@
-{View} = require 'atom'
-
 module.exports =
-class __PackageName__View extends View
-  @content: ->
-    @div class: '__package-name__ overlay from-top', =>
-      @div "The __PackageName__ package is Alive! It's ALIVE!", class: 'message'
+class __PackageName__View
+  constructor: (serializeState) ->
+    @element = document.createElement('div')
+    @element.classList.add('__package-name__',  'overlay', 'from-top')
 
-  initialize: (serializeState) ->
+    message = document.createElement('div')
+    message.textContent = "The __PackageName__ package is Alive! It's ALIVE!"
+    message.classList.add('message')
+    @element.appendChild(message)
+
     atom.commands.add 'atom-workspace', '__package-name__:toggle': => @toggle()
 
   # Returns an object that can be retrieved when package is activated
@@ -14,11 +16,11 @@ class __PackageName__View extends View
 
   # Tear down any state and detach
   destroy: ->
-    @detach()
+    @element.remove()
 
   toggle: ->
     console.log '__PackageName__View was toggled!'
-    if @hasParent()
-      @detach()
+    if @element.parentElement?
+      @element.remove()
     else
-      atom.workspaceView.append(this)
+      atom.workspaceView.append(@element)
