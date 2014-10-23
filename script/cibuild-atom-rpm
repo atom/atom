@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -ex
+set -e
 
 docker build -t atom-rpm .
 docker run \
