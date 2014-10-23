@@ -25,6 +25,7 @@ module.exports = (grunt) ->
 
     {name, version, description} = grunt.file.readJSON('package.json')
     buildDir = grunt.config.get('atom.buildDir')
+    rpmDir = path.join(buildDir, 'rpm')
     installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
     iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
@@ -34,10 +35,10 @@ module.exports = (grunt) ->
     desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
 
     cmd = path.join('script', 'mkrpm')
-    args = [specFilePath, desktopFilePath, buildDir]
+    args = [specFilePath, desktopFilePath, rpmDir]
     spawn {cmd, args}, (error) ->
       if error?
         done(error)
       else
-        grunt.log.ok "Created rpm package in #{buildDir}"
+        grunt.log.ok "Created rpm package in #{rpmDir}"
         done()
