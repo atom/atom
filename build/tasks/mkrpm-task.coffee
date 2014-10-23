@@ -3,7 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 
 module.exports = (grunt) ->
-  {spawn, rm} = require('./task-helpers')(grunt)
+  {spawn, rm, mkdir} = require('./task-helpers')(grunt)
 
   fillTemplate = (filePath, data) ->
     template = _.template(String(fs.readFileSync("#{filePath}.in")))
