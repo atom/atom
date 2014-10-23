@@ -34,9 +34,8 @@ module.exports =
             process.nextTick =>
               programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app')
 
-              if fs.isDirectorySync(programFilesPath)
-                callback(programFilesPath)
-              else
+              # Scan for latest chocolatey install version when not in program files
+              unless fs.isDirectorySync(programFilesPath)
                 if process.env.CHOCOLATEYINSTALL
                   chocolateyLibPath = path.join(process.env.CHOCOLATEYINSTALL, 'lib')
 
@@ -44,19 +43,18 @@ module.exports =
                   chocolateyLibPath = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'lib')
 
                 latestVersion = null
-                try
-                  for child in fs.readdirSync(chocolateyLibPath)
-                    if child.indexOf('Atom.') is 0
-                      version = child.substring(5)
-                      if semver.valid(version)
-                        latestVersion ?= version
-                        latestVersion = version if semver.gt(version, latestVersion)
+                for child in fs.list(chocolateyLibPath)
+                  if child.indexOf('Atom.') is 0
+                    version = child.substring(5)
+                    if semver.valid(version)
+                      latestVersion ?= version
+                      latestVersion = version if semver.gt(version, latestVersion)
 
                 if latestVersion
                   appLocation = path.join(chocolateyLibPath, "Atom.#{version}", 'tools', 'Atom', 'resources', 'app')
                   return callback(appLocation) if fs.isDirectorySync(appLocation)
 
-                callback(programFilesPath)
+              callback(programFilesPath)
 
   getReposDirectory: ->
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
