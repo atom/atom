@@ -38,6 +38,9 @@ module.exports = (gruntObject) ->
       grunt.log.ok("Upload time: #{elapsedTime}s")
       doneCallback(args...)
 
+    unless token
+      return done(new Error('ATOM_ACCESS_TOKEN environment variable not set'))
+
     buildDir = grunt.config.get('atom.buildDir')
     assets = getAssets()
 
@@ -69,8 +72,20 @@ getAssets = ->
       else
         arch = 'amd64'
       {version} = grunt.file.readJSON('package.json')
+
+      # Check for a Debian build
       sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
       assetName = "atom-#{arch}.deb"
+
+      # Check for a Fedora build
+      unless fs.isFileSync(sourcePath)
+        rpmName = fs.readdirSync("#{buildDir}/rpm")[0]
+        sourcePath = "#{buildDir}/rpm/#{rpmName}"
+        if process.arch is 'ia32'
+          arch = 'i386'
+        else
+          arch = 'x64_64'
+        assetName = "atom.#{arch}.rpm"
 
       {cp} = require('./task-helpers')(grunt)
       cp sourcePath, path.join(buildDir, assetName)

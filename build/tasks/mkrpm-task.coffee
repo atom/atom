@@ -3,7 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 
 module.exports = (grunt) ->
-  {spawn} = require('./task-helpers')(grunt)
+  {spawn, rm, mkdir} = require('./task-helpers')(grunt)
 
   fillTemplate = (filePath, data) ->
     template = _.template(String(fs.readFileSync("#{filePath}.in")))
@@ -25,6 +25,11 @@ module.exports = (grunt) ->
 
     {name, version, description} = grunt.file.readJSON('package.json')
     buildDir = grunt.config.get('atom.buildDir')
+
+    rpmDir = path.join(buildDir, 'rpm')
+    rm rpmDir
+    mkdir rpmDir
+
     installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
     iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
@@ -39,5 +44,5 @@ module.exports = (grunt) ->
       if error?
         done(error)
       else
-        grunt.log.ok "Created rpm package in #{buildDir}"
+        grunt.log.ok "Created rpm package in #{rpmDir}"
         done()
