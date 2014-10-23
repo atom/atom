@@ -38,6 +38,9 @@ module.exports = (gruntObject) ->
       grunt.log.ok("Upload time: #{elapsedTime}s")
       doneCallback(args...)
 
+    unless token
+      done(new Error('ATOM_ACCESS_TOKEN environment variable not set'))
+
     buildDir = grunt.config.get('atom.buildDir')
     assets = getAssets()
 
