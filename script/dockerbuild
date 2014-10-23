@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -ex
+
+script/build
+script/grunt mkrpm
