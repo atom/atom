@@ -3,4 +3,4 @@
 set -ex
 
 script/build
-script/grunt mkrpm publish-build
+script/grunt mkrpm publish-build --stack
