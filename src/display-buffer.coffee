@@ -654,12 +654,12 @@ class DisplayBuffer extends Model
       charWidths = @getScopedCharWidths(token.scopes)
       valueIndex = 0
       while valueIndex < token.value.length
-        if textUtils.isPairedCharacter(value, valueIndex)
-          char = value.substr(valueIndex, 2)
+        if textUtils.isPairedCharacter(token.value, valueIndex)
+          char = token.value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2
         else
-          char = value[valueIndex]
+          char = token.value[valueIndex]
           charLength = 1
           valueIndex++
 
@@ -683,12 +683,12 @@ class DisplayBuffer extends Model
       charWidths = @getScopedCharWidths(token.scopes)
       valueIndex = 0
       while valueIndex < token.value.length
-        if textUtils.isPairedCharacter(value, valueIndex)
-          char = value.substr(valueIndex, 2)
+        if textUtils.isPairedCharacter(token.value, valueIndex)
+          char = token.value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2
         else
-          char = value[valueIndex]
+          char = token.value[valueIndex]
           charLength = 1
           valueIndex++
 
