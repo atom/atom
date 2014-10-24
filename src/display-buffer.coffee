@@ -11,6 +11,7 @@ Fold = require './fold'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
+textUtils = require './text-utils'
 Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
@@ -651,10 +652,18 @@ class DisplayBuffer extends Model
     column = 0
     for token in @tokenizedLineForScreenRow(targetRow).tokens
       charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if textUtils.isPairedCharacter(token.value, valueIndex)
+          charLength = 2
+        else
+          charLength = 1
+        char = token.value.substr(valueIndex, charLength)
+        valueIndex += charLength
+
         return {top, left} if column is targetColumn
         left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column++
+        column += charLength
     {top, left}
 
   screenPositionForPixelPosition: (pixelPosition) ->
@@ -670,11 +679,18 @@ class DisplayBuffer extends Model
     column = 0
     for token in @tokenizedLineForScreenRow(row).tokens
       charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if textUtils.isPairedCharacter(token.value, valueIndex)
+          charLength = 2
+        else
+          charLength = 1
+        char = token.value.substr(valueIndex, charLength)
+        valueIndex += charLength
         charWidth = charWidths[char] ? defaultCharWidth
         break if targetLeft <= left + (charWidth / 2)
         left += charWidth
-        column++
+        column += charLength
 
     new Point(row, column)
 
