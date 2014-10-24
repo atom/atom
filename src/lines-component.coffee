@@ -316,8 +316,8 @@ LinesComponent = React.createClass
       while valueIndex < value.length
         if textUtils.isPairedCharacter(value, valueIndex)
           char = value.substr(valueIndex, 2)
-          valueIndex += 2
           charLength = 2
+          valueIndex += 2
         else
           char = value[valueIndex]
           charLength = 1
