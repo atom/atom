@@ -698,6 +698,24 @@ describe "TextEditorComponent", ->
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
 
+    it "accounts for the width of paired characters when positioning cursors", ->
+      atom.config.set('editor.fontFamily', 'sans-serif')
+      editor.setText('he\u0301y') # e with an accent mark
+      editor.setCursorBufferPosition([0, 3])
+      nextAnimationFrame()
+
+      cursor = componentNode.querySelector('.cursor')
+      cursorRect = cursor.getBoundingClientRect()
+
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').firstChild
+      range = document.createRange()
+      range.setStart(cursorLocationTextNode, 3)
+      range.setEnd(cursorLocationTextNode, 4)
+      rangeRect = range.getBoundingClientRect()
+
+      expect(cursorRect.left).toBe rangeRect.left
+      expect(cursorRect.width).toBe rangeRect.width
+
     it "positions cursors correctly after character widths are changed via a stylesheet change", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
