@@ -47,7 +47,8 @@
     "semver": "~2.2.1",
     "mv": "2.0.0",
     "open": "0.0.4",
-    "exit": "0.1.2"
+    "exit": "0.1.2",
+    "rimraf": "^2.2.8"
   },
   "devDependencies": {
     "jasmine-focused": ">=1.0.5 <2.0",
