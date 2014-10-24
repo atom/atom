@@ -314,7 +314,7 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
     @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettingPriority = {indexBase: 1000}
+    @usersScopedSettingPriority = {priority: 1000}
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
