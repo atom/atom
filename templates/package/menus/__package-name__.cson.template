@@ -2,7 +2,7 @@
 'context-menu':
   'atom-text-editor': [
     {
-      'label': 'Enable __package-name__'
+      'label': 'Toggle __package-name__'
       'command': '__package-name__:toggle'
     }
   ]
