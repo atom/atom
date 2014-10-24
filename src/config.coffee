@@ -314,6 +314,7 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
     @usersScopedSettings = new CompositeDisposable
+    @usersScopedSettingPriority = {priority: 1000}
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
@@ -537,7 +538,7 @@ class Config
       settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
       @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
       _.setValueForKeyPath(settings, keyPath, undefined)
-      @addScopedSettings('user-config', scopeSelector, settings)
+      @addScopedSettings('user-config', scopeSelector, settings, @usersScopedSettingPriority)
       @save() unless @configFileHasErrors
       @getDefault(scopeSelector, keyPath)
     else
@@ -881,13 +882,13 @@ class Config
   resetUserScopedSettings: (newScopedSettings) ->
     @usersScopedSettings?.dispose()
     @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', newScopedSettings)
+    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', newScopedSettings, @usersScopedSettingPriority)
     @emitter.emit 'did-change'
 
-  addScopedSettings: (source, selector, value) ->
+  addScopedSettings: (source, selector, value, options) ->
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    disposable = @scopedSettingsStore.addProperties(source, settingsBySelector)
+    disposable = @scopedSettingsStore.addProperties(source, settingsBySelector, options)
     @emitter.emit 'did-change'
     new Disposable =>
       disposable.dispose()
@@ -901,7 +902,7 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', settingsBySelector)
+    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', settingsBySelector, @usersScopedSettingPriority)
     @emitter.emit 'did-change'
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->

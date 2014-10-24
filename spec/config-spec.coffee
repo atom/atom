@@ -1075,6 +1075,13 @@ describe "Config", ->
           atom.config.setDefaults("foo", hasDefault: 'ok')
           expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.hasDefault")).toBe 'ok'
 
+      describe 'setting priority', ->
+        describe 'when package settings are added after user settings', ->
+          it "returns the user's setting because the user's setting has higher priority", ->
+            atom.config.set(".source.coffee", "foo.bar.baz", 100)
+            atom.config.addScopedSettings("some-package", ".source.coffee", foo: bar: baz: 1)
+            expect(atom.config.get([".source.coffee"], "foo.bar.baz")).toBe 100
+
     describe ".set(scope, keyPath, value)", ->
       it "sets the value and overrides the others", ->
         atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
