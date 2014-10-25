@@ -79,7 +79,7 @@ module.exports =
         default: true
       nonWordCharacters:
         type: 'string'
-        default: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
+        default: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-_"
       preferredLineLength:
         type: 'integer'
         default: 80
