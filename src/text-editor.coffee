@@ -752,7 +752,7 @@ class TextEditor extends Model
     @insertText('\n')
 
   # Essential: For each selection, if the selection is empty, delete the character
-  # preceding the cursor. Otherwise delete the selected text.
+  # following the cursor. Otherwise delete the selected text.
   delete: ->
     @mutateSelectedText (selection) -> selection.delete()
 
