@@ -49,7 +49,7 @@ describe "WorkspaceView", ->
 
           expect(atom.workspaceView.getEditorViews().length).toBe 2
           expect(atom.workspaceView.getActivePaneView()).toBe atom.workspaceView.getPaneViews()[1]
-          expect(document.title).toBe "untitled - #{atom.project.getPaths()[0]}"
+          expect(document.title).toBe "untitled - #{atom.project.getPaths()[0]} - Atom"
 
     describe "when there are open editors", ->
       it "constructs the view with the same panes", ->
@@ -82,10 +82,10 @@ describe "WorkspaceView", ->
           simulateReload()
 
           expect(atom.workspaceView.getEditorViews().length).toBe 4
-          editorView1 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(0)').view()
-          editorView3 = atom.workspaceView.panes.find('.pane-row > .pane .editor:eq(1)').view()
-          editorView2 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(0)').view()
-          editorView4 = atom.workspaceView.panes.find('.pane-row > .pane-column > .pane .editor:eq(1)').view()
+          editorView1 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane atom-text-editor:eq(0)').view()
+          editorView3 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane atom-text-editor:eq(1)').view()
+          editorView2 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane atom-text-editor:eq(0)').view()
+          editorView4 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane atom-text-editor:eq(1)').view()
 
           expect(editorView1.getEditor().getPath()).toBe atom.project.resolve('a')
           expect(editorView2.getEditor().getPath()).toBe atom.project.resolve('b')
@@ -106,7 +106,7 @@ describe "WorkspaceView", ->
           expect(editorView3).not.toHaveFocus()
           expect(editorView4).not.toHaveFocus()
 
-          expect(document.title).toBe "#{path.basename(editorView2.getEditor().getPath())} - #{atom.project.getPaths()[0]}"
+          expect(document.title).toBe "#{path.basename(editorView2.getEditor().getPath())} - #{atom.project.getPaths()[0]} - Atom"
 
     describe "where there are no open editors", ->
       it "constructs the view with no open editors", ->
@@ -248,8 +248,8 @@ describe "WorkspaceView", ->
 
     beforeEach ->
       atom.workspaceView.attachToDom()
-      editorNode = atom.workspaceView.find('.editor')[0]
-      editor = atom.workspaceView.find('.editor').view().getEditor()
+      editorNode = atom.workspaceView.find('atom-text-editor')[0]
+      editor = atom.workspaceView.find('atom-text-editor').view().getEditor()
 
     it "updates the font-size based on the 'editor.fontSize' config value", ->
       initialCharWidth = editor.getDefaultCharWidth()
@@ -270,3 +270,19 @@ describe "WorkspaceView", ->
       atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorNode).lineHeight).toBe atom.config.get('editor.lineHeight')
       expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight
+
+  describe 'panel containers', ->
+    workspaceElement = null
+    beforeEach ->
+      workspaceElement = atom.workspace.getView(atom.workspace)
+
+    it 'inserts panel container elements in the correct places in the DOM', ->
+      leftContainer = workspaceElement.querySelector('atom-panel-container[location="left"]')
+      rightContainer = workspaceElement.querySelector('atom-panel-container[location="right"]')
+      expect(leftContainer.nextSibling).toBe workspaceElement.verticalAxis
+      expect(rightContainer.previousSibling).toBe workspaceElement.verticalAxis
+
+      topContainer = workspaceElement.querySelector('atom-panel-container[location="top"]')
+      bottomContainer = workspaceElement.querySelector('atom-panel-container[location="bottom"]')
+      expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
+      expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer

@@ -7,6 +7,7 @@ React = require 'react-atom-fork'
 Decoration = require './decoration'
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
+textUtils = require './text-utils'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -217,20 +218,20 @@ LinesComponent = React.createClass
         html += "<span class='invisible-character'>#{invisible}</span>"
     html
 
-  updateScopeStack: (scopeStack, desiredScopes) ->
+  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
     html = ""
 
     # Find a common prefix
-    for scope, i in desiredScopes
-      break unless scopeStack[i] is desiredScopes[i]
+    for scope, i in desiredScopeDescriptor
+      break unless scopeStack[i] is desiredScopeDescriptor[i]
 
-    # Pop scopes until we're at the common prefx
+    # Pop scopeDescriptor until we're at the common prefx
     until scopeStack.length is i
       html += @popScope(scopeStack)
 
-    # Push onto common prefix until scopeStack equals desiredScopes
-    for j in [i...desiredScopes.length]
-      html += @pushScope(scopeStack, desiredScopes[j])
+    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
+    for j in [i...desiredScopeDescriptor.length]
+      html += @pushScope(scopeStack, desiredScopeDescriptor[j])
 
     html
 
@@ -311,7 +312,17 @@ LinesComponent = React.createClass
     for {value, scopes}, tokenIndex in tokenizedLine.tokens
       charWidths = editor.getScopedCharWidths(scopes)
 
-      for char in value
+      valueIndex = 0
+      while valueIndex < value.length
+        if textUtils.isPairedCharacter(value, valueIndex)
+          char = value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         continue if char is '\0'
 
         unless charWidths[char]?
@@ -329,11 +340,11 @@ LinesComponent = React.createClass
 
           i = charIndex - textNodeIndex
           rangeForMeasurement.setStart(textNode, i)
-          rangeForMeasurement.setEnd(textNode, i + 1)
+          rangeForMeasurement.setEnd(textNode, i + charLength)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
           editor.setScopedCharWidth(scopes, char, charWidth)
 
-        charIndex++
+        charIndex += charLength
 
     @measuredLines.add(tokenizedLine)
 

@@ -43,7 +43,7 @@ class PaneView extends View
     @subscriptions.add @model.onDidDestroy(@onPaneDestroyed)
 
   afterAttach: ->
-    @container ?= @closest('.panes').view()
+    @container ?= @closest('atom-pane-container').view()
     @trigger('pane:attached', [this]) unless @attached
     @attached = true
 
@@ -169,7 +169,7 @@ class PaneView extends View
 
   splitDown: (items...) -> @model.getView(@model.splitDown({items})).__spacePenView
 
-  getContainer: -> @closest('.panes').view()
+  getContainer: -> @closest('atom-pane-container').view()
 
   focus: ->
     @element.focus()

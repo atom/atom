@@ -277,7 +277,7 @@ describe "TextEditorComponent", ->
         expect(leafNodes[0].classList.contains('invisible-character')).toBe true
         expect(leafNodes[leafNodes.length - 1].classList.contains('invisible-character')).toBe true
 
-      it "displays newlines as their own token outside of the other tokens' scopes", ->
+      it "displays newlines as their own token outside of the other tokens' scopeDescriptor", ->
         editor.setText "var\n"
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
@@ -693,6 +693,24 @@ describe "TextEditorComponent", ->
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
+      rangeRect = range.getBoundingClientRect()
+
+      expect(cursorRect.left).toBe rangeRect.left
+      expect(cursorRect.width).toBe rangeRect.width
+
+    it "accounts for the width of paired characters when positioning cursors", ->
+      atom.config.set('editor.fontFamily', 'sans-serif')
+      editor.setText('he\u0301y') # e with an accent mark
+      editor.setCursorBufferPosition([0, 3])
+      nextAnimationFrame()
+
+      cursor = componentNode.querySelector('.cursor')
+      cursorRect = cursor.getBoundingClientRect()
+
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').firstChild
+      range = document.createRange()
+      range.setStart(cursorLocationTextNode, 3)
+      range.setEnd(cursorLocationTextNode, 4)
       rangeRect = range.getBoundingClientRect()
 
       expect(cursorRect.left).toBe rangeRect.left
@@ -1229,6 +1247,22 @@ describe "TextEditorComponent", ->
 
     beforeEach ->
       linesNode = componentNode.querySelector('.lines')
+
+    describe "when the mouse is single-clicked below the last line", ->
+      it "moves the cursor to the end of file buffer position", ->
+        editor.setText('foo')
+        editor.setCursorBufferPosition([0, 0])
+        height = 4.5 * lineHeightInPixels
+        wrapperNode.style.height = height + 'px'
+        wrapperNode.style.width = 10 * charWidth + 'px'
+        component.measureHeightAndWidth()
+        nextAnimationFrame()
+
+        coordinates = clientCoordinatesForScreenPosition([0, 2])
+        coordinates.clientY = height * 2
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
+        nextAnimationFrame()
+        expect(editor.getCursorScreenPosition()).toEqual [0, 3]
 
     describe "when a non-folded line is single-clicked", ->
       describe "when no modifier keys are held down", ->

@@ -10,6 +10,10 @@ Grim = require 'grim'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
+Panel = require './panel'
+PanelElement = require './panel-element'
+PanelContainer = require './panel-container'
+PanelContainerElement = require './panel-container-element'
 ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
 
@@ -45,6 +49,12 @@ class Workspace extends Model
     @paneContainer ?= new PaneContainer({@viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
 
+    @panelContainers =
+      top: new PanelContainer({@viewRegistry, location: 'top'})
+      left: new PanelContainer({@viewRegistry, location: 'left'})
+      right: new PanelContainer({@viewRegistry, location: 'right'})
+      bottom: new PanelContainer({@viewRegistry, location: 'bottom'})
+
     @subscribeToActiveItem()
 
     @addOpener (filePath) =>
@@ -61,6 +71,14 @@ class Workspace extends Model
     @addViewProvider
       modelConstructor: Workspace
       viewConstructor: WorkspaceElement
+
+    @addViewProvider
+      modelConstructor: PanelContainer
+      viewConstructor: PanelContainerElement
+
+    @addViewProvider
+      modelConstructor: Panel
+      viewConstructor: PanelElement
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
@@ -136,15 +154,16 @@ class Workspace extends Model
   # Updates the application's title and proxy icon based on whichever file is
   # open.
   updateWindowTitle: =>
+    appName = 'Atom'
     if projectPath = atom.project?.getPaths()[0]
       if item = @getActivePaneItem()
-        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath}"
+        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath} - #{appName}"
         atom.setRepresentedFilename(item.getPath?() ? projectPath)
       else
-        document.title = projectPath
+        document.title = "#{projectPath} - #{appName}"
         atom.setRepresentedFilename(projectPath)
     else
-      document.title = 'untitled'
+      document.title = "untitled - #{appName}"
       atom.setRepresentedFilename('')
 
   # On OS X, fades the application window's proxy icon when the current file
@@ -577,6 +596,76 @@ class Workspace extends Model
     @paneContainer.destroy()
     @activeItemSubscriptions?.dispose()
 
+
+  ###
+  Section: Panels
+  ###
+
+  # Essential: Adds a panel item to the bottom of the editor window.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addBottomPanel: (options) ->
+    @addPanel('bottom', options)
+
+  # Essential: Adds a panel item to the left of the editor window.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addLeftPanel: (options) ->
+    @addPanel('left', options)
+
+  # Essential: Adds a panel item to the right of the editor window.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addRightPanel: (options) ->
+    @addPanel('right', options)
+
+  # Essential: Adds a panel item to the top of the editor window above the tabs.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {::addViewProvider}. We recommend the
+  #     latter. See {::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addTopPanel: (options) ->
+    @addPanel('top', options)
+
+  addPanel: (location, options) ->
+    options ?= {}
+    options.viewRegistry = @viewRegistry
+    @panelContainers[location].addPanel(new Panel(options))
+
   ###
   Section: View Management
   ###
@@ -627,7 +716,7 @@ class Workspace extends Model
   # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
   # an ideal tool for implementing views in Atom.
   #
-  # ## Example
+  # ## Examples
   #
   # Text editors are divided into a model and a view layer, so when you interact
   # with methods like `atom.workspace.getActiveTextEditor()` you're only going

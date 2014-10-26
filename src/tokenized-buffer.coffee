@@ -6,6 +6,7 @@ EmitterMixin = require('emissary').Emitter
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
+ScopeDescriptor = require './scope-descriptor'
 Grim = require 'grim'
 
 module.exports =
@@ -79,15 +80,19 @@ class TokenizedBuffer extends Model
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
-    @grammarScopeDescriptor = [@grammar.scopeName]
+    @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
-    @retokenizeLines()
+
+    @configSettings = tabLength: atom.config.get(@rootScopeDescriptor, 'editor.tabLength')
 
     @grammarTabLengthSubscription?.dispose()
-    @grammarTabLengthSubscription = atom.config.onDidChange @grammarScopeDescriptor, 'editor.tabLength', =>
+    @grammarTabLengthSubscription = atom.config.onDidChange @rootScopeDescriptor, 'editor.tabLength', ({newValue}) =>
+      @configSettings.tabLength = newValue
       @retokenizeLines()
     @subscribe @grammarTabLengthSubscription
+
+    @retokenizeLines()
 
     @emit 'grammar-changed', grammar
     @emitter.emit 'did-change-grammar', grammar
@@ -118,7 +123,7 @@ class TokenizedBuffer extends Model
     @tokenizeInBackground() if @visible
 
   getTabLength: ->
-    @tabLength ? atom.config.get(@grammarScopeDescriptor, 'editor.tabLength')
+    @tabLength ? @configSettings.tabLength
 
   setTabLength: (@tabLength) ->
     @retokenizeLines()
@@ -298,8 +303,8 @@ class TokenizedBuffer extends Model
     else
       0
 
-  scopesForPosition: (position) ->
-    @tokenForPosition(position).scopes
+  scopeDescriptorForPosition: (position) ->
+    new ScopeDescriptor(scopes: @tokenForPosition(position).scopes)
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)

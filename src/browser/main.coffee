@@ -78,13 +78,18 @@ parseCommandLine = ->
 
     Folder paths will open in an existing window if that folder has already been
     opened or a new window if it hasn't.
+
+    Environment Variables:
+    ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
+                            Defaults to `~/github/atom`.
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
-  options.alias('s', 'spec-directory').string('s').describe('s', 'Set the spec directory (default: Atom\'s spec directory).')
+  options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
+  options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which to run package specs (default: Atom\'s spec directory).')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
@@ -113,8 +118,18 @@ parseCommandLine = ->
   if args['resource-path']
     devMode = true
     resourcePath = args['resource-path']
-  else if devMode
-    resourcePath = global.devResourcePath
+  else
+    # Set resourcePath based on the specDirectory if running specs on atom core
+    if specDirectory?
+      packageDirectoryPath = path.join(specDirectory, '..')
+      packageManifestPath = path.join(packageDirectoryPath, 'package.json')
+      if fs.statSyncNoException(packageManifestPath)
+        try
+          packageManifest = JSON.parse(fs.readFileSync(packageManifestPath))
+          resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
+
+    if devMode
+      resourcePath ?= global.devResourcePath
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))

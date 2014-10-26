@@ -210,7 +210,7 @@ specific parts of the interface, like adding a file in the tree-view:
   '.tree-view': [
     {label: 'Add file', command: 'tree-view:add-file'}
   ]
-  '.workspace': [
+  'atom-workspace': [
     {label: 'Inspect Element', command: 'core:inspect'}
   ]
 ```
@@ -233,7 +233,7 @@ an item with a single `type: 'separator'` key/value pair.
 
 ```coffeescript
 'context-menu':
-  '.workspace': [
+  'atom-workspace': [
     {
       label: 'Text'
       submenu: [

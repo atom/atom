@@ -4,6 +4,8 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 
+concurrency = 2
+
 module.exports = (grunt) ->
   {isAtomPackage, spawn} = require('./task-helpers')(grunt)
 
@@ -61,7 +63,7 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       packageSpecQueue.push(packagePath)
 
-    packageSpecQueue.concurrency = 1
+    packageSpecQueue.concurrency = concurrency - 1
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
@@ -84,7 +86,7 @@ module.exports = (grunt) ->
         fs.unlinkSync('ci.log')
       else
         # TODO: Restore concurrency on Windows
-        packageSpecQueue.concurrency = 2
+        packageSpecQueue.concurrency = concurrency
 
       callback(null, error)
 
@@ -102,7 +104,7 @@ module.exports = (grunt) ->
     method [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecFailed, failedPackages] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
-      grunt.verbose.writeln("Total spec time: #{elapsedTime}s")
+      grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
       failures = failedPackages
       failures.push "atom core" if coreSpecFailed
 

@@ -376,7 +376,7 @@ describe "Workspace", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
         atom.project.setPath(undefined)
-        expect(document.title).toBe 'untitled'
+        expect(document.title).toBe 'untitled - Atom'
 
     describe "when the project has a path", ->
       beforeEach ->
@@ -386,25 +386,25 @@ describe "Workspace", ->
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.workspace.getActivePaneItem()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
+          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          expect(document.title).toBe "#{editor.getTitle()} - #{atom.project.getPaths()[0]}"
+          expect(document.title).toBe "#{editor.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.workspace.getActivePane().activateNextItem()
           item = atom.workspace.getActivePaneItem()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
+          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          expect(document.title).toBe atom.project.getPaths()[0]
+          expect(document.title).toBe "#{atom.project.getPaths()[0]} - Atom"
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
@@ -422,7 +422,7 @@ describe "Workspace", ->
         document.title = null
         workspace2 = atom.workspace.testSerialization()
         item = atom.workspace.getActivePaneItem()
-        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]}"
+        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
         workspace2.destroy()
 
   describe "document edited status", ->
@@ -456,3 +456,39 @@ describe "Workspace", ->
 
       expect(item2.isModified()).toBe false
       expect(atom.setDocumentEdited).toHaveBeenCalledWith(false)
+
+  describe "adding panels", ->
+    class TestPanel
+      constructior: ->
+
+    describe '::addLeftPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.left.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addLeftPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addRightPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.right.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addRightPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addTopPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.top.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addTopPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addBottomPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.bottom.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addBottomPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})

@@ -1,5 +1,16 @@
 @import "ui-variables";
 
+atom-panel-container[location="left"],
+atom-panel-container[location="right"] {
+  display: -webkit-flex;
+  -webkit-flex-direction: row;
+  -webkit-align-items: stretch;
+  height: 100%;
+  atom-panel {
+    height: 100%;
+  }
+}
+
 // Override bootstrap styles here.
 .panel {
   border-radius: 0;

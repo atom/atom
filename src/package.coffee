@@ -10,7 +10,13 @@ Q = require 'q'
 {deprecate} = require 'grim'
 
 $ = null # Defer require in case this is in the window-less browser process
+ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
+
+try
+  packagesCache = require('../package.json')?._atomPackages ? {}
+catch error
+  packagesCache = {}
 
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
@@ -20,14 +26,25 @@ class Package
 
   @stylesheetsDir: 'stylesheets'
 
+  @isBundledPackagePath: (packagePath) ->
+    if atom.packages.devMode
+      return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
+
+    @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
-    if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
-      try
-        metadata = CSON.readFileSync(metadataPath)
-      catch error
-        throw error unless ignoreErrors
+    packageName = path.basename(packagePath)
+    if @isBundledPackagePath(packagePath)
+      metadata = packagesCache[packageName]?.metadata
+    unless metadata?
+      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
+        try
+          metadata = CSON.readFileSync(metadataPath)
+        catch error
+          throw error unless ignoreErrors
     metadata ?= {}
-    metadata.name = path.basename(packagePath)
+    metadata.name = packageName
     metadata
 
   keymaps: null
@@ -46,7 +63,9 @@ class Package
   constructor: (@path, @metadata) ->
     @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
+    @bundledPackage = Package.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
+    ModuleCache.add(@path, @metadata)
     @reset()
 
   ###
@@ -175,10 +194,16 @@ class Package
     @scopedPropertiesActivated = true
 
   loadKeymaps: ->
-    @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
+    else
+      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
 
   loadMenus: ->
-    @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
+    else
+      @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
@@ -312,19 +337,31 @@ class Package
 
   requireMainModule: ->
     return @mainModule if @mainModule?
-    return unless @isCompatible()
+    unless @isCompatible()
+      console.warn """
+        Failed to require the main module of '#{@name}' because it requires an incompatible native module.
+        Run `apm rebuild` in the package directory to resolve.
+      """
+      return
     mainModulePath = @getMainModulePath()
     @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
-    mainModulePath =
-      if @metadata.main
-        path.join(@path, @metadata.main)
+
+    if @bundledPackage and packagesCache[@name]?
+      if packagesCache[@name].main
+        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{packagesCache[@name].main}"
       else
-        path.join(@path, 'index')
-    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+        @mainModulePath = null
+    else
+      mainModulePath =
+        if @metadata.main
+          path.join(@path, @metadata.main)
+        else
+          path.join(@path, 'index')
+      @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   hasActivationCommands: ->
     for selector, commands of @getActivationCommands()
@@ -336,8 +373,10 @@ class Package
     for selector, commands of @getActivationCommands()
       for command in commands
         do (selector, command) =>
-          atom.commands.commandRegistered(command)
-          @activationCommandSubscriptions.add(atom.commands.onWillDispatch (event) =>
+          # Add dummy command so it appears in menu.
+          # The real command will be registered on package activation
+          @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          @activationCommandSubscriptions.add atom.commands.onWillDispatch (event) =>
             return unless event.type is command
             currentTarget = event.target
             while currentTarget
@@ -346,7 +385,6 @@ class Package
                 @activateNow()
                 break
               currentTarget = currentTarget.parentElement
-          )
 
   getActivationCommands: ->
     return @activationCommands if @activationCommands?
@@ -364,15 +402,15 @@ class Package
     if @metadata.activationEvents?
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
-          @activationCommands['.workspace'] ?= []
-          @activationCommands['.workspace'].push(eventName)
+          @activationCommands['atom-workspace'] ?= []
+          @activationCommands['atom-workspace'].push(eventName)
       else if _.isString(@metadata.activationEvents)
         eventName = @metadata.activationEvents
-        @activationCommands['.workspace'] ?= []
-        @activationCommands['.workspace'].push(eventName)
+        @activationCommands['atom-workspace'] ?= []
+        @activationCommands['atom-workspace'].push(eventName)
       else
         for eventName, selector of @metadata.activationEvents
-          selector ?= '.workspace'
+          selector ?= 'atom-workspace'
           @activationCommands[selector] ?= []
           @activationCommands[selector].push(eventName)
 

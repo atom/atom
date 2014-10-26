@@ -1,20 +1,26 @@
 _ = require 'underscore-plus'
-spacePen = require 'space-pen'
+SpacePen = require 'space-pen'
 {Subscriber} = require 'emissary'
 
-Subscriber.includeInto(spacePen.View)
+Subscriber.includeInto(SpacePen.View)
 
-jQuery = spacePen.jQuery
+jQuery = SpacePen.jQuery
 JQueryCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
   jQuery(element).view()?.unsubscribe() for element in elements
   JQueryCleanData(elements)
 
+SpacePenCallRemoveHooks = SpacePen.callRemoveHooks
+SpacePen.callRemoveHooks = (element) ->
+  view.unsubscribe() for view in SpacePen.viewsForElement(element)
+  SpacePenCallRemoveHooks(element)
+
 NativeEventNames = new Set
 NativeEventNames.add(nativeEvent) for nativeEvent in ["blur", "focus", "focusin",
 "focusout", "load", "resize", "scroll", "unload", "click", "dblclick", "mousedown",
 "mouseup", "mousemove", "mouseover", "mouseout", "mouseenter", "mouseleave", "change",
-"select", "submit", "keydown", "keypress", "keyup", "error", "contextmenu"]
+"select", "submit", "keydown", "keypress", "keyup", "error", "contextmenu", "textInput",
+"textinput"]
 
 JQueryTrigger = jQuery.fn.trigger
 jQuery.fn.trigger = (eventName, data) ->
@@ -133,4 +139,4 @@ jQuery.fn.setTooltip.humanizeKeystrokes = humanizeKeystrokes
 
 Object.defineProperty jQuery.fn, 'element', get: -> @[0]
 
-module.exports = spacePen
+module.exports = SpacePen

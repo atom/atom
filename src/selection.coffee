@@ -461,7 +461,8 @@ class Selection extends Model
         end--
       @editor.buffer.deleteRows(start, end)
 
-  # Public: Joins the current line with the one below it.
+  # Public: Joins the current line with the one below it. Lines will
+  # be separated by a single space.
   #
   # If there selection spans more than one line, all the lines are joined together.
   joinLines: ->
@@ -475,14 +476,32 @@ class Selection extends Model
     for row in [0...rowCount]
       @cursor.setBufferPosition([selectedRange.start.row])
       @cursor.moveToEndOfLine()
-      nextRow = selectedRange.start.row + 1
-      if nextRow <= @editor.buffer.getLastRow() and @editor.buffer.lineLengthForRow(nextRow) > 0
-        @insertText(' ')
-        @cursor.moveToEndOfLine()
+
+      # Remove trailing whitespace from the current line
+      scanRange = @cursor.getCurrentLineBufferRange()
+      trailingWhitespaceRange = null
+      @editor.scanInBufferRange /[ \t]+$/, scanRange, ({range}) ->
+        trailingWhitespaceRange = range
+      if trailingWhitespaceRange?
+        @setBufferRange(trailingWhitespaceRange)
+        @deleteSelectedText()
+
+      currentRow = selectedRange.start.row
+      nextRow = currentRow + 1
+      insertSpace = nextRow <= @editor.buffer.getLastRow() and
+                    @editor.buffer.lineLengthForRow(nextRow) > 0 and
+                    @editor.buffer.lineLengthForRow(currentRow) > 0
+      @insertText(' ') if insertSpace
+
+      @cursor.moveToEndOfLine()
+
+      # Remove leading whitespace from the line below
       @modifySelection =>
         @cursor.moveRight()
         @cursor.moveToFirstCharacterOfLine()
       @deleteSelectedText()
+
+      @cursor.moveLeft() if insertSpace
 
     if joinMarker?
       newSelectedRange = joinMarker.getBufferRange()

@@ -209,7 +209,7 @@ class TextEditorView extends View
   #
   # Returns a {PaneView}
   getPaneView: ->
-    @parent('.item-views').parents('.pane').view()
+    @parent('.item-views').parents('atom-pane').view()
   getPane: ->
     deprecate 'Use TextEditorView::getPaneView() instead'
     @getPaneView()

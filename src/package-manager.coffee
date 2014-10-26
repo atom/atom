@@ -29,11 +29,11 @@ module.exports =
 class PackageManager
   EmitterMixin.includeInto(this)
 
-  constructor: ({configDirPath, devMode, safeMode, @resourcePath}) ->
+  constructor: ({configDirPath, @devMode, safeMode, @resourcePath}) ->
     @emitter = new Emitter
     @packageDirPaths = []
     unless safeMode
-      if devMode
+      if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 

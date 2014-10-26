@@ -39,7 +39,7 @@ module.exports = (grunt) ->
     getInstalledSize buildDir, (error, installedSize) ->
       data = {name, version, description, section, arch, maintainer, installDir, iconName, installedSize}
       controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
-      desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
+      desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
       icon = path.join('resources', 'atom.png')
 
       cmd = path.join('script', 'mkdeb')

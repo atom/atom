@@ -3412,9 +3412,12 @@ describe "TextEditor", ->
     describe "when no text is selected", ->
       describe "when the line below isn't empty", ->
         it "joins the line below with the current line separated by a space and moves the cursor to the start of line that was moved up", ->
+          editor.setCursorBufferPosition([0, Infinity])
+          editor.insertText('  ')
+          editor.setCursorBufferPosition([0])
           editor.joinLines()
           expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () { var sort = function(items) {'
-          expect(editor.getCursorBufferPosition()).toEqual [0, 30]
+          expect(editor.getCursorBufferPosition()).toEqual [0, 29]
 
       describe "when the line below is empty", ->
         it "deletes the line below and moves the cursor to the end of the line", ->
@@ -3429,6 +3432,13 @@ describe "TextEditor", ->
           editor.setCursorBufferPosition([Infinity, Infinity])
           editor.joinLines()
           expect(editor.lineTextForBufferRow(12)).toBe '};'
+
+      describe "when the line is empty", ->
+        it "joins the line below with the current line with no added space", ->
+          editor.setCursorBufferPosition([10])
+          editor.joinLines()
+          expect(editor.lineTextForBufferRow(10)).toBe 'return sort(Array.apply(this, arguments));'
+          expect(editor.getCursorBufferPosition()).toEqual [10, 0]
 
     describe "when text is selected", ->
       describe "when the selection does not span multiple lines", ->

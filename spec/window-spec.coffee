@@ -114,7 +114,7 @@ describe "Window", ->
         buffer = atom.workspace.getActivePaneItem().buffer
         pane = atom.workspaceView.getActivePaneView()
         pane.splitRight(pane.copyActiveItem())
-        expect(atom.workspaceView.find('.editor').length).toBe 2
+        expect(atom.workspaceView.find('atom-text-editor').length).toBe 2
 
         atom.removeEditorWindow()
 

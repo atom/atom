@@ -44,7 +44,7 @@ normalizeLabel = (label) ->
     label.replace(/\&/g, '')
 
 cloneMenuItem = (item) ->
-  item = _.pick(item, 'type', 'label', 'command', 'submenu', 'commandDetail')
+  item = _.pick(item, 'type', 'label', 'enabled', 'command', 'submenu', 'commandDetail')
   if item.submenu?
     item.submenu = item.submenu.map (submenuItem) -> cloneMenuItem(submenuItem)
   item

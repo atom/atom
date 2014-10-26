@@ -29,8 +29,8 @@ class LanguageMode
   #
   # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
-    scopes = @editor.scopesForBufferPosition([start, 0])
-    properties = atom.config.settingsForScopeDescriptor(scopes, 'editor.commentStart')[0]
+    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([start, 0])
+    properties = atom.config.settingsForScopeDescriptor(scopeDescriptor, 'editor.commentStart')[0]
     return unless properties
 
     commentStartString = _.valueForKeyPath(properties, 'editor.commentStart')
@@ -168,12 +168,12 @@ class LanguageMode
     return null unless @isFoldableAtBufferRow(bufferRow)
 
     startIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopes = @editor.scopesForBufferPosition([bufferRow, 0])
+    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     for row in [(bufferRow + 1)..@editor.getLastBufferRow()]
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes)?.searchSync(@editor.lineTextForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopeDescriptor(scopeDescriptor)?.searchSync(@editor.lineTextForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -246,8 +246,8 @@ class LanguageMode
   # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow) ->
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopes = @editor.scopesForBufferPosition([bufferRow, 0])
-    return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
+    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
+    return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
     currentLine = @buffer.lineForRow(bufferRow)
     precedingRow = if bufferRow > 0 then bufferRow - 1 else null
@@ -257,7 +257,7 @@ class LanguageMode
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
-    return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
+    return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
 
     Math.max(desiredIndentLevel, 0)
@@ -292,9 +292,9 @@ class LanguageMode
   #
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
-    scopes = @editor.scopesForBufferPosition([bufferRow, 0])
-    increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
-    decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
+    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
+    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     return unless increaseIndentRegex and decreaseIndentRegex
 
     line = @buffer.lineForRow(bufferRow)
@@ -311,15 +311,15 @@ class LanguageMode
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
-  getRegexForProperty: (scopes, property) ->
-    if pattern = atom.config.get(scopes, property)
+  getRegexForProperty: (scopeDescriptor, property) ->
+    if pattern = atom.config.get(scopeDescriptor, property)
       new OnigRegExp(pattern)
 
-  increaseIndentRegexForScopes: (scopes) ->
-    @getRegexForProperty(scopes, 'editor.increaseIndentPattern')
+  increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')
 
-  decreaseIndentRegexForScopes: (scopes) ->
-    @getRegexForProperty(scopes, 'editor.decreaseIndentPattern')
+  decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
 
-  foldEndRegexForScopes: (scopes) ->
-    @getRegexForProperty(scopes, 'editor.foldEndPattern')
+  foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')

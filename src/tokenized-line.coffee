@@ -233,19 +233,19 @@ class TokenizedLine
     @updateScopeStack(scopeStack, [])
     @scopeTree
 
-  updateScopeStack: (scopeStack, desiredScopes) ->
+  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
     # Find a common prefix
-    for scope, i in desiredScopes
-      break unless scopeStack[i]?.scope is desiredScopes[i]
+    for scope, i in desiredScopeDescriptor
+      break unless scopeStack[i]?.scope is desiredScopeDescriptor[i]
 
-    # Pop scopes until we're at the common prefx
+    # Pop scopeDescriptor until we're at the common prefx
     until scopeStack.length is i
       poppedScope = scopeStack.pop()
       _.last(scopeStack)?.children.push(poppedScope)
 
-    # Push onto common prefix until scopeStack equals desiredScopes
-    for j in [i...desiredScopes.length]
-      scopeStack.push(new Scope(desiredScopes[j]))
+    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
+    for j in [i...desiredScopeDescriptor.length]
+      scopeStack.push(new Scope(desiredScopeDescriptor[j]))
 
 class Scope
   constructor: (@scope) ->

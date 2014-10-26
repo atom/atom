@@ -4,6 +4,9 @@ Atom is a hackable text editor for the 21st century, built on [atom-shell](http:
 
 Visit [atom.io](https://atom.io) to learn more.
 
+Visit [issue #3684](https://github.com/atom/atom/issues/3684) to learn more
+about the Atom 1.0 roadmap.
+
 ## Installing
 
 ### Mac OS X

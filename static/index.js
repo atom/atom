@@ -1,9 +1,18 @@
 window.onload = function() {
-  var path = require('path');
-  var ipc = require('ipc');
   try {
+    var startTime = Date.now();
+
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
+
+    // Require before the module cache in dev mode
+    if (loadSettings.devMode) {
+      require('coffee-script').register();
+    }
+
+    ModuleCache = require('../src/module-cache');
+    ModuleCache.register(loadSettings);
+    ModuleCache.add(loadSettings.resourcePath);
 
     // Start the crash reporter before anything else.
     require('crash-reporter').start({
@@ -15,10 +24,20 @@ window.onload = function() {
     });
 
     require('vm-compatibility-layer');
-    require('coffee-script').register();
-    require(path.resolve(__dirname, '..', 'src', 'coffee-cache')).register();
+
+    if (!loadSettings.devMode) {
+      require('coffee-script').register();
+    }
+
+    require('../src/coffee-cache').register();
+
     require(loadSettings.bootstrapScript);
-    ipc.sendChannel('window-command', 'window:loaded')
+    require('ipc').sendChannel('window-command', 'window:loaded');
+
+    if (global.atom) {
+      global.atom.loadTime = Date.now() - startTime;
+      console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms');
+    }
   }
   catch (error) {
     var currentWindow = require('remote').getCurrentWindow();

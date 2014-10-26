@@ -11,6 +11,7 @@ Fold = require './fold'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
+textUtils = require './text-utils'
 Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
@@ -52,14 +53,12 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @updateAllScreenLines()
-    @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
     @subscribe @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
-
     @updateAllScreenLines()
+    @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
   subscribeToScopedConfigSettings: =>
     @scopedConfigSubscriptions?.dispose()
@@ -67,14 +66,29 @@ class DisplayBuffer extends Model
 
     scopeDescriptor = @getRootScopeDescriptor()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', =>
+    oldConfigSettings = @configSettings
+    @configSettings =
+      scrollPastEnd: atom.config.get(scopeDescriptor, 'editor.scrollPastEnd')
+      softWrap: atom.config.get(scopeDescriptor, 'editor.softWrap')
+      softWrapAtPreferredLineLength: atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
+      preferredLineLength: atom.config.get(scopeDescriptor, 'editor.preferredLineLength')
+
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', ({newValue}) =>
+      @configSettings.softWrap = newValue
       @updateWrappedScreenLines()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', =>
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', ({newValue}) =>
+      @configSettings.softWrapAtPreferredLineLength = newValue
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', =>
+    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', ({newValue}) =>
+      @configSettings.preferredLineLength = newValue
       @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
+
+    subscriptions.add atom.config.observe scopeDescriptor, 'editor.scrollPastEnd', (value) =>
+      @configSettings.scrollPastEnd = value
+
+    @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
 
   serializeParams: ->
     id: @id
@@ -328,7 +342,7 @@ class DisplayBuffer extends Model
     return 0 unless lineHeight > 0
 
     scrollHeight = @getLineCount() * lineHeight
-    if @height? and atom.config.get(@getRootScopeDescriptor(), 'editor.scrollPastEnd')
+    if @height? and @configSettings.scrollPastEnd
       scrollHeight = scrollHeight + @height - (lineHeight * 3)
 
     scrollHeight
@@ -429,7 +443,7 @@ class DisplayBuffer extends Model
       @isSoftWrapped()
 
   isSoftWrapped: ->
-    @softWrapped ? atom.config.get(@getRootScopeDescriptor(), 'editor.softWrap') ? false
+    @softWrapped ? @configSettings.softWrap ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -451,8 +465,8 @@ class DisplayBuffer extends Model
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get(@getRootScopeDescriptor(), 'editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.get(@getRootScopeDescriptor(), 'editor.preferredLineLength'))
+    if @configSettings.softWrapAtPreferredLineLength
+      Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
     else
       @getEditorWidthInChars()
 
@@ -638,10 +652,20 @@ class DisplayBuffer extends Model
     column = 0
     for token in @tokenizedLineForScreenRow(targetRow).tokens
       charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if textUtils.isPairedCharacter(token.value, valueIndex)
+          char = token.value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = token.value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         return {top, left} if column is targetColumn
         left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column++
+        column += charLength
     {top, left}
 
   screenPositionForPixelPosition: (pixelPosition) ->
@@ -649,6 +673,7 @@ class DisplayBuffer extends Model
     targetLeft = pixelPosition.left
     defaultCharWidth = @defaultCharWidth
     row = Math.floor(targetTop / @getLineHeightInPixels())
+    targetLeft = Infinity if row > @getLastRow()
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)
 
@@ -656,11 +681,21 @@ class DisplayBuffer extends Model
     column = 0
     for token in @tokenizedLineForScreenRow(row).tokens
       charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if textUtils.isPairedCharacter(token.value, valueIndex)
+          char = token.value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = token.value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         charWidth = charWidths[char] ? defaultCharWidth
         break if targetLeft <= left + (charWidth / 2)
         left += charWidth
-        column++
+        column += charLength
 
     new Point(row, column)
 
@@ -739,13 +774,13 @@ class DisplayBuffer extends Model
     [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
     new Point(bufferRow, @screenLines[row].bufferColumnForScreenColumn(column))
 
-  # Retrieves the grammar's token scopes for a buffer position.
+  # Retrieves the grammar's token scopeDescriptor for a buffer position.
   #
   # bufferPosition - A {Point} in the {TextBuffer}
   #
-  # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) ->
-    @tokenizedBuffer.scopesForPosition(bufferPosition)
+  # Returns a {ScopeDescriptor}.
+  scopeDescriptorForBufferPosition: (bufferPosition) ->
+    @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
     @tokenizedBuffer.bufferRangeForScopeAtPosition(selector, position)
@@ -1048,7 +1083,7 @@ class DisplayBuffer extends Model
       console.log row, @bufferRowForScreenRow(row), line, line.length
 
   getRootScopeDescriptor: ->
-    @tokenizedBuffer.grammarScopeDescriptor
+    @tokenizedBuffer.rootScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange

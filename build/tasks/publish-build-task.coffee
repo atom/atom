@@ -20,9 +20,9 @@ module.exports = (gruntObject) ->
   {cp} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
-    tasks = ['upload-assets']
-    tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
+    tasks = []
+    tasks.push('build-docs', 'prepare-docs') if process.platform is 'darwin'
+    tasks.push('upload-assets') if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master'
     grunt.task.run(tasks)
 
   grunt.registerTask 'prepare-docs', 'Move api.json to atom-api.json', ->
@@ -31,7 +31,16 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
-    done = @async()
+    doneCallback = @async()
+    startTime = Date.now()
+    done = (args...) ->
+      elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
+      grunt.log.ok("Upload time: #{elapsedTime}s")
+      doneCallback(args...)
+
+    unless token
+      return done(new Error('ATOM_ACCESS_TOKEN environment variable not set'))
+
     buildDir = grunt.config.get('atom.buildDir')
     assets = getAssets()
 
@@ -63,8 +72,20 @@ getAssets = ->
       else
         arch = 'amd64'
       {version} = grunt.file.readJSON('package.json')
+
+      # Check for a Debian build
       sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
       assetName = "atom-#{arch}.deb"
+
+      # Check for a Fedora build
+      unless fs.isFileSync(sourcePath)
+        rpmName = fs.readdirSync("#{buildDir}/rpm")[0]
+        sourcePath = "#{buildDir}/rpm/#{rpmName}"
+        if process.arch is 'ia32'
+          arch = 'i386'
+        else
+          arch = 'x86_64'
+        assetName = "atom.#{arch}.rpm"
 
       {cp} = require('./task-helpers')(grunt)
       cp sourcePath, path.join(buildDir, assetName)

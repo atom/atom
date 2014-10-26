@@ -99,7 +99,7 @@ stopCommandEventPropagation = (commandListeners) ->
         commandListener.call(this, event)
   newCommandListeners
 
-atom.commands.add '[is=atom-text-editor]', stopCommandEventPropagation(
+atom.commands.add 'atom-text-editor', stopCommandEventPropagation(
   'core:move-left': -> @getModel().moveLeft()
   'core:move-right': -> @getModel().moveRight()
   'core:select-left': -> @getModel().selectLeft()
@@ -149,7 +149,7 @@ atom.commands.add '[is=atom-text-editor]', stopCommandEventPropagation(
   'editor:lower-case': -> @getModel().lowerCase()
 )
 
-atom.commands.add '[is=atom-text-editor]:not(.mini)', stopCommandEventPropagation(
+atom.commands.add 'atom-text-editor:not(.mini)', stopCommandEventPropagation(
   'core:move-up': -> @getModel().moveUp()
   'core:move-down': -> @getModel().moveDown()
   'core:move-to-top': -> @getModel().moveToTop()
@@ -201,6 +201,4 @@ atom.commands.add '[is=atom-text-editor]:not(.mini)', stopCommandEventPropagatio
   'editor:scroll-to-cursor': -> @getModel().scrollToCursorPosition()
 )
 
-module.exports = TextEditorElement = document.registerElement 'atom-text-editor',
-  prototype: TextEditorElement.prototype
-  extends: 'div'
+module.exports = TextEditorElement = document.registerElement 'atom-text-editor', prototype: TextEditorElement.prototype

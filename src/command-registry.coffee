@@ -8,7 +8,7 @@ SpecificityCache = {}
 
 module.exports =
 
-# Experimental: Associates listener functions with commands in a
+# Public: Associates listener functions with commands in a
 # context-sensitive way using CSS selectors. You can access a global instance of
 # this class via `atom.commands`, and commands registered there will be
 # presented in the command palette.
@@ -35,7 +35,7 @@ module.exports =
 # Here is a command that inserts the current date in an editor:
 #
 # ```coffee
-# atom.commands.add '.editor',
+# atom.commands.add 'atom-text-editor',
 #   'user:insert-date': (event) ->
 #     editor = $(this).view().getModel()
 #     # soon the above above line will be:
@@ -115,7 +115,7 @@ class CommandRegistry
 
     @commandRegistered(commandName)
 
-    new Disposable =>
+    new Disposable ->
       listenersForElement.splice(listenersForElement.indexOf(listener), 1)
       listenersForCommand.delete(element) if listenersForElement.length is 0
 

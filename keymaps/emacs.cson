@@ -1,4 +1,4 @@
-'.editor':
+'atom-text-editor':
   'alt-f': 'editor:move-to-end-of-word'
   'alt-F': 'editor:select-to-end-of-word'
   'alt-b': 'editor:move-to-beginning-of-word'
