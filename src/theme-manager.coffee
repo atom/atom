@@ -161,9 +161,9 @@ class ThemeManager
     themeNames = themeNames.filter (themeName) ->
       themeName and typeof themeName is 'string'
 
-    # Use a built-in syntax and UI theme when in safe mode since themes
-    # installed to ~/.atom/packages will not be loaded.
-    if @safeMode
+    # Use a built-in syntax and UI theme any time the configured themes are not
+    # available.
+    if _.intersection(themeNames, atom.packages.getAvailablePackageNames()).length < 2
       builtInThemeNames = [
         'atom-dark-syntax'
         'atom-dark-ui'
