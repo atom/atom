@@ -63,8 +63,9 @@ class Pane extends Model
   getContainer: -> @container
 
   setContainer: (container) ->
-    container.didAddPane({pane: this}) unless container is @container
-    @container = container
+    unless container is @container
+      @container = container
+      container.didAddPane({pane: this})
 
   ###
   Section: Event Subscription
