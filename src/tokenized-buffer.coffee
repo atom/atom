@@ -29,7 +29,7 @@ class TokenizedBuffer extends Model
     @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
     @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
-    @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
+    @subscribe @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
     @reloadGrammar()
