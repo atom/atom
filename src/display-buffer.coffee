@@ -736,6 +736,10 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
+    # TODO: Expand this exception to cover all versions once we burn it in on non-release builds
+    if @isDestroyed() and not atom.isReleasedVersion()
+      throw new Error("This TextEditor has been destroyed")
+
     { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
@@ -1073,7 +1077,7 @@ class DisplayBuffer extends Model
       marker.notifyObservers(textChanged: false)
 
   destroyed: ->
-    marker.unsubscribe() for marker in @getMarkers()
+    marker.unsubscribe() for id, marker of @markers
     @tokenizedBuffer.destroy()
     @unsubscribe()
 

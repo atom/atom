@@ -37,6 +37,8 @@ class TextEditorElement extends HTMLElement
 
   setModel: (model) ->
     throw new Error("Model already assigned on TextEditorElement") if @model?
+    return if model.isDestroyed()
+
     @model = model
     @mountComponent()
     @addGrammarScopeAttribute()
