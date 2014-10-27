@@ -25,6 +25,8 @@ propose changes to this document in a pull request.
   full stack trace and include it in the issue.
 * On Mac, check Console.app for stack traces to include if reporting a crash.
 * Perform a cursory search to see if a similar issue has already been submitted.
+* Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
+  to make yourself recognizable and so we can all get to know each other better.
 
 ### Package Repositories
 
