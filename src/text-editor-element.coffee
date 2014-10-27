@@ -43,6 +43,7 @@ class TextEditorElement extends HTMLElement
     @mountComponent()
     @addGrammarScopeAttribute()
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
+    @model.onDidDestroy => @unmountComponent()
     @__spacePenView.setModel(@model)
     @model
 
