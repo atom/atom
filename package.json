@@ -1,4 +1,4 @@
-{
+  {
   "name": "atom",
   "productName": "Atom",
   "version": "0.140.0",
@@ -130,7 +130,7 @@
     "language-php": "0.17.0",
     "language-property-list": "0.7.0",
     "language-python": "0.21.0",
-    "language-ruby": "0.40.0",
+    "language-ruby": "0.41.0",
     "language-ruby-on-rails": "0.18.0",
     "language-sass": "0.24.0",
     "language-shellscript": "0.8.0",
