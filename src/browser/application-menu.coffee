@@ -48,6 +48,7 @@ class ApplicationMenu
 
     window.on 'focus', focusHandler
     window.once 'closed', =>
+      @lastFocusedWindow = null if window is @lastFocusedWindow
       @windowTemplates.delete(window)
       window.removeListener 'focus', focusHandler
 
