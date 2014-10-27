@@ -39,6 +39,17 @@ Currently only a 64-bit version is available.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
+### Red Hat Linux (Fedora, CentOS, Red Hat)
+
+Currently only a 64-bit version is available.
+
+1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
+3. Launch Atom using the installed `atom` command.
+
+The Linux version does not currently automatically update so you will need to
+repeat these steps to upgrade to future releases.
+
 ## Building
 
 * [Linux](docs/build-instructions/linux.md)
