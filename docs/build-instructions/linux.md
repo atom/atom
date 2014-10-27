@@ -85,7 +85,7 @@ script/build --build-dir /build/atom/here
 
 ## Troubleshooting
 
-### Exception: "TypeError: Unable to watch path"
+### TypeError: Unable to watch path
 
 If you get following error with a big traceback right after Atom starts:
 
@@ -114,6 +114,22 @@ If you get this notice when attempting to `script/build`, you either do not
 have Node.js installed, or node isn't identified as Node.js on your machine.
 If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
+
+### AttributeError: 'module' object has no attribute 'script_main'
+
+If you get following error with a big traceback while building Atom:
+
+  ```
+  sys.exit(gyp.script_main()) AttributeError: 'module' object has no attribute 'script_main' gyp ERR!
+  ```
+
+you need to uninstall the system version of gyp.
+
+On Fedora you would do the following:
+
+  ```sh
+  sudo yum remove gyp
+  ```
 
 #### You can also use Alternatives
 
