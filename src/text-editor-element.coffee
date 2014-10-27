@@ -1,4 +1,4 @@
-{View, $} = require 'space-pen'
+{View, $, callRemoveHooks} = require 'space-pen'
 React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -71,6 +71,7 @@ class TextEditorElement extends HTMLElement
 
   unmountComponent: ->
     return unless @component?.isMounted()
+    callRemoveHooks(this)
     React.unmountComponentAtNode(this)
     @component = null
 
