@@ -58,7 +58,7 @@
     "serializable": "^1",
     "space-pen": "3.8.0",
     "temp": "0.7.0",
-    "text-buffer": "^3.3.0",
+    "text-buffer": "^3.4",
     "theorist": "^1.0.2",
     "underscore-plus": "^1.6.1",
     "vm-compatibility-layer": "0.1.0"
