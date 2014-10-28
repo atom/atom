@@ -160,11 +160,17 @@ class CommandRegistry
   # processed.
   #
   # * `target` The DOM node at which to start bubbling the command event.
-  # * `commandName` {String} indicating the name of the command to dispatch.
-  dispatch: (target, commandName, detail) ->
-    event = new CustomEvent(commandName, {bubbles: true, detail})
+  # * `event` {String} indicating the name of the command to dispatch or a
+  #     DOM event object.
+  # * `detail` The detail to associate with the dispatched DOM event. If present
+  #     overrides the `detail` of the `event` if it is a DOM event object.
+  dispatch: (target, event, detail) ->
+    if typeof event is 'string'
+      event = new CustomEvent(event, {bubbles: true})
+
     eventWithTarget = Object.create event,
       target: value: target
+      detail: value: detail ? event.detail
       preventDefault: value: ->
       stopPropagation: value: ->
       stopImmediatePropagation: value: ->

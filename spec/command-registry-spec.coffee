@@ -181,6 +181,20 @@ describe "CommandRegistry", ->
       expect(registry.dispatch(grandchild, 'bogus')).toBe false
       expect(registry.dispatch(parent, 'command')).toBe false
 
+    it "allows an event object to be passed instead of an event name", ->
+      called = false
+      registry.add '.grandchild', 'command', (event) ->
+        expect(this).toBe grandchild
+        expect(event.type).toBe 'command'
+        expect(event.eventPhase).toBe Event.BUBBLING_PHASE
+        expect(event.target).toBe grandchild
+        expect(event.currentTarget).toBe grandchild
+        expect(event.detail).toEqual {a: 1}
+        called = true
+
+      registry.dispatch(grandchild, new CustomEvent('command', bubbles: true), {a: 1})
+      expect(called).toBe true
+
   describe "::getSnapshot and ::restoreSnapshot", ->
     it "removes all command handlers except for those in the snapshot", ->
       registry.add '.parent', 'namespace:command-1', ->
