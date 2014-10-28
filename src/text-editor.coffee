@@ -568,6 +568,16 @@ class TextEditor extends Model
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
 
+  # Extended: Returns the {String} character set encoding of this editor's text
+  # buffer.
+  getEncoding: -> @buffer.getEncoding()
+
+  # Extended: Set the character set encoding to use in this editor's text
+  # buffer.
+  #
+  # * `encoding` The {String} character set encoding name such as 'utf8'
+  setEncoding: (encoding) -> @buffer.setEncoding(encoding)
+
   # Essential: Returns {Boolean} `true` if this editor has been modified.
   isModified: -> @buffer.isModified()
 
