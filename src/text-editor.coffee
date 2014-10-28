@@ -138,7 +138,7 @@ class TextEditor extends Model
       @emitter.emit 'did-change-encoding', @getEncoding()
     @subscribe @buffer.onDidDestroy => @destroy()
 
-    # TODO: remove these thwne we remove the deprecations. They are old events.
+    # TODO: remove these when we remove the deprecations. They are old events.
     @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
     @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
     @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
