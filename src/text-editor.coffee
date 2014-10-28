@@ -2815,6 +2815,12 @@ class TextEditor extends Model
 
   pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
 
+  setEncoding: (encoding) ->
+    {file} = @buffer
+    file.setEncoding(encoding)
+    file.read(true).then =>
+      file.emitter.emit('did-change')
+
   # Deprecated: Call {::joinLines} instead.
   joinLine: ->
     deprecate("Use TextEditor::joinLines() instead")
