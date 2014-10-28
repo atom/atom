@@ -6,8 +6,6 @@ _ = require 'underscore-plus'
 SequenceCount = 0
 SpecificityCache = {}
 
-module.exports =
-
 # Public: Associates listener functions with commands in a
 # context-sensitive way using CSS selectors. You can access a global instance of
 # this class via `atom.commands`, and commands registered there will be
@@ -42,6 +40,7 @@ module.exports =
 #     # editor = @getModel()
 #     editor.insertText(new Date().toLocaleString())
 # ```
+module.exports =
 class CommandRegistry
   constructor: (@rootNode) ->
     @registeredCommands = {}
