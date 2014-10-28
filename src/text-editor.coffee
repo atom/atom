@@ -134,6 +134,8 @@ class TextEditor extends Model
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
       @emitter.emit 'did-change-path', @getPath()
+    @subscribe @buffer.onDidChangeEncoding =>
+      @emitter.emit 'did-change-encoding', @getEncoding()
     @subscribe @buffer.onDidDestroy => @destroy()
 
     # TODO: remove these thwne we remove the deprecations. They are old events.
@@ -259,6 +261,14 @@ class TextEditor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
+
+  # Extended: Calls your `callback` when the buffer's encoding has changed.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeEncoding: (callback) ->
+    @emitter.on 'did-change-encoding', callback
 
   # Extended: Calls your `callback` when the grammar that interprets and
   # colorizes the text has been changed. Immediately calls your callback with
