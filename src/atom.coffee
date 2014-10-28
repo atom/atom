@@ -716,4 +716,13 @@ class Atom extends Model
     document.body.classList.add("platform-#{process.platform}")
 
   requireTemplatingGlobals: ->
-    require('../src/html-require').register()
+    require('./html-require').register()
+
+    # This is required by the polymer stuff. It can be noop'd because
+    # Object.observe is built into chrome.
+    global.Platform =
+      performMicrotaskCheckpoint: ->
+
+    require 'Node-bind/src/NodeBind'
+    require 'TemplateBinding/src/TemplateBinding'
+    require 'observe-js'

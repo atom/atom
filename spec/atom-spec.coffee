@@ -52,3 +52,17 @@ describe "the `atom` global", ->
     it 'loads the default core config', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
       expect(atom.config.get('editor.showInvisibles')).toBe false
+
+  it 'loads the templating globals', ->
+    jasmineContent = document.body.querySelector('#jasmine-content')
+    Template = require './fixtures/html-template.html'
+    Model = {message: 'test!'}
+
+    jasmineContent.appendChild(Template.clone())
+    jasmineContent.querySelector('template').model = Model
+
+    waits 0
+
+    runs ->
+      # apparently template rendering is async
+      expect(jasmineContent.querySelector('.test-message').textContent).toBe 'test!'
