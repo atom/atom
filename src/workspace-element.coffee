@@ -64,7 +64,7 @@ class WorkspaceElement extends HTMLElement
   getModel: -> @model
 
   setModel: (@model) ->
-    @paneContainer = @model.getView(@model.paneContainer)
+    @paneContainer = atom.views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
 
     @addEventListener 'focus', @handleFocus.bind(this)

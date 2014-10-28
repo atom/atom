@@ -140,6 +140,9 @@ class Atom extends Model
   # Public: A {DeserializerManager} instance
   deserializers: null
 
+  # Public: A {ViewRegistry} instance
+  views: null
+
   # Public: A {Workspace} instance
   workspace: null
 
@@ -182,6 +185,7 @@ class Atom extends Model
 
     Config = require './config'
     KeymapManager = require './keymap-extensions'
+    ViewRegistry = require './view-registry'
     CommandRegistry = require './command-registry'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
@@ -209,6 +213,7 @@ class Atom extends Model
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
     @commands = new CommandRegistry
+    @views = new ViewRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @styles = new StyleManager
     document.head.appendChild(new StylesElement)
@@ -597,7 +602,7 @@ class Atom extends Model
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-    @workspaceView = @workspace.getView(@workspace).__spacePenView
+    @workspaceView = @views.getView(@workspace).__spacePenView
     @deserializeTimings.workspace = Date.now() - startTime
 
     @keymaps.defaultTarget = @workspaceView[0]
