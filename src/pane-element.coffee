@@ -107,8 +107,9 @@ class PaneElement extends HTMLElement
 
   hideItemView: (itemView) ->
     inlineDisplayStyle = itemView.style.display
-    @inlineDisplayStyles.set(itemView, inlineDisplayStyle) if inlineDisplayStyle?
-    itemView.style.display = 'none'
+    unless inlineDisplayStyle is 'none'
+      @inlineDisplayStyles.set(itemView, inlineDisplayStyle) if inlineDisplayStyle?
+      itemView.style.display = 'none'
 
   itemRemoved: ({item, index, destroyed}) ->
     if viewToRemove = @model.getView(item)
