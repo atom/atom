@@ -180,6 +180,7 @@ class Atom extends Model
 
     @unsubscribe()
     @setBodyPlatformClass()
+    @requireTemplatingGlobals()
 
     @loadTime = null
 
@@ -713,3 +714,6 @@ class Atom extends Model
 
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
+
+  requireTemplatingGlobals: ->
+    require('../src/html-require').register()

@@ -17,8 +17,6 @@ window.onload = function() {
       require('coffee-script').register();
     }
 
-    require('../src/html-require').register();
-
     ModuleCache = require('../src/module-cache');
     ModuleCache.register(loadSettings);
     ModuleCache.add(loadSettings.resourcePath);
