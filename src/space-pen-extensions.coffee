@@ -15,46 +15,53 @@ SpacePen.callRemoveHooks = (element) ->
   view.unsubscribe() for view in SpacePen.viewsForElement(element)
   SpacePenCallRemoveHooks(element)
 
-NativeEventNames = new Set
-NativeEventNames.add(nativeEvent) for nativeEvent in ["blur", "focus", "focusin",
-"focusout", "load", "resize", "scroll", "unload", "click", "dblclick", "mousedown",
-"mouseup", "mousemove", "mouseover", "mouseout", "mouseenter", "mouseleave", "change",
-"select", "submit", "keydown", "keypress", "keyup", "error", "contextmenu", "textInput",
-"textinput"]
-
 JQueryTrigger = jQuery.fn.trigger
-jQuery.fn.trigger = (eventName, data) ->
-  if NativeEventNames.has(eventName) or typeof eventName is 'object'
-    JQueryTrigger.call(this, eventName, data)
+jQuery.fn.trigger = (event, data) ->
+  if typeof event is 'object'
+    {type, target, originalEvent} = event
+    if originalEvent?
+      originalEvent.type ?= type
+      event = originalEvent
+  else
+    type = event
+
+  specialTrigger = jQuery.event.special[event]?.trigger
+
+  # Don't deal with namespaces
+  return JQueryTrigger.apply(this, arguments) unless type.indexOf('.') is -1
+
+  if target?
+    atom.commands.dispatch(target, event, data)
   else
     for element in this
-      atom.commands.dispatch(element, eventName, data)
-    this
+      continue if specialTrigger?.apply(element) is false
+      atom.commands.dispatch(element, event, data)
+  this
+
+# Allow command registry integration with focusin and focusout events
+# Otherwise jQuery registers these event handlers in a special way for bubbling
+# compatibility
+delete jQuery.event.special.focusin
+delete jQuery.event.special.focusout
 
 HandlersByOriginalHandler = new WeakMap
 CommandDisposablesByElement = new WeakMap
 
 AddEventListener = (element, type, listener) ->
-  if NativeEventNames.has(type)
-    element.addEventListener(type, listener)
-  else
-    disposable = atom.commands.add(element, type, listener)
+  disposable = atom.commands.add(element, type, listener)
 
-    unless disposablesByType = CommandDisposablesByElement.get(element)
-      disposablesByType = {}
-      CommandDisposablesByElement.set(element, disposablesByType)
+  unless disposablesByType = CommandDisposablesByElement.get(element)
+    disposablesByType = {}
+    CommandDisposablesByElement.set(element, disposablesByType)
 
-    unless disposablesByListener = disposablesByType[type]
-      disposablesByListener = new WeakMap
-      disposablesByType[type] = disposablesByListener
+  unless disposablesByListener = disposablesByType[type]
+    disposablesByListener = new WeakMap
+    disposablesByType[type] = disposablesByListener
 
-    disposablesByListener.set(listener, disposable)
+  disposablesByListener.set(listener, disposable)
 
 RemoveEventListener = (element, type, listener) ->
-  if NativeEventNames.has(type)
-    element.removeEventListener(type, listener)
-  else
-    CommandDisposablesByElement.get(element)?[type]?.get(listener)?.dispose()
+  CommandDisposablesByElement.get(element)?[type]?.get(listener)?.dispose()
 
 JQueryEventAdd = jQuery.event.add
 jQuery.event.add = (elem, types, originalHandler, data, selector) ->

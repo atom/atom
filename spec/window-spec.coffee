@@ -14,13 +14,8 @@ describe "Window", ->
       loadSettings.initialPath = initialPath
       loadSettings
     atom.project.destroy()
-    windowEventHandler = new WindowEventHandler()
     atom.deserializeEditorWindow()
     projectPath = atom.project.getPaths()[0]
-
-  afterEach ->
-    windowEventHandler.unsubscribe()
-    $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
@@ -107,6 +102,8 @@ describe "Window", ->
 
   describe ".removeEditorWindow()", ->
     it "unsubscribes from all buffers", ->
+      spyOn(atom.windowEventHandler, 'unsubscribe') # don't unsubscribe from window events
+
       waitsForPromise ->
         atom.workspace.open("sample.js")
 
