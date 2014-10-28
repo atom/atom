@@ -63,9 +63,10 @@
     "underscore-plus": "^1.6.1",
     "vm-compatibility-layer": "0.1.0",
     "elmer": "^0.0",
-    "templatebinding": "git://github.com/Polymer/TemplateBinding.git#0.4.2",
+    "node-bind": "git://github.com/Polymer/NodeBind.git#0.4.2",
     "observe-js": "git://github.com/Polymer/observe-js.git#0.4.2",
-    "node-bind": "git://github.com/Polymer/NodeBind.git#0.4.2"
+    "polymer-expressions": "git://github.com/Polymer/polymer-expressions.git#0.4.2",
+    "templatebinding": "git://github.com/Polymer/TemplateBinding.git#0.4.2"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.20.0",

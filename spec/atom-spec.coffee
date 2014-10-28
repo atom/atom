@@ -56,7 +56,7 @@ describe "the `atom` global", ->
   it 'loads the templating globals', ->
     jasmineContent = document.body.querySelector('#jasmine-content')
     Template = require './fixtures/html-template.html'
-    Model = {message: 'test!'}
+    Model = {message: 'test!', number: 10}
 
     jasmineContent.appendChild(Template.clone())
     jasmineContent.querySelector('template').model = Model
@@ -66,3 +66,4 @@ describe "the `atom` global", ->
     runs ->
       # apparently template rendering is async
       expect(jasmineContent.querySelector('.test-message').textContent).toBe 'test!'
+      expect(jasmineContent.querySelector('.test-number').textContent).toBe '20'

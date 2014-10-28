@@ -726,3 +726,7 @@ class Atom extends Model
     require 'Node-bind/src/NodeBind'
     require 'TemplateBinding/src/TemplateBinding'
     require 'observe-js'
+    global.esprima = require('polymer-expressions/third_party/esprima/esprima').esprima
+    {PolymerExpressions} = require 'polymer-expressions/src/polymer-expressions'
+
+    HTMLTemplateElement.prototype.bindingDelegate = new PolymerExpressions
