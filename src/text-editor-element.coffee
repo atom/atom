@@ -43,6 +43,8 @@ class TextEditorElement extends HTMLElement
     @mountComponent()
     @addGrammarScopeAttribute()
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
+    @addEncodingAttribute()
+    @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
     @__spacePenView.setModel(@model)
     @model
@@ -88,8 +90,12 @@ class TextEditorElement extends HTMLElement
     event.stopImmediatePropagation() if @contains(event.relatedTarget)
 
   addGrammarScopeAttribute: ->
+    @addEncodingAttribute()
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
-    @setAttribute('data-grammar', grammarScope)
+    @dataset.grammar = grammarScope
+
+  addEncodingAttribute: ->
+    @dataset.encoding = @model.getEncoding()
 
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)

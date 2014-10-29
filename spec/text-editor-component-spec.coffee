@@ -2286,6 +2286,12 @@ describe "TextEditorComponent", ->
       editor.setGrammar(atom.syntax.nullGrammar)
       expect(wrapperNode.dataset.grammar).toBe 'text plain null-grammar'
 
+  describe "encoding data attributes", ->
+    it "adds and updates the encoding data attribute based on the current encoding", ->
+      expect(wrapperNode.dataset.encoding).toBe 'utf8'
+      editor.setEncoding('utf16le')
+      expect(wrapperNode.dataset.encoding).toBe 'utf16le'
+
   describe "detaching and reattaching the editor (regression)", ->
     it "does not throw an exception", ->
       wrapperView.detach()
