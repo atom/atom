@@ -197,6 +197,7 @@ TextEditorComponent = React.createClass
 
     parentView.__spacePenView.trigger 'editor:will-be-removed', [parentView.__spacePenView]
     @unsubscribe()
+    @scopedConfigSubscriptions.dispose()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
