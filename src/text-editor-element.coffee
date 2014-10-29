@@ -103,7 +103,7 @@ stopCommandEventPropagation = (commandListeners) ->
         commandListener.call(this, event)
   newCommandListeners
 
-atom.commands.add 'atom-text-editor', stopCommandEventPropagation(
+atom.commands.listen 'atom-text-editor', stopCommandEventPropagation(
   'core:move-left': -> @getModel().moveLeft()
   'core:move-right': -> @getModel().moveRight()
   'core:select-left': -> @getModel().selectLeft()
@@ -153,7 +153,7 @@ atom.commands.add 'atom-text-editor', stopCommandEventPropagation(
   'editor:lower-case': -> @getModel().lowerCase()
 )
 
-atom.commands.add 'atom-text-editor:not(.mini)', stopCommandEventPropagation(
+atom.commands.listen 'atom-text-editor:not(.mini)', stopCommandEventPropagation(
   'core:move-up': -> @getModel().moveUp()
   'core:move-down': -> @getModel().moveDown()
   'core:move-to-top': -> @getModel().moveToTop()

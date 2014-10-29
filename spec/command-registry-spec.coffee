@@ -22,7 +22,7 @@ describe "CommandRegistry", ->
   describe "when a command event is dispatched on an element", ->
     it "invokes callbacks with selectors matching the target", ->
       called = false
-      registry.add '.grandchild', 'command', (event) ->
+      registry.listen '.grandchild', 'command', (event) ->
         expect(this).toBe grandchild
         expect(event.type).toBe 'command'
         expect(event.eventPhase).toBe Event.BUBBLING_PHASE
@@ -36,13 +36,13 @@ describe "CommandRegistry", ->
     it "invokes callbacks with selectors matching ancestors of the target", ->
       calls = []
 
-      registry.add '.child', 'command', (event) ->
+      registry.listen '.child', 'command', (event) ->
         expect(this).toBe child
         expect(event.target).toBe grandchild
         expect(event.currentTarget).toBe child
         calls.push('child')
 
-      registry.add '.parent', 'command', (event) ->
+      registry.listen '.parent', 'command', (event) ->
         expect(this).toBe parent
         expect(event.target).toBe grandchild
         expect(event.currentTarget).toBe parent
@@ -53,10 +53,10 @@ describe "CommandRegistry", ->
 
     it "invokes inline listeners prior to listeners applied via selectors", ->
       calls = []
-      registry.add '.grandchild', 'command', -> calls.push('grandchild')
-      registry.add child, 'command', -> calls.push('child-inline')
-      registry.add '.child', 'command', -> calls.push('child')
-      registry.add '.parent', 'command', -> calls.push('parent')
+      registry.listen '.grandchild', 'command', -> calls.push('grandchild')
+      registry.listen child, 'command', -> calls.push('child-inline')
+      registry.listen '.child', 'command', -> calls.push('child')
+      registry.listen '.parent', 'command', -> calls.push('parent')
 
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['grandchild', 'child-inline', 'child', 'parent']
@@ -65,9 +65,9 @@ describe "CommandRegistry", ->
       child.classList.add('foo', 'bar')
       calls = []
 
-      registry.add '.foo.bar', 'command', -> calls.push('.foo.bar')
-      registry.add '.foo', 'command', -> calls.push('.foo')
-      registry.add '.bar', 'command', -> calls.push('.bar') # specificity ties favor commands added later, like CSS
+      registry.listen '.foo.bar', 'command', -> calls.push('.foo.bar')
+      registry.listen '.foo', 'command', -> calls.push('.foo')
+      registry.listen '.bar', 'command', -> calls.push('.bar') # specificity ties favor commands added later, like CSS
 
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['.foo.bar', '.bar', '.foo']
@@ -75,9 +75,9 @@ describe "CommandRegistry", ->
     it "does not bubble the event if the ::bubbles property is false on the dispatched event", ->
       calls = []
 
-      registry.add '.grandchild', 'command', -> calls.push('grandchild')
-      registry.add '.child', 'command', -> calls.push('child')
-      registry.add '.parent', 'command', -> calls.push('parent')
+      registry.listen '.grandchild', 'command', -> calls.push('grandchild')
+      registry.listen '.child', 'command', -> calls.push('child')
+      registry.listen '.parent', 'command', -> calls.push('parent')
 
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: false))
       expect(calls).toEqual ['grandchild']
@@ -85,9 +85,9 @@ describe "CommandRegistry", ->
     it "stops bubbling through ancestors when .stopPropagation() is called on the event", ->
       calls = []
 
-      registry.add '.parent', 'command', -> calls.push('parent')
-      registry.add '.child', 'command', -> calls.push('child-2')
-      registry.add '.child', 'command', (event) -> calls.push('child-1'); event.stopPropagation()
+      registry.listen '.parent', 'command', -> calls.push('parent')
+      registry.listen '.child', 'command', -> calls.push('child-2')
+      registry.listen '.child', 'command', (event) -> calls.push('child-1'); event.stopPropagation()
 
       dispatchedEvent = new CustomEvent('command', bubbles: true)
       spyOn(dispatchedEvent, 'stopPropagation')
@@ -98,9 +98,9 @@ describe "CommandRegistry", ->
     it "stops invoking callbacks when .stopImmediatePropagation() is called on the event", ->
       calls = []
 
-      registry.add '.parent', 'command', -> calls.push('parent')
-      registry.add '.child', 'command', -> calls.push('child-2')
-      registry.add '.child', 'command', (event) -> calls.push('child-1'); event.stopImmediatePropagation()
+      registry.listen '.parent', 'command', -> calls.push('parent')
+      registry.listen '.child', 'command', -> calls.push('child-2')
+      registry.listen '.child', 'command', (event) -> calls.push('child-1'); event.stopImmediatePropagation()
 
       dispatchedEvent = new CustomEvent('command', bubbles: true)
       spyOn(dispatchedEvent, 'stopImmediatePropagation')
@@ -109,7 +109,7 @@ describe "CommandRegistry", ->
       expect(dispatchedEvent.stopImmediatePropagation).toHaveBeenCalled()
 
     it "forwards .preventDefault() calls from the synthetic event to the original", ->
-      registry.add '.child', 'command', (event) -> event.preventDefault()
+      registry.listen '.child', 'command', (event) -> event.preventDefault()
 
       dispatchedEvent = new CustomEvent('command', bubbles: true)
       spyOn(dispatchedEvent, 'preventDefault')
@@ -117,7 +117,7 @@ describe "CommandRegistry", ->
       expect(dispatchedEvent.preventDefault).toHaveBeenCalled()
 
     it "forwards .abortKeyBinding() calls from the synthetic event to the original", ->
-      registry.add '.child', 'command', (event) -> event.abortKeyBinding()
+      registry.listen '.child', 'command', (event) -> event.abortKeyBinding()
 
       dispatchedEvent = new CustomEvent('command', bubbles: true)
       dispatchedEvent.abortKeyBinding = jasmine.createSpy('abortKeyBinding')
@@ -127,8 +127,8 @@ describe "CommandRegistry", ->
     it "allows listeners to be removed via a disposable returned by ::add", ->
       calls = []
 
-      disposable1 = registry.add '.parent', 'command', -> calls.push('parent')
-      disposable2 = registry.add '.child', 'command', -> calls.push('child')
+      disposable1 = registry.listen '.parent', 'command', -> calls.push('parent')
+      disposable2 = registry.listen '.child', 'command', -> calls.push('child')
 
       disposable1.dispose()
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
@@ -142,7 +142,7 @@ describe "CommandRegistry", ->
     it "allows multiple commands to be registered under one selector when called with an object", ->
       calls = []
 
-      disposable = registry.add '.child',
+      disposable = registry.listen '.child',
         'command-1': -> calls.push('command-1')
         'command-2': -> calls.push('command-2')
 
@@ -159,10 +159,10 @@ describe "CommandRegistry", ->
 
   describe "::findCommands({target})", ->
     it "returns commands that can be invoked on the target or its ancestors", ->
-      registry.add '.parent', 'namespace:command-1', ->
-      registry.add '.child', 'namespace:command-2', ->
-      registry.add '.grandchild', 'namespace:command-3', ->
-      registry.add '.grandchild.no-match', 'namespace:command-4', ->
+      registry.listen '.parent', 'namespace:command-1', ->
+      registry.listen '.child', 'namespace:command-2', ->
+      registry.listen '.grandchild', 'namespace:command-3', ->
+      registry.listen '.grandchild.no-match', 'namespace:command-4', ->
 
       expect(registry.findCommands(target: grandchild)[0..2]).toEqual [
         {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
@@ -173,7 +173,7 @@ describe "CommandRegistry", ->
   describe "::dispatch(target, commandName)", ->
     it "simulates invocation of the given command ", ->
       called = false
-      registry.add '.grandchild', 'command', (event) ->
+      registry.listen '.grandchild', 'command', (event) ->
         expect(this).toBe grandchild
         expect(event.type).toBe 'command'
         expect(event.eventPhase).toBe Event.BUBBLING_PHASE
@@ -185,7 +185,7 @@ describe "CommandRegistry", ->
       expect(called).toBe true
 
     it "returns a boolean indicating whether any listeners matched the command", ->
-      registry.add '.grandchild', 'command', ->
+      registry.listen '.grandchild', 'command', ->
 
       expect(registry.dispatch(grandchild, 'command')).toBe true
       expect(registry.dispatch(grandchild, 'bogus')).toBe false
@@ -194,16 +194,16 @@ describe "CommandRegistry", ->
     it "does not perform bubbling for native event names that should not bubble", ->
       calls = []
 
-      registry.add '.grandchild', 'focus', -> calls.push('grandchild')
-      registry.add '.child', 'focus', -> calls.push('child')
-      registry.add '.parent', 'focus', -> calls.push('parent')
+      registry.listen '.grandchild', 'focus', -> calls.push('grandchild')
+      registry.listen '.child', 'focus', -> calls.push('child')
+      registry.listen '.parent', 'focus', -> calls.push('parent')
 
       registry.dispatch(grandchild, 'focus')
       expect(calls).toEqual ['grandchild']
 
     it "allows an event object to be passed instead of an event name", ->
       called = false
-      registry.add '.grandchild', 'command', (event) ->
+      registry.listen '.grandchild', 'command', (event) ->
         expect(this).toBe grandchild
         expect(event.type).toBe 'command'
         expect(event.eventPhase).toBe Event.BUBBLING_PHASE
@@ -217,10 +217,10 @@ describe "CommandRegistry", ->
 
   describe "::getSnapshot and ::restoreSnapshot", ->
     it "removes all command handlers except for those in the snapshot", ->
-      registry.add '.parent', 'namespace:command-1', ->
-      registry.add '.child', 'namespace:command-2', ->
+      registry.listen '.parent', 'namespace:command-1', ->
+      registry.listen '.child', 'namespace:command-2', ->
       snapshot = registry.getSnapshot()
-      registry.add '.grandchild', 'namespace:command-3', ->
+      registry.listen '.grandchild', 'namespace:command-3', ->
 
       expect(registry.findCommands(target: grandchild)[0..2]).toEqual [
         {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
@@ -235,7 +235,7 @@ describe "CommandRegistry", ->
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]
 
-      registry.add '.grandchild', 'namespace:command-3', ->
+      registry.listen '.grandchild', 'namespace:command-3', ->
       registry.restoreSnapshot(snapshot)
 
       expect(registry.findCommands(target: grandchild)[0..1]).toEqual [

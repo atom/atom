@@ -6,7 +6,7 @@ module.exports =
   activate: ->
     @activateCallCount++
 
-    atom.commands.add 'atom-workspace', 'activation-command', =>
+    atom.commands.listen 'atom-workspace', 'activation-command', =>
       @activationCommandCallCount++
 
     atom.workspaceView.getActiveView()?.command 'activation-command', =>

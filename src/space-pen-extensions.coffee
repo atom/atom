@@ -48,7 +48,7 @@ HandlersByOriginalHandler = new WeakMap
 CommandDisposablesByElement = new WeakMap
 
 AddEventListener = (element, type, listener) ->
-  disposable = atom.commands.add(element, type, listener)
+  disposable = atom.commands.listen(element, type, listener)
 
   unless disposablesByType = CommandDisposablesByElement.get(element)
     disposablesByType = {}

@@ -1,6 +1,7 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {specificity} = require 'clear-cut'
 _ = require 'underscore-plus'
+Grim = require 'grim'
 {$} = require './space-pen-extensions'
 
 SequenceCount = 0
@@ -22,10 +23,10 @@ NativeEventBubbling = {
 
 module.exports =
 
-# Public: Associates listener functions with commands in a
-# context-sensitive way using CSS selectors. You can access a global instance of
-# this class via `atom.commands`, and commands registered there will be
-# presented in the command palette.
+# Public: Associates listener functions with commands in a context-sensitive way
+# using CSS selectors. You can access a global instance of this class via
+# `atom.commands`, and commands registered there will be presented in the
+# command palette.
 #
 # The global command registry facilitates a style of event handling known as
 # *event delegation* that was popularized by jQuery. Atom commands are expressed
@@ -49,7 +50,7 @@ module.exports =
 # Here is a command that inserts the current date in an editor:
 #
 # ```coffee
-# atom.commands.add 'atom-text-editor',
+# atom.commands.listen 'atom-text-editor',
 #   'user:insert-date': (event) ->
 #     editor = $(this).view().getModel()
 #     # soon the above above line will be:
@@ -93,18 +94,22 @@ class CommandRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added command handler(s).
-  add: (target, commandName, callback) ->
+  listen: (target, commandName, callback) ->
     if typeof commandName is 'object'
       commands = commandName
       disposable = new CompositeDisposable
       for commandName, callback of commands
-        disposable.add @add(target, commandName, callback)
+        disposable.add @listen(target, commandName, callback)
       return disposable
 
     if typeof target is 'string'
       @addSelectorBasedListener(target, commandName, callback)
     else
       @addInlineListener(target, commandName, callback)
+
+  add: (target, commandName, callback) ->
+    Grim.deprecate("Use CommandRegistry::listen instead")
+    @listen(target, commandName, callback)
 
   addSelectorBasedListener: (selector, commandName, callback) ->
     @selectorBasedListenersByCommandName[commandName] ?= []

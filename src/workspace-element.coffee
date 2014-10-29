@@ -114,7 +114,7 @@ class WorkspaceElement extends HTMLElement
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
-atom.commands.add 'atom-workspace',
+atom.commands.listen 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
   'window:decrease-font-size': -> @getModel().decreaseFontSize()
   'window:reset-font-size': -> @getModel().resetFontSize()
@@ -160,6 +160,6 @@ atom.commands.add 'atom-workspace',
   'core:save-as': -> @getModel().saveActivePaneItemAs()
 
 if process.platform is 'darwin'
-  atom.commands.add 'atom-workspace', 'window:install-shell-commands', -> @getModel().installShellCommands()
+  atom.commands.listen 'atom-workspace', 'window:install-shell-commands', -> @getModel().installShellCommands()
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
