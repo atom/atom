@@ -20,7 +20,6 @@ NativeEventBubbling = {
   'unload': false
 }
 
-
 module.exports =
 
 # Public: Associates listener functions with commands in a context-sensitive way
@@ -59,6 +58,10 @@ module.exports =
 # ```
 module.exports =
 class CommandRegistry
+  patchedDOMEventMethods: false
+  originalAddEventListener: Node::addEventListener
+  originalRemoveEventListener: Node::removeEventListener
+
   constructor: (@rootNode) ->
     @registeredCommands = {}
     @selectorBasedListenersByCommandName = {}
@@ -68,6 +71,52 @@ class CommandRegistry
   destroy: ->
     for commandName of @registeredCommands
       window.removeEventListener(commandName, @handleCommandEvent, true)
+
+  patchDOMEventMethods: ->
+    if @patchedDOMEventMethods
+      throw new Error("Already patched DOM event methods for this registry.")
+    else
+      @patchedDOMEventMethods = true
+
+    registry = this
+    disposablesByEventName = {}
+
+    @originalAddEventListener = Node::addEventListener
+    @originalRemoveEventListener = Node::originalRemoveEventListener
+
+    Node::addEventListener = (eventName, callback, useCapture=false) ->
+      return unless callback?
+
+      target = this
+      disposable = registry.listen(target, eventName, callback, useCapture)
+
+      disposablesByEventName[eventName] ?= {}
+      disposablesByUseCapture = disposablesByEventName[eventName]
+      disposablesByUseCapture[useCapture] ?= new WeakMap
+      disposablesByTarget = disposablesByUseCapture[useCapture]
+      disposablesByTarget.set(target, new WeakMap) unless disposablesByTarget.has(target)
+      disposablesByCallback = disposablesByTarget.get(target)
+      disposablesByCallback.set(callback, new CompositeDisposable) unless disposablesByCallback.has(callback)
+      disposablesByCallback.get(callback).add(disposable)
+      return
+
+    Node::removeEventListener = (eventName, callback, useCapture=false) ->
+      return unless callback?
+
+      target = this
+      disposablesByEventName[eventName]?[useCapture]?.get(target)?.get(callback)?.dispose()
+      return
+
+  restoreDOMEventMethods: ->
+    Node::addEventListener = @originalAddEventListener
+    Node::removeEventListener = @originalRemoveEventListener
+    @patchedDOMEventMethods = false
+
+  addEventListener: (target, eventName, callback, useCapture) ->
+    @originalAddEventListener.call(target, eventName, callback, useCapture)
+
+  removeEventListener: (target, eventName, callback, useCapture) ->
+    @originalRemoveEventListener.call(target, eventName, callback, useCapture)
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -272,7 +321,7 @@ class CommandRegistry
 
   commandRegistered: (commandName) ->
     unless @registeredCommands[commandName]
-      window.addEventListener(commandName, @handleCommandEvent, true)
+      @addEventListener(window, commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
 
   getBubblePath: (target) ->

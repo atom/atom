@@ -209,6 +209,7 @@ class Atom extends Model
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
     @commands = new CommandRegistry
+    @commands.patchDOMEventMethods()
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @styles = new StyleManager
     document.head.appendChild(new StylesElement)

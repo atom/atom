@@ -15,8 +15,12 @@ describe "CommandRegistry", ->
     document.querySelector('#jasmine-content').appendChild(parent)
 
     registry = new CommandRegistry
+    atom.commands.restoreDOMEventMethods()
+    registry.patchDOMEventMethods()
 
   afterEach ->
+    registry.restoreDOMEventMethods()
+    atom.commands.patchDOMEventMethods()
     registry.destroy()
 
   describe "when a command event is dispatched on an element", ->
@@ -270,3 +274,25 @@ describe "CommandRegistry", ->
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]
+
+  describe "::addEventListener and ::removeEventListener overrides", ->
+    it "mixes listeners registered via ::addEventListener with selector-based listeners", ->
+      calls = []
+      registry.listen '.grandchild', 'command', -> calls.push('grandchild')
+      registry.listen '.child', 'command', -> calls.push('child')
+      registry.listen '.parent', 'command', -> calls.push('parent')
+
+      bubbleListener = -> calls.push('child-inline-bubble')
+      captureListener = -> calls.push('child-inline-capture')
+      child.addEventListener('command', bubbleListener)
+      child.addEventListener('command', captureListener, true)
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(calls).toEqual ['child-inline-capture', 'grandchild', 'child-inline-bubble', 'child', 'parent']
+
+      child.removeEventListener('command', bubbleListener)
+      child.removeEventListener('command', captureListener, true)
+
+      calls = []
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(calls).toEqual ['grandchild', 'child', 'parent']
