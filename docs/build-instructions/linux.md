@@ -60,8 +60,8 @@ If you have problems with permissions don't forget to prefix with `sudo`
   ```sh
   sudo script/grunt install
   ```
-  
-  To use the newly installed Atom, quit and restart all runnung Atom instances.
+
+  To use the newly installed Atom, quit and restart all running Atom instances.
 
 5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currenty, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
 
