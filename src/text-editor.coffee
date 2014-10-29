@@ -134,9 +134,11 @@ class TextEditor extends Model
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
       @emitter.emit 'did-change-path', @getPath()
+    @subscribe @buffer.onDidChangeEncoding =>
+      @emitter.emit 'did-change-encoding', @getEncoding()
     @subscribe @buffer.onDidDestroy => @destroy()
 
-    # TODO: remove these thwne we remove the deprecations. They are old events.
+    # TODO: remove these when we remove the deprecations. They are old events.
     @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
     @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
     @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
@@ -259,6 +261,14 @@ class TextEditor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
+
+  # Extended: Calls your `callback` when the buffer's encoding has changed.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeEncoding: (callback) ->
+    @emitter.on 'did-change-encoding', callback
 
   # Extended: Calls your `callback` when the grammar that interprets and
   # colorizes the text has been changed. Immediately calls your callback with
@@ -567,6 +577,16 @@ class TextEditor extends Model
 
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
+
+  # Extended: Returns the {String} character set encoding of this editor's text
+  # buffer.
+  getEncoding: -> @buffer.getEncoding()
+
+  # Extended: Set the character set encoding to use in this editor's text
+  # buffer.
+  #
+  # * `encoding` The {String} character set encoding name such as 'utf8'
+  setEncoding: (encoding) -> @buffer.setEncoding(encoding)
 
   # Essential: Returns {Boolean} `true` if this editor has been modified.
   isModified: -> @buffer.isModified()
