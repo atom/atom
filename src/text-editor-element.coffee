@@ -103,7 +103,7 @@ class TextEditorElement extends HTMLElement
     event.stopImmediatePropagation() if @contains(event.relatedTarget)
 
   blurred: (event) ->
-    @component.blurred()
+    @component?.blurred()
     event.stopImmediatePropagation() if @contains(event.relatedTarget)
 
   addGrammarScopeAttribute: ->
