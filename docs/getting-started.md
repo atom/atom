@@ -37,6 +37,9 @@ You can also use the tree view to navigate to a file. To open and focus the
 the tree view, press `ctrl-0`. The tree view can be toggled open and closed with
 `cmd-\`.
 
+If nothing happens when you press `cmd-t`, it's probably because you don't have
+any files or directories open. Try `cmd-o` to open a directory.
+
 #### Adding, Moving, Deleting Files
 
 You can add, move, and delete files and folders by right-clicking them in the
