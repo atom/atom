@@ -157,6 +157,19 @@ describe "TextEditor", ->
 
       expect(observed).toEqual [__filename, undefined]
 
+  describe "encoding", ->
+    it "notifies ::onDidChangeEncoding observers when the editor encoding changes", ->
+      observed = []
+      editor.onDidChangeEncoding (encoding) -> observed.push(encoding)
+
+      editor.setEncoding('utf16le')
+      editor.setEncoding('utf16le')
+      editor.setEncoding('utf16be')
+      editor.setEncoding()
+      editor.setEncoding()
+
+      expect(observed).toEqual ['utf16le', 'utf16be', 'utf8']
+
   describe "cursor", ->
     describe ".getLastCursor()", ->
       it "returns the most recently created cursor", ->
