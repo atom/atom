@@ -7,7 +7,6 @@ React = require 'react-atom-fork'
 Decoration = require './decoration'
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
-textUtils = require './text-utils'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -309,12 +308,12 @@ LinesComponent = React.createClass
     iterator = null
     charIndex = 0
 
-    for {value, scopes}, tokenIndex in tokenizedLine.tokens
+    for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
       charWidths = editor.getScopedCharWidths(scopes)
 
       valueIndex = 0
       while valueIndex < value.length
-        if textUtils.isPairedCharacter(value, valueIndex)
+        if hasPairedCharacter
           char = value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2

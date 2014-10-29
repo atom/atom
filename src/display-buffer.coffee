@@ -11,7 +11,6 @@ Fold = require './fold'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
-textUtils = require './text-utils'
 Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
@@ -654,7 +653,7 @@ class DisplayBuffer extends Model
       charWidths = @getScopedCharWidths(token.scopes)
       valueIndex = 0
       while valueIndex < token.value.length
-        if textUtils.isPairedCharacter(token.value, valueIndex)
+        if token.hasPairedCharacter
           char = token.value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2
@@ -683,7 +682,7 @@ class DisplayBuffer extends Model
       charWidths = @getScopedCharWidths(token.scopes)
       valueIndex = 0
       while valueIndex < token.value.length
-        if textUtils.isPairedCharacter(token.value, valueIndex)
+        if token.hasPairedCharacter
           char = token.value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2
