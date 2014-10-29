@@ -48,7 +48,7 @@ class Unstar extends Command
     packageNames = @packageNamesFromArgv(options.argv)
 
     if packageNames.length is 0
-      callback("Must specify a package name to unstar")
+      callback("Please specify a package name to unstar")
       return
 
     Login.getTokenOrLogin (error, token) =>

@@ -52,7 +52,7 @@ class Uninstall extends Command
     packageNames = @packageNamesFromArgv(options.argv)
 
     if packageNames.length is 0
-      callback("Must specify a package name to uninstall")
+      callback("Please specify a package name to uninstall")
       return
 
     packagesDirectory = path.join(config.getAtomDirectory(), 'packages')
