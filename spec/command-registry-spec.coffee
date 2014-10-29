@@ -72,6 +72,16 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['.foo.bar', '.bar', '.foo']
 
+    it "does not bubble the event if the ::bubbles property is false on the dispatched event", ->
+      calls = []
+
+      registry.add '.grandchild', 'command', -> calls.push('grandchild')
+      registry.add '.child', 'command', -> calls.push('child')
+      registry.add '.parent', 'command', -> calls.push('parent')
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: false))
+      expect(calls).toEqual ['grandchild']
+
     it "stops bubbling through ancestors when .stopPropagation() is called on the event", ->
       calls = []
 

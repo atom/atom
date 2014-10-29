@@ -228,6 +228,7 @@ class CommandRegistry
         break if immediatePropagationStopped
         listener.callback.call(currentTarget, syntheticEvent)
 
+      break unless originalEvent.bubbles
       break if currentTarget is window
       break if propagationStopped
       currentTarget = currentTarget.parentNode ? window
