@@ -191,6 +191,7 @@
       { label: 'Terms of Use', command: 'application:open-terms-of-use' }
       { label: 'Documentation', command: 'application:open-documentation' }
       { label: 'Community Discussions', command: 'application:open-discussions' }
+      { label: 'Roadmap', command: 'application:open-roadmap' }
       { type: 'separator' }
     ]
   }

@@ -156,6 +156,7 @@ class AtomApplication
 
     @on 'application:open-documentation', -> require('shell').openExternal('https://atom.io/docs/latest/?app')
     @on 'application:open-discussions', -> require('shell').openExternal('https://discuss.atom.io')
+    @on 'application:open-roadmap', -> require('shell').openExternal('https://atom.io/roadmap?app')
     @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
     @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
