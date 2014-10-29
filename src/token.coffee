@@ -21,10 +21,10 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
-    @hasPairedCharacter = textUtils.hasPairedCharacter(@value)
+    @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
 
   isEqual: (other) ->
     # TODO: scopes is deprecated. This is here for the sake of lang package tests
@@ -125,6 +125,7 @@ class Token
       value: value[index..index + 1]
       scopes: @scopes
       isAtomic: true
+      hasPairedCharacter: true
     )
 
   buildHardTabToken: (tabLength, column) ->
