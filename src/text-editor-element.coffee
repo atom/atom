@@ -90,7 +90,6 @@ class TextEditorElement extends HTMLElement
     event.stopImmediatePropagation() if @contains(event.relatedTarget)
 
   addGrammarScopeAttribute: ->
-    @addEncodingAttribute()
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
     @dataset.grammar = grammarScope
 
