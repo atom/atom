@@ -94,27 +94,30 @@ class CommandRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added command handler(s).
-  listen: (target, commandName, callback) ->
+  listen: (target, commandName, callback, useCapture=false) ->
     if typeof commandName is 'object'
       commands = commandName
       disposable = new CompositeDisposable
       for commandName, callback of commands
-        disposable.add @listen(target, commandName, callback)
+        disposable.add @listen(target, commandName, callback, useCapture)
       return disposable
 
     if typeof target is 'string'
-      @addSelectorBasedListener(target, commandName, callback)
+      @addSelectorBasedListener(target, commandName, callback, useCapture)
     else
-      @addInlineListener(target, commandName, callback)
+      @addInlineListener(target, commandName, callback, useCapture)
 
   add: (target, commandName, callback) ->
     Grim.deprecate("Use CommandRegistry::listen instead")
     @listen(target, commandName, callback)
 
-  addSelectorBasedListener: (selector, commandName, callback) ->
+  capture: (target, commandName, callback) ->
+    @listen(target, commandName, callback, true)
+
+  addSelectorBasedListener: (selector, commandName, callback, useCapture) ->
     @selectorBasedListenersByCommandName[commandName] ?= []
     listenersForCommand = @selectorBasedListenersByCommandName[commandName]
-    listener = new SelectorBasedListener(selector, callback)
+    listener = new SelectorBasedListener(selector, callback, useCapture)
     listenersForCommand.push(listener)
 
     @commandRegistered(commandName)
@@ -123,14 +126,14 @@ class CommandRegistry
       listenersForCommand.splice(listenersForCommand.indexOf(listener), 1)
       delete @selectorBasedListenersByCommandName[commandName] if listenersForCommand.length is 0
 
-  addInlineListener: (element, commandName, callback) ->
+  addInlineListener: (element, commandName, callback, useCapture) ->
     @inlineListenersByCommandName[commandName] ?= new WeakMap
 
     listenersForCommand = @inlineListenersByCommandName[commandName]
     unless listenersForElement = listenersForCommand.get(element)
       listenersForElement = []
       listenersForCommand.set(element, listenersForElement)
-    listener = new InlineListener(callback)
+    listener = new InlineListener(callback, useCapture)
     listenersForElement.push(listener)
 
     @commandRegistered(commandName)
@@ -214,11 +217,12 @@ class CommandRegistry
   handleCommandEvent: (originalEvent) =>
     propagationStopped = false
     immediatePropagationStopped = false
-    matched = false
-    currentTarget = originalEvent.target
+    invokedListener = false
+    {target} = originalEvent
+    currentTarget = null
 
     syntheticEvent = Object.create originalEvent,
-      eventPhase: value: Event.BUBBLING_PHASE
+      eventPhase: get: -> eventPhase
       currentTarget: get: -> currentTarget
       preventDefault: value: ->
         originalEvent.preventDefault()
@@ -234,35 +238,64 @@ class CommandRegistry
 
     @emitter.emit 'will-dispatch', syntheticEvent
 
-    loop
-      listeners = @inlineListenersByCommandName[originalEvent.type]?.get(currentTarget) ? []
-      if currentTarget.webkitMatchesSelector?
-        selectorBasedListeners =
-          (@selectorBasedListenersByCommandName[originalEvent.type] ? [])
-            .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
-            .sort (a, b) -> a.compare(b)
-        listeners = listeners.concat(selectorBasedListeners)
+    path = @getBubblePath(target)
 
-      matched = true if listeners.length > 0
-
-      for listener in listeners
+    # Capture phase: Invoke listeners registered via {::capture}, starting with
+    # the window and moving downward towards the event target.
+    eventPhase = Event.CAPTURING_PHASE
+    for pathIndex in [(path.length - 1)..0]
+      currentTarget = path[pathIndex]
+      listeners = @listenersForNode(currentTarget, originalEvent.type)
+      for listener in listeners when listener.useCapture
         break if immediatePropagationStopped
+        invokedListener = true
+        listener.callback.call(currentTarget, syntheticEvent)
+      break if propagationStopped
+
+    return invokedListener if propagationStopped
+
+    # Bubble phase: Invoke listeners registered via {::listen}, starting with
+    # the event target and moving upward towards the window. If the event's
+    # `.bubbles` property is false, we abort after dispatching on the target.
+    eventPhase = Event.BUBBLING_PHASE
+    for currentTarget in path
+      listeners = @listenersForNode(currentTarget, originalEvent.type)
+      for listener in listeners when not listener.useCapture
+        break if immediatePropagationStopped
+        invokedListener = true
         listener.callback.call(currentTarget, syntheticEvent)
 
       break unless originalEvent.bubbles
-      break if currentTarget is window
       break if propagationStopped
-      currentTarget = currentTarget.parentNode ? window
 
-    matched
+    invokedListener
 
   commandRegistered: (commandName) ->
     unless @registeredCommands[commandName]
       window.addEventListener(commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
 
+  getBubblePath: (target) ->
+    path = []
+    currentTarget = target
+    loop
+      path.push(currentTarget)
+      break if currentTarget is window
+      currentTarget = currentTarget.parentNode ? window
+    path
+
+  listenersForNode: (node, eventType) ->
+    listeners = @inlineListenersByCommandName[eventType]?.get(node) ? []
+    if node.matches?
+      selectorBasedListeners =
+        (@selectorBasedListenersByCommandName[eventType] ? [])
+          .filter (listener) -> node.matches(listener.selector)
+          .sort (a, b) -> a.compare(b)
+      listeners = listeners.concat(selectorBasedListeners)
+    listeners
+
 class SelectorBasedListener
-  constructor: (@selector, @callback) ->
+  constructor: (@selector, @callback, @useCapture) ->
     @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
     @sequenceNumber = SequenceCount++
 
@@ -271,4 +304,4 @@ class SelectorBasedListener
       other.sequenceNumber - @sequenceNumber
 
 class InlineListener
-  constructor: (@callback) ->
+  constructor: (@callback, @useCapture) ->

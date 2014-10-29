@@ -82,6 +82,34 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: false))
       expect(calls).toEqual ['grandchild']
 
+    it "invokes capture-phase listeners before bubble-phase listeners", ->
+      calls = []
+
+      # Spot-check event details for both capture and bubbling phase
+      registry.capture '.grandchild', 'command', (event) ->
+        expect(this).toBe grandchild
+        expect(event.type).toBe 'command'
+        expect(event.eventPhase).toBe Event.CAPTURING_PHASE
+        expect(event.target).toBe grandchild
+        expect(event.currentTarget).toBe grandchild
+        calls.push('grandchild-capture')
+
+      registry.listen '.grandchild', 'command', (event) ->
+        expect(this).toBe grandchild
+        expect(event.type).toBe 'command'
+        expect(event.eventPhase).toBe Event.BUBBLING_PHASE
+        expect(event.target).toBe grandchild
+        expect(event.currentTarget).toBe grandchild
+        calls.push('grandchild-bubble')
+
+      registry.capture child, 'command', -> calls.push('child-inline-capture')
+      registry.listen child, 'command', -> calls.push('child-inline-bubble')
+      registry.capture '.child', 'command', -> calls.push('child-capture')
+      registry.capture '.parent', 'command', -> calls.push('parent-capture')
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(calls).toEqual ['parent-capture', 'child-inline-capture', 'child-capture', 'grandchild-capture', 'grandchild-bubble', 'child-inline-bubble']
+
     it "stops bubbling through ancestors when .stopPropagation() is called on the event", ->
       calls = []
 
