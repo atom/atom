@@ -402,8 +402,6 @@ class Workspace extends Model
       item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
     item ?= atom.project.open(uri, options)
 
-    console.profile('open')
-
     Q(item)
       .then (item) =>
         if not pane
@@ -415,7 +413,6 @@ class Workspace extends Model
         index = pane.getActiveItemIndex()
         @emit "uri-opened"
         @emitter.emit 'did-open', {uri, pane, item, index}
-        console.profileEnd('open')
         item
       .catch (error) ->
         console.error(error.stack ? error)
