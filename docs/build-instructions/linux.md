@@ -19,9 +19,9 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
 
-### Fedora / CentOS / RHEL
+### Fedora
 
-* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel`
 * Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
 
 ### Arch
@@ -60,20 +60,14 @@ If you have problems with permissions don't forget to prefix with `sudo`
   ```sh
   sudo script/grunt install
   ```
-  
-  To use the newly installed Atom, quit and restart all runnung Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currenty, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
 
   ```sh
   script/grunt mkdeb
   ```
 
-  To create an `.rpm` package run
-
-  ```sh
-  script/grunt mkrpm
-  ```
+Use the newly installed Atom by fully quitting Atom and then reopening.
 
 ## Advanced Options
 
