@@ -165,6 +165,10 @@
       { label: "VERSION", enabled: false }
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
+      { label: 'Community Discussions', command: 'application:open-discussions' }
+      { label: 'Roadmap', command: 'application:open-roadmap' }
+      { label: 'Frequently Asked Questions', command: 'application:open-faq' }
+      { label: 'Report Issue', command: 'application:report-issue' }
       { type: 'separator' }
     ]
   }
