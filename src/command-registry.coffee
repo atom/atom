@@ -6,6 +6,22 @@ _ = require 'underscore-plus'
 SequenceCount = 0
 SpecificityCache = {}
 
+NativeEventBubbling = {
+  'abort': false
+  'blur': false
+  'error': false
+  'focus': false
+  'load': false
+  'mouseenter': false
+  'mouseleave': false
+  'resize': false
+  'scroll': false
+  'unload': false
+}
+
+
+module.exports =
+
 # Public: Associates listener functions with commands in a
 # context-sensitive way using CSS selectors. You can access a global instance of
 # this class via `atom.commands`, and commands registered there will be
@@ -166,7 +182,7 @@ class CommandRegistry
   #     overrides the `detail` of the `event` if it is a DOM event object.
   dispatch: (target, event, detail) ->
     if typeof event is 'string'
-      event = new CustomEvent(event, {bubbles: true})
+      event = new CustomEvent(event, {bubbles: NativeEventBubbling[event] ? true})
 
     eventWithTarget = Object.create event,
       target: value: target

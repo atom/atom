@@ -191,6 +191,16 @@ describe "CommandRegistry", ->
       expect(registry.dispatch(grandchild, 'bogus')).toBe false
       expect(registry.dispatch(parent, 'command')).toBe false
 
+    it "does not perform bubbling for native event names that should not bubble", ->
+      calls = []
+
+      registry.add '.grandchild', 'focus', -> calls.push('grandchild')
+      registry.add '.child', 'focus', -> calls.push('child')
+      registry.add '.parent', 'focus', -> calls.push('parent')
+
+      registry.dispatch(grandchild, 'focus')
+      expect(calls).toEqual ['grandchild']
+
     it "allows an event object to be passed instead of an event name", ->
       called = false
       registry.add '.grandchild', 'command', (event) ->
