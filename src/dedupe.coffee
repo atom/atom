@@ -36,6 +36,7 @@ class Dedupe extends Command
     installNodeArgs.push("--target=#{config.getNodeVersion()}")
     installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
     installNodeArgs.push('--arch=ia32')
+    installNodeArgs.push('--ensure')
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
