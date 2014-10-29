@@ -192,7 +192,7 @@ resolveModulePath = (relativePath, parentModule) ->
   return
 
 registerBuiltins = (devMode) ->
-  if devMode
+  if devMode or not cache.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
     fs = require 'fs-plus'
     atomCoffeePath = path.join(cache.resourcePath, 'exports', 'atom.coffee')
     cache.builtins.atom = atomCoffeePath if fs.isFileSync(atomCoffeePath)

@@ -5,8 +5,10 @@ window.onload = function() {
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
+    var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + require('path').sep);
+
     // Require before the module cache in dev mode
-    if (loadSettings.devMode) {
+    if (devMode) {
       require('coffee-script').register();
     }
 
@@ -25,7 +27,7 @@ window.onload = function() {
 
     require('vm-compatibility-layer');
 
-    if (!loadSettings.devMode) {
+    if (!devMode) {
       require('coffee-script').register();
     }
 
