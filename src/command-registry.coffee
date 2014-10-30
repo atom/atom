@@ -1,15 +1,50 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {specificity} = require 'clear-cut'
 _ = require 'underscore-plus'
+Grim = require 'grim'
 {$} = require './space-pen-extensions'
 
 SequenceCount = 0
 SpecificityCache = {}
 
-# Public: Associates listener functions with commands in a
-# context-sensitive way using CSS selectors. You can access a global instance of
-# this class via `atom.commands`, and commands registered there will be
-# presented in the command palette.
+NativeEventBubbling =
+  abort: false
+  beforeinput: true
+  blur: false
+  click: true
+  compositionstart: true
+  compositionupdate: true
+  compositionend: true
+  dblclick: true
+  error: false
+  focus: false
+  focusin: true
+  focusout: true
+  input: true
+  keydown: true
+  keyup: true
+  load: false
+  mousedown: true
+  mouseenter: false
+  mouseleave: false
+  mousemove: true
+  mouseout: true
+  mouseover: true
+  mouseup: true
+  resize: false
+  scroll: false
+  select: true
+  textInput: true
+  unload: false
+  wheel: true
+  mousewheel: true
+
+module.exports =
+
+# Public: Associates listener functions with commands in a context-sensitive way
+# using CSS selectors. You can access a global instance of this class via
+# `atom.commands`, and commands registered there will be presented in the
+# command palette.
 #
 # The global command registry facilitates a style of event handling known as
 # *event delegation* that was popularized by jQuery. Atom commands are expressed
@@ -33,7 +68,7 @@ SpecificityCache = {}
 # Here is a command that inserts the current date in an editor:
 #
 # ```coffee
-# atom.commands.add 'atom-text-editor',
+# atom.commands.listen 'atom-text-editor',
 #   'user:insert-date': (event) ->
 #     editor = $(this).view().getModel()
 #     # soon the above above line will be:
@@ -42,8 +77,13 @@ SpecificityCache = {}
 # ```
 module.exports =
 class CommandRegistry
+  patchedDOMEventMethods: false
+  originalAddEventListener: Node::addEventListener
+  originalRemoveEventListener: Node::removeEventListener
+
   constructor: (@rootNode) ->
     @registeredCommands = {}
+    @registeredCommandsByInlineNode = new WeakMap
     @selectorBasedListenersByCommandName = {}
     @inlineListenersByCommandName = {}
     @emitter = new Emitter
@@ -51,6 +91,52 @@ class CommandRegistry
   destroy: ->
     for commandName of @registeredCommands
       window.removeEventListener(commandName, @handleCommandEvent, true)
+
+  patchDOMEventMethods: ->
+    if @patchedDOMEventMethods
+      throw new Error("Already patched DOM event methods for this registry.")
+    else
+      @patchedDOMEventMethods = true
+
+    registry = this
+    disposablesByEventName = {}
+
+    @originalAddEventListener = Node::addEventListener
+    @originalRemoveEventListener = Node::originalRemoveEventListener
+
+    Node::addEventListener = (eventName, callback, useCapture=false) ->
+      return unless callback?
+
+      target = this
+      disposable = registry.listen(target, eventName, callback, useCapture)
+
+      disposablesByEventName[eventName] ?= {}
+      disposablesByUseCapture = disposablesByEventName[eventName]
+      disposablesByUseCapture[useCapture] ?= new WeakMap
+      disposablesByTarget = disposablesByUseCapture[useCapture]
+      disposablesByTarget.set(target, new WeakMap) unless disposablesByTarget.has(target)
+      disposablesByCallback = disposablesByTarget.get(target)
+      disposablesByCallback.set(callback, new CompositeDisposable) unless disposablesByCallback.has(callback)
+      disposablesByCallback.get(callback).add(disposable)
+      return
+
+    Node::removeEventListener = (eventName, callback, useCapture=false) ->
+      return unless callback?
+
+      target = this
+      disposablesByEventName[eventName]?[useCapture]?.get(target)?.get(callback)?.dispose()
+      return
+
+  restoreDOMEventMethods: ->
+    Node::addEventListener = @originalAddEventListener
+    Node::removeEventListener = @originalRemoveEventListener
+    @patchedDOMEventMethods = false
+
+  addEventListener: (target, eventName, callback, useCapture) ->
+    @originalAddEventListener.call(target, eventName, callback, useCapture)
+
+  removeEventListener: (target, eventName, callback, useCapture) ->
+    @originalRemoveEventListener.call(target, eventName, callback, useCapture)
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -77,23 +163,30 @@ class CommandRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added command handler(s).
-  add: (target, commandName, callback) ->
+  listen: (target, commandName, callback, useCapture=false) ->
     if typeof commandName is 'object'
       commands = commandName
       disposable = new CompositeDisposable
       for commandName, callback of commands
-        disposable.add @add(target, commandName, callback)
+        disposable.add @listen(target, commandName, callback, useCapture)
       return disposable
 
     if typeof target is 'string'
-      @addSelectorBasedListener(target, commandName, callback)
+      @addSelectorBasedListener(target, commandName, callback, useCapture)
     else
-      @addInlineListener(target, commandName, callback)
+      @addInlineListener(target, commandName, callback, useCapture)
 
-  addSelectorBasedListener: (selector, commandName, callback) ->
+  add: (target, commandName, callback) ->
+    Grim.deprecate("Use CommandRegistry::listen instead")
+    @listen(target, commandName, callback)
+
+  capture: (target, commandName, callback) ->
+    @listen(target, commandName, callback, true)
+
+  addSelectorBasedListener: (selector, commandName, callback, useCapture) ->
     @selectorBasedListenersByCommandName[commandName] ?= []
     listenersForCommand = @selectorBasedListenersByCommandName[commandName]
-    listener = new SelectorBasedListener(selector, callback)
+    listener = new SelectorBasedListener(selector, callback, useCapture)
     listenersForCommand.push(listener)
 
     @commandRegistered(commandName)
@@ -102,17 +195,17 @@ class CommandRegistry
       listenersForCommand.splice(listenersForCommand.indexOf(listener), 1)
       delete @selectorBasedListenersByCommandName[commandName] if listenersForCommand.length is 0
 
-  addInlineListener: (element, commandName, callback) ->
+  addInlineListener: (element, commandName, callback, useCapture) ->
     @inlineListenersByCommandName[commandName] ?= new WeakMap
 
     listenersForCommand = @inlineListenersByCommandName[commandName]
     unless listenersForElement = listenersForCommand.get(element)
       listenersForElement = []
       listenersForCommand.set(element, listenersForElement)
-    listener = new InlineListener(callback)
+    listener = new InlineListener(callback, useCapture)
     listenersForElement.push(listener)
 
-    @commandRegistered(commandName)
+    @commandRegistered(commandName, element)
 
     new Disposable ->
       listenersForElement.splice(listenersForElement.indexOf(listener), 1)
@@ -160,11 +253,17 @@ class CommandRegistry
   # processed.
   #
   # * `target` The DOM node at which to start bubbling the command event.
-  # * `commandName` {String} indicating the name of the command to dispatch.
-  dispatch: (target, commandName, detail) ->
-    event = new CustomEvent(commandName, {bubbles: true, detail})
+  # * `event` {String} indicating the name of the command to dispatch or a
+  #     DOM event object.
+  # * `detail` The detail to associate with the dispatched DOM event. If present
+  #     overrides the `detail` of the `event` if it is a DOM event object.
+  dispatch: (target, event, detail) ->
+    if typeof event is 'string'
+      event = new CustomEvent(event, {bubbles: NativeEventBubbling[event] ? true})
+
     eventWithTarget = Object.create event,
       target: value: target
+      detail: value: detail ? event.detail
       preventDefault: value: ->
       stopPropagation: value: ->
       stopImmediatePropagation: value: ->
@@ -185,56 +284,93 @@ class CommandRegistry
       @selectorBasedListenersByCommandName[commandName] = listeners.slice()
 
   handleCommandEvent: (originalEvent) =>
+    originalEvent.stopImmediatePropagation()
+
     propagationStopped = false
     immediatePropagationStopped = false
-    matched = false
-    currentTarget = originalEvent.target
+    invokedListener = false
+    {target, type} = originalEvent
+    currentTarget = null
+    bubbles = NativeEventBubbling[type] ? originalEvent.bubbles
 
     syntheticEvent = Object.create originalEvent,
-      eventPhase: value: Event.BUBBLING_PHASE
+      eventPhase: get: -> eventPhase
       currentTarget: get: -> currentTarget
-      preventDefault: value: ->
-        originalEvent.preventDefault()
       stopPropagation: value: ->
-        originalEvent.stopPropagation()
         propagationStopped = true
       stopImmediatePropagation: value: ->
-        originalEvent.stopImmediatePropagation()
         propagationStopped = true
         immediatePropagationStopped = true
+      preventDefault: value: ->
+        originalEvent.preventDefault()
       abortKeyBinding: value: ->
         originalEvent.abortKeyBinding?()
 
     @emitter.emit 'will-dispatch', syntheticEvent
 
-    loop
-      listeners = @inlineListenersByCommandName[originalEvent.type]?.get(currentTarget) ? []
-      if currentTarget.webkitMatchesSelector?
-        selectorBasedListeners =
-          (@selectorBasedListenersByCommandName[originalEvent.type] ? [])
-            .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
-            .sort (a, b) -> a.compare(b)
-        listeners = listeners.concat(selectorBasedListeners)
+    path = @getBubblePath(target)
 
-      matched = true if listeners.length > 0
-
-      for listener in listeners
+    # Capture phase: Invoke listeners registered via {::capture}, starting with
+    # the window and moving downward towards the event target.
+    eventPhase = Event.CAPTURING_PHASE
+    for pathIndex in [(path.length - 1)..0]
+      currentTarget = path[pathIndex]
+      listeners = @listenersForNode(currentTarget, type)
+      for listener in listeners when listener.useCapture
         break if immediatePropagationStopped
+        invokedListener = true
+        listener.callback.call(currentTarget, syntheticEvent)
+      break if propagationStopped
+
+    return invokedListener if propagationStopped
+
+    # Bubble phase: Invoke listeners registered via {::listen}, starting with
+    # the event target and moving upward towards the window. If the event's
+    # `.bubbles` property is false, we abort after dispatching on the target.
+    eventPhase = Event.BUBBLING_PHASE
+    for currentTarget in path
+      listeners = @listenersForNode(currentTarget, type)
+      for listener in listeners when not listener.useCapture
+        break if immediatePropagationStopped
+        invokedListener = true
         listener.callback.call(currentTarget, syntheticEvent)
 
-      break if currentTarget is window
+      break unless bubbles
       break if propagationStopped
-      currentTarget = currentTarget.parentNode ? window
 
-    matched
+    invokedListener
 
-  commandRegistered: (commandName) ->
+  commandRegistered: (commandName, inlineNode) ->
     unless @registeredCommands[commandName]
-      window.addEventListener(commandName, @handleCommandEvent, true)
+      @addEventListener(window, commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
 
+    if inlineNode? and not @registeredCommandsByInlineNode.get(inlineNode)?[commandName]
+      @addEventListener(inlineNode, commandName, @handleCommandEvent, true)
+      @registeredCommandsByInlineNode.set(inlineNode, {}) unless @registeredCommandsByInlineNode.has(inlineNode)
+      @registeredCommandsByInlineNode.get(inlineNode)[commandName] = true
+
+  getBubblePath: (target) ->
+    path = []
+    currentTarget = target
+    loop
+      path.push(currentTarget)
+      break if currentTarget is window
+      currentTarget = currentTarget.parentNode ? window
+    path
+
+  listenersForNode: (node, eventType) ->
+    listeners = @inlineListenersByCommandName[eventType]?.get(node) ? []
+    if node.matches?
+      selectorBasedListeners =
+        (@selectorBasedListenersByCommandName[eventType] ? [])
+          .filter (listener) -> node.matches(listener.selector)
+          .sort (a, b) -> a.compare(b)
+      listeners = listeners.concat(selectorBasedListeners)
+    listeners
+
 class SelectorBasedListener
-  constructor: (@selector, @callback) ->
+  constructor: (@selector, @callback, @useCapture) ->
     @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
     @sequenceNumber = SequenceCount++
 
@@ -243,4 +379,4 @@ class SelectorBasedListener
       other.sequenceNumber - @sequenceNumber
 
 class InlineListener
-  constructor: (@callback) ->
+  constructor: (@callback, @useCapture) ->

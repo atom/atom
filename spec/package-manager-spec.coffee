@@ -118,7 +118,7 @@ describe "PackageManager", ->
             spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
             workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
-            atom.commands.add '.workspace', 'activation-command', workspaceCommandListener
+            atom.commands.listen '.workspace', 'activation-command', workspaceCommandListener
 
             promise = atom.packages.activatePackage('package-with-activation-commands')
 
@@ -138,7 +138,7 @@ describe "PackageManager", ->
               legacyCommandListener = jasmine.createSpy("legacyCommandListener")
               editorView.command 'activation-command', legacyCommandListener
               editorCommandListener = jasmine.createSpy("editorCommandListener")
-              atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
+              atom.commands.listen 'atom-text-editor', 'activation-command', editorCommandListener
               editorView[0].dispatchEvent(new CustomEvent('activation-command', bubbles: true))
               expect(mainModule.activate.callCount).toBe 1
               expect(mainModule.legacyActivationCommandCallCount).toBe 1
