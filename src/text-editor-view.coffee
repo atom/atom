@@ -1,6 +1,5 @@
-{View, $} = require 'atom'
+{View, $, TextEditorElement} = require 'atom'
 Grim = require 'grim'
-TextEditorElement = require './text-editor-element'
 
 # Public: Represents the entire visual pane in Atom.
 #

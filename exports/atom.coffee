@@ -17,6 +17,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$$ = $$
   module.exports.$$$ = $$$
   module.exports.View = View
+  module.exports.TextEditorElement = require '../src/text-editor-element'
   module.exports.TextEditorView = require '../src/text-editor-view'
   module.exports.ScrollView = require '../src/scroll-view'
   module.exports.SelectListView = require '../src/select-list-view'
