@@ -308,24 +308,17 @@ describe "ThemeManager", ->
         expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
   describe "when a non-existent theme is present in the config", ->
-    it "logs a warning but does not throw an exception (regression)", ->
-      reloaded = false
+    beforeEach ->
+      atom.config.set('core.themes', ['non-existent-dark-ui', 'non-existent-dark-syntax'])
 
       waitsForPromise ->
         themeManager.activateThemes()
 
-      runs ->
-        disposable = themeManager.onDidReloadAll ->
-          disposable.dispose()
-          reloaded = true
-        spyOn(console, 'warn')
-        expect(-> atom.config.set('core.themes', ['atom-light-ui', 'theme-really-does-not-exist'])).not.toThrow()
-
-      waitsFor -> reloaded
-
-      runs ->
-        expect(console.warn.callCount).toBe 1
-        expect(console.warn.argsForCall[0][0].length).toBeGreaterThan 0
+    it 'uses the default dark UI and syntax themes', ->
+      activeThemeNames = themeManager.getActiveNames()
+      expect(activeThemeNames.length).toBe(2)
+      expect(activeThemeNames).toContain('atom-dark-ui')
+      expect(activeThemeNames).toContain('atom-dark-syntax')
 
   describe "when in safe mode", ->
     beforeEach ->
