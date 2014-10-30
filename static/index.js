@@ -1,8 +1,8 @@
 window.onload = function() {
   try {
-    var path = require('path');
-
     var startTime = Date.now();
+
+    var path = require('path');
 
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
