@@ -159,11 +159,14 @@ class ThemeManager
     themeNames = atom.config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
     themeNames = themeNames.filter (themeName) ->
-      themeName and typeof themeName is 'string'
+      if themeName and typeof themeName is 'string'
+        return true if atom.packages.resolvePackagePath(themeName)
+        console.warn("Enabled theme '#{themeName}' is not installed.")
+      false
 
     # Use a built-in syntax and UI theme any time the configured themes are not
     # available.
-    if _.intersection(themeNames, atom.packages.getAvailablePackageNames()).length < 2
+    if themeNames.length < 2
       builtInThemeNames = [
         'atom-dark-syntax'
         'atom-dark-ui'
