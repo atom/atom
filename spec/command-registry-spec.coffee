@@ -125,7 +125,6 @@ describe "CommandRegistry", ->
       spyOn(dispatchedEvent, 'stopPropagation')
       grandchild.dispatchEvent(dispatchedEvent)
       expect(calls).toEqual ['child-1', 'child-2']
-      expect(dispatchedEvent.stopPropagation).toHaveBeenCalled()
 
     it "stops invoking callbacks when .stopImmediatePropagation() is called on the event", ->
       calls = []
@@ -138,7 +137,6 @@ describe "CommandRegistry", ->
       spyOn(dispatchedEvent, 'stopImmediatePropagation')
       grandchild.dispatchEvent(dispatchedEvent)
       expect(calls).toEqual ['child-1']
-      expect(dispatchedEvent.stopImmediatePropagation).toHaveBeenCalled()
 
     it "forwards .preventDefault() calls from the synthetic event to the original", ->
       registry.listen '.child', 'command', (event) -> event.preventDefault()
@@ -296,3 +294,10 @@ describe "CommandRegistry", ->
       calls = []
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['grandchild', 'child', 'parent']
+
+    it "invokes handlers on detached DOM nodes", ->
+      detachedNode = document.createElement('div')
+      called = false
+      detachedNode.addEventListener 'command', -> called = true
+      detachedNode.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(called).toBe true

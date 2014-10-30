@@ -7,18 +7,37 @@ Grim = require 'grim'
 SequenceCount = 0
 SpecificityCache = {}
 
-NativeEventBubbling = {
-  'abort': false
-  'blur': false
-  'error': false
-  'focus': false
-  'load': false
-  'mouseenter': false
-  'mouseleave': false
-  'resize': false
-  'scroll': false
-  'unload': false
-}
+NativeEventBubbling =
+  abort: false
+  beforeinput: true
+  blur: false
+  click: true
+  compositionstart: true
+  compositionupdate: true
+  compositionend: true
+  dblclick: true
+  error: false
+  focus: false
+  focusin: true
+  focusout: true
+  input: true
+  keydown: true
+  keyup: true
+  load: false
+  mousedown: true
+  mouseenter: false
+  mouseleave: false
+  mousemove: true
+  mouseout: true
+  mouseover: true
+  mouseup: true
+  resize: false
+  scroll: false
+  select: true
+  textInput: true
+  unload: false
+  wheel: true
+  mousewheel: true
 
 module.exports =
 
@@ -64,6 +83,7 @@ class CommandRegistry
 
   constructor: (@rootNode) ->
     @registeredCommands = {}
+    @registeredCommandsByInlineNode = new WeakMap
     @selectorBasedListenersByCommandName = {}
     @inlineListenersByCommandName = {}
     @emitter = new Emitter
@@ -185,7 +205,7 @@ class CommandRegistry
     listener = new InlineListener(callback, useCapture)
     listenersForElement.push(listener)
 
-    @commandRegistered(commandName)
+    @commandRegistered(commandName, element)
 
     new Disposable ->
       listenersForElement.splice(listenersForElement.indexOf(listener), 1)
@@ -264,24 +284,25 @@ class CommandRegistry
       @selectorBasedListenersByCommandName[commandName] = listeners.slice()
 
   handleCommandEvent: (originalEvent) =>
+    originalEvent.stopImmediatePropagation()
+
     propagationStopped = false
     immediatePropagationStopped = false
     invokedListener = false
-    {target} = originalEvent
+    {target, type} = originalEvent
     currentTarget = null
+    bubbles = NativeEventBubbling[type] ? originalEvent.bubbles
 
     syntheticEvent = Object.create originalEvent,
       eventPhase: get: -> eventPhase
       currentTarget: get: -> currentTarget
-      preventDefault: value: ->
-        originalEvent.preventDefault()
       stopPropagation: value: ->
-        originalEvent.stopPropagation()
         propagationStopped = true
       stopImmediatePropagation: value: ->
-        originalEvent.stopImmediatePropagation()
         propagationStopped = true
         immediatePropagationStopped = true
+      preventDefault: value: ->
+        originalEvent.preventDefault()
       abortKeyBinding: value: ->
         originalEvent.abortKeyBinding?()
 
@@ -294,7 +315,7 @@ class CommandRegistry
     eventPhase = Event.CAPTURING_PHASE
     for pathIndex in [(path.length - 1)..0]
       currentTarget = path[pathIndex]
-      listeners = @listenersForNode(currentTarget, originalEvent.type)
+      listeners = @listenersForNode(currentTarget, type)
       for listener in listeners when listener.useCapture
         break if immediatePropagationStopped
         invokedListener = true
@@ -308,21 +329,26 @@ class CommandRegistry
     # `.bubbles` property is false, we abort after dispatching on the target.
     eventPhase = Event.BUBBLING_PHASE
     for currentTarget in path
-      listeners = @listenersForNode(currentTarget, originalEvent.type)
+      listeners = @listenersForNode(currentTarget, type)
       for listener in listeners when not listener.useCapture
         break if immediatePropagationStopped
         invokedListener = true
         listener.callback.call(currentTarget, syntheticEvent)
 
-      break unless originalEvent.bubbles
+      break unless bubbles
       break if propagationStopped
 
     invokedListener
 
-  commandRegistered: (commandName) ->
+  commandRegistered: (commandName, inlineNode) ->
     unless @registeredCommands[commandName]
       @addEventListener(window, commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
+
+    if inlineNode? and not @registeredCommandsByInlineNode.get(inlineNode)?[commandName]
+      @addEventListener(inlineNode, commandName, @handleCommandEvent, true)
+      @registeredCommandsByInlineNode.set(inlineNode, {}) unless @registeredCommandsByInlineNode.has(inlineNode)
+      @registeredCommandsByInlineNode.get(inlineNode)[commandName] = true
 
   getBubblePath: (target) ->
     path = []
