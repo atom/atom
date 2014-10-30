@@ -5,6 +5,9 @@ window.onload = function() {
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
+    // Normalize to make sure drive letter case is consistent on Windows
+    process.resourcesPath = path.normalize(process.resourcesPath);
+
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + require('path').sep);
 
     // Require before the module cache in dev mode
