@@ -1,6 +1,6 @@
 {View, $} = require 'space-pen'
+Grim = require 'grim'
 TextEditorElement = require './text-editor-element'
-{deprecate} = require 'grim'
 
 # Public: Represents the entire visual pane in Atom.
 #
@@ -79,15 +79,15 @@ class TextEditorView extends View
       @gutter = @find('.gutter')
 
       @gutter.removeClassFromAllLines = (klass) =>
-        deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
+        Grim.deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
         @gutter.find('.line-number').removeClass(klass)
 
       @gutter.getLineNumberElement = (bufferRow) =>
-        deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
+        Grim.deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
         @gutter.find("[data-buffer-row='#{bufferRow}']")
 
       @gutter.addClassToLine = (bufferRow, klass) =>
-        deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
+        Grim.deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
         lines = @gutter.find("[data-buffer-row='#{bufferRow}']")
         lines.addClass(klass)
         lines.length > 0
@@ -135,27 +135,27 @@ class TextEditorView extends View
       @model.getScrollLeft()
 
   scrollToBottom: ->
-    deprecate 'Use TextEditor::scrollToBottom instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::scrollToBottom instead. You can get the editor via editorView.getModel()'
     @model.setScrollBottom(Infinity)
 
   scrollToScreenPosition: (screenPosition, options) ->
-    deprecate 'Use TextEditor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::scrollToScreenPosition instead. You can get the editor via editorView.getModel()'
     @model.scrollToScreenPosition(screenPosition, options)
 
   scrollToBufferPosition: (bufferPosition, options) ->
-    deprecate 'Use TextEditor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::scrollToBufferPosition instead. You can get the editor via editorView.getModel()'
     @model.scrollToBufferPosition(bufferPosition, options)
 
   scrollToCursorPosition: ->
-    deprecate 'Use TextEditor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::scrollToCursorPosition instead. You can get the editor via editorView.getModel()'
     @model.scrollToCursorPosition()
 
   pixelPositionForBufferPosition: (bufferPosition) ->
-    deprecate 'Use TextEditor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
     @model.pixelPositionForBufferPosition(bufferPosition)
 
   pixelPositionForScreenPosition: (screenPosition) ->
-    deprecate 'Use TextEditor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
     @model.pixelPositionForScreenPosition(screenPosition)
 
   appendToLinesView: (view) ->
@@ -164,7 +164,7 @@ class TextEditorView extends View
     @find('.lines').prepend(view)
 
   splitLeft: ->
-    deprecate """
+    Grim.deprecate """
       Use Pane::splitLeft instead.
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
@@ -173,7 +173,7 @@ class TextEditorView extends View
     pane?.splitLeft(pane?.copyActiveItem()).activeView
 
   splitRight: ->
-    deprecate """
+    Grim.deprecate """
       Use Pane::splitRight instead.
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitRight(copyActiveItem: true)
@@ -182,7 +182,7 @@ class TextEditorView extends View
     pane?.splitRight(pane?.copyActiveItem()).activeView
 
   splitUp: ->
-    deprecate """
+    Grim.deprecate """
       Use Pane::splitUp instead.
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitUp(copyActiveItem: true)
@@ -191,7 +191,7 @@ class TextEditorView extends View
     pane?.splitUp(pane?.copyActiveItem()).activeView
 
   splitDown: ->
-    deprecate """
+    Grim.deprecate """
       Use Pane::splitDown instead.
       To duplicate this editor into the split use:
       editorView.getPaneView().getModel().splitDown(copyActiveItem: true)
@@ -205,7 +205,7 @@ class TextEditorView extends View
   getPaneView: ->
     @parent('.item-views').parents('atom-pane').view()
   getPane: ->
-    deprecate 'Use TextEditorView::getPaneView() instead'
+    Grim.deprecate 'Use TextEditorView::getPaneView() instead'
     @getPaneView()
 
   show: ->
@@ -217,54 +217,54 @@ class TextEditorView extends View
     @component?.checkForVisibilityChange()
 
   pageDown: ->
-    deprecate('Use editorView.getModel().pageDown()')
+    Grim.deprecate('Use editorView.getModel().pageDown()')
     @model.pageDown()
 
   pageUp: ->
-    deprecate('Use editorView.getModel().pageUp()')
+    Grim.deprecate('Use editorView.getModel().pageUp()')
     @model.pageUp()
 
   getFirstVisibleScreenRow: ->
-    deprecate 'Use TextEditor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
     @model.getFirstVisibleScreenRow()
 
   getLastVisibleScreenRow: ->
-    deprecate 'Use TextEditor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
     @model.getLastVisibleScreenRow()
 
   getFontFamily: ->
-    deprecate 'This is going away. Use atom.config.get("editor.fontFamily") instead'
+    Grim.deprecate 'This is going away. Use atom.config.get("editor.fontFamily") instead'
     @component?.getFontFamily()
 
   setFontFamily: (fontFamily) ->
-    deprecate 'This is going away. Use atom.config.set("editor.fontFamily", "my-font") instead'
+    Grim.deprecate 'This is going away. Use atom.config.set("editor.fontFamily", "my-font") instead'
     @component?.setFontFamily(fontFamily)
 
   getFontSize: ->
-    deprecate 'This is going away. Use atom.config.get("editor.fontSize") instead'
+    Grim.deprecate 'This is going away. Use atom.config.get("editor.fontSize") instead'
     @component?.getFontSize()
 
   setFontSize: (fontSize) ->
-    deprecate 'This is going away. Use atom.config.set("editor.fontSize", 12) instead'
+    Grim.deprecate 'This is going away. Use atom.config.set("editor.fontSize", 12) instead'
     @component?.setFontSize(fontSize)
 
   setLineHeight: (lineHeight) ->
-    deprecate 'This is going away. Use atom.config.set("editor.lineHeight", 1.5) instead'
+    Grim.deprecate 'This is going away. Use atom.config.set("editor.lineHeight", 1.5) instead'
     @component.setLineHeight(lineHeight)
 
   setWidthInChars: (widthInChars) ->
     @component.getDOMNode().style.width = (@model.getDefaultCharWidth() * widthInChars) + 'px'
 
   setShowIndentGuide: (showIndentGuide) ->
-    deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
+    Grim.deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
     @component.setShowIndentGuide(showIndentGuide)
 
   setSoftWrap: (softWrapped) ->
-    deprecate 'Use TextEditor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
+    Grim.deprecate 'Use TextEditor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
     @model.setSoftWrapped(softWrapped)
 
   setShowInvisibles: (showInvisibles) ->
-    deprecate 'This is going away. Use atom.config.set("editor.showInvisibles", true|false) instead'
+    Grim.deprecate 'This is going away. Use atom.config.set("editor.showInvisibles", true|false) instead'
     @component.setShowInvisibles(showInvisibles)
 
   getText: ->
@@ -283,19 +283,19 @@ class TextEditorView extends View
     @component.setInputEnabled(inputEnabled)
 
   requestDisplayUpdate: ->
-    deprecate('Please remove from your code. ::requestDisplayUpdate no longer does anything')
+    Grim.deprecate('Please remove from your code. ::requestDisplayUpdate no longer does anything')
 
   updateDisplay: ->
-    deprecate('Please remove from your code. ::updateDisplay no longer does anything')
+    Grim.deprecate('Please remove from your code. ::updateDisplay no longer does anything')
 
   resetDisplay: ->
-    deprecate('Please remove from your code. ::resetDisplay no longer does anything')
+    Grim.deprecate('Please remove from your code. ::resetDisplay no longer does anything')
 
   redraw: ->
-    deprecate('Please remove from your code. ::redraw no longer does anything')
+    Grim.deprecate('Please remove from your code. ::redraw no longer does anything')
 
   setPlaceholderText: (placeholderText) ->
-    deprecate('Use TextEditor::setPlaceholderText instead. eg. editorView.getModel().setPlaceholderText(text)')
+    Grim.deprecate('Use TextEditor::setPlaceholderText instead. eg. editorView.getModel().setPlaceholderText(text)')
     @model.setPlaceholderText(placeholderText)
 
   lineElementForScreenRow: (screenRow) ->
