@@ -151,6 +151,7 @@
       { label: 'Roadmap', command: 'application:open-roadmap' }
       { label: 'Frequently Asked Questions', command: 'application:open-faq' }
       { label: 'Report Issue', command: 'application:report-issue' }
+      { label: 'Search Issues', command: 'application:search-issues' }
       { type: 'separator' }
     ]
   }

@@ -160,6 +160,7 @@ class AtomApplication
     @on 'application:open-faq', -> require('shell').openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
     @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/issues/new')
+    @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
