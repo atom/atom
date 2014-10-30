@@ -14,7 +14,6 @@ Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
 TextEditor = require '../src/text-editor'
-TextEditorView = require '../src/text-editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
 TextEditorComponent = require '../src/text-editor-component'
 pathwatcher = require 'pathwatcher'
@@ -110,7 +109,6 @@ beforeEach ->
   config.save.reset()
 
   # make editor display updates synchronous
-  spyOn(TextEditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   TextEditorComponent.performSyncUpdates = true
 
   spyOn(atom, "setRepresentedFilename")

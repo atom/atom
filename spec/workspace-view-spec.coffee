@@ -1,8 +1,7 @@
-{$, $$, WorkspaceView, View} = require 'atom'
+{$, $$, WorkspaceView, View, TextEditorView} = require 'atom'
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
-TextEditorView = require '../src/text-editor-view'
 PaneView = require '../src/pane-view'
 Workspace = require '../src/workspace'
 

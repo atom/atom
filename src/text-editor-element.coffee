@@ -26,7 +26,7 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   createSpacePenShim: ->
-    TextEditorView ?= require './text-editor-view'
+    TextEditorView ?= require('atom-space-pen-views').TextEditorView
     @__spacePenView = new TextEditorView(this)
 
   attachedCallback: ->
