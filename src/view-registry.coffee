@@ -1,7 +1,44 @@
 {Disposable} = require 'event-kit'
 {jQuery} = require './space-pen-extensions'
 
-# Essential
+# Essential: `ViewRegistry` handles the association between model and view
+# types in Atom. We call this association a View Provider. As in, for a given
+# model, this class can provide a view via {::getView}, as long as the
+# model/view association was registered via {::addViewProvider}
+#
+# If you're adding your own kind of pane item, a good strategy for all but the
+# simplest items is to separate the model and the view. The model handles
+# application logic and is the primary point of API interaction. The view
+# just handles presentation.
+#
+# View providers to inform the workspace how your model objects should be
+# presented in the DOM. A view provider must always return a DOM node, which
+# makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
+# an ideal tool for implementing views in Atom.
+#
+# You can access the `ViewRegistry` object via `atom.views`.
+#
+# ## Examples
+#
+# ### Getting the workspace element
+#
+# ```coffee
+# workspaceElement = atom.views.getView(atom.workspace)
+# ```
+#
+# ### Getting An Editor Element
+#
+# ```coffee
+# textEditor = atom.workspace.getActiveTextEditor()
+# textEditorElement = atom.views.getView(textEditor)
+# ```
+#
+# ### Getting A Pane Element
+# 
+# ```coffee
+# pane = atom.workspace.getActivePane()
+# paneElement = atom.views.getView(pane)
+# ```
 module.exports =
 class ViewRegistry
   constructor: ->
@@ -10,16 +47,6 @@ class ViewRegistry
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
-  #
-  # If you're adding your own kind of pane item, a good strategy for all but the
-  # simplest items is to separate the model and the view. The model handles
-  # application logic and is the primary point of API interaction. The view
-  # just handles presentation.
-  #
-  # Use view providers to inform the workspace how your model objects should be
-  # presented in the DOM. A view provider must always return a DOM node, which
-  # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
-  # an ideal tool for implementing views in Atom.
   #
   # ## Examples
   #
