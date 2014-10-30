@@ -6,7 +6,7 @@ Delegator = require 'delegato'
 {Model} = require 'theorist'
 EmitterMixin = require('emissary').Emitter
 {CompositeDisposable, Emitter} = require 'event-kit'
-{Point, Range} = require 'text-buffer'
+{Point, Range} = TextBuffer = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
@@ -84,6 +84,7 @@ class TextEditor extends Model
     @cursors = []
     @selections = []
 
+    buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true

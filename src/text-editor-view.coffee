@@ -1,7 +1,6 @@
 {View, $} = require 'space-pen'
 React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
-TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorElement = require './text-editor-element'
 TextEditorComponent = require './text-editor-component'
@@ -53,7 +52,6 @@ class TextEditorView extends View
       else
         {editor, mini, placeholderText, attributes} = modelOrParams
         model = editor ? new TextEditor
-          buffer: new TextBuffer
           softWrapped: false
           tabLength: 2
           softTabs: true
