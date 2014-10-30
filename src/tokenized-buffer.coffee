@@ -125,7 +125,10 @@ class TokenizedBuffer extends Model
   getTabLength: ->
     @tabLength ? @configSettings.tabLength
 
-  setTabLength: (@tabLength) ->
+  setTabLength: (tabLength) ->
+    return if tabLength is @tabLength
+
+    @tabLength = tabLength
     @retokenizeLines()
 
   setInvisibles: (invisibles) ->

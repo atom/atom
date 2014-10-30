@@ -3100,6 +3100,11 @@ describe "TextEditor", ->
         expect(editor.getTabLength()).toBe 6
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
 
+        changeHandler = jasmine.createSpy('changeHandler')
+        editor.onDidChange(changeHandler)
+        editor.setTabLength(6)
+        expect(changeHandler).not.toHaveBeenCalled()
+
       it 'retokenizes when the editor.tabLength setting is updated', ->
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
