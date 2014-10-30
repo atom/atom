@@ -34,7 +34,7 @@
 # ```
 #
 # ### Getting A Pane Element
-# 
+#
 # ```coffee
 # pane = atom.workspace.getActivePane()
 # paneElement = atom.views.getView(pane)
