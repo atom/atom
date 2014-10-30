@@ -180,6 +180,7 @@ class Atom extends Model
 
     @unsubscribe()
     @setBodyPlatformClass()
+    @requireTemplatingGlobals()
 
     @loadTime = null
 
@@ -713,3 +714,19 @@ class Atom extends Model
 
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
+
+  requireTemplatingGlobals: ->
+    require('./html-require').register()
+
+    # This is required by the polymer stuff. It can be noop'd because
+    # Object.observe is built into chrome.
+    global.Platform =
+      performMicrotaskCheckpoint: ->
+
+    require 'Node-bind/src/NodeBind'
+    require 'TemplateBinding/src/TemplateBinding'
+    require 'observe-js'
+    global.esprima = require('polymer-expressions/third_party/esprima/esprima').esprima
+    {PolymerExpressions} = require 'polymer-expressions/src/polymer-expressions'
+
+    HTMLTemplateElement.prototype.bindingDelegate = new PolymerExpressions
