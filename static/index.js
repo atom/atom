@@ -1,5 +1,7 @@
 window.onload = function() {
   try {
+    var path = require('path');
+
     var startTime = Date.now();
 
     // Skip "?loadSettings=".
@@ -8,7 +10,7 @@ window.onload = function() {
     // Normalize to make sure drive letter case is consistent on Windows
     process.resourcesPath = path.normalize(process.resourcesPath);
 
-    var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + require('path').sep);
+    var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
     // Require before the module cache in dev mode
     if (devMode) {
