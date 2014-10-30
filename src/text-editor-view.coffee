@@ -1,5 +1,4 @@
 {View, $} = require 'space-pen'
-TextEditor = require './text-editor'
 TextEditorElement = require './text-editor-element'
 {deprecate} = require 'grim'
 
@@ -44,21 +43,24 @@ class TextEditorView extends View
   constructor: (modelOrParams, props) ->
     # Handle direct construction with an editor or params
     unless modelOrParams instanceof HTMLElement
-      if modelOrParams instanceof TextEditor
+      if modelOrParams.constructor isnt Object
         model = modelOrParams
       else
         {editor, mini, placeholderText, attributes} = modelOrParams
-        model = editor ? new TextEditor
-          softWrapped: false
-          tabLength: 2
-          softTabs: true
-          mini: mini
-          placeholderText: placeholderText
+        model = editor
+        attributes ?= {}
+        attributes.mini = true if mini
+        attributes['placeholder-text'] = placeholderText if placeholderText?
 
       element = new TextEditorElement
       element.lineOverdrawMargin = props?.lineOverdrawMargin
       element.setAttribute(name, value) for name, value of attributes if attributes?
-      element.setModel(model)
+
+      if model?
+        element.setModel(model)
+      else
+        element.getModel()
+
       return element.__spacePenView
 
     # Handle construction with an element
