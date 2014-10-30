@@ -1,9 +1,6 @@
 {View, $} = require 'space-pen'
-React = require 'react-atom-fork'
-{defaults} = require 'underscore-plus'
 TextEditor = require './text-editor'
 TextEditorElement = require './text-editor-element'
-TextEditorComponent = require './text-editor-component'
 {deprecate} = require 'grim'
 
 # Public: Represents the entire visual pane in Atom.
@@ -163,9 +160,6 @@ class TextEditorView extends View
     view.css('position', 'absolute')
     view.css('z-index', 1)
     @find('.lines').prepend(view)
-
-  unmountComponent: ->
-    React.unmountComponentAtNode(@element) if @component.isMounted()
 
   splitLeft: ->
     deprecate """
