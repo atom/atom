@@ -45,15 +45,15 @@ class Workspace extends Model
     @emitter = new Emitter
     @openers = []
 
-    @viewRegistry ?= new ViewRegistry
-    @paneContainer ?= new PaneContainer({@viewRegistry})
+    viewRegistry = atom.views
+    @paneContainer ?= new PaneContainer({viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
 
     @panelContainers =
-      top: new PanelContainer({@viewRegistry, location: 'top'})
-      left: new PanelContainer({@viewRegistry, location: 'left'})
-      right: new PanelContainer({@viewRegistry, location: 'right'})
-      bottom: new PanelContainer({@viewRegistry, location: 'bottom'})
+      top: new PanelContainer({viewRegistry, location: 'top'})
+      left: new PanelContainer({viewRegistry, location: 'left'})
+      right: new PanelContainer({viewRegistry, location: 'right'})
+      bottom: new PanelContainer({viewRegistry, location: 'bottom'})
 
     @subscribeToActiveItem()
 
@@ -68,15 +68,15 @@ class Workspace extends Model
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
 
-    @addViewProvider
+    atom.views.addViewProvider
       modelConstructor: Workspace
       viewConstructor: WorkspaceElement
 
-    @addViewProvider
+    atom.views.addViewProvider
       modelConstructor: PanelContainer
       viewConstructor: PanelContainerElement
 
-    @addViewProvider
+    atom.views.addViewProvider
       modelConstructor: Panel
       viewConstructor: PanelElement
 
@@ -85,8 +85,7 @@ class Workspace extends Model
     for packageName in params.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
-    params.viewRegistry = new ViewRegistry
-    params.paneContainer.viewRegistry = params.viewRegistry
+    params.paneContainer.viewRegistry = atom.views
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -605,8 +604,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -620,8 +619,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -635,8 +634,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -650,8 +649,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -663,87 +662,5 @@ class Workspace extends Model
 
   addPanel: (location, options) ->
     options ?= {}
-    options.viewRegistry = @viewRegistry
+    options.viewRegistry = atom.views
     @panelContainers[location].addPanel(new Panel(options))
-
-  ###
-  Section: View Management
-  ###
-
-  # Essential: Get the view associated with an object in the workspace.
-  #
-  # If you're just *using* the workspace, you shouldn't need to access the view
-  # layer, but view layer access may be necessary if you want to perform DOM
-  # manipulation that isn't supported via the model API.
-  #
-  # ## Examples
-  #
-  # ### Getting An Editor View
-  # ```coffee
-  # textEditor = atom.workspace.getActiveTextEditor()
-  # textEditorView = atom.workspace.getView(textEditor)
-  # ```
-  #
-  # ### Getting A Pane View
-  # ```coffee
-  # pane = atom.workspace.getActivePane()
-  # paneView = atom.workspace.getView(pane)
-  # ```
-  #
-  # ### Getting The Workspace View
-  #
-  # ```coffee
-  # workspaceView = atom.workspace.getView(atom.workspace)
-  # ```
-  #
-  # * `object` The object for which you want to retrieve a view. This can be a
-  #   pane item, a pane, or the workspace itself.
-  #
-  # Returns a DOM element.
-  getView: (object) ->
-    @viewRegistry.getView(object)
-
-  # Essential: Add a provider that will be used to construct views in the
-  # workspace's view layer based on model objects in its model layer.
-  #
-  # If you're adding your own kind of pane item, a good strategy for all but the
-  # simplest items is to separate the model and the view. The model handles
-  # application logic and is the primary point of API interaction. The view
-  # just handles presentation.
-  #
-  # Use view providers to inform the workspace how your model objects should be
-  # presented in the DOM. A view provider must always return a DOM node, which
-  # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
-  # an ideal tool for implementing views in Atom.
-  #
-  # ## Examples
-  #
-  # Text editors are divided into a model and a view layer, so when you interact
-  # with methods like `atom.workspace.getActiveTextEditor()` you're only going
-  # to get the model object. We display text editors on screen by teaching the
-  # workspace what view constructor it should use to represent them:
-  #
-  # ```coffee
-  # atom.workspace.addViewProvider
-  #   modelConstructor: TextEditor
-  #   viewConstructor: TextEditorElement
-  # ```
-  #
-  # * `providerSpec` {Object} containing the following keys:
-  #   * `modelConstructor` Constructor {Function} for your model.
-  #   * `viewConstructor` (Optional) Constructor {Function} for your view. It
-  #     should be a subclass of `HTMLElement` (that is, your view should be a
-  #     DOM node) and   have a `::setModel()` method which will be called
-  #     immediately after construction. If you don't supply this property, you
-  #     must supply the `createView` property with a function that never returns
-  #     `undefined`.
-  #   * `createView` (Optional) Factory {Function} that must return a subclass
-  #     of `HTMLElement` or `undefined`. If this property is not present or the
-  #     function returns `undefined`, the view provider will fall back to the
-  #     `viewConstructor` property. If you don't provide this property, you must
-  #     provider a `viewConstructor` property.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to remove the
-  # added provider.
-  addViewProvider: (providerSpec) ->
-    @viewRegistry.addViewProvider(providerSpec)

@@ -208,7 +208,7 @@ describe "ThemeManager", ->
 
   describe "base stylesheet loading", ->
     beforeEach ->
-      atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
+      atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
       atom.workspaceView.append $('<atom-text-editor>')
       atom.workspaceView.attachToDom()
 

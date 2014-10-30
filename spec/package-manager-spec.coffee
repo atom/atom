@@ -3,7 +3,7 @@ Package = require '../src/package'
 
 describe "PackageManager", ->
   beforeEach ->
-    atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
+    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
 
   describe "::loadPackage(name)", ->
     it "continues if the package has an invalid package.json", ->
