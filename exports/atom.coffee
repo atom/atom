@@ -16,11 +16,11 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$ = $
   module.exports.$$ = $$
   module.exports.$$$ = $$$
+  module.exports.View = View
   module.exports.TextEditorView = require '../src/text-editor-view'
   module.exports.ScrollView = require '../src/scroll-view'
   module.exports.SelectListView = require '../src/select-list-view'
   module.exports.Task = require '../src/task'
-  module.exports.View = View
   module.exports.WorkspaceView = require '../src/workspace-view'
   module.exports.Workspace = require '../src/workspace'
   module.exports.React = require 'react-atom-fork'

@@ -1,4 +1,4 @@
-{View, $} = require 'space-pen'
+{View, $} = require 'atom'
 Grim = require 'grim'
 TextEditorElement = require './text-editor-element'
 
