@@ -1805,6 +1805,16 @@ describe "TextEditor", ->
           expect(willInsertSpy).toHaveBeenCalled()
           expect(didInsertSpy).not.toHaveBeenCalled()
 
+      describe "when the undo option is set to 'skip'", ->
+        beforeEach ->
+          editor.setSelectedBufferRange([[1, 2], [1, 2]])
+
+        it "replaces the selection with the given text", ->
+          range = editor.insertText('x')
+          range = editor.insertText('y', undo: 'skip')
+          editor.undo()
+          expect(buffer.lineForRow(1)).toBe '  yvar sort = function(items) {'
+
     describe ".insertNewline()", ->
       describe "when there is a single cursor", ->
         describe "when the cursor is at the beginning of a line", ->
