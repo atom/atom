@@ -70,7 +70,7 @@ class AtomApplication
 
     @autoUpdateManager = new AutoUpdateManager(@version)
     @applicationMenu = new ApplicationMenu(@version)
-    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
+    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()

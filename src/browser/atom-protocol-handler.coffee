@@ -10,18 +10,20 @@ protocol = require 'protocol'
 #
 # The following directories are searched in order:
 #   * ~/.atom/assets
-#   * ~/.atom/dev/packages
+#   * ~/.atom/dev/packages (unless in safe mode)
 #   * ~/.atom/packages
 #   * RESOURCE_PATH/node_modules
 #
 module.exports =
 class AtomProtocolHandler
-  constructor: (@resourcePath) ->
-    @loadPaths = [
-      path.join(app.getHomeDir(), '.atom', 'dev', 'packages')
-      path.join(app.getHomeDir(), '.atom', 'packages')
-      path.join(@resourcePath, 'node_modules')
-    ]
+  constructor: (@resourcePath, safeMode) ->
+    @loadPaths = []
+
+    unless safeMode
+      @loadPaths.push(path.join(app.getHomeDir(), '.atom', 'dev', 'packages'))
+
+    @loadPaths.push(path.join(app.getHomeDir(), '.atom', 'packages'))
+    @loadPaths.push(path.join(@resourcePath, 'node_modules'))
 
     @registerAtomProtocol()
 
