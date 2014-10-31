@@ -1809,7 +1809,7 @@ describe "TextEditor", ->
         beforeEach ->
           editor.setSelectedBufferRange([[1, 2], [1, 2]])
 
-        it "replaces the selection with the given text", ->
+        it "does not undo the skipped operation", ->
           range = editor.insertText('x')
           range = editor.insertText('y', undo: 'skip')
           editor.undo()
