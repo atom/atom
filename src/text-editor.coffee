@@ -737,9 +737,12 @@ class TextEditor extends Model
   #
   # * `range` A {Range} or range-compatible {Array}.
   # * `text` A {String}
+  # * `options` (optional) {Object}
+  #   * `normalizeLineEndings` (optional) {Boolean} (default: true)
+  #   * `undo` (optional) {String} 'skip' will skip the undo system
   #
   # Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange: (range, text, normalizeLineEndings) -> @getBuffer().setTextInRange(range, text, normalizeLineEndings)
+  setTextInBufferRange: (range, text, options) -> @getBuffer().setTextInRange(range, text, options)
 
   # Essential: For each selection, replace the selected text with the given text.
   #

@@ -348,6 +348,7 @@ class Selection extends Model
   #   * `autoIndentNewline` if `true`, indent newline appropriately.
   #   * `autoDecreaseIndent` if `true`, decreases indent level appropriately
   #     (for example, when a closing bracket is inserted).
+  #   * `normalizeLineEndings` (optional) {Boolean} (default: true)
   #   * `undo` if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
@@ -359,7 +360,7 @@ class Selection extends Model
     if options.indentBasis? and not options.autoIndent
       text = @normalizeIndents(text, options.indentBasis)
 
-    newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo'))
+    newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo', 'normalizeLineEndings'))
 
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
