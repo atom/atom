@@ -34,8 +34,7 @@ class AtomProtocolHandler
 
       if relativePath.indexOf('assets/') is 0
         assetsPath = path.join(app.getHomeDir(), '.atom', relativePath)
-        if fs.statSyncNoException(assetsPath).isFile?()
-          filePath = assetsPath
+        filePath = assetsPath if fs.statSyncNoException(assetsPath).isFile?()
 
       unless filePath
         for loadPath in @loadPaths
