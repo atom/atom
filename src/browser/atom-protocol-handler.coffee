@@ -16,7 +16,7 @@ protocol = require 'protocol'
 #
 module.exports =
 class AtomProtocolHandler
-  constructor: (@resourcePath, safeMode) ->
+  constructor: (resourcePath, safeMode) ->
     @loadPaths = []
     @dotAtomDirectory = path.join(app.getHomeDir(), '.atom')
 
@@ -24,7 +24,7 @@ class AtomProtocolHandler
       @loadPaths.push(path.join(@dotAtomDirectory, 'dev', 'packages'))
 
     @loadPaths.push(path.join(@dotAtomDirectory, 'packages'))
-    @loadPaths.push(path.join(@resourcePath, 'node_modules'))
+    @loadPaths.push(path.join(resourcePath, 'node_modules'))
 
     @registerAtomProtocol()
 
