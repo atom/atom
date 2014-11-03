@@ -1,4 +1,4 @@
-{View, $, callRemoveHooks} = require 'space-pen'
+{callRemoveHooks} = require 'space-pen'
 React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
