@@ -32,10 +32,21 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
 
   # Export deprecated SpacePen views.
   # Adjust their prototype chain to inherit from our extend version of SpacePen
-  SpacePenViews = require 'atom-space-pen-views'
-  class TextEditorView extends SpacePenViews.TextEditorView
-  class ScrollView extends SpacePenViews.ScrollView
-  class SelectListView extends SpacePenViews.SelectListView
+  #
+  # We avoid using/assigning a cached module for these classes in order to
+  # prevent polluting every required version with these changes. The only
+  # versions that should get their prototypes adjusted are the ones exported
+  # here.
+  uncachedRequire = (id) ->
+    modulePath = require.resolve(id)
+    delete require.cache[modulePath]
+    loadedModule = require(modulePath)
+    delete require.cache[modulePath]
+    loadedModule
+
+  TextEditorView = uncachedRequire 'atom-space-pen-views/lib/text-editor-view'
+  ScrollView = uncachedRequire 'atom-space-pen-views/lib/scroll-view'
+  SelectListView = uncachedRequire 'atom-space-pen-views/lib/select-list-view'
 
   TextEditorView.prototype.__proto__ = View.prototype
   ScrollView.prototype.__proto__ = View.prototype
