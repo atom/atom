@@ -18,9 +18,12 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.$$$ = $$$
   module.exports.View = View
   module.exports.TextEditorElement = require '../src/text-editor-element'
-  module.exports.TextEditorView = require('atom-space-pen-views').TextEditorView
-  module.exports.ScrollView = require '../src/scroll-view'
-  module.exports.SelectListView = require('atom-space-pen-views').SelectListView
+
+  {TextEditorView, ScrollView, SelectListView} = require 'atom-space-pen-views'
+  module.exports.TextEditorView = TextEditorView
+  module.exports.ScrollView = ScrollView
+  module.exports.SelectListView = SelectListView
+
   module.exports.Task = require '../src/task'
   module.exports.WorkspaceView = require '../src/workspace-view'
   module.exports.Workspace = require '../src/workspace'
