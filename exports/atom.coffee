@@ -48,9 +48,8 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   ScrollView = uncachedRequire 'atom-space-pen-views/lib/scroll-view'
   SelectListView = uncachedRequire 'atom-space-pen-views/lib/select-list-view'
 
-  TextEditorView.prototype.__proto__ = View.prototype
-  ScrollView.prototype.__proto__ = View.prototype
-  SelectListView.prototype.__proto__ = View.prototype
+  # Make Atom's modified SpacePen View prototype the prototype of the imported View
+  TextEditorView.prototype.__proto__.__proto__ = View.prototype
 
   module.exports.TextEditorView = TextEditorView
   module.exports.ScrollView = ScrollView
