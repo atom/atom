@@ -1,4 +1,5 @@
 {callRemoveHooks} = require 'space-pen'
+{Emitter} = require 'event-kit'
 React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -13,8 +14,15 @@ class TextEditorElement extends HTMLElement
   lineOverdrawMargin: null
   focusOnAttach: false
 
+  onDidAttach: (callback) ->
+    @emitter.on 'did-attach', callback
+
+  onDidDetach: (callback) ->
+    @emitter.on 'did-detach', callback
+
   createdCallback: ->
-    @subscriptions =
+    @emitter = new Emitter
+
     @initializeContent()
     @createSpacePenShim()
     @addEventListener 'focus', @focused.bind(this)
@@ -34,6 +42,10 @@ class TextEditorElement extends HTMLElement
     @mountComponent() unless @component?.isMounted()
     @component.checkForVisibilityChange()
     @focus() if @focusOnAttach
+    @emitter.emit 'did-attach'
+
+  detachedCallback: ->
+    @emitter.emit 'did-detach'
 
   setModel: (model) ->
     throw new Error("Model already assigned on TextEditorElement") if @model?
