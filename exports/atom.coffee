@@ -1,4 +1,5 @@
 {Point, Range} = require 'text-buffer'
+{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {deprecate} = require 'grim'
 
 module.exports =
@@ -12,6 +13,10 @@ module.exports =
 # only be exported when not running as a child node process
 unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   {$, $$, $$$, View} = require '../src/space-pen-extensions'
+
+  module.exports.Emitter = Emitter
+  module.exports.Disposable = Disposable
+  module.exports.CompositeDisposable = CompositeDisposable
 
   module.exports.$ = $
   module.exports.$$ = $$
