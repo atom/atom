@@ -22,6 +22,7 @@ class Panel
   # Public: Destroy and remove this panel from the UI.
   destroy: ->
     @emitter.emit 'did-destroy', this
+    @emitter.dispose()
 
   ###
   Section: Event Subscription
