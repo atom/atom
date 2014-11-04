@@ -95,7 +95,11 @@ class TextEditorElement extends HTMLElement
       lineOverdrawMargin: @lineOverdrawMargin
     )
     @component = React.renderComponent(@componentDescriptor, @rootElement)
-    @component.refs.input.getDOMNode().addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
+
+    unless atom.config.get('editor.useShadowDOM')
+      inputNode = @component.refs.input.getDOMNode()
+      inputNode.addEventListener 'focus', @focused.bind(this)
+      inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
     return unless @component?.isMounted()
@@ -103,7 +107,7 @@ class TextEditorElement extends HTMLElement
     React.unmountComponentAtNode(this)
     @component = null
 
-  focused: (event) ->
+  focused: ->
     if @component?
       @component.focused()
     else
