@@ -11,6 +11,8 @@ class PanelContainerElement extends HTMLElement
     @subscriptions.add @model.onDidRemovePanel(@panelRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
 
+    @setAttribute('location', @model.getLocation())
+
   panelAdded: ({panel, index}) ->
     panelElement = panel.getView()
     panelElement.setAttribute('location', @model.getLocation())

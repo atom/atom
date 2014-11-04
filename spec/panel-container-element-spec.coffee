@@ -34,6 +34,9 @@ describe "PanelContainerElement", ->
     element = container.getView()
     jasmineContent.appendChild(element)
 
+  it 'has a location attribute with value from the model', ->
+    expect(element.getAttribute('location')).toBe 'left'
+
   it 'removes the element when the container is destroyed', ->
     expect(element.parentNode).toBe jasmineContent
     container.destroy()
