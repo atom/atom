@@ -34,6 +34,8 @@ class PanelContainer
 
   getLocation: -> @location
 
+  isModal: -> @location is 'modal'
+
   getPanels: -> @panels
 
   addPanel: (panel) ->

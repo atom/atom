@@ -22,11 +22,21 @@ class PanelContainerElement extends HTMLElement
       referenceItem = @childNodes[index + 1]
       @insertBefore(panelElement, referenceItem)
 
+    if @model.isModal()
+      @enforceModalityFor(panel)
+      @subscriptions.add panel.onDidChangeVisible (visible) =>
+        @enforceModalityFor(panel) if visible
+
   panelRemoved: ({panel, index}) ->
     @removeChild(@childNodes[index])
 
   destroyed: ->
     @subscriptions.dispose()
     @parentNode?.removeChild(this)
+
+  enforceModalityFor: (excludedPanel) ->
+    for panel in @model.getPanels()
+      panel.hide() unless panel is excludedPanel
+    return
 
 module.exports = PanelContainerElement = document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype
