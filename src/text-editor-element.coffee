@@ -6,6 +6,8 @@ TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 TextEditorView = null
 
+GlobalStylesElement = null
+
 class TextEditorElement extends HTMLElement
   model: null
   componentDescriptor: null
@@ -23,16 +25,29 @@ class TextEditorElement extends HTMLElement
   initializeContent: (attributes) ->
     @classList.add('editor')
     @setAttribute('tabindex', -1)
-    @createShadowRoot()
 
-    @stylesElement = document.createElement('atom-styles')
-    @stylesElement.setAttribute('context', 'atom-text-editor')
-    @stylesElement.initialize()
-    @shadowRoot.appendChild(@stylesElement)
 
-    @rootElement = document.createElement('div')
-    @rootElement.classList.add('editor', 'editor-colors')
-    @shadowRoot.appendChild(@rootElement)
+    if atom.config.get('editor.useShadowDOM')
+      @createShadowRoot()
+
+      @stylesElement = document.createElement('atom-styles')
+      @stylesElement.setAttribute('context', 'atom-text-editor')
+      @stylesElement.initialize()
+
+      @rootElement = document.createElement('div')
+      @rootElement.classList.add('editor', 'editor-colors')
+
+      @shadowRoot.appendChild(@stylesElement)
+      @shadowRoot.appendChild(@rootElement)
+    else
+      unless GlobalStylesElement?
+        GlobalStylesElement = document.createElement('atom-styles')
+        GlobalStylesElement.setAttribute('context', 'atom-text-editor')
+        GlobalStylesElement.initialize()
+        document.head.appendChild(GlobalStylesElement)
+
+      @stylesElement = GlobalStylesElement
+      @rootElement = this
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
