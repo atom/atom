@@ -50,6 +50,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
 
   # Make Atom's modified SpacePen View prototype the prototype of the imported View
   TextEditorView.prototype.__proto__.__proto__ = View.prototype
+  TextEditorView.prototype.__proto__.useLegacyAttachHooks = true
 
   module.exports.TextEditorView = TextEditorView
   module.exports.ScrollView = ScrollView
