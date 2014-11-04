@@ -93,7 +93,7 @@ TextEditorComponent = React.createClass
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
-    div {className, style, tabIndex: -1},
+    div {className, style},
       if @shouldRenderGutter()
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,

@@ -110,6 +110,11 @@ class TextEditorElement extends HTMLElement
       @focusOnAttach = true
 
   blurred: (event) ->
+    unless atom.config.get('editor.useShadowDOM')
+      if event.relatedTarget is @component?.refs.input.getDOMNode()
+        event.stopImmediatePropagation()
+        return
+
     @component?.blurred()
 
   addGrammarScopeAttribute: ->
