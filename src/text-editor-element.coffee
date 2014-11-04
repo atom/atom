@@ -95,6 +95,7 @@ class TextEditorElement extends HTMLElement
       lineOverdrawMargin: @lineOverdrawMargin
     )
     @component = React.renderComponent(@componentDescriptor, @rootElement)
+    @component.refs.input.getDOMNode().addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
     return unless @component?.isMounted()
