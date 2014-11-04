@@ -435,7 +435,8 @@ TextEditorComponent = React.createClass
       @refs.input.focus()
 
   blurred: ->
-    @setState(focused: false)
+    if @isMounted()
+      @setState(focused: false)
 
   onTextInput: (event) ->
     event.stopPropagation()

@@ -111,7 +111,7 @@ class TextEditorElement extends HTMLElement
 
   blurred: (event) ->
     unless atom.config.get('editor.useShadowDOM')
-      if event.relatedTarget is @component?.refs.input.getDOMNode()
+      if event.relatedTarget is @component?.refs.input?.getDOMNode()
         event.stopImmediatePropagation()
         return
 

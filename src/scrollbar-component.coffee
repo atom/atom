@@ -38,6 +38,9 @@ ScrollbarComponent = React.createClass
 
     @getDOMNode().addEventListener 'scroll', @onScroll
 
+  componentWillUnmount: ->
+    @getDOMNode().removeEventListener 'scroll', @onScroll
+
   shouldComponentUpdate: (newProps) ->
     return true if newProps.visible isnt @props.visible
 
