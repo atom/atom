@@ -14,11 +14,18 @@ class PanelContainerElement extends HTMLElement
     @setAttribute('location', @model.getLocation())
 
   panelAdded: ({panel, index}) ->
+    panelElement = panel.getView()
+    panelElement.setAttribute('location', @model.getLocation())
     if index >= @childNodes.length
-      @appendChild(panel.getView())
+      @appendChild(panelElement)
     else
       referenceItem = @childNodes[index + 1]
-      @insertBefore(panel.getView(), referenceItem)
+      @insertBefore(panelElement, referenceItem)
+
+    if @model.isModal()
+      @hideAllPanelsExcept(panel)
+      @subscriptions.add panel.onDidChangeVisible (visible) =>
+        @hideAllPanelsExcept(panel) if visible
 
   panelRemoved: ({panel, index}) ->
     @removeChild(@childNodes[index])
@@ -26,5 +33,10 @@ class PanelContainerElement extends HTMLElement
   destroyed: ->
     @subscriptions.dispose()
     @parentNode?.removeChild(this)
+
+  hideAllPanelsExcept: (excludedPanel) ->
+    for panel in @model.getPanels()
+      panel.hide() unless panel is excludedPanel
+    return
 
 module.exports = PanelContainerElement = document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype

@@ -12,6 +12,7 @@ class PanelElement extends HTMLElement
     @appendChild(view)
     callAttachHooks(view) # for backward compatibility with SpacePen views
 
+    @classList.add(@model.getClassName().split(' ')...) if @model.getClassName()?
     @subscriptions.add @model.onDidChangeVisible(@visibleChanged.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
 

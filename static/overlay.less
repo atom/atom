@@ -1,6 +1,7 @@
 @import "ui-variables";
 
-.overlay {
+.overlay,
+atom-panel[location="modal"] {
   position: absolute;
   left: 50%;
   width: 500px;
@@ -8,7 +9,9 @@
   z-index: 9999;
   box-sizing: border-box;
 
-  background-color: #fff;
+  color: @text-color;
+  background-color: @overlay-background-color;
+
   padding: 10px;
 
   h1 {
@@ -21,30 +24,32 @@
   h2 {
     font-size: 1.3em;
   }
+
+  atom-text-editor.mini {
+    margin-bottom: 10px;
+  }
+
+  .message {
+    padding-top: 5px;
+    font-size: 11px;
+  }
+
+  &.mini {
+    width: 200px;
+    margin-left: -100px;
+    font-size: 12px;
+  }
 }
 
-.overlay atom-text-editor.mini {
-  margin-bottom: 10px;
-}
-
-.overlay .message {
-  padding-top: 5px;
-  font-size: 11px;
-}
-
-.overlay.mini {
-  width: 200px;
-  margin-left: -100px;
-  font-size: 12px;
-}
-
-.overlay.from-top {
+.overlay.from-top, // TODO: Remove the .from-* classes
+atom-panel[location="modal"] {
   top: 0;
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
+// TODO: Remove these!
 .overlay.from-bottom {
   bottom: 0;
   border-bottom: none;

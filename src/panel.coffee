@@ -14,7 +14,7 @@ class Panel
   Section: Construction and Destruction
   ###
 
-  constructor: ({@viewRegistry, @item, @visible, @priority}) ->
+  constructor: ({@viewRegistry, @item, @visible, @priority, @className}) ->
     @emitter = new Emitter
     @visible ?= true
     @priority ?= 100
@@ -22,6 +22,7 @@ class Panel
   # Public: Destroy and remove this panel from the UI.
   destroy: ->
     @emitter.emit 'did-destroy', this
+    @emitter.dispose()
 
   ###
   Section: Event Subscription
@@ -61,6 +62,8 @@ class Panel
 
   # Public: Returns a {Number} indicating this panel's priority.
   getPriority: -> @priority
+
+  getClassName: -> @className
 
   # Public: Returns a {Boolean} true when the panel is visible.
   isVisible: -> @visible

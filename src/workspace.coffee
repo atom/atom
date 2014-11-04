@@ -54,6 +54,7 @@ class Workspace extends Model
       left: new PanelContainer({viewRegistry, location: 'left'})
       right: new PanelContainer({viewRegistry, location: 'right'})
       bottom: new PanelContainer({viewRegistry, location: 'bottom'})
+      modal: new PanelContainer({viewRegistry, location: 'modal'})
 
     @subscribeToActiveItem()
 
@@ -659,6 +660,23 @@ class Workspace extends Model
   # Returns a {Panel}
   addTopPanel: (options) ->
     @addPanel('top', options)
+
+  # Essential: Adds a panel item as a modal dialog.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addModalPanel: (options={}) ->
+    # TODO: remove these default classes. They are to supoprt existing themes.
+    options.className ?= 'overlay from-top'
+    @addPanel('modal', options)
 
   addPanel: (location, options) ->
     options ?= {}

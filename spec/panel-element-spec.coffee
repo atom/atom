@@ -54,3 +54,12 @@ describe "PanelElement", ->
 
       panel.show()
       expect(element.style.display).not.toBe 'none'
+
+  describe "when a class name is specified", ->
+    it 'initially renders panel created with visibile: false', ->
+      panel = new Panel({viewRegistry, className: 'some classes', item: new TestPanelItem})
+      element = panel.getView()
+      jasmineContent.appendChild(element)
+
+      expect(element).toHaveClass 'some'
+      expect(element).toHaveClass 'classes'
