@@ -109,6 +109,11 @@ module.exports =
         type: 'boolean'
         default: true
         description: 'Disabling will improve editor font rendering but reduce scrolling performance.'
+      useShadowDOM:
+        type: 'boolean'
+        default: false
+        title: 'Use Shadow DOM'
+        description: 'Enable to test out themes and packages with the new shadow DOM before it ships by default.'
       confirmCheckoutHeadRevision:
         type: 'boolean'
         default: true
