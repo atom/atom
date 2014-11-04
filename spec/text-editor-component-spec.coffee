@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 {extend, flatten, toArray, last} = _
 
-TextEditorView = require '../src/text-editor-view'
+{TextEditorView} = require 'atom'
 TextEditorComponent = require '../src/text-editor-component'
 nbsp = String.fromCharCode(160)
 

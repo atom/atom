@@ -262,22 +262,6 @@ class WorkspaceView extends View
           deprecate('Use Workspace::onDidOpen instead')
       originalWorkspaceViewOn.apply(this, arguments)
 
-    TextEditorView = require './text-editor-view'
-    originalEditorViewOn = TextEditorView::on
-    TextEditorView::on = (eventName) ->
-      switch eventName
-        when 'cursor:moved'
-          deprecate('Use TextEditor::onDidChangeCursorPosition instead')
-        when 'editor:attached'
-          deprecate('Use TextEditor::onDidAddTextEditor instead')
-        when 'editor:detached'
-          deprecate('Use TextEditor::onDidDestroy instead')
-        when 'editor:will-be-removed'
-          deprecate('Use TextEditor::onDidDestroy instead')
-        when 'selection:changed'
-          deprecate('Use TextEditor::onDidChangeSelectionRange instead')
-      originalEditorViewOn.apply(this, arguments)
-
     originalPaneViewOn = PaneView::on
     PaneView::on = (eventName) ->
       switch eventName

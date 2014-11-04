@@ -1,4 +1,4 @@
-  {
+{
   "name": "atom",
   "productName": "Atom",
   "version": "0.142.0",
@@ -21,6 +21,7 @@
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^2.2.1",
+    "atom-space-pen-views": "^0.11.0",
     "bootstrap": "git+https://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.4.0",
     "coffee-script": "1.7.0",
@@ -56,7 +57,7 @@
     "season": "^1.0.2",
     "semver": "2.2.1",
     "serializable": "^1",
-    "space-pen": "3.8.0",
+    "space-pen": "^3.8.1",
     "temp": "0.7.0",
     "text-buffer": "^3.5",
     "theorist": "^1.0.2",
