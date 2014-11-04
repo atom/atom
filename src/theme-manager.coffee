@@ -241,7 +241,7 @@ class ThemeManager
     @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
   loadBaseStylesheets: ->
-    @requireStylesheet('bootstrap/less/bootstrap')
+    @requireStylesheet('../static/bootstrap')
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
