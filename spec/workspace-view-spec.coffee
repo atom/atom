@@ -286,3 +286,6 @@ describe "WorkspaceView", ->
       bottomContainer = workspaceElement.querySelector('atom-panel-container[location="bottom"]')
       expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
       expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
+
+      modalContainer = workspaceElement.querySelector('atom-panel-container[location="modal"]')
+      expect(modalContainer.parentNode).toBe workspaceElement

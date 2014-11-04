@@ -77,12 +77,15 @@ class WorkspaceElement extends HTMLElement
       left: @model.panelContainers.left.getView()
       right: @model.panelContainers.right.getView()
       bottom: @model.panelContainers.bottom.getView()
+      modal: @model.panelContainers.modal.getView()
 
     @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
     @horizontalAxis.appendChild(@panelContainers.right)
 
     @verticalAxis.insertBefore(@panelContainers.top, @paneContainer)
     @verticalAxis.appendChild(@panelContainers.bottom)
+
+    @appendChild(@panelContainers.modal)
 
     @__spacePenView.setModel(@model)
 

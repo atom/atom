@@ -492,3 +492,12 @@ describe "Workspace", ->
 
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addModalPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.modal.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addModalPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+        expect(panel.getClassName()).toBe 'overlay from-top' # the default
