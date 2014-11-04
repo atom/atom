@@ -1537,7 +1537,7 @@ describe "TextEditorComponent", ->
 
     it "transfers focus to the hidden input", ->
       expect(document.activeElement).toBe document.body
-      componentNode.focus()
+      wrapperNode.focus()
       expect(document.activeElement).toBe wrapperNode
       expect(wrapperNode.shadowRoot.activeElement).toBe inputNode
 
