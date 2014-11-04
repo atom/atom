@@ -177,6 +177,7 @@ class Atom extends Model
       @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
       @lastUncaughtError = Array::slice.call(arguments)
       @emit 'uncaught-error', arguments...
+      @emitter.emit 'did-throw-error', arguments...
 
     @unsubscribe()
     @setBodyPlatformClass()
@@ -246,6 +247,15 @@ class Atom extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidBeep: (callback) ->
     @emitter.on 'did-beep', callback
+
+  # Extended: Invoke the given callback whenever there is an unhandled error.
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  #   * `errorMessage` {String}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidThrowError: (callback) ->
+    @emitter.on 'did-throw-error', callback
 
   ###
   Section: Atom Details
