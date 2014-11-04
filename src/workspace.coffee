@@ -674,6 +674,7 @@ class Workspace extends Model
   #
   # Returns a {Panel}
   addModalPanel: (options={}) ->
+    # TODO: remove these default classes. They are to supoprt existing themes.
     options.className ?= 'overlay from-top'
     @addPanel('modal', options)
 

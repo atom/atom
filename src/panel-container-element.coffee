@@ -11,14 +11,14 @@ class PanelContainerElement extends HTMLElement
     @subscriptions.add @model.onDidRemovePanel(@panelRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
 
-    @setAttribute('location', @model.getLocation())
-
   panelAdded: ({panel, index}) ->
+    panelElement = panel.getView()
+    panelElement.setAttribute('location', @model.getLocation())
     if index >= @childNodes.length
-      @appendChild(panel.getView())
+      @appendChild(panelElement)
     else
       referenceItem = @childNodes[index + 1]
-      @insertBefore(panel.getView(), referenceItem)
+      @insertBefore(panelElement, referenceItem)
 
   panelRemoved: ({panel, index}) ->
     @removeChild(@childNodes[index])
