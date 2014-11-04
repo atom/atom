@@ -23,9 +23,9 @@ class PanelContainerElement extends HTMLElement
       @insertBefore(panelElement, referenceItem)
 
     if @model.isModal()
-      @enforceModalityFor(panel)
+      @hideAllPanelsExcept(panel)
       @subscriptions.add panel.onDidChangeVisible (visible) =>
-        @enforceModalityFor(panel) if visible
+        @hideAllPanelsExcept(panel) if visible
 
   panelRemoved: ({panel, index}) ->
     @removeChild(@childNodes[index])
@@ -34,7 +34,7 @@ class PanelContainerElement extends HTMLElement
     @subscriptions.dispose()
     @parentNode?.removeChild(this)
 
-  enforceModalityFor: (excludedPanel) ->
+  hideAllPanelsExcept: (excludedPanel) ->
     for panel in @model.getPanels()
       panel.hide() unless panel is excludedPanel
     return
