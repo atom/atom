@@ -106,6 +106,7 @@ beforeEach ->
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
+  config.set "editor.useShadowDOM", true
   config.load.reset()
   config.save.reset()
 
