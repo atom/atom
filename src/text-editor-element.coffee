@@ -26,7 +26,6 @@ class TextEditorElement extends HTMLElement
     @classList.add('editor')
     @setAttribute('tabindex', -1)
 
-
     if atom.config.get('editor.useShadowDOM')
       @createShadowRoot()
 
