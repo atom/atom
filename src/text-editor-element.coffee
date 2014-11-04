@@ -18,7 +18,6 @@ class TextEditorElement extends HTMLElement
     @initializeContent()
     @createSpacePenShim()
     @addEventListener 'focus', @focused.bind(this)
-    @addEventListener 'focusout', @focusedOut.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
   initializeContent: (attributes) ->
@@ -90,21 +89,13 @@ class TextEditorElement extends HTMLElement
     @component = null
 
   focused: (event) ->
-    if @contains(event.relatedTarget) or this is event.relatedTarget
-      event.stopPropagation()
-      return
-
     if @component?
       @component.focused()
     else
       @focusOnAttach = true
 
-  focusedOut: (event) ->
-    event.stopImmediatePropagation() if @contains(event.relatedTarget)
-
   blurred: (event) ->
     @component?.blurred()
-    event.stopImmediatePropagation() if @contains(event.relatedTarget)
 
   addGrammarScopeAttribute: ->
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
