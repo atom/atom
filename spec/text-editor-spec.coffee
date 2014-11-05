@@ -2816,6 +2816,36 @@ describe "TextEditor", ->
         editor.redo()
         expect(editor.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
+      describe ".withGroupingInterval(interval)", ->
+        currentTime = null
+
+        beforeEach ->
+          currentTime = 0
+          spyOn(Date, 'now').andCallFake -> currentTime
+
+        it "allows undo entries to be grouped", ->
+          buffer.setText("")
+
+          editor.withGroupingInterval 200, ->
+            editor.insertText("1")
+
+            currentTime += 199
+            editor.insertText("2")
+
+            currentTime += 199
+            editor.insertText("3")
+
+            currentTime += 200
+            editor.insertText("4")
+
+          expect(buffer.getText()).toBe "1234"
+
+          editor.undo()
+          expect(buffer.getText()).toBe "123"
+
+          editor.undo()
+          expect(buffer.getText()).toBe ""
+
       xit "restores folds after undo and redo", ->
         editor.foldBufferRow(1)
         editor.setSelectedBufferRange([[1, 0], [10, Infinity]], preserveFolds: true)
