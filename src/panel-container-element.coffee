@@ -28,7 +28,7 @@ class PanelContainerElement extends HTMLElement
         @hideAllPanelsExcept(panel) if visible
 
   panelRemoved: ({panel, index}) ->
-    @removeChild(@childNodes[index])
+    @removeChild(panel.getView())
 
   destroyed: ->
     @subscriptions.dispose()
