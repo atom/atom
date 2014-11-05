@@ -34,7 +34,6 @@ class TextEditorElement extends HTMLElement
       @stylesElement.initialize()
 
       @rootElement = document.createElement('div')
-      @rootElement.classList.add('editor', 'editor-colors')
 
       @shadowRoot.appendChild(@stylesElement)
       @shadowRoot.appendChild(@rootElement)
@@ -47,6 +46,9 @@ class TextEditorElement extends HTMLElement
 
       @stylesElement = GlobalStylesElement
       @rootElement = this
+
+    @rootElement.classList.add('editor', 'editor-colors')
+
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
