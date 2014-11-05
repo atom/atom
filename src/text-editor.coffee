@@ -68,7 +68,6 @@ class TextEditor extends Model
   suppressSelectionMerging: false
   updateBatchDepth: 0
   selectionFlashDuration: 500
-  groupingInterval: 0
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -1098,7 +1097,9 @@ class TextEditor extends Model
   # execution and revert any changes performed up to the abortion.
   #
   # * `fn` A {Function} to call inside the transaction.
-  transact: (fn) -> @buffer.transact(fn, @groupingInterval)
+  # * `groupingInterval` This is the sames as the `groupingInterval` parameter
+  #    in {::beginTransaction}
+  transact: (fn, groupingInterval) -> @buffer.transact(fn, groupingInterval)
 
   # Extended: Start an open-ended transaction.
   #
@@ -1106,7 +1107,12 @@ class TextEditor extends Model
   # transaction. If you nest calls to transactions, only the outermost
   # transaction is considered. You must match every begin with a matching
   # commit, but a single call to abort will cancel all nested transactions.
-  beginTransaction: -> @buffer.beginTransaction(@groupingInterval)
+  #
+  # * `groupingInterval` (optional) The {Number} of milliseconds for which this
+  #   transaction should be considered 'groupable' after it begins. If a transaction
+  #   with a positive `groupingInterval` is committed while the previous transaction is
+  #   still 'groupable', the two transactions are merged with respect to undo and redo.
+  beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
 
   # Extended: Commit an open-ended transaction started with {::beginTransaction}
   # and push it to the undo stack.
@@ -1117,19 +1123,6 @@ class TextEditor extends Model
   # Extended: Abort an open transaction, undoing any operations performed so far
   # within the transaction.
   abortTransaction: -> @buffer.abortTransaction()
-
-  # Extended: Set the time interval  over which undo/redo operations are grouped.
-  #
-  # * `interval` A {Number} of milliseconds within which operations should be
-  #   grouped with respec to undo/redo
-  # * `fn` A {Function} to call with the given interval setting
-  withGroupingInterval: (interval, fn) ->
-    previousInterval = @groupingInterval
-    @groupingInterval = interval
-    try
-      fn()
-    finally
-      @groupingInterval = previousInterval
 
   ###
   Section: TextEditor Coordinates
