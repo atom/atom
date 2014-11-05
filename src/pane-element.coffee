@@ -28,9 +28,17 @@ class PaneElement extends HTMLElement
     @itemViews.setAttribute 'class', 'item-views'
 
   subscribeToDOMEvents: ->
-    @addEventListener 'focusin', => @model.focus()
-    @addEventListener 'focusout', => @model.blur()
-    @addEventListener 'focus', => @getActiveView()?.focus()
+    handleFocus = (event) =>
+      @model.focus()
+      if event.target is this and view = @getActiveView()
+        view.focus()
+        event.stopPropagation()
+
+    handleBlur = (event) =>
+      @model.blur() unless @contains(event.relatedTarget)
+
+    @addEventListener 'focus', handleFocus, true
+    @addEventListener 'blur', handleBlur, true
 
   createSpacePenShim: ->
     @__spacePenView = new PaneView(this)

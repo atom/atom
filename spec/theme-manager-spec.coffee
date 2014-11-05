@@ -85,7 +85,16 @@ describe "ThemeManager", ->
       runs ->
         reloadHandler.reset()
         expect($('style.theme')).toHaveLength 0
-        atom.config.set('core.themes', ['atom-dark-syntax'])
+        atom.config.set('core.themes', ['atom-dark-ui'])
+
+      waitsFor ->
+        reloadHandler.callCount == 1
+
+      runs ->
+        reloadHandler.reset()
+        expect($('style[group=theme]')).toHaveLength 1
+        expect($('style[group=theme]:eq(0)').attr('source-path')).toMatch /atom-dark-ui/
+        atom.config.set('core.themes', ['atom-light-ui', 'atom-dark-ui'])
 
       waitsFor ->
         reloadHandler.callCount == 1
@@ -93,17 +102,8 @@ describe "ThemeManager", ->
       runs ->
         reloadHandler.reset()
         expect($('style[group=theme]')).toHaveLength 2
-        expect($('style[group=theme]:eq(1)').attr('source-path')).toMatch /atom-dark-syntax/
-        atom.config.set('core.themes', ['atom-light-syntax', 'atom-dark-syntax'])
-
-      waitsFor ->
-        reloadHandler.callCount == 1
-
-      runs ->
-        reloadHandler.reset()
-        expect($('style[group=theme]')).toHaveLength 2
-        expect($('style[group=theme]:eq(0)').attr('source-path')).toMatch /atom-dark-syntax/
-        expect($('style[group=theme]:eq(1)').attr('source-path')).toMatch /atom-light-syntax/
+        expect($('style[group=theme]:eq(0)').attr('source-path')).toMatch /atom-dark-ui/
+        expect($('style[group=theme]:eq(1)').attr('source-path')).toMatch /atom-light-ui/
         atom.config.set('core.themes', [])
 
       waitsFor ->
@@ -111,7 +111,7 @@ describe "ThemeManager", ->
 
       runs ->
         reloadHandler.reset()
-        expect($('style[group=theme]')).toHaveLength 2
+        expect($('style[group=theme]')).toHaveLength 1
         # atom-dark-ui has an directory path, the syntax one doesn't
         atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
 

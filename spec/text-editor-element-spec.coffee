@@ -19,18 +19,43 @@ describe "TextEditorElement", ->
       element = jasmineContent.firstChild
       expect(element.getModel().getPlaceholderText()).toBe 'testing'
 
-  describe "::focus()", ->
-    it "transfers focus to the hidden text area and does not emit 'focusout' or 'blur' events", ->
-      element = new TextEditorElement
-      jasmineContent.appendChild(element)
+  describe "focus and blur handling", ->
+    describe "when the editor.useShadowDOM config option is true", ->
+      it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
+        atom.config.set('editor.useShadowDOM', true)
 
-      focusoutCalled = false
-      element.addEventListener 'focusout', -> focusoutCalled = true
-      blurCalled = false
-      element.addEventListener 'blur', -> blurCalled = true
+        element = new TextEditorElement
+        jasmineContent.appendChild(element)
 
-      element.focus()
-      expect(focusoutCalled).toBe false
-      expect(blurCalled).toBe false
-      expect(element.hasFocus()).toBe true
-      expect(element.querySelector('input')).toBe document.activeElement
+        blurCalled = false
+        element.addEventListener 'blur', -> blurCalled = true
+
+        element.focus()
+        expect(blurCalled).toBe false
+        expect(element.hasFocus()).toBe true
+        expect(document.activeElement).toBe element
+        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+
+        document.body.focus()
+        expect(blurCalled).toBe true
+
+    describe "when the editor.useShadowDOM config option is false", ->
+      afterEach ->
+        document.head.querySelector('atom-styles[context="atom-text-editor"]').remove()
+
+      it "proxies focus/blur events to/from the hidden input", ->
+        atom.config.set('editor.useShadowDOM', false)
+
+        element = new TextEditorElement
+        jasmineContent.appendChild(element)
+
+        blurCalled = false
+        element.addEventListener 'blur', -> blurCalled = true
+
+        element.focus()
+        expect(blurCalled).toBe false
+        expect(element.hasFocus()).toBe true
+        expect(document.activeElement).toBe element.querySelector('input')
+
+        document.body.focus()
+        expect(blurCalled).toBe true

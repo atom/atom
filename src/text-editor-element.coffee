@@ -6,6 +6,8 @@ TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 TextEditorView = null
 
+GlobalStylesElement = null
+
 class TextEditorElement extends HTMLElement
   model: null
   componentDescriptor: null
@@ -18,12 +20,33 @@ class TextEditorElement extends HTMLElement
     @initializeContent()
     @createSpacePenShim()
     @addEventListener 'focus', @focused.bind(this)
-    @addEventListener 'focusout', @focusedOut.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
   initializeContent: (attributes) ->
-    @classList.add('editor', 'react', 'editor-colors')
+    @classList.add('editor')
     @setAttribute('tabindex', -1)
+
+    if atom.config.get('editor.useShadowDOM')
+      @createShadowRoot()
+
+      @stylesElement = document.createElement('atom-styles')
+      @stylesElement.setAttribute('context', 'atom-text-editor')
+      @stylesElement.initialize()
+
+      @rootElement = document.createElement('div')
+      @rootElement.classList.add('editor', 'editor-colors')
+
+      @shadowRoot.appendChild(@stylesElement)
+      @shadowRoot.appendChild(@rootElement)
+    else
+      unless GlobalStylesElement?
+        GlobalStylesElement = document.createElement('atom-styles')
+        GlobalStylesElement.setAttribute('context', 'atom-text-editor')
+        GlobalStylesElement.initialize()
+        document.head.appendChild(GlobalStylesElement)
+
+      @stylesElement = GlobalStylesElement
+      @rootElement = this
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
@@ -64,12 +87,19 @@ class TextEditorElement extends HTMLElement
 
   mountComponent: ->
     @componentDescriptor ?= TextEditorComponent(
-      parentView: this
+      hostElement: this
+      rootElement: @rootElement
+      stylesElement: @stylesElement
       editor: @model
       mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin
     )
-    @component = React.renderComponent(@componentDescriptor, this)
+    @component = React.renderComponent(@componentDescriptor, @rootElement)
+
+    unless atom.config.get('editor.useShadowDOM')
+      inputNode = @component.refs.input.getDOMNode()
+      inputNode.addEventListener 'focus', @focused.bind(this)
+      inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
     return unless @component?.isMounted()
@@ -79,15 +109,17 @@ class TextEditorElement extends HTMLElement
 
   focused: ->
     if @component?
-      @component.onFocus()
+      @component.focused()
     else
       @focusOnAttach = true
 
-  focusedOut: (event) ->
-    event.stopImmediatePropagation() if @contains(event.relatedTarget)
-
   blurred: (event) ->
-    event.stopImmediatePropagation() if @contains(event.relatedTarget)
+    unless atom.config.get('editor.useShadowDOM')
+      if event.relatedTarget is @component?.refs.input?.getDOMNode()
+        event.stopImmediatePropagation()
+        return
+
+    @component?.blurred()
 
   addGrammarScopeAttribute: ->
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')

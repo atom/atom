@@ -721,11 +721,11 @@ describe "TextEditorComponent", ->
       editor.setCursorScreenPosition([0, 16])
       nextAnimationFrame()
 
-      atom.themes.applyStylesheet 'test', """
+      atom.styles.addStyleSheet """
         .function.js {
           font-weight: bold;
         }
-      """
+      """, context: 'atom-text-editor'
       nextAnimationFrame() # update based on new measurements
 
       cursor = componentNode.querySelector('.cursor')
@@ -1537,8 +1537,9 @@ describe "TextEditorComponent", ->
 
     it "transfers focus to the hidden input", ->
       expect(document.activeElement).toBe document.body
-      componentNode.focus()
-      expect(document.activeElement).toBe inputNode
+      wrapperNode.focus()
+      expect(document.activeElement).toBe wrapperNode
+      expect(wrapperNode.shadowRoot.activeElement).toBe inputNode
 
     it "adds the 'is-focused' class to the editor when the hidden input is focused", ->
       expect(document.activeElement).toBe document.body
@@ -1667,12 +1668,13 @@ describe "TextEditorComponent", ->
       component.measureHeightAndWidth()
       nextAnimationFrame()
 
-      atom.themes.applyStylesheet "test", """
+      atom.styles.addStyleSheet """
         ::-webkit-scrollbar {
           width: 8px;
           height: 8px;
         }
-      """
+      """, context: 'atom-text-editor'
+
       nextAnimationFrame()
 
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')

@@ -93,7 +93,7 @@ TextEditorComponent = React.createClass
     className += ' is-focused' if focused
     className += ' has-selection' if hasSelection
 
-    div {className, style, tabIndex: -1},
+    div {className, style},
       if @shouldRenderGutter()
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
@@ -102,13 +102,11 @@ TextEditorComponent = React.createClass
           @useHardwareAcceleration, @performedInitialMeasurement, @backgroundColor, @gutterBackgroundColor
         }
 
-      div ref: 'scrollView', className: 'scroll-view', onMouseDown: @onMouseDown,
+      div ref: 'scrollView', className: 'scroll-view',
         InputComponent
           ref: 'input'
           className: 'hidden-input'
           style: hiddenInputStyle
-          onFocus: @onInputFocused
-          onBlur: @onInputBlurred
 
         LinesComponent {
           ref: 'lines',
@@ -175,14 +173,14 @@ TextEditorComponent = React.createClass
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
   componentDidMount: ->
-    {editor} = @props
+    {editor, stylesElement} = @props
 
     @observeEditor()
     @listenForDOMEvents()
 
-    @subscribe atom.themes.onDidAddStylesheet @onStylesheetsChanged
-    @subscribe atom.themes.onDidUpdateStylesheet @onStylesheetsChanged
-    @subscribe atom.themes.onDidRemoveStylesheet @onStylesheetsChanged
+    @subscribe stylesElement.onDidAddStyleElement @onStylesheetsChanged
+    @subscribe stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
+    @subscribe stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
     unless atom.themes.isInitialLoadComplete()
       @subscribe atom.themes.onDidReloadAll @onStylesheetsChanged
     @subscribe scrollbarStyle.changes, @refreshScrollbars
@@ -193,9 +191,9 @@ TextEditorComponent = React.createClass
     @checkForVisibilityChange()
 
   componentWillUnmount: ->
-    {editor, parentView} = @props
+    {editor, hostElement} = @props
 
-    parentView.__spacePenView.trigger 'editor:will-be-removed', [parentView.__spacePenView]
+    hostElement.__spacePenView.trigger 'editor:will-be-removed', [hostElement.__spacePenView]
     @unsubscribe()
     @scopedConfigSubscriptions.dispose()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
@@ -215,9 +213,9 @@ TextEditorComponent = React.createClass
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
       @updateParentViewMiniClassIfNeeded(prevState)
-      @props.parentView.__spacePenView.trigger 'cursor:moved' if cursorMoved
-      @props.parentView.__spacePenView.trigger 'selection:changed' if selectionChanged
-      @props.parentView.__spacePenView.trigger 'editor:display-updated'
+      @props.hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
+      @props.hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
+      @props.hostElement.__spacePenView.trigger 'editor:display-updated'
 
   becameVisible: ->
     @updatesPaused = true
@@ -261,7 +259,7 @@ TextEditorComponent = React.createClass
         @forceUpdate()
 
   getTopmostDOMNode: ->
-    @props.parentView
+    @props.hostElement
 
   getRenderedRowRange: ->
     {editor, lineOverdrawMargin} = @props
@@ -378,8 +376,8 @@ TextEditorComponent = React.createClass
   listenForDOMEvents: ->
     node = @getDOMNode()
     node.addEventListener 'mousewheel', @onMouseWheel
-    node.addEventListener 'focus', @onFocus # For some reason, React's built in focus events seem to bubble
     node.addEventListener 'textInput', @onTextInput
+    @refs.scrollView.getDOMNode().addEventListener 'mousedown', @onMouseDown
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
@@ -415,6 +413,9 @@ TextEditorComponent = React.createClass
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
+    @subscribe atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
+    @subscribe atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
+    @subscribe atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
 
   onGrammarChanged: ->
     {editor} = @props
@@ -428,8 +429,14 @@ TextEditorComponent = React.createClass
     subscriptions.add atom.config.observe scopeDescriptor, 'editor.showLineNumbers', @setShowLineNumbers
     subscriptions.add atom.config.observe scopeDescriptor, 'editor.scrollSensitivity', @setScrollSensitivity
 
-  onFocus: ->
-    @refs.input.focus() if @isMounted()
+  focused: ->
+    if @isMounted()
+      @setState(focused: true)
+      @refs.input.focus()
+
+  blurred: ->
+    if @isMounted()
+      @setState(focused: false)
 
   onTextInput: (event) ->
     event.stopPropagation()
@@ -451,12 +458,6 @@ TextEditorComponent = React.createClass
     editor.selectLeft() if selectedLength is 1
 
     inputNode.value = event.data if editor.insertText(event.data)
-
-  onInputFocused: ->
-    @setState(focused: true)
-
-  onInputBlurred: ->
-    @setState(focused: false)
 
   onVerticalScroll: (scrollTop) ->
     {editor} = @props
@@ -621,11 +622,11 @@ TextEditorComponent = React.createClass
       else
         editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]], preserveFolds: true)
 
-  onStylesheetsChanged: (stylesheet) ->
+  onStylesheetsChanged: (styleElement) ->
     return unless @performedInitialMeasurement
     return unless atom.themes.isInitialLoadComplete()
 
-    @refreshScrollbars() if not stylesheet? or @containsScrollbarSelector(stylesheet)
+    @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
@@ -771,10 +772,10 @@ TextEditorComponent = React.createClass
   measureHeightAndWidth: ->
     return unless @isMounted()
 
-    {editor, parentView} = @props
+    {editor, hostElement} = @props
     scrollViewNode = @refs.scrollView.getDOMNode()
-    {position} = getComputedStyle(parentView)
-    {height} = parentView.style
+    {position} = getComputedStyle(hostElement)
+    {height} = hostElement.style
 
     if position is 'absolute' or height
       if @autoHeight
@@ -806,9 +807,9 @@ TextEditorComponent = React.createClass
       @remeasureCharacterWidths()
 
   sampleBackgroundColors: (suppressUpdate) ->
-    {parentView} = @props
+    {hostElement} = @props
     {showLineNumbers} = @state
-    {backgroundColor} = getComputedStyle(parentView)
+    {backgroundColor} = getComputedStyle(hostElement)
 
     if backgroundColor isnt @backgroundColor
       @backgroundColor = backgroundColor
@@ -907,10 +908,10 @@ TextEditorComponent = React.createClass
   lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
 
   screenRowForNode: (node) ->
-    while node isnt document
+    while node?
       if screenRow = node.dataset.screenRow
         return parseInt(screenRow)
-      node = node.parentNode
+      node = node.parentElement
     null
 
   getFontSize: ->
@@ -977,11 +978,13 @@ TextEditorComponent = React.createClass
 
   updateParentViewFocusedClassIfNeeded: (prevState) ->
     if prevState.focused isnt @state.focused
-      @props.parentView.classList.toggle('is-focused', @state.focused)
+      @props.hostElement.classList.toggle('is-focused', @state.focused)
+      @props.rootElement.classList.toggle('is-focused', @state.focused)
 
   updateParentViewMiniClassIfNeeded: (prevProps) ->
     if prevProps.mini isnt @props.mini
-      @props.parentView.classList.toggle('mini', @props.mini)
+      @props.hostElement.classList.toggle('mini', @props.mini)
+      @props.rootElement.classList.toggle('mini', @props.mini)
 
   runScrollBenchmark: ->
     unless process.env.NODE_ENV is 'production'

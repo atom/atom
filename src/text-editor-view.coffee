@@ -73,13 +73,26 @@ class TextEditorView extends View
   setModel: (@model) ->
     @editor = @model
 
-    @scrollView = @find('.scroll-view')
-    @underlayer = @find('.highlights').addClass('underlayer')
-    @overlayer = @find('.lines').addClass('overlayer')
-    @hiddenInput = @.find('.hidden-input')
+    @root = $(@element.rootElement)
+
+    @scrollView = @root.find('.scroll-view')
+
+
+    if atom.config.get('editor.useShadowDOM')
+      @underlayer = $("<div class='underlayer'></div>").appendTo(this)
+      @overlayer = $("<div class='overlayer'></div>").appendTo(this)
+    else
+      @underlayer = @find('.highlights').addClass('underlayer')
+      @overlayer = @find('.lines').addClass('overlayer')
+
+    @hiddenInput = @root.find('.hidden-input')
+
+    @hiddenInput.on = (args...) =>
+      args[0] = 'blur' if args[0] is 'focusout'
+      $::on.apply(this, args)
 
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
-      @gutter = @find('.gutter')
+      @gutter = @root.find('.gutter')
 
       @gutter.removeClassFromAllLines = (klass) =>
         deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
@@ -95,6 +108,13 @@ class TextEditorView extends View
         lines.addClass(klass)
         lines.length > 0
 
+  find: ->
+    shadowResult = @root.find.apply(@root, arguments)
+    if shadowResult.length > 0
+      shadowResult
+    else
+      super
+
   # Public: Get the underlying editor model for this view.
   #
   # Returns an {TextEditor}
@@ -107,7 +127,7 @@ class TextEditorView extends View
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
-  Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
+  Object.defineProperty @::, 'isFocused', get: -> document.activeElement is @element or document.activeElement is @element.component?.refs.input.getDOMNode()
   Object.defineProperty @::, 'mini', get: -> @component?.props.mini
   Object.defineProperty @::, 'component', get: -> @element?.component
 
@@ -164,7 +184,7 @@ class TextEditorView extends View
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
     view.css('z-index', 1)
-    @find('.lines').prepend(view)
+    @overlayer.append(view)
 
   unmountComponent: ->
     React.unmountComponentAtNode(@element) if @component.isMounted()

@@ -92,7 +92,7 @@ describe "Package", ->
 
       it "reloads without readding to the stylesheets list", ->
         expect(theme.getStylesheetPaths().length).toBe 3
-        theme.reloadStylesheet(theme.getStylesheetPaths()[0])
+        theme.reloadStylesheets()
         expect(theme.getStylesheetPaths().length).toBe 3
 
     describe "events", ->

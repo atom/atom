@@ -50,6 +50,7 @@ class Package
   keymaps: null
   menus: null
   stylesheets: null
+  stylesheetDisposables: null
   grammars: null
   scopedProperties: null
   mainModulePath: null
@@ -175,9 +176,16 @@ class Package
   activateStylesheets: ->
     return if @stylesheetsActivated
 
-    type = @getStylesheetType()
-    for [stylesheetPath, content] in @stylesheets
-      atom.themes.applyStylesheet(stylesheetPath, content, type)
+
+    group = @getStylesheetType()
+    @stylesheetDisposables = new CompositeDisposable
+    for [sourcePath, source] in @stylesheets
+      if match = path.basename(sourcePath).match(/[^.]*\.([^.]*)\./)
+        context = match[1]
+      else if @metadata.theme is 'syntax'
+        context = 'atom-text-editor'
+
+      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, group, context}))
     @stylesheetsActivated = true
 
   activateResources: ->
@@ -320,7 +328,7 @@ class Package
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
     scopedProperties.deactivate() for scopedProperties in @scopedProperties
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    @stylesheetDisposables?.dispose()
     @activationDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
@@ -329,11 +337,10 @@ class Package
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
-    @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
-
-  reloadStylesheet: (stylesheetPath, content) ->
-    atom.themes.applyStylesheet(stylesheetPath, content, @getStylesheetType())
+    @stylesheetDisposables.dispose()
+    @stylesheetDisposables = new CompositeDisposable
+    @stylesheetsActivated = false
+    @activateStylesheets()
 
   requireMainModule: ->
     return @mainModule if @mainModule?

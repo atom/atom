@@ -25,6 +25,7 @@ class StyleManager
 
   addStyleSheet: (source, params) ->
     sourcePath = params?.sourcePath
+    context = params?.context
     group = params?.group
 
     if sourcePath? and styleElement = @styleElementsBySourcePath[sourcePath]

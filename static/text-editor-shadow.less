@@ -1,0 +1,282 @@
+@import "ui-variables";
+@import "octicon-utf-codes";
+@import "octicon-mixins";
+
+.editor, .editor-contents {
+  height: 100%;
+  width: 100%;
+}
+
+.underlayer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: -2;
+}
+
+.lines {
+  min-width: 100%;
+}
+
+.cursor {
+  z-index: 4;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.cursors.blink-off .cursor {
+  opacity: 0;
+}
+
+.horizontal-scrollbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 15px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  z-index: 3;
+
+  .scrollbar-content {
+    height: 15px;
+  }
+}
+
+.vertical-scrollbar {
+  overflow-x: hidden;
+}
+
+.scrollbar-corner {
+  position: absolute;
+  overflow: auto;
+  bottom: 0;
+  right: 0;
+}
+
+.scroll-view {
+  overflow: hidden;
+  z-index: 0;
+}
+
+.scroll-view-content {
+  position: relative;
+  width: 100%;
+}
+
+.gutter {
+  .line-number {
+    white-space: nowrap;
+    padding-left: .5em;
+
+    .icon-right {
+      padding: 0 .4em;
+      &:before {
+        text-align: center;
+      }
+    }
+  }
+}
+
+.placeholder-text {
+  position: absolute;
+  color: @text-color-subtle;
+}
+
+.editor {
+  z-index: 0;
+}
+
+.editor, .editor-contents {
+  overflow: hidden;
+  cursor: text;
+  display: -webkit-flex;
+  -webkit-user-select: none;
+  position: relative;
+}
+
+.gutter .line-number.cursor-line {
+  opacity: 1;
+}
+
+.gutter {
+  overflow: hidden;
+  text-align: right;
+  cursor: default;
+  min-width: 1em;
+  box-sizing: border-box;
+}
+
+.gutter .line-number {
+  padding-left: .5em;
+  opacity: 0.6;
+}
+
+.gutter .line-numbers {
+  position: relative;
+}
+
+.gutter .line-number.folded.cursor-line {
+  opacity: 1;
+}
+
+.gutter .line-number .icon-right {
+  .octicon(chevron-down, 0.8em);
+  display: inline-block;
+  visibility: hidden;
+  padding-left: .1em;
+  padding-right: .5em;
+  opacity: .6;
+}
+
+.gutter:hover .line-number.foldable .icon-right {
+  visibility: visible;
+
+  &:before {
+    content: @chevron-down;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.gutter, .gutter:hover {
+  .line-number.folded .icon-right {
+    .octicon(chevron-right, 0.8em);
+    visibility: visible;
+
+    &:before { // chevron-right renders too far right compared to chevron-down
+      position: relative;
+      left: -.1em;
+      content: @chevron-right;
+    }
+  }
+}
+
+.fold-marker {
+  cursor: default;
+}
+
+.fold-marker:after {
+  .icon(0.8em, inline);
+  content: @ellipsis;
+  padding-left: 0.2em;
+}
+
+.line.cursor-line .fold-marker:after {
+  opacity: 1;
+}
+
+atom-text-editor::shadow.is-blurred .line.cursor-line {
+  background: rgba(0, 0, 0, 0);
+}
+
+.invisible-character {
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+.indent-guide {
+  display: inline-block;
+  box-shadow: inset 1px 0;
+}
+
+.vertical-scrollbar,
+.horizontal-scrollbar {
+  cursor: default;
+}
+
+.vertical-scrollbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 15px;
+  overflow-y: auto;
+  z-index: 3;
+}
+
+.scroll-view {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+atom-text-editor::shadow.soft-wrap .scroll-view {
+  overflow-x: hidden;
+}
+
+.underlayer {
+  z-index: 0;
+  position: absolute;
+  min-height: 100%;
+}
+
+.lines {
+  position: relative;
+  z-index: 1;
+}
+
+.overlayer {
+  z-index: 2;
+  position: absolute;
+}
+
+.line {
+  white-space: pre;
+}
+
+.line span {
+  vertical-align: top;
+}
+
+.cursor {
+  position: absolute;
+  border-left: 1px solid;
+}
+
+.cursor {
+  visibility: hidden;
+}
+
+.is-focused .cursor {
+  visibility: visible;
+}
+
+.is-focused .cursor.blink-off {
+  visibility: hidden;
+}
+
+.cursor.hidden-cursor {
+  display: none;
+}
+
+.hidden-input {
+  padding: 0;
+  border: 0;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  width: 1px;
+}
+
+.highlight {
+  background: none;
+  padding: 0;
+}
+
+.highlight .region,
+.selection .region {
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}

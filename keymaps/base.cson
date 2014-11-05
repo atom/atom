@@ -15,6 +15,9 @@
   'shift-tab': 'editor:outdent-selected-rows'
   'ctrl-K': 'editor:delete-line'
 
+'.select-list atom-text-editor.mini':
+  'enter': 'core:confirm'
+
 '.tool-panel.panel-left, .tool-panel.panel-right':
   'escape': 'tool-panel:unfocus'
 

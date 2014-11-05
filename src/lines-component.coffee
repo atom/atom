@@ -57,6 +57,12 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
     @renderedDecorationsByLineId = {}
 
+  componentDidMount: ->
+    if atom.config.get('editor.useShadowDOM')
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', '.overlayer')
+      @getDOMNode().appendChild(insertionPoint)
+
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',

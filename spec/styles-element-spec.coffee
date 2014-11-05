@@ -52,3 +52,24 @@ describe "StylesElement", ->
     expect(element.children.length).toBe initialChildCount + 1
     expect(element.children[initialChildCount].textContent).toBe "a {color: blue;}"
     expect(updatedStyleElements).toEqual [element.children[initialChildCount]]
+
+  it "only includes style elements matching the 'context' attribute", ->
+    initialChildCount = element.children.length
+
+    atom.styles.addStyleSheet("a {color: red;}", context: 'test-context')
+    atom.styles.addStyleSheet("a {color: green;}")
+
+    expect(element.children.length).toBe initialChildCount + 1
+    expect(element.children[initialChildCount].textContent).toBe "a {color: green;}"
+
+    element.setAttribute('context', 'test-context')
+
+    expect(element.children.length).toBe 1
+    expect(element.children[0].textContent).toBe "a {color: red;}"
+
+    atom.styles.addStyleSheet("a {color: blue;}", context: 'test-context')
+    atom.styles.addStyleSheet("a {color: yellow;}")
+
+    expect(element.children.length).toBe 2
+    expect(element.children[0].textContent).toBe "a {color: red;}"
+    expect(element.children[1].textContent).toBe "a {color: blue;}"

@@ -21,5 +21,11 @@ HighlightsComponent = React.createClass
 
     highlightComponents
 
+  componentDidMount: ->
+    if atom.config.get('editor.useShadowDOM')
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', '.underlayer')
+      @getDOMNode().appendChild(insertionPoint)
+
   shouldComponentUpdate: (newProps) ->
     not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth', 'scopedCharacterWidthsChangeCount')
