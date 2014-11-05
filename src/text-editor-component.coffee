@@ -21,6 +21,7 @@ TextEditorComponent = React.createClass
 
   statics:
     performSyncUpdates: false
+    groupingInterval: 500
 
   visible: false
   autoHeight: false
@@ -457,7 +458,9 @@ TextEditorComponent = React.createClass
     selectedLength = inputNode.selectionEnd - inputNode.selectionStart
     editor.selectLeft() if selectedLength is 1
 
-    inputNode.value = event.data if editor.insertText(event.data)
+    insertedRange = editor.withGroupingInterval @constructor.groupingInterval, ->
+      editor.insertText(event.data)
+    inputNode.value = event.data if insertedRange
 
   onVerticalScroll: (scrollTop) ->
     {editor} = @props

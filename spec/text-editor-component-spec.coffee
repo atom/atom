@@ -1924,6 +1924,19 @@ describe "TextEditorComponent", ->
       expect(nextAnimationFrame).toBe noAnimationFrame
       expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
 
+    it "groups events that occur close together in time into single undo entries", ->
+      editor.setText("")
+      componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
+      componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
+      componentNode.dispatchEvent(buildTextInputEvent(data: 'z', target: inputNode))
+
+      componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
+
+      expect(editor.getText()).toBe "xyz\nxyz"
+
+      editor.undo()
+      expect(editor.getText()).toBe ""
+
     describe "when IME composition is used to insert international characters", ->
       inputNode = null
 
