@@ -27,6 +27,9 @@ jQuery.fn.trigger = (eventName, data) ->
   if NativeEventNames.has(eventName) or typeof eventName is 'object'
     JQueryTrigger.call(this, eventName, data)
   else
+    data ?= {}
+    data.jQueryTrigger = true
+
     for element in this
       atom.commands.dispatch(element, eventName, data)
     this
