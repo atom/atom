@@ -134,6 +134,10 @@ parseCommandLine = ->
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
 
+  # On Yosemite the $PATH is not inherited by the "open" command, so we have to
+  # explicitly pass it by command line, see http://git.io/YC8_Ew.
+  process.env.PATH = args['path-environment'] if args['path-environment']
+
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
 
 start()
