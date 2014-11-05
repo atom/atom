@@ -34,6 +34,7 @@ class TextEditorElement extends HTMLElement
       @stylesElement.initialize()
 
       @rootElement = document.createElement('div')
+      @rootElement.classList.add('shadow')
 
       @shadowRoot.appendChild(@stylesElement)
       @shadowRoot.appendChild(@rootElement)
