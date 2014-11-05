@@ -1,5 +1,4 @@
 {Disposable} = require 'event-kit'
-{jQuery} = require './space-pen-extensions'
 
 # Essential: `ViewRegistry` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
@@ -125,7 +124,7 @@ class ViewRegistry
   createView: (object) ->
     if object instanceof HTMLElement
       object
-    else if object instanceof jQuery
+    else if object?.jquery
       object[0]?.__spacePenView ?= object
       object[0]
     else if provider = @findProvider(object)
