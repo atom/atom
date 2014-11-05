@@ -141,9 +141,8 @@ editorEventListeners = (commandListeners) ->
       newCommandListeners[commandName] = (event) ->
         event.stopPropagation()
         model = @getModel()
-        model.transact(->
+        model.transact TextEditorComponent.groupingInterval, ->
           commandListener.call(model, event)
-        , TextEditorComponent.groupingInterval)
   newCommandListeners
 
 atom.commands.add 'atom-text-editor', editorEventListeners(

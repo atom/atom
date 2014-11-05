@@ -458,9 +458,8 @@ TextEditorComponent = React.createClass
     selectedLength = inputNode.selectionEnd - inputNode.selectionStart
     editor.selectLeft() if selectedLength is 1
 
-    insertedRange = editor.transact(->
+    insertedRange = editor.transact @constructor.groupingInterval, ->
       editor.insertText(event.data)
-    , @constructor.groupingInterval)
     inputNode.value = event.data if insertedRange
 
   onVerticalScroll: (scrollTop) ->
