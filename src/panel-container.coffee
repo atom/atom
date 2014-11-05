@@ -8,7 +8,7 @@ class PanelContainer
     @panels = []
 
   destroy: ->
-    pane.destroy() for pane in @getPanels()
+    panel.destroy() for panel in @getPanels()
     @subscriptions.dispose()
     @emitter.emit 'did-destroy', this
     @emitter.dispose()
@@ -39,7 +39,7 @@ class PanelContainer
   getPanels: -> @panels
 
   addPanel: (panel) ->
-    @subscriptions.add panel.onDidDestroy(@panelDestoryed.bind(this))
+    @subscriptions.add panel.onDidDestroy(@panelDestroyed.bind(this))
 
     index = @getPanelIndex(panel)
     if index is @panels.length
@@ -50,7 +50,7 @@ class PanelContainer
     @emitter.emit 'did-add-panel', {panel, index}
     panel
 
-  panelDestoryed: (panel) ->
+  panelDestroyed: (panel) ->
     index = @panels.indexOf(panel)
     if index > -1
       @panels.splice(index, 1)
