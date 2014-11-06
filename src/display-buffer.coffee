@@ -735,9 +735,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
-    # TODO: Expand this exception to cover all versions once we burn it in on non-release builds
-    if @isDestroyed() and not atom.isReleasedVersion()
-      throw new Error("This TextEditor has been destroyed")
+    throw new Error("This TextEditor has been destroyed") if @isDestroyed()
 
     { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
