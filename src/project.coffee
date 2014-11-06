@@ -196,7 +196,8 @@ class Project extends Model
       excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
       exclusions: atom.config.get('core.ignoredNames')
 
-    task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
+    # TODO: need to support all paths in @getPaths()
+    task = Task.once require.resolve('./scan-handler'), @getPaths()[0], regex.source, searchOptions, ->
       deferred.resolve()
 
     task.on 'scan:result-found', (result) =>
