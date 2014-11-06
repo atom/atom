@@ -28,6 +28,13 @@
   z-index: 4;
   pointer-events: none;
   box-sizing: border-box;
+  position: absolute;
+  border-left: 1px solid;
+  opacity: 0;
+}
+
+.is-focused .cursor {
+  opacity: 1;
 }
 
 .cursors.blink-off .cursor {
@@ -44,6 +51,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   z-index: 3;
+  cursor: default;
 
   .scrollbar-content {
     height: 15px;
@@ -51,7 +59,16 @@
 }
 
 .vertical-scrollbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 15px;
   overflow-x: hidden;
+  overflow-y: auto;
+  z-index: 3;
+  cursor: default;
 }
 
 .scrollbar-corner {
@@ -64,11 +81,9 @@
 .scroll-view {
   overflow: hidden;
   z-index: 0;
-}
-
-.scroll-view-content {
+  -webkit-flex: 1;
+  min-width: 0;
   position: relative;
-  width: 100%;
 }
 
 .gutter {
@@ -175,7 +190,7 @@
   opacity: 1;
 }
 
-atom-text-editor::shadow.is-blurred .line.cursor-line {
+.editor.is-blurred .line.cursor-line {
   background: rgba(0, 0, 0, 0);
 }
 
@@ -189,31 +204,7 @@ atom-text-editor::shadow.is-blurred .line.cursor-line {
   box-shadow: inset 1px 0;
 }
 
-.vertical-scrollbar,
-.horizontal-scrollbar {
-  cursor: default;
-}
-
-.vertical-scrollbar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-
-  width: 15px;
-  overflow-y: auto;
-  z-index: 3;
-}
-
-.scroll-view {
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-flex: 1;
-  min-width: 0;
-  position: relative;
-}
-
-atom-text-editor::shadow.soft-wrap .scroll-view {
+.editor.soft-wrap .scroll-view {
   overflow-x: hidden;
 }
 
@@ -239,27 +230,6 @@ atom-text-editor::shadow.soft-wrap .scroll-view {
 
 .line span {
   vertical-align: top;
-}
-
-.cursor {
-  position: absolute;
-  border-left: 1px solid;
-}
-
-.cursor {
-  visibility: hidden;
-}
-
-.is-focused .cursor {
-  visibility: visible;
-}
-
-.is-focused .cursor.blink-off {
-  visibility: hidden;
-}
-
-.cursor.hidden-cursor {
-  display: none;
 }
 
 .hidden-input {
