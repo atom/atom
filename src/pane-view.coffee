@@ -132,12 +132,6 @@ class PaneView extends View
       item.on('modified-status-changed', @activeItemModifiedChanged)
       @activeItemDisposables.add(disposable) if disposable?.dispose?
 
-    view = @model.getView(item).__spacePenView
-    otherView.hide() for otherView in @itemViews.children().not(view).views()
-    @itemViews.append(view) unless view.parent().is(@itemViews)
-    view.show() if @attached
-    view.focus() if @hasFocus()
-
     @trigger 'pane:active-item-changed', [item]
 
   onItemAdded: ({item, index}) =>
