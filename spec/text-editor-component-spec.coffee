@@ -1934,7 +1934,7 @@ describe "TextEditorComponent", ->
 
       expect(editor.getText()).toBe "xyz\nxyz"
 
-      editor.undo()
+      componentNode.dispatchEvent(new CustomEvent('core:undo', bubbles: true, cancelable: true))
       expect(editor.getText()).toBe ""
 
     describe "when IME composition is used to insert international characters", ->

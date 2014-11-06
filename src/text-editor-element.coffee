@@ -134,7 +134,16 @@ class TextEditorElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-editorEventListeners = (commandListeners) ->
+stopEventPropagation = (commandListeners) ->
+  newCommandListeners = {}
+  for commandName, commandListener of commandListeners
+    do (commandListener) ->
+      newCommandListeners[commandName] = (event) ->
+        event.stopPropagation()
+        commandListener.call(@getModel(), event)
+  newCommandListeners
+
+stopEventPropagationAndGroupUndo = (commandListeners) ->
   newCommandListeners = {}
   for commandName, commandListener of commandListeners
     do (commandListener) ->
@@ -145,7 +154,12 @@ editorEventListeners = (commandListeners) ->
           commandListener.call(model, event)
   newCommandListeners
 
-atom.commands.add 'atom-text-editor', editorEventListeners(
+atom.commands.add 'atom-text-editor', stopEventPropagation(
+  'core:undo': -> @undo()
+  'core:redo': -> @redo()
+)
+
+atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'core:move-left': -> @moveLeft()
   'core:move-right': -> @moveRight()
   'core:select-left': -> @selectLeft()
@@ -153,8 +167,6 @@ atom.commands.add 'atom-text-editor', editorEventListeners(
   'core:select-all': -> @selectAll()
   'core:backspace': -> @backspace()
   'core:delete': -> @delete()
-  'core:undo': -> @undo()
-  'core:redo': -> @redo()
   'core:cut': -> @cutSelectedText()
   'core:copy': -> @copySelectedText()
   'core:paste': -> @pasteText()
@@ -195,7 +207,7 @@ atom.commands.add 'atom-text-editor', editorEventListeners(
   'editor:lower-case': -> @lowerCase()
 )
 
-atom.commands.add 'atom-text-editor:not(.mini)', editorEventListeners(
+atom.commands.add 'atom-text-editor:not(.mini)', stopEventPropagationAndGroupUndo(
   'core:move-up': -> @moveUp()
   'core:move-down': -> @moveDown()
   'core:move-to-top': -> @moveToTop()
