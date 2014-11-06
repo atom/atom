@@ -109,7 +109,7 @@ module.exports =
         type: 'integer'
         default: 500
         minimum: 0
-        description: 'Time interval in milliseconds within which operations will be grouped in the undo history'
+        description: 'Time interval in milliseconds within which operations will be grouped together in the undo history'
       useHardwareAcceleration:
         type: 'boolean'
         default: true
