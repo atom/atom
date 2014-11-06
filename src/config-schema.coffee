@@ -105,6 +105,11 @@ module.exports =
       scrollPastEnd:
         type: 'boolean'
         default: false
+      undoGroupingInterval:
+        type: 'integer'
+        default: 500
+        minimum: 0
+        description: 'Time interval in milliseconds within which operations will be grouped in the undo history'
       useHardwareAcceleration:
         type: 'boolean'
         default: true

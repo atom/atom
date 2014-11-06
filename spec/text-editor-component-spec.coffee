@@ -1925,14 +1925,26 @@ describe "TextEditorComponent", ->
       expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
 
     it "groups events that occur close together in time into single undo entries", ->
+      currentTime = 0
+      spyOn(Date, 'now').andCallFake -> currentTime
+
+      atom.config.set('editor.undoGroupingInterval', 100)
+
       editor.setText("")
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
-      componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
-      componentNode.dispatchEvent(buildTextInputEvent(data: 'z', target: inputNode))
 
+      currentTime += 99
+      componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
+
+      currentTime += 99
       componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
 
-      expect(editor.getText()).toBe "xyz\nxyz"
+      currentTime += 100
+      componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
+      expect(editor.getText()).toBe "xy\nxy\nxy"
+
+      componentNode.dispatchEvent(new CustomEvent('core:undo', bubbles: true, cancelable: true))
+      expect(editor.getText()).toBe "xy\nxy"
 
       componentNode.dispatchEvent(new CustomEvent('core:undo', bubbles: true, cancelable: true))
       expect(editor.getText()).toBe ""

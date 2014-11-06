@@ -150,7 +150,7 @@ stopEventPropagationAndGroupUndo = (commandListeners) ->
       newCommandListeners[commandName] = (event) ->
         event.stopPropagation()
         model = @getModel()
-        model.transact TextEditorComponent.groupingInterval, ->
+        model.transact atom.config.get('editor.undoGroupingInterval'), ->
           commandListener.call(model, event)
   newCommandListeners
 
