@@ -457,7 +457,9 @@ TextEditorComponent = React.createClass
     selectedLength = inputNode.selectionEnd - inputNode.selectionStart
     editor.selectLeft() if selectedLength is 1
 
-    inputNode.value = event.data if editor.insertText(event.data)
+    insertedRange = editor.transact atom.config.get('editor.undoGroupingInterval'), ->
+      editor.insertText(event.data)
+    inputNode.value = event.data if insertedRange
 
   onVerticalScroll: (scrollTop) ->
     {editor} = @props

@@ -1096,8 +1096,10 @@ class TextEditor extends Model
   # abort the transaction, call {::abortTransaction} to terminate the function's
   # execution and revert any changes performed up to the abortion.
   #
+  # * `groupingInterval` (optional) This is the sames as the `groupingInterval`
+  #    parameter in {::beginTransaction}
   # * `fn` A {Function} to call inside the transaction.
-  transact: (fn) -> @buffer.transact(fn)
+  transact: (groupingInterval, fn) -> @buffer.transact(groupingInterval, fn)
 
   # Extended: Start an open-ended transaction.
   #
@@ -1105,7 +1107,12 @@ class TextEditor extends Model
   # transaction. If you nest calls to transactions, only the outermost
   # transaction is considered. You must match every begin with a matching
   # commit, but a single call to abort will cancel all nested transactions.
-  beginTransaction: -> @buffer.beginTransaction()
+  #
+  # * `groupingInterval` (optional) The {Number} of milliseconds for which this
+  #   transaction should be considered 'groupable' after it begins. If a transaction
+  #   with a positive `groupingInterval` is committed while the previous transaction is
+  #   still 'groupable', the two transactions are merged with respect to undo and redo.
+  beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
 
   # Extended: Commit an open-ended transaction started with {::beginTransaction}
   # and push it to the undo stack.
