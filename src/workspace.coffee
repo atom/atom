@@ -315,7 +315,7 @@ class Workspace extends Model
       when 'editor-created'
         deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
       when 'uri-opened'
-        deprecate("Use Workspace::onDidAddPaneItem instead.")
+        deprecate("Use Workspace::onDidOpen or Workspace::onDidAddPaneItem instead. https://atom.io/docs/api/latest/Workspace#instance-onDidOpen")
       else
         deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
 
