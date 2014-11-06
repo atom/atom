@@ -7,7 +7,7 @@ Subscriber.includeInto(SpacePen.View)
 jQuery = SpacePen.jQuery
 JQueryCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
-  jQuery(element).view()?.unsubscribe() for element in elements
+  jQuery(element).view()?.unsubscribe?() for element in elements
   JQueryCleanData(elements)
 
 SpacePenCallRemoveHooks = SpacePen.callRemoveHooks
