@@ -40,6 +40,8 @@ class PaneContainer extends Model
     @registerViewProviders()
 
     @setRoot(params?.root ? new Pane)
+    @setActivePane(@getPanes()[0]) unless @getActivePane()
+
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
     @monitorActivePaneItem()
