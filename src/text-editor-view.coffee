@@ -77,7 +77,6 @@ class TextEditorView extends View
 
     @scrollView = @root.find('.scroll-view')
 
-
     if atom.config.get('editor.useShadowDOM')
       @underlayer = $("<div class='underlayer'></div>").appendTo(this)
       @overlayer = $("<div class='overlayer'></div>").appendTo(this)
