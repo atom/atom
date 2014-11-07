@@ -45,7 +45,7 @@ class StylesElement extends HTMLElement
     @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
 
   styleElementAdded: (styleElement) ->
-    return unless styleElement.context is @context
+    return unless @styleElementMatchesContext(styleElement)
 
     styleElementClone = styleElement.cloneNode(true)
     styleElementClone.context = styleElement.context
@@ -62,17 +62,20 @@ class StylesElement extends HTMLElement
     @emitter.emit 'did-add-style-element', styleElementClone
 
   styleElementRemoved: (styleElement) ->
-    return unless styleElement.context is @context
+    return unless @styleElementMatchesContext(styleElement)
 
     styleElementClone = @styleElementClonesByOriginalElement.get(styleElement) ? styleElement
     styleElementClone.remove()
     @emitter.emit 'did-remove-style-element', styleElementClone
 
   styleElementUpdated: (styleElement) ->
-    return unless styleElement.context is @context
+    return unless @styleElementMatchesContext(styleElement)
 
     styleElementClone = @styleElementClonesByOriginalElement.get(styleElement)
     styleElementClone.textContent = styleElement.textContent
     @emitter.emit 'did-update-style-element', styleElementClone
+
+  styleElementMatchesContext: (styleElement) ->
+    not @context? or styleElement.context is @context
 
 module.exports = StylesElement = document.registerElement 'atom-styles', prototype: StylesElement.prototype
