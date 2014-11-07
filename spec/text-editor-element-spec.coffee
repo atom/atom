@@ -40,9 +40,6 @@ describe "TextEditorElement", ->
         expect(blurCalled).toBe true
 
     describe "when the editor.useShadowDOM config option is false", ->
-      afterEach ->
-        document.head.querySelector('atom-styles[context="atom-text-editor"]').remove()
-
       it "proxies focus/blur events to/from the hidden input", ->
         atom.config.set('editor.useShadowDOM', false)
 

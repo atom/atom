@@ -6,8 +6,6 @@ TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 TextEditorView = null
 
-GlobalStylesElement = null
-
 class TextEditorElement extends HTMLElement
   model: null
   componentDescriptor: null
@@ -39,13 +37,7 @@ class TextEditorElement extends HTMLElement
       @shadowRoot.appendChild(@stylesElement)
       @shadowRoot.appendChild(@rootElement)
     else
-      unless GlobalStylesElement?
-        GlobalStylesElement = document.createElement('atom-styles')
-        GlobalStylesElement.setAttribute('context', 'atom-text-editor')
-        GlobalStylesElement.initialize()
-        document.head.appendChild(GlobalStylesElement)
-
-      @stylesElement = GlobalStylesElement
+      @stylesElement = document.head.querySelector('atom-styles')
       @rootElement = this
 
     @rootElement.classList.add('editor', 'editor-colors')
