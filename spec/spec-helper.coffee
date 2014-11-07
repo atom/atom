@@ -199,7 +199,7 @@ addCustomMatchers = (spec) ->
 
     toHaveLength: (expected) ->
       if not @actual?
-        this.message = => "Expected object #{@actual} has no length method"
+        this.message = => "Expected object #{@actual} has no length property"
         false
       else
         notText = if @isNot then " not" else ""

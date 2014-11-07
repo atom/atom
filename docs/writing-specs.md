@@ -47,6 +47,9 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
       expect("oranges").not.toEqual("apples")
   ```
 
+Atom also includes some [custom matchers](#Custom-Matchers) that can be
+used in package specs.
+
 ## Asynchronous specs
 
 Writing Asynchronous specs can be tricky at first. Some examples.
@@ -127,3 +130,84 @@ describe "when a test is written", ->
     expect("apples").toEqual("apples")
     expect("oranges").not.toEqual("apples")
 ```
+
+# Spec Helpers
+
+Atom provides a few global spec helpers:
+
+<!-- TODO: Write this documentation! -->
+
+ * `window.setTimeout`
+ * `window.clearTimeout`
+
+As well, it mocks the following methods.
+
+ * `TextEditorView::requestDisplayUpdate`
+ * `File::requestDisplayUpdate`
+ * `TextEditor::shouldPromptToSave` -- always False
+
+ * `clipboard.writeText` -- Does not interact with the system clipboard.
+ * `clipboard.readText` -- Initial a placeholder value: `'initial clipboard content'`
+
+# Custom Matchers
+
+<!-- TODO: Write documentation on these! -->
+
+##  `toBeInstanceOf(constructor)`
+
+Tests the expected value against its argument using `instanceof`:
+
+  ```coffee
+  describe "The 'toBeInstanceOf' matcher", ->
+    it "should test an object against its type", ->
+      expect({}).toBeInstanceOf Object
+      expect([]).toBeInstanceOf Array
+      expect(->).toBeInstanceOf Function
+      expect(/ab+/).toBeInstanceOf RegExp
+
+      class BaseContrivedTestClass
+      class ContrivedTestClass extends BaseContrivedTestClass
+      expect(new ContrivedTestClass).toBeInstanceOf BaseContrivedTestClass
+
+      expect(new Number(42)).toBeInstanceOf Number
+
+    it "does NOT work with primitive values", ->
+      expect("hello").not.toBeInstanceOf String
+      expect(1).not.toBeInstanceOf Number
+  ```
+
+## `toExistOnDisk(filePath)`
+
+Tests if the given file path exists on the filesystem.
+
+<!-- TODO: spec! -->
+
+## `toHaveFocus()`
+
+Tests given that the given element (either `jQuery` or a DOM object)
+has focus.
+
+<!-- TODO: spec! -->
+
+## `toHaveLength(number)`
+
+Tests that the length property of the value is the number given.
+
+  ```coffee
+  describe "the 'toHaveLength' matcher", ->
+    it "should test that an array has the given length", ->
+      expect([1,2,3]).toHaveLength 3
+      expect({length: 5}).toHaveLength 5
+
+    it "should fail a test if it does not the expected length", ->
+      expect([]).not.toHaveLength 1
+
+    it "should fail if the given value has no length property", ->
+      expect(null).not.toHaveLength 1
+      expect(1).not.toHaveLength 3
+  ```
+
+## `toShow`
+
+<!-- TODO: spec! -->
+
