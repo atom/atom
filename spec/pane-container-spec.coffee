@@ -33,6 +33,13 @@ describe "PaneContainer", ->
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(containerB.getActivePane()).toBe pane3B
 
+    it "makes the first pane active if no pane exists for the activePaneId", ->
+      pane3A.activate()
+      state = containerA.serialize()
+      state.activePaneId = -22
+      containerB = atom.deserializers.deserialize(state)
+      expect(containerB.getActivePane()).toBe containerB.getPanes()[0]
+
   it "does not allow the root pane to be destroyed", ->
     container = new PaneContainer
     container.getRoot().destroy()
