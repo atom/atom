@@ -92,7 +92,7 @@ describe "ThemeManager", ->
 
       runs ->
         reloadHandler.reset()
-        expect($('style[group=theme]')).toHaveLength 1
+        expect($('style[group=theme]')).toHaveLength 2
         expect($('style[group=theme]:eq(0)').attr('source-path')).toMatch /atom-dark-ui/
         atom.config.set('core.themes', ['atom-light-ui', 'atom-dark-ui'])
 
@@ -111,7 +111,7 @@ describe "ThemeManager", ->
 
       runs ->
         reloadHandler.reset()
-        expect($('style[group=theme]')).toHaveLength 1
+        expect($('style[group=theme]')).toHaveLength 2
         # atom-dark-ui has an directory path, the syntax one doesn't
         atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
 
