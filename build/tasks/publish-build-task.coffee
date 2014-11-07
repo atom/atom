@@ -123,10 +123,21 @@ getAtomDraftRelease = (callback) ->
       logError('Fetching atom/atom releases failed', error, releases)
       callback(error)
     else
-      for release in releases when release.draft
-        callback(null, release)
-        return
-      callback(new Error('No draft release in atom/atom repo'))
+      [firstDraft] = releases.filter ({draft}) -> draft
+      if firstDraft?
+        options =
+          uri: firstDraft.url
+          method: 'GET'
+          headers: defaultHeaders
+          json: true
+        request options, (error, response, body='') ->
+          if error? or response.statusCode isnt 200
+            logError('Fetching draft release asset failed', error, body)
+            callback(error ? new Error(response.statusCode))
+          else
+            callback(null, body)
+      else
+        callback(new Error('No draft release in atom/atom repo'))
 
 deleteRelease = (release) ->
   options =
