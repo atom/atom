@@ -139,6 +139,9 @@ class PaneContainer extends Model
 
   setActivePane: (activePane) ->
     if activePane isnt @activePane
+      unless activePane in @getPanes()
+        throw new Error("Setting active pane that is not present in pane container")
+
       @activePane = activePane
       @emitter.emit 'did-change-active-pane', @activePane
     @activePane
