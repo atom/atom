@@ -187,26 +187,6 @@ Tests if the given file path exists on the filesystem.
 Tests given that the given element (either `jQuery` or a DOM object)
 has focus.
 
-<!-- TODO: spec! -->
-
-## `toHaveLength(number)`
-
-Tests that the length property of the value is the number given.
-
-  ```coffee
-  describe "the 'toHaveLength' matcher", ->
-    it "should test that an array has the given length", ->
-      expect([1,2,3]).toHaveLength 3
-      expect({length: 5}).toHaveLength 5
-
-    it "should fail a test if it does not the expected length", ->
-      expect([]).not.toHaveLength 1
-
-    it "should fail if the given value has no length property", ->
-      expect(null).not.toHaveLength 1
-      expect(1).not.toHaveLength 3
-  ```
-
 ## `toShow`
 
 <!-- TODO: spec! -->

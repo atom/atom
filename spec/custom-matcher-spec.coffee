@@ -24,16 +24,7 @@ describe "Custom matchers:", ->
   describe "The 'toHaveFocus' matcher", ->
 
 
-  describe "the 'toHaveLength' matcher", ->
-    it "should test that an array has the given length", ->
-      expect([1,2,3]).toHaveLength 3
-      expect({length: 5}).toHaveLength 5
 
-    it "should fail a test if it does not the expected length", ->
-      expect([]).not.toHaveLength 1
 
-    it "should fail if the given value has no length property", ->
-      expect(null).not.toHaveLength 1
-      expect(1).not.toHaveLength 3
 
   describe "The 'toShow' matcher", ->
