@@ -12,7 +12,7 @@
 # 'atom-text-editor':
 #   'enter': 'editor:newline'
 #
-# '.workspace':
+# 'atom-workspace':
 #   'ctrl-shift-p': 'core:move-up'
 #   'ctrl-p': 'core:move-down'
 #
