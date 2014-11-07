@@ -175,6 +175,7 @@ class TextEditor extends Model
 
   destroyed: ->
     @unsubscribe()
+    @scopedConfigSubscriptions.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
     @displayBuffer.destroy()
