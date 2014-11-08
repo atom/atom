@@ -502,6 +502,8 @@ class Pane extends Model
 
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
+    throw new Error("Pane has been destroyed") if @isDestroyed()
+
     @container?.setActivePane(this)
     @emit 'activated'
     @emitter.emit 'did-activate'

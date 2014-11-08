@@ -1075,8 +1075,9 @@ class DisplayBuffer extends Model
 
   destroyed: ->
     marker.unsubscribe() for id, marker of @markers
-    @tokenizedBuffer.destroy()
+    @scopedConfigSubscriptions.dispose()
     @unsubscribe()
+    @tokenizedBuffer.destroy()
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]

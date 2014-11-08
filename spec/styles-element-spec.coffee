@@ -59,8 +59,9 @@ describe "StylesElement", ->
     atom.styles.addStyleSheet("a {color: red;}", context: 'test-context')
     atom.styles.addStyleSheet("a {color: green;}")
 
-    expect(element.children.length).toBe initialChildCount + 1
-    expect(element.children[initialChildCount].textContent).toBe "a {color: green;}"
+    expect(element.children.length).toBe initialChildCount + 2
+    expect(element.children[initialChildCount].textContent).toBe "a {color: red;}"
+    expect(element.children[initialChildCount + 1].textContent).toBe "a {color: green;}"
 
     element.setAttribute('context', 'test-context')
 
