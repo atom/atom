@@ -294,16 +294,18 @@ describe "PackageManager", ->
           it "loads all stylesheets from the stylesheets directory", ->
             one = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/1.css")
             two = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/2.less")
-            three = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/3.css")
-
+            three = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/3.test-context.css")
+            four = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/4.css")
 
             one = atom.themes.stringToId(one)
             two = atom.themes.stringToId(two)
             three = atom.themes.stringToId(three)
+            four = atom.themes.stringToId(four)
 
             expect(atom.themes.stylesheetElementForId(one)).toBeNull()
             expect(atom.themes.stylesheetElementForId(two)).toBeNull()
             expect(atom.themes.stylesheetElementForId(three)).toBeNull()
+            expect(atom.themes.stylesheetElementForId(four)).toBeNull()
 
             waitsForPromise ->
               atom.packages.activatePackage("package-with-stylesheets")
@@ -312,6 +314,7 @@ describe "PackageManager", ->
               expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
               expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
               expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
+              expect(atom.themes.stylesheetElementForId(four)).not.toBeNull()
               expect($('#jasmine-content').css('font-size')).toBe '3px'
 
         it "assigns the stylesheet's context based on the filename", ->
@@ -319,8 +322,26 @@ describe "PackageManager", ->
             atom.packages.activatePackage("package-with-stylesheets")
 
           runs ->
-            element = atom.styles.getStyleElements().find (element) -> element.context is 'test-context'
-            expect(element).toBeDefined()
+            count = 0
+
+            for styleElement in atom.styles.getStyleElements()
+              if styleElement.sourcePath.match /1.css/
+                expect(styleElement.context).toBe undefined
+                count++
+
+              if styleElement.sourcePath.match /2.less/
+                expect(styleElement.context).toBe undefined
+                count++
+
+              if styleElement.sourcePath.match /3.test-context.css/
+                expect(styleElement.context).toBe 'test-context'
+                count++
+
+              if styleElement.sourcePath.match /4.css/
+                expect(styleElement.context).toBe undefined
+                count++
+
+            expect(count).toBe 4
 
       describe "grammar loading", ->
         it "loads the package's grammars", ->
