@@ -311,6 +311,11 @@ window.fakeSetInterval = (callback, ms) ->
 window.fakeClearInterval = (idToClear) ->
   window.fakeClearTimeout(@intervalTimeouts[idToClear])
 
+# Spec: Advances the clock by a given amount of milliseconds.
+#
+# Can be used to execute events dependent on `setTimeout()` synchronously.
+#
+# * `delta` {Number} milliseconds to advance by (default: 1).
 window.advanceClock = (delta=1) ->
   window.now += delta
   callbacks = []

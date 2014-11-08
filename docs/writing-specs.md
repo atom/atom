@@ -133,17 +133,44 @@ describe "when a test is written", ->
 
 # Spec Helpers
 
-Atom provides a few global spec helpers:
+Atom provides a few global helper functions in specs:
 
-<!-- TODO: Write this documentation! -->
+# `advanceClock(delta=1)`
 
- * `window.setTimeout`
- * `window.clearTimeout`
+Advances the clock by `delta` milliseconds. Can be used to execute events
+dependent on `setTimeout()`.
 
-As well, it mocks the following methods.
+This works because Atom sets [Jasmine spies][jspies] on the globals
+`setTimeout()` and `clearTimeout()` to implement its own event loop. This
+means that specs may use `advanceClock` to artificially advance the
+clock anywhere that these two globals are used. This also means that
+tests that would have run asynchronously using only `setTimeout` can be run
+synchronously:
 
- * `TextEditorView::requestDisplayUpdate`
- * `File::requestDisplayUpdate`
+```coffee
+describe 'when a test uses advanceClock()', ->
+  it 'can synchronously call setTimeout callbacks in the future', ->
+    futureCallback = jasmine.createSpy('futureCallback')
+
+    setTimeout(futureCallback, 1000)
+    advanceClock(1001)
+
+    expect(futureCallback).toHaveBeenCalled()
+
+  it 'allows timeouts to be cleared', ->
+    futureCallback = jasmine.createSpy('futureCallback')
+
+    id = setTimeout(futureCallback, 1000)
+    advanceClock(999)
+    clearTimeout(id)
+
+    advanceClock(1000)
+    expect(futureCallback).not.toHaveBeenCalled()
+```
+
+
+Atom mocks the following methods in specs:
+
  * `TextEditor::shouldPromptToSave` -- always False
 
  * `clipboard.writeText` -- Does not interact with the system clipboard.
