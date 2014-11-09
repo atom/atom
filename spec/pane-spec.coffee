@@ -146,6 +146,22 @@ describe "Pane", ->
       pane.activateNextItem()
       expect(pane.getActiveItem()).toBe item1
 
+  describe "::moveItemToRight() and ::moveItemToLeft()", ->
+    it "moves the active item to the right/left item, without looping around at either end", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      [item1, item2, item3] = pane.getItems()
+
+      expect(pane.getActiveItem()).toBe item1
+      pane.moveItemToLeft()
+      expect(pane.getItems()).toEqual [item1, item2, item3]
+
+      pane.moveItemToRight()
+      expect(pane.getItems()).toEqual [item2, item1, item3]
+
+      pane.moveItemToRight()
+      pane.moveItemToRight()
+      expect(pane.getItems()).toEqual [item2, item3, item1]
+
   describe "::activateItemAtIndex(index)", ->
     it "activates the item at the given index", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
