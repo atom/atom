@@ -144,6 +144,10 @@ class CommandRegistry
       currentTarget = currentTarget.parentNode
       break unless currentTarget?
 
+    for name, listeners of @inlineListenersByCommandName
+      if listeners.has(target)
+        commands.push({name, displayName: _.humanizeEventName(name)})
+
     for name, displayName of $(target).events() when displayName
       commands.push({name, displayName, jQuery: true})
 
