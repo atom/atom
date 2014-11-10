@@ -420,38 +420,6 @@ class Cursor extends Model
   Section: Local Positions and Ranges
   ###
 
-  # Public: Retrieves the buffer position of where the current word starts.
-  #
-  # * `options` (optional) An {Object} with the following keys:
-  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
-  #     (default: {::wordRegExp}).
-  #   * `includeNonWordCharacters` A {Boolean} indicating whether to include
-  #     non-word characters in the default word regex.
-  #     Has no effect if wordRegex is set.
-  #   * `allowPrevious` A {Boolean} indicating whether the beginning of the
-  #     previous word can be returned.
-  #
-  # Returns a {Range}.
-  getBeginningOfCurrentWordBufferPosition: (options = {}) ->
-    allowPrevious = options.allowPrevious ? true
-    currentBufferPosition = @getBufferPosition()
-    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row) ? 0
-    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
-
-    beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
-        beginningOfWordPosition = range.start
-      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
-        stop()
-
-    if beginningOfWordPosition?
-      beginningOfWordPosition
-    else if allowPrevious
-      new Point(0, 0)
-    else
-      currentBufferPosition
-
   # Public: Retrieves buffer position of previous word boundary. It might be on
   # the current word, or the previous word.
   #
@@ -502,6 +470,38 @@ class Cursor extends Model
         stop()
 
     endOfWordPosition or currentBufferPosition
+
+  # Public: Retrieves the buffer position of where the current word starts.
+  #
+  # * `options` (optional) An {Object} with the following keys:
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #     (default: {::wordRegExp}).
+  #   * `includeNonWordCharacters` A {Boolean} indicating whether to include
+  #     non-word characters in the default word regex.
+  #     Has no effect if wordRegex is set.
+  #   * `allowPrevious` A {Boolean} indicating whether the beginning of the
+  #     previous word can be returned.
+  #
+  # Returns a {Range}.
+  getBeginningOfCurrentWordBufferPosition: (options = {}) ->
+    allowPrevious = options.allowPrevious ? true
+    currentBufferPosition = @getBufferPosition()
+    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row) ? 0
+    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
+
+    beginningOfWordPosition = null
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
+      if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
+        beginningOfWordPosition = range.start
+      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    if beginningOfWordPosition?
+      beginningOfWordPosition
+    else if allowPrevious
+      new Point(0, 0)
+    else
+      currentBufferPosition
 
   # Public: Retrieves the buffer position of where the current word ends.
   #
