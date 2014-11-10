@@ -28,7 +28,7 @@ class WindowEventHandler
 
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
-    @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
+    @subscribeToCommand $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
       unless atom.project?.getPath()
         if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
           atom.project?.setPath(pathToOpen)
