@@ -12,6 +12,8 @@
   'ctrl-alt-s': 'application:run-all-specs'
   'ctrl-alt-o': 'application:open-dev'
   'ctrl-shift-o': 'application:open-folder'
+  'ctrl-shift-pageup': 'pane:move-item-left'
+  'ctrl-shift-pagedown': 'pane:move-item-right'
   'F11': 'window:toggle-full-screen'
 
   # Sublime Parity

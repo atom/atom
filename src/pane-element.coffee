@@ -119,6 +119,8 @@ atom.commands.add 'atom-pane',
   'pane:show-item-7': -> @getModel().activateItemAtIndex(6)
   'pane:show-item-8': -> @getModel().activateItemAtIndex(7)
   'pane:show-item-9': -> @getModel().activateItemAtIndex(8)
+  'pane:move-item-right': -> @getModel().moveItemRight()
+  'pane:move-item-left': -> @getModel().moveItemLeft()
   'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
   'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
   'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
