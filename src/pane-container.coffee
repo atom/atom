@@ -152,6 +152,9 @@ class PaneContainer extends Model
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
 
+  paneForItem: (item) ->
+    @getPanes().find (pane) -> item in pane.getItems()
+
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
 

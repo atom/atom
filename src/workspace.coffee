@@ -552,13 +552,21 @@ class Workspace extends Model
   activatePreviousPane: ->
     @paneContainer.activatePreviousPane()
 
-  # Extended: Get the first pane {Pane} with an item for the given URI.
+  # Extended: Get the first {Pane} with an item for the given URI.
   #
   # * `uri` {String} uri
   #
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
+
+  # Extended: Get the {Pane} containing the given item.
+  #
+  # * `item` Item the returned pane contains.
+  #
+  # Returns a {Pane} or `undefined` if no pane exists for the given item.
+  paneForItem: (item) ->
+    @paneContainer.paneForItem(item)
 
   # Destroy (close) the active pane.
   destroyActivePane: ->
