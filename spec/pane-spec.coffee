@@ -565,6 +565,37 @@ describe "Pane", ->
       expect(pane1.isActive()).toBe false
       expect(pane2.isActive()).toBe true
 
+  describe "::close()", ->
+    it "prompts to save unsaved items before destroying the pane", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+
+      item1.shouldPromptToSave = -> true
+      item1.getUri = -> "/test/path"
+      item1.save = jasmine.createSpy("save")
+
+      spyOn(atom, 'confirm').andReturn(0)
+      pane.close()
+
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(item1.save).toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe true
+
+    it "does not destroy the pane if cancel is called", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+
+      item1.shouldPromptToSave = -> true
+      item1.getUri = -> "/test/path"
+      item1.save = jasmine.createSpy("save")
+
+      spyOn(atom, 'confirm').andReturn(1)
+      pane.close()
+
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(item1.save).not.toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe false
+
   describe "::destroy()", ->
     [container, pane1, pane2] = []
 

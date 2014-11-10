@@ -65,7 +65,7 @@ class PaneElement extends HTMLElement
       'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
       'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
       'pane:split-down': -> @getModel().splitDown(copyActiveItem: true)
-      'pane:close': -> @getModel().destroy()
+      'pane:close': -> @getModel().close()
       'pane:close-other-items': -> @getModel().destroyInactiveItems()
     )
 
