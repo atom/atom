@@ -322,7 +322,7 @@ class Selection extends Model
   # * `row` The line {Number} to select (default: the row of the cursor).
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(@getBufferRange().union(range))
+    @setBufferRange(@getBufferRange().union(range), autoscroll: true)
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()
