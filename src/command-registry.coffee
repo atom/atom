@@ -130,15 +130,18 @@ class CommandRegistry
   #  * `jQuery` Present if the command was registered with the legacy
   #    `$::command` method.
   findCommands: ({target}) ->
+    commandNames = new Set
     commands = []
     currentTarget = target
     loop
       for commandName, listeners of @selectorBasedListenersByCommandName
         for listener in listeners
           if currentTarget.webkitMatchesSelector?(listener.selector)
-            commands.push
-              name: commandName
-              displayName: _.humanizeEventName(commandName)
+            unless commandNames.has(commandName)
+              commandNames.add(commandName)
+              commands.push
+                name: commandName
+                displayName: _.humanizeEventName(commandName)
 
       break if currentTarget is @rootNode
       currentTarget = currentTarget.parentNode
@@ -146,13 +149,9 @@ class CommandRegistry
 
     for name, listeners of @inlineListenersByCommandName
       if listeners.has(target)
-        commands.push({name, displayName: _.humanizeEventName(name)})
-
-    for name, displayName of $(target).events() when displayName
-      commands.push({name, displayName, jQuery: true})
-
-    for name, displayName of $(window).events() when displayName
-      commands.push({name, displayName, jQuery: true})
+        unless commandNames.has(name)
+          commandNames.add(name)
+          commands.push({name, displayName: _.humanizeEventName(name)})
 
     commands
 
