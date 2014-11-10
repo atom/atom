@@ -11,3 +11,9 @@ atom-text-editor.mini {
   line-height: @component-line-height;
   max-height: @component-line-height + 2; // +2 for borders
 }
+
+// TODO: remove this when the shadow DOM is the default
+atom-text-editor .highlight {
+  background: none;
+  padding: 0;
+}
