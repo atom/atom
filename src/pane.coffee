@@ -290,13 +290,13 @@ class Pane extends Model
       @activateItemAtIndex(@items.length - 1)
 
   # Public: Move the active tab to the right.
-  moveItemToRight: ->
+  moveItemRight: ->
     index = @getActiveItemIndex()
     rightItemIndex = index + 1
     @moveItem(@getActiveItem(), rightItemIndex) unless rightItemIndex > @items.length - 1
 
   # Public: Move the active tab to the left
-  moveItemToLeft: ->
+  moveItemLeft: ->
     index = @getActiveItemIndex()
     leftItemIndex = index - 1
     @moveItem(@getActiveItem(), leftItemIndex) unless leftItemIndex < 0
