@@ -608,3 +608,11 @@ class Pane extends Model
         rightmostSibling
     else
       @splitRight()
+
+  close: ->
+    @destroy() if @confirmClose()
+
+  confirmClose: ->
+    for item in @getItems()
+      return false unless @promptToSaveItem(item)
+    true
