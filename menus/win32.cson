@@ -109,7 +109,7 @@
           { label: 'Focus Pane On Left', command: 'window:focus-pane-on-left' }
           { label: 'Focus Pane On Right', command: 'window:focus-pane-on-right' }
           { type: 'separator' }
-          { label: 'Close pane', command: 'pane:close' }
+          { label: 'Close Pane', command: 'pane:close' }
         ]
       }
       {
