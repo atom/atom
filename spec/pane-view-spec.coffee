@@ -144,12 +144,15 @@ describe "PaneView", ->
 
   describe "when an item is moved to another pane", ->
     it "detaches the item's view rather than removing it", ->
+      container.attachToDom()
+      expect(view1.is(':visible')).toBe true
       paneModel2 = paneModel.splitRight()
       view1.data('preservative', 1234)
       paneModel.moveItemToPane(view1, paneModel2, 1)
       expect(view1.data('preservative')).toBe 1234
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
+      expect(view1.is(':visible')).toBe true
 
   describe "when the title of the active item changes", ->
     describe 'when there is no onDidChangeTitle method', ->
