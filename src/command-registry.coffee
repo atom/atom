@@ -35,9 +35,7 @@ SpecificityCache = {}
 # ```coffee
 # atom.commands.add 'atom-text-editor',
 #   'user:insert-date': (event) ->
-#     editor = $(this).view().getModel()
-#     # soon the above above line will be:
-#     # editor = @getModel()
+#     editor = @getModel()
 #     editor.insertText(new Date().toLocaleString())
 # ```
 module.exports =
