@@ -94,15 +94,15 @@ class PaneElement extends HTMLElement
     hasFocus = @hasFocus()
     itemView = @model.getView(item)
 
+    unless @itemViews.contains(itemView)
+      @itemViews.appendChild(itemView)
+      callAttachHooks(itemView)
+
     for child in @itemViews.children
       if child is itemView
         @showItemView(child) if @attached
       else
         @hideItemView(child)
-
-    unless @itemViews.contains(itemView)
-      @itemViews.appendChild(itemView)
-      callAttachHooks(itemView)
 
     itemView.focus() if hasFocus
 
