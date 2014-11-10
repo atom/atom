@@ -20,7 +20,7 @@ NativeEventNames.add(nativeEvent) for nativeEvent in ["blur", "focus", "focusin"
 "focusout", "load", "resize", "scroll", "unload", "click", "dblclick", "mousedown",
 "mouseup", "mousemove", "mouseover", "mouseout", "mouseenter", "mouseleave", "change",
 "select", "submit", "keydown", "keypress", "keyup", "error", "contextmenu", "textInput",
-"textinput"]
+"textinput", "beforeunload"]
 
 JQueryTrigger = jQuery.fn.trigger
 jQuery.fn.trigger = (eventName, data) ->
