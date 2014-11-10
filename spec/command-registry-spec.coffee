@@ -156,16 +156,16 @@ describe "CommandRegistry", ->
       registry.add '.grandchild.no-match', 'namespace:command-4', ->
 
       registry.add grandchild, 'namespace:inline-command-1', ->
-      registry.add child, 'namespace:inlined-command-2', ->
+      registry.add child, 'namespace:inline-command-2', ->
 
       commands = registry.findCommands(target: grandchild)
       nonJqueryCommands = _.reject commands, (cmd) -> cmd.jQuery
-
       expect(nonJqueryCommands).toEqual [
+        {name: 'namespace:inline-command-1', displayName: 'Namespace: Inline Command 1'}
         {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
+        {name: 'namespace:inline-command-2', displayName: 'Namespace: Inline Command 2'}
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
-        {name: 'namespace:inline-command-1', displayName: 'Namespace: Inline Command 1'}
       ]
 
   describe "::dispatch(target, commandName)", ->
