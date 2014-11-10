@@ -392,7 +392,7 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the next word boundary.
   moveToNextWordBoundary: ->
-    if position = @getMoveNextWordBoundaryBufferPosition()
+    if position = @getNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
   # Public: Moves the cursor to the beginning of the buffer line, skipping all
@@ -476,7 +476,7 @@ class Cursor extends Model
 
   # Public: Retrieves buffer position of the next word boundary. It might be on
   # the current word, or the previous word.
-  getMoveNextWordBoundaryBufferPosition: (options = {}) ->
+  getNextWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
