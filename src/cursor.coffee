@@ -454,6 +454,10 @@ class Cursor extends Model
 
   # Public: Retrieves buffer position of previous word boundary. It might be on
   # the current word, or the previous word.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #      (default: {::wordRegExp})
   getPreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
@@ -476,6 +480,10 @@ class Cursor extends Model
 
   # Public: Retrieves buffer position of the next word boundary. It might be on
   # the current word, or the previous word.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #      (default: {::wordRegExp})
   getNextWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
