@@ -1,4 +1,13 @@
-keytar = require 'keytar'
+try
+  keytar = require 'keytar'
+catch error
+  # Gracefully handle keytar failing to load due to missing library on Linux
+  if process.platform is 'linux'
+    keytar =
+      findPassword: ->
+      replacePassword: ->
+  else
+    throw error
 
 tokenName = 'Atom.io API Token'
 
