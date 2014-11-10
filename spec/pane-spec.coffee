@@ -146,7 +146,7 @@ describe "Pane", ->
       pane.activateNextItem()
       expect(pane.getActiveItem()).toBe item1
 
-  fdescribe "::moveItemRight() and ::moveItemLeft()", ->
+  describe "::moveItemRight() and ::moveItemLeft()", ->
     it "moves the active item to the right and left, without looping around at either end", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
       [item1, item2, item3] = pane.getItems()
