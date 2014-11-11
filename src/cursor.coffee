@@ -171,6 +171,10 @@ class Cursor extends Model
   Section: Cursor Position Details
   ###
 
+  # Public: Returns the underlying {Marker} for the cursor.
+  # Useful with overlay {Decoration}s.
+  getMarker: -> @marker
+
   # Public: Identifies if the cursor is surrounded by whitespace.
   #
   # "Surrounded" here means that the character directly before and after the
