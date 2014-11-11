@@ -1262,7 +1262,7 @@ describe "TextEditorComponent", ->
         expect(overlay.style.left).toBe position.left + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-    describe "positioning the overlay when near the edge of the window", ->
+    describe "positioning the overlay when near the edge of the editor", ->
       [itemWidth, itemHeight] = []
       beforeEach ->
         itemWidth = 4 * editor.getDefaultCharWidth()
@@ -1319,7 +1319,7 @@ describe "TextEditorComponent", ->
         expect(overlay.style.left).toBe position.left + 'px'
         expect(overlay.style.top).toBe position.top - itemHeight + 'px'
 
-      describe "when editor position is not 0", ->
+      describe "when editor scroll position is not 0", ->
         it "flips horizontally when near the right edge", ->
           editor.setScrollLeft(2 * editor.getDefaultCharWidth())
           marker = editor.displayBuffer.markBufferRange([[0, 28], [0, 28]], invalidate: 'never')
