@@ -56,3 +56,37 @@ describe "TextEditorElement", ->
 
         document.body.focus()
         expect(blurCalled).toBe true
+
+  describe "when the themes finish loading", ->
+    [themeReloadCallback, initialThemeLoadComplete, element] = []
+
+    beforeEach ->
+      themeReloadCallback = null
+      initialThemeLoadComplete = false
+
+      spyOn(atom.themes, 'isInitialLoadComplete').andCallFake ->
+        initialThemeLoadComplete
+      spyOn(atom.themes, 'onDidReloadAll').andCallFake (fn) ->
+        themeReloadCallback = fn
+
+      atom.config.set("editor.useShadowDOM", false)
+
+      element = new TextEditorElement()
+      element.style.height = '200px'
+      element.getModel().setText [0..20].join("\n")
+
+    it "re-renders the scrollbar", ->
+      jasmineContent.appendChild(element)
+
+      atom.styles.addStyleSheet """
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+      """
+
+      initialThemeLoadComplete = true
+      themeReloadCallback()
+
+      verticalScrollbarNode = element.querySelector(".vertical-scrollbar")
+      scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
+      expect(scrollbarWidth).toEqual(8)

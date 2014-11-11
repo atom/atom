@@ -182,7 +182,7 @@ TextEditorComponent = React.createClass
     @subscribe stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
     @subscribe stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
     unless atom.themes.isInitialLoadComplete()
-      @subscribe atom.themes.onDidReloadAll @onStylesheetsChanged
+      @subscribe atom.themes.onDidReloadAll @onAllThemesLoaded
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
@@ -627,8 +627,14 @@ TextEditorComponent = React.createClass
   onStylesheetsChanged: (styleElement) ->
     return unless @performedInitialMeasurement
     return unless atom.themes.isInitialLoadComplete()
-
     @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
+    @handleStylingChange()
+
+  onAllThemesLoaded: ->
+    @refreshScrollbars()
+    @handleStylingChange()
+
+  handleStylingChange: ->
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
