@@ -98,12 +98,13 @@ describe "TextEditor", ->
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
 
   describe "config defaults", ->
-    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
+    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs`, and `core.fileEncoding` config values", ->
       editor1 = null
       editor2 = null
       atom.config.set('editor.tabLength', 4)
       atom.config.set('editor.softWrap', true)
       atom.config.set('editor.softTabs', false)
+      atom.config.set('core.fileEncoding', 'utf16le')
 
       waitsForPromise ->
         atom.workspace.open('a').then (o) -> editor1 = o
@@ -112,10 +113,12 @@ describe "TextEditor", ->
         expect(editor1.getTabLength()).toBe 4
         expect(editor1.isSoftWrapped()).toBe true
         expect(editor1.getSoftTabs()).toBe false
+        expect(editor1.getEncoding()).toBe 'utf16le'
 
         atom.config.set('editor.tabLength', 8)
         atom.config.set('editor.softWrap', false)
         atom.config.set('editor.softTabs', true)
+        atom.config.set('core.fileEncoding', 'macroman')
 
       waitsForPromise ->
         atom.workspace.open('b').then (o) -> editor2 = o
@@ -124,6 +127,7 @@ describe "TextEditor", ->
         expect(editor2.getTabLength()).toBe 8
         expect(editor2.isSoftWrapped()).toBe false
         expect(editor2.getSoftTabs()).toBe true
+        expect(editor2.getEncoding()).toBe 'macroman'
 
   describe "title", ->
     describe ".getTitle()", ->

@@ -35,6 +35,47 @@ module.exports =
       destroyEmptyPanes:
         type: 'boolean'
         default: true
+      fileEncoding:
+        description: 'Default character set encoding to use when reading and writing files.'
+        type: 'string'
+        default: 'utf8'
+        enum: [
+          'cp437',
+          'eucjp',
+          'euckr',
+          'gbk',
+          'iso88591',
+          'iso885910',
+          'iso885913',
+          'iso885914',
+          'iso885915',
+          'iso885916',
+          'iso88592',
+          'iso88593',
+          'iso88594',
+          'iso88595',
+          'iso88596',
+          'iso88597',
+          'iso88597',
+          'iso88598',
+          'koi8r',
+          'koi8u',
+          'macroman',
+          'shiftjis',
+          'utf16be',
+          'utf16le',
+          'utf8',
+          'windows1250',
+          'windows1251',
+          'windows1252',
+          'windows1253',
+          'windows1254',
+          'windows1255',
+          'windows1256',
+          'windows1257',
+          'windows1258',
+          'windows866'
+        ]
 
   editor:
     type: 'object'
