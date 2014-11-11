@@ -88,4 +88,4 @@ HighlightComponent = React.createClass
     regions
 
   shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels')
+    not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels', 'decoration')

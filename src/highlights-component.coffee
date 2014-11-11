@@ -17,7 +17,7 @@ HighlightsComponent = React.createClass
     highlightComponents = []
     for markerId, {startPixelPosition, endPixelPosition, decorations} of highlightDecorations
       for decoration in decorations
-        highlightComponents.push(HighlightComponent({editor, key: "#{markerId}-#{decoration.class}", startPixelPosition, endPixelPosition, decoration, lineHeightInPixels}))
+        highlightComponents.push(HighlightComponent({editor, key: "#{markerId}-#{decoration.id}", startPixelPosition, endPixelPosition, decoration, lineHeightInPixels}))
 
     highlightComponents
 
