@@ -67,11 +67,7 @@ class WorkspaceElement extends HTMLElement
   setModel: (@model) ->
     @paneContainer = atom.views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
-
     @addEventListener 'focus', @handleFocus.bind(this)
-    handleWindowFocus = @handleWindowFocus.bind(this)
-    window.addEventListener 'focus', handleWindowFocus
-    @subscriptions.add(new Disposable -> window.removeEventListener 'focus', handleWindowFocus)
 
     @panelContainers =
       top: @model.panelContainers.top.getView()
@@ -106,9 +102,6 @@ class WorkspaceElement extends HTMLElement
 
   handleFocus: (event) ->
     @model.getActivePane().activate()
-
-  handleWindowFocus: (event) ->
-    @handleFocus(event) if document.activeElement is document.body
 
   focusPaneViewAbove: -> @paneContainer.focusPaneViewAbove()
 
