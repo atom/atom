@@ -300,12 +300,24 @@ class ThemeManager
 
     try
       if importFallbackVariables
-        baseVarImports = """
-        @import "variables/ui-variables";
-        @import "variables/syntax-variables";
+        less = """
+          @import "variables/ui-variables";
+          @import "variables/syntax-variables";
+
+          #{fs.readFileSync(lessStylesheetPath, 'utf8')}
+
         """
-        less = fs.readFileSync(lessStylesheetPath, 'utf8')
-        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
+
+        if themeColor = atom.config.get('core.themeColor')
+          less += "@theme-color: #{themeColor};\n"
+
+        if themeContrast = atom.config.get('core.themeContrast')
+          less += "@theme-adjust-contrast: #{themeContrast};\n"
+
+        if themeSaturation = atom.config.get('core.themeSaturation')
+          less += "@theme-adjust-saturation: #{themeSaturation};\n"
+
+        @lessCache.cssForFile(lessStylesheetPath, less)
       else
         @lessCache.read(lessStylesheetPath)
     catch error
@@ -333,8 +345,7 @@ class ThemeManager
   activateThemes: ->
     deferred = Q.defer()
 
-    # atom.config.observe runs the callback once, then on subsequent changes.
-    atom.config.observe 'core.themes', =>
+    updateThemes = =>
       @deactivateThemes()
 
       @refreshLessCache() # Update cache for packages in core.themes config
@@ -355,6 +366,12 @@ class ThemeManager
         @emit 'reloaded'
         @emitter.emit 'did-change-active-themes'
         deferred.resolve()
+
+    # atom.config.observe runs the callback once, then on subsequent changes.
+    atom.config.observe('core.themes', updateThemes)
+    atom.config.onDidChange('core.themeColor', updateThemes)
+    atom.config.onDidChange('core.themeContrast', updateThemes)
+    atom.config.onDidChange('core.themeSaturation', updateThemes)
 
     deferred.promise
 
