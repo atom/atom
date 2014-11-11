@@ -1196,7 +1196,7 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.test-highlight')).toBeFalsy()
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
 
-  describe "overlay decoration rendering", ->
+  fdescribe "overlay decoration rendering", ->
     [item] = []
     beforeEach ->
       item = document.createElement('div')
@@ -1278,8 +1278,6 @@ describe "TextEditorComponent", ->
         wrapperNode.style.width = windowWidth + 'px'
         wrapperNode.style.height = windowHeight + 'px'
 
-        editor.setScrollTop(0)
-        editor.setScrollLeft(0)
         component.measureHeightAndWidth()
         nextAnimationFrame()
 
