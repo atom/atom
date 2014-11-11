@@ -2463,6 +2463,7 @@ class TextEditor extends Model
   copySelectedText: ->
     maintainClipboard = false
     for selection in @getSelections()
+      selection.selectLine() if selection.isEmpty()
       selection.copy(maintainClipboard)
       maintainClipboard = true
 
@@ -2470,6 +2471,7 @@ class TextEditor extends Model
   cutSelectedText: ->
     maintainClipboard = false
     @mutateSelectedText (selection) ->
+      selection.selectLine() if selection.isEmpty()
       selection.cut(maintainClipboard)
       maintainClipboard = true
 
