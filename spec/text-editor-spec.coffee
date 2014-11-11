@@ -2484,6 +2484,22 @@ describe "TextEditor", ->
 
           expect(clipboard.readText()).toBe 'quicksort\nsort'
 
+        describe "when no text is selected", ->
+          beforeEach ->
+            editor.setSelectedBufferRanges([[1, 0], [1, 0]])
+            editor.addCursorAtBufferPosition([5, 0])
+
+          it "cuts the lines on which there are cursors", ->
+            editor.cutSelectedText()
+
+            expect(buffer.getLineCount()).toBe(11)
+            expect(buffer.lineForRow(1)).toBe("    if (items.length <= 1) return items;")
+            expect(buffer.lineForRow(4)).toBe("      current < pivot ? left.push(current) : right.push(current);")
+            expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
+              "var quicksort = function () {\n"
+              "      current = items.shift();\n"
+            ])
+
       describe ".cutToEndOfLine()", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
@@ -2527,6 +2543,18 @@ describe "TextEditor", ->
             'sort'
             'items'
           ])
+
+        describe "when no text is selected", ->
+          beforeEach ->
+            editor.setSelectedBufferRanges([[1, 0], [1, 0]])
+            editor.addCursorAtBufferPosition([5, 0])
+
+          it "copies the lines on which there are cursors", ->
+            editor.copySelectedText()
+            expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
+              "var quicksort = function () {\n"
+              "      current = items.shift();\n"
+            ])
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->
