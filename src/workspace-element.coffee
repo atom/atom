@@ -23,6 +23,7 @@ class WorkspaceElement extends HTMLElement
     @focus()
 
   detachedCallback: ->
+    @subscriptions.dispose()
     @model.destroy()
 
   initializeGlobalTextEditorStyleSheet: ->
