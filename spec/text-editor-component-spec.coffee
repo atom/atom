@@ -1131,6 +1131,13 @@ describe "TextEditorComponent", ->
       regions = componentNode.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
 
+    it "renders classes on the regions directly if 'deprecatedRegionClass' option is defined", ->
+      decoration = editor.decorateMarker(marker, type: 'highlight', class: 'test-highlight', deprecatedRegionClass: 'test-highlight-region')
+      nextAnimationFrame()
+
+      regions = componentNode.querySelectorAll('.test-highlight .region.test-highlight-region')
+      expect(regions.length).toBe 2
+
     describe "when flashing a decoration via Decoration::flash()", ->
       highlightNode = null
       beforeEach ->
