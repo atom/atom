@@ -1197,9 +1197,8 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
 
   describe "overlay decoration rendering", ->
-    [item, scrollViewClientLeft] = []
+    [item] = []
     beforeEach ->
-      scrollViewClientLeft = componentNode.querySelector('.scroll-view').getBoundingClientRect().left
       item = document.createElement('div')
       item.classList.add 'overlay-test'
 
