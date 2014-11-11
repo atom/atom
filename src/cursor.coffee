@@ -420,7 +420,7 @@ class Cursor extends Model
   Section: Local Positions and Ranges
   ###
 
-  # Public: Retrieves buffer position of previous word boundary. It might be on
+  # Public: Returns buffer position of previous word boundary. It might be on
   # the current word, or the previous word.
   #
   # * `options` (optional) {Object} with the following keys:
@@ -446,7 +446,7 @@ class Cursor extends Model
 
     beginningOfWordPosition or currentBufferPosition
 
-  # Public: Retrieves buffer position of the next word boundary. It might be on
+  # Public: Returns buffer position of the next word boundary. It might be on
   # the current word, or the previous word.
   #
   # * `options` (optional) {Object} with the following keys:
