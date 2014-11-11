@@ -67,6 +67,7 @@ module.exports =
           'utf8',
           'windows1250',
           'windows1251',
+          'windows1252',
           'windows1253',
           'windows1254',
           'windows1255',
