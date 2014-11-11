@@ -50,7 +50,7 @@ TextEditorComponent = React.createClass
 
   render: ->
     {focused, showIndentGuide, showLineNumbers, visible} = @state
-    {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
@@ -66,6 +66,7 @@ TextEditorComponent = React.createClass
 
       decorations = editor.decorationsForScreenRowRange(renderedStartRow, renderedEndRow)
       highlightDecorations = @getHighlightDecorations(decorations)
+      overlayDecorations = @getOverlayDecorations(decorations)
       lineDecorations = @getLineDecorations(decorations)
       placeholderText = editor.getPlaceholderText() if editor.isEmpty()
       visible = @isVisible()
@@ -110,7 +111,8 @@ TextEditorComponent = React.createClass
 
         LinesComponent {
           ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, tokenizedLines, lineDecorations, highlightDecorations,
+          editor, lineHeightInPixels, defaultCharWidth, tokenizedLines,
+          lineDecorations, highlightDecorations, overlayDecorations, hostElement,
           showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
@@ -351,7 +353,24 @@ TextEditorComponent = React.createClass
               endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
               decorations: []
             filteredDecorations[markerId].decorations.push decorationParams
+    filteredDecorations
 
+  getOverlayDecorations: (decorationsByMarkerId) ->
+    {editor} = @props
+    filteredDecorations = {}
+    for markerId, decorations of decorationsByMarkerId
+      marker = editor.getMarker(markerId)
+      screenRange = marker.getScreenRange()
+      if marker.isValid()
+        for decoration in decorations
+          if decoration.isType('overlay')
+            decorationParams = decoration.getProperties()
+            filteredDecorations[markerId] ?=
+              id: markerId
+              startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
+              endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
+              decorations: []
+            filteredDecorations[markerId].decorations.push decorationParams
     filteredDecorations
 
   observeEditor: ->
