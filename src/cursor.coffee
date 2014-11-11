@@ -17,7 +17,7 @@ class Cursor extends Model
   visible: true
   needsAutoscroll: null
 
-  # Instantiated by an {TextEditor}
+  # Instantiated by a {TextEditor}
   constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
 
