@@ -13,7 +13,7 @@ class OverlayManager
           startPixelPosition
         else
           endPixelPosition
-        @renderOverlay(hostElement, decoration, pixelPosition, lineHeightInPixels)
+        @renderOverlay(editor, hostElement, decoration, pixelPosition, lineHeightInPixels)
 
         existingDecorations ?= {}
         existingDecorations[decoration.id] = true
@@ -25,11 +25,21 @@ class OverlayManager
 
     return
 
-  renderOverlay: (hostElement, decoration, pixelPosition, lineHeightInPixels) ->
+  renderOverlay: (editor, hostElement, decoration, pixelPosition, lineHeightInPixels) ->
+    item = atom.views.getView(decoration.item)
     unless overlay = @overlays[decoration.id]
       overlay = @overlays[decoration.id] = document.createElement('atom-overlay')
-      overlay.appendChild(atom.views.getView(decoration.item))
+      overlay.appendChild(item)
       hostElement.appendChild(overlay)
 
-    overlay.style.top = pixelPosition.top + lineHeightInPixels + 'px'
-    overlay.style.left = pixelPosition.left + 'px'
+    itemWidth = item.offsetWidth
+    itemHeight = item.offsetHeight
+
+    left = pixelPosition.left
+    left -= itemWidth if left + itemWidth - editor.getScrollLeft() > editor.getWidth()
+
+    top = pixelPosition.top + lineHeightInPixels
+    top -= itemHeight + lineHeightInPixels if top + itemHeight - editor.getScrollTop() > editor.getHeight()
+
+    overlay.style.top = top + 'px'
+    overlay.style.left = left + 'px'
