@@ -1,4 +1,4 @@
-module.exports = 
+module.exports =
 class OverlayManager
   constructor: ->
     @overlays = {}
