@@ -1196,6 +1196,28 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.test-highlight')).toBeFalsy()
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
 
+  describe "overlay decoration rendering", ->
+    [marker, decoration, decorationParams, scrollViewClientLeft] = []
+    beforeEach ->
+      scrollViewClientLeft = componentNode.querySelector('.scroll-view').getBoundingClientRect().left
+
+    it "renders an overlay decoration when added and removes the overlay when the decoration is destroyed", ->
+      item = document.createElement('div')
+      item.classList.add 'my-overlay'
+
+      marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
+      decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+      nextAnimationFrame()
+
+      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .my-overlay')
+      expect(overlay).toBe item
+
+      decoration.destroy()
+      nextAnimationFrame()
+
+      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .my-overlay')
+      expect(overlay).toBe null
+
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
       editor.setVerticalScrollMargin(0)
