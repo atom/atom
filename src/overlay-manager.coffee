@@ -7,9 +7,13 @@ class OverlayManager
     {hostElement, editor, overlayDecorations, lineHeightInPixels} = props
 
     existingDecorations = null
-    for markerId, {startPixelPosition, endPixelPosition, decorations} of overlayDecorations
+    for markerId, {isMarkerReversed, startPixelPosition, endPixelPosition, decorations} of overlayDecorations
       for decoration in decorations
-        @renderOverlay(hostElement, decoration, endPixelPosition, lineHeightInPixels)
+        pixelPosition = if isMarkerReversed
+          startPixelPosition
+        else
+          endPixelPosition
+        @renderOverlay(hostElement, decoration, pixelPosition, lineHeightInPixels)
 
         existingDecorations ?= {}
         existingDecorations[decoration.id] = true

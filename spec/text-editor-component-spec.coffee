@@ -1203,41 +1203,65 @@ describe "TextEditorComponent", ->
       item = document.createElement('div')
       item.classList.add 'overlay-test'
 
-    it "renders an overlay decoration when added and removes the overlay when the decoration is destroyed", ->
-      marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
-      decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-      nextAnimationFrame()
+    describe "when the marker is empty", ->
+      it "renders an overlay decoration when added and removes the overlay when the decoration is destroyed", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
 
-      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
-      expect(overlay).toBe item
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
+        expect(overlay).toBe item
 
-      decoration.destroy()
-      nextAnimationFrame()
+        decoration.destroy()
+        nextAnimationFrame()
 
-      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
-      expect(overlay).toBe null
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
+        expect(overlay).toBe null
 
-    it "renders in the correct position on initial display and when the marker moves", ->
-      editor.setCursorBufferPosition([2, 5])
+      it "renders in the correct position on initial display and when the marker moves", ->
+        editor.setCursorBufferPosition([2, 5])
 
-      marker = editor.getLastCursor().getMarker()
-      decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-      nextAnimationFrame()
+        marker = editor.getLastCursor().getMarker()
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
 
-      position = editor.pixelPositionForBufferPosition([2, 5])
+        position = editor.pixelPositionForBufferPosition([2, 5])
 
-      overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-      expect(overlay.style.left).toBe position.left + 'px'
-      expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-      editor.moveRight()
-      editor.moveRight()
-      nextAnimationFrame()
+        editor.moveRight()
+        editor.moveRight()
+        nextAnimationFrame()
 
-      position = editor.pixelPositionForBufferPosition([2, 7])
+        position = editor.pixelPositionForBufferPosition([2, 7])
 
-      expect(overlay.style.left).toBe position.left + 'px'
-      expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+    describe "when the marker is not empty", ->
+      it "renders in the correct position", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([2, 10])
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+      it "renders in the correct position when the marker is reversed", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never', reversed: true)
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([2, 5])
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->

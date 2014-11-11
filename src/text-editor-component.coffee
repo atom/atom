@@ -367,6 +367,7 @@ TextEditorComponent = React.createClass
             decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
+              isMarkerReversed: marker.isReversed()
               startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
               endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
               decorations: []
