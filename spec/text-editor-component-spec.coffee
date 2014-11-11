@@ -1196,7 +1196,7 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.test-highlight')).toBeFalsy()
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
 
-  fdescribe "overlay decoration rendering", ->
+  describe "overlay decoration rendering", ->
     [item] = []
     beforeEach ->
       item = document.createElement('div')
