@@ -9,7 +9,7 @@ class OverlayManager
     existingDecorations = null
     for markerId, {startPixelPosition, endPixelPosition, decorations} of overlayDecorations
       for decoration in decorations
-        @renderOverlay(hostElement, decoration, endPixelPosition)
+        @renderOverlay(hostElement, decoration, endPixelPosition, lineHeightInPixels)
 
         existingDecorations ?= {}
         existingDecorations[decoration.id] = true
@@ -21,11 +21,11 @@ class OverlayManager
 
     return
 
-  renderOverlay: (hostElement, decoration, endPixelPosition) ->
+  renderOverlay: (hostElement, decoration, pixelPosition, lineHeightInPixels) ->
     unless overlay = @overlays[decoration.id]
       overlay = @overlays[decoration.id] = document.createElement('atom-overlay')
       overlay.appendChild(atom.views.getView(decoration.item))
       hostElement.appendChild(overlay)
 
-    overlay.style.top = endPixelPosition.top + 'px'
-    overlay.style.left = endPixelPosition.left + 'px'
+    overlay.style.top = pixelPosition.top + lineHeightInPixels + 'px'
+    overlay.style.left = pixelPosition.left + 'px'

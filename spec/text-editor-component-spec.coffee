@@ -1197,26 +1197,47 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
 
   describe "overlay decoration rendering", ->
-    [marker, decoration, decorationParams, scrollViewClientLeft] = []
+    [item, scrollViewClientLeft] = []
     beforeEach ->
       scrollViewClientLeft = componentNode.querySelector('.scroll-view').getBoundingClientRect().left
+      item = document.createElement('div')
+      item.classList.add 'overlay-test'
 
     it "renders an overlay decoration when added and removes the overlay when the decoration is destroyed", ->
-      item = document.createElement('div')
-      item.classList.add 'my-overlay'
-
       marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
       decoration = editor.decorateMarker(marker, {type: 'overlay', item})
       nextAnimationFrame()
 
-      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .my-overlay')
+      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
       expect(overlay).toBe item
 
       decoration.destroy()
       nextAnimationFrame()
 
-      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .my-overlay')
+      overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
       expect(overlay).toBe null
+
+    it "renders in the correct position on initial display and when the marker moves", ->
+      editor.setCursorBufferPosition([2, 5])
+
+      marker = editor.getLastCursor().getMarker()
+      decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+      nextAnimationFrame()
+
+      position = editor.pixelPositionForBufferPosition([2, 5])
+
+      overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+      expect(overlay.style.left).toBe position.left + 'px'
+      expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+      editor.moveRight()
+      editor.moveRight()
+      nextAnimationFrame()
+
+      position = editor.pixelPositionForBufferPosition([2, 7])
+
+      expect(overlay.style.left).toBe position.left + 'px'
+      expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
