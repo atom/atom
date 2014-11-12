@@ -360,16 +360,14 @@ TextEditorComponent = React.createClass
     filteredDecorations = {}
     for markerId, decorations of decorationsByMarkerId
       marker = editor.getMarker(markerId)
-      screenRange = marker.getScreenRange()
+      headBufferPosition = marker.getHeadBufferPosition()
       if marker.isValid()
         for decoration in decorations
           if decoration.isType('overlay')
             decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
-              isMarkerReversed: marker.isReversed()
-              startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
-              endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
+              headPixelPosition: editor.pixelPositionForScreenPosition(headBufferPosition)
               decorations: []
             filteredDecorations[markerId].decorations.push decorationParams
     filteredDecorations
