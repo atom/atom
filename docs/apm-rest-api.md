@@ -67,7 +67,7 @@ Parameters:
 
 - **q** (required) - Search query
 - **page** (optional)
-- **sort** (optional) - One of `downloads`, `created_at`, `updated_at`, `stars`. Defaults to relevance to search query.
+- **sort** (optional) - One of `downloads`, `created_at`, `updated_at`, `stars`. Defaults to the relevance of the search query.
 - **direction** (optional) - `asc` or `desc`. Defaults to `desc`.
 
 Returns results in the same format as [listing packages](#listing-packages).
