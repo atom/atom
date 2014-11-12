@@ -28,6 +28,8 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
     if atom.config.get('editor.useShadowDOM')
+      @useShadowDOM = true
+
       unless ShadowStyleSheet?
         ShadowStyleSheet = document.createElement('style')
         ShadowStyleSheet.textContent = atom.themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
@@ -45,6 +47,8 @@ class TextEditorElement extends HTMLElement
       @shadowRoot.appendChild(@stylesElement)
       @shadowRoot.appendChild(@rootElement)
     else
+      @useShadowDOM = false
+
       @stylesElement = document.head.querySelector('atom-styles')
       @rootElement = this
 
@@ -95,10 +99,11 @@ class TextEditorElement extends HTMLElement
       editor: @model
       mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin
+      useShadowDOM: @useShadowDOM
     )
     @component = React.renderComponent(@componentDescriptor, @rootElement)
 
-    unless atom.config.get('editor.useShadowDOM')
+    unless @useShadowDOM
       inputNode = @component.refs.input.getDOMNode()
       inputNode.addEventListener 'focus', @focused.bind(this)
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
@@ -116,7 +121,7 @@ class TextEditorElement extends HTMLElement
       @focusOnAttach = true
 
   blurred: (event) ->
-    unless atom.config.get('editor.useShadowDOM')
+    unless @useShadowDOM
       if event.relatedTarget is @component?.refs.input?.getDOMNode()
         event.stopImmediatePropagation()
         return

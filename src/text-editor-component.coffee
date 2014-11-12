@@ -50,7 +50,7 @@ TextEditorComponent = React.createClass
 
   render: ->
     {focused, showIndentGuide, showLineNumbers, visible} = @state
-    {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement} = @props
+    {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
@@ -117,7 +117,7 @@ TextEditorComponent = React.createClass
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
-          cursorBlinkPeriod, cursorBlinkResumeDelay, mini
+          cursorBlinkPeriod, cursorBlinkResumeDelay, mini, useShadowDOM
         }
 
         ScrollbarComponent

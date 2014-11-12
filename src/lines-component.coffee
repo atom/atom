@@ -59,7 +59,7 @@ LinesComponent = React.createClass
     @renderedDecorationsByLineId = {}
 
   componentDidMount: ->
-    if atom.config.get('editor.useShadowDOM')
+    if @props.useShadowDOM
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
       @getDOMNode().appendChild(insertionPoint)
