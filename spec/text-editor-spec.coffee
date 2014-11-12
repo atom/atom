@@ -2550,14 +2550,20 @@ describe "TextEditor", ->
 
         describe "when no text is selected", ->
           beforeEach ->
-            editor.setSelectedBufferRanges([[1, 0], [1, 0]])
-            editor.addCursorAtBufferPosition([5, 0])
+            editor.setSelectedBufferRanges([
+              [[1, 5], [1, 5]],
+              [[5, 8], [5, 8]]
+            ])
 
           it "copies the lines on which there are cursors", ->
             editor.copySelectedText()
             expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
-              "var quicksort = function () {\n"
+              "  var sort = function(items) {\n"
               "      current = items.shift();\n"
+            ])
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[1, 5], [1, 5]],
+              [[5, 8], [5, 8]]
             ])
 
       describe ".pasteText()", ->
