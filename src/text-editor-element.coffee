@@ -70,6 +70,7 @@ class TextEditorElement extends HTMLElement
     @model = model
     @mountComponent()
     @addGrammarScopeAttribute()
+    @addMiniAttributeIfNeeded()
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @addEncodingAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
@@ -130,6 +131,9 @@ class TextEditorElement extends HTMLElement
   addGrammarScopeAttribute: ->
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
     @dataset.grammar = grammarScope
+
+  addMiniAttributeIfNeeded: ->
+    @setAttributeNode(document.createAttribute("mini")) if @model.isMini()
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()
