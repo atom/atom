@@ -2467,8 +2467,13 @@ class TextEditor extends Model
   copySelectedText: ->
     maintainClipboard = false
     for selection in @getSelections()
-      selection.selectLine() if selection.isEmpty()
-      selection.copy(maintainClipboard)
+      if selection.isEmpty()
+        previousRange = selection.getBufferRange()
+        selection.selectLine()
+        selection.copy(maintainClipboard)
+        selection.setBufferRange(previousRange)
+      else
+        selection.copy(maintainClipboard)
       maintainClipboard = true
 
   # Essential: For each selection, cut the selected text.
