@@ -214,7 +214,7 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:lower-case': -> @lowerCase()
 )
 
-atom.commands.add 'atom-text-editor:not(.mini)', stopEventPropagationAndGroupUndo(
+atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(
   'core:move-up': -> @moveUp()
   'core:move-down': -> @moveDown()
   'core:move-to-top': -> @moveToTop()

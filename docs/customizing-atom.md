@@ -63,7 +63,7 @@ built-in keymaps:
 'atom-text-editor':
   'enter': 'editor:newline'
 
-'atom-text-editor.mini input':
+'atom-text-editor[mini] input':
   'enter': 'core:confirm'
 ```
 
