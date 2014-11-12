@@ -1319,6 +1319,57 @@ describe "TextEditorComponent", ->
         expect(overlay.style.left).toBe position.left + 'px'
         expect(overlay.style.top).toBe position.top - itemHeight + 'px'
 
+      describe "when the editor is very small", ->
+        beforeEach ->
+          gutterWidth = componentNode.querySelector('.gutter').offsetWidth
+          windowWidth = gutterWidth + 6 * editor.getDefaultCharWidth()
+          windowHeight = 6 * editor.getLineHeightInPixels()
+
+          wrapperNode.style.width = windowWidth + 'px'
+          wrapperNode.style.height = windowHeight + 'px'
+
+          component.measureHeightAndWidth()
+          nextAnimationFrame()
+
+        it "does not flip horizontally and force the overlay to have a negative left", ->
+          marker = editor.displayBuffer.markBufferRange([[0, 2], [0, 2]], invalidate: 'never')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([0, 2])
+
+          overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          editor.insertText('a')
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([0, 3])
+
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+        it "does not flip vertically and force the overlay to have a negative top", ->
+          marker = editor.displayBuffer.markBufferRange([[1, 0], [1, 0]], invalidate: 'never')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([1, 0])
+
+          overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          editor.insertNewline()
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([2, 0])
+
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+
       describe "when editor scroll position is not 0", ->
         it "flips horizontally when near the right edge", ->
           editor.setScrollLeft(2 * editor.getDefaultCharWidth())

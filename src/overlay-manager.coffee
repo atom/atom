@@ -36,10 +36,12 @@ class OverlayManager
     itemHeight = item.offsetHeight
 
     left = pixelPosition.left
-    left -= itemWidth if left + itemWidth - editor.getScrollLeft() > editor.getWidth()
+    if left + itemWidth - editor.getScrollLeft() > editor.getWidth() and left - itemWidth >= editor.getScrollLeft()
+      left -= itemWidth
 
     top = pixelPosition.top + lineHeightInPixels
-    top -= itemHeight + lineHeightInPixels if top + itemHeight - editor.getScrollTop() > editor.getHeight()
+    if top + itemHeight - editor.getScrollTop() > editor.getHeight() and top - itemHeight - lineHeightInPixels >= editor.getScrollTop()
+      top -= itemHeight + lineHeightInPixels
 
     overlay.style.top = top + 'px'
     overlay.style.left = left + 'px'
