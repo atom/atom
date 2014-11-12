@@ -1,10 +1,10 @@
 module.exports =
 class OverlayManager
-  constructor: ->
+  constructor: (@container)->
     @overlays = {}
 
   render: (props) ->
-    {hostElement, editor, overlayDecorations, lineHeightInPixels} = props
+    {editor, overlayDecorations, lineHeightInPixels} = props
 
     existingDecorations = null
     for markerId, {isMarkerReversed, startPixelPosition, endPixelPosition, decorations} of overlayDecorations
@@ -13,24 +13,24 @@ class OverlayManager
           startPixelPosition
         else
           endPixelPosition
-        @renderOverlay(editor, hostElement, decoration, pixelPosition, lineHeightInPixels)
+        @renderOverlay(editor, decoration, pixelPosition, lineHeightInPixels)
 
         existingDecorations ?= {}
         existingDecorations[decoration.id] = true
 
     for id, overlay of @overlays
       unless existingDecorations? and id of existingDecorations
-        hostElement.removeChild(overlay)
+        @container.removeChild(overlay)
         delete @overlays[id]
 
     return
 
-  renderOverlay: (editor, hostElement, decoration, pixelPosition, lineHeightInPixels) ->
+  renderOverlay: (editor, decoration, pixelPosition, lineHeightInPixels) ->
     item = atom.views.getView(decoration.item)
     unless overlay = @overlays[decoration.id]
       overlay = @overlays[decoration.id] = document.createElement('atom-overlay')
       overlay.appendChild(item)
-      hostElement.appendChild(overlay)
+      @container.appendChild(overlay)
 
     itemWidth = item.offsetWidth
     itemHeight = item.offsetHeight
