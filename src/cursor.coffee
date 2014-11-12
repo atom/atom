@@ -17,7 +17,7 @@ class Cursor extends Model
   visible: true
   needsAutoscroll: null
 
-  # Instantiated by an {TextEditor}
+  # Instantiated by a {TextEditor}
   constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
 
@@ -170,6 +170,10 @@ class Cursor extends Model
   ###
   Section: Cursor Position Details
   ###
+
+  # Public: Returns the underlying {Marker} for the cursor.
+  # Useful with overlay {Decoration}s.
+  getMarker: -> @marker
 
   # Public: Identifies if the cursor is surrounded by whitespace.
   #

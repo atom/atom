@@ -12,6 +12,12 @@ atom-text-editor.mini {
   max-height: @component-line-height + 2; // +2 for borders
 }
 
+atom-overlay {
+  position: absolute;
+  display: block;
+  z-index: 4;
+}
+
 // TODO: remove this when the shadow DOM is the default
 atom-text-editor .highlight {
   background: none;

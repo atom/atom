@@ -7,6 +7,7 @@ React = require 'react-atom-fork'
 Decoration = require './decoration'
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
+OverlayManager = require './overlay-manager'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -20,7 +21,7 @@ LinesComponent = React.createClass
     {performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
 
     if performedInitialMeasurement
-      {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
+      {editor, overlayDecorations, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       {scrollTop, scrollLeft, cursorPixelRects, mini} = @props
       style =
@@ -63,10 +64,17 @@ LinesComponent = React.createClass
       insertionPoint.setAttribute('select', '.overlayer')
       @getDOMNode().appendChild(insertionPoint)
 
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', 'atom-overlay')
+      @overlayManager = new OverlayManager(@props.hostElement)
+      @getDOMNode().appendChild(insertionPoint)
+    else
+      @overlayManager = new OverlayManager(@getDOMNode())
+
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
-      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'visible',
+      'overlayDecorations', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
       'placeholderText', 'performedInitialMeasurement', 'backgroundColor', 'cursorPixelRects'
     )
@@ -91,6 +99,8 @@ LinesComponent = React.createClass
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide')
     @updateLines(@props.lineWidth isnt prevProps.lineWidth)
     @measureCharactersInNewLines() if visible and not scrollingVertically
+
+    @overlayManager?.render(@props)
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
