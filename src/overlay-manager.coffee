@@ -1,6 +1,6 @@
 module.exports =
 class OverlayManager
-  constructor: (@container)->
+  constructor: (@container) ->
     @overlays = {}
 
   render: (props) ->
