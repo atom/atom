@@ -111,8 +111,8 @@
 
   # Apple Specific
   'cmd-backspace': 'editor:delete-to-beginning-of-line'
-  'cmd-shift-backspace': 'editor:delete-to-beginning-of-line'
-  'cmd-delete': 'editor:delete-to-beginning-of-line'
+  'cmd-shift-backspace': 'editor:delete-to-end-of-line'
+  'cmd-delete': 'editor:delete-to-end-of-line'
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-E': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
