@@ -1,10 +1,13 @@
 {View, $, callRemoveHooks} = require 'space-pen'
 React = require 'react-atom-fork'
+Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 TextEditorView = null
+
+ShadowStyleSheet = null
 
 class TextEditorElement extends HTMLElement
   model: null
@@ -25,8 +28,13 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
     if atom.config.get('editor.useShadowDOM')
+      unless ShadowStyleSheet?
+        ShadowStyleSheet = document.createElement('style')
+        ShadowStyleSheet.textContent = atom.themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
+
       @createShadowRoot()
 
+      @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
       @stylesElement = document.createElement('atom-styles')
       @stylesElement.setAttribute('context', 'atom-text-editor')
       @stylesElement.initialize()
@@ -41,7 +49,6 @@ class TextEditorElement extends HTMLElement
       @rootElement = this
 
     @rootElement.classList.add('editor', 'editor-colors')
-
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
