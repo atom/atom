@@ -42,17 +42,16 @@ class TextEditorElement extends HTMLElement
       @stylesElement.initialize()
 
       @rootElement = document.createElement('div')
-      @rootElement.classList.add('shadow')
+      @rootElement.classList.add('editor--private')
 
       @shadowRoot.appendChild(@stylesElement)
       @shadowRoot.appendChild(@rootElement)
     else
       @useShadowDOM = false
 
+      @classList.add('editor', 'editor-colors')
       @stylesElement = document.head.querySelector('atom-styles')
       @rootElement = this
-
-    @rootElement.classList.add('editor', 'editor-colors')
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
