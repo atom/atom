@@ -2243,6 +2243,10 @@ class TextEditor extends Model
   # Returns a {Boolean} or undefined if no non-comment lines had leading
   # whitespace.
   usesSoftTabs: ->
+    # FIXME Remove once this can be specified as a scoped setting in the
+    # language-make package
+    return false if @getGrammar().scopeName is 'source.makefile'
+
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 

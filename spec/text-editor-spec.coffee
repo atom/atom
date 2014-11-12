@@ -3470,6 +3470,19 @@ describe "TextEditor", ->
       runs ->
         expect(editor.softTabs).toBe false
 
+    it "uses hard tabs in Makefile files", ->
+      # FIXME remove once this is handled by a scoped setting in the
+      # language-make package
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-make')
+
+      waitsForPromise ->
+        atom.project.open('Makefile').then (o) -> editor = o
+
+      runs ->
+        expect(editor.softTabs).toBe false
+
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
