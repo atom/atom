@@ -1240,7 +1240,7 @@ describe "TextEditorComponent", ->
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
     describe "when the marker is not empty", ->
-      it "renders in the correct position", ->
+      it "renders at the head of the marker", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
@@ -1251,7 +1251,7 @@ describe "TextEditorComponent", ->
         expect(overlay.style.left).toBe position.left + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-      it "renders in the correct position when the marker is reversed", ->
+      it "renders at the head of the marker when the marker is reversed", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never', reversed: true)
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
