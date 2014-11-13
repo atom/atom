@@ -220,6 +220,11 @@ module.exports = (grunt) ->
       downloadDir: atomShellDownloadDir
       rebuild: true  # rebuild native modules after atom-shell is updated
 
+    'create-windows-installer':
+      appDirectory: appDir
+      outputDirectory: path.join(buildDir, 'installer')
+      iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/atom.png'
+
     shell:
       'kill-atom':
         command: killCommand
