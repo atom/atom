@@ -14,8 +14,6 @@ removeShortcut = ->
     app.quit()
 
 module.exports = ->
-  return false if process.argv.length isnt 2
-
   switch process.argv[1]
     when '--squirrel-install', '--squirrel-updated'
       createShortcut()
