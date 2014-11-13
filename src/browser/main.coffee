@@ -14,6 +14,10 @@ process.on 'uncaughtException', (error={}) ->
   nslog(error.stack) if error.stack?
 
 start = ->
+  if process.platform is 'win32'
+    handleSquirrelEvents = require './squirrel-events'
+    return if handleSquirrelEvents()
+
   args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
@@ -32,10 +36,6 @@ start = ->
     setupCrashReporter()
 
   app.on 'ready', ->
-    if process.platform is 'win32'
-      handleSquirrelEvents = require './squirrel-events'
-      return if handleSquirrelEvents(args)
-
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 

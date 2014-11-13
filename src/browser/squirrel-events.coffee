@@ -13,15 +13,18 @@ removeShortcut = ->
   ChildProcess.execFile updateDotExe, ['--removeShortcut', exeName], ->
     app.quit()
 
-module.exports = (args) ->
-  if args['squirrel-install'] or args['squirrel-updated']
-    createShortcut()
-    true
-  else if args['squirrel-uninstall']
-    removeShortcut()
-    true
-  else if args['squirrel-obsolete']
-    app.quit()
-    true
-  else
-    false
+module.exports = ->
+  return false if process.argv.length isnt 2
+
+  switch process.argv[1]
+    when 'squirrel-install', 'squirrel-updated'
+      createShortcut()
+      true
+    when 'squirrel-uninstall'
+      removeShortcut()
+      true
+    when 'squirrel-obsolete'
+      app.quit()
+      true
+    else
+      false
