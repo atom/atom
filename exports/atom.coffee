@@ -16,10 +16,24 @@ module.exports =
 # only be exported when not running as a child node process
 unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Task = require '../src/task'
-  module.exports.WorkspaceView = require '../src/workspace-view'
-  module.exports.Workspace = require '../src/workspace'
-
   {$, $$, $$$, View} = require '../src/space-pen-extensions'
+
+  Object.defineProperty module.exports, 'Workspace', get: ->
+    deprecate """
+      Requiring `Workspace` from `atom` is no longer supported.
+      If you need this, please open an issue on
+      https://github.com/atom/atom/issues/new
+      And let us know what you are using it for.
+    """
+    require '../src/workspace'
+
+  Object.defineProperty module.exports, 'WorkspaceView', get: ->
+    deprecate """
+      Requiring `WorkspaceView` from `atom` is no longer supported.
+      Use `atom.view.getView(atom.workspace)` instead.
+    """
+    require '../src/workspace-view'
+
   Object.defineProperty module.exports, '$', get: ->
     deprecate """
       Requiring `$` from `atom` is no longer supported.
