@@ -1,10 +1,10 @@
-_ = require 'underscore-plus'
-path = require 'path'
-fs = require 'fs'
-shellAutoUpdater = require 'auto-updater'
-
-{EventEmitter} = require 'events'
 ChildProcess = require 'child_process'
+{EventEmitter} = require 'events'
+fs = require 'fs'
+path = require 'path'
+
+_ = require 'underscore-plus'
+shellAutoUpdater = require 'auto-updater'
 
 module.exports =
 class AutoUpdater
