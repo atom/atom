@@ -10,8 +10,7 @@ module.exports =
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
-  setFeedUrl: (url) ->
-    @updateUrl = url
+  setFeedUrl: (@updateUrl) ->
 
   quitAndInstall: ->
     updateDotExe = @getUpdateExePath()
