@@ -78,6 +78,8 @@ class AutoUpdater
           @emit 'update-not-available'
           return
 
+        console.log "Updated to #{update.version}"
+
         @emit 'update-available'
         @emit 'update-downloaded', {}, update.releaseNotes, update.version, new Date(), 'https://atom.io', => @quitAndInstall()
 
