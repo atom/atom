@@ -15,8 +15,8 @@ process.on 'uncaughtException', (error={}) ->
 
 start = ->
   if process.platform is 'win32'
-    handleSquirrelEvents = require './squirrel-events'
-    return if handleSquirrelEvents()
+    SquirrelUpdate = require './squirrel-update'
+    return if SquirrelUpdate.handleStartupEvent()
 
   args = parseCommandLine()
 
