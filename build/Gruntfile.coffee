@@ -25,6 +25,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-markdown')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadNpmTasks('grunt-download-atom-shell')
+  grunt.loadNpmTasks('grunt-atom-shell-installer')
   grunt.loadNpmTasks('grunt-peg')
   grunt.loadTasks('tasks')
 
@@ -219,6 +220,12 @@ module.exports = (grunt) ->
       outputDir: 'atom-shell'
       downloadDir: atomShellDownloadDir
       rebuild: true  # rebuild native modules after atom-shell is updated
+
+    'create-windows-installer':
+      appDirectory: shellAppDir
+      outputDirectory: path.join(buildDir, 'installer')
+      authors: 'The Atom Team & Community'
+      iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/atom.png'
 
     shell:
       'kill-atom':
