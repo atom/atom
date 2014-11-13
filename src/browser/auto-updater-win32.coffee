@@ -14,7 +14,7 @@ class AutoUpdater
     @updateUrl = url
 
   quitAndInstall: ->
-    updateDotExe = path.join(path.dirname(process.execPath), '..', 'update.exe')
+    updateDotExe = @getUpdateExePath()
 
     unless fs.existsSync(updateDotExe)
       console.log 'Running developer or Chocolatey version of Atom, skipping'
@@ -28,12 +28,15 @@ class AutoUpdater
       ChildProcess.execFile updateDotExe, args, ->
         shellAutoUpdater.quitAndInstall()
 
+  getUpdateExePath: ->
+    path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
+
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
 
     emit 'checking-for-update'
 
-    updateDotExe = path.join(path.dirname(process.execPath), '..', 'update.exe')
+    updateDotExe = @getUpdateExePath()
 
     unless fs.existsSync(updateDotExe)
       console.log 'Running developer or Chocolatey version of Atom, skipping'
