@@ -61,12 +61,7 @@ class AutoUpdater
 
       if latestRelease?
         emit 'update-available'
-        emit 'update-downloaded',
-          releaseNotes: latestRelease.releaseNotes
-          releaseName: "Atom #{latestRelease.version}"
-          releaseDate: new Date()
-          updateUrl: 'https://atom.io'
-          quitAndUpdate: => @quitAndInstall()
+        emit 'update-downloaded', {}, latestRelease.releaseNotes, latestRelease.version, new Date(), 'https://atom.io', => @quitAndInstall()
       else
         console.log "You're on the latest version!"
         emit 'update-not-available'
