@@ -14,8 +14,8 @@ class AutoUpdater
     @updateUrl = url
 
   quitAndInstall: ->
-    updateDotExe = path.join(path.dirName(process.execPath), '..', 'update.exe')
-    
+    updateDotExe = path.join(path.dirname(process.execPath), '..', 'update.exe')
+
     unless fs.existsSync(updateDotExe)
       console.log 'Running developer or Chocolatey version of Atom, skipping'
       return
@@ -41,7 +41,7 @@ class AutoUpdater
 
     emit 'checking-for-update'
 
-    updateDotExe = path.join(path.dirName(process.execPath), '..', 'update.exe')
+    updateDotExe = path.join(path.dirname(process.execPath), '..', 'update.exe')
     unless fs.existsSync(updateDotExe)
       console.log 'Running developer or Chocolatey version of Atom, skipping'
       emit 'update-not-available'
