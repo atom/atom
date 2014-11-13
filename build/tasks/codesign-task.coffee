@@ -36,7 +36,7 @@ module.exports = (grunt) ->
           spawn {cmd, args}, (error) ->
             return callback(error) if error?
 
-            setupExePath = path.join(grunt.config.get('atom.shellAppDir'), '..', 'Releases', 'setup.exe')
+            setupExePath = path.join(grunt.config.get('atom.shellAppDir'), '..', 'installer', 'AtomSetup.exe')
             if fs.isFileSync(setupExePath)
               args = [setupExePath]
               spawn {cmd, args}, (error) -> callback(error)
