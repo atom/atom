@@ -56,7 +56,7 @@ class AutoUpdater
       stdout: (output) -> updateOutput += output
       exit: (exitCode) ->
         unless exitCode is 0
-          console.log 'Failed to update: ' + exitCode + ' - ' + updateOutput
+          console.log "Failed to update: #{exitCode} - #{updateOutput}"
           emit 'update-not-available'
           return
 
@@ -68,8 +68,8 @@ class AutoUpdater
           json = updateOutput.split("\n").reverse()[0]
 
           updateInfo = JSON.parse json
-        catch ex
-          console.log "Update output isn't valid: " + updateOutput
+        catch error
+          console.log "Update output isn't valid: #{updateOutput}"
           emit 'update-not-available'
           return
 
@@ -84,8 +84,8 @@ class AutoUpdater
         # we always just download
         emit 'update-available'
         emit 'update-downloaded',
-          releaseNotes: latest.releaseNotes,
-          releaseName: "Atom " + latest.version,
-          releaseDate: "",   # NB: Squirrel doesn't provide this :(
-          updateUrl: "https://atom.io",
+          releaseNotes: latest.releaseNotes
+          releaseName: "Atom #{latest.version}"
+          releaseDate: ""   # NB: Squirrel doesn't provide this :(
+          updateUrl: "https://atom.io"
           quitAndUpdate: @quitAndInstall
