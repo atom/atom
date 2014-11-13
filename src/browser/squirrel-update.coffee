@@ -13,6 +13,7 @@ module.exports =
       args.unshift("\"#{updateDotExe}\"")
     else
       args.unshift(updateDotExe)
+
     args = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
     command = process.env.comspec or 'cmd.exe'
 
