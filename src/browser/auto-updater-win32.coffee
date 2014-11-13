@@ -38,7 +38,7 @@ class AutoUpdater
         return callback(error)
 
       try
-        # Last line of output is the JSON details about the release
+        # Last line of output is the JSON details about the releases
         [json] = stdout.trim().split('\n').reverse()
         update = JSON.parse(json)?.releasesToApply?.pop?()
       catch error
