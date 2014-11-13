@@ -78,6 +78,7 @@ describe "StylesElement", ->
   describe "atom-text-editor shadow DOM selector upgrades", ->
     beforeEach ->
       element.setAttribute('context', 'atom-text-editor')
+      spyOn(console, 'warn')
 
     it "upgrades selectors containing .editor-colors", ->
       atom.styles.addStyleSheet(".editor-colors {background: black;}", context: 'atom-text-editor')
