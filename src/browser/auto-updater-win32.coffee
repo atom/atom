@@ -1,48 +1,29 @@
-ChildProcess = require 'child_process'
 {EventEmitter} = require 'events'
-fs = require 'fs'
-path = require 'path'
-
 _ = require 'underscore-plus'
 shellAutoUpdater = require 'auto-updater'
+SquirrelUpdate = require './squirrel-update'
 
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
-
-  constructor: ->
-    @updateDotExe = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
 
   setFeedUrl: (@updateUrl) ->
     if @updateUrl
       # Schedule an update when the feed URL is set
       process.nextTick => @checkForUpdates()
 
-  spawnUpdate: (args, callback) ->
-    stdout = ''
-    error = null
-    updateProcess = ChildProcess.spawn(@updateDotExe, args)
-    updateProcess.stdout.on 'data', (data) -> stdout += data
-    updateProcess.on 'error', (processError) -> error ?= processError
-    updateProcess.on 'close', (code, signal) ->
-      error ?= new Error("Command failed: #{signal}") if code isnt 0
-      error?.code ?= code
-      error?.stdout ?= stdout
-      callback(error, stdout)
-    undefined
-
   quitAndInstall: ->
-    unless fs.existsSync(@updateDotExe)
+    unless SquirrelUpdate.existsSync()
       shellAutoUpdater.quitAndInstall()
       return
 
-    @spawnUpdate ['--update', @updateUrl], (error) =>
+    SquirrelUpdate.spawn ['--update', @updateUrl], (error) =>
       return if error?
 
-      @spawnUpdate ['--processStart', 'atom.exe'], ->
+      SquirrelUpdate.spawn ['--processStart', 'atom.exe'], ->
         shellAutoUpdater.quitAndInstall()
 
   downloadUpdate: (callback) ->
-    @spawnUpdate ['--download', @updateUrl], (error, stdout) ->
+    SquirrelUpdate.spawn ['--download', @updateUrl], (error, stdout) ->
       return callback(error) if error?
 
       try
@@ -56,14 +37,14 @@ class AutoUpdater
       callback(null, update)
 
   installUpdate: (callback) ->
-    @spawnUpdate(['--update', @updateUrl], callback)
+    SquirrelUpdate.spawn(['--update', @updateUrl], callback)
 
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
 
     @emit 'checking-for-update'
 
-    unless fs.existsSync(@updateDotExe)
+    unless SquirrelUpdate.existsSync()
       @emit 'update-not-available'
       return
 
