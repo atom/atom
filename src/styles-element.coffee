@@ -91,7 +91,7 @@ class StylesElement extends HTMLElement
       inputSelector = rule.selectorText
       outputSelector = rule.selectorText
         .replace(/\.editor-colors($|[ >])/g, ':host$1')
-        .replace(/\.editor(\.[^ ,>]+)/g, ':host($1)')
+        .replace(/\.editor([:.][^ ,>]+)/g, ':host($1)')
         .replace(/\.editor($|[ ,>])/g, ':host$1')
 
       unless inputSelector is outputSelector
