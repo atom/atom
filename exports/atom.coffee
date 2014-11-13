@@ -22,14 +22,19 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   {$, $$, $$$, View} = require '../src/space-pen-extensions'
   Object.defineProperty module.exports, '$', get: ->
     deprecate """
-      Please require `jquery` instead:
+      Requiring `$` from `atom` is no longer supported.
+      If you are using `space-pen`, please require `$` from `space-pen`. Otherwise require `jquery` instead:
+        `{$} = require 'space-pen'`
+        or
         `$ = require 'jquery'`
-      Add `"jquery": "^2"` to your package dependencies.
+      Add `"space-pen": "^3"` to your package dependencies.
+      Or add `"jquery": "^2"` to your package dependencies.
     """
     $
 
   Object.defineProperty module.exports, '$$', get: ->
     deprecate """
+      Requiring `$$` from `atom` is no longer supported.
       Please require `space-pen` instead:
         `{$$} = require 'space-pen'`
       Add `"space-pen": "^3"` to your package dependencies.
@@ -38,6 +43,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
 
   Object.defineProperty module.exports, '$$$', get: ->
     deprecate """
+      Requiring `$$$` from `atom` is no longer supported.
       Please require `space-pen` instead:
         `{$$$} = require 'space-pen'`
       Add `"space-pen": "^3"` to your package dependencies.
@@ -46,15 +52,16 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
 
   Object.defineProperty module.exports, 'View', get: ->
     deprecate """
+      Requiring `View` from `atom` is no longer supported.
       Please require `space-pen` instead:
         `{View} = require 'space-pen'`
       Add `"space-pen": "^3"` to your package dependencies.
     """
     View
 
-
   Object.defineProperty module.exports, 'EditorView', get: ->
     deprecate """
+      Requiring `EditorView` from `atom` is no longer supported.
       Please require `TextEditorView` from `atom-space-pen-view` instead:
         `{TextEditorView} = require 'atom-space-pen-views'`
       Add `"atom-space-pen-views": "^0"` to your package dependencies.
@@ -63,6 +70,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
 
   Object.defineProperty module.exports, 'TextEditorView', get: ->
     deprecate """
+      Requiring `TextEditorView` from `atom` is no longer supported.
       Please require `TextEditorView` from `atom-space-pen-view` instead:
         `{TextEditorView} = require 'atom-space-pen-views'`
       Add `"atom-space-pen-views": "^0"` to your package dependencies.
@@ -71,6 +79,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
 
   Object.defineProperty module.exports, 'ScrollView', get: ->
     deprecate """
+      Requiring `ScrollView` from `atom` is no longer supported.
       Please require `ScrollView` from `atom-space-pen-view` instead:
         `{ScrollView} = require 'atom-space-pen-views'`
       Note that the API has changed slightly! Please read the docs at https://github.com/atom/atom-space-pen-views
@@ -80,6 +89,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
 
   Object.defineProperty module.exports, 'SelectListView', get: ->
     deprecate """
+      Requiring `SelectListView` from `atom` is no longer supported.
       Please require `SelectListView` from `atom-space-pen-view` instead:
         `{SelectListView} = require 'atom-space-pen-views'`
       Note that the API has changed slightly! Please read the docs at https://github.com/atom/atom-space-pen-views
