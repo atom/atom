@@ -9,9 +9,6 @@ exeName = path.basename(process.execPath)
 # Spawn the Update.exe with the given arguments and invoke the callback when
 # the command completes.
 exports.spawn = (args, callback) ->
-  stdout = ''
-  error = null
-
   args = args.map (arg) -> "\"#{arg.toString().replace(/"/g, '\\"')}\""
   if /\s/.test(updateDotExe)
     args.unshift("\"#{updateDotExe}\"")
@@ -22,7 +19,11 @@ exports.spawn = (args, callback) ->
   command = process.env.comspec or 'cmd.exe'
 
   updateProcess = ChildProcess.spawn(command, args, windowsVerbatimArguments: true)
+
+  stdout = ''
   updateProcess.stdout.on 'data', (data) -> stdout += data
+
+  error = null
   updateProcess.on 'error', (processError) -> error ?= processError
   updateProcess.on 'close', (code, signal) ->
     error ?= new Error("Command failed: #{signal}") if code isnt 0
