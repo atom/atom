@@ -17,13 +17,13 @@ module.exports = ->
   return false if process.argv.length isnt 2
 
   switch process.argv[1]
-    when 'squirrel-install', 'squirrel-updated'
+    when '--squirrel-install', '--squirrel-updated'
       createShortcut()
       true
-    when 'squirrel-uninstall'
+    when '--squirrel-uninstall'
       removeShortcut()
       true
-    when 'squirrel-obsolete'
+    when '--squirrel-obsolete'
       app.quit()
       true
     else
