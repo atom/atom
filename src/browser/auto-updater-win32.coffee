@@ -64,7 +64,7 @@ class AutoUpdater
         emit 'update-downloaded',
           releaseNotes: latestRelease.releaseNotes
           releaseName: "Atom #{latestRelease.version}"
-          releaseDate: ''
+          releaseDate: new Date()
           updateUrl: 'https://atom.io'
           quitAndUpdate: => @quitAndInstall()
       else
