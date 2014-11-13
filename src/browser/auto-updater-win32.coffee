@@ -39,7 +39,7 @@ class AutoUpdater
 
       try
         # Last line of output is the JSON details about the releases
-        [json] = stdout.trim().split('\n').reverse()
+        json = stdout.trim().split('\n').pop()
         update = JSON.parse(json)?.releasesToApply?.pop?()
       catch error
         error.stdout = stdout
