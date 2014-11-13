@@ -4,7 +4,7 @@ fs = require 'fs'
 shellAutoUpdater = require 'auto-updater'
 
 {EventEmitter} = require 'events'
-{BufferedProcess} = require 'atom'
+ChildProcess = require 'child_process'
 
 module.exports =
 class AutoUpdater
@@ -20,72 +20,50 @@ class AutoUpdater
       console.log 'Running developer or Chocolatey version of Atom, skipping'
       return
 
-    updateOutput = ""
-    ps = new BufferedProcess
-      command: updateDotExe,
-      args: ['--update', @updateUrl]
-      stdout: (o) -> updateOutput += o
-      exit: (exitCode) ->
-        unless exitCode is 0
-          console.log 'Failed to update: ' + exitCode + ' - ' + updateOutput
-          return
+    args = ['--update', @updateUrl]
+    ChildProcess.execFile updateDotExe, args, (error) ->
+      return if error?
 
-        dontcare = new BufferedProcess
-          command: updateDotExe,
-          args: ['--processStart', 'atom.exe']
-
+      args = ['--processStart', 'atom.exe']
+      ChildProcess.execFile updateDotExe, args, ->
         shellAutoUpdater.quitAndInstall()
 
   checkForUpdates: ->
-    throw new Error("Update URL is not set") unless @updateUrl
+    throw new Error('Update URL is not set') unless @updateUrl
 
     emit 'checking-for-update'
 
     updateDotExe = path.join(path.dirname(process.execPath), '..', 'update.exe')
+
     unless fs.existsSync(updateDotExe)
       console.log 'Running developer or Chocolatey version of Atom, skipping'
       emit 'update-not-available'
       return
 
     args = ['--update', @updateUrl]
-    updateOutput = ""
+    ChildProcess.execFile updateDotExe, args, (error, stdout) =>
+      if error?
+        console.log "Failed to update: #{error.code} - #{stdout}"
+        emit 'update-not-available'
+        return
 
-    ps = new BufferedProcess
-      command: updateDotExe,
-      args,
-      stdout: (output) -> updateOutput += output
-      exit: (exitCode) ->
-        unless exitCode is 0
-          console.log "Failed to update: #{exitCode} - #{updateOutput}"
-          emit 'update-not-available'
-          return
+      try
+        # Last line of output is the JSON details about the release
+        [json] = stdout.split('\n').reverse()
+        latestRelease = JSON.parse(json)?.releasesToApply?.pop?()
+      catch error
+        console.log "Update output isn't valid: #{stdout}"
+        emit 'update-not-available'
+        return
 
-        updateInfo = null
-        try
-          # NB: Update.exe spits out the progress as ints until it completes,
-          # then the JSON is the last line of the output. We don't support progress
-          # so just drop the last lines
-          json = updateOutput.split("\n").reverse()[0]
-
-          updateInfo = JSON.parse json
-        catch error
-          console.log "Update output isn't valid: #{updateOutput}"
-          emit 'update-not-available'
-          return
-
-        unless updateInfo and updateInfo.releasesToApply.length > 0
-          console.log "You're on the latest version!"
-          emit 'update-not-available'
-          return
-
-        latest = updateInfo.releasesToApply[updateInfo.ReleasesToApply.length-1]
-
-        # We don't have separate "check for update" and "download" in Squirrel,
-        # we always just download
+      if latestRelease?
         emit 'update-available'
         emit 'update-downloaded',
-          releaseNotes: latest.releaseNotes
-          releaseName: "Atom #{latest.version}"
-          releaseDate: ""   # NB: Squirrel doesn't provide this :(
-          updateUrl: "https://atom.io"
-          quitAndUpdate: @quitAndInstall
+          releaseNotes: latestRelease.releaseNotes
+          releaseName: "Atom #{latestRelease.version}"
+          releaseDate: ''
+          updateUrl: 'https://atom.io'
+          quitAndUpdate: => @quitAndInstall
+      else
+        console.log "You're on the latest version!"
+        emit 'update-not-available'
