@@ -6,7 +6,6 @@ path = require 'path'
 _ = require 'underscore-plus'
 shellAutoUpdater = require 'auto-updater'
 
-module.exports =
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
@@ -64,3 +63,5 @@ class AutoUpdater
       else
         console.log "You're on the latest version!"
         emit 'update-not-available'
+
+module.exports = new AutoUpdater()
