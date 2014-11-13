@@ -20,7 +20,7 @@ class AutoUpdater
   spawnUpdate: (args, callback) ->
     stdout = ''
     error = null
-    updateProcess = ChildProcess.spawnUpdate(@updateDotExe, args)
+    updateProcess = ChildProcess.spawn(@updateDotExe, args)
     updateProcess.stdout.on 'data', (data) -> stdout += data
     updateProcess.on 'error', (processError) -> error ?= processError
     updateProcess.on 'close', (code, signal) ->
