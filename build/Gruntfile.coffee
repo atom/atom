@@ -224,7 +224,7 @@ module.exports = (grunt) ->
     'create-windows-installer':
       appDirectory: shellAppDir
       outputDirectory: path.join(buildDir, 'installer')
-      authors: 'The Atom Team'
+      authors: 'The Atom Team & Community'
       iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/atom.png'
 
     shell:
