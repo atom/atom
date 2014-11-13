@@ -18,7 +18,7 @@ class AutoUpdater
     updateDotExe = @getUpdateExePath()
 
     unless fs.existsSync(updateDotExe)
-      console.log 'Running developer or Chocolatey version of Atom, skipping'
+      shellAutoUpdater.quitAndInstall()
       return
 
     args = ['--update', @updateUrl]
