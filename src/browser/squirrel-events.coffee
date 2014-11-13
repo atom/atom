@@ -8,6 +8,7 @@ spawnUpdateAndQuit = (option) ->
   updateProcess = ChildProcess.spawn(updateDotExe, ["--#{option}", exeName])
   updateProcess.on 'error', -> # Ignore errors
   updateProcess.on 'close', -> app.quit()
+  undefined
 
 module.exports = ->
   switch process.argv[1]

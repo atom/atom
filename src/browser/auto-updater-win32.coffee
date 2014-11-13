@@ -17,25 +17,33 @@ class AutoUpdater
       # Schedule an update when the feed URL is set
       process.nextTick => @checkForUpdates()
 
+  spawnUpdate: (args, callback) ->
+    stdout = ''
+    error = null
+    updateProcess = ChildProcess.spawn(@updateDotExe, args)
+    updateProcess.stdout.on 'data', (data) -> stdout += data
+    updateProcess.on 'error', (processError) -> error ?= processError
+    updateProcess.on 'close', (code, signal) ->
+      error ?= new Error("Command failed: #{signal}") if code isnt 0
+      error?.code ?= code
+      error?.stdout ?= stdout
+      callback(error, stdout)
+    undefined
+
   quitAndInstall: ->
     unless fs.existsSync(@updateDotExe)
       shellAutoUpdater.quitAndInstall()
       return
 
-    args = ['--update', @updateUrl]
-    ChildProcess.execFile @updateDotExe, args, (error) ->
+    @spawn ['--update', @updateUrl], (error) =>
       return if error?
 
-      args = ['--processStart', 'atom.exe']
-      ChildProcess.execFile @updateDotExe, args, ->
+      @spawn ['--processStart', 'atom.exe'], ->
         shellAutoUpdater.quitAndInstall()
 
   downloadUpdate: (callback) ->
-    args = ['--download', @updateUrl]
-    ChildProcess.execFile @updateDotExe, args, (error, stdout) ->
-      if error?
-        error.stdout = stdout
-        return callback(error)
+    @spawn ['--download', @updateUrl], (error, stdout) ->
+      return callback(error) if error?
 
       try
         # Last line of output is the JSON details about the releases
@@ -48,10 +56,7 @@ class AutoUpdater
       callback(null, update)
 
   installUpdate: (callback) ->
-    args = ['--update', @updateUrl]
-    ChildProcess.execFile @updateDotExe, args, (error, stdout) ->
-      error?.stdout = stdout
-      callback(error)
+    @spawn(['--update', @updateUrl], callback)
 
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
