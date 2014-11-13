@@ -20,7 +20,7 @@ class AutoUpdater
   spawnUpdate: (args, callback) ->
     stdout = ''
     error = null
-    updateProcess = ChildProcess.spawn(@updateDotExe, args)
+    updateProcess = ChildProcess.spawnUpdate(@updateDotExe, args)
     updateProcess.stdout.on 'data', (data) -> stdout += data
     updateProcess.on 'error', (processError) -> error ?= processError
     updateProcess.on 'close', (code, signal) ->
@@ -35,14 +35,14 @@ class AutoUpdater
       shellAutoUpdater.quitAndInstall()
       return
 
-    @spawn ['--update', @updateUrl], (error) =>
+    @spawnUpdate ['--update', @updateUrl], (error) =>
       return if error?
 
-      @spawn ['--processStart', 'atom.exe'], ->
+      @spawnUpdate ['--processStart', 'atom.exe'], ->
         shellAutoUpdater.quitAndInstall()
 
   downloadUpdate: (callback) ->
-    @spawn ['--download', @updateUrl], (error, stdout) ->
+    @spawnUpdate ['--download', @updateUrl], (error, stdout) ->
       return callback(error) if error?
 
       try
@@ -56,7 +56,7 @@ class AutoUpdater
       callback(null, update)
 
   installUpdate: (callback) ->
-    @spawn(['--update', @updateUrl], callback)
+    @spawnUpdate(['--update', @updateUrl], callback)
 
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
