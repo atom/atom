@@ -49,7 +49,7 @@ class AutoUpdater
 
   installUpdate: (callback) ->
     args = ['--update', @updateUrl]
-    ChildProcess.execFile @updateDotExe, args, (error, stdout) =>
+    ChildProcess.execFile @updateDotExe, args, (error, stdout) ->
       error?.stdout = stdout
       callback(error)
 
