@@ -11,6 +11,7 @@ module.exports = (grunt) ->
     appDir = grunt.config.get('atom.appDir')
 
     rm shellAppDir
+    rm path.join(buildDir, 'installer')
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
