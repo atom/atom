@@ -104,6 +104,11 @@ parseCommandLine = ->
     process.stdout.write("#{version}\n")
     process.exit(0)
 
+  # Exit immediately on squirrel events
+  # TODO Add support for shortcuts, start menu, etc.
+  if args['squirrel-install'] or args['squirrel-updated'] or args['squirrel-obsolete'] or args['squirrel-uninstall']
+    process.exit(0)
+
   executedFrom = args['executed-from']
   devMode = args['dev']
   safeMode = args['safe']
