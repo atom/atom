@@ -66,7 +66,7 @@ class AutoUpdater
           releaseName: "Atom #{latestRelease.version}"
           releaseDate: ''
           updateUrl: 'https://atom.io'
-          quitAndUpdate: => @quitAndInstall
+          quitAndUpdate: => @quitAndInstall()
       else
         console.log "You're on the latest version!"
         emit 'update-not-available'
