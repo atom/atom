@@ -9,61 +9,76 @@ shellAutoUpdater = require 'auto-updater'
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
+  constructor: ->
+    @updateDotExe = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
+
   setFeedUrl: (@updateUrl) ->
     if @updateUrl
       # Schedule an update when the feed URL is set
       process.nextTick => @checkForUpdates()
 
   quitAndInstall: ->
-    updateDotExe = @getUpdateExePath()
-
-    unless fs.existsSync(updateDotExe)
+    unless fs.existsSync(@updateDotExe)
       shellAutoUpdater.quitAndInstall()
       return
 
     args = ['--update', @updateUrl]
-    ChildProcess.execFile updateDotExe, args, (error) ->
+    ChildProcess.execFile @updateDotExe, args, (error) ->
       return if error?
 
       args = ['--processStart', 'atom.exe']
-      ChildProcess.execFile updateDotExe, args, ->
+      ChildProcess.execFile @updateDotExe, args, ->
         shellAutoUpdater.quitAndInstall()
 
-  getUpdateExePath: ->
-    path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
+  downloadUpdate: (callback) ->
+    args = ['--download', @updateUrl]
+    ChildProcess.execFile @updateDotExe, args, (error, stdout) ->
+      if error?
+        error.stdout = stdout
+        return callback(error)
+
+      try
+        # Last line of output is the JSON details about the release
+        [json] = stdout.split('\n').reverse()
+        update = JSON.parse(json)?.releasesToApply?.pop?()
+      catch error
+        error.stdout = stdout
+        return callback(error)
+
+      callback(null, update)
+
+  installUpdate: (callback) ->
+    args = ['--update', @updateUrl]
+    ChildProcess.execFile @updateDotExe, args, (error, stdout) =>
+      error?.stdout = stdout
+      callback(error)
 
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
 
     @emit 'checking-for-update'
 
-    updateDotExe = @getUpdateExePath()
-
-    unless fs.existsSync(updateDotExe)
+    unless fs.existsSync(@updateDotExe)
       @emit 'update-not-available'
       return
 
-    args = ['--update', @updateUrl]
-    ChildProcess.execFile updateDotExe, args, (error, stdout) =>
+    @downloadUpdate (error, update) =>
       if error?
-        console.log "Failed to update: #{error.code} - #{stdout}"
+        console.log "Failed to download: #{error.message} - #{error.code} - #{error.stdout}"
         @emit 'update-not-available'
         return
 
-      try
-        # Last line of output is the JSON details about the release
-        [json] = stdout.split('\n').reverse()
-        latestRelease = JSON.parse(json)?.releasesToApply?.pop?()
-      catch error
-        console.log "Update output isn't valid: #{stdout}"
+      unless update?
         @emit 'update-not-available'
         return
 
-      if latestRelease?
+      @installUpdate (error) =>
+        if error?
+          console.log "Failed to update: #{error.message} - #{error.code} - #{error.stdout}"
+          @emit 'update-not-available'
+          return
+
         @emit 'update-available'
-        @emit 'update-downloaded', {}, latestRelease.releaseNotes, latestRelease.version, new Date(), 'https://atom.io', => @quitAndInstall()
-      else
-        console.log "You're on the latest version!"
-        @emit 'update-not-available'
+        @emit 'update-downloaded', {}, update.releaseNotes, update.version, new Date(), 'https://atom.io', => @quitAndInstall()
 
 module.exports = new AutoUpdater()
