@@ -94,3 +94,14 @@ describe "StylesElement", ->
       expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
       expect(element.firstChild.sheet.cssRules[1].selectorText).toBe ':host(.mini)'
       expect(element.firstChild.sheet.cssRules[2].selectorText).toBe ':host(:focus)'
+
+    it "defers selector upgrade until the element is attached", ->
+      element = new StylesElement
+      element.setAttribute('context', 'atom-text-editor')
+      element.initialize()
+
+      atom.styles.addStyleSheet ".editor {background: black;}", context: 'atom-text-editor'
+      expect(element.firstChild.sheet).toBeNull()
+
+      document.querySelector('#jasmine-content').appendChild(element)
+      expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
