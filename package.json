@@ -37,7 +37,7 @@
     "guid": "0.0.10",
     "jasmine-json": "~0.0",
     "jasmine-tagged": "^1.1.2",
-    "less-cache": "0.17.0",
+    "less-cache": "0.18.0",
     "mixto": "^1",
     "mkdirp": "0.3.5",
     "nslog": "^1.0.1",
