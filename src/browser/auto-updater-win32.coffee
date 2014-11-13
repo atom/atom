@@ -32,20 +32,20 @@ class AutoUpdater
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
 
-    emit 'checking-for-update'
+    @emit 'checking-for-update'
 
     updateDotExe = @getUpdateExePath()
 
     unless fs.existsSync(updateDotExe)
       console.log 'Running developer or Chocolatey version of Atom, skipping'
-      emit 'update-not-available'
+      @emit 'update-not-available'
       return
 
     args = ['--update', @updateUrl]
     ChildProcess.execFile updateDotExe, args, (error, stdout) =>
       if error?
         console.log "Failed to update: #{error.code} - #{stdout}"
-        emit 'update-not-available'
+        @emit 'update-not-available'
         return
 
       try
@@ -54,14 +54,14 @@ class AutoUpdater
         latestRelease = JSON.parse(json)?.releasesToApply?.pop?()
       catch error
         console.log "Update output isn't valid: #{stdout}"
-        emit 'update-not-available'
+        @emit 'update-not-available'
         return
 
       if latestRelease?
-        emit 'update-available'
-        emit 'update-downloaded', {}, latestRelease.releaseNotes, latestRelease.version, new Date(), 'https://atom.io', => @quitAndInstall()
+        @emit 'update-available'
+        @emit 'update-downloaded', {}, latestRelease.releaseNotes, latestRelease.version, new Date(), 'https://atom.io', => @quitAndInstall()
       else
         console.log "You're on the latest version!"
-        emit 'update-not-available'
+        @emit 'update-not-available'
 
 module.exports = new AutoUpdater()
