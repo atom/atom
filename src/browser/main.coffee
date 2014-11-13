@@ -32,6 +32,10 @@ start = ->
     setupCrashReporter()
 
   app.on 'ready', ->
+    if process.platform is 'win32'
+      handleSquirrelEvents = require './squirrel-events'
+      return if handleSquirrelEvents(args)
+
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
@@ -102,11 +106,6 @@ parseCommandLine = ->
 
   if args.version
     process.stdout.write("#{version}\n")
-    process.exit(0)
-
-  # Exit immediately on squirrel events
-  # TODO Add support for shortcuts, start menu, etc.
-  if args['squirrel-install'] or args['squirrel-updated'] or args['squirrel-obsolete'] or args['squirrel-uninstall']
     process.exit(0)
 
   executedFrom = args['executed-from']
