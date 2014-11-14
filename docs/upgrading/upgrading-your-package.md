@@ -22,9 +22,7 @@ TODO: image of deprecations in DepCop
 
 ## Views
 
-### The Old
-
-Previous to 1.0, views in packages were baked into Atom core. These views were based on jQuery and `space-pen`. They look something like this:
+Previous to 1.0, views in packages were baked into Atom core. These views were based on jQuery and `space-pen`. They looked something like this:
 
 ```coffee
 {$, TextEditorView, View} = require 'atom'
@@ -75,29 +73,32 @@ SelectListView
 
 `Workspace` and `WorkspaceView` are _no longer provided_ in any capacity. They should be unnecessary
 
-#### jQuery
+### Adding the module dependencies
 
-If you do not need `space-pen`, you can require jQuery directly. In your `package.json` add this to the `dependencies` object:
-
-```js
-"jquery": "^2"
-```
-
-#### NPM dependencies
+To use the new views, you need to specify a couple modules in your package dependencies in your `package.json` file:
 
 ```js
 {
   "dependencies": {
-    "jquery": "^2" // if you want to include jquery directly
     "space-pen": "^3"
     "atom-space-pen-views": "^0"
   }
 }
 ```
 
-#### Converting your views
+`space-pen` bundles jQuery. If you do not need `space-pen`, you can require jQuery directly.
 
-Sometimes it should be as simple as converting the requires at the top of each view page. In the case of our above example, you can just convert them to the following:
+```js
+{
+  "dependencies": {
+    "jquery": "^2"
+  }
+}
+```
+
+### Converting your views
+
+Sometimes it is as simple as converting the requires at the top of each view page. In the case of our above example, you can just convert them to the following:
 
 ```coffee
 {$, View} = require 'space-pen'
