@@ -193,7 +193,7 @@ class CommandPaletteView extends SelectListView
     @panel?.hide()
 ```
 
-See the [SelectListView docs][SelectListView] for all the options.
+See the [SelectListView docs][SelectListView] for all the options. And check out the [conversion of CommandPaletteView][selectlistview-example] as a real-world example.
 
 ## Specs
 
@@ -203,3 +203,4 @@ TODO: come up with patterns for converting away from using `workspaceView` and `
 [texteditorview]:https://github.com/atom/atom-space-pen-views#texteditorview
 [scrollview]:https://github.com/atom/atom-space-pen-views#scrollview
 [selectlistview]:https://github.com/atom/atom-space-pen-views#selectlistview
+[selectlistview-example]:https://github.com/atom/command-palette/pull/19/files
