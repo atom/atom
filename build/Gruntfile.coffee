@@ -6,7 +6,6 @@ os = require 'os'
 # modules work under node v0.11.x.
 require 'vm-compatibility-layer'
 
-fm = require 'json-front-matter'
 _ = require 'underscore-plus'
 
 packageJson = require '../package.json'
@@ -22,7 +21,6 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-csslint')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
-  grunt.loadNpmTasks('grunt-markdown')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadNpmTasks('grunt-download-atom-shell')
   grunt.loadNpmTasks('grunt-atom-shell-installer')
@@ -194,26 +192,6 @@ module.exports = (grunt) ->
       src: [
         'static/**/*.less'
       ]
-
-    markdown:
-      guides:
-        files: [
-          expand: true
-          cwd: 'docs'
-          src: '**/*.md'
-          dest: 'docs/output/'
-          ext: '.html'
-        ]
-        options:
-          template: 'docs/template.jst'
-          templateContext:
-            tag: "v#{major}.#{minor}"
-          markdownOptions:
-            gfm: true
-          preCompile: (src, context) ->
-            parsed = fm.parse(src)
-            _.extend(context, parsed.attributes)
-            parsed.body
 
     'download-atom-shell':
       version: packageJson.atomShellVersion
