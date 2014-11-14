@@ -536,11 +536,13 @@ class Config
 
     if scopeSelector?
       settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
-      @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
-      _.setValueForKeyPath(settings, keyPath, undefined)
-      @addScopedSettings('user-config', scopeSelector, settings, @usersScopedSettingPriority)
-      @save() unless @configFileHasErrors
-      @getDefault(scopeSelector, keyPath)
+      if _.valueForKeyPath(settings, keyPath)?
+        @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
+        _.setValueForKeyPath(settings, keyPath, undefined)
+        settings = withoutEmptyObjects(settings)
+        @addScopedSettings('user-config', scopeSelector, settings, @usersScopedSettingPriority) if settings?
+        @save() unless @configFileHasErrors
+        @getDefault(scopeSelector, keyPath)
     else
       @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
       @get(keyPath)
@@ -1046,3 +1048,15 @@ splitKeyPath = (keyPath) ->
       startIndex = i + 1
   keyPathArray.push keyPath.substr(startIndex, keyPath.length)
   keyPathArray
+
+withoutEmptyObjects = (object) ->
+  resultObject = undefined
+  if isPlainObject(object)
+    for key, value of object
+      newValue = withoutEmptyObjects(value)
+      if newValue?
+        resultObject ?= {}
+        resultObject[key] = newValue
+  else
+    resultObject = object
+  resultObject
