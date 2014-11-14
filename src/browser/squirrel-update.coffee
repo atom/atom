@@ -33,7 +33,6 @@ exports.handleStartupEvent = ->
   switch process.argv[1]
     when '--squirrel-install', '--squirrel-updated'
       exports.spawn ['--createShortcut', exeName], -> app.quit()
-      spawnUpdateAndQuit('')
       true
     when '--squirrel-uninstall'
       exports.spawn ['--removeShortcut', exeName], -> app.quit()
