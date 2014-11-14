@@ -14,6 +14,10 @@ process.on 'uncaughtException', (error={}) ->
   nslog(error.stack) if error.stack?
 
 start = ->
+  if process.platform is 'win32'
+    SquirrelUpdate = require './squirrel-update'
+    return if SquirrelUpdate.handleStartupEvent()
+
   args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
