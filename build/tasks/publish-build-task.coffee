@@ -64,7 +64,7 @@ getAssets = ->
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
-      cp path.join(buildDir, 'installer', 'AtomSetup.exe', path.join(buildDir, 'AtomSetup.exe')
+      cp path.join(buildDir, 'installer', 'AtomSetup.exe'), path.join(buildDir, 'AtomSetup.exe')
 
       [
         {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
