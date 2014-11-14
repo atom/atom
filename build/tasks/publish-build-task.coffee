@@ -54,6 +54,8 @@ module.exports = (gruntObject) ->
           uploadAssets(release, buildDir, assets, done)
 
 getAssets = ->
+  {cp} = require('./task-helpers')(grunt)
+
   switch process.platform
     when 'darwin'
       [
@@ -62,8 +64,11 @@ getAssets = ->
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
+      cp path.join(buildDir, 'installer', 'AtomSetup.exe', path.join(buildDir, 'AtomSetup.exe')
+
       [
         {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
+        {assetName: 'AtomSetup.exe', sourcePath: 'AtomSetup.exe'}
       ]
     when 'linux'
       buildDir = grunt.config.get('atom.buildDir')
@@ -87,7 +92,6 @@ getAssets = ->
           arch = 'x86_64'
         assetName = "atom.#{arch}.rpm"
 
-      {cp} = require('./task-helpers')(grunt)
       cp sourcePath, path.join(buildDir, assetName)
 
       [
