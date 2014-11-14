@@ -7,9 +7,6 @@ class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
   setFeedUrl: (@updateUrl) ->
-    if @updateUrl
-      # Schedule an update when the feed URL is set
-      process.nextTick => @checkForUpdates()
 
   quitAndInstall: ->
     unless SquirrelUpdate.existsSync()
