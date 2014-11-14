@@ -2496,17 +2496,15 @@ class TextEditor extends Model
   pasteText: (options={}) ->
     {text, metadata} = atom.clipboard.readWithMetadata()
 
-    containsNewlines = text.indexOf('\n') isnt -1
-
-    if metadata?.selections? and metadata.selections.length is @getSelections().length
+    if metadata?.selections?.length is @getSelections().length
       @mutateSelectedText (selection, index) ->
         text = metadata.selections[index]
         selection.insertText(text, options)
-
       return
 
-    else if atom.config.get(@getLastCursor().getScopeDescriptor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
-      if !@getLastCursor().hasPrecedingCharactersOnLine() or containsNewlines
+    if metadata?.indentBasis? and atom.config.get(@getLastCursor().getScopeDescriptor(), "editor.normalizeIndentOnPaste")
+      containsNewlines = text.indexOf('\n') isnt -1
+      if containsNewlines or !@getLastCursor().hasPrecedingCharactersOnLine()
         options.indentBasis ?= metadata.indentBasis
 
     @insertText(text, options)
