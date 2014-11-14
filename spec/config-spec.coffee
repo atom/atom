@@ -195,6 +195,52 @@ describe "Config", ->
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
         expect(atom.config.save.callCount).toBe 1
 
+      it "does not call ::save or add a scoped property when no value has been set", ->
+        # see https://github.com/atom/atom/issues/4175
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 10
+
+        expect(atom.config.save).not.toHaveBeenCalled()
+
+        scopedProperties = atom.config.scopedSettingsStore.propertiesForSource('user-config')
+        expect(scopedProperties['.coffee.source']).toBeUndefined()
+
+      it "removes the scoped value when it was the only set value on the object", ->
+        spyOn(CSON, 'writeFileSync')
+        jasmine.unspy atom.config, 'save'
+
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('.source.coffee', 'foo.bar.zfoo', 20)
+        CSON.writeFileSync.reset()
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 10
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.zfoo')).toBe 20
+        expect(CSON.writeFileSync).toHaveBeenCalled()
+        properties = CSON.writeFileSync.mostRecentCall.args[1]
+        expect(properties['.coffee.source']).toEqual
+          foo:
+            bar:
+              zfoo: 20
+
+        CSON.writeFileSync.reset()
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.zfoo')
+        expect(CSON.writeFileSync).toHaveBeenCalled()
+        properties = CSON.writeFileSync.mostRecentCall.args[1]
+        expect(properties['.coffee.source']).toBeUndefined()
+
+      it "does not call ::save when the value is already at the default", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.save.reset()
+
+        atom.config.restoreDefault('.source.coffee', 'foo.bar.ok')
+        expect(atom.config.save).not.toHaveBeenCalled()
+        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+
   describe ".getSettings()", ->
     it "returns all settings including defaults", ->
       atom.config.setDefaults("foo", bar: baz: 10)
