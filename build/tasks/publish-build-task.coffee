@@ -69,6 +69,7 @@ getAssets = ->
       for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{version}-full.nupkg"]
         cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
         assets.push({assetName: squirrelAsset, sourcePath: assetName})
+      assets
     when 'linux'
       buildDir = grunt.config.get('atom.buildDir')
       if process.arch is 'ia32'
