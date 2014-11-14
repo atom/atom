@@ -55,6 +55,7 @@ module.exports = (gruntObject) ->
 
 getAssets = ->
   {cp} = require('./task-helpers')(grunt)
+  {version} = grunt.file.readJSON('package.json')
 
   switch process.platform
     when 'darwin'
@@ -64,19 +65,16 @@ getAssets = ->
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
-      cp path.join(buildDir, 'installer', 'AtomSetup.exe'), path.join(buildDir, 'AtomSetup.exe')
-
-      [
-        {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
-        {assetName: 'AtomSetup.exe', sourcePath: 'AtomSetup.exe'}
-      ]
+      assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
+      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{version}-full.nupkg"]
+        cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
+        assets.push({assetName: squirrelAsset, sourcePath: assetName})
     when 'linux'
       buildDir = grunt.config.get('atom.buildDir')
       if process.arch is 'ia32'
         arch = 'i386'
       else
         arch = 'amd64'
-      {version} = grunt.file.readJSON('package.json')
 
       # Check for a Debian build
       sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
