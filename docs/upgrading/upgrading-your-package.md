@@ -105,6 +105,101 @@ Sometimes it is as simple as converting the requires at the top of each view pag
 {TextEditorView} = require 'atom-space-pen-views'
 ```
 
+If you are using the lifecycle hooks, you will need to update code as well.
+
+### Upgrading to space-pen's TextEditorView
+
+You should not need to change anything to use the new `TextEditorView`! See the [docs][TextEditorView] for more info.
+
+### Upgrading to space-pen's ScrollView
+
+See the [docs][ScrollView] for all the options.
+
+### Upgrading to space-pen's SelectListView
+
+Your SelectListView might look something like this:
+
+```coffee
+class CommandPaletteView extends SelectListView
+  initialize: ->
+    super
+    @addClass('command-palette overlay from-top')
+    atom.workspaceView.command 'command-palette:toggle', => @toggle()
+
+  confirmed: ({name, jQuery}) ->
+    @cancel()
+    # do something with the result
+
+  toggle: ->
+    if @hasParent()
+      @cancel()
+    else
+      @attach()
+
+  attach: ->
+    @storeFocusedElement()
+
+    items = # build items
+    @setItems(items)
+
+    atom.workspaceView.append(this)
+    @focusFilterEditor()
+
+  confirmed: ({name, jQuery}) ->
+    @cancel()
+```
+
+This attaches and detaches itself from the dom when toggled, canceling magically detaches it from the DOM, and it uses the classes `overlay` and `from-top`.
+
+Using the new APIs it should look like this:
+
+```coffee
+class CommandPaletteView extends SelectListView
+  initialize: ->
+    super
+    # no more need for the `overlay` and `from-top` classes
+    @addClass('command-palette')
+    atom.workspaceView.command 'command-palette:toggle', => @toggle()
+
+  # You need to implement the `cancelled` method and hide.
+  cancelled: ->
+    @hide()
+
+  confirmed: ({name, jQuery}) ->
+    @cancel()
+    # do something with the result
+
+  toggle: ->
+    # Toggling now checks panel visibility,
+    # and hides / shows rather than attaching to / detaching from the DOM.
+    if @panel?.isVisible()
+      @cancel()
+    else
+      @show()
+
+  show: ->
+    # Now you will add your select list as a modal panel to the workspace
+    @panel ?= atom.workspace.addModalPanel(item: this)
+    @panel.show()
+
+    @storeFocusedElement()
+
+    items = # build items
+    @setItems(items)
+
+    @focusFilterEditor()
+
+  hide: ->
+    @panel?.hide()
+```
+
+See the [SelectListView docs][SelectListView] for all the options.
+
 ## Specs
 
-TODO: come up with patterns for
+TODO: come up with patterns for converting away from using `workspaceView` and `editorView`s everywhere.
+
+
+[texteditorview]:https://github.com/atom/atom-space-pen-views#texteditorview
+[scrollview]:https://github.com/atom/atom-space-pen-views#scrollview
+[selectlistview]:https://github.com/atom/atom-space-pen-views#selectlistview
