@@ -13,7 +13,7 @@ class AutoUpdater
       shellAutoUpdater.quitAndInstall()
       return
 
-    SquirrelUpdate.spawn ['--update', @updateUrl], (error) =>
+    @installUpdate (error) ->
       return if error?
 
       SquirrelUpdate.spawn ['--processStart', 'atom.exe'], ->
