@@ -55,7 +55,9 @@ module.exports = (gruntObject) ->
 
 getAssets = ->
   {cp} = require('./task-helpers')(grunt)
+
   {version} = grunt.file.readJSON('package.json')
+  buildDir = grunt.config.get('atom.buildDir')
 
   switch process.platform
     when 'darwin'
@@ -71,7 +73,6 @@ getAssets = ->
         assets.push({assetName: squirrelAsset, sourcePath: assetName})
       assets
     when 'linux'
-      buildDir = grunt.config.get('atom.buildDir')
       if process.arch is 'ia32'
         arch = 'i386'
       else
