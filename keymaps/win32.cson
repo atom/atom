@@ -98,7 +98,7 @@
   'ctrl-k ctrl-l': 'editor:lower-case'
   'ctrl-l': 'editor:select-line'
 
-'atom-workspace atom-text-editor:not(.mini)':
+'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'

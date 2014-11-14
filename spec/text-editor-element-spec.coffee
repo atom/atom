@@ -1,4 +1,5 @@
 TextEditorElement = require '../src/text-editor-element'
+TextEditor = require '../src/text-editor'
 
 # The rest of text-editor-component-spec will be moved to this file when React
 # is eliminated. This covers only concerns related to the wrapper element for now
@@ -18,6 +19,13 @@ describe "TextEditorElement", ->
       jasmineContent.innerHTML = "<atom-text-editor placeholder-text='testing'>"
       element = jasmineContent.firstChild
       expect(element.getModel().getPlaceholderText()).toBe 'testing'
+
+  describe "when the model is assigned", ->
+    it "adds the 'mini' attribute if .isMini() returns true on the model", ->
+      element = new TextEditorElement
+      model = new TextEditor(mini: true)
+      element.setModel(model)
+      expect(element.hasAttribute('mini')).toBe true
 
   describe "focus and blur handling", ->
     describe "when the editor.useShadowDOM config option is true", ->

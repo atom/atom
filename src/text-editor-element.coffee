@@ -1,10 +1,13 @@
 {View, $, callRemoveHooks} = require 'space-pen'
 React = require 'react-atom-fork'
+Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 TextEditorView = null
+
+ShadowStyleSheet = null
 
 class TextEditorElement extends HTMLElement
   model: null
@@ -25,23 +28,30 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
     if atom.config.get('editor.useShadowDOM')
+      @useShadowDOM = true
+
+      unless ShadowStyleSheet?
+        ShadowStyleSheet = document.createElement('style')
+        ShadowStyleSheet.textContent = atom.themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
+
       @createShadowRoot()
 
+      @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
       @stylesElement = document.createElement('atom-styles')
       @stylesElement.setAttribute('context', 'atom-text-editor')
       @stylesElement.initialize()
 
       @rootElement = document.createElement('div')
-      @rootElement.classList.add('shadow')
+      @rootElement.classList.add('editor--private')
 
       @shadowRoot.appendChild(@stylesElement)
       @shadowRoot.appendChild(@rootElement)
     else
+      @useShadowDOM = false
+
+      @classList.add('editor', 'editor-colors')
       @stylesElement = document.head.querySelector('atom-styles')
       @rootElement = this
-
-    @rootElement.classList.add('editor', 'editor-colors')
-
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
@@ -60,6 +70,7 @@ class TextEditorElement extends HTMLElement
     @model = model
     @mountComponent()
     @addGrammarScopeAttribute()
+    @addMiniAttributeIfNeeded()
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @addEncodingAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
@@ -88,10 +99,11 @@ class TextEditorElement extends HTMLElement
       editor: @model
       mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin
+      useShadowDOM: @useShadowDOM
     )
     @component = React.renderComponent(@componentDescriptor, @rootElement)
 
-    unless atom.config.get('editor.useShadowDOM')
+    unless @useShadowDOM
       inputNode = @component.refs.input.getDOMNode()
       inputNode.addEventListener 'focus', @focused.bind(this)
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
@@ -109,7 +121,7 @@ class TextEditorElement extends HTMLElement
       @focusOnAttach = true
 
   blurred: (event) ->
-    unless atom.config.get('editor.useShadowDOM')
+    unless @useShadowDOM
       if event.relatedTarget is @component?.refs.input?.getDOMNode()
         event.stopImmediatePropagation()
         return
@@ -119,6 +131,9 @@ class TextEditorElement extends HTMLElement
   addGrammarScopeAttribute: ->
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
     @dataset.grammar = grammarScope
+
+  addMiniAttributeIfNeeded: ->
+    @setAttributeNode(document.createAttribute("mini")) if @model.isMini()
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()
@@ -199,7 +214,7 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:lower-case': -> @lowerCase()
 )
 
-atom.commands.add 'atom-text-editor:not(.mini)', stopEventPropagationAndGroupUndo(
+atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(
   'core:move-up': -> @moveUp()
   'core:move-down': -> @moveDown()
   'core:move-to-top': -> @moveToTop()
