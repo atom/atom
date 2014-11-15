@@ -94,11 +94,17 @@ class List extends Command
 
       try
         metadataPath = path.join(resourcePath, 'package.json')
-        {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
+        {packageDependencies, _atomPackages} = JSON.parse(fs.readFileSync(metadataPath))
       packageDependencies ?= {}
+      _atomPackages ?= {}
 
-      packages = packages.filter ({name}) ->
-        packageDependencies.hasOwnProperty(name)
+      if options.argv.json
+        packageMetadata = (v['metadata'] for k, v of _atomPackages)
+        packages = packageMetadata.filter ({name}) ->
+          packageDependencies.hasOwnProperty(name)
+      else
+        packages = packages.filter ({name}) ->
+          packageDependencies.hasOwnProperty(name)
 
       unless options.argv.bare or options.argv.json
         if options.argv.themes
