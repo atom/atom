@@ -32,7 +32,7 @@ Text editor content is now rendered in the shadow DOM, which shields it from bei
 
 During a transition phase, it will be possible to enable or disable the text editor's shadow DOM in the settings, so themes will need to be compatible with both approaches.
 
-### Shadow DOM Combinators
+### Shadow DOM Selectors
 
 Chromium provides two tools for bypassing shadow boundaries, the `::shadow` pseudo-element and the `/deep/` combinator. For an in-depth explanation of styling the shadow DOM, see the [Shadow DOM 201][shadow-dom-201] article on HTML 5 Rocks.
 
@@ -100,6 +100,21 @@ To style scrollbars even inside of the shadow DOM, each rule needs to be prefixe
   }
 }
 ```
+
+### Context-Targeted Style Sheets
+
+The selector features discussed above allow you to target shadow DOM content with specific selectors, but Atom also allows you to target a specific shadow DOM context with an entire style sheet. The context into which a style sheet is loaded is based on the file name. If you want to load a style sheet into the editor, name it with the `.atom-text-editor.less` or `.atom-text-editor.css` extensions.
+
+```
+my-ui-theme/
+  stylesheets/
+    index.less                   # loaded globally
+    index.atom-text-editor.less  # loaded in the text editor shadow DOM
+```
+
+Inside a context-targeted style sheet, there's no need to use the `::shadow` or `/deep/` expressions. If you want to refer to the element containing the shadow root, you can use the `::host` pseudo-element.
+
+During the transition phase, style sheets targeting the `atom-text-editor` context will *also* be loaded globally, but that will change once the option to disable the shadow DOM is removed.
 
 [shadow-dom-101]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom
 [shadow-dom-201]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/
