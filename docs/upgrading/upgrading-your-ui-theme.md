@@ -41,6 +41,7 @@ Chromium provides two tools for bypassing shadow boundaries, the `::shadow` pseu
 The `::shadow` pseudo-element allows you to bypass a single shadow root. For example, say you want to update a highlight decoration for a linter package. Initially, the style looks as follows:
 
 ```css
+// Without shadow DOM support
 atom-text-editor .highlight.my-linter {
   background: hotpink;
 }
@@ -49,6 +50,7 @@ atom-text-editor .highlight.my-linter {
 In order for this style to apply with the shadow DOM enabled, you will need to add a second selector with the `::shadow` pseudo-element. You should leave the original selector in place so your theme continues to work with the shadow DOM disabled during the transition period.
 
 ```css
+// With shadow DOM support
 atom-text-editor .highlight.my-linter,
 atom-text-editor::shadow .highlight.my-linter {
   background: hotpink;
@@ -62,6 +64,7 @@ Check out the [find-and-replace][https://github.com/atom/find-and-replace/blob/m
 The `/deep/` combinator overrides *all* shadow boundaries, making it useful for rules you want to apply globally such as scrollbar styling. Here's a snippet containing scrollbar styling for the Atom Dark UI theme before shadow DOM support:
 
 ```css
+// Without shadow DOM support
 .scrollbars-visible-always {
   ::-webkit-scrollbar {
     width: 8px;
@@ -84,6 +87,7 @@ The `/deep/` combinator overrides *all* shadow boundaries, making it useful for 
 To style scrollbars even inside of the shadow DOM, each rule needs to be prefixed with `/deep/`. We use `/deep/` instead of `::shadow` because we don't care about the selector of the host element in this case. We just want our styling to apply everywhere.
 
 ```css
+// With shadow DOM support using /deep/
 .scrollbars-visible-always {
   /deep/ ::-webkit-scrollbar {
     width: 8px;
