@@ -115,6 +115,9 @@ module.exports =
       autoIndent:
         type: 'boolean'
         default: true
+      autoIndentOnPaste:
+        type: 'boolean'
+        default: true
       normalizeIndentOnPaste:
         type: 'boolean'
         default: true

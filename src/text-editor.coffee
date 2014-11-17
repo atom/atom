@@ -2507,7 +2507,7 @@ class TextEditor extends Model
       if containsNewlines or !@getLastCursor().hasPrecedingCharactersOnLine()
         options.indentBasis ?= metadata.indentBasis
 
-    options.autoIndent = @shouldAutoIndent()
+    options.autoIndent = @shouldAutoIndentOnPaste()
     @insertText(text, options)
 
   # Public: For each selection, if the selection is empty, cut all characters
@@ -2723,6 +2723,9 @@ class TextEditor extends Model
 
   shouldAutoIndent: ->
     atom.config.get(@getRootScopeDescriptor(), "editor.autoIndent")
+
+  shouldAutoIndentOnPaste: ->
+    atom.config.get(@getRootScopeDescriptor(), "editor.autoIndentOnPaste")
 
   shouldShowInvisibles: ->
     not @mini and atom.config.get(@getRootScopeDescriptor(), 'editor.showInvisibles')

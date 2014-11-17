@@ -2573,6 +2573,44 @@ describe "TextEditor", ->
           expect(editor.lineTextForBufferRow(0)).toBe "var first = function () {"
           expect(editor.lineTextForBufferRow(1)).toBe "  var first = function(items) {"
 
+        describe "when config.autoIndentOnPaste is true", ->
+          beforeEach ->
+            atom.config.set("editor.autoIndentOnPaste", true)
+
+          describe "when only whitespace precedes the cursor", ->
+            it "auto-indents the lines spanned by the pasted text", ->
+              atom.clipboard.write("console.log(x);\nconsole.log(y);\n")
+              editor.setCursorBufferPosition([5, 2])
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(5)).toBe("      console.log(x);")
+              expect(editor.lineTextForBufferRow(6)).toBe("      console.log(y);")
+
+          describe "when non-whitespace characters precede the cursor", ->
+            it "does not auto-indent the first line being pasted", ->
+              editor.setText """
+              if (x) {
+                  y();
+              }
+              """
+
+              atom.clipboard.write(" z();")
+              editor.setCursorBufferPosition([1, Infinity])
+              editor.pasteText()
+
+              console.log JSON.stringify(editor.lineTextForBufferRow(1))
+              expect(editor.lineTextForBufferRow(1)).toBe("    y(); z();")
+
+        describe "when config.autoIndentOnPaste is false", ->
+          beforeEach ->
+            atom.config.set("editor.autoIndentOnPaste", false)
+
+          it "does not auto-indent the pasted text", ->
+            atom.clipboard.write("console.log(x);\nconsole.log(y);\n")
+            editor.setCursorBufferPosition([5, 0])
+            editor.pasteText()
+            expect(editor.lineTextForBufferRow(5)).toBe("console.log(x);")
+            expect(editor.lineTextForBufferRow(6)).toBe("console.log(y);")
+
         describe 'when the clipboard has many selections', ->
           it "pastes each selection separately into the buffer", ->
             atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
@@ -2582,6 +2620,7 @@ describe "TextEditor", ->
 
           describe 'and the selections count does not match', ->
             it "pastes the whole text into the buffer", ->
+              atom.config.set("editor.autoIndentOnPaste", false)
               atom.clipboard.write('first\nsecond\nthird', {selections: ['first', 'second', 'third'] })
               editor.pasteText()
               expect(editor.lineTextForBufferRow(0)).toBe "var first"
@@ -3340,27 +3379,6 @@ describe "TextEditor", ->
             editor.insertText('foo')
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
-        describe "when pasting", ->
-          describe "when only whitespace precedes the cursor", ->
-            it "auto-indents the lines spanned by the pasted text", ->
-              atom.clipboard.write("console.log(x);\nconsole.log(y);\n")
-              editor.setCursorBufferPosition([5, 2])
-              editor.pasteText()
-              expect(editor.lineTextForBufferRow(5)).toBe("      console.log(x);")
-              expect(editor.lineTextForBufferRow(6)).toBe("      console.log(y);")
-
-          describe "when non-whitespace characters precede the cursor", ->
-            it "does not auto-indent the first line being pasted", ->
-              editor.setText """
-                if (x) {
-                    y();
-                }
-              """
-
-              atom.clipboard.write(" z();")
-              editor.setCursorBufferPosition([1, Infinity])
-              editor.pasteText()
-              expect(editor.lineTextForBufferRow(1)).toBe("    y(); z();")
 
       describe 'when scoped settings are used', ->
         coffeeEditor = null
@@ -3389,6 +3407,7 @@ describe "TextEditor", ->
 
     describe "editor.normalizeIndentOnPaste", ->
       beforeEach ->
+        atom.config.set('editor.autoIndentOnPaste', false)
         atom.config.set('editor.normalizeIndentOnPaste', true)
 
       it "does not normalize the indentation level of the text when editor.normalizeIndentOnPaste is false", ->
