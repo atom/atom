@@ -730,5 +730,4 @@ class Atom extends Model
 
   setAutoHideMenuBar: (autoHide) ->
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
-    unless autoHide
-      ipc.send('call-window-method', 'setMenuBarVisibility', true)
+    ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)
