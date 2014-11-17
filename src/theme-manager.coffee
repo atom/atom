@@ -6,7 +6,7 @@ EmitterMixin = require('emissary').Emitter
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
-{deprecate} = require 'grim'
+Grim = require 'grim'
 
 Package = require './package'
 
@@ -101,17 +101,17 @@ class ThemeManager
   on: (eventName) ->
     switch eventName
       when 'reloaded'
-        deprecate 'Use ThemeManager::onDidReloadAll instead'
+        Grim.deprecate 'Use ThemeManager::onDidReloadAll instead'
       when 'stylesheet-added'
-        deprecate 'Use ThemeManager::onDidAddStylesheet instead'
+        Grim.deprecate 'Use ThemeManager::onDidAddStylesheet instead'
       when 'stylesheet-removed'
-        deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
+        Grim.deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
       when 'stylesheet-updated'
-        deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
+        Grim.deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
       when 'stylesheets-changed'
-        deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
+        Grim.deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
       else
-        deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
+        Grim.deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
 
   ###
