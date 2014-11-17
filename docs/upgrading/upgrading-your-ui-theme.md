@@ -26,6 +26,7 @@ Old Selector        | New Selector
 `.panel-bottom`     | `atom-panel[location="bottom"]`
 `.panel-left`       | `atom-panel[location="left"]`
 `.panel-right`      | `atom-panel[location="right"]`
+`.overlay`          | `atom-panel[location="modal"]`
 
 ## Supporting the Shadow DOM
 
