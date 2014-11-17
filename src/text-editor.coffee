@@ -2507,6 +2507,7 @@ class TextEditor extends Model
       if containsNewlines or !@getLastCursor().hasPrecedingCharactersOnLine()
         options.indentBasis ?= metadata.indentBasis
 
+    options.autoIndent = @shouldAutoIndent()
     @insertText(text, options)
 
   # Public: For each selection, if the selection is empty, cut all characters

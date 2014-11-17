@@ -3340,6 +3340,13 @@ describe "TextEditor", ->
             editor.insertText('foo')
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
+        describe "when pasting", ->
+          it "auto-indents the pasted text", ->
+            atom.clipboard.write("console.log(x);\n")
+            editor.setCursorBufferPosition([5, 2])
+            editor.pasteText()
+            expect(editor.lineTextForBufferRow(5)).toBe("      console.log(x);")
+
       describe 'when scoped settings are used', ->
         coffeeEditor = null
         beforeEach ->
