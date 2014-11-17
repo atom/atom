@@ -3379,7 +3379,6 @@ describe "TextEditor", ->
             editor.insertText('foo')
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
-
       describe 'when scoped settings are used', ->
         coffeeEditor = null
         beforeEach ->
