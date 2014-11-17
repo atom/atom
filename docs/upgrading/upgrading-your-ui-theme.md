@@ -55,6 +55,8 @@ atom-text-editor::shadow .highlight.my-linter {
 }
 ```
 
+Check out the [find-and-replace][https://github.com/atom/find-and-replace/blob/master/stylesheets/find-and-replace.less#L10] package for another example of using `::shadow` to pierce the shadow DOM.
+
 #### /deep/
 
 The `/deep/` combinator overrides *all* shadow boundaries, making it useful for rules you want to apply globally such as scrollbar styling. Here's a snippet containing scrollbar styling for the Atom Dark UI theme before shadow DOM support:
@@ -112,9 +114,11 @@ my-ui-theme/
     index.atom-text-editor.less  # loaded in the text editor shadow DOM
 ```
 
+Check out this [style sheet](https://github.com/atom/decoration-example/blob/master/stylesheets/decoration-example.atom-text-editor.less) from the decoration-example package for an example of context-targeting.
+
 Inside a context-targeted style sheet, there's no need to use the `::shadow` or `/deep/` expressions. If you want to refer to the element containing the shadow root, you can use the `::host` pseudo-element.
 
-During the transition phase, style sheets targeting the `atom-text-editor` context will *also* be loaded globally, but that will change once the option to disable the shadow DOM is removed.
+During the transition phase, style sheets targeting the `atom-text-editor` context will *also* be loaded globally. Make sure you update your selectors in a way that maintains compatibility with the shadow DOM being disabled. That means if you use a `::host` pseudo element, you should also include the same style rule matches against `atom-text-editor`.
 
 [shadow-dom-101]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom
 [shadow-dom-201]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/
