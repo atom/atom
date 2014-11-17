@@ -60,6 +60,8 @@ class WindowEventHandler
       atom.reload()
 
     @subscribeToCommand $(window), 'window:toggle-dev-tools', -> atom.toggleDevTools()
+    @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
+      atom.config.set('core.autoHideMenuBar', !atom.config.get('core.autoHideMenuBar'))
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 
