@@ -250,8 +250,8 @@ class LanguageMode
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
     currentLine = @buffer.lineForRow(bufferRow)
-    precedingRow = if bufferRow > 0 then bufferRow - 1 else null
-    return currentIndentLevel unless precedingRow?
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return 0 unless precedingRow?
 
     precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
