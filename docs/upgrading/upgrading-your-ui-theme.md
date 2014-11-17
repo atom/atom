@@ -1,6 +1,12 @@
 # Upgrading your UI Theme or Package Stylesheets
 
-In addition to changes in Atom's scripting API, we'll also be making some breaking changes to Atom's DOM structure, requiring stylesheets in both packages and themes to be updated. Deprecation cop will list usages of deprecated selector patterns to guide you.
+In addition to changes in Atom's scripting API, we'll also be making some breaking changes to Atom's DOM structure, requiring stylesheets and keymaps in both packages and themes to be updated.
+
+## Deprecation Cop
+
+Deprecation cop will list usages of deprecated selector patterns to guide you. You can access it via the command palette (`cmd-shift-p`, then search for `Deprecation`). It breaks the deprecations down by package:
+
+![dep-cop](https://cloud.githubusercontent.com/assets/69169/5078860/d38a5df4-6e64-11e4-95b6-eb585ee9bbfc.png)
 
 ## Custom Tags
 
