@@ -2684,6 +2684,24 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
+  describe "middle mouse paste on Linux", ->
+    it "pastes the previously selected text", ->
+      atom.clipboard.write('')
+      component.listenForMiddleMousePaste()
+
+      editor.setCursorBufferPosition([10, 0])
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', which: 2))
+
+      expect(atom.clipboard.read()).toBe ''
+      expect(editor.lineTextForBufferRow(10)).toBe ''
+
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      editor.setCursorBufferPosition([10, 0])
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', which: 2))
+
+      expect(atom.clipboard.read()).toBe 'sort'
+      expect(editor.lineTextForBufferRow(10)).toBe 'sort'
+
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
     properties.detail ?= 1

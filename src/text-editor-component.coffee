@@ -405,6 +405,7 @@ TextEditorComponent = React.createClass
     window.addEventListener 'resize', @requestHeightAndWidthMeasurement
 
     @listenForIMEEvents()
+    @listenForMiddleMousePaste() if process.platform is 'linux'
 
   listenForIMEEvents: ->
     node = @getDOMNode()
@@ -431,6 +432,19 @@ TextEditorComponent = React.createClass
     node.addEventListener 'compositionend', (event) ->
       editor.insertText(selectedText, select: true, undo: 'skip')
       event.target.value = ''
+
+  listenForMiddleMousePaste: ->
+    clipboard = require 'clipboard'
+
+    @refs.scrollView.getDOMNode().addEventListener 'mouseup', ({which}) =>
+      return unless which is 2
+
+      if selection = clipboard.readText('selection')
+        @props.editor.insertText(selection)
+
+    @subscribe @props.editor.onDidChangeSelectionRange =>
+      if selectedText = @props.editor.getSelectedText()
+        clipboard.writeText(selectedText, 'selection')
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
