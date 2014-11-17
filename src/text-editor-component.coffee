@@ -440,12 +440,10 @@ TextEditorComponent = React.createClass
       return unless which is 2
 
       if selection = clipboard.readText('selection')
-        {editor} = @props
-        editor.insertText(selection)
+        @props.editor.insertText(selection)
 
     @subscribe @props.editor.onDidChangeSelectionRange =>
-      {editor} = @props
-      if selectedText = editor.getSelectedText()
+      if selectedText = @props.editor.getSelectedText()
         clipboard.writeText(selectedText, 'selection')
 
   observeConfig: ->
