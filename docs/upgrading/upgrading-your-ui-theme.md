@@ -29,6 +29,7 @@ Text editor content is now rendered in the shadow DOM, which shields it from bei
 * Gutter decorations
 * Line decorations
 * Scrollbar styling
+* Anything targeting a child selector of `.editor`
 
 During a transition phase, it will be possible to enable or disable the text editor's shadow DOM in the settings, so themes will need to be compatible with both approaches.
 
