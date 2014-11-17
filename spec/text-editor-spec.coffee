@@ -3341,11 +3341,26 @@ describe "TextEditor", ->
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
         describe "when pasting", ->
-          it "auto-indents the pasted text", ->
-            atom.clipboard.write("console.log(x);\n")
-            editor.setCursorBufferPosition([5, 2])
-            editor.pasteText()
-            expect(editor.lineTextForBufferRow(5)).toBe("      console.log(x);")
+          describe "when only whitespace precedes the cursor", ->
+            it "auto-indents the lines spanned by the pasted text", ->
+              atom.clipboard.write("console.log(x);\nconsole.log(y);\n")
+              editor.setCursorBufferPosition([5, 2])
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(5)).toBe("      console.log(x);")
+              expect(editor.lineTextForBufferRow(6)).toBe("      console.log(y);")
+
+          describe "when non-whitespace characters precede the cursor", ->
+            it "does not auto-indent the first line being pasted", ->
+              editor.setText """
+                if (x) {
+                    y();
+                }
+              """
+
+              atom.clipboard.write(" z();")
+              editor.setCursorBufferPosition([1, Infinity])
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(1)).toBe("    y(); z();")
 
       describe 'when scoped settings are used', ->
         coffeeEditor = null
