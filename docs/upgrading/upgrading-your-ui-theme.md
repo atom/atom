@@ -1,6 +1,6 @@
-# Upgrading your UI Theme
+# Upgrading your UI Theme or Package Stylesheets
 
-In addition to changes in Atom's scripting API, we'll also be making some breaking changes to Atom's DOM structure, requiring style sheets in both packages and themes to be updated. Deprecation cop will list usages of deprecated selector patterns to guide you.
+In addition to changes in Atom's scripting API, we'll also be making some breaking changes to Atom's DOM structure, requiring stylesheets in both packages and themes to be updated. Deprecation cop will list usages of deprecated selector patterns to guide you.
 
 ## Custom Tags
 
