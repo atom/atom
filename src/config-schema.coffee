@@ -192,4 +192,4 @@ if process.platform in ['win32', 'linux']
   module.exports.core.autoHideMenuBar =
     type: 'boolean'
     default: false
-    title: 'Automatically hide the menu bar. This is only supported on Linux and Windows'
+    description: 'Automatically hide the menu bar. This is only supported on Linux and Windows'
