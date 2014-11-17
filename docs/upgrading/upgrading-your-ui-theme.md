@@ -1,4 +1,4 @@
-# Upgrading your UI Theme or Package Stylesheets
+# Upgrading Your UI Theme Or Package Selectors
 
 In addition to changes in Atom's scripting API, we'll also be making some breaking changes to Atom's DOM structure, requiring stylesheets and keymaps in both packages and themes to be updated.
 
