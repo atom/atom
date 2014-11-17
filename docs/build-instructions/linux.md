@@ -43,7 +43,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
 2. Checkout the latest Atom release:
 
   ```sh
-  git fetch
+  git fetch -p
   git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
   ```
 
