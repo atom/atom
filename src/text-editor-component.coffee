@@ -436,7 +436,9 @@ TextEditorComponent = React.createClass
   listenForMiddleMousePaste: ->
     clipboard = require 'clipboard'
 
-    @refs.scrollView.getDOMNode().addEventListener 'mouseup', =>
+    @refs.scrollView.getDOMNode().addEventListener 'mouseup', ({which}) =>
+      return unless which is 2
+
       if selection = clipboard.readText('selection')
         {editor} = @props
         editor.insertText(selection)
