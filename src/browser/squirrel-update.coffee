@@ -13,7 +13,6 @@ fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
 directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
 backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom'
 environmentKeyPath = 'HKCU\\Environment'
-pathKeyPath = "#{environmentKeyPath}\\Path"
 
 spawn = (command, args, callback) ->
   spawnedProcess = ChildProcess.spawn(command, args)
@@ -86,7 +85,7 @@ updatePath = (callback) ->
 
         console.log 'updating'
         console.log segments.join(';')
-        args = ['add', pathKeyPath, segments.join(';'), '/f']
+        args = ['add', environmentKeyPath, '/v', 'Path', segments.join(';'), '/f']
         spawnReg(args, callback)
 
 exports.spawn = spawnUpdate
