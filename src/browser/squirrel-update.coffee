@@ -37,6 +37,7 @@ spawnReg = (args, callback) ->
 spawnUpdate = (args, callback) ->
   spawn(updateDotExe, args, callback)
 
+# Install the Open with Atom explorer context menu items via the registry.
 installContextMenu = (callback) ->
   addToRegistry = (args, callback) ->
     args.unshift('add')
@@ -55,6 +56,7 @@ installContextMenu = (callback) ->
     installMenu directoryKeyPath, ->
       installMenu(backgroundKeyPath, callback)
 
+# Uninstall the Open with Atom explorer context menu items via the registry.
 uninstallContextMenu = (callback) ->
   deleteFromRegistry = (keyPath, callback) ->
     spawnReg(['delete', keyPath, '/f'], callback)
@@ -63,6 +65,11 @@ uninstallContextMenu = (callback) ->
     deleteFromRegistry directoryKeyPath, ->
       deleteFromRegistry(backgroundKeyPath, callback)
 
+# Add apm and atom.exe to the PATH
+#
+# This is done by adding .cmd shims to the root bin folder in the Atom
+# install directory that point to the newly installed versions inside
+# the versioned app directories.
 updatePath = (callback) ->
   installCommands = (callback) ->
     atomCommandPath = path.join(binFolder, 'atom.cmd')
