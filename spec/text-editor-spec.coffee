@@ -2477,25 +2477,23 @@ describe "TextEditor", ->
           expect(editor.getCursorScreenPosition()).toEqual [0, editor.getTabLength() * 2]
 
     describe "clipboard operations", ->
-      beforeEach ->
-        editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
-
       describe ".cutSelectedText()", ->
         it "removes the selected text from the buffer and places it on the clipboard", ->
+          editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
           editor.cutSelectedText()
           expect(buffer.lineForRow(0)).toBe "var  = function () {"
           expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
-
           expect(clipboard.readText()).toBe 'quicksort\nsort'
 
         describe "when no text is selected", ->
           beforeEach ->
-            editor.setSelectedBufferRanges([[1, 0], [1, 0]])
-            editor.addCursorAtBufferPosition([5, 0])
+            editor.setSelectedBufferRanges([
+              [[0, 0], [0, 0]],
+              [[5, 0], [5, 0]],
+            ])
 
           it "cuts the lines on which there are cursors", ->
             editor.cutSelectedText()
-
             expect(buffer.getLineCount()).toBe(11)
             expect(buffer.lineForRow(1)).toBe("    if (items.length <= 1) return items;")
             expect(buffer.lineForRow(4)).toBe("      current < pivot ? left.push(current) : right.push(current);")
@@ -2578,6 +2576,7 @@ describe "TextEditor", ->
           textEditor.cutSelectedText()
 
         it "pastes text into the buffer", ->
+          editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
           atom.clipboard.write('first')
           editor.pasteText()
           expect(editor.lineTextForBufferRow(0)).toBe "var first = function () {"
@@ -2657,7 +2656,8 @@ describe "TextEditor", ->
               waitsForPromise ->
                 atom.packages.activatePackage('language-coffee-script')
               waitsForPromise ->
-                atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+                atom.project.open('coffee.coffee', autoIndent: false).then (o) ->
+                  coffeeEditor = o
 
               runs ->
                 atom.config.set('.source.js', 'editor.normalizeIndentOnPaste', true)
@@ -2703,6 +2703,9 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(7)).toBe "  }"
 
         describe 'when the clipboard has many selections', ->
+          beforeEach ->
+            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+
           it "pastes each selection separately into the buffer", ->
             atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
             editor.pasteText()
@@ -2711,6 +2714,7 @@ describe "TextEditor", ->
 
           describe 'and the selections count does not match', ->
             it "pastes the whole text into the buffer", ->
+              atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
               atom.config.set("editor.autoIndentOnPaste", false)
               atom.clipboard.write('first\nsecond\nthird', {selections: ['first', 'second', 'third'] })
               editor.pasteText()
