@@ -66,6 +66,12 @@ getPath = (callback) ->
       else
         return callback(error)
 
+    # Registry query output is in the form:
+    #
+    # HKEY_CURRENT_USER\Environment
+    #     Path    REG_SZ    C:\a\folder\on\the\path;C\another\folder
+    #
+
     lines = stdout.split(/[\r\n]+/).filter (line) -> line
     segments = lines[lines.length - 1]?.split('    ')
     if segments[1] is 'Path' and segments.length >= 3
