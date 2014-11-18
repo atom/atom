@@ -18,9 +18,7 @@ spawn = (command, args, callback) ->
   spawnedProcess = ChildProcess.spawn(command, args)
 
   stdout = ''
-  stderr = ''
   spawnedProcess.stdout.on 'data', (data) -> stdout += data
-  spawnedProcess.stderr.on 'data', (data) -> stderr += data
 
   error = null
   spawnedProcess.on 'error', (processError) -> error ?= processError
@@ -28,8 +26,7 @@ spawn = (command, args, callback) ->
     error ?= new Error("Command failed: #{signal ? code}") if code isnt 0
     error?.code ?= code
     error?.stdout ?= stdout
-    error?.stderr ?= stderr
-    callback(error, stdout, stderr)
+    callback(error, stdout)
 
 # Spawn reg.exe and callback when it completes
 spawnReg = (args, callback) ->
@@ -94,9 +91,13 @@ updatePath = (callback) ->
         callback()
 
   getPath = (callback) ->
-    spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout, stderr) ->
-      console.log stderr
-      return callback(error) if error?
+    spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
+      if error?
+        # The query failed so the Path does not exist yet in the registry
+        return callback(null, '') if error.code is 1
+      else
+        return callback(error)
+
 
       lines = stdout.split(/[\r\n]+/).filter (line) -> line
       segments = lines[lines.length - 1]?.split('    ')
