@@ -14,6 +14,8 @@ directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
 backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom'
 environmentKeyPath = 'HKCU\\Environment'
 
+# Spawn a command and invoke the callback when it completes with an error
+# and the output from standard out.
 spawn = (command, args, callback) ->
   spawnedProcess = ChildProcess.spawn(command, args)
 
