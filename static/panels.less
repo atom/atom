@@ -44,8 +44,8 @@
 
 // Tool panels
 
-atom-panel-container[location="left"],
-atom-panel-container[location="right"] {
+atom-panel-container.left,
+atom-panel-container.right {
   display: -webkit-flex;
   -webkit-flex-direction: row;
   -webkit-align-items: stretch;
@@ -59,10 +59,10 @@ atom-panel {
   display: block;
 }
 
-atom-panel[location="top"],
-atom-panel[location="bottom"],
-atom-panel[location="left"],
-atom-panel[location="right"] {
+atom-panel.top,
+atom-panel.bottom,
+atom-panel.left,
+atom-panel.right {
   background-color: @tool-panel-background-color;
 }
 
@@ -75,7 +75,7 @@ atom-panel[location="right"] {
 // Modal panels
 
 .overlay, // deprecated .overlay
-atom-panel[location="modal"] {
+atom-panel.modal {
   position: absolute;
   left: 50%;
   width: 500px;
@@ -117,7 +117,7 @@ atom-panel[location="modal"] {
 
 // deprecated: from-top, from-bottom
 .overlay.from-top,
-atom-panel[location="modal"] {
+atom-panel.modal {
   top: 0;
   border-top: none;
   border-top-left-radius: 0;
