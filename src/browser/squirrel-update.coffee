@@ -64,6 +64,8 @@ uninstallContextMenu = (callback) ->
 updatePath = (callback) ->
   getPath = (callback) ->
     spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
+      console.log error
+      console.log stdout
       lines = stdout.split('\n')
       segments = lines[lines.length - 1].split('    ')
       pathSegment = segments[3..].join('    ')
