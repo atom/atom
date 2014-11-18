@@ -34,8 +34,8 @@ describe "PanelContainerElement", ->
     element = container.getView()
     jasmineContent.appendChild(element)
 
-  it 'has a location attribute with value from the model', ->
-    expect(element.getAttribute('location')).toBe 'left'
+  it 'has a location class with value from the model', ->
+    expect(element).toHaveClass 'left'
 
   it 'removes the element when the container is destroyed', ->
     expect(element.parentNode).toBe jasmineContent
@@ -50,7 +50,7 @@ describe "PanelContainerElement", ->
         panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem()})
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe 1
-        expect(element.childNodes[0].getAttribute('location')).toBe 'left'
+        expect(element.childNodes[0]).toHaveClass 'left'
 
         expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
 
@@ -79,7 +79,7 @@ describe "PanelContainerElement", ->
         panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem(), className: 'one'})
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe 1
-        expect(element.childNodes[0].getAttribute('location')).toBe 'bottom'
+        expect(element.childNodes[0]).toHaveClass 'bottom'
         expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
         expect(panel1.getView()).toHaveClass 'one'
 
