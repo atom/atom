@@ -75,18 +75,16 @@ updatePath = (callback) ->
         callback(new Error('Registry query for PATH failed'))
 
   getPath (error, envPath) ->
-    if error?
-      callback(error)
-    else
-      console.log envPath
-      segments = envPath.split(';')
-      if segments.indexOf(binFolder) is -1
-        segments.push(binFolder)
+    return callback(error) if error?
 
-        console.log 'updating'
-        console.log segments.join(';')
-        args = ['add', environmentKeyPath, '/v', 'Path', '/d', segments.join(';'), '/f']
-        spawnReg(args, callback)
+    segments = envPath.split(';')
+    return callback() unless segments.indexOf(binFolder) is -1
+
+    segments.push(binFolder)
+    console.log 'updating'
+    console.log segments.join(';')
+    args = ['add', environmentKeyPath, '/v', 'Path', '/d', segments.join(';'), '/f']
+    spawnReg(args, callback)
 
 exports.spawn = spawnUpdate
 
