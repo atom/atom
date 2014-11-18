@@ -33,6 +33,7 @@ installContextMenu = (callback) ->
 
   spawnReg = (args) ->
     regProcess = ChildProcess.spawn('reg.exe', args)
+    console.log args
 
     error = null
     regProcess.on 'error', (processError) -> error ?= processError
