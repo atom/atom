@@ -6,7 +6,6 @@ module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   GitRepository: require '../src/git-repository'
-  TextEditor: require '../src/text-editor'
   Point: Point
   Range: Range
   Emitter: Emitter
@@ -17,6 +16,8 @@ module.exports =
 # only be exported when not running as a child node process
 unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Task = require '../src/task'
+  module.exports.TextEditor = require '../src/text-editor'
+
   {$, $$, $$$, View} = require '../src/space-pen-extensions'
 
   Object.defineProperty module.exports, 'Workspace', get: ->
