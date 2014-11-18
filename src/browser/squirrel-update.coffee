@@ -30,6 +30,8 @@ exports.existsSync = ->
 
 installContextMenu = (callback) ->
   fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
+  directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
+  backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom'
 
   spawnReg = (args, callback) ->
     args.unshift('add')
@@ -41,6 +43,18 @@ installContextMenu = (callback) ->
       error ?= new Error("Command failed: #{signal ? code}") if code isnt 0
       error?.code ?= code
       callback(error)
+
+  installMenu = (keyPath, callback) ->
+    args = [keyPath, '/ve', '/d', 'Open with Atom', '/f']
+    spawnReg args, ->
+      args = [keyPath, '/v', 'Icon', '/d', process.execPath, '/f']
+      spawnReg args, ->
+        args = ["#{keyPath}\\command", '/ve', '/d', process.execPath, '/f']
+        spawnReg(args, callback)
+
+  installMenu fileKeyPath, ->
+    installMenu directoryKeyPath, ->
+      installMenu(backgroundKeyPath, callback)
 
   installFileMenu = (callback) ->
     args = [fileKeyPath, '/ve', '/d', 'Open with Atom', '/f']
