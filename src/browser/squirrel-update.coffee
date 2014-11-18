@@ -3,7 +3,9 @@ ChildProcess = require 'child_process'
 fs = require 'fs'
 path = require 'path'
 
-updateDotExe = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
+rootAtomFolder = path.resolve(process.execPath, '..', '..')
+binFolder = path.resolve(process.execPath, 'bin')
+updateDotExe = path.join(rootAtomFolder, 'Update.exe')
 exeName = path.basename(process.execPath)
 
 # Registry keys used for context menu
@@ -11,6 +13,7 @@ fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
 directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
 backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom'
 environmentKeyPath = 'HKCU\\Environment'
+pathKeyPath = "#{environmentKeyPath}\\Path"
 
 spawn = (command, args, callback) ->
   spawnedProcess = ChildProcess.spawn(command, args)
@@ -65,13 +68,23 @@ updatePath = (callback) ->
   getPath = (callback) ->
     spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
       lines = stdout.split(/[\r\n]+/).filter (line) -> line
-      console.log lines
       segments = lines[lines.length - 1]?.split('    ')
-      pathSegment = segments?[3..].join('    ')
-      console.log pathSegment
-      callback()
+      if segments[1] is 'Path' and segments.length >= 3
+        envPath = segments?[3..].join('    ')
+        callback(null, envPath)
+      else
+        callback(new Error('Registry query for PATH failed'))
 
-  getPath(callback)
+  getPath (error, envPath) ->
+    if error?
+      callback(error)
+    else
+      segments = envPath.split(';')
+      if segments.indexOf(binFolder) is -1
+        segments.push(binFolder)
+
+        args = ['add', pathKeyPath, segments.join(';'), '/f']
+        spawnReg(args, callback)
 
 exports.spawn = spawnUpdate
 
