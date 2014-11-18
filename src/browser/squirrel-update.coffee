@@ -8,6 +8,14 @@ binFolder = path.join(rootAtomFolder, 'bin')
 updateDotExe = path.join(rootAtomFolder, 'Update.exe')
 exeName = path.basename(process.execPath)
 
+if process.env.SystemRoot
+  system32Path = path.join(process.env.SystemRoot, 'System32')
+  regPath = path.join(system32Path, 'reg.exe')
+  setxPath = path.join(system32Path, 'setx.exe')
+else
+  regPath = 'reg.exe'
+  setxPath = 'setx.exe'
+
 # Registry keys used for context menu
 fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
 directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
@@ -32,18 +40,10 @@ spawn = (command, args, callback) ->
 
 # Spawn reg.exe and callback when it completes
 spawnReg = (args, callback) ->
-  if process.env.SystemRoot
-    regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe')
-  else
-    regPath = 'reg.exe'
   spawn(regPath, args, callback)
 
 # Spawn setx.exe and callback when it completes
 spawnSetx = (args, callback) ->
-  if process.env.SystemRoot
-    setxPath = path.join(process.env.SystemRoot, 'System32', 'setx.exe')
-  else
-    setxPath = 'setx.exe'
   spawn(setxPath, args, callback)
 
 # Spawn the Update.exe with the given arguments and invoke the callback when
