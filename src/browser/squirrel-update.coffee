@@ -46,6 +46,7 @@ installContextMenu = (callback) ->
   installFileMenu = ->
     args = [fileKeyPath, '/ve', '/d', 'Open with Atom', '/f']
     spawnReg args, (error) ->
+      console.log 'done'
       # return callback(error) if error?
 
       args = [fileKeyPath, '/v', 'Icon', '/d', process.execPath, '/f']
@@ -63,7 +64,7 @@ exports.handleStartupEvent = ->
     when '--squirrel-install', '--squirrel-updated'
       exports.spawn ['--createShortcut', exeName], ->
         installContextMenu (error) ->
-          console.log(error)
+          console.log(error) if error?
           app.quit()
       true
     when '--squirrel-uninstall'
