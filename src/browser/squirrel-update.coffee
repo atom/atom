@@ -74,7 +74,7 @@ updatePath = (callback) ->
     fs.writeFile(atomCommandPath, atomCommand, callback)
 
     apmCommandPath = path.join(binFolder, 'apm.cmd')
-    relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'atom.cmd'))
+    relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm.cmd'))
     apmCommand = """
       @echo off
       "%~dp0\\#{relativeApmPath}" %*
