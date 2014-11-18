@@ -32,6 +32,7 @@ installContextMenu = (callback) ->
   fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
 
   spawnReg = (args) ->
+    args.unshift('add')
     regProcess = ChildProcess.spawn('reg.exe', args)
     console.log args
 
