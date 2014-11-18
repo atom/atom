@@ -133,5 +133,5 @@ Inside a context-targeted style sheet, there's no need to use the `::shadow` or 
 During the transition phase, style sheets targeting the `atom-text-editor` context will *also* be loaded globally. Make sure you update your selectors in a way that maintains compatibility with the shadow DOM being disabled. That means if you use a `::host` pseudo element, you should also include the same style rule matches against `atom-text-editor`.
 
 [shadow-dom-101]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom
-[shadow-dom-201]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/
+[shadow-dom-201]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201#toc-style-cat-hat
 [find-and-replace]: https://github.com/atom/find-and-replace/blob/95351f261bc384960a69b66bf12eae8002da63f9/stylesheets/find-and-replace.less#L10
