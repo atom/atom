@@ -1,6 +1,6 @@
 app = require 'app'
 ChildProcess = require 'child_process'
-fs = require 'fs'
+fs = require 'fs-plus'
 path = require 'path'
 
 rootAtomFolder = path.resolve(process.execPath, '..', '..')
