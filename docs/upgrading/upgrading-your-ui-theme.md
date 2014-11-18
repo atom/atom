@@ -22,11 +22,11 @@ Old Selector        | New Selector
 `.pane-container`   | `atom-pane-conatiner`
 `.pane`             | `atom-pane`
 `.tool-panel`       | `atom-panel`
-`.panel-top`        | `atom-panel[location="top"]`
-`.panel-bottom`     | `atom-panel[location="bottom"]`
-`.panel-left`       | `atom-panel[location="left"]`
-`.panel-right`      | `atom-panel[location="right"]`
-`.overlay`          | `atom-panel[location="modal"]`
+`.panel-top`        | `atom-panel.top`
+`.panel-bottom`     | `atom-panel.bottom`
+`.panel-left`       | `atom-panel.left`
+`.panel-right`      | `atom-panel.right`
+`.overlay`          | `atom-panel.modal`
 
 ## Supporting the Shadow DOM
 
