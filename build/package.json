@@ -27,7 +27,7 @@
     "legal-eagle": "~0.6.0",
     "minidump": "~0.8",
     "npm": "~1.4.5",
-    "rcedit": "~0.2.0",
+    "rcedit": "~0.3.0",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
     "runas": "~1.0.1",
