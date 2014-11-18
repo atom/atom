@@ -57,7 +57,8 @@ class ThemeManager
   Section: Event Subscription
   ###
 
-  # Essential: Invoke `callback` when all styles have been reloaded.
+  # Essential: Invoke `callback` when style sheet changes associated with
+  # updating the list of active themes have completed.
   #
   # * `callback` {Function}
   onDidReloadAll: (callback) ->
