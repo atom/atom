@@ -85,7 +85,7 @@ updatePath = (callback) ->
 
         console.log 'updating'
         console.log segments.join(';')
-        args = ['add', environmentKeyPath, '/v', 'Path', segments.join(';'), '/f']
+        args = ['add', environmentKeyPath, '/v', 'Path', '/d', segments.join(';'), '/f']
         spawnReg(args, callback)
 
 exports.spawn = spawnUpdate
