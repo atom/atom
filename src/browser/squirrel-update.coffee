@@ -79,10 +79,13 @@ updatePath = (callback) ->
     if error?
       callback(error)
     else
+      console.log envPath
       segments = envPath.split(';')
       if segments.indexOf(binFolder) is -1
         segments.push(binFolder)
 
+        console.log 'updating'
+        console.log segments.join(';')
         args = ['add', pathKeyPath, segments.join(';'), '/f']
         spawnReg(args, callback)
 
