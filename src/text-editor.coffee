@@ -2448,7 +2448,8 @@ class TextEditor extends Model
       @commentScopeSelector.matches(scopeDescriptor)
 
   logCursorScope: ->
-    console.log @getLastCursor().getScopeDescriptor()
+    scopeDescriptor = @getLastCursor().getScopeDescriptor()
+    console.log scopeDescriptor.scopes, scopeDescriptor
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
