@@ -56,20 +56,6 @@ installContextMenu = (callback) ->
     installMenu directoryKeyPath, ->
       installMenu(backgroundKeyPath, callback)
 
-  installFileMenu = (callback) ->
-    args = [fileKeyPath, '/ve', '/d', 'Open with Atom', '/f']
-    spawnReg args, (error) ->
-      return callback(error) if error?
-
-      args = [fileKeyPath, '/v', 'Icon', '/d', process.execPath, '/f']
-      spawnReg args, (error) ->
-        return callback(error) if error?
-
-        args = ["#{fileKeyPath}\\command", '/ve', '/d', process.execPath, '/f']
-        spawnReg(args, callback)
-
-  installFileMenu(callback)
-
 # Handle squirrel events denoted by --squirrel-* command line arguments.
 exports.handleStartupEvent = ->
   switch process.argv[1]
