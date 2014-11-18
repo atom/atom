@@ -2631,15 +2631,35 @@ describe "TextEditor", ->
 
           describe "when the inserted text contains newlines", ->
             describe "when the cursor is preceded only by whitespace characters", ->
-              it "normalizes indented lines to the cursor's current indentation level", ->
-                copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2})
-                editor.setCursorBufferPosition([3, 4])
+              it "normalizes indented lines to each cursor's current indentation level", ->
+                editor.setSelectedBufferRanges([
+                  [[1,2], [3,0]],
+                  [[4,4], [6,0]]
+                ])
+                editor.copySelectedText()
+                expect(atom.clipboard.read()).toEqual """
+                  var sort = function(items) {
+                      if (items.length <= 1) return items;
+
+                  while(items.length > 0) {
+                        current = items.shift();
+
+                """
+
+                editor.setCursorBufferPosition([0,0])
+                editor.insertNewlineAbove()
+                editor.setSelectedBufferRanges([
+                  [[0,0], [0,0]],
+                  [[1,0], [1,0]]
+                ])
                 editor.pasteText()
 
-                expect(editor.lineTextForBufferRow(3)).toBe "    while (true) {"
-                expect(editor.lineTextForBufferRow(4)).toBe "      foo();"
-                expect(editor.lineTextForBufferRow(5)).toBe "    }"
-                expect(editor.lineTextForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
+                expect(editor.lineTextForBufferRow(0)).toBe "var sort = function(items) {"
+                console.log JSON.stringify(editor.lineTextForBufferRow(1))
+                expect(editor.lineTextForBufferRow(1)).toBe "  if (items.length <= 1) return items;"
+                expect(editor.lineTextForBufferRow(2)).toBe ""
+                expect(editor.lineTextForBufferRow(3)).toBe "while(items.length > 0) {"
+                expect(editor.lineTextForBufferRow(4)).toBe "  current = items.shift();"
 
             describe "when the cursor is preceded by non-whitespace characters", ->
               it "normalizes the indentation level of all lines based on the level of the existing first line", ->

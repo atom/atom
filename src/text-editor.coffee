@@ -2494,21 +2494,24 @@ class TextEditor extends Model
   #
   # * `options` (optional) See {Selection::insertText}.
   pasteText: (options={}) ->
-    {text, metadata} = atom.clipboard.readWithMetadata()
-
-    if metadata?.selections?.length is @getSelections().length
-      @mutateSelectedText (selection, index) ->
-        text = metadata.selections[index]
-        selection.insertText(text, options)
-      return
-
-    if metadata?.indentBasis? and atom.config.get(@getLastCursor().getScopeDescriptor(), "editor.normalizeIndentOnPaste")
-      containsNewlines = text.indexOf('\n') isnt -1
-      if containsNewlines or !@getLastCursor().hasPrecedingCharactersOnLine()
-        options.indentBasis ?= metadata.indentBasis
-
+    {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
+    metadata ?= {}
     options.autoIndent = @shouldAutoIndentOnPaste()
-    @insertText(text, options)
+
+    @mutateSelectedText (selection, index) =>
+      if metadata.selections?.length is @getSelections().length
+        {text, indentBasis} = metadata.selections[index]
+      else
+        [text, indentBasis] = [clipboardText, metadata.indentBasis]
+
+      delete options.indentBasis
+      {cursor} = selection
+      if indentBasis? and atom.config.get(cursor.getScopeDescriptor(), "editor.normalizeIndentOnPaste")
+        containsNewlines = text.indexOf('\n') isnt -1
+        if containsNewlines or !cursor.hasPrecedingCharactersOnLine()
+          options.indentBasis ?= indentBasis
+
+      selection.insertText(text, options)
 
   # Public: For each selection, if the selection is empty, cut all characters
   # of the containing line following the cursor. Otherwise cut the selected
