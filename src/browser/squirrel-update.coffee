@@ -86,7 +86,7 @@ updatePath = (callback) ->
 
   addBinToPath = (envSegments, callback) ->
     envSegments.push(binFolder)
-    args = ['add', environmentKeyPath, '/v', 'Path', '/d', envSegments.join(';'), '/f']
+    args = ['setx', 'Path', envSegments.join(';')]
     spawnReg(args, callback)
 
   installCommands (error) ->
