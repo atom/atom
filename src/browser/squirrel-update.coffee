@@ -31,7 +31,7 @@ exports.existsSync = ->
 installContextMenu = (callback) ->
   fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
 
-  spawnReg = (args) ->
+  spawnReg = (args, callback) ->
     args.unshift('add')
     regProcess = ChildProcess.spawn('reg.exe', args)
     console.log args
@@ -43,7 +43,7 @@ installContextMenu = (callback) ->
       error?.code ?= code
       callback(error)
 
-  installFileMenu = ->
+  installFileMenu = (callback) ->
     args = [fileKeyPath, '/ve', '/d', 'Open with Atom', '/f']
     spawnReg args, (error) ->
       console.log 'done'
