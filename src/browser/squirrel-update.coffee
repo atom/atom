@@ -13,7 +13,7 @@ backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom
 environmentKeyPath = 'HKCU\\Environment'
 
 spawn = (command, args, callback) ->
-  spawnedProcess = ChildProcess.spawn('reg.exe', args)
+  spawnedProcess = ChildProcess.spawn(command, args)
 
   stdout = ''
   spawnedProcess.stdout.on 'data', (data) -> stdout += data
