@@ -73,6 +73,14 @@ updatePath = (callback) ->
     """
     fs.writeFile(atomCommandPath, atomCommand, callback)
 
+    apmCommandPath = path.join(binFolder, 'apm.cmd')
+    relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'atom.cmd'))
+    apmCommand = """
+      @echo off
+      "%~dp0\\#{relativeApmPath}" %*
+    """
+    fs.writeFile(apmCommandPath, apmCommand, callback)
+
   getPath = (callback) ->
     spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
       return callback(error) if error?
