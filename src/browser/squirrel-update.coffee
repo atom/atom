@@ -68,6 +68,7 @@ updatePath = (callback) ->
     atomCommandPath = path.join(binFolder, 'atom.cmd')
     relativeExePath = path.relative(binFolder, process.execPath)
     atomCommand = """
+      @echo off
       "%~dp0\\#{relativeExePath}" %*
     """
     fs.writeFile(atomCommandPath, atomCommand, callback)
