@@ -54,11 +54,11 @@ installContextMenu = (callback) ->
 
   installMenu = (keyPath, callback) ->
     args = [keyPath, '/ve', '/d', 'Open with Atom']
-    spawnReg args, ->
+    addToRegistry args, ->
       args = [keyPath, '/v', 'Icon', '/d', process.execPath]
-      spawnReg args, ->
+      addToRegistry args, ->
         args = ["#{keyPath}\\command", '/ve', '/d', process.execPath]
-        spawnReg(args, callback)
+        addToRegistry(args, callback)
 
   installMenu fileKeyPath, ->
     installMenu directoryKeyPath, ->
