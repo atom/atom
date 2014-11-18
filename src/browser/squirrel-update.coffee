@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 path = require 'path'
 
 rootAtomFolder = path.resolve(process.execPath, '..', '..')
-binFolder = path.resolve(process.execPath, 'bin')
+binFolder = path.join(rootAtomFolder, 'bin')
 updateDotExe = path.join(rootAtomFolder, 'Update.exe')
 exeName = path.basename(process.execPath)
 
