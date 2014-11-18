@@ -90,25 +90,25 @@ updatePath = (callback) ->
       lines = stdout.split(/[\r\n]+/).filter (line) -> line
       segments = lines[lines.length - 1]?.split('    ')
       if segments[1] is 'Path' and segments.length >= 3
-        envPath = segments?[3..].join('    ')
-        callback(null, envPath)
+        pathEnv = segments?[3..].join('    ')
+        callback(null, pathEnv)
       else
         callback(new Error('Registry query for PATH failed'))
 
-  addBinToPath = (envSegments, callback) ->
-    envSegments.push(binFolder)
-    args = ['setx', 'Path', envSegments.join(';')]
-    spawnReg(args, callback)
+  addBinToPath = (pathSegments, callback) ->
+    pathSegments.push(binFolder)
+    newPathEnv = pathSegments.join(';')
+    spawn('setx', ['Path', newPathEnv], callback)
 
   installCommands (error) ->
     return callback(error) if error?
 
-    getPath (error, envPath) ->
+    getPath (error, pathEnv) ->
       return callback(error) if error?
 
-      envSegments = envPath.split(';')
-      if envSegments.indexOf(binFolder) is -1
-        addBinToPath(envSegments, callback)
+      pathSegments = pathEnv.split(';')
+      if pathSegments.indexOf(binFolder) is -1
+        addBinToPath(pathSegments, callback)
       else
         callback()
 
