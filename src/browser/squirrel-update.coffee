@@ -56,6 +56,24 @@ installContextMenu = (callback) ->
     installMenu directoryKeyPath, ->
       installMenu(backgroundKeyPath, callback)
 
+# Get the user's PATH environment variable registry value.
+getPath = (callback) ->
+  spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
+    if error?
+      if error.code is 1
+        # The query failed so the Path does not exist yet in the registry
+        return callback(null, '')
+      else
+        return callback(error)
+
+    lines = stdout.split(/[\r\n]+/).filter (line) -> line
+    segments = lines[lines.length - 1]?.split('    ')
+    if segments[1] is 'Path' and segments.length >= 3
+      pathEnv = segments?[3..].join('    ')
+      callback(null, pathEnv)
+    else
+      callback(new Error('Registry query for PATH failed'))
+
 # Uninstall the Open with Atom explorer context menu items via the registry.
 uninstallContextMenu = (callback) ->
   deleteFromRegistry = (keyPath, callback) ->
@@ -70,7 +88,7 @@ uninstallContextMenu = (callback) ->
 # This is done by adding .cmd shims to the root bin folder in the Atom
 # install directory that point to the newly installed versions inside
 # the versioned app directories.
-updatePath = (callback) ->
+addCommandsToPath = (callback) ->
   installCommands = (callback) ->
     atomCommandPath = path.join(binFolder, 'atom.cmd')
     relativeExePath = path.relative(binFolder, process.execPath)
@@ -90,23 +108,6 @@ updatePath = (callback) ->
       fs.writeFile apmCommandPath, apmCommand, ->
         callback()
 
-  getPath = (callback) ->
-    spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
-      if error?
-        if error.code is 1
-          # The query failed so the Path does not exist yet in the registry
-          return callback(null, '')
-        else
-          return callback(error)
-
-      lines = stdout.split(/[\r\n]+/).filter (line) -> line
-      segments = lines[lines.length - 1]?.split('    ')
-      if segments[1] is 'Path' and segments.length >= 3
-        pathEnv = segments?[3..].join('    ')
-        callback(null, pathEnv)
-      else
-        callback(new Error('Registry query for PATH failed'))
-
   addBinToPath = (pathSegments, callback) ->
     pathSegments.push(binFolder)
     newPathEnv = pathSegments.join(';')
@@ -124,6 +125,19 @@ updatePath = (callback) ->
       else
         callback()
 
+removeCommandsFromPath = (callback) ->
+  getPath (error, pathEnv) ->
+    return callback(error) if error?
+
+    pathSegments = pathEnv.split(/;+/).filter (pathSegment) ->
+      pathSegment and pathSegment isnt binFolder
+    newPathEnv = pathSegments.join(';')
+
+    if pathEnv isnt newPathEnv
+      spawn('setx', ['Path', newPathEnv], callback)
+    else
+      callback()
+
 exports.spawn = spawnUpdate
 
 # Is the Update.exe installed with Atom?
@@ -136,13 +150,14 @@ exports.handleStartupEvent = ->
     when '--squirrel-install', '--squirrel-updated'
       exports.spawn ['--createShortcut', exeName], ->
         installContextMenu ->
-          updatePath ->
+          addCommandsToPath ->
             app.quit()
       true
     when '--squirrel-uninstall'
       exports.spawn ['--removeShortcut', exeName], ->
         uninstallContextMenu ->
-          app.quit()
+          removeCommandsFromPath ->
+            app.quit()
       true
     when '--squirrel-obsolete'
       app.quit()
