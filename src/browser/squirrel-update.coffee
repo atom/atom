@@ -34,7 +34,6 @@ installContextMenu = (callback) ->
   spawnReg = (args, callback) ->
     args.unshift('add')
     regProcess = ChildProcess.spawn('reg.exe', args)
-    console.log args
 
     error = null
     regProcess.on 'error', (processError) -> error ?= processError
@@ -46,12 +45,11 @@ installContextMenu = (callback) ->
   installFileMenu = (callback) ->
     args = [fileKeyPath, '/ve', '/d', 'Open with Atom', '/f']
     spawnReg args, (error) ->
-      console.log 'done'
-      # return callback(error) if error?
+      return callback(error) if error?
 
       args = [fileKeyPath, '/v', 'Icon', '/d', process.execPath, '/f']
       spawnReg args, (error) ->
-        # return callback(error) if error?
+        return callback(error) if error?
 
         args = ["#{fileKeyPath}\\command", '/ve', '/d', process.execPath, '/f']
         spawnReg(args, callback)
@@ -63,8 +61,7 @@ exports.handleStartupEvent = ->
   switch process.argv[1]
     when '--squirrel-install', '--squirrel-updated'
       exports.spawn ['--createShortcut', exeName], ->
-        installContextMenu (error) ->
-          console.log(error) if error?
+        installContextMenu ->
           app.quit()
       true
     when '--squirrel-uninstall'
