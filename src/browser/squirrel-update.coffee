@@ -58,17 +58,17 @@ installContextMenu = (callback) ->
     args.push('/f')
     spawnReg(args, callback)
 
-  installMenu = (keyPath, callback) ->
+  installMenu = (keyPath, arg, callback) ->
     args = [keyPath, '/ve', '/d', 'Open with Atom']
     addToRegistry args, ->
       args = [keyPath, '/v', 'Icon', '/d', process.execPath]
       addToRegistry args, ->
-        args = ["#{keyPath}\\command", '/ve', '/d', process.execPath]
+        args = ["#{keyPath}\\command", '/ve', '/d', "#{process.execPath} \"#{arg}\""]
         addToRegistry(args, callback)
 
-  installMenu fileKeyPath, ->
-    installMenu directoryKeyPath, ->
-      installMenu(backgroundKeyPath, callback)
+  installMenu fileKeyPath, '%1' ->
+    installMenu directoryKeyPath, '%1', ->
+      installMenu(backgroundKeyPath, '%V', callback)
 
 # Get the user's PATH environment variable registry value.
 getPath = (callback) ->
