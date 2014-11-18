@@ -59,8 +59,10 @@ installContextMenu = (callback) ->
 exports.handleStartupEvent = ->
   switch process.argv[1]
     when '--squirrel-install', '--squirrel-updated'
-      exports.spawn ['--createShortcut', exeName], ->
-        installContextMenu ->
+      exports.spawn ['--createShortcut', exeName], (error) ->
+        console.log(error)
+        installContextMenu (error) ->
+          console.log(error)
           app.quit()
       true
     when '--squirrel-uninstall'
