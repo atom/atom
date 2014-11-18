@@ -66,7 +66,7 @@ installContextMenu = (callback) ->
         args = ["#{keyPath}\\command", '/ve', '/d', "#{process.execPath} \"#{arg}\""]
         addToRegistry(args, callback)
 
-  installMenu fileKeyPath, '%1' ->
+  installMenu fileKeyPath, '%1', ->
     installMenu directoryKeyPath, '%1', ->
       installMenu(backgroundKeyPath, '%V', callback)
 
