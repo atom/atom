@@ -32,7 +32,19 @@ spawn = (command, args, callback) ->
 
 # Spawn reg.exe and callback when it completes
 spawnReg = (args, callback) ->
-  spawn('reg.exe', args, callback)
+  if process.env.SystemRoot
+    regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe')
+  else
+    regPath = 'reg.exe'
+  spawn(regPath, args, callback)
+
+# Spawn setx.exe and callback when it completes
+spawnSetx = (args, callback) ->
+  if process.env.SystemRoot
+    setxPath = path.join(process.env.SystemRoot, 'System32', 'setx.exe')
+  else
+    setxPath = 'setx.exe'
+  spawn(setxPath, args, callback)
 
 # Spawn the Update.exe with the given arguments and invoke the callback when
 # the command completes.
@@ -119,7 +131,7 @@ addCommandsToPath = (callback) ->
   addBinToPath = (pathSegments, callback) ->
     pathSegments.push(binFolder)
     newPathEnv = pathSegments.join(';')
-    spawn('setx', ['Path', newPathEnv], callback)
+    spawnSetx(['Path', newPathEnv], callback)
 
   installCommands (error) ->
     return callback(error) if error?
@@ -143,7 +155,7 @@ removeCommandsFromPath = (callback) ->
     newPathEnv = pathSegments.join(';')
 
     if pathEnv isnt newPathEnv
-      spawn('setx', ['Path', newPathEnv], callback)
+      spawnSetx(['Path', newPathEnv], callback)
     else
       callback()
 
