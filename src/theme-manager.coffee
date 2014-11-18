@@ -64,39 +64,43 @@ class ThemeManager
   onDidReloadAll: (callback) ->
     @emitter.on 'did-reload-all', callback
 
-  # Essential: Invoke `callback` when a stylesheet has been added to the dom.
+  # Deprecated: Invoke `callback` when a stylesheet has been added to the dom.
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddStylesheet: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidAddStyleElement instead")
     @emitter.on 'did-add-stylesheet', callback
 
-  # Essential: Invoke `callback` when a stylesheet has been removed from the dom.
+  # Deprecated: Invoke `callback` when a stylesheet has been removed from the dom.
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveStylesheet: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidRemoveStyleElement instead")
     @emitter.on 'did-remove-stylesheet', callback
 
-  # Essential: Invoke `callback` when a stylesheet has been updated.
+  # Deprecated: Invoke `callback` when a stylesheet has been updated.
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidUpdateStylesheet: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidUpdateStyleElement instead")
     @emitter.on 'did-update-stylesheet', callback
 
-  # Essential: Invoke `callback` when any stylesheet has been updated, added, or removed.
+  # Deprecated: Invoke `callback` when any stylesheet has been updated, added, or removed.
   #
   # * `callback` {Function}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStylesheets: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidAdd/RemoveStyleElement instead")
     @emitter.on 'did-change-stylesheets', callback
 
   on: (eventName) ->
