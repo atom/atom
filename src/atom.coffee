@@ -137,6 +137,9 @@ class Atom extends Model
   # Public: A {ThemeManager} instance
   themes: null
 
+  # Public: A {StyleManager} instance
+  styles: null
+
   # Public: A {DeserializerManager} instance
   deserializers: null
 
