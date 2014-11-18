@@ -89,7 +89,7 @@ uninstallContextMenu = (callback) ->
     deleteFromRegistry directoryKeyPath, ->
       deleteFromRegistry(backgroundKeyPath, callback)
 
-# Add apm and atom.exe to the PATH
+# Add atom and apm to the PATH
 #
 # This is done by adding .cmd shims to the root bin folder in the Atom
 # install directory that point to the newly installed versions inside
@@ -131,6 +131,7 @@ addCommandsToPath = (callback) ->
       else
         callback()
 
+# Remove atom and apm from the PATH
 removeCommandsFromPath = (callback) ->
   getPath (error, pathEnv) ->
     return callback(error) if error?
