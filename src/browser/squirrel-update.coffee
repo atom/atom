@@ -64,6 +64,11 @@ uninstallContextMenu = (callback) ->
       deleteFromRegistry(backgroundKeyPath, callback)
 
 updatePath = (callback) ->
+  installCommands = (callback) ->
+    atomCommandPath = path.join(binFolder, 'atom.cmd')
+    relativeExePath = path.relative(binFolder, process.execPath)
+    fs.writeFile(atomCommandPath, "\"%~dp0/#{relativeExePath}\" %*", callback)
+
   getPath = (callback) ->
     spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
       return callback(error) if error?
@@ -76,15 +81,22 @@ updatePath = (callback) ->
       else
         callback(new Error('Registry query for PATH failed'))
 
-  getPath (error, envPath) ->
+  addBinToPath = (envSegments, callback) ->
+    envSegments.push(binFolder)
+    args = ['add', environmentKeyPath, '/v', 'Path', '/d', envSegments.join(';'), '/f']
+    spawnReg(args, callback)
+
+  installCommands (error) ->
     return callback(error) if error?
 
-    segments = envPath.split(';')
-    return callback() unless segments.indexOf(binFolder) is -1
+    getPath (error, envPath) ->
+      return callback(error) if error?
 
-    segments.push(binFolder)
-    args = ['add', environmentKeyPath, '/v', 'Path', '/d', segments.join(';'), '/f']
-    spawnReg(args, callback)
+      envSegments = envPath.split(';')
+      if envSegments.indexOf(binFolder) is -1
+        addBinToPath(envSegments, callback)
+      else
+        callback()
 
 exports.spawn = spawnUpdate
 
