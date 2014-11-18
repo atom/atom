@@ -2497,10 +2497,12 @@ describe "TextEditor", ->
             expect(buffer.getLineCount()).toBe(11)
             expect(buffer.lineForRow(1)).toBe("    if (items.length <= 1) return items;")
             expect(buffer.lineForRow(4)).toBe("      current < pivot ? left.push(current) : right.push(current);")
-            expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
-              "var quicksort = function () {\n"
-              "      current = items.shift();\n"
-            ])
+            expect(atom.clipboard.read()).toEqual """
+              var quicksort = function () {
+
+                    current = items.shift();
+
+            """
 
       describe ".cutToEndOfLine()", ->
         describe "when soft wrap is on", ->
@@ -2540,11 +2542,11 @@ describe "TextEditor", ->
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
           expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
           expect(clipboard.readText()).toBe 'quicksort\nsort\nitems'
-          expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
-            'quicksort'
-            'sort'
-            'items'
-          ])
+          expect(atom.clipboard.read()).toEqual """
+            quicksort
+            sort
+            items
+          """
 
         describe "when no text is selected", ->
           beforeEach ->
@@ -2555,10 +2557,10 @@ describe "TextEditor", ->
 
           it "copies the lines on which there are cursors", ->
             editor.copySelectedText()
-            expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
+            expect(atom.clipboard.read()).toEqual([
               "  var sort = function(items) {\n"
               "      current = items.shift();\n"
-            ])
+            ].join("\n"))
             expect(editor.getSelectedBufferRanges()).toEqual([
               [[1, 5], [1, 5]],
               [[5, 8], [5, 8]]
@@ -2704,27 +2706,26 @@ describe "TextEditor", ->
 
         describe 'when the clipboard has many selections', ->
           beforeEach ->
+            atom.config.set("editor.autoIndentOnPaste", false)
             editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+            editor.copySelectedText()
 
           it "pastes each selection separately into the buffer", ->
-            atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
+            editor.copySelectedText()
+            editor.moveRight()
+            editor.insertText("_")
             editor.pasteText()
-            expect(editor.lineTextForBufferRow(0)).toBe "var first = function () {"
-            expect(editor.lineTextForBufferRow(1)).toBe "  var second = function(items) {"
+            expect(editor.lineTextForBufferRow(0)).toBe "var quicksort_quicksort = function () {"
+            expect(editor.lineTextForBufferRow(1)).toBe "  var sort_sort = function(items) {"
 
           describe 'and the selections count does not match', ->
-            it "pastes the whole text into the buffer", ->
-              atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
-              atom.config.set("editor.autoIndentOnPaste", false)
-              atom.clipboard.write('first\nsecond\nthird', {selections: ['first', 'second', 'third'] })
-              editor.pasteText()
-              expect(editor.lineTextForBufferRow(0)).toBe "var first"
-              expect(editor.lineTextForBufferRow(1)).toBe "second"
-              expect(editor.lineTextForBufferRow(2)).toBe "third = function () {"
+            beforeEach ->
+              editor.setSelectedBufferRanges([[[0, 4], [0, 13]]])
 
-              expect(editor.lineTextForBufferRow(3)).toBe "  var first"
-              expect(editor.lineTextForBufferRow(4)).toBe "second"
-              expect(editor.lineTextForBufferRow(5)).toBe "third = function(items) {"
+            it "pastes the whole text into the buffer", ->
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(0)).toBe "var quicksort"
+              expect(editor.lineTextForBufferRow(1)).toBe "sort = function () {"
 
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
