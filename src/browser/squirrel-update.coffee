@@ -93,7 +93,7 @@ updatePath = (callback) ->
   getPath = (callback) ->
     spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
       console.log error
-      console.log stdoutg
+      console.log stdout
       return callback(error) if error?
 
       lines = stdout.split(/[\r\n]+/).filter (line) -> line
