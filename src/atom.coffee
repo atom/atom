@@ -503,7 +503,11 @@ class Atom extends Model
     @packages.activate()
     @keymaps.loadUserKeymap()
     @requireUserInitScript() unless safeMode
+
     @menu.update()
+    @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
+      @setAutoHideMenuBar(newValue)
+    @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
     maximize = dimensions?.maximized and process.platform isnt 'darwin'
     @displayWindow({maximize})
@@ -723,3 +727,7 @@ class Atom extends Model
 
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
+
+  setAutoHideMenuBar: (autoHide) ->
+    ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
+    ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)

@@ -187,3 +187,9 @@ module.exports =
         type: 'boolean'
         default: process.platform isnt 'darwin'
         description: 'Increase/decrease the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
+
+if process.platform in ['win32', 'linux']
+  module.exports.core.properties.autoHideMenuBar =
+    type: 'boolean'
+    default: false
+    description: 'Automatically hide the menu bar and toggle it by pressing Alt. This is only supported on Windows & Linux.'
