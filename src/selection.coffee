@@ -558,20 +558,21 @@ class Selection extends Model
   #   current selection. (default: false)
   copy: (maintainClipboard=false) ->
     return if @isEmpty()
-    text = @editor.buffer.getTextInRange(@getBufferRange())
+    selectionText = @editor.buffer.getTextInRange(@getBufferRange())
+    selectionIndentation = @editor.indentationForBufferRow(@getBufferRange().start.row)
+
     if maintainClipboard
       {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
-
-      if metadata?.selections?
-        metadata.selections.push(text)
-      else
-        metadata = { selections: [clipboardText, text] }
-
-      text = "" + (clipboardText) + "\n" + text
+      metadata ?= {}
+      unless metadata.selections?
+        metadata.selections = [{
+          text: clipboardText,
+          indentBasis: metadata.indentBasis,
+        }]
+      metadata.selections.push(text: selectionText, indentBasis: selectionIndentation)
+      atom.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
-      metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
-
-    atom.clipboard.write(text, metadata)
+      atom.clipboard.write(selectionText, {indentBasis: selectionIndentation})
 
   # Public: Creates a fold containing the current selection.
   fold: ->
