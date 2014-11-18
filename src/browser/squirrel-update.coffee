@@ -67,6 +67,9 @@ updatePath = (callback) ->
   installCommands = (callback) ->
     atomCommandPath = path.join(binFolder, 'atom.cmd')
     relativeExePath = path.relative(binFolder, process.execPath)
+    console.log 'installing'
+    console.log atomCommandPath
+    console.log relativeExePath
     fs.writeFile(atomCommandPath, "\"%~dp0/#{relativeExePath}\" %*", callback)
 
   getPath = (callback) ->
