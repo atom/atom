@@ -93,11 +93,11 @@ updatePath = (callback) ->
   getPath = (callback) ->
     spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
       if error?
-        # The query failed so the Path does not exist yet in the registry
-        return callback(null, '') if error.code is 1
-      else
-        return callback(error)
-
+        if error.code is 1
+          # The query failed so the Path does not exist yet in the registry
+          return callback(null, '')
+        else
+          return callback(error)
 
       lines = stdout.split(/[\r\n]+/).filter (line) -> line
       segments = lines[lines.length - 1]?.split('    ')
