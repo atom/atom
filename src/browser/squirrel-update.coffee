@@ -68,6 +68,7 @@ updatePath = (callback) ->
       segments = lines[lines.length - 1].split('    ')
       pathSegment = segments[3..].join('    ')
       console.log pathSegment
+      callback()
 
   getPath(callback)
 
