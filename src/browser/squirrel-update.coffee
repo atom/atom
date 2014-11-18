@@ -17,7 +17,7 @@ exports.spawn = (args, callback) ->
   error = null
   updateProcess.on 'error', (processError) -> error ?= processError
   updateProcess.on 'close', (code, signal) ->
-    error ?= new Error("Command failed: #{signal}") if code isnt 0
+    error ?= new Error("Command failed: #{signal ? code}") if code isnt 0
     error?.code ?= code
     error?.stdout ?= stdout
     callback(error, stdout)
@@ -37,7 +37,7 @@ installContextMenu = (callback) ->
     error = null
     regProcess.on 'error', (processError) -> error ?= processError
     regProcess.on 'close', (code, signal) ->
-      error ?= new Error("Command failed: #{signal}") if code isnt 0
+      error ?= new Error("Command failed: #{signal ? code}") if code isnt 0
       error?.code ?= code
       callback(error)
 
@@ -59,8 +59,7 @@ installContextMenu = (callback) ->
 exports.handleStartupEvent = ->
   switch process.argv[1]
     when '--squirrel-install', '--squirrel-updated'
-      exports.spawn ['--createShortcut', exeName], (error) ->
-        console.log(error)
+      exports.spawn ['--createShortcut', exeName], ->
         installContextMenu (error) ->
           console.log(error)
           app.quit()
