@@ -42,15 +42,15 @@ installContextMenu = (callback) ->
       callback(error)
 
   installFileMenu = ->
-    args = [fileKeyPath, '/ve', '/d', 'Open with Atom']
+    args = [fileKeyPath, '/ve', '/d', 'Open with Atom', '/f']
     spawnReg args, (error) ->
       return callback(error) if error?
 
-      args = [fileKeyPath, '/v', 'Icon', '/d', process.execPath]
+      args = [fileKeyPath, '/v', 'Icon', '/d', process.execPath, '/f']
       spawnReg args, (error) ->
         return callback(error) if error?
 
-        args = ["#{fileKeyPath}\\command", '/ve', '/d', process.execPath]
+        args = ["#{fileKeyPath}\\command", '/ve', '/d', process.execPath, '/f']
         spawnReg(args, callback)
 
   installFileMenu(callback)
