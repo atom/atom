@@ -115,7 +115,7 @@ updatePath = (callback) ->
     getPath (error, pathEnv) ->
       return callback(error) if error?
 
-      pathSegments = pathEnv.split(';')
+      pathSegments = pathEnv.split(/;+/).filter (pathSegment) -> pathSegment
       if pathSegments.indexOf(binFolder) is -1
         addBinToPath(pathSegments, callback)
       else
