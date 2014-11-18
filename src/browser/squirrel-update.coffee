@@ -69,6 +69,8 @@ updatePath = (callback) ->
       pathSegment = segments[3..].join('    ')
       console.log pathSegment
 
+  getPath(callback)
+
 exports.spawn = spawnUpdate
 
 # Is the Update.exe installed with Atom?
