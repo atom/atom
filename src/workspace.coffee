@@ -61,7 +61,7 @@ class Workspace extends Model
     @addOpener (filePath) =>
       switch filePath
         when 'atom://.atom/stylesheet'
-          @open(atom.themes.getUserStylesheetPath())
+          @open(atom.styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
           @open(atom.keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
