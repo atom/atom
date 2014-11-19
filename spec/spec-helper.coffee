@@ -9,11 +9,14 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
-Workspace = require '../src/workspace'
+
+# FIXME: Remove jquery from this
 {$} = require '../src/space-pen-extensions'
+
 Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
+Workspace = require '../src/workspace'
 TextEditor = require '../src/text-editor'
 TextEditorView = require '../src/text-editor-view'
 TokenizedBuffer = require '../src/tokenized-buffer'
