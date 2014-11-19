@@ -446,7 +446,6 @@ TextEditorComponent = React.createClass
     @subscribe @props.editor.onDidChangeSelectionRange =>
       if selectedText = @props.editor.getSelectedText()
         ipc.send('write-text-to-selection-clipboard', selectedText)
-        clipboard.writeText(selectedText, 'selection')
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
