@@ -173,11 +173,21 @@ class Atom extends Model
       require('grim').deprecate = ->
 
     window.onerror = =>
-      @openDevTools()
-      @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
       @lastUncaughtError = Array::slice.call(arguments)
+      [message, url, line, column, originalError] = @lastUncaughtError
+      eventObject = {message, url, line, column, originalError}
+
+      openDevTools = true
+      eventObject.preventDefault = -> openDevTools = false
+
+      @emitter.emit 'will-throw-error', eventObject
+
+      if openDevTools
+        @openDevTools()
+        @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
+
       @emit 'uncaught-error', arguments...
-      @emitter.emit 'did-throw-error', arguments...
+      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @unsubscribe()
     @setBodyPlatformClass()
@@ -248,10 +258,31 @@ class Atom extends Model
   onDidBeep: (callback) ->
     @emitter.on 'did-beep', callback
 
+  # Extended: Invoke the given callback when there is an unhandled error, but
+  # before the devtools pop open
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
+  #     * `preventDefault` {Function} call this to avoid popping up the dev tools.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onWillThrowError: (callback) ->
+    @emitter.on 'will-throw-error', callback
+
   # Extended: Invoke the given callback whenever there is an unhandled error.
   #
   # * `callback` {Function} to be called whenever there is an unhandled error
-  #   * `errorMessage` {String}
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidThrowError: (callback) ->
