@@ -49,7 +49,7 @@ Register the command in _lib/ascii-art.coffee_:
 ```coffeescript
 module.exports =
   activate: ->
-    atom.workspaceView.command "ascii-art:convert", => @convert()
+    atom.commands.add 'atom-workspace', "ascii-art:convert", => @convert()
 
   convert: ->
     # This assumes the active pane item is an editor
@@ -57,10 +57,10 @@ module.exports =
     editor.insertText('Hello, World!')
 ```
 
-The `atom.workspaceView.command` method takes a command name and a callback. The
-callback executes when the command is triggered. In this case, when the command
-is triggered the callback will call the `convert` method and insert 'Hello,
-World!'.
+The `atom.commands.add` method takes a selector, command name, and a callback.
+The callback executes when the command is triggered on an element matching the
+selector. In this case, when the command is triggered the callback will call the
+`convert` method and insert 'Hello, World!'.
 
 ## Reload the Package
 
