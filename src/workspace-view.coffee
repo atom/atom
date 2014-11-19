@@ -12,7 +12,7 @@ PaneView = require './pane-view'
 PaneContainerView = require './pane-container-view'
 TextEditor = require './text-editor'
 
-# Extended: The top-level view for the entire window. An instance of this class is
+# Deprecated: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
 #
 # It is backed by a model object, an instance of {Workspace}, which is available
