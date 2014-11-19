@@ -202,18 +202,15 @@ class ThemeManager
     atom.config.set('core.themes', enabledThemeNames)
 
   ###
-  Section: Managing Stylesheets
+  Section: Private
   ###
 
-  # Public: Returns the {String} path to the user's stylesheet under ~/.atom
+  # Returns the {String} path to the user's stylesheet under ~/.atom
   getUserStylesheetPath: ->
-    stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
-    if fs.isFileSync(stylesheetPath)
-      stylesheetPath
-    else
-      path.join(@configDirPath, 'styles.less')
+    Grim.deprecate("Call atom.styles.getUserStyleSheetPath() instead")
+    atom.styles.getUserStyleSheetPath()
 
-  # Public: Resolve and apply the stylesheet specified by the path.
+  # Resolve and apply the stylesheet specified by the path.
   #
   # This supports both CSS and Less stylsheets.
   #
@@ -236,7 +233,7 @@ class ThemeManager
 
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
-    userStylesheetPath = @getUserStylesheetPath()
+    userStylesheetPath = atom.styles.getUserStyleSheetPath()
     return unless fs.isFileSync(userStylesheetPath)
 
     @userStylesheetPath = userStylesheetPath
@@ -296,10 +293,6 @@ class ThemeManager
 
   applyStylesheet: (path, text, type='bundled') ->
     @styleSheetDisposablesBySourcePath[path] = atom.styles.addStyleSheet(text, sourcePath: path, group: type)
-
-  ###
-  Section: Private
-  ###
 
   stringToId: (string) ->
     string.replace(/\\/g, '/')

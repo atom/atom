@@ -1,3 +1,5 @@
+fs = require 'fs-plus'
+path = require 'path'
 {Emitter, Disposable} = require 'event-kit'
 
 # Extended: A singleton instance of this class available via `atom.styles`,
@@ -149,3 +151,17 @@ class StyleManager
     existingStyleElements = @getStyleElements()
     for styleElement in styleElementsToRestore
       @addStyleElement(styleElement) unless styleElement in existingStyleElements
+
+  ###
+  Section: Paths
+  ###
+
+  # Extended: Get the path of the user style sheet in `~/.atom`.
+  #
+  # Returns a {String}.
+  getUserStyleSheetPath: ->
+    stylesheetPath = fs.resolve(path.join(atom.getConfigDirPath(), 'styles'), ['css', 'less'])
+    if fs.isFileSync(stylesheetPath)
+      stylesheetPath
+    else
+      path.join(atom.getConfigDirPath(), 'styles.less')

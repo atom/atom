@@ -70,7 +70,7 @@ describe "ThemeManager", ->
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
       themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
-      spyOn(themeManager, 'getUserStylesheetPath').andCallFake -> null
+      spyOn(atom.styles, 'getUserStyleSheetPath').andCallFake -> null
 
       waitsForPromise ->
         themeManager.activateThemes()
@@ -268,7 +268,7 @@ describe "ThemeManager", ->
       [stylesheetRemovedHandler, stylesheetAddedHandler, stylesheetsChangedHandler] = []
       userStylesheetPath = path.join(temp.mkdirSync("atom"), 'styles.less')
       fs.writeFileSync(userStylesheetPath, 'body {border-style: dotted !important;}')
-      spyOn(themeManager, 'getUserStylesheetPath').andReturn userStylesheetPath
+      spyOn(atom.styles, 'getUserStyleSheetPath').andReturn userStylesheetPath
 
       waitsForPromise ->
         themeManager.activateThemes()
