@@ -241,7 +241,7 @@ class AtomApplication
     clipboard = null
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard ?= require 'clipboard'
-      clipboard.writeText(selectedText)
+      clipboard.writeText(selectedText, 'selection')
 
   # Public: Executes the given command.
   #
