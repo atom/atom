@@ -114,5 +114,10 @@ describe "the `atom` global", ->
           a + 1
         catch e
           error = e
-          window.onerror.call(window, e.toString(), 'abc', 2, e)
-        expect(didThrowSpy).toHaveBeenCalledWith(error.toString())
+          window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
+        expect(didThrowSpy).toHaveBeenCalledWith
+          message: error.toString()
+          url: 'abc'
+          line: 2
+          column: 3
+          originalError: error

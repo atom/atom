@@ -187,7 +187,7 @@ class Atom extends Model
         @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
 
       @emit 'uncaught-error', arguments...
-      @emitter.emit 'did-throw-error', message
+      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @unsubscribe()
     @setBodyPlatformClass()
@@ -277,7 +277,12 @@ class Atom extends Model
   # Extended: Invoke the given callback whenever there is an unhandled error.
   #
   # * `callback` {Function} to be called whenever there is an unhandled error
-  #   * `errorMessage` {String}
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidThrowError: (callback) ->
