@@ -2,7 +2,7 @@
 TextEditorView = require './text-editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
-# Essential: Provides a view that renders a list of items with an editor that
+# Deprecated: Provides a view that renders a list of items with an editor that
 # filters the items. Used by many packages such as the fuzzy-finder,
 # command-palette, symbols-view and autocomplete.
 #
