@@ -5,9 +5,6 @@ Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 
 describe "the `atom` global", ->
-  beforeEach ->
-    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
-
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
       it 'sets the position of the window, and can retrieve the position just set', ->
@@ -35,6 +32,9 @@ describe "the `atom` global", ->
 
   describe "window:update-available", ->
     it "is triggered when the auto-updater sends the update-downloaded event", ->
+      # FIXME: We need to figure out a way minus workspaceView to handle update-available events.
+      atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
+
       updateAvailableHandler = jasmine.createSpy("update-available-handler")
       atom.workspaceView.on 'window:update-available', updateAvailableHandler
       autoUpdater = require('remote').require('auto-updater')
