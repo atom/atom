@@ -546,6 +546,7 @@ class Selection extends Model
   # Public: Copies the selection to the clipboard and then deletes it.
   #
   # * `maintainClipboard` {Boolean} (default: false) See {::copy}
+  # * `fullLine` {Boolean} (default: false) See {::copy}
   cut: (maintainClipboard=false, fullLine=false) ->
     @copy(maintainClipboard, fullLine)
     @delete()
@@ -556,6 +557,9 @@ class Selection extends Model
   #   is created to store each content copied to the clipboard. The clipboard
   #   `text` still contains the concatenation of the clipboard with the
   #   current selection. (default: false)
+  # * `fullLine` {Boolean} if `true`, the copied text will always be pasted
+  #   at the beginning of the line containing the cursor, regardless of the
+  #   cursor's horizontal position. (default: false)
   copy: (maintainClipboard=false, fullLine=false) ->
     return if @isEmpty()
     selectionText = @editor.buffer.getTextInRange(@getBufferRange())
