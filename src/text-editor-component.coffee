@@ -445,6 +445,9 @@ TextEditorComponent = React.createClass
 
     @subscribe @props.editor.onDidChangeSelectionRange =>
       if selectedText = @props.editor.getSelectedText()
+        # This uses ipc.send instead of clipboard.writeText because
+        # clipboard.writeText is a sync ipc call on Linux and that
+        # will slow down selections.
         ipc.send('write-text-to-selection-clipboard', selectedText)
 
   observeConfig: ->
