@@ -238,6 +238,11 @@ class AtomApplication
       win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
 
+    clipboard = null
+    ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
+      clipboard ?= require 'clipboard'
+      clipboard.writeText(selectedText, 'selection')
+
   # Public: Executes the given command.
   #
   # If it isn't handled globally, delegate to the currently focused window.

@@ -2686,6 +2686,10 @@ describe "TextEditorComponent", ->
 
   describe "middle mouse paste on Linux", ->
     it "pastes the previously selected text", ->
+      spyOn(require('ipc'), 'send').andCallFake (eventName, selectedText) ->
+        if eventName is 'write-text-to-selection-clipboard'
+          require('clipboard').writeText(selectedText, 'selection')
+
       atom.clipboard.write('')
       component.listenForMiddleMousePaste()
 
