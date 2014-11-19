@@ -244,14 +244,18 @@ class LanguageMode
   # bufferRow - A {Number} indicating the buffer row
   #
   # Returns a {Number}.
-  suggestedIndentForBufferRow: (bufferRow) ->
+  suggestedIndentForBufferRow: (bufferRow, options) ->
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
     currentLine = @buffer.lineForRow(bufferRow)
-    precedingRow = @buffer.previousNonBlankRow(bufferRow)
-    return 0 unless precedingRow?
+    if options?.skipBlankLines ? true
+      precedingRow = @buffer.previousNonBlankRow(bufferRow)
+      return 0 unless precedingRow?
+    else
+      precedingRow = bufferRow - 1
+      return currentIndentLevel if precedingRow < 0
 
     precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
@@ -285,7 +289,7 @@ class LanguageMode
   # bufferRow - The row {Number}.
   # options - An options {Object} to pass through to {TextEditor::setIndentationForBufferRow}.
   autoIndentBufferRow: (bufferRow, options) ->
-    indentLevel = @suggestedIndentForBufferRow(bufferRow)
+    indentLevel = @suggestedIndentForBufferRow(bufferRow, options)
     @editor.setIndentationForBufferRow(bufferRow, indentLevel, options)
 
   # Given a buffer row, this decreases the indentation.

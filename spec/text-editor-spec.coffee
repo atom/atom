@@ -3438,6 +3438,16 @@ describe "TextEditor", ->
             editor.insertText('\n')
             expect(editor.indentationForBufferRow(1)).toBe 2
 
+        describe "when the line preceding the newline contains only whitespace", ->
+          it "bases the new line's indentation on only the preceding line", ->
+            editor.setCursorBufferPosition([6, Infinity])
+            editor.insertText("\n  ")
+            expect(editor.getCursorBufferPosition()).toEqual([7, 2])
+
+            editor.insertNewline()
+            editor.logScreenLines()
+            expect(editor.lineTextForBufferRow(8)).toBe("  ")
+
         it "does not indent the line preceding the newline", ->
           editor.setCursorBufferPosition([2, 0])
           editor.insertText('  var this-line-should-be-indented-more\n')
