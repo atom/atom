@@ -6,6 +6,7 @@ scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 grim = require 'grim'
 {CompositeDisposable} = require 'event-kit'
+ipc = require 'ipc'
 
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
@@ -444,6 +445,7 @@ TextEditorComponent = React.createClass
 
     @subscribe @props.editor.onDidChangeSelectionRange =>
       if selectedText = @props.editor.getSelectedText()
+        ipc.send('write-text-to-selection-clipboard', selectedText)
         clipboard.writeText(selectedText, 'selection')
 
   observeConfig: ->
