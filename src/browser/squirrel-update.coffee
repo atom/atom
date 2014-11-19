@@ -159,6 +159,17 @@ removeCommandsFromPath = (callback) ->
     else
       callback()
 
+
+# Create a desktop and start menu shortcut by using the command line API
+# provided by Squirrel's Update.exe
+createShortcut = (callback) ->
+  spawnUpdate(['--createShortcut', exeName], callback)
+
+# Remove the desktop and start menu shortcuts by using the command line API
+# provided by Squirrel's Update.exe
+removeShortcut = (callback) ->
+  spawnUpdate(['--removeShortcut', exeName], callback)
+
 exports.spawn = spawnUpdate
 
 # Is the Update.exe installed with Atom?
@@ -169,13 +180,13 @@ exports.existsSync = ->
 exports.handleStartupEvent = ->
   switch process.argv[1]
     when '--squirrel-install', '--squirrel-updated'
-      exports.spawn ['--createShortcut', exeName], ->
+      createShortcut ->
         installContextMenu ->
           addCommandsToPath ->
             app.quit()
       true
     when '--squirrel-uninstall'
-      exports.spawn ['--removeShortcut', exeName], ->
+      removeShortcut ->
         uninstallContextMenu ->
           removeCommandsFromPath ->
             app.quit()
