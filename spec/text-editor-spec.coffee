@@ -2611,10 +2611,9 @@ describe "TextEditor", ->
               console.log JSON.stringify(editor.lineTextForBufferRow(1))
               expect(editor.lineTextForBufferRow(1)).toBe("    y(); z();")
 
-        describe "when `autoIndentOnPaste` is false and `normalizeIndentOnPaste` is true", ->
+        describe "when `autoIndentOnPaste` is false", ->
           beforeEach ->
             atom.config.set('editor.autoIndentOnPaste', false)
-            atom.config.set('editor.normalizeIndentOnPaste', true)
 
           describe "when the inserted text contains no newlines", ->
             it "does not adjust the indentation level of the text", ->
@@ -2671,58 +2670,6 @@ describe "TextEditor", ->
                 expect(editor.lineTextForBufferRow(2)).toBe "    foo();"
                 expect(editor.lineTextForBufferRow(3)).toBe "  }"
                 expect(editor.lineTextForBufferRow(4)).toBe ""
-
-          describe 'when scoped settings are used', ->
-            coffeeEditor = null
-            beforeEach ->
-              waitsForPromise ->
-                atom.packages.activatePackage('language-coffee-script')
-              waitsForPromise ->
-                atom.project.open('coffee.coffee', autoIndent: false).then (o) ->
-                  coffeeEditor = o
-
-              runs ->
-                atom.config.set('.source.js', 'editor.normalizeIndentOnPaste', true)
-                atom.config.set('.source.coffee', 'editor.normalizeIndentOnPaste', false)
-
-            afterEach: ->
-              atom.packages.deactivatePackages()
-              atom.packages.unloadPackages()
-
-            it "normalizes the indentation level based on scoped settings", ->
-              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2, textEditor: coffeeEditor})
-              coffeeEditor.setCursorBufferPosition([4, 4])
-              coffeeEditor.pasteText()
-              expect(coffeeEditor.lineTextForBufferRow(4)).toBe "      while (true) {"
-              expect(coffeeEditor.lineTextForBufferRow(5)).toBe "      foo();"
-              expect(coffeeEditor.lineTextForBufferRow(6)).toBe "    }"
-
-              copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2})
-              editor.setCursorBufferPosition([3, 4])
-              editor.pasteText()
-              expect(editor.lineTextForBufferRow(3)).toBe "    while (true) {"
-              expect(editor.lineTextForBufferRow(4)).toBe "      foo();"
-              expect(editor.lineTextForBufferRow(5)).toBe "    }"
-
-        describe "when `autoIndentOnPaste` and `normalizeIndentOnPaste` are both false", ->
-          beforeEach ->
-            atom.config.set('editor.normalizeIndentOnPaste', false)
-            atom.config.set("editor.autoIndentOnPaste", false)
-
-          it "does not auto-indent the pasted text", ->
-            atom.clipboard.write("console.log(x);\nconsole.log(y);\n")
-            editor.setCursorBufferPosition([5, 0])
-            editor.pasteText()
-            expect(editor.lineTextForBufferRow(5)).toBe("console.log(x);")
-            expect(editor.lineTextForBufferRow(6)).toBe("console.log(y);")
-
-          it "does not normalize the indentation level of the text", ->
-            copyText("   function() {\nvar cool = 1;\n  }\n")
-            editor.setCursorBufferPosition([5, 2])
-            editor.pasteText()
-            expect(editor.lineTextForBufferRow(5)).toBe "     function() {"
-            expect(editor.lineTextForBufferRow(6)).toBe "var cool = 1;"
-            expect(editor.lineTextForBufferRow(7)).toBe "  }"
 
         describe 'when the clipboard has many selections', ->
           beforeEach ->
