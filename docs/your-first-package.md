@@ -95,13 +95,13 @@ you don't need it anymore. When finished, the file will look like this:
   'cmd-alt-a': 'ascii-art:convert'
 ```
 
-Notice `atom-text-editor` on the first line. Just like CSS, keymap selectors *scope* key
-bindings so they only apply to specific elements. In this case, our binding is
-only active for elements matching the `atom-text-editor` selector. If the Tree View has
-focus, pressing `cmd-alt-a` won't trigger the `ascii-art:convert` command. But
-if the editor has focus, the `ascii-art:convert` method *will* be triggered.
-More information on key bindings can be found in the
-[keymaps](advanced/keymaps.html) documentation.
+Notice `atom-text-editor` on the first line. Just like CSS, keymap selectors
+*scope* key bindings so they only apply to specific elements. In this case, our
+binding is only active for elements matching the `atom-text-editor` selector. If
+the Tree View has focus, pressing `cmd-alt-a` won't trigger the
+`ascii-art:convert` command. But if the editor has focus, the
+`ascii-art:convert` method *will* be triggered. More information on key bindings
+can be found in the [keymaps](advanced/keymaps.html) documentation.
 
 Now reload the window and verify that the key binding works! You can also verify
 that it **doesn't** work when the Tree View is focused.
