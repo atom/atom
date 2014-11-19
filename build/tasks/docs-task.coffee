@@ -6,12 +6,18 @@ _ = require 'underscore-plus'
 donna = require 'donna'
 tello = require 'tello'
 
+moduleBlacklist = [
+  'space-pen'
+]
+
 module.exports = (grunt) ->
   getClassesToInclude = ->
     modulesPath = path.resolve(__dirname, '..', '..', 'node_modules')
     classes = {}
     fs.traverseTreeSync modulesPath, (modulePath) ->
       return false if modulePath.match(/node_modules/g).length > 1 # dont need the dependencies of the dependencies
+      for moduleName in moduleBlacklist
+        return false if path.basename(modulePath) is moduleName
       return true unless path.basename(modulePath) is 'package.json'
       return true unless fs.isFileSync(modulePath)
 
