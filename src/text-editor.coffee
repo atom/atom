@@ -2511,7 +2511,7 @@ class TextEditor extends Model
 
       delete options.indentBasis
       {cursor} = selection
-      if indentBasis? and atom.config.get(cursor.getScopeDescriptor(), "editor.normalizeIndentOnPaste")
+      if indentBasis?
         containsNewlines = text.indexOf('\n') isnt -1
         if containsNewlines or !cursor.hasPrecedingCharactersOnLine()
           options.indentBasis ?= indentBasis
