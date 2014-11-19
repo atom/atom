@@ -202,7 +202,7 @@ module.exports = (grunt) ->
     'create-windows-installer':
       appDirectory: shellAppDir
       outputDirectory: path.join(buildDir, 'installer')
-      authors: 'GitHub, Inc.'
+      authors: 'GitHub&#44; Inc.'
       loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
       iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/atom.png'
 
