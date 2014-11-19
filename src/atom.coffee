@@ -5,6 +5,7 @@ path = require 'path'
 remote = require 'remote'
 screen = require 'screen'
 shell = require 'shell'
+{deprecate} = require 'grim'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -33,6 +34,19 @@ class Atom extends Model
     startTime = Date.now()
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
+
+    Object.defineProperty atom, 'workspaceView',
+      get: ->
+        deprecate """
+          atom.workspaceView is no longer available.
+          In most cases you will not need the view. See the Workspace docs for
+          alternatives: https://atom.io/docs/api/latest/Workspace.
+          If you do need the view, please use `atom.views.getView(atom.workspace)`.
+        """
+        atom.__workspaceView
+      set: (newValue) ->
+        atom.__workspaceView = newValue
+
     atom
 
   # Deserializes the Atom environment from a state object
