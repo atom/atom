@@ -546,8 +546,8 @@ class Selection extends Model
   # Public: Copies the selection to the clipboard and then deletes it.
   #
   # * `maintainClipboard` {Boolean} (default: false) See {::copy}
-  cut: (maintainClipboard=false) ->
-    @copy(maintainClipboard)
+  cut: (maintainClipboard=false, fullLine=false) ->
+    @copy(maintainClipboard, fullLine)
     @delete()
 
   # Public: Copies the current selection to the clipboard.
@@ -556,7 +556,7 @@ class Selection extends Model
   #   is created to store each content copied to the clipboard. The clipboard
   #   `text` still contains the concatenation of the clipboard with the
   #   current selection. (default: false)
-  copy: (maintainClipboard=false) ->
+  copy: (maintainClipboard=false, fullLine=false) ->
     return if @isEmpty()
     selectionText = @editor.buffer.getTextInRange(@getBufferRange())
     selectionIndentation = @editor.indentationForBufferRow(@getBufferRange().start.row)
@@ -569,10 +569,17 @@ class Selection extends Model
           text: clipboardText,
           indentBasis: metadata.indentBasis,
         }]
-      metadata.selections.push(text: selectionText, indentBasis: selectionIndentation)
+      metadata.selections.push({
+        text: selectionText,
+        indentBasis: selectionIndentation,
+        fullLine: fullLine
+      })
       atom.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
-      atom.clipboard.write(selectionText, {indentBasis: selectionIndentation})
+      atom.clipboard.write(selectionText, {
+        indentBasis: selectionIndentation,
+        fullLine: fullLine
+      })
 
   # Public: Creates a fold containing the current selection.
   fold: ->

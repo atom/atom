@@ -2747,6 +2747,39 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(0)).toBe "var quicksort"
               expect(editor.lineTextForBufferRow(1)).toBe "sort = function () {"
 
+        describe "when a full line was cut", ->
+          beforeEach ->
+            editor.setCursorBufferPosition([2, 13])
+            editor.cutSelectedText()
+            editor.setCursorBufferPosition([2, 13])
+
+          it "pastes the line above the cursor and retains the cursor's column", ->
+            editor.pasteText()
+            expect(editor.lineTextForBufferRow(2)).toBe("    if (items.length <= 1) return items;")
+            expect(editor.lineTextForBufferRow(3)).toBe("    var pivot = items.shift(), current, left = [], right = [];")
+            expect(editor.getCursorBufferPosition()).toEqual([3, 13])
+
+        describe "when a full line was copied", ->
+          beforeEach ->
+            editor.setCursorBufferPosition([2, 13])
+            editor.copySelectedText()
+
+          describe "when there is a selection", ->
+            it "overwrites the selection as with any copied text", ->
+              editor.setSelectedBufferRange([[1, 2], [1, Infinity]])
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(1)).toBe("  if (items.length <= 1) return items;")
+              expect(editor.lineTextForBufferRow(2)).toBe("  ")
+              expect(editor.lineTextForBufferRow(3)).toBe("    if (items.length <= 1) return items;")
+              expect(editor.getCursorBufferPosition()).toEqual([2, 2])
+
+          describe "when there is no selection", ->
+            it "pastes the line above the cursor and retains the cursor's column", ->
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(2)).toBe("    if (items.length <= 1) return items;")
+              expect(editor.lineTextForBufferRow(3)).toBe("    if (items.length <= 1) return items;")
+              expect(editor.getCursorBufferPosition()).toEqual([3, 13])
+
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
         describe "when softTabs is enabled", ->
