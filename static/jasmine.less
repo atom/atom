@@ -136,7 +136,14 @@ body {
   }
 
   .result-message.deprecation-message {
-    color: #f0ad4e;
+    font-weight: normal;
+    color: darken(#f0ad4e, 20%);
+    line-height: 1.4;
+
+    code {
+      color: darken(#f0ad4e, 20%);
+      background: lighten(#f0ad4e, 35%);
+    }
   }
 
   .stack-trace {

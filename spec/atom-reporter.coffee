@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 {convertStackTrace} = require 'coffeestack'
 {View, $, $$} = require '../src/space-pen-extensions'
 grim = require 'grim'
+marked = require 'marked'
 
 sourceMaps = {}
 formatStackTrace = (spec, message='', stackTrace) ->
@@ -110,7 +111,8 @@ class AtomReporter extends View
     for deprecation in deprecations
       @deprecationList.append $$ ->
         @div class: 'padded', =>
-          @div class: 'result-message fail deprecation-message', deprecation.message
+          @div class: 'result-message fail deprecation-message', =>
+            @raw marked(deprecation.message)
 
           for stack in deprecation.stacks
             fullStack = stack.map ({functionName, location}) ->
