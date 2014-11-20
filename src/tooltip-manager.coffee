@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
 
+# Essential: Associates tooltips with HTML elements or selectors.
 module.exports =
 class TooltipManager
   defaults:
@@ -12,6 +13,18 @@ class TooltipManager
     placement: 'auto top'
     viewportPadding: 2
 
+  # Essential: Add a tooltip to the given element or all elements matching the
+  # given selector.
+  #
+  # * `target` An `HTMLElement` or {String} containing a selector.
+  # * `options` See http://getbootstrap.com/javascript/#tooltips for a full list
+  #   of options. You can also supply the following additional options:
+  #   * `keyBindingCommand` A {String} containing a command name. If you specify
+  #     this option and a key binding exists that matches the command, it will
+  #     be appended to the title or rendered alone if no title is specified.
+  #   * `keyBindingTarget` An `HTMLElement` on which to look up the key binding.
+  #     If this option is not supplied, the first of all matching key bindings
+  #     for the given command will be rendered.
   add: (target, options) ->
     requireBootstrapTooltip()
 
