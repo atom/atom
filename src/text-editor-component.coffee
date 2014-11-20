@@ -199,7 +199,6 @@ TextEditorComponent = React.createClass
   componentWillUnmount: ->
     {editor, hostElement} = @props
 
-    hostElement.__spacePenView.trigger 'editor:will-be-removed', [hostElement.__spacePenView]
     @unsubscribe()
     @scopedConfigSubscriptions.dispose()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
