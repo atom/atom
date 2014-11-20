@@ -107,14 +107,16 @@ describe "Window", ->
 
   describe ".removeEditorWindow()", ->
     it "unsubscribes from all buffers", ->
+      spyOn atom.windowEventHandler, 'unsubscribe'
+
       waitsForPromise ->
         atom.workspace.open("sample.js")
 
       runs ->
         buffer = atom.workspace.getActivePaneItem().buffer
-        pane = atom.workspaceView.getActivePaneView()
-        pane.splitRight(pane.copyActiveItem())
-        expect(atom.workspaceView.find('atom-text-editor').length).toBe 2
+        pane = atom.workspace.getActivePane()
+        pane.splitRight(copyActiveItem: true)
+        expect(atom.workspace.getTextEditors().length).toBe 2
 
         atom.removeEditorWindow()
 
