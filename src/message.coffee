@@ -1,10 +1,16 @@
+
+# Experimental: This will likely change, do not use.
 module.exports =
 class Message
   constructor: (@type, @message, @options={}) ->
 
+  getOptions: -> @options
+
   getType: -> @type
 
   getMessage: -> @message
+
+  getDetail: -> @optons.detail
 
   isClosable: ->
     !!@options.closable
@@ -31,7 +37,7 @@ class Message
 
     Stack Trace
     ```
-    At #{@options.errorDetail}
+    At #{@options.detail}
 
     #{@options.stack}
     ```
