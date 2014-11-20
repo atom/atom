@@ -191,6 +191,10 @@ jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].hasOwnProperty('originalValue')
   object[methodName] = object[methodName].originalValue
 
+jasmine.attachToDOM = (element) ->
+  jasmineContent = document.querySelector('#jasmine-content')
+  jasmineContent.appendChild(element) unless jasmineContent.contains(element)
+
 addCustomMatchers = (spec) ->
   spec.addMatchers
     toBeInstanceOf: (expected) ->
