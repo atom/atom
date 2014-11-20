@@ -7,6 +7,10 @@ fdescribe "MessageManager", ->
   beforeEach ->
     manager = new MessageManager
 
+  describe "the atom global", ->
+    it "has a messages instance", ->
+      expect(atom.messages instanceof MessageManager).toBe true
+
   describe "adding events", ->
     addSpy = null
 
