@@ -334,13 +334,15 @@ class ThemeManager
   isInitialLoadComplete: -> @initialLoadComplete
 
   addActiveThemeClasses: ->
+    workspaceElement = atom.views.getView(atom.workspace)
     for pack in @getActiveThemes()
-      atom.workspaceView?[0]?.classList.add("theme-#{pack.name}")
+      workspaceElement.classList.add("theme-#{pack.name}")
     return
 
   removeActiveThemeClasses: ->
+    workspaceElement = atom.views.getView(atom.workspace)
     for pack in @getActiveThemes()
-      atom.workspaceView?[0]?.classList.remove("theme-#{pack.name}")
+      workspaceElement.classList.remove("theme-#{pack.name}")
     return
 
   refreshLessCache: ->

@@ -15,11 +15,13 @@ class WindowEventHandler
     @reloadRequested = false
 
     @subscribe ipc, 'command', (command, args...) ->
+
       activeElement = document.activeElement
-      # Use root view if body has focus
-      if activeElement is document.body and atom.workspaceView?
-        activeElement = atom.workspaceView
-      $(activeElement).trigger(command, args...)
+      # Use the workspace element view if body has focus
+      if activeElement is document.body and workspaceElement = atom.views.getView(atom.workspace)
+        activeElement = workspaceElement
+
+      atom.commands.dispatch(activeElement, command, args[0])
 
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
