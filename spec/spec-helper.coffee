@@ -135,8 +135,9 @@ afterEach ->
   atom.menu.template = []
   atom.contextMenu.clear()
 
-  atom.workspaceView?.remove?()
-  atom.workspaceView = null
+  atom.workspace?.destroy()
+  atom.workspace = null
+  atom.__workspaceView = null
   delete atom.state.workspace
 
   atom.project?.destroy()
