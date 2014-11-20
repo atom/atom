@@ -89,22 +89,22 @@ class ViewRegistry
   #
   # ## Examples
   #
-  # ### Getting An Editor View
+  # ### Getting An Editor Element
   # ```coffee
   # textEditor = atom.workspace.getActiveTextEditor()
-  # textEditorView = atom.views.getView(textEditor)
+  # textEditorElement = atom.views.getView(textEditor)
   # ```
   #
-  # ### Getting A Pane View
+  # ### Getting A Pane Element
   # ```coffee
   # pane = atom.workspace.getActivePane()
-  # paneView = atom.views.getView(pane)
+  # paneElement = atom.views.getView(pane)
   # ```
   #
-  # ### Getting The Workspace View
+  # ### Getting The Workspace Element
   #
   # ```coffee
-  # workspaceView = atom.views.getView(atom.workspace)
+  # workspaceElement = atom.views.getView(atom.workspace)
   # ```
   #
   # * `object` The object for which you want to retrieve a view. This can be a
