@@ -207,10 +207,11 @@ describe "ThemeManager", ->
       expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
   describe "base stylesheet loading", ->
+    workspaceElement = null
     beforeEach ->
-      atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
-      atom.workspaceView.append $('<atom-text-editor>')
-      atom.workspaceView.attachToDom()
+      workspaceElement = atom.views.getView(atom.workspace)
+      jasmine.attachToDOM(workspaceElement)
+      workspaceElement.appendChild document.createElement('atom-text-editor')
 
       waitsForPromise ->
         themeManager.activateThemes()
@@ -224,7 +225,7 @@ describe "ThemeManager", ->
 
       runs ->
         # an override loaded in the base css
-        expect(atom.workspaceView.css("background-color")).toBe "rgb(0, 0, 255)"
+        expect(getComputedStyle(workspaceElement)["background-color"]).toBe "rgb(0, 0, 255)"
 
         # from within the theme itself
         expect($("atom-text-editor").css("padding-top")).toBe "150px"
@@ -241,14 +242,14 @@ describe "ThemeManager", ->
 
         runs ->
           # an override loaded in the base css
-          expect(atom.workspaceView.css("background-color")).toBe "rgb(0, 0, 255)"
+          expect(getComputedStyle(workspaceElement)["background-color"]).toBe "rgb(0, 0, 255)"
 
           # from within the theme itself
           expect($("atom-text-editor").css("background-color")).toBe "rgb(0, 152, 255)"
 
     describe "theme classes on the workspace", ->
       it 'adds theme-* classes to the workspace for each active theme', ->
-        expect(atom.workspaceView).toHaveClass 'theme-atom-dark-ui'
+        expect(workspaceElement).toHaveClass 'theme-atom-dark-ui'
 
         themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
         atom.config.set('core.themes', ['theme-with-ui-variables', 'theme-with-syntax-variables'])
@@ -258,10 +259,10 @@ describe "ThemeManager", ->
 
         runs ->
           # `theme-` twice as it prefixes the name with `theme-`
-          expect(atom.workspaceView).toHaveClass 'theme-theme-with-ui-variables'
-          expect(atom.workspaceView).toHaveClass 'theme-theme-with-syntax-variables'
-          expect(atom.workspaceView).not.toHaveClass 'theme-atom-dark-ui'
-          expect(atom.workspaceView).not.toHaveClass 'theme-atom-dark-syntax'
+          expect(workspaceElement).toHaveClass 'theme-theme-with-ui-variables'
+          expect(workspaceElement).toHaveClass 'theme-theme-with-syntax-variables'
+          expect(workspaceElement).not.toHaveClass 'theme-atom-dark-ui'
+          expect(workspaceElement).not.toHaveClass 'theme-atom-dark-syntax'
 
   describe "when the user stylesheet changes", ->
     it "reloads it", ->
