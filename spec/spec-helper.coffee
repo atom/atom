@@ -82,7 +82,7 @@ beforeEach ->
   serializedWindowState = null
 
   spyOn(atom, 'saveSync')
-  atom.syntax.clearGrammarOverrides()
+  atom.grammars.clearGrammarOverrides()
 
   spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
     if specPackageName and packageName is specPackageName
@@ -151,7 +151,7 @@ afterEach ->
 
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
-  atom.syntax.clearObservers()
+  atom.grammars.clearObservers()
   waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->

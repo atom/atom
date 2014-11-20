@@ -2532,7 +2532,7 @@ describe "TextEditorComponent", ->
   describe "grammar data attributes", ->
     it "adds and updates the grammar data attribute based on the current grammar", ->
       expect(wrapperNode.dataset.grammar).toBe 'source js'
-      editor.setGrammar(atom.syntax.nullGrammar)
+      editor.setGrammar(atom.grammars.nullGrammar)
       expect(wrapperNode.dataset.grammar).toBe 'text plain null-grammar'
 
   describe "encoding data attributes", ->

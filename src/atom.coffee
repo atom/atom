@@ -149,8 +149,8 @@ class Atom extends Model
   # Public: A {Project} instance
   project: null
 
-  # Public: A {Syntax} instance
-  syntax: null
+  # Public: A {GrammarRegistry} instance
+  grammars: null
 
   # Public: A {PackageManager} instance
   packages: null
@@ -222,7 +222,7 @@ class Atom extends Model
     TooltipManager = require './tooltip-manager'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
-    Syntax = require './syntax'
+    GrammarRegistry = require './grammar-registry'
     ThemeManager = require './theme-manager'
     StyleManager = require './style-manager'
     ContextMenuManager = require './context-menu-manager'
@@ -256,7 +256,11 @@ class Atom extends Model
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
 
-    @syntax = @deserializers.deserialize(@state.syntax) ? new Syntax()
+    @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
+
+    Object.defineProperty this, 'syntax', get: ->
+      deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
+      @grammars
 
     @subscribe @packages.onDidActivateAll => @watchThemes()
 
@@ -569,7 +573,7 @@ class Atom extends Model
   unloadEditorWindow: ->
     return if not @project
 
-    @state.syntax = @syntax.serialize()
+    @state.grammars = @grammars.serialize()
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()

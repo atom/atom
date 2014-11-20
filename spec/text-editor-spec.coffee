@@ -3357,17 +3357,17 @@ describe "TextEditor", ->
     it "switches to the better-matched grammar and re-tokenizes the buffer", ->
       editor.destroy()
 
-      jsGrammar = atom.syntax.selectGrammar('a.js')
-      atom.syntax.removeGrammar(jsGrammar)
+      jsGrammar = atom.grammars.selectGrammar('a.js')
+      atom.grammars.removeGrammar(jsGrammar)
 
       waitsForPromise ->
         atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
 
       runs ->
-        expect(editor.getGrammar()).toBe atom.syntax.nullGrammar
+        expect(editor.getGrammar()).toBe atom.grammars.nullGrammar
         expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
 
-        atom.syntax.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(jsGrammar)
         expect(editor.getGrammar()).toBe jsGrammar
         expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
@@ -3787,7 +3787,7 @@ describe "TextEditor", ->
 
     it "updates the grammar based on grammar overrides", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
-      atom.syntax.setGrammarOverrideForPath(editor.getPath(), 'source.coffee')
+      atom.grammars.setGrammarOverrideForPath(editor.getPath(), 'source.coffee')
       editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
@@ -3805,7 +3805,7 @@ describe "TextEditor", ->
         atom.packages.activatePackage('language-hyperlink')
 
       runs ->
-        grammar = atom.syntax.selectGrammar("text.js")
+        grammar = atom.grammars.selectGrammar("text.js")
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
         expect(tokens[0].value).toBe "var"

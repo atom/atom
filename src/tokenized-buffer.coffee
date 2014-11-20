@@ -26,8 +26,8 @@ class TokenizedBuffer extends Model
   constructor: ({@buffer, @tabLength, @invisibles}) ->
     @emitter = new Emitter
 
-    @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
-    @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
+    @subscribe atom.grammars.onDidAddGrammar(@grammarAddedOrUpdated)
+    @subscribe atom.grammars.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
     @subscribe @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
@@ -98,7 +98,7 @@ class TokenizedBuffer extends Model
     @emitter.emit 'did-change-grammar', grammar
 
   reloadGrammar: ->
-    if grammar = atom.syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar)
     else
       throw new Error("No grammar found for path: #{path}")

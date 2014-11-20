@@ -350,8 +350,8 @@ describe "PackageManager", ->
             atom.packages.activatePackage('package-with-grammars')
 
           runs ->
-            expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Alot'
-            expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Alittle'
+            expect(atom.grammars.selectGrammar('a.alot').name).toBe 'Alot'
+            expect(atom.grammars.selectGrammar('a.alittle').name).toBe 'Alittle'
 
       describe "scoped-property loading", ->
         it "loads the scoped properties", ->
@@ -363,13 +363,13 @@ describe "PackageManager", ->
 
     describe "converted textmate packages", ->
       it "loads the package's grammars", ->
-        expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+        expect(atom.grammars.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         waitsForPromise ->
           atom.packages.activatePackage('language-ruby')
 
         runs ->
-          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
+          expect(atom.grammars.selectGrammar("file.rb").name).toBe "Ruby"
 
       it "loads the translated scoped properties", ->
         expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
@@ -455,8 +455,8 @@ describe "PackageManager", ->
 
         runs ->
           atom.packages.deactivatePackage('package-with-grammars')
-          expect(atom.syntax.selectGrammar('a.alot').name).toBe 'Null Grammar'
-          expect(atom.syntax.selectGrammar('a.alittle').name).toBe 'Null Grammar'
+          expect(atom.grammars.selectGrammar('a.alot').name).toBe 'Null Grammar'
+          expect(atom.grammars.selectGrammar('a.alittle').name).toBe 'Null Grammar'
 
       it "removes the package's keymaps", ->
         waitsForPromise ->
@@ -491,15 +491,15 @@ describe "PackageManager", ->
 
     describe "textmate packages", ->
       it "removes the package's grammars", ->
-        expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+        expect(atom.grammars.selectGrammar("file.rb").name).toBe "Null Grammar"
 
         waitsForPromise ->
           atom.packages.activatePackage('language-ruby')
 
         runs ->
-          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Ruby"
+          expect(atom.grammars.selectGrammar("file.rb").name).toBe "Ruby"
           atom.packages.deactivatePackage('language-ruby')
-          expect(atom.syntax.selectGrammar("file.rb").name).toBe "Null Grammar"
+          expect(atom.grammars.selectGrammar("file.rb").name).toBe "Null Grammar"
 
       it "removes the package's scoped properties", ->
         waitsForPromise ->
@@ -527,8 +527,8 @@ describe "PackageManager", ->
       atom.packages.deactivatePackages()
       atom.packages.unloadPackages()
 
-      Syntax = require '../src/syntax'
-      atom.syntax = window.syntax = new Syntax()
+      GrammarRegistry = require '../src/grammar-registry'
+      atom.grammars = window.syntax = new GrammarRegistry()
 
     it "activates all the packages, and none of the themes", ->
       atom.packages.activate()
