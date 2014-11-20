@@ -83,7 +83,7 @@
     "command-palette": "0.28.0",
     "deprecation-cop": "0.14.0",
     "dev-live-reload": "0.35.0",
-    "encoding-selector": "0.7.0",
+    "encoding-selector": "0.8.0",
     "exception-reporting": "0.20.0",
     "find-and-replace": "0.147.0",
     "fuzzy-finder": "0.60.0",
