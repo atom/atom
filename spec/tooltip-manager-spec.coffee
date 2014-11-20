@@ -24,12 +24,6 @@ describe "TooltipManager", ->
         hover element, ->
           expect(document.body.querySelector(".tooltip")).toHaveText("Title")
 
-    describe "when the target is a selector", ->
-      it "creates a tooltip based on the given options when hovering over an element matching the target selector", ->
-        manager.add ".foo", title: "Title"
-        hover element, ->
-          expect(document.body.querySelector(".tooltip")).toHaveText("Title")
-
     describe "when a keyBindingCommand is specified", ->
       describe "when a title is specified", ->
         it "appends the key binding corresponding to the command to the title", ->

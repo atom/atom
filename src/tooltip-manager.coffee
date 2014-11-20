@@ -14,10 +14,9 @@ class TooltipManager
     placement: 'auto top'
     viewportPadding: 2
 
-  # Essential: Add a tooltip to the given element or all elements matching the
-  # given selector.
+  # Essential: Add a tooltip to the given element.
   #
-  # * `target` An `HTMLElement` or {String} containing a selector.
+  # * `target` An `HTMLElement`
   # * `options` See http://getbootstrap.com/javascript/#tooltips for a full list
   #   of options. You can also supply the following additional options:
   #   * `keyBindingCommand` A {String} containing a command name. If you specify
@@ -37,10 +36,6 @@ class TooltipManager
         options.title += " " + getKeystroke(bindings)
       else
         options.title = getKeystroke(bindings)
-
-    if typeof target is 'string'
-      options.selector = target
-      target = document.body
 
     $target = $(target)
     $target.tooltip(_.defaults(options, @defaults))
