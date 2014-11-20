@@ -35,16 +35,20 @@ class Atom extends Model
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
 
+    workspaceViewDeprecationMessage = """
+      atom.workspaceView is no longer available.
+      In most cases you will not need the view. See the Workspace docs for
+      alternatives: https://atom.io/docs/api/latest/Workspace.
+      If you do need the view, please use `atom.views.getView(atom.workspace)`,
+      which returns an HTMLElement.
+    """
+
     Object.defineProperty atom, 'workspaceView',
       get: ->
-        deprecate """
-          atom.workspaceView is no longer available.
-          In most cases you will not need the view. See the Workspace docs for
-          alternatives: https://atom.io/docs/api/latest/Workspace.
-          If you do need the view, please use `atom.views.getView(atom.workspace)`.
-        """
+        deprecate(workspaceViewDeprecationMessage)
         atom.__workspaceView
       set: (newValue) ->
+        deprecate(workspaceViewDeprecationMessage)
         atom.__workspaceView = newValue
 
     atom
@@ -162,9 +166,6 @@ class Atom extends Model
 
   # Public: A {Workspace} instance
   workspace: null
-
-  # Public: A {WorkspaceView} instance
-  workspaceView: null
 
   ###
   Section: Construction and Destruction
@@ -561,7 +562,7 @@ class Atom extends Model
     @displayWindow({maximize})
 
   unloadEditorWindow: ->
-    return if not @project and not @workspaceView
+    return if not @project
 
     @state.syntax = @syntax.serialize()
     @state.project = @project.serialize()
@@ -572,10 +573,10 @@ class Atom extends Model
     @windowState = null
 
   removeEditorWindow: ->
-    return if not @project and not @workspaceView
+    return if not @project
 
-    @workspaceView?.remove()
-    @workspaceView = null
+    @workspace?.destroy()
+    @workspace = null
     @project?.destroy()
     @project = null
 
@@ -588,7 +589,7 @@ class Atom extends Model
   # Essential: Visually and audibly trigger a beep.
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
-    @workspaceView.trigger 'beep'
+    @__workspaceView.trigger 'beep'
     @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
@@ -664,11 +665,13 @@ class Atom extends Model
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-    @workspaceView = @views.getView(@workspace).__spacePenView
+
+    workspaceElement = @views.getView(@workspace)
+    @__workspaceView = workspaceElement.__spacePenView
     @deserializeTimings.workspace = Date.now() - startTime
 
-    @keymaps.defaultTarget = @workspaceView[0]
-    $(@workspaceViewParentSelector).append(@workspaceView)
+    @keymaps.defaultTarget = workspaceElement
+    document.querySelector(@workspaceViewParentSelector).appendChild(workspaceElement)
 
   deserializePackageStates: ->
     @packages.packageStates = @state.packageStates ? {}
