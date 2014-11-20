@@ -34,8 +34,8 @@ describe "TooltipManager", ->
       describe "when a title is specified", ->
         it "appends the key binding corresponding to the command to the title", ->
           atom.keymaps.add 'test',
-            '.bar': 'ctrl-x ctrl-z': 'test-command'
             '.foo': 'ctrl-x ctrl-y': 'test-command'
+            '.bar': 'ctrl-x ctrl-z': 'test-command'
 
           manager.add element, title: "Title", keyBindingCommand: 'test-command'
 
@@ -48,6 +48,18 @@ describe "TooltipManager", ->
           atom.keymaps.add 'test', '.foo': 'ctrl-x ctrl-y': 'test-command'
 
           manager.add element, keyBindingCommand: 'test-command'
+
+          hover element, ->
+            tooltipElement = document.body.querySelector(".tooltip")
+            expect(tooltipElement).toHaveText "⌃X ⌃Y"
+
+      describe "when a keyBindingTarget is specified", ->
+        it "looks up the key binding relative to the target", ->
+          atom.keymaps.add 'test',
+            '.bar': 'ctrl-x ctrl-z': 'test-command'
+            '.foo': 'ctrl-x ctrl-y': 'test-command'
+
+          manager.add element, keyBindingCommand: 'test-command', keyBindingTarget: element
 
           hover element, ->
             tooltipElement = document.body.querySelector(".tooltip")

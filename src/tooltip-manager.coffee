@@ -15,10 +15,9 @@ class TooltipManager
   add: (target, options) ->
     requireBootstrapTooltip()
 
-    {keyBindingCommand} = options
+    {keyBindingCommand, keyBindingTarget} = options
 
     if keyBindingCommand?
-      keyBindingTarget = target unless typeof target is 'string'
       bindings = atom.keymaps.findKeyBindings(command: keyBindingCommand, target: keyBindingTarget)
       if options.title?
         options.title += " " + getKeystroke(bindings)
