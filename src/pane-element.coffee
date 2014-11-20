@@ -95,7 +95,7 @@ class PaneElement extends HTMLElement
 
   itemRemoved: ({item, index, destroyed}) ->
     if viewToRemove = @model.getView(item)
-      callRemoveHooks(viewToRemove)
+      callRemoveHooks(viewToRemove) if destroyed
       viewToRemove.remove()
 
   paneDestroyed: ->

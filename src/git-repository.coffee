@@ -1,9 +1,8 @@
 {basename, join} = require 'path'
 
 _ = require 'underscore-plus'
-{Subscriber} = require 'emissary'
 EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
 {deprecate} = require 'grim'
@@ -45,7 +44,6 @@ Task = require './task'
 module.exports =
 class GitRepository
   EmitterMixin.includeInto(this)
-  Subscriber.includeInto(this)
 
   @exists: (path) ->
     if git = @open(path)
@@ -75,6 +73,8 @@ class GitRepository
 
   constructor: (path, options={}) ->
     @emitter = new Emitter
+    @subscriptions = new CompositeDisposable
+
     @repo = GitUtils.open(path)
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
@@ -88,13 +88,15 @@ class GitRepository
 
     refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
-      {$} = require './space-pen-extensions'
-      @subscribe $(window), 'focus', =>
+      onWindowFocus = =>
         @refreshIndex()
         @refreshStatus()
 
+      window.addEventListener 'focus', onWindowFocus
+      @subscriptions.add new Disposable(-> window.removeEventListener 'focus', onWindowFocus)
+
     if @project?
-      @subscribe @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
+      @subscriptions.add @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
 
   # Public: Destroy this {GitRepository} object.
   #
@@ -109,7 +111,7 @@ class GitRepository
       @repo.release()
       @repo = null
 
-    @unsubscribe()
+    @subscriptions.dispose()
 
   ###
   Section: Event Subscription
@@ -403,10 +405,13 @@ class GitRepository
       if path = buffer.getPath()
         @getPathStatus(path)
 
-    @subscribe buffer.onDidSave(getBufferPathStatus)
-    @subscribe buffer.onDidReload(getBufferPathStatus)
-    @subscribe buffer.onDidChangePath(getBufferPathStatus)
-    @subscribe buffer.onDidDestroy => @unsubscribe(buffer)
+    bufferSubscriptions = new CompositeDisposable
+    bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
+    bufferSubscriptions.add buffer.onDidReload(getBufferPathStatus)
+    bufferSubscriptions.add buffer.onDidChangePath(getBufferPathStatus)
+    bufferSubscriptions.add buffer.onDidDestroy =>
+      bufferSubscriptions.dispose()
+      @subscriptions.remove(bufferSubscriptions)
 
   # Subscribes to editor view event.
   checkoutHeadForEditor: (editor) ->

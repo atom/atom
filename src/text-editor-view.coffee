@@ -138,6 +138,7 @@ class TextEditorView extends View
 
   beforeRemove: ->
     @trigger 'editor:detached', [this]
+    @trigger 'editor:will-be-removed', [this]
     @attached = false
 
   remove: (selector, keepData) ->
