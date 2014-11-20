@@ -16,6 +16,10 @@ class MessageManager
   onDidAddMessage: (callback) ->
     @emitter.on 'did-add-message', callback
 
+  ###
+  Section: Adding Messages
+  ###
+
   addSuccess: (messageString, options) ->
     @addMessage(new Message('success', messageString, options))
 
