@@ -7,9 +7,6 @@ Atom exposes several services through singleton objects accessible via the
   * workspace:
       Manipulate and query the state of the user interface for the current
       window. Open editors, manipulate panes.
-  * workspaceView:
-      Similar to workspace, but provides access to the root of all views in the
-      current window.
   * project:
       Access the directory associated with the current window. Load editors,
       perform project-wide searches, register custom openers for special file
