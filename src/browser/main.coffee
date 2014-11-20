@@ -13,6 +13,16 @@ process.on 'uncaughtException', (error={}) ->
   nslog(error.message) if error.message?
   nslog(error.stack) if error.stack?
 
+# Patch fs.statSyncNoException/fs.lstatSyncNoException to fail for non-strings
+# https://github.com/atom/atom-shell/issues/843
+{lstatSyncNoException, statSyncNoException} = fs
+fs.statSyncNoException = (pathToStat) ->
+  return false unless pathToStat and typeof pathToStat is 'string'
+  statSyncNoException(pathToStat)
+fs.lstatSyncNoException = (pathToStat) ->
+  return false unless pathToStat and typeof pathToStat is 'string'
+  lstatSyncNoException(pathToStat)
+
 start = ->
   if process.platform is 'win32'
     SquirrelUpdate = require './squirrel-update'
