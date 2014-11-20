@@ -20,12 +20,14 @@ module.exports =
 class GrammarRegistry extends FirstMate.GrammarRegistry
   PropertyAccessors.includeInto(this)
   Subscriber.includeInto(this)
-  atom.deserializers.add(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
     grammarRegistry = new GrammarRegistry()
     grammarRegistry.grammarOverridesByPath = grammarOverridesByPath
     grammarRegistry
+
+  atom.deserializers.add(this)
+  atom.deserializers.add(name: 'Syntax', deserialize: @deserialize) # Support old serialization
 
   constructor: ->
     super(maxTokensPerLine: 100)
