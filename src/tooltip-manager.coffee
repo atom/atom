@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+{Disposable} = require 'event-kit'
 {$} = require './space-pen-extensions'
 
 # Essential: Associates tooltips with HTML elements or selectors.
@@ -41,7 +42,10 @@ class TooltipManager
       options.selector = target
       target = document.body
 
-    $(target).tooltip(_.defaults(options, @defaults))
+    $target = $(target)
+    $target.tooltip(_.defaults(options, @defaults))
+
+    new Disposable -> $target.tooltip('destroy')
 
 humanizeKeystrokes = (keystroke) ->
   keystrokes = keystroke.split(' ')

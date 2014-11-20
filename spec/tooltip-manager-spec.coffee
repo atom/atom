@@ -64,3 +64,15 @@ describe "TooltipManager", ->
           hover element, ->
             tooltipElement = document.body.querySelector(".tooltip")
             expect(tooltipElement).toHaveText "⌃X ⌃Y"
+
+    describe "when .dispose() is called on the returned disposable", ->
+      it "no longer displays the tooltip on hover", ->
+        disposable = manager.add element, title: "Title"
+
+        hover element, ->
+          expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+
+        disposable.dispose()
+
+        hover element, ->
+          expect(document.body.querySelector(".tooltip")).toBeNull()
