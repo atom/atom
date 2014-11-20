@@ -107,8 +107,6 @@ describe "Window", ->
 
   describe ".removeEditorWindow()", ->
     it "unsubscribes from all buffers", ->
-      spyOn atom.windowEventHandler, 'unsubscribe'
-
       waitsForPromise ->
         atom.workspace.open("sample.js")
 
