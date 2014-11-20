@@ -101,7 +101,7 @@ describe "Window", ->
       atom.unloadEditorWindow()
 
       expect(atom.state.workspace).toEqual workspaceState
-      expect(atom.state.syntax).toEqual syntaxState
+      expect(atom.state.grammars).toEqual syntaxState
       expect(atom.state.project).toEqual projectState
       expect(atom.saveSync).toHaveBeenCalled()
 
