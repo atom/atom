@@ -95,7 +95,7 @@ describe "Window", ->
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       workspaceState = atom.workspace.serialize()
-      syntaxState = atom.syntax.serialize()
+      syntaxState = atom.grammars.serialize()
       projectState = atom.project.serialize()
 
       atom.unloadEditorWindow()

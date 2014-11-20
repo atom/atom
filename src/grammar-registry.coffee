@@ -12,7 +12,7 @@ Token = require './token'
 
 # Extended: Syntax class holding the grammars used for tokenizing.
 #
-# An instance of this class is always available as the `atom.syntax` global.
+# An instance of this class is always available as the `atom.grammars` global.
 #
 # The Syntax class also contains properties for things such as the
 # language-specific comment regexes. See {::getProperty} for more details.

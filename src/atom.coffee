@@ -131,8 +131,8 @@ class Atom extends Model
   # Public: A {Project} instance
   project: null
 
-  # Public: A {Syntax} instance
-  syntax: null
+  # Public: A {GrammarRegistry} instance
+  grammars: null
 
   # Public: A {PackageManager} instance
   packages: null
@@ -241,7 +241,11 @@ class Atom extends Model
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
 
-    @syntax = @deserializers.deserialize(@state.syntax) ? new GrammarRegistry()
+    @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
+
+    Object.defineProperty this, 'syntax', get: ->
+      deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
+      @grammars
 
     @subscribe @packages.onDidActivateAll => @watchThemes()
 
@@ -554,7 +558,7 @@ class Atom extends Model
   unloadEditorWindow: ->
     return if not @project and not @workspaceView
 
-    @state.syntax = @syntax.serialize()
+    @state.grammars = @grammars.serialize()
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()

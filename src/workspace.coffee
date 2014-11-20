@@ -105,13 +105,13 @@ class Workspace extends Model
 
       packageNames.push(packageName)
       for scopeName in includedGrammarScopes ? []
-        addGrammar(atom.syntax.grammarForScopeName(scopeName))
+        addGrammar(atom.grammars.grammarForScopeName(scopeName))
 
     editors = @getTextEditors()
     addGrammar(editor.getGrammar()) for editor in editors
 
     if editors.length > 0
-      for grammar in atom.syntax.getGrammars() when grammar.injectionSelector
+      for grammar in atom.grammars.getGrammars() when grammar.injectionSelector
         addGrammar(grammar)
 
     _.uniq(packageNames)
