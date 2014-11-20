@@ -35,6 +35,17 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
 
   createToken: (value, scopes) -> new Token({value, scopes})
 
+  # Extended: Select a grammar for the given file path and file contents.
+  #
+  # This picks the best match by checking the file path and contents against
+  # each grammar.
+  #
+  # * `filePath` A {String} file path.
+  # * `fileContents` A {String} of text for the file path.
+  #
+  # Returns a {Grammar}, never null.
+  selectGrammar: (filePath, fileContents) -> super
+
   # Deprecated: Used by settings-view to display snippets for packages
   @::accessor 'propertyStore', ->
     deprecate("Do not use this. Use a public method on Config")
