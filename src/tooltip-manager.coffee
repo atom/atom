@@ -25,6 +25,9 @@ class TooltipManager
   #   * `keyBindingTarget` An `HTMLElement` on which to look up the key binding.
   #     If this option is not supplied, the first of all matching key bindings
   #     for the given command will be rendered.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # tooltip.
   add: (target, options) ->
     requireBootstrapTooltip()
 
