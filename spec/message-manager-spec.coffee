@@ -1,7 +1,6 @@
 MessageManager = require '../src/message-manager'
-{$} = require '../src/space-pen-extensions'
 
-fdescribe "MessageManager", ->
+describe "MessageManager", ->
   [manager] = []
 
   beforeEach ->
