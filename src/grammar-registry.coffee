@@ -23,9 +23,9 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   atom.deserializers.add(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
-    syntax = new GrammarRegistry()
-    syntax.grammarOverridesByPath = grammarOverridesByPath
-    syntax
+    grammarRegistry = new GrammarRegistry()
+    grammarRegistry.grammarOverridesByPath = grammarOverridesByPath
+    grammarRegistry
 
   constructor: ->
     super(maxTokensPerLine: 100)
