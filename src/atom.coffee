@@ -207,7 +207,7 @@ class Atom extends Model
     TooltipManager = require './tooltip-manager'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
-    Syntax = require './syntax'
+    GrammarRegistry = require './grammar-registry'
     ThemeManager = require './theme-manager'
     StyleManager = require './style-manager'
     ContextMenuManager = require './context-menu-manager'
@@ -241,7 +241,7 @@ class Atom extends Model
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
 
-    @syntax = @deserializers.deserialize(@state.syntax) ? new Syntax()
+    @syntax = @deserializers.deserialize(@state.syntax) ? new GrammarRegistry()
 
     @subscribe @packages.onDidActivateAll => @watchThemes()
 

@@ -2,7 +2,8 @@ _ = require 'underscore-plus'
 {deprecate} = require 'grim'
 {specificity} = require 'clear-cut'
 {Subscriber} = require 'emissary'
-{GrammarRegistry, ScopeSelector} = require 'first-mate'
+FirstMate = require 'first-mate'
+{ScopeSelector} = FirstMate
 ScopedPropertyStore = require 'scoped-property-store'
 PropertyAccessors = require 'property-accessors'
 
@@ -16,13 +17,13 @@ Token = require './token'
 # The Syntax class also contains properties for things such as the
 # language-specific comment regexes. See {::getProperty} for more details.
 module.exports =
-class Syntax extends GrammarRegistry
+class GrammarRegistry extends FirstMate.GrammarRegistry
   PropertyAccessors.includeInto(this)
   Subscriber.includeInto(this)
   atom.deserializers.add(this)
 
   @deserialize: ({grammarOverridesByPath}) ->
-    syntax = new Syntax()
+    syntax = new GrammarRegistry()
     syntax.grammarOverridesByPath = grammarOverridesByPath
     syntax
 

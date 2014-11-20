@@ -526,8 +526,8 @@ describe "PackageManager", ->
       atom.packages.deactivatePackages()
       atom.packages.unloadPackages()
 
-      Syntax = require '../src/syntax'
-      atom.syntax = window.syntax = new Syntax()
+      GrammarRegistry = require '../src/grammar-registry'
+      atom.syntax = window.syntax = new GrammarRegistry()
 
     it "activates all the packages, and none of the themes", ->
       atom.packages.activate()
