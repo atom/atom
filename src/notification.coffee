@@ -18,8 +18,8 @@ class Notification
   getIcon: ->
     return @options.icon if @options.icon?
     switch @type
-      when 'fatal' then 'flame'
-      when 'error' then 'bug'
+      when 'fatal' then 'bug'
+      when 'error' then 'flame'
       when 'warning' then 'alert'
       when 'info' then 'info'
       when 'success' then 'check'

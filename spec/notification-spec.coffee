@@ -1,12 +1,12 @@
 Notification = require '../src/notification'
 
-describe "Notification", ->
+fdescribe "Notification", ->
   [notification] = []
 
   describe "::getIcon()", ->
     it "returns a default when no icon specified", ->
       notification = new Notification('error', 'message!')
-      expect(notification.getIcon()).toBe 'bug'
+      expect(notification.getIcon()).toBe 'flame'
 
     it "returns the icon specified", ->
       notification = new Notification('error', 'message!', icon: 'my-icon')
