@@ -4,7 +4,6 @@ React = require 'react-atom-fork'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorElement = require './text-editor-element'
-TextEditorComponent = require './text-editor-component'
 {deprecate} = require 'grim'
 
 # Deprecated: Represents the entire visual pane in Atom.
