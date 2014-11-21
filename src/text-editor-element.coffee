@@ -4,7 +4,7 @@ Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
-TextEditorComponent = require './text-editor-component'
+TextEditorComponent = null
 TextEditorView = null
 
 ShadowStyleSheet = null
@@ -92,6 +92,7 @@ class TextEditorElement extends HTMLElement
     ))
 
   mountComponent: ->
+    TextEditorComponent ?= require './text-editor-component'
     @componentDescriptor ?= TextEditorComponent(
       hostElement: this
       rootElement: @rootElement
