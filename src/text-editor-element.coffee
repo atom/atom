@@ -103,7 +103,9 @@ class TextEditorElement extends HTMLElement
     )
     @component = React.renderComponent(@componentDescriptor, @rootElement)
 
-    unless @useShadowDOM
+    if @useShadowDOM
+      @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
+    else
       inputNode = @component.refs.input.getDOMNode()
       inputNode.addEventListener 'focus', @focused.bind(this)
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
@@ -127,6 +129,16 @@ class TextEditorElement extends HTMLElement
         return
 
     @component?.blurred()
+
+  # Work around what seems to be a bug in Chromium. Focus can be stolen from the
+  # hidden input when clicking on the gutter and transferred to the
+  # already-focused host element. The host element never gets a 'focus' event
+  # however, which leaves us in a limbo state where the text editor element is
+  # focused but the hidden input isn't focused. This always refocuses the hidden
+  # input if a blur event occurs in the shadow DOM that is transferring focus
+  # back to the host element.
+  shadowRootBlurred: (event) ->
+    @component.focused() if event.relatedTarget is this
 
   addGrammarScopeAttribute: ->
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
