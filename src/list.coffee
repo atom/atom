@@ -78,14 +78,14 @@ class List extends Command
     userPackages = @listPackages(@userPackagesDirectory, options)
     unless options.argv.bare or options.argv.json
       console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
-    callback(null, userPackages) if callback
+    callback?(null, userPackages)
 
   listDevPackages: (options, callback) ->
     devPackages = @listPackages(@devPackagesDirectory, options)
     if devPackages.length > 0
       unless options.argv.bare or options.argv.json
         console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
-      callback(null, devPackages) if callback
+      callback?(null, devPackages)
 
   listBundledPackages: (options, callback) ->
     config.getResourcePath (resourcePath) =>
@@ -112,7 +112,7 @@ class List extends Command
         else
           console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
 
-      callback(null, packages) if callback
+      callback?(null, packages)
 
   listInstalledPackages: (options) ->
     @listDevPackages options, (err, packages) =>
