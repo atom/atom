@@ -118,7 +118,6 @@ You can open this file in an editor from the _Atom > Open Your Config_ menu.
       - `cr`: Carriage return (for Microsoft-style line endings)
       - `eol`: `\n` characters
       - `space`: Leading and trailing space characters
-  - `normalizeIndentOnPaste`: Enable/disable conversion of pasted tabs to spaces
   - `preferredLineLength`: Identifies the length of a line (defaults to `80`)
   - `showInvisibles`: Whether to render placeholders for invisible characters (defaults to `false`)
   - `showIndentGuide`: Show/hide indent indicators within the editor

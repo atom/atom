@@ -119,9 +119,6 @@ module.exports =
       autoIndentOnPaste:
         type: 'boolean'
         default: true
-      normalizeIndentOnPaste:
-        type: 'boolean'
-        default: true
       nonWordCharacters:
         type: 'string'
         default: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
