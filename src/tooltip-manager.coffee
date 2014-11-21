@@ -19,6 +19,7 @@ class TooltipManager
   # * `target` An `HTMLElement`
   # * `options` See http://getbootstrap.com/javascript/#tooltips for a full list
   #   of options. You can also supply the following additional options:
+  #   * `title` {String} Text in the tip.
   #   * `keyBindingCommand` A {String} containing a command name. If you specify
   #     this option and a key binding exists that matches the command, it will
   #     be appended to the title or rendered alone if no title is specified.
