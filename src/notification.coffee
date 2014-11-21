@@ -1,7 +1,7 @@
 
 # Experimental: This will likely change, do not use.
 module.exports =
-class Message
+class Notification
   constructor: (@type, @message, @options={}) ->
 
   getOptions: -> @options

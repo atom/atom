@@ -6,7 +6,7 @@ module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   GitRepository: require '../src/git-repository'
-  Message: require '../src/message'
+  Message: require '../src/notification'
   Point: Point
   Range: Range
   Emitter: Emitter
