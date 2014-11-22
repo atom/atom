@@ -1,5 +1,5 @@
 {View, $} = require 'space-pen'
-React = require 'react-atom-fork'
+React = null
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
@@ -186,6 +186,7 @@ class TextEditorView extends View
     @overlayer.append(view)
 
   unmountComponent: ->
+    React ?= require 'react-atom-fork'
     React.unmountComponentAtNode(@element) if @component.isMounted()
 
   splitLeft: ->

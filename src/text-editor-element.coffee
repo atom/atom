@@ -1,5 +1,4 @@
 {View, $, callRemoveHooks} = require 'space-pen'
-React = require 'react-atom-fork'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -8,6 +7,10 @@ TextEditorComponent = null
 TextEditorView = null
 
 ShadowStyleSheet = null
+
+React = null
+getReact: ->
+  React ?= require 'react-atom-fork'
 
 class TextEditorElement extends HTMLElement
   model: null
@@ -102,7 +105,7 @@ class TextEditorElement extends HTMLElement
       lineOverdrawMargin: @lineOverdrawMargin
       useShadowDOM: @useShadowDOM
     )
-    @component = React.renderComponent(@componentDescriptor, @rootElement)
+    @component = getReact().renderComponent(@componentDescriptor, @rootElement)
 
     unless @useShadowDOM
       inputNode = @component.refs.input.getDOMNode()
@@ -112,7 +115,7 @@ class TextEditorElement extends HTMLElement
   unmountComponent: ->
     return unless @component?.isMounted()
     callRemoveHooks(this)
-    React.unmountComponentAtNode(this)
+    getReact().unmountComponentAtNode(this)
     @component = null
 
   focused: ->
