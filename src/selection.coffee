@@ -359,8 +359,11 @@ class Selection extends Model
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
 
+    precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
+    startLevel = @editor.indentLevelForLine(precedingText)
+
     if options.indentBasis? and not options.autoIndent
-      text = @normalizeIndents(text, options.indentBasis)
+      text = @adjustIndent(text, startLevel - options.indentBasis)
 
     newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo', 'normalizeLineEndings'))
 
@@ -562,8 +565,10 @@ class Selection extends Model
   #   cursor's horizontal position. (default: false)
   copy: (maintainClipboard=false, fullLine=false) ->
     return if @isEmpty()
-    selectionText = @editor.buffer.getTextInRange(@getBufferRange())
-    selectionIndentation = @editor.indentationForBufferRow(@getBufferRange().start.row)
+    {start, end} = @getBufferRange()
+    selectionText = @editor.getTextInRange([start, end])
+    precedingText = @editor.getTextInRange([[start.row, 0], start])
+    startLevel = @editor.indentLevelForLine(precedingText)
 
     if maintainClipboard
       {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
@@ -572,16 +577,17 @@ class Selection extends Model
         metadata.selections = [{
           text: clipboardText,
           indentBasis: metadata.indentBasis,
+          fullLine: metadata.fullLine,
         }]
       metadata.selections.push({
         text: selectionText,
-        indentBasis: selectionIndentation,
+        indentBasis: startLevel,
         fullLine: fullLine
       })
       atom.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
       atom.clipboard.write(selectionText, {
-        indentBasis: selectionIndentation,
+        indentBasis: startLevel,
         fullLine: fullLine
       })
 
@@ -591,34 +597,22 @@ class Selection extends Model
     @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  # Public: Indents the given text to the suggested level based on the grammar.
+  # Public: Increases the indentation level of
   #
-  # * `text` The {String} to indent within the selection.
-  # * `indentBasis` The beginning indent level.
-  normalizeIndents: (text, indentBasis) ->
-    textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
-    isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
 
+  # * `indentIncrease` The beginning indent level.
+  adjustIndent: (text, indentIncrease) ->
     lines = text.split('\n')
-    firstLineIndentLevel = @editor.indentLevelForLine(lines[0])
-    if isCursorInsideExistingLine
-      minimumIndentLevel = @editor.indentationForBufferRow(@cursor.getBufferRow())
-    else
-      minimumIndentLevel = @cursor.getIndentLevel()
-
-    normalizedLines = []
-    for line, i in lines
-      if i == 0
-        indentLevel = 0
-      else if line == '' # remove all indentation from empty lines
-        indentLevel = 0
+    for line, i in lines when i > 0
+      if indentIncrease == 0
+        continue
+      else if indentIncrease > 0
+        lines[i] = @editor.buildIndentString(indentIncrease) + line
       else
-        lineIndentLevel = @editor.indentLevelForLine(lines[i])
-        indentLevel = minimumIndentLevel + (lineIndentLevel - indentBasis)
-
-      normalizedLines.push(@setIndentationForLine(line, indentLevel))
-
-    normalizedLines.join('\n')
+        currentIndentLevel = @editor.indentLevelForLine(lines[i])
+        indentLevel = Math.max(0, currentIndentLevel + indentIncrease)
+        lines[i] = line.replace(/^[\t ]+/, @editor.buildIndentString(indentLevel))
+    lines.join('\n')
 
   # Indent the current line(s).
   #
@@ -650,11 +644,6 @@ class Selection extends Model
     [start, end] = @getBufferRowRange()
     for row in [start..end]
       @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
-
-  setIndentationForLine: (line, indentLevel) ->
-    desiredIndentLevel = Math.max(0, indentLevel)
-    desiredIndentString = @editor.buildIndentString(desiredIndentLevel)
-    line.replace(/^[\t ]*/, desiredIndentString)
 
   ###
   Section: Managing multiple selections
