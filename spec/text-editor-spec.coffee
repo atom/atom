@@ -2607,69 +2607,44 @@ describe "TextEditor", ->
               atom.clipboard.write(" z();")
               editor.setCursorBufferPosition([1, Infinity])
               editor.pasteText()
-
-              console.log JSON.stringify(editor.lineTextForBufferRow(1))
               expect(editor.lineTextForBufferRow(1)).toBe("    y(); z();")
 
         describe "when `autoIndentOnPaste` is false", ->
           beforeEach ->
             atom.config.set('editor.autoIndentOnPaste', false)
 
-          describe "when the inserted text contains no newlines", ->
-            it "does not adjust the indentation level of the text", ->
-              editor.setCursorBufferPosition([5, 2])
-              editor.insertText("foo", indentBasis: 5)
-              expect(editor.lineTextForBufferRow(5)).toBe "  foo    current = items.shift();"
+          describe "when the cursor is indented further than the original copied text", ->
+            it "increases the indentation of the copied lines to match", ->
+              editor.setSelectedBufferRange([[1, 2], [3, 0]])
+              editor.copySelectedText()
 
-            it "does not adjust the whitespace if there are preceding characters", ->
-              copyText(" foo")
-              editor.setCursorBufferPosition([5, 30])
+              editor.setCursorBufferPosition([5, 6])
               editor.pasteText()
 
-              expect(editor.lineTextForBufferRow(5)).toBe "      current = items.shift(); foo"
+              expect(editor.lineTextForBufferRow(5)).toBe "      var sort = function(items) {"
+              expect(editor.lineTextForBufferRow(6)).toBe "        if (items.length <= 1) return items;"
 
-          describe "when the inserted text contains newlines", ->
-            describe "when the cursor is preceded only by whitespace characters", ->
-              it "normalizes indented lines to each cursor's current indentation level", ->
-                editor.setSelectedBufferRanges([
-                  [[1,2], [3,0]],
-                  [[4,4], [6,0]]
-                ])
-                editor.copySelectedText()
-                expect(atom.clipboard.read()).toEqual """
-                  var sort = function(items) {
-                      if (items.length <= 1) return items;
+          describe "when the cursor is indented less far than the original copied text", ->
+            it "decreases the indentation of the copied lines to match", ->
+              editor.setSelectedBufferRange([[6, 6], [8, 0]])
+              editor.copySelectedText()
 
-                  while(items.length > 0) {
-                        current = items.shift();
+              editor.setCursorBufferPosition([1, 2])
+              editor.pasteText()
 
-                """
+              expect(editor.lineTextForBufferRow(1)).toBe "  current < pivot ? left.push(current) : right.push(current);"
+              expect(editor.lineTextForBufferRow(2)).toBe "}"
 
-                editor.setCursorBufferPosition([0,0])
-                editor.insertNewlineAbove()
-                editor.setSelectedBufferRanges([
-                  [[0,0], [0,0]],
-                  [[1,0], [1,0]]
-                ])
-                editor.pasteText()
+          describe "when the first copied line has leading whitespace", ->
+            it "preserves the line's leading whitespace", ->
+              editor.setSelectedBufferRange([[4, 0], [6, 0]])
+              editor.copySelectedText()
 
-                expect(editor.lineTextForBufferRow(0)).toBe "var sort = function(items) {"
-                console.log JSON.stringify(editor.lineTextForBufferRow(1))
-                expect(editor.lineTextForBufferRow(1)).toBe "  if (items.length <= 1) return items;"
-                expect(editor.lineTextForBufferRow(2)).toBe ""
-                expect(editor.lineTextForBufferRow(3)).toBe "while(items.length > 0) {"
-                expect(editor.lineTextForBufferRow(4)).toBe "  current = items.shift();"
+              editor.setCursorBufferPosition([0, 0])
+              editor.pasteText()
 
-            describe "when the cursor is preceded by non-whitespace characters", ->
-              it "normalizes the indentation level of all lines based on the level of the existing first line", ->
-                copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
-                editor.setCursorBufferPosition([1, Infinity])
-                editor.pasteText()
-
-                expect(editor.lineTextForBufferRow(1)).toBe "  var sort = function(items) {while (true) {"
-                expect(editor.lineTextForBufferRow(2)).toBe "    foo();"
-                expect(editor.lineTextForBufferRow(3)).toBe "  }"
-                expect(editor.lineTextForBufferRow(4)).toBe ""
+              expect(editor.lineTextForBufferRow(0)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(1)).toBe "      current = items.shift();"
 
         describe 'when the clipboard has many selections', ->
           beforeEach ->
