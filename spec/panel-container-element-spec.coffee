@@ -51,6 +51,7 @@ describe "PanelContainerElement", ->
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe 1
         expect(element.childNodes[0]).toHaveClass 'left'
+        expect(element.childNodes[0]).toHaveClass 'panel-left' # legacy selector support
 
         expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
 
@@ -80,6 +81,7 @@ describe "PanelContainerElement", ->
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe 1
         expect(element.childNodes[0]).toHaveClass 'bottom'
+        expect(element.childNodes[0]).toHaveClass 'panel-bottom' # legacy selector support
         expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
         expect(panel1.getView()).toHaveClass 'one'
 
@@ -116,3 +118,11 @@ describe "PanelContainerElement", ->
 
       expect(panel1.getView().style.display).not.toBe 'none'
       expect(panel2.getView().style.display).toBe 'none'
+
+    it "adds the 'modal' class to panels", ->
+      panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem()})
+      container.addPanel(panel1)
+
+      expect(panel1.getView()).toHaveClass 'modal'
+      expect(panel1.getView()).toHaveClass 'overlay' # legacy selector support
+      expect(panel1.getView()).toHaveClass 'from-top' # legacy selector support

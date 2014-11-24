@@ -15,6 +15,11 @@ class PanelContainerElement extends HTMLElement
   panelAdded: ({panel, index}) ->
     panelElement = panel.getView()
     panelElement.classList.add(@model.getLocation())
+    if @model.isModal()
+      panelElement.classList.add("overlay")
+    else
+      panelElement.classList.add("panel-#{@model.getLocation()}")
+
     if index >= @childNodes.length
       @appendChild(panelElement)
     else
