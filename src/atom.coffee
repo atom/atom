@@ -146,6 +146,9 @@ class Atom extends Model
   # Public: A {TooltipManager} instance
   tooltips: null
 
+  # Experimental: A {NotificationManager} instance
+  notifications: null
+
   # Public: A {Project} instance
   project: null
 
@@ -220,6 +223,7 @@ class Atom extends Model
     ViewRegistry = require './view-registry'
     CommandRegistry = require './command-registry'
     TooltipManager = require './tooltip-manager'
+    NotificationManager = require './notification-manager'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     GrammarRegistry = require './grammar-registry'
@@ -246,6 +250,7 @@ class Atom extends Model
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
     @tooltips = new TooltipManager
+    @notifications = new NotificationManager
     @commands = new CommandRegistry
     @views = new ViewRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
