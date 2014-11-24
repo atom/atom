@@ -40,7 +40,7 @@ package.json files have their own additions.
 - `main` (**Required**): the path to the CoffeeScript file that's the entry point
 to your package
 - `stylesheets` (**Optional**): an Array of Strings identifying the order of the
-stylesheets your package needs to load. If not specified, stylesheets in the
+style sheets your package needs to load. If not specified, style sheets in the
 _stylesheets_ directory are added alphabetically.
 - `keymaps`(**Optional**): an Array of Strings identifying the order of the
 key mappings your package needs to load. If not specified, mappings in the
@@ -119,27 +119,27 @@ Also, please collaborate with us if you need an API that doesn't exist. Our goal
 is to build out Atom's API organically based on the needs of package authors
 like you.
 
-## Stylesheets
+## Style Sheets
 
-Stylesheets for your package should be placed in the _stylesheets_ directory.
-Any stylesheets in this directory will be loaded and attached to the DOM when
-your package is activated. Stylesheets can be written as CSS or [LESS] (but LESS
-is recommended).
+Style sheets for your package should be placed in the _stylesheets_ directory.
+Any style sheets in this directory will be loaded and attached to the DOM when
+your package is activated. Style sheets can be written as CSS or [LESS] (but
+LESS is recommended).
 
 Ideally, you won't need much in the way of styling. We've provided a standard
 set of components which define both the colors and UI elements for any package
-that fits into Atom seamlessly. You can view all of Atom's UI components by opening
-the styleguide: open the command palette (`cmd-shift-P`) and search for _styleguide_,
-or just type `cmd-ctrl-shift-G`.
+that fits into Atom seamlessly. You can view all of Atom's UI components by
+opening the styleguide: open the command palette (`cmd-shift-P`) and search for
+_styleguide_, or just type `cmd-ctrl-shift-G`.
 
-If you _do_ need special styling, try to keep only structural styles in the package
-stylesheets. If you _must_ specify colors and sizing, these should be taken from
-the active theme's [ui-variables.less][ui-variables]. For more information, see the
-[theme variables docs][theme-variables]. If you follow this guideline, your package
-will look good out of the box with any theme!
+If you _do_ need special styling, try to keep only structural styles in the
+package style sheets. If you _must_ specify colors and sizing, these should be
+taken from the active theme's [ui-variables.less][ui-variables]. For more
+information, see the [theme variables docs][theme-variables]. If you follow this
+guideline, your package will look good out of the box with any theme!
 
-An optional `stylesheets` array in your _package.json_ can list the stylesheets
-by name to specify a loading order; otherwise, stylesheets are loaded
+An optional `stylesheets` array in your _package.json_ can list the style sheets
+by name to specify a loading order; otherwise, style sheets are loaded
 alphabetically.
 
 ## Keymaps
@@ -157,9 +157,9 @@ loaded in alphabetical order. An optional `keymaps` array in your _package.json_
 can specify which keymaps to load and in what order.
 
 
-Keybindings are executed by determining which element the keypress occurred on. In
-the example above, `changer:magic` command is executed when pressing `ctrl-V` on
-the `.tree-view-scroller` element.
+Keybindings are executed by determining which element the keypress occurred on.
+In the example above, `changer:magic` command is executed when pressing `ctrl-V`
+on the `.tree-view-scroller` element.
 
 See the [main keymaps documentation][keymaps] for more detailed information on
 how keymaps work.
@@ -195,7 +195,8 @@ with your package that aren't tied to a specific element:
 ```
 
 To add your own item to the application menu, simply create a top level `menu`
-key in any menu configuration file in _menus_. This can be a JSON or [CSON] file.
+key in any menu configuration file in _menus_. This can be a JSON or [CSON]
+file.
 
 The menu templates you specify are merged with all other templates provided
 by other packages in the order which they were loaded.
