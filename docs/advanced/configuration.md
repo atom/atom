@@ -11,32 +11,34 @@ value of a namespaced config key with `atom.config.get`:
 @showInvisibles() if atom.config.get "editor.showInvisibles"
 ```
 
-Or you can use the `::subscribe` with `atom.config.observe` to track changes
-from any view object.
+Or you can subscribe via `atom.config.observe` to track changes from any view
+object.
 
 ```coffeescript
+{View} = require 'space-pen'
+
 class MyView extends View
-  initialize: ->
-    @subscribe atom.config.observe 'editor.fontSize', (newValue, {previous}) =>
-      @adjustFontSize()
+  attached: ->
+    @fontSizeObserveSubscription =
+      atom.config.observe 'editor.fontSize', (newValue, {previous}) =>
+        @adjustFontSize()
+
+  detached: ->
+    @fontSizeObserveSubscription.dispose()
 ```
 
 The `atom.config.observe` method will call the given callback immediately with
 the current value for the specified key path, and it will also call it in the
-future whenever the value of that key path changes.
+future whenever the value of that key path changes. If you only want to invoke
+the callback when the next time the value changes, use `atom.config.onDidChange`
+instead.
 
-Subscriptions made with `::subscribe` are automatically canceled when the
-view is removed. You can cancel config subscriptions manually via the
-`off` method on the subscription object that `atom.config.observe` returns.
-
-```coffeescript
-fontSizeSubscription = atom.config.observe 'editor.fontSize', (newValue, {previous}) =>
-  @adjustFontSize()
-
-# ... later on
-
-fontSizeSubscription.off() # Stop observing
-```
+Subscription methods return *disposable* subscription objects. Note in the
+example above how we save the subscription to the `@fontSizeObserveSubscription`
+instance variable and dispose of it when the view is detached. To group multiple
+subscriptions together, you can add them all to a
+[`CompositeDisposable`][composite-disposable] that you dispose when the view is
+detached.
 
 ### Writing Config Settings
 
@@ -48,10 +50,9 @@ but you can programmatically write to it with `atom.config.set`:
 atom.config.set("core.showInvisibles", true)
 ```
 
-You can also use `setDefaults`, which will assign default values for keys that
-are always overridden by values assigned with `set`. Defaults are not written
-out to the the `config.json` file to prevent it from becoming cluttered.
+If you're exposing package configuration via specific key paths, you'll want to
+associate them with a schema in your package's main module. Read more about
+schemas in the [config API docs][config-api].
 
-```coffeescript
-atom.config.setDefaults("editor", fontSize: 18, showInvisibles: true)
-```
+[composite-disposable]: https://atom.io/docs/api/latest/CompositeDisposable
+[config-api]: https://atom.io/docs/api/latest/Config
