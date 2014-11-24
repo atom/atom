@@ -16,7 +16,7 @@ class PanelContainerElement extends HTMLElement
     panelElement = panel.getView()
     panelElement.classList.add(@model.getLocation())
     if @model.isModal()
-      panelElement.classList.add("overlay")
+      panelElement.classList.add("overlay", "from-top")
     else
       panelElement.classList.add("panel-#{@model.getLocation()}")
 
