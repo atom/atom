@@ -43,7 +43,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
         `{$} = require 'space-pen'`
         or
         `$ = require 'jquery'`
-      Add `"space-pen": "^3"` to your package dependencies.
+      Add `"space-pen": "^4"` to your package dependencies.
       Or add `"jquery": "^2"` to your package dependencies.
     """
     $
@@ -53,7 +53,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       Requiring `$$` from `atom` is no longer supported.
       Please require `space-pen` instead:
         `{$$} = require 'space-pen'`
-      Add `"space-pen": "^3"` to your package dependencies.
+      Add `"space-pen": "^4"` to your package dependencies.
     """
     $$
 
@@ -62,7 +62,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       Requiring `$$$` from `atom` is no longer supported.
       Please require `space-pen` instead:
         `{$$$} = require 'space-pen'`
-      Add `"space-pen": "^3"` to your package dependencies.
+      Add `"space-pen": "^4"` to your package dependencies.
     """
     $$$
 
@@ -71,7 +71,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       Requiring `View` from `atom` is no longer supported.
       Please require `space-pen` instead:
         `{View} = require 'space-pen'`
-      Add `"space-pen": "^3"` to your package dependencies.
+      Add `"space-pen": "^4"` to your package dependencies.
     """
     View
 
