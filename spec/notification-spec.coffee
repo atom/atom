@@ -1,7 +1,12 @@
 Notification = require '../src/notification'
 
-fdescribe "Notification", ->
+describe "Notification", ->
   [notification] = []
+
+  describe "::getTimestamp()", ->
+    it "returns a Date object", ->
+      notification = new Notification('error', 'message!')
+      expect(notification.getTimestamp() instanceof Date).toBe true
 
   describe "::getIcon()", ->
     it "returns a default when no icon specified", ->

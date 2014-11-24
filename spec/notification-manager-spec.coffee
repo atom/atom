@@ -1,6 +1,6 @@
 NotificationManager = require '../src/notification-manager'
 
-fdescribe "NotificationManager", ->
+describe "NotificationManager", ->
   [manager] = []
 
   beforeEach ->

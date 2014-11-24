@@ -3,12 +3,15 @@
 module.exports =
 class Notification
   constructor: (@type, @message, @options={}) ->
+    @timestamp = new Date()
 
   getOptions: -> @options
 
   getType: -> @type
 
   getMessage: -> @message
+
+  getTimestamp: -> @timestamp
 
   getDetail: -> @optons.detail
 
