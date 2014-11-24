@@ -1098,41 +1098,30 @@ class TextEditor extends Model
   # abort the transaction, call {::abortTransaction} to terminate the function's
   # execution and revert any changes performed up to the abortion.
   #
-  # * `groupingInterval` (optional) This is the sames as the `groupingInterval`
-  #    parameter in {::beginTransaction}
-  # * `fn` A {Function} to call inside the transaction.
-  transact: (groupingInterval, fn) -> @buffer.transact(groupingInterval, fn)
-
-  # Extended: Start an open-ended transaction.
-  #
-  # Call {::commitTransaction} or {::abortTransaction} to terminate the
-  # transaction. If you nest calls to transactions, only the outermost
-  # transaction is considered. You must match every begin with a matching
-  # commit, but a single call to abort will cancel all nested transactions.
-  #
   # * `groupingInterval` (optional) The {Number} of milliseconds for which this
   #   transaction should be considered 'groupable' after it begins. If a transaction
   #   with a positive `groupingInterval` is committed while the previous transaction is
   #   still 'groupable', the two transactions are merged with respect to undo and redo.
+  # * `fn` A {Function} to call inside the transaction.
+  transact: (groupingInterval, fn) -> @buffer.transact(groupingInterval, fn)
+
+  # Deprecated: Start an open-ended transaction.
   beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
 
-  # Extended: Commit an open-ended transaction started with {::beginTransaction}
-  # and push it to the undo stack.
-  #
-  # If transactions are nested, only the outermost commit takes effect.
+  # Deprecated: Commit an open-ended transaction started with {::beginTransaction}.
   commitTransaction: -> @buffer.commitTransaction()
 
   # Extended: Abort an open transaction, undoing any operations performed so far
   # within the transaction.
   abortTransaction: -> @buffer.abortTransaction()
 
-  # Experimental: Create a pointer to the current state of the buffer for use
+  # Extended: Create a pointer to the current state of the buffer for use
   # with {::revertToCheckpoint} and {::groupChangesSinceCheckpoint}.
   #
   # Returns a checkpoint value.
   createCheckpoint: -> @buffer.createCheckpoint()
 
-  # Experimental: Revert the buffer to the state it was in when the given
+  # Extended: Revert the buffer to the state it was in when the given
   # checkpoint was created.
   #
   # The redo stack will be empty following this operation, so changes since the
@@ -1143,7 +1132,7 @@ class TextEditor extends Model
   # Returns a {Boolean} indicating whether the operation succeeded.
   revertToCheckpoint: (checkpoint) -> @buffer.revertToCheckpoint(checkpoint)
 
-  # Experimental: Group all changes since the given checkpoint into a single
+  # Extended: Group all changes since the given checkpoint into a single
   # transaction for purposes of undo/redo.
   #
   # If the given checkpoint is no longer present in the undo history, no
