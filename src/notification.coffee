@@ -15,6 +15,11 @@ class Notification
 
   getDetail: -> @options.detail
 
+  isEqual: (other) ->
+    @getMessage() == other.getMessage() \
+      and @getType() == other.getType() \
+      and @getDetail() == other.getDetail()
+
   isClosable: ->
     !!@options.closable
 
