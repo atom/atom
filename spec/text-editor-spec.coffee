@@ -616,7 +616,7 @@ describe "TextEditor", ->
         describe "when invisible characters are enabled with hard tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
             atom.config.set('editor.showInvisibles', true)
-            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', false)
+            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', normalizeLineEndings: false)
 
             editor.setCursorScreenPosition [1,7]
             editor.moveToFirstCharacterOfLine()
