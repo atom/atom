@@ -200,6 +200,13 @@ jasmine.attachToDOM = (element) ->
   jasmineContent = document.querySelector('#jasmine-content')
   jasmineContent.appendChild(element) unless jasmineContent.contains(element)
 
+deprecationsSnapshot = null
+jasmine.snapshotDeprecations = ->
+  deprecationsSnapshot = Grim.getDeprecations() # suppress deprecations!!
+
+jasmine.restoreDeprecationsSnapshot = ->
+  Grim.grimDeprecations = deprecationsSnapshot
+
 addCustomMatchers = (spec) ->
   spec.addMatchers
     toBeInstanceOf: (expected) ->

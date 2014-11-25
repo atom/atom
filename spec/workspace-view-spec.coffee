@@ -1,5 +1,4 @@
 {$, $$, View} = require '../src/space-pen-extensions'
-{WorkspaceView} = require 'atom'
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
@@ -11,6 +10,8 @@ describe "WorkspaceView", ->
   pathToOpen = null
 
   beforeEach ->
+    jasmine.snapshotDeprecations()
+
     atom.project.setPaths([atom.project.resolve('dir')])
     pathToOpen = atom.project.resolve('a')
     atom.workspace = new Workspace
@@ -20,6 +21,9 @@ describe "WorkspaceView", ->
 
     waitsForPromise ->
       atom.workspace.open(pathToOpen)
+
+  afterEach ->
+    jasmine.restoreDeprecationsSnapshot()
 
   describe "@deserialize()", ->
     viewState = null
