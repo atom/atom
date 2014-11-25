@@ -724,7 +724,7 @@ class Config
       @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
-      @notifyFailure('Failed to load user config', error)
+      @notifyFailure('Failed to load config.cson', error)
 
   observeUserConfig: ->
     try
