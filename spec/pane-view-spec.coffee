@@ -24,6 +24,8 @@ describe "PaneView", ->
     onDidChangeModified: -> new Disposable(->)
 
   beforeEach ->
+    jasmine.snapshotDeprecations()
+
     deserializerDisposable = atom.deserializers.add(TestView)
     container = atom.views.getView(new PaneContainer).__spacePenView
     containerModel = container.model
@@ -42,6 +44,7 @@ describe "PaneView", ->
 
   afterEach ->
     deserializerDisposable.dispose()
+    jasmine.restoreDeprecationsSnapshot()
 
   describe "when the active pane item changes", ->
     it "hides all item views except the active one", ->
