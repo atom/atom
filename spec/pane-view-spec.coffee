@@ -1,7 +1,7 @@
 PaneContainer = require '../src/pane-container'
 PaneView = require '../src/pane-view'
 fs = require 'fs-plus'
-{Emitter} = require 'event-kit'
+{Emitter, Disposable} = require 'event-kit'
 {$, View} = require '../src/space-pen-extensions'
 path = require 'path'
 temp = require 'temp'
@@ -21,6 +21,7 @@ describe "PaneView", ->
       @emitter.emit 'did-change-title', 'title'
     onDidChangeTitle: (callback) ->
       @emitter.on 'did-change-title', callback
+    onDidChangeModified: -> new Disposable(->)
 
   beforeEach ->
     deserializerDisposable = atom.deserializers.add(TestView)
@@ -155,13 +156,18 @@ describe "PaneView", ->
       expect(view1.is(':visible')).toBe true
 
   describe "when the title of the active item changes", ->
-    describe 'when there is no onDidChangeTitle method', ->
+    describe 'when there is no onDidChangeTitle method (deprecated)', ->
       beforeEach ->
+        jasmine.snapshotDeprecations()
+
         view1.onDidChangeTitle = null
         view2.onDidChangeTitle = null
 
         pane.activateItem(view2)
         pane.activateItem(view1)
+
+      afterEach ->
+        jasmine.restoreDeprecationsSnapshot()
 
       it "emits pane:active-item-title-changed", ->
         activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
