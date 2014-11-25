@@ -43,6 +43,19 @@ describe "PanelContainerElement", ->
     expect(element.parentNode).not.toBe jasmineContent
 
   describe "adding and removing panels", ->
+    it "allows panels to be inserted at any position", ->
+      panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem(), priority: 10})
+      panel2 = new Panel({viewRegistry, item: new TestPanelContainerItem(), priority: 5})
+      panel3 = new Panel({viewRegistry, item: new TestPanelContainerItem(), priority: 8})
+
+      container.addPanel(panel1)
+      container.addPanel(panel2)
+      container.addPanel(panel3)
+
+      expect(element.childNodes[2].getModel()).toBe(panel1)
+      expect(element.childNodes[1].getModel()).toBe(panel3)
+      expect(element.childNodes[0].getModel()).toBe(panel2)
+
     describe "when the container is at the left location", ->
       it "adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed", ->
         expect(element.childNodes.length).toBe 0

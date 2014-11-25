@@ -18,7 +18,7 @@ class PanelContainerElement extends HTMLElement
     if index >= @childNodes.length
       @appendChild(panelElement)
     else
-      referenceItem = @childNodes[index + 1]
+      referenceItem = @childNodes[index]
       @insertBefore(panelElement, referenceItem)
 
     if @model.isModal()
