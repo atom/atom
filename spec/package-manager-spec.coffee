@@ -522,6 +522,7 @@ describe "PackageManager", ->
     themeActivator = null
 
     beforeEach ->
+      jasmine.snapshotDeprecations()
       spyOn(console, 'warn')
       atom.packages.loadPackages()
 
@@ -537,6 +538,7 @@ describe "PackageManager", ->
 
       GrammarRegistry = require '../src/grammar-registry'
       atom.grammars = window.syntax = new GrammarRegistry()
+      jasmine.restoreDeprecationsSnapshot()
 
     it "activates all the packages, and none of the themes", ->
       atom.packages.activate()
