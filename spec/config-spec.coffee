@@ -128,6 +128,12 @@ describe "Config", ->
       expect(atom.config.get("foo")).toEqual 'a\\.b': 1, b: 2
 
   describe ".toggle(keyPath)", ->
+    beforeEach ->
+      jasmine.snapshotDeprecations()
+
+    afterEach ->
+      jasmine.restoreDeprecationsSnapshot()
+
     it "negates the boolean value of the current key path value", ->
       atom.config.set('foo.a', 1)
       atom.config.toggle('foo.a')
@@ -298,6 +304,12 @@ describe "Config", ->
       expect(observeHandler).toHaveBeenCalledWith atom.config.get("foo.bar.baz")
 
   describe ".getPositiveInt(keyPath, defaultValue)", ->
+    beforeEach ->
+      jasmine.snapshotDeprecations()
+
+    afterEach ->
+      jasmine.restoreDeprecationsSnapshot()
+
     it "returns the proper coerced value", ->
       atom.config.set('editor.preferredLineLength', 0)
       expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 1
@@ -470,7 +482,7 @@ describe "Config", ->
 
     it "does not fire the callback once the observe subscription is off'ed", ->
       observeHandler.reset() # clear the initial call
-      observeSubscription.off()
+      observeSubscription.dispose()
       atom.config.set('foo.bar.baz', "value 2")
       expect(observeHandler).not.toHaveBeenCalled()
 
