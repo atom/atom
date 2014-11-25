@@ -13,7 +13,7 @@ class Notification
 
   getTimestamp: -> @timestamp
 
-  getDetail: -> @optons.detail
+  getDetail: -> @options.detail
 
   isClosable: ->
     !!@options.closable
