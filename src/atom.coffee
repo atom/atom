@@ -249,6 +249,7 @@ class Atom extends Model
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
+    @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
     @notifications = new NotificationManager
     @commands = new CommandRegistry
