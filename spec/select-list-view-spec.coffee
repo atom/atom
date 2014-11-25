@@ -1,5 +1,5 @@
 SelectListView = require '../src/select-list-view'
-{$, $$} = require 'atom'
+{$, $$} = require '../src/space-pen-extensions'
 
 describe "SelectListView", ->
   [selectList, items, list, filterEditorView] = []

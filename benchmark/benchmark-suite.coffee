@@ -1,5 +1,7 @@
 require './benchmark-helper'
-{$, _, WorkspaceView} = require 'atom'
+{$} = require '../src/space-pen-extensions'
+_ = require 'underscore-plus'
+{WorkspaceView} = require 'atom'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editorView.", ->

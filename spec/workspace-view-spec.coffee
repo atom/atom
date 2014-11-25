@@ -1,4 +1,5 @@
-{$, $$, WorkspaceView, View} = require 'atom'
+{$, $$, View} = require '../src/space-pen-extensions'
+{WorkspaceView} = require 'atom'
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'

@@ -3,7 +3,7 @@ temp = require 'temp'
 PaneContainer = require '../src/pane-container'
 PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
-{$, View, $$} = require 'atom'
+{$, View, $$} = require '../src/space-pen-extensions'
 
 describe "PaneContainerView", ->
   [TestView, container, pane1, pane2, pane3, deserializerDisposable] = []

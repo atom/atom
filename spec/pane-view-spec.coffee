@@ -2,7 +2,7 @@ PaneContainer = require '../src/pane-container'
 PaneView = require '../src/pane-view'
 fs = require 'fs-plus'
 {Emitter} = require 'event-kit'
-{$, View} = require 'atom'
+{$, View} = require '../src/space-pen-extensions'
 path = require 'path'
 temp = require 'temp'
 

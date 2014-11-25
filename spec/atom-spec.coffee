@@ -1,10 +1,10 @@
-{$, $$, WorkspaceView}  = require 'atom'
+{$, $$}  = require '../src/space-pen-extensions'
 Exec = require('child_process').exec
 path = require 'path'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 
-describe "the `atom` global", ->
+fdescribe "the `atom` global", ->
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
       it 'sets the position of the window, and can retrieve the position just set', ->

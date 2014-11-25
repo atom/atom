@@ -1,4 +1,4 @@
-{$} = require 'atom'
+{$} = require '../src/space-pen-extensions'
 
 describe '"atom" protocol URL', ->
   it 'sends the file relative in the package as response', ->

@@ -1,4 +1,4 @@
-{$, $$} = require 'atom'
+{$, $$} = require '../src/space-pen-extensions'
 path = require 'path'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
