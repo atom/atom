@@ -526,6 +526,9 @@ class Config
 
   # Extended: Restore the global setting at `keyPath` to its default value.
   #
+  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
+  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #   for more information.
   # * `keyPath` The {String} name of the key.
   #
   # Returns the new value.
