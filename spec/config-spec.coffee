@@ -554,11 +554,13 @@ describe "Config", ->
     describe "when the config file contains invalid cson", ->
       beforeEach ->
         spyOn(console, 'error')
+        spyOn(atom.notifications, 'addError')
         fs.writeFileSync(atom.config.configFilePath, "{{{{{")
 
       it "logs an error to the console and does not overwrite the config file on a subsequent save", ->
         atom.config.loadUserConfig()
         expect(console.error).toHaveBeenCalled()
+        expect(atom.notifications.addError.callCount).toBe 1
         atom.config.set("hair", "blonde") # trigger a save
         expect(atom.config.save).not.toHaveBeenCalled()
 
@@ -691,7 +693,6 @@ describe "Config", ->
             expect(noChangeSpy).not.toHaveBeenCalled()
             expect(atom.config.get(['.source.ruby'], 'foo.bar')).toBe 'baz'
             expect(atom.config.get(['.source.ruby'], 'foo.scoped')).toBe true
-
 
     describe "when the config file changes to omit a setting with a default", ->
       it "resets the setting back to the default", ->
