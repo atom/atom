@@ -1,5 +1,4 @@
 {$, $$} = require '../src/space-pen-extensions'
-{WorkspaceView}  = require 'atom'
 Package = require '../src/package'
 
 describe "PackageManager", ->

@@ -1,7 +1,6 @@
 path = require 'path'
 
 {$, $$} = require '../src/space-pen-extensions'
-{WorkspaceView} = require 'atom'
 fs = require 'fs-plus'
 temp = require 'temp'
 
