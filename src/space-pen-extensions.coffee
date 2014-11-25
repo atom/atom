@@ -12,7 +12,7 @@ jQuery.cleanData = (elements) ->
 
 SpacePenCallRemoveHooks = SpacePen.callRemoveHooks
 SpacePen.callRemoveHooks = (element) ->
-  view.unsubscribe() for view in SpacePen.viewsForElement(element)
+  view.unsubscribe?() for view in SpacePen.viewsForElement(element)
   SpacePenCallRemoveHooks(element)
 
 NativeEventNames = new Set
