@@ -20,7 +20,11 @@ describe "ThemeManager", ->
 
   describe "theme getters and setters", ->
     beforeEach ->
+      jasmine.snapshotDeprecations()
       atom.packages.loadPackages()
+
+    afterEach ->
+      jasmine.restoreDeprecationsSnapshot()
 
     it 'getLoadedThemes get all the loaded themes', ->
       themes = themeManager.getLoadedThemes()
