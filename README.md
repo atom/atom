@@ -19,7 +19,7 @@ Atom will automatically update when a new release is available.
 
 Download AtomSetup.exe from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 
-You can also download a `.zip` file from the [releases page](https://github.com/atom/atom/releases/latest), or install [through Chocolatey](docs/chocolatey-install.md)
+You can also download a `.zip` file from the [releases page](https://github.com/atom/atom/releases/latest), or install [through Chocolatey](docs/chocolatey-installing.md)
 The installer version updates automatically. If you're using
 .zip version of Atom you will need to
 manually upgrade by re-downloading the `.zip` file.
