@@ -889,6 +889,9 @@ class DisplayBuffer extends Model
       allDecorations = allDecorations.concat(decorations) if decorations?
     allDecorations
 
+  getOverlayDecorations: ->
+    @getDecorations().filter (decoration) -> decoration.isType('overlay')
+
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
     for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])

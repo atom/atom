@@ -1293,6 +1293,18 @@ class TextEditor extends Model
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
 
+  # Extended: Get all decorations.
+  #
+  # Returns an {Array} of {Decoration}s.
+  getDecorations: ->
+    @displayBuffer.getDecorations()
+
+  # Extended: Get all decorations of type 'overlay'.
+  #
+  # Returns an {Array} of {Decoration}s.
+  getOverlayDecorations: ->
+    @displayBuffer.getOverlayDecorations()
+
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)
 
