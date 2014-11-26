@@ -363,14 +363,14 @@ TextEditorComponent = React.createClass
     filteredDecorations = {}
     for markerId, decorations of decorationsByMarkerId
       marker = editor.getMarker(markerId)
-      headBufferPosition = marker.getHeadBufferPosition()
+      headScreenPosition = marker.getHeadScreenPosition()
       if marker.isValid()
         for decoration in decorations
           if decoration.isType('overlay')
             decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
-              headPixelPosition: editor.pixelPositionForScreenPosition(headBufferPosition)
+              headPixelPosition: editor.pixelPositionForScreenPosition(headScreenPosition)
               decorations: []
             filteredDecorations[markerId].decorations.push decorationParams
     filteredDecorations
