@@ -54,7 +54,7 @@ class PaneElement extends HTMLElement
     @__spacePenView.setModel(@model)
 
   activated: ->
-    @focus() unless @hasFocus()
+    @focus()
 
   activeStatusChanged: (active) ->
     if active
