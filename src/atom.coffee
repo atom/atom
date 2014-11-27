@@ -783,6 +783,12 @@ class Atom extends Model
       else
         window[key] = value
 
+  onUpdateAvailable: (callback) ->
+    @emitter.on 'update-available', callback
+
+  updateAvailable: (details) ->
+    @emitter.emit 'update-available', details
+
   # Deprecated: Callers should be converted to use atom.deserializers
   registerRepresentationClass: ->
     deprecate("Callers should be converted to use atom.deserializers")

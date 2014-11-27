@@ -143,9 +143,12 @@ class AtomWindow
   openPath: (pathToOpen, initialLine, initialColumn) ->
     if @loaded
       @focus()
-      @sendCommand('window:open-path', {pathToOpen, initialLine, initialColumn})
+      @sendMessage 'open-path', {pathToOpen, initialLine, initialColumn}
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine, initialColumn)
+
+  sendMessage: (message, detail) ->
+    @browserWindow.webContents.send 'message', message, detail
 
   sendCommand: (command, args...) ->
     if @isSpecWindow()
@@ -154,7 +157,6 @@ class AtomWindow
           when 'window:reload' then @reload()
           when 'window:toggle-dev-tools' then @toggleDevTools()
           when 'window:close' then @close()
-          when 'window:update-available' then @sendCommandToBrowserWindow(command, args...) # For spec testing
     else if @isWebViewFocused()
       @sendCommandToBrowserWindow(command, args...)
     else

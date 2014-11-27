@@ -80,6 +80,8 @@ beforeEach ->
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
 
+  atom.workspaceViewParentSelector = '#jasmine-content'
+
   window.resetTimeouts()
   atom.packages.packageStates = {}
 
