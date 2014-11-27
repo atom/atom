@@ -3014,18 +3014,16 @@ describe "TextEditor", ->
         expect(editor.isFoldedAtBufferRow(1)).toBeFalsy()
         expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
 
-    describe "begin/commitTransaction()", ->
+    describe "::transact", ->
       it "restores the selection when the transaction is undone/redone", ->
         buffer.setText('1234')
         editor.setSelectedBufferRange([[0, 1], [0, 3]])
-        editor.beginTransaction()
 
-        editor.delete()
-        editor.moveToEndOfLine()
-        editor.insertText('5')
-        expect(buffer.getText()).toBe '145'
-
-        editor.commitTransaction()
+        editor.transact ->
+          editor.delete()
+          editor.moveToEndOfLine()
+          editor.insertText('5')
+          expect(buffer.getText()).toBe '145'
 
         editor.undo()
         expect(buffer.getText()).toBe '1234'
