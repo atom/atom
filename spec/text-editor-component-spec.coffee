@@ -37,9 +37,9 @@ describe "TextEditorComponent", ->
       wrapperView = new TextEditorView(editor, {lineOverdrawMargin})
       wrapperView.attachToDom()
       wrapperNode = wrapperView.element
+      wrapperNode.setUpdatedSynchronously(false)
 
       {component} = wrapperView
-      component.performSyncUpdates = false
       component.setFontFamily('monospace')
       component.setLineHeight(1.3)
       component.setFontSize(20)

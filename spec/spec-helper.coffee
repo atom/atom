@@ -16,6 +16,7 @@ Config = require '../src/config'
 Project = require '../src/project'
 TextEditor = require '../src/text-editor'
 TextEditorView = require '../src/text-editor-view'
+TextEditorElement = require '../src/text-editor-element'
 TokenizedBuffer = require '../src/tokenized-buffer'
 TextEditorComponent = require '../src/text-editor-component'
 pathwatcher = require 'pathwatcher'
@@ -112,8 +113,7 @@ beforeEach ->
   config.save.reset()
 
   # make editor display updates synchronous
-  spyOn(TextEditorView.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
-  TextEditorComponent.performSyncUpdates = true
+  TextEditorElement::setUpdatedSynchronously(true)
 
   spyOn(atom, "setRepresentedFilename")
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
@@ -291,6 +291,9 @@ window.waitsForPromise = (args...) ->
       promise.fail (error) ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
         moveOn()
+
+window.waitsForAnimationFrame = ->
+  waitsFor "next animation frame", (done) -> requestAnimationFrame(done)
 
 window.resetTimeouts = ->
   window.now = 0

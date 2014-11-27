@@ -153,6 +153,10 @@ class TextEditorElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
+  setUpdatedSynchronously: (@updatedSynchronously) -> @updatedSynchronously
+
+  isUpdatedSynchronously: -> @updatedSynchronously
+
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
   for commandName, commandListener of commandListeners

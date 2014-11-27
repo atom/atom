@@ -20,9 +20,6 @@ TextEditorComponent = React.createClass
   displayName: 'TextEditorComponent'
   mixins: [SubscriberMixin]
 
-  statics:
-    performSyncUpdates: false
-
   visible: false
   autoHeight: false
   backgroundColor: null
@@ -242,7 +239,7 @@ TextEditorComponent = React.createClass
       @updateRequestedWhilePaused = true
       return
 
-    if @performSyncUpdates ? TextEditorComponent.performSyncUpdates
+    if @props.hostElement.isUpdatedSynchronously()
       @forceUpdate()
     else unless @updateRequested
       @updateRequested = true

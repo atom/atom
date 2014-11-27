@@ -98,3 +98,23 @@ describe "TextEditorElement", ->
       verticalScrollbarNode = element.querySelector(".vertical-scrollbar")
       scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
       expect(scrollbarWidth).toEqual(8)
+
+  describe "::setUpdatedSynchronously", ->
+    it "controls whether the text editor is updated synchronously", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
+
+      element.setUpdatedSynchronously(false)
+      expect(element.isUpdatedSynchronously()).toBe false
+
+      element.getModel().setText("hello")
+      expect(element.shadowRoot.textContent).not.toContain "hello"
+
+      waitsForAnimationFrame()
+
+      runs ->
+        expect(element.shadowRoot.textContent).toContain "hello"
+
+        element.setUpdatedSynchronously(true)
+        element.getModel().setText("goodbye")
+        expect(element.shadowRoot.textContent).toContain "goodbye"
