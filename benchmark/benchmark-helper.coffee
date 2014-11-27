@@ -1,7 +1,8 @@
 require '../spec/spec-helper'
 
 path = require 'path'
-{$, Point} = require 'atom'
+{$} = require '../src/space-pen-extensions'
+{Point} = require 'atom'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Project = require '../src/project'

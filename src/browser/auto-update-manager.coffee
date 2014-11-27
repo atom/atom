@@ -56,7 +56,7 @@ class AutoUpdateManager
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion? and @releaseNotes
     for atomWindow in windows
-      atomWindow.sendCommand('window:update-available', [@releaseVersion, @releaseNotes])
+      atomWindow.sendMessage('update-available', {@releaseVersion, @releaseNotes})
 
   setState: (state) ->
     return if @state is state

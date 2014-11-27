@@ -14,8 +14,27 @@ class WindowEventHandler
   constructor: ->
     @reloadRequested = false
 
-    @subscribe ipc, 'command', (command, args...) ->
+    @subscribe ipc, 'message', (message, detail) ->
+      switch message
+        when 'open-path'
+          {pathToOpen, initialLine, initialColumn} = detail
 
+          unless atom.project?.getPaths().length
+            if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
+              atom.project?.setPaths([pathToOpen])
+
+          unless fs.isDirectorySync(pathToOpen)
+            atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+
+        when 'update-available'
+          atom.updateAvailable(detail)
+
+          # FIXME: Remove this when deprecations are removed
+          {releaseVersion, releaseNotes} = detail
+          detail = [releaseVersion, releaseNotes]
+          atom.commands.dispatch atom.views.getView(atom.workspace), "window:update-available", detail
+
+    @subscribe ipc, 'command', (command, args...) ->
       activeElement = document.activeElement
       # Use the workspace element view if body has focus
       if activeElement is document.body and workspaceElement = atom.views.getView(atom.workspace)
@@ -29,14 +48,6 @@ class WindowEventHandler
     @subscribe $(window), 'focus', -> document.body.classList.remove('is-blurred')
 
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
-
-    @subscribeToCommand $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
-      unless atom.project?.getPath()
-        if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
-          atom.project?.setPath(pathToOpen)
-
-      unless fs.isDirectorySync(pathToOpen)
-        atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
     @subscribe $(window), 'beforeunload', =>
       confirmed = atom.workspace?.confirmClose()

@@ -302,7 +302,7 @@ describe "TextEditorComponent", ->
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
         component.setShowIndentGuide(true)
-        editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", false)
+        editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", normalizeLineEndings: false)
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>'
 

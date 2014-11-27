@@ -1,4 +1,4 @@
-{$, $$} = require 'atom'
+{$, $$} = require '../src/space-pen-extensions'
 path = require 'path'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
@@ -259,24 +259,23 @@ describe "Window", ->
 
       describe "when the opened path exists", ->
         it "sets the project path to the opened path", ->
-          $(window).trigger('window:open-path', [{pathToOpen: __filename}])
-
+          atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
           expect(atom.project.getPaths()[0]).toBe __dirname
 
       describe "when the opened path does not exist but its parent directory does", ->
         it "sets the project path to the opened path's parent directory", ->
-          $(window).trigger('window:open-path', [{pathToOpen: path.join(__dirname, 'this-path-does-not-exist.txt')}])
-
+          pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+          atom.getCurrentWindow().send 'message', 'open-path', {pathToOpen}
           expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path is a file", ->
       it "opens it in the workspace", ->
-        $(window).trigger('window:open-path', [{pathToOpen: __filename}])
+        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
 
         expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
 
     describe "when the opened path is a directory", ->
       it "does not open it in the workspace", ->
-        $(window).trigger('window:open-path', [{pathToOpen: __dirname}])
+        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __dirname
 
         expect(atom.workspace.open.callCount).toBe 0

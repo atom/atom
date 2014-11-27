@@ -64,7 +64,7 @@ class Project extends Model
   ###
 
   serializeParams: ->
-    path: @path
+    paths: @getPaths()
     buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
 
   deserializeParams: (params) ->

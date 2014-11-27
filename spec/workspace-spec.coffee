@@ -375,7 +375,7 @@ describe "Workspace", ->
   describe "document.title", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
-        atom.project.setPath(undefined)
+        atom.project.setPaths([])
         expect(document.title).toBe 'untitled - Atom'
 
     describe "when the project has a path", ->

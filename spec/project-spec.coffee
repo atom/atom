@@ -170,30 +170,30 @@ describe "Project", ->
         absolutePath = fs.absolute(__dirname)
         expect(atom.project.resolve(absolutePath)).toBe absolutePath
 
-  describe ".setPath(path)", ->
+  describe ".setPaths(path)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
         atom.project.setPaths([require.resolve('./fixtures/dir/a')])
         expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
-        expect(atom.project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+        expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
     describe "when path is a directory", ->
       it "sets its path to the directory and updates the root directory", ->
         directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
         atom.project.setPaths([directory])
         expect(atom.project.getPaths()[0]).toEqual directory
-        expect(atom.project.getRootDirectory().path).toEqual directory
+        expect(atom.project.getDirectories()[0].path).toEqual directory
 
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
         atom.project.setPaths([])
         expect(atom.project.getPaths()[0]?).toBeFalsy()
-        expect(atom.project.getRootDirectory()?).toBeFalsy()
+        expect(atom.project.getDirectories()[0]?).toBeFalsy()
 
     it "normalizes the path to remove consecutive slashes, ., and .. segments", ->
       atom.project.setPaths(["#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}.."])
       expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
-      expect(atom.project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+      expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
   describe ".replace()", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []

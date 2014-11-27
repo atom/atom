@@ -105,30 +105,3 @@ describe "the `syntax` global", ->
       grammar = atom.grammars.selectGrammar('foo.js')
       atom.grammars.removeGrammar(grammar)
       expect(atom.grammars.selectGrammar('foo.js').name).not.toBe grammar.name
-
-  describe ".getProperty(scopeDescriptor)", ->
-    it "returns the property with the most specific scope selector", ->
-      atom.grammars.addProperties(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-      atom.grammars.addProperties(".source .string.quoted.double", foo: bar: baz: 22)
-      atom.grammars.addProperties(".source", foo: bar: baz: 11)
-
-      expect(atom.grammars.getProperty([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
-      expect(atom.grammars.getProperty([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBe 22
-      expect(atom.grammars.getProperty([".source.js", ".variable.assignment.js"], "foo.bar.baz")).toBe 11
-      expect(atom.grammars.getProperty([".text"], "foo.bar.baz")).toBeUndefined()
-
-    it "favors the most recently added properties in the event of a specificity tie", ->
-      atom.grammars.addProperties(".source.coffee .string.quoted.single", foo: bar: baz: 42)
-      atom.grammars.addProperties(".source.coffee .string.quoted.double", foo: bar: baz: 22)
-
-      expect(atom.grammars.getProperty([".source.coffee", ".string.quoted.single"], "foo.bar.baz")).toBe 42
-      expect(atom.grammars.getProperty([".source.coffee", ".string.quoted.single.double"], "foo.bar.baz")).toBe 22
-
-  describe ".removeProperties(name)", ->
-    it "allows properties to be removed by name", ->
-      atom.grammars.addProperties("a", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-      atom.grammars.addProperties("b", ".source .string.quoted.double", foo: bar: baz: 22)
-
-      atom.grammars.removeProperties("b")
-      expect(atom.grammars.getProperty([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBeUndefined()
-      expect(atom.grammars.getProperty([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42

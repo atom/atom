@@ -1,4 +1,4 @@
-{$, $$, WorkspaceView}  = require 'atom'
+{$, $$}  = require '../src/space-pen-extensions'
 Exec = require('child_process').exec
 path = require 'path'
 Package = require '../src/package'
@@ -30,13 +30,16 @@ describe "the `atom` global", ->
       version = '36b5518'
       expect(atom.isReleasedVersion()).toBe false
 
-  describe "window:update-available", ->
-    it "is triggered when the auto-updater sends the update-downloaded event", ->
-      # FIXME: We need to figure out a way minus workspaceView to handle update-available events.
-      atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
+  describe "when an update becomes available", ->
+    subscription = null
 
+    afterEach ->
+      subscription?.dispose()
+
+    it "invokes onUpdateAvailable listeners", ->
       updateAvailableHandler = jasmine.createSpy("update-available-handler")
-      atom.workspaceView.on 'window:update-available', updateAvailableHandler
+      subscription = atom.onUpdateAvailable updateAvailableHandler
+
       autoUpdater = require('remote').require('auto-updater')
       autoUpdater.emit 'update-downloaded', null, "notes", "version"
 
@@ -44,9 +47,9 @@ describe "the `atom` global", ->
         updateAvailableHandler.callCount > 0
 
       runs ->
-        [event, version, notes] = updateAvailableHandler.mostRecentCall.args
-        expect(notes).toBe 'notes'
-        expect(version).toBe 'version'
+        {releaseVersion, releaseNotes} = updateAvailableHandler.mostRecentCall.args[0]
+        expect(releaseVersion).toBe 'version'
+        expect(releaseNotes).toBe 'notes'
 
   describe "loading default config", ->
     it 'loads the default core config', ->

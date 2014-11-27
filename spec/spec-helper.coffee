@@ -9,11 +9,14 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
-Workspace = require '../src/workspace'
+
+# FIXME: Remove jquery from this
 {$} = require '../src/space-pen-extensions'
+
 Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
+Workspace = require '../src/workspace'
 TextEditor = require '../src/text-editor'
 TextEditorView = require '../src/text-editor-view'
 TextEditorElement = require '../src/text-editor-element'
@@ -77,6 +80,8 @@ beforeEach ->
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
+
+  atom.workspaceViewParentSelector = '#jasmine-content'
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
@@ -196,6 +201,13 @@ jasmine.unspy = (object, methodName) ->
 jasmine.attachToDOM = (element) ->
   jasmineContent = document.querySelector('#jasmine-content')
   jasmineContent.appendChild(element) unless jasmineContent.contains(element)
+
+deprecationsSnapshot = null
+jasmine.snapshotDeprecations = ->
+  deprecationsSnapshot = Grim.getDeprecations() # suppress deprecations!!
+
+jasmine.restoreDeprecationsSnapshot = ->
+  Grim.grimDeprecations = deprecationsSnapshot
 
 addCustomMatchers = (spec) ->
   spec.addMatchers

@@ -1,4 +1,4 @@
-{$, $$, WorkspaceView}  = require 'atom'
+{$, $$} = require '../src/space-pen-extensions'
 Package = require '../src/package'
 
 describe "PackageManager", ->
@@ -98,15 +98,23 @@ describe "PackageManager", ->
             expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe true
             expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 10
 
-        it "still assigns configDefaults from the module though deprecated", ->
-          expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
+        describe "when a package has configDefaults", ->
+          beforeEach ->
+            jasmine.snapshotDeprecations()
 
-          waitsForPromise ->
-            atom.packages.activatePackage('package-with-config-defaults')
+          afterEach ->
+            jasmine.restoreDeprecationsSnapshot()
 
-          runs ->
-            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
-            expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
+          it "still assigns configDefaults from the module though deprecated", ->
+
+            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
+
+            waitsForPromise ->
+              atom.packages.activatePackage('package-with-config-defaults')
+
+            runs ->
+              expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
+              expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
         describe "when the package metadata includes `activationCommands`", ->
           [mainModule, promise, workspaceCommandListener] = []
@@ -514,6 +522,7 @@ describe "PackageManager", ->
     themeActivator = null
 
     beforeEach ->
+      jasmine.snapshotDeprecations()
       spyOn(console, 'warn')
       atom.packages.loadPackages()
 
@@ -529,6 +538,7 @@ describe "PackageManager", ->
 
       GrammarRegistry = require '../src/grammar-registry'
       atom.grammars = window.syntax = new GrammarRegistry()
+      jasmine.restoreDeprecationsSnapshot()
 
     it "activates all the packages, and none of the themes", ->
       atom.packages.activate()
