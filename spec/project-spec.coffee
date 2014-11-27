@@ -170,7 +170,7 @@ describe "Project", ->
         absolutePath = fs.absolute(__dirname)
         expect(atom.project.resolve(absolutePath)).toBe absolutePath
 
-  describe ".setPath(path)", ->
+  describe ".setPaths(path)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
         atom.project.setPaths([require.resolve('./fixtures/dir/a')])
