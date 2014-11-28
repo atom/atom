@@ -377,11 +377,15 @@ class Workspace extends Model
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
-    deprecate("Don't use the `changeFocus` option") if options.changeFocus?
+    # TODO: Remove deprecated changeFocus option
+    if options.changeFocus?
+      deprecate("The `changeFocus` option has been renamed to `activatePane`")
+      options.activatePane = options.changeFocus
+      delete options.changeFocus
 
     {initialLine, initialColumn} = options
-    # TODO: Remove deprecated changeFocus option
-    activatePane = options.activatePane ? options.changeFocus ? true
+    activatePane = options.activatePane ? true
+
     uri = atom.project.resolve(uri)
 
     item = @activePane.itemForUri(uri)
@@ -395,7 +399,13 @@ class Workspace extends Model
     item
 
   openUriInPane: (uri, pane, options={}) ->
-    changeFocus = options.changeFocus ? true
+    # TODO: Remove deprecated changeFocus option
+    if options.changeFocus?
+      deprecate("The `changeFocus` option has been renamed to `activatePane`")
+      options.activatePane = options.changeFocus
+      delete options.changeFocus
+
+    activatePane = options.activatePane ? true
 
     if uri?
       item = pane.itemForUri(uri)
@@ -409,7 +419,7 @@ class Workspace extends Model
           @paneContainer.root = pane
         @itemOpened(item)
         pane.activateItem(item)
-        pane.activate() if changeFocus
+        pane.activate() if activatePane
         index = pane.getActiveItemIndex()
         @emit "uri-opened"
         @emitter.emit 'did-open', {uri, pane, item, index}
