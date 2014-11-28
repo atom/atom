@@ -609,6 +609,10 @@ class Workspace extends Model
   Section: Panels
   ###
 
+  # Essential: Get an {Array} of all the panel items at the bottom of the editor window.
+  getBottomPanels: ->
+    @getPanels('bottom')
+
   # Essential: Adds a panel item to the bottom of the editor window.
   #
   # * `options` {Object}
@@ -623,6 +627,10 @@ class Workspace extends Model
   # Returns a {Panel}
   addBottomPanel: (options) ->
     @addPanel('bottom', options)
+
+  # Essential: Get an {Array} of all the panel items to the left of the editor window.
+  getLeftPanels: ->
+    @getPanels('left')
 
   # Essential: Adds a panel item to the left of the editor window.
   #
@@ -639,6 +647,10 @@ class Workspace extends Model
   addLeftPanel: (options) ->
     @addPanel('left', options)
 
+  # Essential: Get an {Array} of all the panel items to the right of the editor window.
+  getRightPanels: ->
+    @getPanels('right')
+
   # Essential: Adds a panel item to the right of the editor window.
   #
   # * `options` {Object}
@@ -653,6 +665,10 @@ class Workspace extends Model
   # Returns a {Panel}
   addRightPanel: (options) ->
     @addPanel('right', options)
+
+  # Essential: Get an {Array} of all the panel items at the top of the editor window.
+  getTopPanels: ->
+    @getPanels('top')
 
   # Essential: Adds a panel item to the top of the editor window above the tabs.
   #
@@ -669,6 +685,10 @@ class Workspace extends Model
   addTopPanel: (options) ->
     @addPanel('top', options)
 
+  # Essential: Get an {Array} of all the modal panel items
+  getModalPanels: ->
+    @getPanels('modal')
+
   # Essential: Adds a panel item as a modal dialog.
   #
   # * `options` {Object}
@@ -683,6 +703,9 @@ class Workspace extends Model
   # Returns a {Panel}
   addModalPanel: (options={}) ->
     @addPanel('modal', options)
+
+  getPanels: (location) ->
+    @panelContainers[location].getPanels()
 
   addPanel: (location, options) ->
     options ?= {}
