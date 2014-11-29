@@ -123,7 +123,7 @@ To run a limited subset of specs use the `fdescribe` or `fit` methods. You can u
 
 ```coffee
 describe "when a test is written", ->
-  fit "has some expectations that should pass", ->
+  it "has some expectations that should pass", ->
     expect("apples").toEqual("apples")
     expect("oranges").not.toEqual("apples")
 ```
