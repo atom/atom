@@ -213,6 +213,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:move-to-beginning-of-next-word': -> @moveToBeginningOfNextWord()
   'editor:move-to-previous-word-boundary': -> @moveToPreviousWordBoundary()
   'editor:move-to-next-word-boundary': -> @moveToNextWordBoundary()
+  # 'editor:move-to-previous-subword-boundary': -> @moveToPreviousSubwordBoundary()
+  # 'editor:move-to-next-subword-boundary': -> @moveToNextSubwordBoundary()
   'editor:select-to-beginning-of-next-paragraph': -> @selectToBeginningOfNextParagraph()
   'editor:select-to-beginning-of-previous-paragraph': -> @selectToBeginningOfPreviousParagraph()
   'editor:select-to-end-of-line': -> @selectToEndOfLine()

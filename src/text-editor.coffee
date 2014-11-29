@@ -1652,6 +1652,14 @@ class TextEditor extends Model
     deprecate("Use TextEditor::moveToNextWordBoundary() instead")
     @moveToNextWordBoundary()
 
+  # Extended: Move every cursor to the previous subword boundary.
+  moveToPreviousSubwordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToPreviousSubwordBoundary()
+
+  # Extended: Move every cursor to the next subword boundary.
+  moveToNextSubwordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToNextSubwordBoundary()
+
   # Extended: Move every cursor to the beginning of the next paragraph.
   moveToBeginningOfNextParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
