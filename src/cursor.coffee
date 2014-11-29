@@ -401,9 +401,9 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the previous subword boundary.
   moveToPreviousSubwordBoundary: ->
-    # if position = @getPreviousSubwordBoundaryBufferPosition()
-    #   @setBufferPosition(position)
-    console.log 'moving to previous subword'
+    options = {wordRegex: @subwordRegExp(backwards: true)}
+    if position = @getPreviousWordBoundaryBufferPosition(options)
+      @setBufferPosition(position)
 
   # Public: Moves the cursor to the next subword boundary.
   moveToNextSubwordBoundary: ->
@@ -653,6 +653,25 @@ class Cursor extends Model
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
     if includeNonWordCharacters
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
+    new RegExp(segments.join("|"), "g")
+
+  # Public: Get the RegExp used by the cursor to determine what a "subword" is.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `backwards` A {Boolean} indicating whether to look forwards or backwards
+  #     for the next subword. (default: false)
+  #
+  # Returns a {RegExp}.
+  subwordRegExp: (options={}) ->
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters')
+    segments = ["^[\t ]*$"]
+    segments.push("[A-Z]?[a-z]+")
+    segments.push("[A-Z]+(?![a-z])")
+    # segments.push("\\d+")
+    if options.backwards
+      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+\\s*")
+    else
+      segments.push("\\s*[#{_.escapeRegExp(nonWordCharacters)}]+")
     new RegExp(segments.join("|"), "g")
 
   ###
