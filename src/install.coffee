@@ -74,7 +74,7 @@ class Install extends Command
       installNodeArgs.push("--proxy=#{proxy}") if proxy
 
       opts = {env, cwd: @atomDirectory}
-      opts['streaming'] = true if @verbose
+      opts.streaming = true if @verbose
 
       @fork @atomNodeGypPath, installNodeArgs, opts, (code, stderr='', stdout='') ->
         if code is 0
@@ -124,6 +124,7 @@ class Install extends Command
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')
       fs.makeTreeSync(nodeModulesDirectory)
       installOptions.cwd = installDirectory
+      installOptions.streaming = true if @verbose
 
     @fork @atomNpmPath, installArgs, installOptions, (code, stderr='', stdout='') =>
       if code is 0
@@ -178,6 +179,7 @@ class Install extends Command
     @addNodeBinToEnv(env)
     installOptions = {env}
     installOptions.cwd = options.cwd if options.cwd
+    installOptions.streaming = true if @verbose
 
     @fork(@atomNpmPath, installArgs, installOptions, callback)
 
@@ -378,6 +380,7 @@ class Install extends Command
       @updateWindowsEnv(env) if config.isWin32()
       @addNodeBinToEnv(env)
       buildOptions = {env}
+      buildOptions.streaming = true if @verbose
 
       fs.removeSync(path.resolve(__dirname, '..', 'native-module', 'build'))
 
