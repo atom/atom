@@ -47,6 +47,7 @@ class Install extends Command
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
     options.boolean('check').describe('check', 'Check that native build tools are installed')
+    options.boolean('verbose').default('verbose', false).describe('verbose', 'Show verbose debug information')
     options.string('packages-file').describe('packages-file', 'A text file containing the packages to install')
 
   installNode: (callback) =>
@@ -72,7 +73,8 @@ class Install extends Command
       proxy = npm.config.get('https-proxy') or npm.config.get('proxy')
       installNodeArgs.push("--proxy=#{proxy}") if proxy
 
-      @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
+      opts = {env, cwd: @atomDirectory, streaming: true}
+      @fork @atomNodeGypPath, installNodeArgs, opts, (code, stderr='', stdout='') ->
         if code is 0
           callback()
         else
@@ -110,7 +112,7 @@ class Install extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     @updateWindowsEnv(env) if config.isWin32()
     @addNodeBinToEnv(env)
-    installOptions = {env}
+    installOptions = {env, streaming: true}
 
     installGlobally = options.installGlobally ? true
     if installGlobally
@@ -457,6 +459,8 @@ class Install extends Command
     @createAtomDirectories()
 
     return @checkNativeBuildTools(callback) if options.argv.check
+
+    process.env.NODE_DEBUG = 'request' if options.argv.verbose
 
     installPackage = (name, callback) =>
       if name is '.'
