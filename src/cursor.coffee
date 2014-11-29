@@ -399,6 +399,18 @@ class Cursor extends Model
     if position = @getNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
+  # Public: Moves the cursor to the previous subword boundary.
+  moveToPreviousSubwordBoundary: ->
+    # if position = @getPreviousSubwordBoundaryBufferPosition()
+    #   @setBufferPosition(position)
+    console.log 'moving to previous subword'
+
+  # Public: Moves the cursor to the next subword boundary.
+  moveToNextSubwordBoundary: ->
+    # if position = @getNextSubwordBoundaryBufferPosition()
+    #   @setBufferPosition(position)
+    console.log 'moving to next subword'
+
   # Public: Moves the cursor to the beginning of the buffer line, skipping all
   # whitespace.
   skipLeadingWhitespace: ->
