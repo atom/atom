@@ -73,7 +73,9 @@ class Install extends Command
       proxy = npm.config.get('https-proxy') or npm.config.get('proxy')
       installNodeArgs.push("--proxy=#{proxy}") if proxy
 
-      opts = {env, cwd: @atomDirectory, streaming: true}
+      opts = {env, cwd: @atomDirectory}
+      opts['streaming'] = true if @verbose
+
       @fork @atomNodeGypPath, installNodeArgs, opts, (code, stderr='', stdout='') ->
         if code is 0
           callback()
@@ -112,7 +114,9 @@ class Install extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     @updateWindowsEnv(env) if config.isWin32()
     @addNodeBinToEnv(env)
-    installOptions = {env, streaming: true}
+    installOptions = {env}
+
+    installOptions['streaming'] = true if @verbose
 
     installGlobally = options.installGlobally ? true
     if installGlobally
@@ -460,7 +464,8 @@ class Install extends Command
 
     return @checkNativeBuildTools(callback) if options.argv.check
 
-    process.env.NODE_DEBUG = 'request' if options.argv.verbose
+    @verbose = options.argv.verbose
+    process.env.NODE_DEBUG = 'request' if @verbose
 
     installPackage = (name, callback) =>
       if name is '.'
