@@ -124,7 +124,6 @@ class Install extends Command
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')
       fs.makeTreeSync(nodeModulesDirectory)
       installOptions.cwd = installDirectory
-      installOptions.streaming = true if @verbose
 
     @fork @atomNpmPath, installArgs, installOptions, (code, stderr='', stdout='') =>
       if code is 0
