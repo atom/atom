@@ -71,6 +71,12 @@ describe "ViewRegistry", ->
 
       describe "when no view provider is registered for the object's constructor", ->
         describe "when the object has a .createViewClass() method", ->
+          beforeEach ->
+            jasmine.snapshotDeprecations()
+
+          afterEach ->
+            jasmine.restoreDeprecationsSnapshot()
+
           it "builds an instance of the view class with the model, then returns its root node with a __spacePenView property pointing at the view", ->
             class TestView extends View
               @content: (model) -> @div model.name

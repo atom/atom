@@ -141,6 +141,7 @@ class ViewRegistry
           element.initialize(params)
       element
     else if viewConstructor = object?.getViewClass?()
+      Grim.deprecate("Add a view provider for your object on atom.views instead of implementing `::getViewClass`.")
       view = new viewConstructor(object)
       view[0].__spacePenView ?= view
       view[0]
