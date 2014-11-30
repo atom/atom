@@ -7,7 +7,7 @@ describe "ViewRegistry", ->
   beforeEach ->
     registry = new ViewRegistry
 
-  describe "::createView(object)", ->
+  describe "::createView(object, params)", ->
     describe "when passed a DOM node", ->
       it "returns the given DOM node", ->
         node = document.createElement('div')
