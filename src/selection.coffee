@@ -451,6 +451,19 @@ class Selection extends Model
     @selectToEndOfWord() if @isEmpty()
     @deleteSelectedText()
 
+  # Public: Removes the selection or all characters from the start of the
+  # selection to the end of the current word if nothing is selected.
+  deleteToBeginningOfSubword: ->
+    @selectToPreviousSubwordBoundary() if @isEmpty()
+    @deleteSelectedText()
+
+  # Public: Removes the selection or all characters from the start of the
+  # selection to the end of the current word if nothing is selected.
+  deleteToEndOfSubword: ->
+    # @selectToNextSubwordBoundary() if @isEmpty()
+    # @deleteSelectedText()
+    console.log 'deleting to end of subword'
+
   # Public: Removes only the selected text.
   deleteSelectedText: ->
     bufferRange = @getBufferRange()

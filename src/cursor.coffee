@@ -403,6 +403,9 @@ class Cursor extends Model
   moveToPreviousSubwordBoundary: ->
     options = {wordRegex: @subwordRegExp(backwards: true)}
     if position = @getPreviousWordBoundaryBufferPosition(options)
+      # FIXME: hack to fix going left on first line
+      if position.isEqual(@getBufferPosition())
+        position = new Point(position.row, 0)
       @setBufferPosition(position)
 
   # Public: Moves the cursor to the next subword boundary.
