@@ -1,4 +1,5 @@
 {Disposable} = require 'event-kit'
+Grim = require 'grim'
 
 # Essential: `ViewRegistry` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
@@ -121,17 +122,23 @@ class ViewRegistry
       @views.set(object, view)
       view
 
-  createView: (object) ->
+  createView: (object, params) ->
     if object instanceof HTMLElement
       object
     else if object?.jquery
       object[0]?.__spacePenView ?= object
       object[0]
     else if provider = @findProvider(object)
-      element = provider.createView?(object)
+      params ?= {}
+      params.model = object
+      element = provider.createView?(params)
       unless element?
         element = new provider.viewConstructor
-        element.setModel(object)
+        if not (typeof element.initialize is 'function') and (typeof element.setModel is 'function')
+          Grim.deprecate("Define `::initialize` instead of `::setModel` in your view. It will be passed a params hash including the model.")
+          element.setModel(object)
+        else
+          element.initialize(params)
       element
     else if viewConstructor = object?.getViewClass?()
       view = new viewConstructor(object)

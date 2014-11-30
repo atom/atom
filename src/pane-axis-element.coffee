@@ -8,7 +8,7 @@ class PaneAxisElement extends HTMLElement
   detachedCallback: ->
     @subscriptions.dispose()
 
-  setModel: (@model) ->
+  initialize: ({@model}) ->
     @subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
     @subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
     @subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))

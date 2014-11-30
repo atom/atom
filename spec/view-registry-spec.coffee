@@ -7,11 +7,11 @@ describe "ViewRegistry", ->
   beforeEach ->
     registry = new ViewRegistry
 
-  describe "::getView(object)", ->
+  describe "::createView(object)", ->
     describe "when passed a DOM node", ->
       it "returns the given DOM node", ->
         node = document.createElement('div')
-        expect(registry.getView(node)).toBe node
+        expect(registry.createView(node)).toBe node
 
     describe "when passed a SpacePen view", ->
       it "returns the root node of the view with a __spacePenView property pointing at the SpacePen view", ->
@@ -19,20 +19,20 @@ describe "ViewRegistry", ->
           @content: -> @div "Hello"
 
         view = new TestView
-        node = registry.getView(view)
+        node = registry.createView(view)
         expect(node.textContent).toBe "Hello"
         expect(node.__spacePenView).toBe view
 
     describe "when passed a model object", ->
       describe "when a view provider is registered matching the object's constructor", ->
         describe "when the provider has a viewConstructor property", ->
-          it "constructs a view element and assigns the model on it", ->
+          it "constructs a view element and calls initialize on it with the creation params", ->
             class TestModel
 
             class TestModelSubclass extends TestModel
 
             class TestView
-              setModel: (@model) ->
+              initialize: (@params) ->
 
             model = new TestModel
 
@@ -40,35 +40,37 @@ describe "ViewRegistry", ->
               modelConstructor: TestModel
               viewConstructor: TestView
 
-            view = registry.getView(model)
+            view = registry.createView(model, a: 1)
             expect(view instanceof TestView).toBe true
-            expect(view.model).toBe model
+            expect(view.params.a).toBe 1
+            expect(view.params.model).toBe model
 
             subclassModel = new TestModelSubclass
-            view2 = registry.getView(subclassModel)
+            view2 = registry.createView(subclassModel)
             expect(view2 instanceof TestView).toBe true
-            expect(view2.model).toBe subclassModel
+            expect(view2.params.model).toBe subclassModel
 
         describe "when the provider has a createView method", ->
-          it "constructs a view element by calling the createView method with the model", ->
+          it "constructs a view element by calling the createView method with the creation params", ->
             class TestModel
             class TestView
-              setModel: (@model) ->
+              initialize: (@params) ->
 
             registry.addViewProvider
               modelConstructor: TestModel
-              createView: (model) ->
+              createView: (params) ->
                 view = new TestView
-                view.setModel(model)
+                view.initialize(params)
                 view
 
             model = new TestModel
-            view = registry.getView(model)
+            view = registry.createView(model, a: 1)
             expect(view instanceof TestView).toBe true
-            expect(view.model).toBe model
+            expect(view.params.a).toBe 1
+            expect(view.params.model).toBe model
 
       describe "when no view provider is registered for the object's constructor", ->
-        describe "when the object has a .getViewClass() method", ->
+        describe "when the object has a .createViewClass() method", ->
           it "builds an instance of the view class with the model, then returns its root node with a __spacePenView property pointing at the view", ->
             class TestView extends View
               @content: (model) -> @div model.name
@@ -79,29 +81,26 @@ describe "ViewRegistry", ->
               getViewClass: -> TestView
 
             model = new TestModel("hello")
-            node = registry.getView(model)
+            node = registry.createView(model)
 
             expect(node.textContent).toBe "hello"
             view = node.__spacePenView
             expect(view instanceof TestView).toBe true
             expect(view.model).toBe model
 
-            # returns the same DOM node for repeated calls
-            expect(registry.getView(model)).toBe node
-
-        describe "when the object has no .getViewClass() method", ->
+        describe "when the object has no .createViewClass() method", ->
           it "throws an exception", ->
-            expect(-> registry.getView(new Object)).toThrow()
+            expect(-> registry.createView(new Object)).toThrow()
 
   describe "::addViewProvider(providerSpec)", ->
     it "returns a disposable that can be used to remove the provider", ->
       class TestModel
       class TestView
-        setModel: (@model) ->
+        initialize: ->
       disposable = registry.addViewProvider
         modelConstructor: TestModel
         viewConstructor: TestView
 
-      expect(registry.getView(new TestModel) instanceof TestView).toBe true
+      expect(registry.createView(new TestModel) instanceof TestView).toBe true
       disposable.dispose()
-      expect(-> registry.getView(new TestModel)).toThrow()
+      expect(-> registry.createView(new TestModel)).toThrow()

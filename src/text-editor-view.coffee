@@ -63,7 +63,7 @@ class TextEditorView extends View
       element = new TextEditorElement
       element.lineOverdrawMargin = props?.lineOverdrawMargin
       element.setAttribute(name, value) for name, value of attributes if attributes?
-      element.setModel(model)
+      element.initialize({model})
       return element.__spacePenView
 
     # Handle construction with an element

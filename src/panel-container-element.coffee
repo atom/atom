@@ -6,7 +6,7 @@ class PanelContainerElement extends HTMLElement
 
   getModel: -> @model
 
-  setModel: (@model) ->
+  initialize: ({@model}) ->
     @subscriptions.add @model.onDidAddPanel(@panelAdded.bind(this))
     @subscriptions.add @model.onDidRemovePanel(@panelRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))

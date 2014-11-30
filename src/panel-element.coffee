@@ -7,7 +7,7 @@ class PanelElement extends HTMLElement
 
   getModel: -> @model
 
-  setModel: (@model) ->
+  initialize: ({@model}) ->
     @appendChild(@getItemView())
 
     @classList.add(@model.getClassName().split(' ')...) if @model.getClassName()?
