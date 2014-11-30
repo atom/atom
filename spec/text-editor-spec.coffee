@@ -4114,7 +4114,7 @@ describe "TextEditor", ->
 
     describe ".deleteToBeginningOfSubword()", ->
       describe "when no text is selected", ->
-        it "deletes all text between the cursor and the beginning of the word", ->
+        it "deletes all text between the cursor and the beginning of the subword", ->
           editor.setCursorBufferPosition([1, 9])
           editor.addCursorAtBufferPosition([3, 23])
           editor.addCursorAtBufferPosition([5, 17])
@@ -4150,8 +4150,47 @@ describe "TextEditor", ->
           expect(buffer.lineForRow(0)).toBe 'var sort'
 
       describe "when text is selected", ->
-        fit "deletes only selected text", ->
+        it "deletes only selected text", ->
           editor.setSelectedBufferRanges([[[1, 29], [1, 33]], [[2, 0], [2, 4]]])
-          editor.deleteToBeginningOfWord()
+          editor.deleteToBeginningOfSubword()
+          expect(buffer.lineForRow(1)).toBe '  var quickSort = function(maems) {'
+          expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88.3) return manyItems;'
+
+    describe ".deleteToEndOfSubword()", ->
+      describe "when no text is selected", ->
+        it "deletes all text between the cursor and the end of the subword", ->
+          editor.setCursorBufferPosition([1, 21])
+          editor.addCursorAtBufferPosition([3, 18])
+          editor.addCursorAtBufferPosition([5, 0])
+          [cursor1, cursor2, cursor3] = editor.getCursors()
+
+          editor.deleteToEndOfSubword()
+          expect(buffer.lineForRow(1)).toBe '  var quickSort = fun(manyItems) {'
+          expect(buffer.lineForRow(3)).toBe '    var PIVoT = maItems.shift(), @current_item, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe 'current_item = manyItems.shift();'
+          expect(cursor1.getBufferPosition()).toEqual [1, 21]
+          expect(cursor2.getBufferPosition()).toEqual [3, 18]
+          expect(cursor3.getBufferPosition()).toEqual [5, 0]
+
+          editor.deleteToEndOfSubword()
+          expect(buffer.lineForRow(1)).toBe '  var quickSort = funmanyItems) {'
+          expect(buffer.lineForRow(3)).toBe '    var PIVoT = ma.shift(), @current_item, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe '_item = manyItems.shift();'
+          expect(cursor1.getBufferPosition()).toEqual [1, 21]
+          expect(cursor2.getBufferPosition()).toEqual [3, 18]
+          expect(cursor3.getBufferPosition()).toEqual [5, 0]
+
+          editor.deleteToEndOfSubword()
+          expect(buffer.lineForRow(1)).toBe '  var quickSort = funItems) {'
+          expect(buffer.lineForRow(3)).toBe '    var PIVoT = mashift(), @current_item, left = [], right = [];'
+          expect(buffer.lineForRow(5)).toBe 'item = manyItems.shift();'
+          expect(cursor1.getBufferPosition()).toEqual [1, 21]
+          expect(cursor2.getBufferPosition()).toEqual [3, 18]
+          expect(cursor3.getBufferPosition()).toEqual [5, 0]
+
+      describe "when text is selected", ->
+        it "deletes only selected text", ->
+          editor.setSelectedBufferRanges([[[1, 29], [1, 33]], [[2, 0], [2, 4]]])
+          editor.deleteToEndOfSubword()
           expect(buffer.lineForRow(1)).toBe '  var quickSort = function(maems) {'
           expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88.3) return manyItems;'
