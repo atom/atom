@@ -53,9 +53,6 @@ class Pane extends Model
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 
-  getView: (object) ->
-    @container.getView(object)
-
   getParent: -> @parent
 
   setParent: (@parent) -> @parent

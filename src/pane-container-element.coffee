@@ -19,7 +19,7 @@ class PaneContainerElement extends HTMLElement
     focusedElement = document.activeElement if @hasFocus()
     @firstChild?.remove()
     if root?
-      view = @model.getView(root)
+      view = atom.views.getView(root)
       @appendChild(view)
       callAttachHooks(view)
       focusedElement?.focus()
@@ -45,7 +45,7 @@ class PaneContainerElement extends HTMLElement
       y = pointB.y - pointA.y
       Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
-    paneView = @model.getView(@model.getActivePane())
+    paneView = atom.views.getView(@model.getActivePane())
     box = @boundingBoxForPaneView(paneView)
 
     paneViews = _.toArray(@querySelectorAll('atom-pane'))

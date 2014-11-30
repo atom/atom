@@ -229,7 +229,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight() # Can't destroy the last pane, so we add another
-      pane2 = containerModel.getView(pane2Model).__spacePenView
+      pane2 = atom.views.getView(pane2Model).__spacePenView
 
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")
@@ -262,7 +262,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight(items: [pane.copyActiveItem()])
-      pane2 = containerModel.getView(pane2Model).__spacePenView
+      pane2 = atom.views.getView(pane2Model).__spacePenView
       expect(pane2Model.isActive()).toBe true
 
     it "adds or removes the .active class as appropriate", ->
@@ -309,8 +309,8 @@ describe "PaneView", ->
       pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])
       pane3Model = pane2Model.splitDown(items: [pane2Model.copyActiveItem()])
       pane2 = pane2Model._view
-      pane2 = containerModel.getView(pane2Model).__spacePenView
-      pane3 = containerModel.getView(pane3Model).__spacePenView
+      pane2 = atom.views.getView(pane2Model).__spacePenView
+      pane3 = atom.views.getView(pane3Model).__spacePenView
 
       expect(container.find('> atom-pane-axis.horizontal > atom-pane').toArray()).toEqual [pane1[0]]
       expect(container.find('> atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
