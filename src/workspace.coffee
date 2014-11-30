@@ -623,8 +623,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -642,8 +642,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -661,8 +661,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -680,8 +680,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -699,8 +699,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are

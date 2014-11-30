@@ -1,7 +1,7 @@
 {Disposable} = require 'event-kit'
 Grim = require 'grim'
 
-# Essential: `ViewRegistry` handles the association between model and view
+# Essential: `ViewFactory` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
 # model, this class can provide a view via {::getView}, as long as the
 # model/view association was registered via {::addViewProvider}
@@ -16,7 +16,7 @@ Grim = require 'grim'
 # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
 # an ideal tool for implementing views in Atom.
 #
-# You can access the `ViewRegistry` object via `atom.views`.
+# You can access the `ViewFactory` object via `atom.views`.
 #
 # ## Examples
 #
@@ -40,7 +40,7 @@ Grim = require 'grim'
 # paneElement = atom.views.getView(pane)
 # ```
 module.exports =
-class ViewRegistry
+class ViewFactory
   constructor: ->
     @views = new WeakMap
     @providers = []

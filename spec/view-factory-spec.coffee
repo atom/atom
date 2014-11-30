@@ -1,17 +1,17 @@
-ViewRegistry = require '../src/view-registry'
+ViewFactory = require '../src/view-factory'
 {View} = require '../src/space-pen-extensions'
 
-describe "ViewRegistry", ->
-  registry = null
+describe "ViewFactory", ->
+  factory = null
 
   beforeEach ->
-    registry = new ViewRegistry
+    factory = new ViewFactory
 
   describe "::createView(object, params)", ->
     describe "when passed a DOM node", ->
       it "returns the given DOM node", ->
         node = document.createElement('div')
-        expect(registry.createView(node)).toBe node
+        expect(factory.createView(node)).toBe node
 
     describe "when passed a SpacePen view", ->
       it "returns the root node of the view with a __spacePenView property pointing at the SpacePen view", ->
@@ -19,7 +19,7 @@ describe "ViewRegistry", ->
           @content: -> @div "Hello"
 
         view = new TestView
-        node = registry.createView(view)
+        node = factory.createView(view)
         expect(node.textContent).toBe "Hello"
         expect(node.__spacePenView).toBe view
 
@@ -36,17 +36,17 @@ describe "ViewRegistry", ->
 
             model = new TestModel
 
-            registry.addViewProvider
+            factory.addViewProvider
               modelConstructor: TestModel
               viewConstructor: TestView
 
-            view = registry.createView(model, a: 1)
+            view = factory.createView(model, a: 1)
             expect(view instanceof TestView).toBe true
             expect(view.params.a).toBe 1
             expect(view.params.model).toBe model
 
             subclassModel = new TestModelSubclass
-            view2 = registry.createView(subclassModel)
+            view2 = factory.createView(subclassModel)
             expect(view2 instanceof TestView).toBe true
             expect(view2.params.model).toBe subclassModel
 
@@ -56,7 +56,7 @@ describe "ViewRegistry", ->
             class TestView
               initialize: (@params) ->
 
-            registry.addViewProvider
+            factory.addViewProvider
               modelConstructor: TestModel
               createView: (params) ->
                 view = new TestView
@@ -64,7 +64,7 @@ describe "ViewRegistry", ->
                 view
 
             model = new TestModel
-            view = registry.createView(model, a: 1)
+            view = factory.createView(model, a: 1)
             expect(view instanceof TestView).toBe true
             expect(view.params.a).toBe 1
             expect(view.params.model).toBe model
@@ -87,7 +87,7 @@ describe "ViewRegistry", ->
               getViewClass: -> TestView
 
             model = new TestModel("hello")
-            node = registry.createView(model)
+            node = factory.createView(model)
 
             expect(node.textContent).toBe "hello"
             view = node.__spacePenView
@@ -96,17 +96,17 @@ describe "ViewRegistry", ->
 
         describe "when the object has no .createViewClass() method", ->
           it "throws an exception", ->
-            expect(-> registry.createView(new Object)).toThrow()
+            expect(-> factory.createView(new Object)).toThrow()
 
   describe "::addViewProvider(providerSpec)", ->
     it "returns a disposable that can be used to remove the provider", ->
       class TestModel
       class TestView
         initialize: ->
-      disposable = registry.addViewProvider
+      disposable = factory.addViewProvider
         modelConstructor: TestModel
         viewConstructor: TestView
 
-      expect(registry.createView(new TestModel) instanceof TestView).toBe true
+      expect(factory.createView(new TestModel) instanceof TestView).toBe true
       disposable.dispose()
-      expect(-> registry.createView(new TestModel)).toThrow()
+      expect(-> factory.createView(new TestModel)).toThrow()
