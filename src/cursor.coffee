@@ -407,9 +407,9 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the next subword boundary.
   moveToNextSubwordBoundary: ->
-    # if position = @getNextSubwordBoundaryBufferPosition()
-    #   @setBufferPosition(position)
-    console.log 'moving to next subword'
+    options = {wordRegex: @subwordRegExp()}
+    if position = @getNextWordBoundaryBufferPosition(options)
+      @setBufferPosition(position)
 
   # Public: Moves the cursor to the beginning of the buffer line, skipping all
   # whitespace.
