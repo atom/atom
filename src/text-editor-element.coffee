@@ -225,6 +225,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:select-to-beginning-of-next-word': -> @selectToBeginningOfNextWord()
   'editor:select-to-next-word-boundary': -> @selectToNextWordBoundary()
   'editor:select-to-previous-word-boundary': -> @selectToPreviousWordBoundary()
+  'editor:select-to-next-subword-boundary': -> @selectToNextSubwordBoundary()
+  'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
   'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
   'editor:select-line': -> @selectLinesContainingCursors()
   'editor:transpose': -> @transpose()
