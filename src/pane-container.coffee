@@ -9,7 +9,6 @@ PaneAxisElement = require './pane-axis-element'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
 TextEditorElement = require './text-editor-element'
-ViewRegistry = require './view-registry'
 ItemRegistry = require './item-registry'
 
 module.exports =
@@ -36,7 +35,6 @@ class PaneContainer extends Model
     @subscriptions = new CompositeDisposable
 
     @itemRegistry = new ItemRegistry
-    @viewRegistry = params?.viewRegistry ? new ViewRegistry
     @registerViewProviders()
 
     @setRoot(params?.root ? new Pane)
@@ -58,24 +56,21 @@ class PaneContainer extends Model
     activePaneId: @activePane.id
 
   registerViewProviders: ->
-    @viewRegistry.addViewProvider
+    atom.views.addViewProvider
       modelConstructor: PaneContainer
       viewConstructor: PaneContainerElement
 
-    @viewRegistry.addViewProvider
+    atom.views.addViewProvider
       modelConstructor: PaneAxis
       viewConstructor: PaneAxisElement
 
-    @viewRegistry.addViewProvider
+    atom.views.addViewProvider
       modelConstructor: Pane
       viewConstructor: PaneElement
 
-    @viewRegistry.addViewProvider
+    atom.views.addViewProvider
       modelConstructor: TextEditor
       viewConstructor: TextEditorElement
-
-  getView: (object) ->
-    @viewRegistry.getView(object)
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn

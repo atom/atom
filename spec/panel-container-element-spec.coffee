@@ -1,11 +1,10 @@
-ViewRegistry = require '../src/view-registry'
 Panel = require '../src/panel'
 PanelElement = require '../src/panel-element'
 PanelContainer = require '../src/panel-container'
 PanelContainerElement = require '../src/panel-container-element'
 
 describe "PanelContainerElement", ->
-  [jasmineContent, element, container, viewRegistry] = []
+  [jasmineContent, element, container] = []
 
   class TestPanelContainerItem
     constructior: ->
@@ -19,19 +18,18 @@ describe "PanelContainerElement", ->
   beforeEach ->
     jasmineContent = document.body.querySelector('#jasmine-content')
 
-    viewRegistry = new ViewRegistry
-    viewRegistry.addViewProvider
+    atom.views.addViewProvider
       modelConstructor: Panel
       viewConstructor: PanelElement
-    viewRegistry.addViewProvider
+    atom.views.addViewProvider
       modelConstructor: PanelContainer
       viewConstructor: PanelContainerElement
-    viewRegistry.addViewProvider
+    atom.views.addViewProvider
       modelConstructor: TestPanelContainerItem
       viewConstructor: TestPanelContainerItemElement
 
-    container = new PanelContainer({viewRegistry, location: 'left'})
-    element = container.getView()
+    container = new PanelContainer({location: 'left'})
+    element = atom.views.getView(container)
     jasmineContent.appendChild(element)
 
   it 'has a location class with value from the model', ->
@@ -44,9 +42,9 @@ describe "PanelContainerElement", ->
 
   describe "adding and removing panels", ->
     it "allows panels to be inserted at any position", ->
-      panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem(), priority: 10})
-      panel2 = new Panel({viewRegistry, item: new TestPanelContainerItem(), priority: 5})
-      panel3 = new Panel({viewRegistry, item: new TestPanelContainerItem(), priority: 8})
+      panel1 = new Panel({item: new TestPanelContainerItem(), priority: 10})
+      panel2 = new Panel({item: new TestPanelContainerItem(), priority: 5})
+      panel3 = new Panel({item: new TestPanelContainerItem(), priority: 8})
 
       container.addPanel(panel1)
       container.addPanel(panel2)
@@ -60,7 +58,7 @@ describe "PanelContainerElement", ->
       it "adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed", ->
         expect(element.childNodes.length).toBe 0
 
-        panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem()})
+        panel1 = new Panel({item: new TestPanelContainerItem()})
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe 1
         expect(element.childNodes[0]).toHaveClass 'left'
@@ -69,12 +67,12 @@ describe "PanelContainerElement", ->
 
         expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
 
-        panel2 = new Panel({viewRegistry, item: new TestPanelContainerItem()})
+        panel2 = new Panel({item: new TestPanelContainerItem()})
         container.addPanel(panel2)
         expect(element.childNodes.length).toBe 2
 
-        expect(panel1.getView().style.display).not.toBe 'none'
-        expect(panel2.getView().style.display).not.toBe 'none'
+        expect(atom.views.getView(panel1).style.display).not.toBe 'none'
+        expect(atom.views.getView(panel2).style.display).not.toBe 'none'
 
         panel1.destroy()
         expect(element.childNodes.length).toBe 1
@@ -84,26 +82,26 @@ describe "PanelContainerElement", ->
 
     describe "when the container is at the bottom location", ->
       beforeEach ->
-        container = new PanelContainer({viewRegistry, location: 'bottom'})
-        element = container.getView()
+        container = new PanelContainer({location: 'bottom'})
+        element = atom.views.getView(container)
         jasmineContent.appendChild(element)
 
       it "adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed", ->
         expect(element.childNodes.length).toBe 0
 
-        panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem(), className: 'one'})
+        panel1 = new Panel({item: new TestPanelContainerItem(), className: 'one'})
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe 1
         expect(element.childNodes[0]).toHaveClass 'bottom'
         expect(element.childNodes[0]).toHaveClass 'tool-panel' # legacy selector support
         expect(element.childNodes[0]).toHaveClass 'panel-bottom' # legacy selector support
         expect(element.childNodes[0].tagName).toBe 'ATOM-PANEL'
-        expect(panel1.getView()).toHaveClass 'one'
+        expect(atom.views.getView(panel1)).toHaveClass 'one'
 
-        panel2 = new Panel({viewRegistry, item: new TestPanelContainerItem(), className: 'two'})
+        panel2 = new Panel({item: new TestPanelContainerItem(), className: 'two'})
         container.addPanel(panel2)
         expect(element.childNodes.length).toBe 2
-        expect(panel2.getView()).toHaveClass 'two'
+        expect(atom.views.getView(panel2)).toHaveClass 'two'
 
         panel1.destroy()
         expect(element.childNodes.length).toBe 1
@@ -113,34 +111,34 @@ describe "PanelContainerElement", ->
 
   describe "when the container is modal", ->
     beforeEach ->
-      container = new PanelContainer({viewRegistry, location: 'modal'})
-      element = container.getView()
+      container = new PanelContainer({location: 'modal'})
+      element = atom.views.getView(container)
       jasmineContent.appendChild(element)
 
     it "allows only one panel to be visible at a time", ->
-      panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem()})
+      panel1 = new Panel({item: new TestPanelContainerItem()})
       container.addPanel(panel1)
 
-      expect(panel1.getView().style.display).not.toBe 'none'
+      expect(atom.views.getView(panel1).style.display).not.toBe 'none'
 
-      panel2 = new Panel({viewRegistry, item: new TestPanelContainerItem()})
+      panel2 = new Panel({item: new TestPanelContainerItem()})
       container.addPanel(panel2)
 
-      expect(panel1.getView().style.display).toBe 'none'
-      expect(panel2.getView().style.display).not.toBe 'none'
+      expect(atom.views.getView(panel1).style.display).toBe 'none'
+      expect(atom.views.getView(panel2).style.display).not.toBe 'none'
 
       panel1.show()
 
-      expect(panel1.getView().style.display).not.toBe 'none'
-      expect(panel2.getView().style.display).toBe 'none'
+      expect(atom.views.getView(panel1).style.display).not.toBe 'none'
+      expect(atom.views.getView(panel2).style.display).toBe 'none'
 
     it "adds the 'modal' class to panels", ->
-      panel1 = new Panel({viewRegistry, item: new TestPanelContainerItem()})
+      panel1 = new Panel({item: new TestPanelContainerItem()})
       container.addPanel(panel1)
 
-      expect(panel1.getView()).toHaveClass 'modal'
+      expect(atom.views.getView(panel1)).toHaveClass 'modal'
 
       # legacy selector support
-      expect(panel1.getView()).not.toHaveClass 'tool-panel'
-      expect(panel1.getView()).toHaveClass 'overlay'
-      expect(panel1.getView()).toHaveClass 'from-top'
+      expect(atom.views.getView(panel1)).not.toHaveClass 'tool-panel'
+      expect(atom.views.getView(panel1)).toHaveClass 'overlay'
+      expect(atom.views.getView(panel1)).toHaveClass 'from-top'

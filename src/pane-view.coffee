@@ -153,15 +153,15 @@ class PaneView extends View
   activeItemModifiedChanged: =>
     @trigger 'pane:active-item-modified-status-changed'
 
-  @::accessor 'activeView', -> @model.getView(@activeItem)?.__spacePenView
+  @::accessor 'activeView', -> atom.views.getView(@activeItem)?.__spacePenView
 
-  splitLeft: (items...) -> @model.getView(@model.splitLeft({items})).__spacePenView
+  splitLeft: (items...) -> atom.views.getView(@model.splitLeft({items})).__spacePenView
 
-  splitRight: (items...) -> @model.getView(@model.splitRight({items})).__spacePenView
+  splitRight: (items...) -> atom.views.getView(@model.splitRight({items})).__spacePenView
 
-  splitUp: (items...) -> @model.getView(@model.splitUp({items})).__spacePenView
+  splitUp: (items...) -> atom.views.getView(@model.splitUp({items})).__spacePenView
 
-  splitDown: (items...) -> @model.getView(@model.splitDown({items})).__spacePenView
+  splitDown: (items...) -> atom.views.getView(@model.splitDown({items})).__spacePenView
 
   getContainer: -> @closest('atom-pane-container').view()
 

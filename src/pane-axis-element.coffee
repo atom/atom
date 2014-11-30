@@ -22,12 +22,12 @@ class PaneAxisElement extends HTMLElement
         @classList.add('vertical', 'pane-column')
 
   childAdded: ({child, index}) ->
-    view = @model.getView(child)
+    view = atom.views.getView(child)
     @insertBefore(view, @children[index])
     callAttachHooks(view) # for backward compatibility with SpacePen views
 
   childRemoved: ({child}) ->
-    view = @model.getView(child)
+    view = atom.views.getView(child)
     view.remove()
 
   childReplaced:  ({index, oldChild, newChild}) ->

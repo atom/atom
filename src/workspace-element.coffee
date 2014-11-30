@@ -70,11 +70,11 @@ class WorkspaceElement extends HTMLElement
     @addEventListener 'focus', @handleFocus.bind(this)
 
     @panelContainers =
-      top: @model.panelContainers.top.getView()
-      left: @model.panelContainers.left.getView()
-      right: @model.panelContainers.right.getView()
-      bottom: @model.panelContainers.bottom.getView()
-      modal: @model.panelContainers.modal.getView()
+      top: atom.views.getView(@model.panelContainers.top)
+      left: atom.views.getView(@model.panelContainers.left)
+      right: atom.views.getView(@model.panelContainers.right)
+      bottom: atom.views.getView(@model.panelContainers.bottom)
+      modal: atom.views.getView(@model.panelContainers.modal)
 
     @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
     @horizontalAxis.appendChild(@panelContainers.right)
