@@ -1045,6 +1045,18 @@ class TextEditor extends Model
     @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
 
   # Extended: For each selection, if the selection is empty, delete all characters
+  # of the containing subword that precede the cursor. Otherwise delete the
+  # selected text.
+  deleteToBeginningOfSubword: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfSubword()
+
+  # Extended: For each selection, if the selection is empty, delete all characters
+  # of the containing subword that follow the cursor. Otherwise delete the
+  # selected text.
+  deleteToEndOfSubword: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfSubword()
+
+  # Extended: For each selection, if the selection is empty, delete all characters
   # of the containing line that precede the cursor. Otherwise delete the
   # selected text.
   deleteToBeginningOfLine: ->
