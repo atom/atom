@@ -199,6 +199,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:delete-to-beginning-of-line': -> @deleteToBeginningOfLine()
   'editor:delete-to-end-of-line': -> @deleteToEndOfLine()
   'editor:delete-to-end-of-word': -> @deleteToEndOfWord()
+  'editor:delete-to-beginning-of-subword': -> @deleteToBeginningOfSubword()
+  'editor:delete-to-end-of-subword': -> @deleteToEndOfSubword()
   'editor:delete-line': -> @deleteLine()
   'editor:cut-to-end-of-line': -> @cutToEndOfLine()
   'editor:move-to-beginning-of-next-paragraph': -> @moveToBeginningOfNextParagraph()
