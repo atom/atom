@@ -2020,6 +2020,20 @@ class TextEditor extends Model
   selectToNextWordBoundary: ->
     @expandSelectionsForward (selection) -> selection.selectToNextWordBoundary()
 
+  # Extended: For each selection, move its cursor to the preceding subword
+  # boundary while maintaining the selection's tail position.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToPreviousSubwordBoundary: ->
+    @expandSelectionsBackward (selection) -> selection.selectToPreviousSubwordBoundary()
+
+  # Extended: For each selection, move its cursor to the next subword boundary
+  # while maintaining the selection's tail position.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToNextSubwordBoundary: ->
+    @expandSelectionsForward (selection) -> selection.selectToNextSubwordBoundary()
+
   # Extended: Expand selections to the beginning of the next word.
   #
   # Operates on all selections. Moves the cursor to the beginning of the next

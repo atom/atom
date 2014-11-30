@@ -4018,3 +4018,89 @@ describe "TextEditor", ->
         expect(cursor9.getBufferPosition()).toEqual [7, 7]
         expect(cursor10.getBufferPosition()).toEqual [7, 14]
         expect(cursor11.getBufferPosition()).toEqual [7, 29]
+
+    describe ".selectToPreviousSubwordBoundary()", ->
+      it "select to the previous subword boundary", ->
+        editor.setCursorBufferPosition [0, 8]
+        editor.addCursorAtBufferPosition [2, 0]
+        editor.addCursorAtBufferPosition [2, 15]
+        editor.addCursorAtBufferPosition [2, 30]
+        editor.addCursorAtBufferPosition [3, 10]
+        editor.addCursorAtBufferPosition [4, 24]
+        editor.addCursorAtBufferPosition [5, 40]
+        editor.addCursorAtBufferPosition [7, 0]
+        editor.addCursorAtBufferPosition [7, 11]
+        editor.addCursorAtBufferPosition [7, 17]
+        editor.addCursorAtBufferPosition [7, 30]
+
+        editor.selectToPreviousSubwordBoundary()
+
+        expect(editor.getSelections().length).toBe 11
+        [selection1, selection2, selection3, selection4, selection5,
+        selection6, selection7,selection8, selection9, selection10,
+        selection11] = editor.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,8], [0,4]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[2,0], [1,38]]
+        expect(selection2.isReversed()).toBeTruthy()
+        expect(selection3.getBufferRange()).toEqual [[2,15], [2,12]]
+        expect(selection3.isReversed()).toBeTruthy()
+        expect(selection4.getBufferRange()).toEqual [[2,30], [2,28]]
+        expect(selection4.isReversed()).toBeTruthy()
+        expect(selection5.getBufferRange()).toEqual [[3,10], [3,8]]
+        expect(selection5.isReversed()).toBeTruthy()
+        expect(selection6.getBufferRange()).toEqual [[4,24], [4,20]]
+        expect(selection6.isReversed()).toBeTruthy()
+        expect(selection7.getBufferRange()).toEqual [[5,40], [5,37]]
+        expect(selection7.isReversed()).toBeTruthy()
+        expect(selection8.getBufferRange()).toEqual [[7,0], [6,28]]
+        expect(selection8.isReversed()).toBeTruthy()
+        expect(selection9.getBufferRange()).toEqual [[7,11], [7,7]]
+        expect(selection9.isReversed()).toBeTruthy()
+        expect(selection10.getBufferRange()).toEqual [[7,17], [7,15]]
+        expect(selection10.isReversed()).toBeTruthy()
+        expect(selection11.getBufferRange()).toEqual [[7,30], [7,28]]
+        expect(selection11.isReversed()).toBeTruthy()
+
+    describe ".selectToNextSubwordBoundary()", ->
+      it "select to the next subword boundary", ->
+        editor.setCursorBufferPosition [0, 10]
+        editor.addCursorAtBufferPosition [1, 39]
+        editor.addCursorAtBufferPosition [2, 10]
+        editor.addCursorAtBufferPosition [2, 28]
+        editor.addCursorAtBufferPosition [3, 8]
+        editor.addCursorAtBufferPosition [4, 16]
+        editor.addCursorAtBufferPosition [5, 37]
+        editor.addCursorAtBufferPosition [5, 40]
+        editor.addCursorAtBufferPosition [7, 6]
+        editor.addCursorAtBufferPosition [7, 11]
+        editor.addCursorAtBufferPosition [7, 27]
+
+        editor.selectToNextSubwordBoundary()
+
+        expect(editor.getSelections().length).toBe 11
+        [selection1, selection2, selection3, selection4, selection5,
+        selection6, selection7,selection8, selection9, selection10,
+        selection11] = editor.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,10], [0,13]]
+        expect(selection1.isReversed()).toBeFalsy()
+        expect(selection2.getBufferRange()).toEqual [[1,39], [2,0]]
+        expect(selection2.isReversed()).toBeFalsy()
+        expect(selection3.getBufferRange()).toEqual [[2,10], [2,12]]
+        expect(selection3.isReversed()).toBeFalsy()
+        expect(selection4.getBufferRange()).toEqual [[2,28], [2,30]]
+        expect(selection4.isReversed()).toBeFalsy()
+        expect(selection5.getBufferRange()).toEqual [[3,8], [3,10]]
+        expect(selection5.isReversed()).toBeFalsy()
+        expect(selection6.getBufferRange()).toEqual [[4,16], [4,19]]
+        expect(selection6.isReversed()).toBeFalsy()
+        expect(selection7.getBufferRange()).toEqual [[5,37], [5,40]]
+        expect(selection7.isReversed()).toBeFalsy()
+        expect(selection8.getBufferRange()).toEqual [[5,40], [6,8]]
+        expect(selection8.isReversed()).toBeFalsy()
+        expect(selection9.getBufferRange()).toEqual [[7,6], [7,7]]
+        expect(selection9.isReversed()).toBeFalsy()
+        expect(selection10.getBufferRange()).toEqual [[7,11], [7,14]]
+        expect(selection10.isReversed()).toBeFalsy()
+        expect(selection11.getBufferRange()).toEqual [[7,27], [7,29]]
+        expect(selection11.isReversed()).toBeFalsy()

@@ -291,6 +291,14 @@ class Selection extends Model
   selectToNextWordBoundary: ->
     @modifySelection => @cursor.moveToNextWordBoundary()
 
+  # Public: Selects text to the previous subword boundary.
+  selectToPreviousSubwordBoundary: ->
+    @modifySelection => @cursor.moveToPreviousSubwordBoundary()
+
+  # Public: Selects text to the next subword boundary.
+  selectToNextSubwordBoundary: ->
+    @modifySelection => @cursor.moveToNextSubwordBoundary()
+
   # Public: Selects all the text from the current cursor position to the
   # beginning of the next paragraph.
   selectToBeginningOfNextParagraph: ->
