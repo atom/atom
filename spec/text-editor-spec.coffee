@@ -3962,7 +3962,7 @@ describe "TextEditor", ->
         atom.packages.activatePackage('language-javascript')
 
     describe ".moveToPreviousSubwordBoundary()", ->
-      fit "moves the cursor to the previous subword boundary", ->
+      it "moves the cursor to the previous subword boundary", ->
         editor.setCursorBufferPosition [0, 8]
         editor.addCursorAtBufferPosition [2, 0]
         editor.addCursorAtBufferPosition [2, 15]
@@ -3990,3 +3990,33 @@ describe "TextEditor", ->
         expect(cursor9.getBufferPosition()).toEqual [7, 7]
         expect(cursor10.getBufferPosition()).toEqual [7, 15]
         expect(cursor11.getBufferPosition()).toEqual [7, 28]
+
+    describe ".moveToNextSubwordBoundary()", ->
+      it "moves the cursor to the next subword boundary", ->
+        editor.setCursorBufferPosition [0, 10]
+        editor.addCursorAtBufferPosition [1, 39]
+        editor.addCursorAtBufferPosition [2, 10]
+        editor.addCursorAtBufferPosition [2, 28]
+        editor.addCursorAtBufferPosition [3, 8]
+        editor.addCursorAtBufferPosition [4, 16]
+        editor.addCursorAtBufferPosition [5, 37]
+        editor.addCursorAtBufferPosition [5, 40]
+        editor.addCursorAtBufferPosition [7, 6]
+        editor.addCursorAtBufferPosition [7, 11]
+        editor.addCursorAtBufferPosition [7, 27]
+        [cursor1, cursor2, cursor3, cursor4, cursor5, cursor6,
+         cursor7, cursor8, cursor9, cursor10, cursor11] = editor.getCursors()
+
+        editor.moveToNextSubwordBoundary()
+
+        expect(cursor1.getBufferPosition()).toEqual [0, 13]
+        expect(cursor2.getBufferPosition()).toEqual [2, 0]
+        expect(cursor3.getBufferPosition()).toEqual [2, 12]
+        expect(cursor4.getBufferPosition()).toEqual [2, 30]
+        expect(cursor5.getBufferPosition()).toEqual [3, 10]
+        expect(cursor6.getBufferPosition()).toEqual [4, 19]
+        expect(cursor7.getBufferPosition()).toEqual [5, 40]
+        expect(cursor8.getBufferPosition()).toEqual [6, 8]
+        expect(cursor9.getBufferPosition()).toEqual [7, 7]
+        expect(cursor10.getBufferPosition()).toEqual [7, 14]
+        expect(cursor11.getBufferPosition()).toEqual [7, 29]
