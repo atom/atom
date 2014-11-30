@@ -52,6 +52,7 @@ start = ->
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen.toString())
 
+    setupConfigDirPath()
     setupCoffeeScript()
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
@@ -77,6 +78,15 @@ setupCoffeeScript = ->
     coffee = fs.readFileSync(filePath, 'utf8')
     js = CoffeeScript.compile(coffee, filename: filePath)
     module._compile(js, filePath)
+
+# Set Atom's home in process.env.ATOM_HOME
+setupConfigDirPath = ->
+  portablePath = process.resourcesPath.slice(0, -10) + '/.atom'
+  process.env.ATOM_HOME =
+    if fs.existsSync(portablePath)
+      portablePath
+    else
+      fs.absolute('~/.atom')
 
 parseCommandLine = ->
   version = app.getVersion()
