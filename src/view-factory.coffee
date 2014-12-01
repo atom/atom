@@ -48,8 +48,9 @@ class ViewFactory
     new Disposable =>
       @providers = @providers.filter (provider) -> provider isnt providerSpec
 
-  getView: (object) ->
-    Grim.deprecate("Call ::getView on the workspace element instead. The atom.views global is only intended to create views.")
+  getView: (object, suppressDeprecationWarning) ->
+    unless suppressDeprecationWarning
+      Grim.deprecate("Call ::getView on the workspace element instead. The atom.views global is only intended to create views.")
     @deprecatedViewRegistry.getView(object)
 
   # Essential: Create an element for the given model object based on providers
