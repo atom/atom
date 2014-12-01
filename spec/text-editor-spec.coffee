@@ -3398,7 +3398,6 @@ describe "TextEditor", ->
             expect(editor.getCursorBufferPosition()).toEqual([7, 2])
 
             editor.insertNewline()
-            editor.logScreenLines()
             expect(editor.lineTextForBufferRow(8)).toBe("  ")
 
         it "does not indent the line preceding the newline", ->
