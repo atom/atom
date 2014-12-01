@@ -371,7 +371,7 @@ class Pane extends Model
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroyed
     @emitter.emit 'did-remove-item', {item, index, destroyed}
-    @container?.paneItemDestroyed(item) if destroyed
+    @container?.didDestroyPaneItem({item, index, pane: this}) if destroyed
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Move the given item to the given index.
@@ -410,6 +410,7 @@ class Pane extends Model
     if index isnt -1
       @emit 'before-item-destroyed', item
       @emitter.emit 'will-destroy-item', {item, index}
+      @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
         @removeItem(item, true)
         item.destroy?()

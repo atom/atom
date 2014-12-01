@@ -112,6 +112,9 @@ class PaneContainer extends Model
     fn(@getActivePaneItem())
     @onDidChangeActivePaneItem(fn)
 
+  onWillDestroyPaneItem: (fn) ->
+    @emitter.on 'will-destroy-pane-item', fn
+
   onDidDestroyPaneItem: (fn) ->
     @emitter.on 'did-destroy-pane-item', fn
 
@@ -193,8 +196,11 @@ class PaneContainer extends Model
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
 
-  paneItemDestroyed: (item) ->
-    @emitter.emit 'did-destroy-pane-item', item
+  willDestroyPaneItem: (event) ->
+    @emitter.emit 'will-destroy-pane-item', event
+
+  didDestroyPaneItem: (event) ->
+    @emitter.emit 'did-destroy-pane-item', event
 
   didAddPane: (pane) ->
     @emitter.emit 'did-add-pane', pane

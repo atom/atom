@@ -148,3 +148,30 @@ describe "PaneContainer", ->
       saved = container.confirmClose()
       expect(saved).toBeFalsy()
       expect(atom.confirm).toHaveBeenCalled()
+
+  describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
+    it "invokes the given callbacks when an item will be destroyed on any pane", ->
+      container = new PaneContainer
+      pane1 = container.getRoot()
+      item1 = new Object
+      item2 = new Object
+      item3 = new Object
+
+      pane1.addItem(item1)
+      events = []
+      container.onWillDestroyPaneItem (event) -> events.push(['will', event])
+      container.onDidDestroyPaneItem (event) -> events.push(['did', event])
+      pane2 = pane1.splitRight(items: [item2, item3])
+
+      pane1.destroyItem(item1)
+      pane2.destroyItem(item3)
+      pane2.destroyItem(item2)
+
+      expect(events).toEqual [
+        ['will', {item: item1, pane: pane1, index: 0}]
+        ['did', {item: item1, pane: pane1, index: 0}]
+        ['will', {item: item3, pane: pane2, index: 1}]
+        ['did', {item: item3, pane: pane2, index: 1}]
+        ['will', {item: item2, pane: pane2, index: 0}]
+        ['did', {item: item2, pane: pane2, index: 0}]
+      ]

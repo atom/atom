@@ -47,7 +47,7 @@ class Workspace extends Model
 
     viewRegistry = atom.views
     @paneContainer ?= new PaneContainer({viewRegistry})
-    @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
+    @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @panelContainers =
       top: new PanelContainer({viewRegistry, location: 'top'})
@@ -271,7 +271,7 @@ class Workspace extends Model
   # Extended: Invoke the given callback when a pane item is added to the
   # workspace.
   #
-  # * `callback` {Function} to be called when panes are added.
+  # * `callback` {Function} to be called when pane items are added.
   #   * `event` {Object} with the following keys:
   #     * `item` The added pane item.
   #     * `pane` {Pane} containing the added item.
@@ -279,6 +279,19 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
+
+  # Extended: Invoke the given callback when a pane item is about to be
+  # destroyed, before the user is prompted to save it.
+  #
+  # * `callback` {Function} to be called before pane items are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The item to be destroyed.
+  #     * `pane` {Pane} containing the item to be destroyed.
+  #     * `index` {Number} indicating the index of the item to be destroyed in
+  #       its pane.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
+  onWillDestroyPaneItem: (callback) -> @paneContainer.onWillDestroyPaneItem(callback)
 
   # Extended: Invoke the given callback when a text editor is added to the
   # workspace.
@@ -605,7 +618,7 @@ class Workspace extends Model
       _.remove(@destroyedItemUris, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
-  onPaneItemDestroyed: (item) =>
+  didDestroyPaneItem: ({item}) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
 
