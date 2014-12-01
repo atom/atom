@@ -6,6 +6,32 @@ scrollbarStyle = require 'scrollbar-style'
 {callAttachHooks} = require 'space-pen'
 WorkspaceView = null
 
+# Essential: The on-screen representation of the workspace. Unless you have
+# an explicit need access the view layer, you should prefer using the
+# {Workspace} model object via `atom.workspace`.
+#
+# ## Examples
+#
+# In specs, you can create a workspace element via the view factory and attach
+# it to the DOM:
+#
+# ```coffee
+# workspaceElement = atom.views.createElement(atom.workspace)
+# jasmine.attachToDOM(workspaceElement)
+#
+# # Get a reference to a nested element corresponding to a model object...
+# editorElement = workspaceElement.getView(atom.workspace.getActiveTextEditor)
+# ```
+#
+# In production, you can access the singleton instance of the workspace element
+# by pulling it directly from the DOM:
+#
+# ```coffee
+# workspaceElement = document.querySelector('atom-workspace')
+#
+# # Careful! Direct DOM manipulation is more likely to break as Atom changes
+# workspaceElement.addClass("foo")
+# ```
 module.exports =
 class WorkspaceElement extends HTMLElement
   globalTextEditorStyleSheet: null
@@ -91,8 +117,29 @@ class WorkspaceElement extends HTMLElement
 
   getModel: -> @model
 
-  getView: (item) ->
-    @viewRegistry.getView(item)
+  # Essential: Get the view associated with a model in the workspace.
+  #
+  # ## Examples
+  #
+  # ### Get the active text editor's view element
+  # ```coffee
+  # # At the model level...
+  # activeTextEditor = atom.workspace.getActiveTextEditor()
+  #
+  # # At the view level...
+  # workspaceElement = document.querySelector('atom-workspace')
+  # textEditorElement = workspaceElement.getView(activeTextEditor)
+  #
+  # # Now manipulate the text editor's DOM at your own risk...
+  # ```
+  #
+  # * `model` A model object that's present in the workspace. It could be a
+  #   workspace model object such as a {Pane} or a {Panel}, or it could be a
+  #   third-party model such as a pane or panel's *item*.
+  #
+  # Returns a DOM element.
+  getView: (model) ->
+    @viewRegistry.getView(model)
 
   setTextEditorFontSize: (fontSize) ->
     @updateGlobalEditorStyle('font-size', fontSize + 'px')
