@@ -17,7 +17,6 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
 
   createdCallback: ->
-    @subscriptions =
     @initializeContent()
     @createSpacePenShim()
     @addEventListener 'focus', @focused.bind(this)
