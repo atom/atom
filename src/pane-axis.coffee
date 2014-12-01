@@ -39,9 +39,6 @@ class PaneAxis extends Model
 
   getOrientation: -> @orientation
 
-  getView: (object) ->
-    @container.getView(object)
-
   getChildren: -> @children.slice()
 
   getPanes: ->

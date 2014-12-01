@@ -11,7 +11,7 @@ class PaneContainerElement extends HTMLElement
     PaneContainerView ?= require './pane-container-view'
     @__spacePenView = new PaneContainerView(this)
 
-  setModel: (@model) ->
+  initialize: ({@viewRegistry, @model}) ->
     @subscriptions.add @model.observeRoot(@rootChanged.bind(this))
     @__spacePenView.setModel(@model)
 
@@ -19,7 +19,7 @@ class PaneContainerElement extends HTMLElement
     focusedElement = document.activeElement if @hasFocus()
     @firstChild?.remove()
     if root?
-      view = @model.getView(root)
+      view = @viewRegistry.getView(root)
       @appendChild(view)
       callAttachHooks(view)
       focusedElement?.focus()
@@ -45,7 +45,7 @@ class PaneContainerElement extends HTMLElement
       y = pointB.y - pointA.y
       Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
-    paneView = @model.getView(@model.getActivePane())
+    paneView = @viewRegistry.getView(@model.getActivePane())
     box = @boundingBoxForPaneView(paneView)
 
     paneViews = _.toArray(@querySelectorAll('atom-pane'))

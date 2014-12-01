@@ -6,9 +6,37 @@ scrollbarStyle = require 'scrollbar-style'
 {callAttachHooks} = require 'space-pen'
 WorkspaceView = null
 
+# Essential: The on-screen representation of the workspace. Unless you have
+# an explicit need access the view layer, you should prefer using the
+# {Workspace} model object via `atom.workspace`.
+#
+# ## Examples
+#
+# In specs, you can create a workspace element via the view factory and attach
+# it to the DOM:
+#
+# ```coffee
+# workspaceElement = atom.views.createElement(atom.workspace)
+# jasmine.attachToDOM(workspaceElement)
+#
+# # Get a reference to a nested element corresponding to a model object...
+# editorElement = workspaceElement.getView(atom.workspace.getActiveTextEditor)
+# ```
+#
+# In production, you can access the singleton instance of the workspace element
+# by pulling it directly from the DOM:
+#
+# ```coffee
+# workspaceElement = document.querySelector('atom-workspace')
+#
+# # Careful! Direct DOM manipulation is more likely to break as Atom changes
+# workspaceElement.addClass("foo")
+# ```
 module.exports =
 class WorkspaceElement extends HTMLElement
   globalTextEditorStyleSheet: null
+  viewRegistry: null
+  model: null
 
   createdCallback: ->
     @subscriptions = new CompositeDisposable
@@ -62,19 +90,20 @@ class WorkspaceElement extends HTMLElement
     WorkspaceView ?= require './workspace-view'
     @__spacePenView = new WorkspaceView(this)
 
-  getModel: -> @model
+  initialize: ({@viewFactory, @model}) ->
+    @viewRegistry = @viewFactory.deprecatedViewRegistry
+    atom.views.deprecatedViewRegistry = @viewRegistry
 
-  setModel: (@model) ->
-    @paneContainer = atom.views.getView(@model.paneContainer)
+    @paneContainer = @viewRegistry.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
     @addEventListener 'focus', @handleFocus.bind(this)
 
     @panelContainers =
-      top: @model.panelContainers.top.getView()
-      left: @model.panelContainers.left.getView()
-      right: @model.panelContainers.right.getView()
-      bottom: @model.panelContainers.bottom.getView()
-      modal: @model.panelContainers.modal.getView()
+      top: @viewRegistry.getView(@model.panelContainers.top)
+      left: @viewRegistry.getView(@model.panelContainers.left)
+      right: @viewRegistry.getView(@model.panelContainers.right)
+      bottom: @viewRegistry.getView(@model.panelContainers.bottom)
+      modal: @viewRegistry.getView(@model.panelContainers.modal)
 
     @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
     @horizontalAxis.appendChild(@panelContainers.right)
@@ -85,6 +114,32 @@ class WorkspaceElement extends HTMLElement
     @appendChild(@panelContainers.modal)
 
     @__spacePenView.setModel(@model)
+
+  getModel: -> @model
+
+  # Essential: Get the view associated with a model in the workspace.
+  #
+  # ## Examples
+  #
+  # ### Get the active text editor's view element
+  # ```coffee
+  # # At the model level...
+  # activeTextEditor = atom.workspace.getActiveTextEditor()
+  #
+  # # At the view level...
+  # workspaceElement = document.querySelector('atom-workspace')
+  # textEditorElement = workspaceElement.getView(activeTextEditor)
+  #
+  # # Now manipulate the text editor's DOM at your own risk...
+  # ```
+  #
+  # * `model` A model object that's present in the workspace. It could be a
+  #   workspace model object such as a {Pane} or a {Panel}, or it could be a
+  #   third-party model such as a pane or panel's *item*.
+  #
+  # Returns a DOM element.
+  getView: (model) ->
+    @viewRegistry.getView(model)
 
   setTextEditorFontSize: (fontSize) ->
     @updateGlobalEditorStyle('font-size', fontSize + 'px')

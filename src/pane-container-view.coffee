@@ -23,7 +23,7 @@ class PaneContainerView extends View
     @subscriptions.add @model.onDidChangeActivePaneItem(@onActivePaneItemChanged)
 
   getRoot: ->
-    view = @model.getView(@model.getRoot())
+    view = @element.viewRegistry.getView(@model.getRoot())
     view.__spacePenView ? view
 
   onActivePaneItemChanged: (activeItem) =>
@@ -55,7 +55,7 @@ class PaneContainerView extends View
     @getActivePaneView()
 
   getActivePaneView: ->
-    @model.getView(@model.getActivePane()).__spacePenView
+    @element.viewRegistry.getView(@model.getActivePane()).__spacePenView
 
   getActivePaneItem: ->
     @model.getActivePaneItem()
@@ -64,7 +64,7 @@ class PaneContainerView extends View
     @getActivePaneView()?.activeView
 
   paneForUri: (uri) ->
-    @model.getView(@model.paneForUri(uri)).__spacePenView
+    @element.viewRegistry.getView(@model.paneForUri(uri)).__spacePenView
 
   focusNextPaneView: ->
     @model.activateNextPane()

@@ -3,10 +3,12 @@ _ = require 'underscore-plus'
 
 TextEditorView = require '../src/text-editor-view'
 TextEditorComponent = require '../src/text-editor-component'
+ViewRegistry = require '../src/view-registry'
+
 nbsp = String.fromCharCode(160)
 
 describe "TextEditorComponent", ->
-  [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
+  [viewRegistry, contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, lineOverdrawMargin] = []
 
   beforeEach ->
@@ -31,18 +33,21 @@ describe "TextEditorComponent", ->
       atom.project.open('sample.js').then (o) -> editor = o
 
     runs ->
+      viewRegistry = new ViewRegistry(atom.views)
+
       contentNode = document.querySelector('#jasmine-content')
       contentNode.style.width = '1000px'
 
-      wrapperView = new TextEditorView(editor, {lineOverdrawMargin})
-      wrapperView.attachToDom()
-      wrapperNode = wrapperView.element
+      wrapperNode = atom.views.createView(editor, {viewRegistry, lineOverdrawMargin})
       wrapperNode.setUpdatedSynchronously(false)
+      jasmine.attachToDOM(wrapperNode)
 
-      {component} = wrapperView
+      {component} = wrapperNode
       component.setFontFamily('monospace')
       component.setLineHeight(1.3)
       component.setFontSize(20)
+
+      wrapperView = wrapperNode.__spacePenView
 
       lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()

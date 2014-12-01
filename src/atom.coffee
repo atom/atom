@@ -39,7 +39,7 @@ class Atom extends Model
       atom.workspaceView is no longer available.
       In most cases you will not need the view. See the Workspace docs for
       alternatives: https://atom.io/docs/api/latest/Workspace.
-      If you do need the view, please use `atom.views.getView(atom.workspace)`,
+      If you do need the view, please use `document.querySelector('atom-workspace')`,
       which returns an HTMLElement.
     """
 
@@ -167,7 +167,7 @@ class Atom extends Model
   # Public: A {DeserializerManager} instance
   deserializers: null
 
-  # Public: A {ViewRegistry} instance
+  # Public: A {ViewFactory} instance
   views: null
 
   # Public: A {Workspace} instance
@@ -220,7 +220,7 @@ class Atom extends Model
 
     Config = require './config'
     KeymapManager = require './keymap-extensions'
-    ViewRegistry = require './view-registry'
+    ViewFactory = require './view-factory'
     CommandRegistry = require './command-registry'
     TooltipManager = require './tooltip-manager'
     NotificationManager = require './notification-manager'
@@ -253,7 +253,7 @@ class Atom extends Model
     @tooltips = new TooltipManager
     @notifications = new NotificationManager
     @commands = new CommandRegistry
-    @views = new ViewRegistry
+    @views = new ViewFactory
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @styles = new StyleManager
     document.head.appendChild(new StylesElement)
@@ -681,7 +681,7 @@ class Atom extends Model
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
 
-    workspaceElement = @views.getView(@workspace)
+    workspaceElement = @views.createView(@workspace)
     @__workspaceView = workspaceElement.__spacePenView
     @deserializeTimings.workspace = Date.now() - startTime
 

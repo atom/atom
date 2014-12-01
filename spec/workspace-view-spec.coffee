@@ -15,7 +15,7 @@ describe "WorkspaceView", ->
     atom.project.setPaths([atom.project.resolve('dir')])
     pathToOpen = atom.project.resolve('a')
     atom.workspace = new Workspace
-    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
+    atom.workspaceView = atom.views.createView(atom.workspace).__spacePenView
     atom.workspaceView.enableKeymap()
     atom.workspaceView.focus()
 
@@ -34,7 +34,7 @@ describe "WorkspaceView", ->
       atom.workspaceView.remove()
       atom.project = atom.deserializers.deserialize(projectState)
       atom.workspace = Workspace.deserialize(workspaceState)
-      atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
+      atom.workspaceView = atom.views.createView(atom.workspace).__spacePenView
       atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
@@ -279,7 +279,7 @@ describe "WorkspaceView", ->
   describe 'panel containers', ->
     workspaceElement = null
     beforeEach ->
-      workspaceElement = atom.views.getView(atom.workspace)
+      workspaceElement = atom.views.createView(atom.workspace)
 
     it 'inserts panel container elements in the correct places in the DOM', ->
       leftContainer = workspaceElement.querySelector('atom-panel-container.left')

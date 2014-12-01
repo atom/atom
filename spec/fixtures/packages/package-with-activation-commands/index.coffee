@@ -9,6 +9,6 @@ module.exports =
     atom.commands.add 'atom-workspace', 'activation-command', =>
       @activationCommandCallCount++
 
-    editorView = atom.views.getView(atom.workspace.getActiveEditor())?.__spacePenView
+    editorView = document.querySelector('atom-workspace').getView(atom.workspace.getActiveEditor())?.__spacePenView
     editorView?.command 'activation-command', =>
       @legacyActivationCommandCallCount++

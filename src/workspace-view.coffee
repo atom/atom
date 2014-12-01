@@ -59,7 +59,7 @@ class WorkspaceView extends View
 
   constructor: (@element) ->
     unless @element?
-      return atom.views.getView(atom.workspace).__spacePenView
+      return atom.views.getView(atom.workspace, true).__spacePenView
     super
     @deprecateViewEvents()
 

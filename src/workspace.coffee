@@ -14,7 +14,6 @@ Panel = require './panel'
 PanelElement = require './panel-element'
 PanelContainer = require './panel-container'
 PanelContainerElement = require './panel-container-element'
-ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
 
 # Essential: Represents the state of the user interface for the entire window.
@@ -34,7 +33,6 @@ class Workspace extends Model
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
 
   @properties
-    viewRegistry: null
     paneContainer: null
     fullScreen: false
     destroyedItemUris: -> []
@@ -45,16 +43,15 @@ class Workspace extends Model
     @emitter = new Emitter
     @openers = []
 
-    viewRegistry = atom.views
-    @paneContainer ?= new PaneContainer({viewRegistry})
+    @paneContainer ?= new PaneContainer()
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
 
     @panelContainers =
-      top: new PanelContainer({viewRegistry, location: 'top'})
-      left: new PanelContainer({viewRegistry, location: 'left'})
-      right: new PanelContainer({viewRegistry, location: 'right'})
-      bottom: new PanelContainer({viewRegistry, location: 'bottom'})
-      modal: new PanelContainer({viewRegistry, location: 'modal'})
+      top: new PanelContainer({location: 'top'})
+      left: new PanelContainer({location: 'left'})
+      right: new PanelContainer({location: 'right'})
+      bottom: new PanelContainer({location: 'bottom'})
+      modal: new PanelContainer({location: 'modal'})
 
     @subscribeToActiveItem()
 
@@ -86,7 +83,6 @@ class Workspace extends Model
     for packageName in params.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
-    params.paneContainer.viewRegistry = atom.views
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -627,8 +623,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -646,8 +642,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -665,8 +661,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -684,8 +680,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -703,8 +699,8 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     a model with a view registered via {ViewFactory::addViewProvider}. We recommend the
+  #     latter. See {ViewFactory::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -719,5 +715,4 @@ class Workspace extends Model
 
   addPanel: (location, options) ->
     options ?= {}
-    options.viewRegistry = atom.views
     @panelContainers[location].addPanel(new Panel(options))

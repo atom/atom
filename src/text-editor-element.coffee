@@ -62,6 +62,9 @@ class TextEditorElement extends HTMLElement
     @component.checkForVisibilityChange()
     @focus() if @focusOnAttach
 
+  initialize: ({@viewRegistry, @lineOverdrawMargin, model}) ->
+    @setModel(model)
+
   setModel: (model) ->
     throw new Error("Model already assigned on TextEditorElement") if @model?
     return if model.isDestroyed()

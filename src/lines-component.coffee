@@ -66,10 +66,10 @@ LinesComponent = React.createClass
 
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', 'atom-overlay')
-      @overlayManager = new OverlayManager(@props.hostElement)
+      @overlayManager = new OverlayManager(@props.hostElement, @props.hostElement.viewRegistry)
       @getDOMNode().appendChild(insertionPoint)
     else
-      @overlayManager = new OverlayManager(@getDOMNode())
+      @overlayManager = new OverlayManager(@getDOMNode(), @props.hostElement.viewRegistry)
 
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,

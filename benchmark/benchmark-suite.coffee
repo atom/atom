@@ -9,7 +9,7 @@ describe "editorView.", ->
 
   beforeEach ->
     atom.workspaceViewParentSelector = '#jasmine-content'
-    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
+    atom.workspaceView = atom.views.createView(atom.workspace).__spacePenView
     atom.workspaceView.attachToDom()
 
     atom.workspaceView.width(1024)
