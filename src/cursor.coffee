@@ -666,11 +666,10 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters')
+    nonWordCharacters = atom.config.get(@getScopeDescriptor(), 'editor.nonWordCharacters')
     segments = ["^[\t ]*$"]
     segments.push("[A-Z]?[a-z]+")
     segments.push("[A-Z]+(?![a-z])")
-    # segments.push("\\d+")
     if options.backwards
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+\\s*")
     else
