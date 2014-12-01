@@ -118,31 +118,34 @@ class ViewFactory
     @deprecatedViewRegistry.getView(object)
 
   createView: (object, params) ->
-    if object instanceof HTMLElement
-      object
-    else if object?.jquery
-      object[0]?.__spacePenView ?= object
-      object[0]
-    else if provider = @findProvider(object)
-      params ?= {}
-      params.viewFactory = this
-      params.model = object
-      element = provider.createView?(params)
-      unless element?
-        element = new provider.viewConstructor
-        if not (typeof element.initialize is 'function') and (typeof element.setModel is 'function')
-          Grim.deprecate("Define `::initialize` instead of `::setModel` in your view. It will be passed a params hash including the model.")
-          element.setModel(object)
-        else
-          element.initialize(params)
-      element
-    else if viewConstructor = object?.getViewClass?()
-      Grim.deprecate("Add a view provider for your object on atom.views instead of implementing `::getViewClass`.")
-      view = new viewConstructor(object)
-      view[0].__spacePenView ?= view
-      view[0]
-    else
-      throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
+    view =
+      if object instanceof HTMLElement
+        object
+      else if object?.jquery
+        object[0]?.__spacePenView ?= object
+        object[0]
+      else if provider = @findProvider(object)
+        params ?= {}
+        params.viewFactory = this
+        params.model = object
+        element = provider.createView?(params)
+        unless element?
+          element = new provider.viewConstructor
+          if not (typeof element.initialize is 'function') and (typeof element.setModel is 'function')
+            Grim.deprecate("Define `::initialize` instead of `::setModel` in your view. It will be passed a params hash including the model.")
+            element.setModel(object)
+          else
+            element.initialize(params)
+        element
+      else if viewConstructor = object?.getViewClass?()
+        Grim.deprecate("Add a view provider for your object on atom.views instead of implementing `::getViewClass`.")
+        view = new viewConstructor(object)
+        view[0].__spacePenView ?= view
+        view[0]
+      else
+        throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
+    @deprecatedViewRegistry.views.set(object, view)
+    view
 
   findProvider: (object) ->
     @providers.find ({modelConstructor}) -> object instanceof modelConstructor
