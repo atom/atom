@@ -4,7 +4,7 @@ Package = require '../src/package'
 describe "PackageManager", ->
   workspaceElement = null
   beforeEach ->
-    workspaceElement = atom.views.getView(atom.workspace)
+    workspaceElement = atom.views.createView(atom.workspace)
 
   describe "::loadPackage(name)", ->
     it "continues if the package has an invalid package.json", ->
@@ -144,7 +144,7 @@ describe "PackageManager", ->
               atom.workspace.open()
 
             runs ->
-              editorView = atom.views.getView(atom.workspace.getActiveEditor()).__spacePenView
+              editorView = workspaceElement.getView(atom.workspace.getActiveEditor()).__spacePenView
               legacyCommandListener = jasmine.createSpy("legacyCommandListener")
               editorView.command 'activation-command', legacyCommandListener
               editorCommandListener = jasmine.createSpy("editorCommandListener")

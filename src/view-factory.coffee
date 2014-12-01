@@ -1,5 +1,6 @@
 {Disposable} = require 'event-kit'
 Grim = require 'grim'
+ViewRegistry = require './view-registry'
 
 # Essential: `ViewFactory` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
@@ -42,8 +43,8 @@ Grim = require 'grim'
 module.exports =
 class ViewFactory
   constructor: ->
-    @views = new WeakMap
     @providers = []
+    @deprecatedViewRegistry = new ViewRegistry(this)
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -113,14 +114,8 @@ class ViewFactory
   #
   # Returns a DOM element.
   getView: (object) ->
-    return unless object?
-
-    if view = @views.get(object)
-      view
-    else
-      view = @createView(object)
-      @views.set(object, view)
-      view
+    Grim.deprecate("Call ::getView on the workspace element instead. The atom.views global is only intended to create views.")
+    @deprecatedViewRegistry.getView(object)
 
   createView: (object, params) ->
     if object instanceof HTMLElement
@@ -130,6 +125,7 @@ class ViewFactory
       object[0]
     else if provider = @findProvider(object)
       params ?= {}
+      params.viewFactory = this
       params.model = object
       element = provider.createView?(params)
       unless element?

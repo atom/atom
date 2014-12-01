@@ -7,7 +7,7 @@ class PanelElement extends HTMLElement
 
   getModel: -> @model
 
-  initialize: ({@model}) ->
+  initialize: ({@viewRegistry, @model}) ->
     @appendChild(@getItemView())
 
     @classList.add(@model.getClassName().split(' ')...) if @model.getClassName()?
@@ -15,7 +15,7 @@ class PanelElement extends HTMLElement
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
 
   getItemView: ->
-    atom.views.getView(@model.getItem())
+    @viewRegistry.getView(@model.getItem())
 
   attachedCallback: ->
     callAttachHooks(@getItemView()) # for backward compatibility with SpacePen views

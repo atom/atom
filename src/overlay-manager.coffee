@@ -1,6 +1,6 @@
 module.exports =
 class OverlayManager
-  constructor: (@container) ->
+  constructor: (@container, @viewRegistry) ->
     @overlays = {}
 
   render: (props) ->
@@ -25,7 +25,7 @@ class OverlayManager
     return
 
   renderOverlay: (editor, decoration, pixelPosition, lineHeightInPixels) ->
-    item = atom.views.getView(decoration.item)
+    item = @viewRegistry.getView(decoration.item)
     unless overlay = @overlays[decoration.id]
       overlay = @overlays[decoration.id] = document.createElement('atom-overlay')
       overlay.appendChild(item)

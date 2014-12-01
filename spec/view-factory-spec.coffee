@@ -44,6 +44,7 @@ describe "ViewFactory", ->
             expect(view instanceof TestView).toBe true
             expect(view.params.a).toBe 1
             expect(view.params.model).toBe model
+            expect(view.params.viewFactory).toBe factory
 
             subclassModel = new TestModelSubclass
             view2 = factory.createView(subclassModel)

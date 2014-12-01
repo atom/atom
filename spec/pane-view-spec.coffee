@@ -1,5 +1,6 @@
 PaneContainer = require '../src/pane-container'
 PaneView = require '../src/pane-view'
+ViewRegistry = require '../src/view-registry'
 fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
 {$, View} = require '../src/space-pen-extensions'
@@ -7,7 +8,7 @@ path = require 'path'
 temp = require 'temp'
 
 describe "PaneView", ->
-  [container, containerModel, view1, view2, editor1, editor2, pane, paneModel, deserializerDisposable] = []
+  [viewRegistry, container, containerModel, view1, view2, editor1, editor2, pane, paneModel, deserializerDisposable] = []
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
@@ -27,7 +28,8 @@ describe "PaneView", ->
     jasmine.snapshotDeprecations()
 
     deserializerDisposable = atom.deserializers.add(TestView)
-    container = atom.views.getView(new PaneContainer).__spacePenView
+    viewRegistry = new ViewRegistry(atom.views)
+    container = atom.views.createView(new PaneContainer, {viewRegistry}).__spacePenView
     containerModel = container.model
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
@@ -229,7 +231,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight() # Can't destroy the last pane, so we add another
-      pane2 = atom.views.getView(pane2Model).__spacePenView
+      pane2 = viewRegistry.getView(pane2Model).__spacePenView
 
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")
@@ -262,7 +264,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight(items: [pane.copyActiveItem()])
-      pane2 = atom.views.getView(pane2Model).__spacePenView
+      pane2 = viewRegistry.getView(pane2Model).__spacePenView
       expect(pane2Model.isActive()).toBe true
 
     it "adds or removes the .active class as appropriate", ->
@@ -309,8 +311,8 @@ describe "PaneView", ->
       pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])
       pane3Model = pane2Model.splitDown(items: [pane2Model.copyActiveItem()])
       pane2 = pane2Model._view
-      pane2 = atom.views.getView(pane2Model).__spacePenView
-      pane3 = atom.views.getView(pane3Model).__spacePenView
+      pane2 = viewRegistry.getView(pane2Model).__spacePenView
+      pane3 = viewRegistry.getView(pane3Model).__spacePenView
 
       expect(container.find('> atom-pane-axis.horizontal > atom-pane').toArray()).toEqual [pane1[0]]
       expect(container.find('> atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
@@ -323,13 +325,13 @@ describe "PaneView", ->
       container.attachToDom()
       pane.focus()
 
-      container2 = atom.views.getView(container.model.testSerialization()).__spacePenView
+      container2 = viewRegistry.getView(container.model.testSerialization()).__spacePenView
       pane2 = container2.getRoot()
       container2.attachToDom()
       expect(pane2).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      container3 = atom.views.getView(container.model.testSerialization()).__spacePenView
+      container3 = viewRegistry.getView(container.model.testSerialization()).__spacePenView
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')

@@ -333,16 +333,18 @@ class ThemeManager
 
   isInitialLoadComplete: -> @initialLoadComplete
 
+  # FIXME: This should be moved to WorkspaceElement
   addActiveThemeClasses: ->
-    workspaceElement = atom.views.getView(atom.workspace)
-    for pack in @getActiveThemes()
-      workspaceElement.classList.add("theme-#{pack.name}")
+    if workspaceElement = document.querySelector('atom-workspace')
+      for pack in @getActiveThemes()
+        workspaceElement.classList.add("theme-#{pack.name}")
     return
 
+  # FIXME: This should be moved to WorkspaceElement
   removeActiveThemeClasses: ->
-    workspaceElement = atom.views.getView(atom.workspace)
-    for pack in @getActiveThemes()
-      workspaceElement.classList.remove("theme-#{pack.name}")
+    if workspaceElement = document.querySelector('atom-workspace')
+      for pack in @getActiveThemes()
+        workspaceElement.classList.remove("theme-#{pack.name}")
     return
 
   refreshLessCache: ->

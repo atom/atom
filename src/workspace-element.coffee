@@ -9,6 +9,8 @@ WorkspaceView = null
 module.exports =
 class WorkspaceElement extends HTMLElement
   globalTextEditorStyleSheet: null
+  viewRegistry: null
+  model: null
 
   createdCallback: ->
     @subscriptions = new CompositeDisposable
@@ -62,19 +64,20 @@ class WorkspaceElement extends HTMLElement
     WorkspaceView ?= require './workspace-view'
     @__spacePenView = new WorkspaceView(this)
 
-  getModel: -> @model
+  initialize: ({@viewFactory, @model}) ->
+    @viewRegistry = @viewFactory.deprecatedViewRegistry
+    atom.views.deprecatedViewRegistry = @viewRegistry
 
-  initialize: ({@model}) ->
-    @paneContainer = atom.views.getView(@model.paneContainer)
+    @paneContainer = @viewRegistry.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
     @addEventListener 'focus', @handleFocus.bind(this)
 
     @panelContainers =
-      top: atom.views.getView(@model.panelContainers.top)
-      left: atom.views.getView(@model.panelContainers.left)
-      right: atom.views.getView(@model.panelContainers.right)
-      bottom: atom.views.getView(@model.panelContainers.bottom)
-      modal: atom.views.getView(@model.panelContainers.modal)
+      top: @viewRegistry.getView(@model.panelContainers.top)
+      left: @viewRegistry.getView(@model.panelContainers.left)
+      right: @viewRegistry.getView(@model.panelContainers.right)
+      bottom: @viewRegistry.getView(@model.panelContainers.bottom)
+      modal: @viewRegistry.getView(@model.panelContainers.modal)
 
     @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
     @horizontalAxis.appendChild(@panelContainers.right)
@@ -85,6 +88,11 @@ class WorkspaceElement extends HTMLElement
     @appendChild(@panelContainers.modal)
 
     @__spacePenView.setModel(@model)
+
+  getModel: -> @model
+
+  getView: (item) ->
+    @viewRegistry.getView(item)
 
   setTextEditorFontSize: (fontSize) ->
     @updateGlobalEditorStyle('font-size', fontSize + 'px')

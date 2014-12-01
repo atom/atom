@@ -33,7 +33,8 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   Object.defineProperty module.exports, 'WorkspaceView', get: ->
     deprecate """
       Requiring `WorkspaceView` from `atom` is no longer supported.
-      Use `atom.views.getView(atom.workspace)` instead.
+      Use `document.querySelector('atom-workspace')` if you need to access
+      the workspace element.
     """
     require '../src/workspace-view'
 

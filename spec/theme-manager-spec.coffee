@@ -228,7 +228,7 @@ describe "ThemeManager", ->
     beforeEach ->
       jasmine.snapshotDeprecations()
 
-      workspaceElement = atom.views.getView(atom.workspace)
+      workspaceElement = atom.views.createView(atom.workspace)
       jasmine.attachToDOM(workspaceElement)
       workspaceElement.appendChild document.createElement('atom-text-editor')
 

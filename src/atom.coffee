@@ -39,7 +39,7 @@ class Atom extends Model
       atom.workspaceView is no longer available.
       In most cases you will not need the view. See the Workspace docs for
       alternatives: https://atom.io/docs/api/latest/Workspace.
-      If you do need the view, please use `atom.views.getView(atom.workspace)`,
+      If you do need the view, please use `document.querySelector('atom-workspace')`,
       which returns an HTMLElement.
     """
 
@@ -681,7 +681,7 @@ class Atom extends Model
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
 
-    workspaceElement = @views.getView(@workspace)
+    workspaceElement = @views.createView(@workspace)
     @__workspaceView = workspaceElement.__spacePenView
     @deserializeTimings.workspace = Date.now() - startTime
 

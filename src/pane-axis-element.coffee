@@ -8,7 +8,7 @@ class PaneAxisElement extends HTMLElement
   detachedCallback: ->
     @subscriptions.dispose()
 
-  initialize: ({@model}) ->
+  initialize: ({@viewRegistry, @model}) ->
     @subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
     @subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
     @subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))
@@ -22,12 +22,12 @@ class PaneAxisElement extends HTMLElement
         @classList.add('vertical', 'pane-column')
 
   childAdded: ({child, index}) ->
-    view = atom.views.getView(child)
+    view = @viewRegistry.getView(child)
     @insertBefore(view, @children[index])
     callAttachHooks(view) # for backward compatibility with SpacePen views
 
   childRemoved: ({child}) ->
-    view = atom.views.getView(child)
+    view = @viewRegistry.getView(child)
     view.remove()
 
   childReplaced:  ({index, oldChild, newChild}) ->
