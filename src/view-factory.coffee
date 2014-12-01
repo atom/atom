@@ -2,52 +2,17 @@
 Grim = require 'grim'
 ViewRegistry = require './view-registry'
 
-# Essential: `ViewFactory` handles the association between model and view
-# types in Atom. We call this association a View Provider. As in, for a given
-# model, this class can provide a view via {::getView}, as long as the
-# model/view association was registered via {::addViewProvider}
-#
-# If you're adding your own kind of pane item, a good strategy for all but the
-# simplest items is to separate the model and the view. The model handles
-# application logic and is the primary point of API interaction. The view
-# just handles presentation.
-#
-# View providers to inform the workspace how your model objects should be
-# presented in the DOM. A view provider must always return a DOM node, which
-# makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
-# an ideal tool for implementing views in Atom.
-#
-# You can access the `ViewFactory` object via `atom.views`.
-#
-# ## Examples
-#
-# ### Getting the workspace element
-#
-# ```coffee
-# workspaceElement = atom.views.getView(atom.workspace)
-# ```
-#
-# ### Getting An Editor Element
-#
-# ```coffee
-# textEditor = atom.workspace.getActiveTextEditor()
-# textEditorElement = atom.views.getView(textEditor)
-# ```
-#
-# ### Getting A Pane Element
-#
-# ```coffee
-# pane = atom.workspace.getActivePane()
-# paneElement = atom.views.getView(pane)
-# ```
+# Essential: The `ViewFactory` can creates the appropriate views for a given
+# model object based on recipes registered via {::addViewProvider}. It is
+# available via `atom.views` as a singleton object.
 module.exports =
 class ViewFactory
   constructor: ->
     @providers = []
     @deprecatedViewRegistry = new ViewRegistry(this)
 
-  # Essential: Add a provider that will be used to construct views in the
-  # workspace's view layer based on model objects in its model layer.
+  # Essential: Add a provider that will be used by {::createView} to construct
+  # an element based on the constructor of the given model object.
   #
   # ## Examples
   #
@@ -83,40 +48,29 @@ class ViewFactory
     new Disposable =>
       @providers = @providers.filter (provider) -> provider isnt providerSpec
 
-  # Essential: Get the view associated with an object in the workspace.
-  #
-  # If you're just *using* the workspace, you shouldn't need to access the view
-  # layer, but view layer access may be necessary if you want to perform DOM
-  # manipulation that isn't supported via the model API.
-  #
-  # ## Examples
-  #
-  # ### Getting An Editor Element
-  # ```coffee
-  # textEditor = atom.workspace.getActiveTextEditor()
-  # textEditorElement = atom.views.getView(textEditor)
-  # ```
-  #
-  # ### Getting A Pane Element
-  # ```coffee
-  # pane = atom.workspace.getActivePane()
-  # paneElement = atom.views.getView(pane)
-  # ```
-  #
-  # ### Getting The Workspace Element
-  #
-  # ```coffee
-  # workspaceElement = atom.views.getView(atom.workspace)
-  # ```
-  #
-  # * `object` The object for which you want to retrieve a view. This can be a
-  #   pane item, a pane, or the workspace itself.
-  #
-  # Returns a DOM element.
   getView: (object) ->
     Grim.deprecate("Call ::getView on the workspace element instead. The atom.views global is only intended to create views.")
     @deprecatedViewRegistry.getView(object)
 
+  # Essential: Create an element for the given model object based on providers
+  # registered via {::addViewProvider}.
+  #
+  # ## Examples
+  #
+  # ### Creating a workspace element in specs
+  # ```coffee
+  # workspaceElement = atom.views.createView(atom.workspace)
+  # ```
+  #
+  # * `object` The model for which to create the view. A view provider matching
+  #   its constructor must be registered.
+  # * `params` (optional) An {Object} with which to initialize the view. If the
+  #   selected view provider has a `createView` method, the params will be
+  #   passed to it. If the view provider has a `viewConstructor` method,
+  #   `initialize` will be called on the element after creation with the
+  #   given params.
+  #
+  # Returns a DOM element.
   createView: (object, params) ->
     view =
       if object instanceof HTMLElement
