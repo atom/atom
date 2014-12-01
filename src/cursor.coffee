@@ -476,7 +476,7 @@ class Cursor extends Model
     endOfWordPosition or currentBufferPosition
 
   getMoveNextWordBoundaryBufferPosition: (options) ->
-    deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
+    Grim.deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
     @getNextWordBoundaryBufferPosition(options)
 
   # Public: Retrieves the buffer position of where the current word starts.
