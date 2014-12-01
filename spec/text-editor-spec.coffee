@@ -7,7 +7,7 @@ describe "TextEditor", ->
   convertToHardTabs = (buffer) ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
-  describe 'when a javacript file', ->
+  describe "when a javascript file", ->
     beforeEach ->
       waitsForPromise ->
         atom.project.open('sample.js', autoIndent: false).then (o) -> editor = o
@@ -3399,7 +3399,6 @@ describe "TextEditor", ->
               expect(editor.getCursorBufferPosition()).toEqual([7, 2])
 
               editor.insertNewline()
-              editor.logScreenLines()
               expect(editor.lineTextForBufferRow(8)).toBe("  ")
 
           it "does not indent the line preceding the newline", ->
@@ -3476,8 +3475,10 @@ describe "TextEditor", ->
           atom.packages.deactivatePackages()
           atom.packages.unloadPackages()
 
-            editor.insertNewline()
-            expect(editor.lineTextForBufferRow(8)).toBe("  ")
+        it "does not auto-indent the line for javascript files", ->
+          editor.setCursorBufferPosition([1, 30])
+          editor.insertText("\n")
+          expect(editor.lineTextForBufferRow(2)).toBe "    "
 
           coffeeEditor.setCursorBufferPosition([1, 18])
           coffeeEditor.insertText("\n")
@@ -3945,9 +3946,9 @@ describe "TextEditor", ->
 
         editor.setPlaceholderText('OK')
         expect(handler).toHaveBeenCalledWith 'OK'
-        expect(editor.getPlaceholderText()).toBe 'OK'
+        expect(editor.getPlaceholderText()).toBe 'OK  '
 
-  describe 'when a javacript file with camelCase', ->
+  describe 'for a javacript file with camelCase', ->
     beforeEach ->
       waitsForPromise ->
         atom.project.open('sample-with-camel-case.js', autoIndent: false).then (o) -> editor = o
@@ -3988,207 +3989,3 @@ describe "TextEditor", ->
         expect(cursor9.getBufferPosition()).toEqual [7, 7]
         expect(cursor10.getBufferPosition()).toEqual [7, 15]
         expect(cursor11.getBufferPosition()).toEqual [7, 28]
-
-        editor.setText('  var sort')
-        editor.setCursorBufferPosition([0, 2])
-        editor.moveToPreviousSubwordBoundary()
-        expect(editor.getCursor().getBufferPosition()).toEqual [0, 0]
-
-    describe ".moveToNextSubwordBoundary()", ->
-      it "moves the cursor to the next subword boundary", ->
-        editor.setCursorBufferPosition [0, 10]
-        editor.addCursorAtBufferPosition [1, 39]
-        editor.addCursorAtBufferPosition [2, 10]
-        editor.addCursorAtBufferPosition [2, 28]
-        editor.addCursorAtBufferPosition [3, 8]
-        editor.addCursorAtBufferPosition [4, 16]
-        editor.addCursorAtBufferPosition [5, 37]
-        editor.addCursorAtBufferPosition [5, 40]
-        editor.addCursorAtBufferPosition [7, 6]
-        editor.addCursorAtBufferPosition [7, 11]
-        editor.addCursorAtBufferPosition [7, 27]
-        [cursor1, cursor2, cursor3, cursor4, cursor5, cursor6,
-         cursor7, cursor8, cursor9, cursor10, cursor11] = editor.getCursors()
-
-        editor.moveToNextSubwordBoundary()
-
-        expect(cursor1.getBufferPosition()).toEqual [0, 13]
-        expect(cursor2.getBufferPosition()).toEqual [2, 0]
-        expect(cursor3.getBufferPosition()).toEqual [2, 12]
-        expect(cursor4.getBufferPosition()).toEqual [2, 30]
-        expect(cursor5.getBufferPosition()).toEqual [3, 10]
-        expect(cursor6.getBufferPosition()).toEqual [4, 19]
-        expect(cursor7.getBufferPosition()).toEqual [5, 40]
-        expect(cursor8.getBufferPosition()).toEqual [6, 8]
-        expect(cursor9.getBufferPosition()).toEqual [7, 7]
-        expect(cursor10.getBufferPosition()).toEqual [7, 14]
-        expect(cursor11.getBufferPosition()).toEqual [7, 29]
-
-    describe ".selectToPreviousSubwordBoundary()", ->
-      it "select to the previous subword boundary", ->
-        editor.setCursorBufferPosition [0, 8]
-        editor.addCursorAtBufferPosition [2, 0]
-        editor.addCursorAtBufferPosition [2, 15]
-        editor.addCursorAtBufferPosition [2, 30]
-        editor.addCursorAtBufferPosition [3, 10]
-        editor.addCursorAtBufferPosition [4, 24]
-        editor.addCursorAtBufferPosition [5, 40]
-        editor.addCursorAtBufferPosition [7, 0]
-        editor.addCursorAtBufferPosition [7, 11]
-        editor.addCursorAtBufferPosition [7, 17]
-        editor.addCursorAtBufferPosition [7, 30]
-
-        editor.selectToPreviousSubwordBoundary()
-
-        expect(editor.getSelections().length).toBe 11
-        [selection1, selection2, selection3, selection4, selection5,
-        selection6, selection7,selection8, selection9, selection10,
-        selection11] = editor.getSelections()
-        expect(selection1.getBufferRange()).toEqual [[0,8], [0,4]]
-        expect(selection1.isReversed()).toBeTruthy()
-        expect(selection2.getBufferRange()).toEqual [[2,0], [1,38]]
-        expect(selection2.isReversed()).toBeTruthy()
-        expect(selection3.getBufferRange()).toEqual [[2,15], [2,12]]
-        expect(selection3.isReversed()).toBeTruthy()
-        expect(selection4.getBufferRange()).toEqual [[2,30], [2,28]]
-        expect(selection4.isReversed()).toBeTruthy()
-        expect(selection5.getBufferRange()).toEqual [[3,10], [3,8]]
-        expect(selection5.isReversed()).toBeTruthy()
-        expect(selection6.getBufferRange()).toEqual [[4,24], [4,20]]
-        expect(selection6.isReversed()).toBeTruthy()
-        expect(selection7.getBufferRange()).toEqual [[5,40], [5,37]]
-        expect(selection7.isReversed()).toBeTruthy()
-        expect(selection8.getBufferRange()).toEqual [[7,0], [6,28]]
-        expect(selection8.isReversed()).toBeTruthy()
-        expect(selection9.getBufferRange()).toEqual [[7,11], [7,7]]
-        expect(selection9.isReversed()).toBeTruthy()
-        expect(selection10.getBufferRange()).toEqual [[7,17], [7,15]]
-        expect(selection10.isReversed()).toBeTruthy()
-        expect(selection11.getBufferRange()).toEqual [[7,30], [7,28]]
-        expect(selection11.isReversed()).toBeTruthy()
-
-    describe ".selectToNextSubwordBoundary()", ->
-      it "select to the next subword boundary", ->
-        editor.setCursorBufferPosition [0, 10]
-        editor.addCursorAtBufferPosition [1, 39]
-        editor.addCursorAtBufferPosition [2, 10]
-        editor.addCursorAtBufferPosition [2, 28]
-        editor.addCursorAtBufferPosition [3, 8]
-        editor.addCursorAtBufferPosition [4, 16]
-        editor.addCursorAtBufferPosition [5, 37]
-        editor.addCursorAtBufferPosition [5, 40]
-        editor.addCursorAtBufferPosition [7, 6]
-        editor.addCursorAtBufferPosition [7, 11]
-        editor.addCursorAtBufferPosition [7, 27]
-
-        editor.selectToNextSubwordBoundary()
-
-        expect(editor.getSelections().length).toBe 11
-        [selection1, selection2, selection3, selection4, selection5,
-        selection6, selection7,selection8, selection9, selection10,
-        selection11] = editor.getSelections()
-        expect(selection1.getBufferRange()).toEqual [[0,10], [0,13]]
-        expect(selection1.isReversed()).toBeFalsy()
-        expect(selection2.getBufferRange()).toEqual [[1,39], [2,0]]
-        expect(selection2.isReversed()).toBeFalsy()
-        expect(selection3.getBufferRange()).toEqual [[2,10], [2,12]]
-        expect(selection3.isReversed()).toBeFalsy()
-        expect(selection4.getBufferRange()).toEqual [[2,28], [2,30]]
-        expect(selection4.isReversed()).toBeFalsy()
-        expect(selection5.getBufferRange()).toEqual [[3,8], [3,10]]
-        expect(selection5.isReversed()).toBeFalsy()
-        expect(selection6.getBufferRange()).toEqual [[4,16], [4,19]]
-        expect(selection6.isReversed()).toBeFalsy()
-        expect(selection7.getBufferRange()).toEqual [[5,37], [5,40]]
-        expect(selection7.isReversed()).toBeFalsy()
-        expect(selection8.getBufferRange()).toEqual [[5,40], [6,8]]
-        expect(selection8.isReversed()).toBeFalsy()
-        expect(selection9.getBufferRange()).toEqual [[7,6], [7,7]]
-        expect(selection9.isReversed()).toBeFalsy()
-        expect(selection10.getBufferRange()).toEqual [[7,11], [7,14]]
-        expect(selection10.isReversed()).toBeFalsy()
-        expect(selection11.getBufferRange()).toEqual [[7,27], [7,29]]
-        expect(selection11.isReversed()).toBeFalsy()
-
-    describe ".deleteToBeginningOfSubword()", ->
-      describe "when no text is selected", ->
-        it "deletes all text between the cursor and the beginning of the subword", ->
-          editor.setCursorBufferPosition([1, 9])
-          editor.addCursorAtBufferPosition([3, 23])
-          editor.addCursorAtBufferPosition([5, 17])
-          [cursor1, cursor2, cursor3] = editor.getCursors()
-
-          editor.deleteToBeginningOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  var ckSort = function(manyItems) {'
-          expect(buffer.lineForRow(3)).toBe '    var PIVoT = manyms.shift(), @current_item, left = [], right = [];'
-          expect(buffer.lineForRow(5)).toBe '      @current_em = manyItems.shift();'
-          expect(cursor1.getBufferPosition()).toEqual [1, 6]
-          expect(cursor2.getBufferPosition()).toEqual [3, 20]
-          expect(cursor3.getBufferPosition()).toEqual [5, 15]
-
-          editor.deleteToBeginningOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  varckSort = function(manyItems) {'
-          expect(buffer.lineForRow(3)).toBe '    var PIVoT = ms.shift(), @current_item, left = [], right = [];'
-          expect(buffer.lineForRow(5)).toBe '      @currentem = manyItems.shift();'
-          expect(cursor1.getBufferPosition()).toEqual [1, 5]
-          expect(cursor2.getBufferPosition()).toEqual [3, 16]
-          expect(cursor3.getBufferPosition()).toEqual [5, 14]
-
-          editor.deleteToBeginningOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  ckSort = function(manyItems) {'
-          expect(buffer.lineForRow(3)).toBe '    var PIVoT ms.shift(), @current_item, left = [], right = [];'
-          expect(buffer.lineForRow(5)).toBe '      @em = manyItems.shift();'
-          expect(cursor1.getBufferPosition()).toEqual [1, 2]
-          expect(cursor2.getBufferPosition()).toEqual [3, 14]
-          expect(cursor3.getBufferPosition()).toEqual [5, 7]
-
-          editor.setText('  var sort')
-          editor.setCursorBufferPosition([0, 2])
-          editor.deleteToBeginningOfSubword()
-          expect(buffer.lineForRow(0)).toBe 'var sort'
-
-      describe "when text is selected", ->
-        it "deletes only selected text", ->
-          editor.setSelectedBufferRanges([[[1, 29], [1, 33]], [[2, 0], [2, 4]]])
-          editor.deleteToBeginningOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  var quickSort = function(maems) {'
-          expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88.3) return manyItems;'
-
-    describe ".deleteToEndOfSubword()", ->
-      describe "when no text is selected", ->
-        it "deletes all text between the cursor and the end of the subword", ->
-          editor.setCursorBufferPosition([1, 21])
-          editor.addCursorAtBufferPosition([3, 18])
-          editor.addCursorAtBufferPosition([5, 0])
-          [cursor1, cursor2, cursor3] = editor.getCursors()
-
-          editor.deleteToEndOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  var quickSort = fun(manyItems) {'
-          expect(buffer.lineForRow(3)).toBe '    var PIVoT = maItems.shift(), @current_item, left = [], right = [];'
-          expect(buffer.lineForRow(5)).toBe 'current_item = manyItems.shift();'
-          expect(cursor1.getBufferPosition()).toEqual [1, 21]
-          expect(cursor2.getBufferPosition()).toEqual [3, 18]
-          expect(cursor3.getBufferPosition()).toEqual [5, 0]
-
-          editor.deleteToEndOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  var quickSort = funmanyItems) {'
-          expect(buffer.lineForRow(3)).toBe '    var PIVoT = ma.shift(), @current_item, left = [], right = [];'
-          expect(buffer.lineForRow(5)).toBe '_item = manyItems.shift();'
-          expect(cursor1.getBufferPosition()).toEqual [1, 21]
-          expect(cursor2.getBufferPosition()).toEqual [3, 18]
-          expect(cursor3.getBufferPosition()).toEqual [5, 0]
-
-          editor.deleteToEndOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  var quickSort = funItems) {'
-          expect(buffer.lineForRow(3)).toBe '    var PIVoT = mashift(), @current_item, left = [], right = [];'
-          expect(buffer.lineForRow(5)).toBe 'item = manyItems.shift();'
-          expect(cursor1.getBufferPosition()).toEqual [1, 21]
-          expect(cursor2.getBufferPosition()).toEqual [3, 18]
-          expect(cursor3.getBufferPosition()).toEqual [5, 0]
-
-      describe "when text is selected", ->
-        it "deletes only selected text", ->
-          editor.setSelectedBufferRanges([[[1, 29], [1, 33]], [[2, 0], [2, 4]]])
-          editor.deleteToEndOfSubword()
-          expect(buffer.lineForRow(1)).toBe '  var quickSort = function(maems) {'
-          expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88.3) return manyItems;'
