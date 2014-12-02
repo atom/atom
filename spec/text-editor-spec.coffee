@@ -3965,7 +3965,7 @@ describe "TextEditor", ->
         editor.setCursorBufferPosition [0, 8]
         editor.addCursorAtBufferPosition [2, 0]
         editor.addCursorAtBufferPosition [2, 15]
-        editor.addCursorAtBufferPosition [2, 30]
+        editor.addCursorAtBufferPosition [3, 0]
         editor.addCursorAtBufferPosition [3, 10]
         editor.addCursorAtBufferPosition [4, 24]
         editor.addCursorAtBufferPosition [5, 40]
@@ -3981,7 +3981,7 @@ describe "TextEditor", ->
         expect(cursor1.getBufferPosition()).toEqual [0, 4]
         expect(cursor2.getBufferPosition()).toEqual [1, 38]
         expect(cursor3.getBufferPosition()).toEqual [2, 12]
-        expect(cursor4.getBufferPosition()).toEqual [2, 28]
+        expect(cursor4.getBufferPosition()).toEqual [2, 30]
         expect(cursor5.getBufferPosition()).toEqual [3, 8]
         expect(cursor6.getBufferPosition()).toEqual [4, 20]
         expect(cursor7.getBufferPosition()).toEqual [5, 37]
@@ -4000,7 +4000,7 @@ describe "TextEditor", ->
         editor.setCursorBufferPosition [0, 10]
         editor.addCursorAtBufferPosition [1, 39]
         editor.addCursorAtBufferPosition [2, 10]
-        editor.addCursorAtBufferPosition [2, 28]
+        editor.addCursorAtBufferPosition [2, 27]
         editor.addCursorAtBufferPosition [3, 8]
         editor.addCursorAtBufferPosition [4, 16]
         editor.addCursorAtBufferPosition [5, 37]
@@ -4016,7 +4016,7 @@ describe "TextEditor", ->
         expect(cursor1.getBufferPosition()).toEqual [0, 13]
         expect(cursor2.getBufferPosition()).toEqual [2, 0]
         expect(cursor3.getBufferPosition()).toEqual [2, 12]
-        expect(cursor4.getBufferPosition()).toEqual [2, 30]
+        expect(cursor4.getBufferPosition()).toEqual [2, 28]
         expect(cursor5.getBufferPosition()).toEqual [3, 10]
         expect(cursor6.getBufferPosition()).toEqual [4, 19]
         expect(cursor7.getBufferPosition()).toEqual [5, 40]
@@ -4030,7 +4030,7 @@ describe "TextEditor", ->
         editor.setCursorBufferPosition [0, 8]
         editor.addCursorAtBufferPosition [2, 0]
         editor.addCursorAtBufferPosition [2, 15]
-        editor.addCursorAtBufferPosition [2, 30]
+        editor.addCursorAtBufferPosition [3, 0]
         editor.addCursorAtBufferPosition [3, 10]
         editor.addCursorAtBufferPosition [4, 24]
         editor.addCursorAtBufferPosition [5, 40]
@@ -4051,7 +4051,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeTruthy()
         expect(selection3.getBufferRange()).toEqual [[2,15], [2,12]]
         expect(selection3.isReversed()).toBeTruthy()
-        expect(selection4.getBufferRange()).toEqual [[2,30], [2,28]]
+        expect(selection4.getBufferRange()).toEqual [[3,0], [2,30]]
         expect(selection4.isReversed()).toBeTruthy()
         expect(selection5.getBufferRange()).toEqual [[3,10], [3,8]]
         expect(selection5.isReversed()).toBeTruthy()
@@ -4073,7 +4073,7 @@ describe "TextEditor", ->
         editor.setCursorBufferPosition [0, 10]
         editor.addCursorAtBufferPosition [1, 39]
         editor.addCursorAtBufferPosition [2, 10]
-        editor.addCursorAtBufferPosition [2, 28]
+        editor.addCursorAtBufferPosition [2, 27]
         editor.addCursorAtBufferPosition [3, 8]
         editor.addCursorAtBufferPosition [4, 16]
         editor.addCursorAtBufferPosition [5, 37]
@@ -4094,7 +4094,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeFalsy()
         expect(selection3.getBufferRange()).toEqual [[2,10], [2,12]]
         expect(selection3.isReversed()).toBeFalsy()
-        expect(selection4.getBufferRange()).toEqual [[2,28], [2,30]]
+        expect(selection4.getBufferRange()).toEqual [[2,27], [2,28]]
         expect(selection4.isReversed()).toBeFalsy()
         expect(selection5.getBufferRange()).toEqual [[3,8], [3,10]]
         expect(selection5.isReversed()).toBeFalsy()
@@ -4117,31 +4117,38 @@ describe "TextEditor", ->
           editor.setCursorBufferPosition([1, 9])
           editor.addCursorAtBufferPosition([3, 23])
           editor.addCursorAtBufferPosition([5, 17])
-          [cursor1, cursor2, cursor3] = editor.getCursors()
+          editor.addCursorAtBufferPosition([7, 32])
+          [cursor1, cursor2, cursor3, cursor4] = editor.getCursors()
 
           editor.deleteToBeginningOfSubword()
           expect(buffer.lineForRow(1)).toBe '  var ckSort = function(manyItems) {'
           expect(buffer.lineForRow(3)).toBe '    var PIVoT = manyms.shift(), @current_item, left = [], right = [];'
           expect(buffer.lineForRow(5)).toBe '      @current_em = manyItems.shift();'
+          expect(buffer.lineForRow(7)).toBe '      @current_item < PIVoT - 1? left.push(@current_item) : right.push(@current_item);'
           expect(cursor1.getBufferPosition()).toEqual [1, 6]
           expect(cursor2.getBufferPosition()).toEqual [3, 20]
           expect(cursor3.getBufferPosition()).toEqual [5, 15]
+          expect(cursor4.getBufferPosition()).toEqual [7, 31]
 
           editor.deleteToBeginningOfSubword()
           expect(buffer.lineForRow(1)).toBe '  varckSort = function(manyItems) {'
           expect(buffer.lineForRow(3)).toBe '    var PIVoT = ms.shift(), @current_item, left = [], right = [];'
           expect(buffer.lineForRow(5)).toBe '      @currentem = manyItems.shift();'
+          expect(buffer.lineForRow(7)).toBe '      @current_item < PIVoT - ? left.push(@current_item) : right.push(@current_item);'
           expect(cursor1.getBufferPosition()).toEqual [1, 5]
           expect(cursor2.getBufferPosition()).toEqual [3, 16]
           expect(cursor3.getBufferPosition()).toEqual [5, 14]
+          expect(cursor4.getBufferPosition()).toEqual [7, 30]
 
           editor.deleteToBeginningOfSubword()
           expect(buffer.lineForRow(1)).toBe '  ckSort = function(manyItems) {'
           expect(buffer.lineForRow(3)).toBe '    var PIVoT ms.shift(), @current_item, left = [], right = [];'
           expect(buffer.lineForRow(5)).toBe '      @em = manyItems.shift();'
+          expect(buffer.lineForRow(7)).toBe '      @current_item < PIVoT ? left.push(@current_item) : right.push(@current_item);'
           expect(cursor1.getBufferPosition()).toEqual [1, 2]
           expect(cursor2.getBufferPosition()).toEqual [3, 14]
           expect(cursor3.getBufferPosition()).toEqual [5, 7]
+          expect(cursor4.getBufferPosition()).toEqual [7, 28]
 
           editor.setText('  var sort')
           editor.setCursorBufferPosition([0, 2])
@@ -4153,7 +4160,7 @@ describe "TextEditor", ->
           editor.setSelectedBufferRanges([[[1, 29], [1, 33]], [[2, 0], [2, 4]]])
           editor.deleteToBeginningOfSubword()
           expect(buffer.lineForRow(1)).toBe '  var quickSort = function(maems) {'
-          expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88.3) return manyItems;'
+          expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88'
 
     describe ".deleteToEndOfSubword()", ->
       describe "when no text is selected", ->
@@ -4161,35 +4168,42 @@ describe "TextEditor", ->
           editor.setCursorBufferPosition([1, 21])
           editor.addCursorAtBufferPosition([3, 18])
           editor.addCursorAtBufferPosition([5, 0])
-          [cursor1, cursor2, cursor3] = editor.getCursors()
+          editor.addCursorAtBufferPosition([7, 29])
+          [cursor1, cursor2, cursor3, cursor4] = editor.getCursors()
 
           editor.deleteToEndOfSubword()
           expect(buffer.lineForRow(1)).toBe '  var quickSort = fun(manyItems) {'
           expect(buffer.lineForRow(3)).toBe '    var PIVoT = maItems.shift(), @current_item, left = [], right = [];'
           expect(buffer.lineForRow(5)).toBe 'current_item = manyItems.shift();'
+          expect(buffer.lineForRow(7)).toBe '      @current_item < PIVoT -1 ? left.push(@current_item) : right.push(@current_item);'
           expect(cursor1.getBufferPosition()).toEqual [1, 21]
           expect(cursor2.getBufferPosition()).toEqual [3, 18]
           expect(cursor3.getBufferPosition()).toEqual [5, 0]
+          expect(cursor4.getBufferPosition()).toEqual [7, 29]
 
           editor.deleteToEndOfSubword()
           expect(buffer.lineForRow(1)).toBe '  var quickSort = funmanyItems) {'
           expect(buffer.lineForRow(3)).toBe '    var PIVoT = ma.shift(), @current_item, left = [], right = [];'
           expect(buffer.lineForRow(5)).toBe '_item = manyItems.shift();'
+          expect(buffer.lineForRow(7)).toBe '      @current_item < PIVoT - ? left.push(@current_item) : right.push(@current_item);'
           expect(cursor1.getBufferPosition()).toEqual [1, 21]
           expect(cursor2.getBufferPosition()).toEqual [3, 18]
           expect(cursor3.getBufferPosition()).toEqual [5, 0]
+          expect(cursor4.getBufferPosition()).toEqual [7, 29]
 
           editor.deleteToEndOfSubword()
           expect(buffer.lineForRow(1)).toBe '  var quickSort = funItems) {'
           expect(buffer.lineForRow(3)).toBe '    var PIVoT = mashift(), @current_item, left = [], right = [];'
           expect(buffer.lineForRow(5)).toBe 'item = manyItems.shift();'
+          expect(buffer.lineForRow(7)).toBe '      @current_item < PIVoT - left.push(@current_item) : right.push(@current_item);'
           expect(cursor1.getBufferPosition()).toEqual [1, 21]
           expect(cursor2.getBufferPosition()).toEqual [3, 18]
           expect(cursor3.getBufferPosition()).toEqual [5, 0]
+          expect(cursor4.getBufferPosition()).toEqual [7, 29]
 
       describe "when text is selected", ->
         it "deletes only selected text", ->
           editor.setSelectedBufferRanges([[[1, 29], [1, 33]], [[2, 0], [2, 4]]])
           editor.deleteToEndOfSubword()
           expect(buffer.lineForRow(1)).toBe '  var quickSort = function(maems) {'
-          expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88.3) return manyItems;'
+          expect(buffer.lineForRow(2)).toBe 'if (manyItems.length <= 88'

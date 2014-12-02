@@ -1,6 +1,6 @@
 var quickSort = function () {
   var quickSort = function(manyItems) {
-    if (manyItems.length <= 88.3) return manyItems;
+    if (manyItems.length <= 88
     var PIVoT = manyItems.shift(), @current_item, left = [], right = [];
     while(manyItems.length > 0) {
       @current_item = manyItems.shift();

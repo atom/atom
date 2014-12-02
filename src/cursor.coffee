@@ -670,6 +670,7 @@ class Cursor extends Model
     segments = ["^[\t ]*$"]
     segments.push("[A-Z]?[a-z]+")
     segments.push("[A-Z]+(?![a-z])")
+    segments.push("\\d+")
     if options.backwards
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+\\s*")
     else
