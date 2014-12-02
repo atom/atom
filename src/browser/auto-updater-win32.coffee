@@ -9,8 +9,11 @@ class AutoUpdater
   setFeedUrl: (@updateUrl) ->
 
   quitAndInstall: ->
+    console.log 'restarting new atom.exe'
+
     if SquirrelUpdate.existsSync()
       SquirrelUpdate.spawn ['--processStart', 'atom.exe'], ->
+        console.log 'spawned new atom.exe'
         shellAutoUpdater.quitAndInstall()
     else
       shellAutoUpdater.quitAndInstall()
