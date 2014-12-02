@@ -131,7 +131,7 @@ class ViewRegistry
       element = provider.createView?(object)
       unless element?
         element = new provider.viewConstructor
-        element.setModel(object)
+        element.initialize?(object) ? element.setModel?(object)
       element
     else if viewConstructor = object?.getViewClass?()
       view = new viewConstructor(object)

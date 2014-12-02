@@ -11,9 +11,10 @@ class PaneContainerElement extends HTMLElement
     PaneContainerView ?= require './pane-container-view'
     @__spacePenView = new PaneContainerView(this)
 
-  setModel: (@model) ->
+  initialize: (@model) ->
     @subscriptions.add @model.observeRoot(@rootChanged.bind(this))
     @__spacePenView.setModel(@model)
+    this
 
   rootChanged: (root) ->
     focusedElement = document.activeElement if @hasFocus()

@@ -62,9 +62,7 @@ class WorkspaceElement extends HTMLElement
     WorkspaceView ?= require './workspace-view'
     @__spacePenView = new WorkspaceView(this)
 
-  getModel: -> @model
-
-  setModel: (@model) ->
+  initialize: (@model) ->
     @paneContainer = atom.views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
     @addEventListener 'focus', @handleFocus.bind(this)
@@ -85,6 +83,9 @@ class WorkspaceElement extends HTMLElement
     @appendChild(@panelContainers.modal)
 
     @__spacePenView.setModel(@model)
+    this
+
+  getModel: -> @model
 
   setTextEditorFontSize: (fontSize) ->
     @updateGlobalEditorStyle('font-size', fontSize + 'px')

@@ -12,7 +12,9 @@ describe "PanelContainerElement", ->
   class TestPanelContainerItemElement extends HTMLElement
     createdCallback: ->
       @classList.add('test-root')
-    setModel: (@model) ->
+    initialize: (@model) ->
+      this
+
   TestPanelContainerItemElement = document.registerElement 'atom-test-container-item-element', prototype: TestPanelContainerItemElement.prototype
 
   beforeEach ->

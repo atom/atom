@@ -5,14 +5,15 @@ class PanelElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
 
-  getModel: -> @model
-
-  setModel: (@model) ->
+  initialize: (@model) ->
     @appendChild(@getItemView())
 
     @classList.add(@model.getClassName().split(' ')...) if @model.getClassName()?
     @subscriptions.add @model.onDidChangeVisible(@visibleChanged.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
+    this
+
+  getModel: -> @model
 
   getItemView: ->
     atom.views.getView(@model.getItem())

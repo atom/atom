@@ -462,7 +462,7 @@ describe "Workspace", ->
 
     class TestItemElement extends HTMLElement
       constructor: ->
-      setModel: (@model) ->
+      initialize: (@model) -> this
       getModel: -> @model
 
     beforeEach ->

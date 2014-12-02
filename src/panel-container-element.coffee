@@ -4,13 +4,14 @@ class PanelContainerElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
 
-  getModel: -> @model
-
-  setModel: (@model) ->
+  initialize: (@model) ->
     @subscriptions.add @model.onDidAddPanel(@panelAdded.bind(this))
     @subscriptions.add @model.onDidRemovePanel(@panelRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
     @classList.add(@model.getLocation())
+    this
+
+  getModel: -> @model
 
   panelAdded: ({panel, index}) ->
     panelElement = atom.views.getView(panel)

@@ -62,6 +62,10 @@ class TextEditorElement extends HTMLElement
     @component.checkForVisibilityChange()
     @focus() if @focusOnAttach
 
+  initialize: (model) ->
+    @setModel(model)
+    this
+
   setModel: (model) ->
     throw new Error("Model already assigned on TextEditorElement") if @model?
     return if model.isDestroyed()
@@ -70,8 +74,8 @@ class TextEditorElement extends HTMLElement
     @mountComponent()
     @addGrammarScopeAttribute()
     @addMiniAttributeIfNeeded()
-    @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @addEncodingAttribute()
+    @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
     @__spacePenView.setModel(@model)

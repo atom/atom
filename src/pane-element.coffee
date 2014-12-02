@@ -43,15 +43,16 @@ class PaneElement extends HTMLElement
   createSpacePenShim: ->
     @__spacePenView = new PaneView(this)
 
-  getModel: -> @model
-
-  setModel: (@model) ->
+  initialize: (@model) ->
     @subscriptions.add @model.onDidActivate(@activated.bind(this))
     @subscriptions.add @model.observeActive(@activeStatusChanged.bind(this))
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
     @__spacePenView.setModel(@model)
+    this
+
+  getModel: -> @model
 
   activated: ->
     @focus()
