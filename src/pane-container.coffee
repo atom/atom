@@ -190,8 +190,8 @@ class PaneContainer extends Model
   didDestroyPaneItem: (event) ->
     @emitter.emit 'did-destroy-pane-item', event
 
-  didAddPane: (pane) ->
-    @emitter.emit 'did-add-pane', pane
+  didAddPane: (event) ->
+    @emitter.emit 'did-add-pane', event
 
   # Called by Model superclass when destroyed
   destroyed: ->
