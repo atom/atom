@@ -149,6 +149,18 @@ describe "PaneContainer", ->
       expect(saved).toBeFalsy()
       expect(atom.confirm).toHaveBeenCalled()
 
+  describe "::onDidAddPane(callback)", ->
+    it "invokes the given callback when panes are added", ->
+      container = new PaneContainer
+      events = []
+      container.onDidAddPane (event) -> events.push(event)
+
+      pane1 = container.getActivePane()
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitDown()
+
+      expect(events).toEqual [{pane: pane2}, {pane: pane3}]
+
   describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
     it "invokes the given callbacks when an item will be destroyed on any pane", ->
       container = new PaneContainer
