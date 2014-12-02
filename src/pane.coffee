@@ -534,6 +534,7 @@ class Pane extends Model
     @emitter.emit 'did-destroy'
     @emitter.dispose()
     item.destroy?() for item in @items.slice()
+    @container.didDestroyPane(pane: this)
 
   ###
   Section: Splitting

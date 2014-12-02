@@ -161,6 +161,21 @@ describe "PaneContainer", ->
 
       expect(events).toEqual [{pane: pane2}, {pane: pane3}]
 
+  describe "::onDidDestroyPane(callback)", ->
+    it "invokes the given callback when panes are destroyed", ->
+      container = new PaneContainer
+      events = []
+      container.onDidDestroyPane (event) -> events.push(event)
+
+      pane1 = container.getActivePane()
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitDown()
+
+      pane2.destroy()
+      pane3.destroy()
+
+      expect(events).toEqual [{pane: pane2}, {pane: pane3}]
+
   describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
     it "invokes the given callbacks when an item will be destroyed on any pane", ->
       container = new PaneContainer
