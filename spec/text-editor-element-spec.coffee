@@ -100,7 +100,7 @@ describe "TextEditorElement", ->
       expect(scrollbarWidth).toEqual(8)
 
   describe "::setUpdatedSynchronously", ->
-    xit "controls whether the text editor is updated synchronously", ->
+    fit "controls whether the text editor is updated synchronously", ->
       element = new TextEditorElement
       jasmine.attachToDOM(element)
 
@@ -110,7 +110,7 @@ describe "TextEditorElement", ->
       element.getModel().setText("hello")
       expect(element.shadowRoot.textContent).not.toContain "hello"
 
-      waitsForAnimationFrame()
+      waits()
 
       runs ->
         expect(element.shadowRoot.textContent).toContain "hello"

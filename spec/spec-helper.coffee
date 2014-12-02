@@ -304,9 +304,6 @@ window.waitsForPromise = (args...) ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
         moveOn()
 
-window.waitsForAnimationFrame = ->
-  waitsFor "next animation frame", (done) -> requestAnimationFrame(done)
-
 window.resetTimeouts = ->
   window.now = 0
   window.timeoutCount = 0
