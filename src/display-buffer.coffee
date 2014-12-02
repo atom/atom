@@ -889,6 +889,15 @@ class DisplayBuffer extends Model
       allDecorations = allDecorations.concat(decorations) if decorations?
     allDecorations
 
+  getLineDecorations: ->
+    @getDecorations().filter (decoration) -> decoration.isType('line')
+
+  getGutterDecorations: ->
+    @getDecorations().filter (decoration) -> decoration.isType('gutter')
+
+  getHighlightDecorations: ->
+    @getDecorations().filter (decoration) -> decoration.isType('highlight')
+
   getOverlayDecorations: ->
     @getDecorations().filter (decoration) -> decoration.isType('overlay')
 

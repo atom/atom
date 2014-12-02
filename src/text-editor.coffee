@@ -1314,6 +1314,24 @@ class TextEditor extends Model
   getDecorations: ->
     @displayBuffer.getDecorations()
 
+  # Extended: Get all decorations of type 'line'.
+  #
+  # Returns an {Array} of {Decoration}s.
+  getLineDecorations: ->
+    @displayBuffer.getLineDecorations()
+
+  # Extended: Get all decorations of type 'gutter'.
+  #
+  # Returns an {Array} of {Decoration}s.
+  getGutterDecorations: ->
+    @displayBuffer.getGutterDecorations()
+
+  # Extended: Get all decorations of type 'highlight'.
+  #
+  # Returns an {Array} of {Decoration}s.
+  getHighlightDecorations: ->
+    @displayBuffer.getHighlightDecorations()
+
   # Extended: Get all decorations of type 'overlay'.
   #
   # Returns an {Array} of {Decoration}s.
