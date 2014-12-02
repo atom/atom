@@ -604,7 +604,7 @@ class Atom extends Model
   # Essential: Visually and audibly trigger a beep.
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
-    @__workspaceView.trigger 'beep'
+    @__workspaceView?.trigger 'beep'
     @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
