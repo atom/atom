@@ -20,15 +20,12 @@ describe "PanelContainerElement", ->
   beforeEach ->
     jasmineContent = document.body.querySelector('#jasmine-content')
 
-    atom.views.addViewProvider
-      modelConstructor: Panel
-      viewConstructor: PanelElement
-    atom.views.addViewProvider
-      modelConstructor: PanelContainer
-      viewConstructor: PanelContainerElement
-    atom.views.addViewProvider
-      modelConstructor: TestPanelContainerItem
-      viewConstructor: TestPanelContainerItemElement
+    atom.views.addViewProvider Panel, (model) ->
+      new PanelElement().initialize(model)
+    atom.views.addViewProvider PanelContainer, (model) ->
+      new PaneContainerElement().initialize(model)
+    atom.views.addViewProvider TestPanelContainerItem, (model) ->
+      new TestPanelContainerItemElement().initialize(model)
 
     container = new PanelContainer({location: 'left'})
     element = atom.views.getView(container)

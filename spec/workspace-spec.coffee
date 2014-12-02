@@ -466,10 +466,8 @@ describe "Workspace", ->
       getModel: -> @model
 
     beforeEach ->
-      atom.views.addViewProvider(
-        modelConstructor: TestItem
-        viewConstructor: TestItemElement
-      )
+      atom.views.addViewProvider TestItem, (model) ->
+        new TestItemElement().initialize(model)
 
     describe '::addLeftPanel(model)', ->
       it 'adds a panel to the correct panel container', ->

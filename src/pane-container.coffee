@@ -56,21 +56,14 @@ class PaneContainer extends Model
     activePaneId: @activePane.id
 
   registerViewProviders: ->
-    atom.views.addViewProvider
-      modelConstructor: PaneContainer
-      viewConstructor: PaneContainerElement
-
-    atom.views.addViewProvider
-      modelConstructor: PaneAxis
-      viewConstructor: PaneAxisElement
-
-    atom.views.addViewProvider
-      modelConstructor: Pane
-      viewConstructor: PaneElement
-
-    atom.views.addViewProvider
-      modelConstructor: TextEditor
-      viewConstructor: TextEditorElement
+    atom.views.addViewProvider PaneContainer, (model) ->
+      new PaneContainerElement().initialize(model)
+    atom.views.addViewProvider PaneAxis, (model) ->
+      new PaneAxisElement().initialize(model)
+    atom.views.addViewProvider Pane, (model) ->
+      new PaneElement().initialize(model)
+    atom.views.addViewProvider TextEditor, (model) ->
+      new TextEditorElement().initialize(model)
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn

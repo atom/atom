@@ -66,17 +66,14 @@ class Workspace extends Model
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
 
-    atom.views.addViewProvider
-      modelConstructor: Workspace
-      viewConstructor: WorkspaceElement
+    atom.views.addViewProvider Workspace, (model) ->
+      new WorkspaceElement().initialize(model)
 
-    atom.views.addViewProvider
-      modelConstructor: PanelContainer
-      viewConstructor: PanelContainerElement
+    atom.views.addViewProvider PanelContainer, (model) ->
+      new PanelContainerElement().initialize(model)
 
-    atom.views.addViewProvider
-      modelConstructor: Panel
-      viewConstructor: PanelElement
+    atom.views.addViewProvider Panel, (model) ->
+      new PanelElement().initialize(model)
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->

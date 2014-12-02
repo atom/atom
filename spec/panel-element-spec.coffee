@@ -18,12 +18,10 @@ describe "PanelElement", ->
   beforeEach ->
     jasmineContent = document.body.querySelector('#jasmine-content')
 
-    atom.views.addViewProvider
-      modelConstructor: Panel
-      viewConstructor: PanelElement
-    atom.views.addViewProvider
-      modelConstructor: TestPanelItem
-      viewConstructor: TestPanelItemElement
+    atom.views.addViewProvider Panel, (model) ->
+      new PanelElement().initialize(model)
+    atom.views.addViewProvider TestPanelItem, (model) ->
+      new TestPanelItemElement().initialize(model)
 
   it 'removes the element when the panel is destroyed', ->
     panel = new Panel({item: new TestPanelItem})
