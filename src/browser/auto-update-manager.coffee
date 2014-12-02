@@ -7,6 +7,7 @@ CheckingState = 'checking'
 DownladingState = 'downloading'
 UpdateAvailableState = 'update-available'
 NoUpdateAvailableState = 'no-update-available'
+UnsupportedState = 'unsupported'
 ErrorState = 'error'
 
 module.exports =
@@ -52,6 +53,12 @@ class AutoUpdateManager
     # Only released versions should check for updates.
     unless /\w{7}/.test(@version)
       @check(hidePopups: true)
+
+    switch process.platform
+      when 'win32'
+        @setState(UnsupportedState) unless autoUpdater.supportsUpdates()
+      when 'linux'
+        @setState(UnsupportedState)
 
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion? and @releaseNotes

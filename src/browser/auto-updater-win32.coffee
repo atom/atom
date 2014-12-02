@@ -36,6 +36,9 @@ class AutoUpdater
   installUpdate: (callback) ->
     SquirrelUpdate.spawn(['--update', @updateUrl], callback)
 
+  supportsUpdates: ->
+    SquirrelUpdate.existsSync()
+
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
 
