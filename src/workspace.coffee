@@ -538,8 +538,9 @@ class Workspace extends Model
     activeItem = @getActivePaneItem()
     activeItem if activeItem instanceof TextEditor
 
-  # Deprecated:
+  # Deprecated
   getActiveEditor: ->
+    Grim.deprecate "Call ::getActiveTextEditor instead"
     @getActivePane()?.getActiveEditor()
 
   # Save all pane items.
