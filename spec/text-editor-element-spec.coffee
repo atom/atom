@@ -100,7 +100,7 @@ describe "TextEditorElement", ->
       expect(scrollbarWidth).toEqual(8)
 
   describe "::setUpdatedSynchronously", ->
-    fit "controls whether the text editor is updated synchronously", ->
+    it "controls whether the text editor is updated synchronously", ->
       element = new TextEditorElement
       jasmine.attachToDOM(element)
 
