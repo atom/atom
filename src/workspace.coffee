@@ -296,6 +296,18 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
   onWillDestroyPaneItem: (callback) -> @paneContainer.onWillDestroyPaneItem(callback)
 
+  # Extended: Invoke the given callback when a pane item is destroyed.
+  #
+  # * `callback` {Function} to be called when pane items are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The destroyed item.
+  #     * `pane` {Pane} containing the destroyed item.
+  #     * `index` {Number} indicating the index of the destroyed item in its
+  #       pane.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
+  onDidDestroyPaneItem: (callback) -> @paneContainer.onDidDestroyPaneItem(callback)
+
   # Extended: Invoke the given callback when a text editor is added to the
   # workspace.
   #
