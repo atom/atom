@@ -4,7 +4,6 @@ _ = require 'underscore-plus'
 {Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
-Delegator = require 'delegato'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 TextEditor = require './text-editor'
@@ -30,7 +29,15 @@ class Workspace extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
+  Object.defineProperty @::, 'activePaneItem',
+    get: ->
+      Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"
+      @getActivePaneItem()
+
+  Object.defineProperty @::, 'activePane',
+    get: ->
+      Grim.deprecate "Use ::getActivePane() instead of the ::activePane property"
+      @getActivePane()
 
   @properties
     paneContainer: null
@@ -533,7 +540,7 @@ class Workspace extends Model
 
   # Deprecated:
   getActiveEditor: ->
-    @activePane?.getActiveEditor()
+    @getActivePane()?.getActiveEditor()
 
   # Save all pane items.
   saveAll: ->
