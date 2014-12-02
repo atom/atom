@@ -101,6 +101,8 @@ describe "TextEditorElement", ->
 
   describe "::setUpdatedSynchronously", ->
     it "controls whether the text editor is updated synchronously", ->
+      spyOn(window, 'requestAnimationFrame').andCallFake (fn) -> fn()
+
       element = new TextEditorElement
       jasmine.attachToDOM(element)
 
@@ -108,13 +110,12 @@ describe "TextEditorElement", ->
       expect(element.isUpdatedSynchronously()).toBe false
 
       element.getModel().setText("hello")
-      expect(element.shadowRoot.textContent).not.toContain "hello"
+      expect(window.requestAnimationFrame).toHaveBeenCalled()
 
-      waits()
+      expect(element.shadowRoot.textContent).toContain "hello"
 
-      runs ->
-        expect(element.shadowRoot.textContent).toContain "hello"
-
-        element.setUpdatedSynchronously(true)
-        element.getModel().setText("goodbye")
-        expect(element.shadowRoot.textContent).toContain "goodbye"
+      window.requestAnimationFrame.reset()
+      element.setUpdatedSynchronously(true)
+      element.getModel().setText("goodbye")
+      expect(window.requestAnimationFrame).not.toHaveBeenCalled()
+      expect(element.shadowRoot.textContent).toContain "goodbye"
