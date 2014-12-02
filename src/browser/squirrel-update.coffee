@@ -36,7 +36,7 @@ spawn = (command, args, callback) ->
     error ?= new Error("Command failed: #{signal ? code}") if code isnt 0
     error?.code ?= code
     error?.stdout ?= stdout
-    callback(error, stdout)
+    callback?(error, stdout)
 
 # Spawn reg.exe and callback when it completes
 spawnReg = (args, callback) ->
@@ -174,6 +174,11 @@ exports.spawn = spawnUpdate
 # Is the Update.exe installed with Atom?
 exports.existsSync = ->
   fs.existsSync(updateDotExe)
+
+# Restart Atom using the version pointed to by the atom.cmd shim
+exports.restartAtom = ->
+  app.once 'will-quit', -> spawn(path.join(binFolder, 'atom.cmd'))
+  app.quit()
 
 # Handle squirrel events denoted by --squirrel-* command line arguments.
 exports.handleStartupEvent = ->

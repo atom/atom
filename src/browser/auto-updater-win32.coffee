@@ -1,6 +1,5 @@
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
-shellAutoUpdater = require 'auto-updater'
 SquirrelUpdate = require './squirrel-update'
 
 class AutoUpdater
@@ -12,11 +11,9 @@ class AutoUpdater
     console.log 'restarting new atom.exe'
 
     if SquirrelUpdate.existsSync()
-      SquirrelUpdate.spawn ['--processStart', 'atom.exe'], ->
-        console.log 'spawned new atom.exe'
-        shellAutoUpdater.quitAndInstall()
+      SquirrelUpdate.restartAtom()
     else
-      shellAutoUpdater.quitAndInstall()
+      require('auto-updater').quitAndInstall()
 
   downloadUpdate: (callback) ->
     SquirrelUpdate.spawn ['--download', @updateUrl], (error, stdout) ->
