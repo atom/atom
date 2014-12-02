@@ -159,7 +159,6 @@ removeCommandsFromPath = (callback) ->
     else
       callback()
 
-
 # Create a desktop and start menu shortcut by using the command line API
 # provided by Squirrel's Update.exe
 createShortcut = (callback) ->
