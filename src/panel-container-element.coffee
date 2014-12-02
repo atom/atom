@@ -4,16 +4,17 @@ class PanelContainerElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
 
-  getModel: -> @model
-
-  setModel: (@model) ->
+  initialize: (@model) ->
     @subscriptions.add @model.onDidAddPanel(@panelAdded.bind(this))
     @subscriptions.add @model.onDidRemovePanel(@panelRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
     @classList.add(@model.getLocation())
+    this
+
+  getModel: -> @model
 
   panelAdded: ({panel, index}) ->
-    panelElement = panel.getView()
+    panelElement = atom.views.getView(panel)
     panelElement.classList.add(@model.getLocation())
     if @model.isModal()
       panelElement.classList.add("overlay", "from-top")
@@ -32,7 +33,7 @@ class PanelContainerElement extends HTMLElement
         @hideAllPanelsExcept(panel) if visible
 
   panelRemoved: ({panel, index}) ->
-    @removeChild(panel.getView())
+    @removeChild(atom.views.getView(panel))
 
   destroyed: ->
     @subscriptions.dispose()

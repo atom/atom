@@ -14,7 +14,6 @@ Panel = require './panel'
 PanelElement = require './panel-element'
 PanelContainer = require './panel-container'
 PanelContainerElement = require './panel-container-element'
-ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
 
 # Essential: Represents the state of the user interface for the entire window.
@@ -34,7 +33,6 @@ class Workspace extends Model
   @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
 
   @properties
-    viewRegistry: null
     paneContainer: null
     fullScreen: false
     destroyedItemUris: -> []
@@ -45,16 +43,15 @@ class Workspace extends Model
     @emitter = new Emitter
     @openers = []
 
-    viewRegistry = atom.views
-    @paneContainer ?= new PaneContainer({viewRegistry})
+    @paneContainer ?= new PaneContainer()
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @panelContainers =
-      top: new PanelContainer({viewRegistry, location: 'top'})
-      left: new PanelContainer({viewRegistry, location: 'left'})
-      right: new PanelContainer({viewRegistry, location: 'right'})
-      bottom: new PanelContainer({viewRegistry, location: 'bottom'})
-      modal: new PanelContainer({viewRegistry, location: 'modal'})
+      top: new PanelContainer({location: 'top'})
+      left: new PanelContainer({location: 'left'})
+      right: new PanelContainer({location: 'right'})
+      bottom: new PanelContainer({location: 'bottom'})
+      modal: new PanelContainer({location: 'modal'})
 
     @subscribeToActiveItem()
 
@@ -69,24 +66,20 @@ class Workspace extends Model
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
 
-    atom.views.addViewProvider
-      modelConstructor: Workspace
-      viewConstructor: WorkspaceElement
+    atom.views.addViewProvider Workspace, (model) ->
+      new WorkspaceElement().initialize(model)
 
-    atom.views.addViewProvider
-      modelConstructor: PanelContainer
-      viewConstructor: PanelContainerElement
+    atom.views.addViewProvider PanelContainer, (model) ->
+      new PanelContainerElement().initialize(model)
 
-    atom.views.addViewProvider
-      modelConstructor: Panel
-      viewConstructor: PanelElement
+    atom.views.addViewProvider Panel, (model) ->
+      new PanelElement().initialize(model)
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     for packageName in params.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
-    params.paneContainer.viewRegistry = atom.views
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -732,5 +725,4 @@ class Workspace extends Model
 
   addPanel: (location, options) ->
     options ?= {}
-    options.viewRegistry = atom.views
     @panelContainers[location].addPanel(new Panel(options))

@@ -462,14 +462,12 @@ describe "Workspace", ->
 
     class TestItemElement extends HTMLElement
       constructor: ->
-      setModel: (@model) ->
+      initialize: (@model) -> this
       getModel: -> @model
 
     beforeEach ->
-      atom.views.addViewProvider(
-        modelConstructor: TestItem
-        viewConstructor: TestItemElement
-      )
+      atom.views.addViewProvider TestItem, (model) ->
+        new TestItemElement().initialize(model)
 
     describe '::addLeftPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
@@ -482,7 +480,7 @@ describe "Workspace", ->
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
-        itemView = atom.workspace.getLeftPanels()[0].getItemView()
+        itemView = atom.views.getView(atom.workspace.getLeftPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
@@ -497,7 +495,7 @@ describe "Workspace", ->
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
-        itemView = atom.workspace.getRightPanels()[0].getItemView()
+        itemView = atom.views.getView(atom.workspace.getRightPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
@@ -512,7 +510,7 @@ describe "Workspace", ->
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
-        itemView = atom.workspace.getTopPanels()[0].getItemView()
+        itemView = atom.views.getView(atom.workspace.getTopPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
@@ -527,7 +525,7 @@ describe "Workspace", ->
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
-        itemView = atom.workspace.getBottomPanels()[0].getItemView()
+        itemView = atom.views.getView(atom.workspace.getBottomPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
@@ -542,6 +540,6 @@ describe "Workspace", ->
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
-        itemView = atom.workspace.getModalPanels()[0].getItemView()
+        itemView = atom.views.getView(atom.workspace.getModalPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)

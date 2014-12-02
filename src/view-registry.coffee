@@ -1,3 +1,4 @@
+Grim = require 'grim'
 {Disposable} = require 'event-kit'
 
 # Essential: `ViewRegistry` handles the association between model and view
@@ -76,10 +77,16 @@ class ViewRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added provider.
-  addViewProvider: (providerSpec) ->
-    @providers.push(providerSpec)
+  addViewProvider: (modelConstructor, createView) ->
+    if arguments.length is 1
+      Grim.deprecate("atom.views.addViewProvider now takes 2 arguments: a model constructor and a createView function. See docs for details.")
+      provider = modelConstructor
+    else
+      provider = {modelConstructor, createView}
+
+    @providers.push(provider)
     new Disposable =>
-      @providers = @providers.filter (provider) -> provider isnt providerSpec
+      @providers = @providers.filter (p) -> p isnt provider
 
   # Essential: Get the view associated with an object in the workspace.
   #
@@ -131,7 +138,7 @@ class ViewRegistry
       element = provider.createView?(object)
       unless element?
         element = new provider.viewConstructor
-        element.setModel(object)
+        element.initialize?(object) ? element.setModel?(object)
       element
     else if viewConstructor = object?.getViewClass?()
       view = new viewConstructor(object)

@@ -2,7 +2,7 @@
 
 module.exports =
 class PanelContainer
-  constructor: ({@viewRegistry, @location}) ->
+  constructor: ({@location}={}) ->
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @panels = []
@@ -29,8 +29,6 @@ class PanelContainer
   ###
   Section: Panels
   ###
-
-  getView: -> @viewRegistry.getView(this)
 
   getLocation: -> @location
 
