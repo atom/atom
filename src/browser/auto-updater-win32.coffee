@@ -9,15 +9,11 @@ class AutoUpdater
   setFeedUrl: (@updateUrl) ->
 
   quitAndInstall: ->
-    unless SquirrelUpdate.existsSync()
-      shellAutoUpdater.quitAndInstall()
-      return
-
-    @installUpdate (error) ->
-      return if error?
-
+    if SquirrelUpdate.existsSync()
       SquirrelUpdate.spawn ['--processStart', 'atom.exe'], ->
         shellAutoUpdater.quitAndInstall()
+    else
+      shellAutoUpdater.quitAndInstall()
 
   downloadUpdate: (callback) ->
     SquirrelUpdate.spawn ['--download', @updateUrl], (error, stdout) ->
