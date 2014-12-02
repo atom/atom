@@ -32,7 +32,8 @@ class WindowEventHandler
           # FIXME: Remove this when deprecations are removed
           {releaseVersion, releaseNotes} = detail
           detail = [releaseVersion, releaseNotes]
-          atom.commands.dispatch atom.views.getView(atom.workspace), "window:update-available", detail
+          if workspaceElement = atom.views.getView(atom.workspace)
+            atom.commands.dispatch workspaceElement, "window:update-available", detail
 
     @subscribe ipc, 'command', (command, args...) ->
       activeElement = document.activeElement
