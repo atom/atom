@@ -10,7 +10,7 @@
 # application logic and is the primary point of API interaction. The view
 # just handles presentation.
 #
-# View providers to inform the workspace how your model objects should be
+# View providers inform the workspace how your model objects should be
 # presented in the DOM. A view provider must always return a DOM node, which
 # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
 # an ideal tool for implementing views in Atom.
