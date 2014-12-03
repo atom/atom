@@ -750,6 +750,16 @@ class Workspace extends Model
   addModalPanel: (options={}) ->
     @addPanel('modal', options)
 
+  # Essential: Returns the {Panel} associated with the given item. Returns
+  # `null` when the item has no panel.
+  #
+  # * `item` Item the panel contains
+  panelForItem: (item) ->
+    for location, container of @panelContainers
+      panel = container.panelForItem(item)
+      return panel if panel?
+    null
+
   getPanels: (location) ->
     @panelContainers[location].getPanels()
 

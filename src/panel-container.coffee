@@ -48,6 +48,11 @@ class PanelContainer
     @emitter.emit 'did-add-panel', {panel, index}
     panel
 
+  panelForItem: (item) ->
+    for panel in @panels
+      return panel if panel.getItem() is item
+    null
+
   panelDestroyed: (panel) ->
     index = @panels.indexOf(panel)
     if index > -1
