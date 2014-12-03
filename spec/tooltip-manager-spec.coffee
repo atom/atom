@@ -59,6 +59,13 @@ describe "TooltipManager", ->
             tooltipElement = document.body.querySelector(".tooltip")
             expect(tooltipElement).toHaveText "⌃X ⌃Y"
 
+        it "does not display the keybinding if there is nothing mapped to the specified keyBindingCommand", ->
+          manager.add element, title: 'A Title', keyBindingCommand: 'test-command', keyBindingTarget: element
+
+          hover element, ->
+            tooltipElement = document.body.querySelector(".tooltip")
+            expect(tooltipElement.textContent).toBe "A Title"
+
     describe "when .dispose() is called on the returned disposable", ->
       it "no longer displays the tooltip on hover", ->
         disposable = manager.add element, title: "Title"

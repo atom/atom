@@ -36,9 +36,10 @@ class TooltipManager
 
     if keyBindingCommand?
       bindings = atom.keymaps.findKeyBindings(command: keyBindingCommand, target: keyBindingTarget)
-      if options.title?
+      keystroke = getKeystroke(bindings)
+      if options.title? and keystroke?
         options.title += " " + getKeystroke(bindings)
-      else
+      else if keystroke?
         options.title = getKeystroke(bindings)
 
     $target = $(target)
