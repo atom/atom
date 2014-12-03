@@ -7,5 +7,5 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/advanced/keymaps
-'.workspace':
+'atom-workspace':
   'ctrl-alt-o': '__package-name__:toggle'
