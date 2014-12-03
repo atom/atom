@@ -132,7 +132,7 @@ describe "GitRepository", ->
         atom.workspace.open(filePath)
 
       runs ->
-        editor = atom.workspace.getActiveEditor()
+        editor = atom.workspace.getActiveTextEditor()
 
     it "displays a confirmation dialog by default", ->
       spyOn(atom, 'confirm').andCallFake ({buttons}) -> buttons.OK()
