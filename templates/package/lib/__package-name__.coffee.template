@@ -1,13 +1,27 @@
 __PackageName__View = require './__package-name__-view'
 
-module.exports =
+module.exports = __PackageName__ =
   __packageName__View: null
+  modalPanel: null
 
   activate: (state) ->
     @__packageName__View = new __PackageName__View(state.__packageName__ViewState)
+    @modalPanel = atom.workspace.addModalPanel(item: @__packageName__View.getElement(), visible: false)
 
   deactivate: ->
+    @modalPanel.destroy()
     @__packageName__View.destroy()
 
   serialize: ->
     __packageName__ViewState: @__packageName__View.serialize()
+
+  toggle: ->
+    console.log '__PackageName__ was toggled!'
+
+    if @modalPanel.isVisible()
+      @modalPanel.hide()
+    else
+      @modalPanel.show()
+
+# Register command that toggles this view
+atom.commands.add 'atom-workspace', '__package-name__:toggle': -> __PackageName__.toggle()
