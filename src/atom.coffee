@@ -5,7 +5,6 @@ path = require 'path'
 remote = require 'remote'
 screen = require 'screen'
 shell = require 'shell'
-{deprecate} = require 'grim'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
