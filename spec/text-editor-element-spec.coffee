@@ -104,6 +104,27 @@ describe "TextEditorElement", ->
       scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
       expect(scrollbarWidth).toEqual(8)
 
+  describe "::onDidAttach and ::onDidDetach", ->
+    it "invokes callbacks when the element is attached and detached", ->
+      element = new TextEditorElement
+
+      attachedCallback = jasmine.createSpy("attachedCallback")
+      detachedCallback = jasmine.createSpy("detachedCallback")
+
+      element.onDidAttach(attachedCallback)
+      element.onDidDetach(detachedCallback)
+
+      jasmine.attachToDOM(element)
+
+      expect(attachedCallback).toHaveBeenCalled()
+      expect(detachedCallback).not.toHaveBeenCalled()
+
+      attachedCallback.reset()
+      element.remove()
+
+      expect(attachedCallback).not.toHaveBeenCalled()
+      expect(detachedCallback).toHaveBeenCalled()
+
   describe "::setUpdatedSynchronously", ->
     it "controls whether the text editor is updated synchronously", ->
       spyOn(window, 'requestAnimationFrame').andCallFake (fn) -> fn()

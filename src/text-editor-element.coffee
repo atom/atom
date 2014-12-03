@@ -1,3 +1,4 @@
+{Emitter} = require 'event-kit'
 {View, $, callRemoveHooks} = require 'space-pen'
 React = require 'react-atom-fork'
 Path = require 'path'
@@ -18,6 +19,7 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
 
   createdCallback: ->
+    @emitter = new Emitter
     @initializeContent()
     @createSpacePenShim()
     @addEventListener 'focus', @focused.bind(this)
@@ -63,9 +65,11 @@ class TextEditorElement extends HTMLElement
     @mountComponent() unless @component?.isMounted()
     @component.checkForVisibilityChange()
     @focus() if @focusOnAttach
+    @emitter.emit("did-attach")
 
   detachedCallback: ->
     @attached = false
+    @emitter.emit("did-detach")
 
   initialize: (model) ->
     @setModel(model)
@@ -168,6 +172,12 @@ class TextEditorElement extends HTMLElement
   getDefaultCharacterWidth: ->
     throw new Error("The editor must be attached to get the default character width") unless @attached
     @getModel().getDefaultCharWidth()
+
+  onDidAttach: (callback) ->
+    @emitter.on("did-attach", callback)
+
+  onDidDetach: (callback) ->
+    @emitter.on("did-detach", callback)
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
