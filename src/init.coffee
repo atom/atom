@@ -44,7 +44,7 @@ class Init extends Command
         @convertPackage(options.argv.convert, options.argv.package, callback)
       else
         packagePath = path.resolve(options.argv.package)
-        templatePath = options.argv.template ? path.resolve(__dirname, '..', 'templates', 'package')
+        templatePath = @getTemplatePath(options.argv, 'package')
         @generateFromTemplate(packagePath, templatePath)
         callback()
     else if options.argv.theme?.length > 0
@@ -52,14 +52,14 @@ class Init extends Command
         @convertTheme(options.argv.convert, options.argv.theme, callback)
       else
         themePath = path.resolve(options.argv.theme)
-        templatePath = options.argv.template ? path.resolve(__dirname, '..', 'templates', 'theme')
+        templatePath = @getTemplatePath(options.argv, 'theme')
         @generateFromTemplate(themePath, templatePath)
         callback()
     else if options.argv.language?.length > 0
       languagePath = path.resolve(options.argv.language)
       languageName = path.basename(languagePath).replace(/^language-/, '')
       languagePath = path.join(path.dirname(languagePath), "language-#{languageName}")
-      templatePath = path.resolve(__dirname, '..', 'templates', 'language')
+      templatePath = @getTemplatePath(options.argv, 'language')
       @generateFromTemplate(languagePath, templatePath, languageName)
       callback()
     else if options.argv.package?
@@ -144,6 +144,12 @@ class Init extends Command
 
       else if underscore
         @underscore(packageName)
+
+  getTemplatePath: (argv, templateType) ->
+    if argv.template?
+      path.resolve(argv.template)
+    else
+      path.resolve(__dirname, '..', 'templates', templateType)
 
   dasherize: (string) ->
     string = string[0].toLowerCase() + string[1..]
