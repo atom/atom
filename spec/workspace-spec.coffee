@@ -543,3 +543,13 @@ describe "Workspace", ->
         itemView = atom.views.getView(atom.workspace.getModalPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
+
+    describe "::panelForItem(item)", ->
+      it "returns the panel associated with the item", ->
+        item = new TestItem
+        panel = atom.workspace.addLeftPanel(item: item)
+
+        itemWithNoPanel = new TestItem
+
+        expect(atom.workspace.panelForItem(item)).toBe panel
+        expect(atom.workspace.panelForItem(itemWithNoPanel)).toBe null
