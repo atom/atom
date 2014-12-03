@@ -411,10 +411,11 @@ class Package
       deprecate """
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
-        ```coffee
-          activationCommands:
-            "atom-workspace": ["foo:bar", "foo:baz"]
+        ```json
+          "activationCommands": {
+            "atom-workspace": ["foo:bar", "foo:baz"],
             "atom-text-editor": ["foo:quux"]
+          }
         ```
       """
       if _.isArray(@metadata.activationEvents)
