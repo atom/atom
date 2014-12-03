@@ -408,6 +408,15 @@ class Package
           @activationCommands[selector].push(commands...)
 
     if @metadata.activationEvents?
+      deprecate """
+        Use `activationCommands` instead of `activationEvents` in your package.json
+        Commands should be grouped by selector as follows:
+        ```coffee
+          activationCommands:
+            "atom-workspace": ["foo:bar", "foo:baz"]
+            "atom-text-editor": ["foo:quux"]
+        ```
+      """
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
           @activationCommands['atom-workspace'] ?= []
