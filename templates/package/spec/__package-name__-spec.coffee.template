@@ -28,13 +28,13 @@ describe "__PackageName__", ->
       runs ->
         expect(workspaceElement.querySelector('.__package-name__')).toExist()
 
-        __package-name__Element = workspaceElement.querySelector('.__package-name__')
-        expect(__package-name__Element).toExist()
+        __packageName__Element = workspaceElement.querySelector('.__package-name__')
+        expect(__packageName__Element).toExist()
 
-        __package-name__Panel = atom.workspace.panelForItem(__package-name__Element)
-        expect(__package-name__Panel.isVisible()).toBe true
+        __packageName__Panel = atom.workspace.panelForItem(__packageName__Element)
+        expect(__packageName__Panel.isVisible()).toBe true
         atom.commands.dispatch workspaceElement, '__package-name__:toggle'
-        expect(__package-name__Panel.isVisible()).toBe false
+        expect(__packageName__Panel.isVisible()).toBe false
 
     it "hides and shows the view", ->
       # This test shows you an integration test testing at the view level.
@@ -56,7 +56,7 @@ describe "__PackageName__", ->
 
       runs ->
         # Now we can test for view visibility
-        __package-name__Element = workspaceElement.querySelector('.__package-name__')
-        expect(__package-name__Element).toBeVisible()
+        __packageName__Element = workspaceElement.querySelector('.__package-name__')
+        expect(__packageName__Element).toBeVisible()
         atom.commands.dispatch workspaceElement, '__package-name__:toggle'
-        expect(__package-name__Element).not.toBeVisible()
+        expect(__packageName__Element).not.toBeVisible()
