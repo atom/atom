@@ -402,6 +402,8 @@ class Pane extends Model
   # If the item is active, the next item will be activated. If the item is the
   # last item, the pane will be destroyed if the `core.destroyEmptyPanes` config
   # setting is `true`.
+  #
+  # * `item` Item to destroy
   destroyItem: (item) ->
     index = @items.indexOf(item)
     if index isnt -1
