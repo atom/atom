@@ -121,6 +121,15 @@ have Node.js installed, or node isn't identified as Node.js on your machine.
 If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
 
+#### You can also use Alternatives
+
+On some variants (mostly Debian based distros) it's preferable for you to use
+Alternatives so that changes to the binary paths can be fixed or altered easily:
+
+```sh
+sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave /usr/bin/js js /usr/bin/nodejs
+```
+
 ### AttributeError: 'module' object has no attribute 'script_main'
 
 If you get following error with a big traceback while building Atom:
@@ -136,15 +145,6 @@ On Fedora you would do the following:
   ```sh
   sudo yum remove gyp
   ```
-
-#### You can also use Alternatives
-
-On some variants (mostly Debian based distros) it's preferable for you to use
-Alternatives so that changes to the binary paths can be fixed or altered easily:
-
-```sh
-sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave /usr/bin/js js /usr/bin/nodejs
-```
 
 ### Linux build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)
