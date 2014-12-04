@@ -85,7 +85,11 @@ class TooltipManager
     $target = $(target)
     $target.tooltip(_.defaults(options, @defaults))
 
-    new Disposable -> $target.tooltip('destroy')
+    new Disposable ->
+      tooltip = $target.data('bs.tooltip')
+      tooltip.leave(currentTarget: target)
+      tooltip.hide()
+      $target.tooltip('destroy')
 
 humanizeKeystrokes = (keystroke) ->
   keystrokes = keystroke.split(' ')
