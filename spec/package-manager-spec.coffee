@@ -144,7 +144,7 @@ describe "PackageManager", ->
               atom.workspace.open()
 
             runs ->
-              editorView = atom.views.getView(atom.workspace.getActiveEditor()).__spacePenView
+              editorView = atom.views.getView(atom.workspace.getActiveTextEditor()).__spacePenView
               legacyCommandListener = jasmine.createSpy("legacyCommandListener")
               editorView.command 'activation-command', legacyCommandListener
               editorCommandListener = jasmine.createSpy("editorCommandListener")

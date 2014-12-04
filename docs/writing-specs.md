@@ -72,7 +72,7 @@ Writing Asynchronous specs can be tricky at first. Some examples.
         atom.workspace.open 'c.coffee'
 
     it "should be opened in an editor", ->
-      expect(atom.workspace.getActiveEditor().getPath()).toContain 'c.coffee'
+      expect(atom.workspace.getActiveTextEditor().getPath()).toContain 'c.coffee'
 
   ```
 

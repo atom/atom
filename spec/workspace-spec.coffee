@@ -356,7 +356,7 @@ describe "Workspace", ->
       atom.workspace.open('sample.coffee')
 
     runs ->
-      atom.workspace.getActiveEditor().setText """
+      atom.workspace.getActiveTextEditor().setText """
         i = /test/; #FIXME
       """
 
