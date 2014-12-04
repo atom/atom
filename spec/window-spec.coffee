@@ -128,17 +128,15 @@ describe "Window", ->
         setData: (key, value) -> @data[key] = value
         getData: (key) -> @data[key]
 
-      event = $.Event(type)
-      event.originalEvent = { dataTransfer }
-      event.preventDefault = ->
-      event.stopPropagation = ->
+      event = new CustomEvent("drop")
+      event.dataTransfer = dataTransfer
       event
 
     describe "when a file is dragged to window", ->
       it "opens it", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
-        $(document).trigger(event)
+        document.dispatchEvent(event)
         expect(atom.open.callCount).toBe 1
         expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
 
@@ -146,7 +144,7 @@ describe "Window", ->
       it "does nothing", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [])
-        $(document).trigger(event)
+        document.dispatchEvent(event)
         expect(atom.open).not.toHaveBeenCalled()
 
   describe "when a link is clicked", ->

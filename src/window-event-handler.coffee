@@ -1,6 +1,7 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
+{Disposable} = require 'event-kit'
 ipc = require 'ipc'
 shell = require 'shell'
 {Subscriber} = require 'emissary'
@@ -85,15 +86,13 @@ class WindowEventHandler
 
     document.addEventListener 'keydown', @onKeydown
 
-    @subscribe $(document), 'drop', (e) ->
-      e.preventDefault()
-      e.stopPropagation()
-      pathsToOpen = _.pluck(e.originalEvent.dataTransfer.files, 'path')
-      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+    document.addEventListener 'drop', @onDrop
+    @subscribe new Disposable =>
+      document.removeEventListener('drop', @onDrop)
 
-    @subscribe $(document), 'dragover', (e) ->
-      e.preventDefault()
-      e.stopPropagation()
+    document.addEventListener 'dragover', @onDragOver
+    @subscribe new Disposable =>
+      document.removeEventListener('dragover', @onKeydown)
 
     @subscribe $(document), 'click', 'a', @openLink
 
@@ -123,6 +122,16 @@ class WindowEventHandler
   onKeydown: (event) ->
     atom.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
+
+  onDrop: (event) ->
+    event.preventDefault()
+    event.stopPropagation()
+    pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
+    atom.open({pathsToOpen}) if pathsToOpen.length > 0
+
+  onDragOver: (event) ->
+    event.preventDefault()
+    event.stopPropagation()
 
   openLink: ({target, currentTarget}) ->
     location = target?.getAttribute('href') or currentTarget?.getAttribute('href')
