@@ -3,6 +3,46 @@ _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
 
 # Essential: Associates tooltips with HTML elements or selectors.
+#
+# You can get the `TooltipManager` via `atom.tooltips`.
+#
+# ## Examples
+#
+# The essence of displaying a tooltip
+#
+# ```coffee
+# # display it
+# disposable = atom.tooltips.add(div, {title: 'This is a tooltip'})
+#
+# # remove it
+# disposable.dispose()
+# ```
+#
+# In practice there are usually multiple tooltips. So we add them to a
+# CompositeDisposable
+#
+# ```coffee
+# {CompositeDisposable} = require 'atom'
+# subscriptions = new CompositeDisposable
+#
+# div1 = document.createElement('div')
+# div2 = document.createElement('div')
+# subscriptions.add atom.tooltips.add(div1, {title: 'This is a tooltip'})
+# subscriptions.add atom.tooltips.add(div2, {title: 'Another tooltip'})
+#
+# # remove them all
+# subscriptions.dispose()
+# ```
+#
+# You can display a key binding in the tooltip as well with the
+# `keyBindingCommand` option.
+#
+# ```coffee
+# disposable = atom.tooltips.add @caseOptionButton,
+#   title: "Match Case"
+#   keyBindingCommand: 'find-and-replace:toggle-case-option'
+#   keyBindingTarget: @findEditor.element
+# ```
 module.exports =
 class TooltipManager
   defaults:
