@@ -29,6 +29,10 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * `sudo pacman -S base-devel git nodejs libgnome-keyring python2`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
+### Slackware
+
+* `sbopkg -k -i node -i atom`
+
 ## Instructions
 
 If you have problems with permissions don't forget to prefix with `sudo`
