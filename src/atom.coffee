@@ -11,6 +11,7 @@ _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 {Model} = require 'theorist'
 fs = require 'fs-plus'
+{convertStackTrace, convertLine} = require 'coffeestack'
 
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
@@ -198,9 +199,16 @@ class Atom extends Model
     unless @inDevMode() or @inSpecMode()
       require('grim').deprecate = ->
 
+    sourceMapCache = {}
+
     window.onerror = =>
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
+
+      convertedLine = convertLine(url, line, column, sourceMapCache)
+      {line, column} = convertedLine if convertedLine?
+      originalError.stack = convertStackTrace(originalError.stack, sourceMapCache) if originalError
+
       eventObject = {message, url, line, column, originalError}
 
       openDevTools = true
