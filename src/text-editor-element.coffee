@@ -86,7 +86,7 @@ class TextEditorElement extends HTMLElement
 
   buildModel: ->
     @setModel(new TextEditor(
-      buffer: new TextBuffer
+      buffer: new TextBuffer(@textContent)
       softWrapped: false
       tabLength: 2
       softTabs: true
