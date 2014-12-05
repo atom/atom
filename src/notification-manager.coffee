@@ -42,3 +42,9 @@ class NotificationManager
     @notifications.push(notification)
     @emitter.emit('did-add-notification', notification)
     notification
+
+  ###
+  Section: Getting Notifications
+  ###
+
+  getNotifications: -> @notifications

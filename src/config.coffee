@@ -740,7 +740,7 @@ class Config
   notifyFailure: (errorMessage, error) ->
     message = "#{errorMessage}"
     detail = error.stack
-    atom.notifications.addError(message, {detail, closable: true})
+    atom.notifications.addError(message, {detail, dismissable: true})
     console.error message
     console.error detail
 

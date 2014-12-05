@@ -25,7 +25,7 @@ KeymapManager::loadUserKeymap = ->
 
 KeymapManager::subscribeToFileReadFailure = ->
   this.onDidFailToReadFile (error) ->
-    atom.notifications.addError('Failed to load keymap.cson', {detail: error.stack, closable: true})
+    atom.notifications.addError('Failed to load keymap.cson', {detail: error.stack, dismissable: true})
 
 # This enables command handlers registered via jQuery to call
 # `.abortKeyBinding()` on the `jQuery.Event` object passed to the handler.
