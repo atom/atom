@@ -54,9 +54,10 @@ class CommandRegistry
   #
   # ## Arguments: Registering One Command
   #
-  # * `selector` A {String} containing a CSS selector matching elements on which
-  #   you want to handle the commands. The `,` combinator is not currently
-  #   supported.
+  # * `target` A {String} containing a CSS selector or a DOM element. If you
+  #   pass a selector, the command will be globally associated with all matching
+  #   elements. The `,` combinator is not currently supported. If you pass a
+  #   DOM element, the command will be associated with just that element.
   # * `commandName` A {String} containing the name of a command you want to
   #   handle such as `user:insert-date`.
   # * `callback` A {Function} to call when the given command is invoked on an
@@ -67,9 +68,11 @@ class CommandRegistry
   #
   # ## Arguments: Registering Multiple Commands
   #
-  # * `selector` A {String} containing a CSS selector matching elements on which
-  #   you want to handle the commands. The `,` combinator is not currently
-  #   supported.
+  # * `target` A {String} containing a CSS selector or a DOM element. If you
+  #   pass a selector, the commands will be globally associated with all
+  #   matching elements. The `,` combinator is not currently supported.
+  #   If you pass a DOM element, the command will be associated with just that
+  #   element.
   # * `commands` An {Object} mapping command names like `user:insert-date` to
   #   listener {Function}s.
   #
