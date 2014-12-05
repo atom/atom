@@ -28,7 +28,7 @@ class Notification
       and @getDetail() == other.getDetail()
 
   dismiss: ->
-    return unless @isDismissable()
+    return unless @isDismissable() and not @isDismissed()
     @dismissed = true
     @emitter.emit 'did-dismiss'
 
