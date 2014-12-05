@@ -133,6 +133,9 @@ class Atom extends Model
   # Public: A {Clipboard} instance
   clipboard: null
 
+  # Public: A {ServiceHub} instance
+  services: null
+
   # Public: A {ContextMenuManager} instance
   contextMenu: null
 
@@ -225,6 +228,7 @@ class Atom extends Model
     NotificationManager = require './notification-manager'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
+    ServiceHub = require './service-hub'
     GrammarRegistry = require './grammar-registry'
     ThemeManager = require './theme-manager'
     StyleManager = require './style-manager'
@@ -260,6 +264,7 @@ class Atom extends Model
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
+    @services = new ServiceHub
 
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
 
