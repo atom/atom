@@ -338,7 +338,7 @@ class Package
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    @stylesheetDisposables.dispose()
+    @stylesheetDisposables?.dispose()
     @stylesheetDisposables = new CompositeDisposable
     @stylesheetsActivated = false
     @activateStylesheets()
