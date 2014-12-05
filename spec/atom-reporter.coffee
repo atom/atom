@@ -38,7 +38,8 @@ module.exports =
 class AtomReporter extends View
   @content: ->
     @div class: 'spec-reporter', =>
-      @div outlet: "suites"
+      @div class: 'padded pull-right', =>
+        @button outlet: 'reloadButton', class: 'btn btn-small reload-button', 'Reload Specs'
       @div outlet: 'coreArea', class: 'symbol-area', =>
         @div outlet: 'coreHeader', class: 'symbol-header'
         @ul outlet: 'coreSummary', class: 'symbol-summary list-unstyled'
@@ -79,6 +80,8 @@ class AtomReporter extends View
 
     @on 'click', '.stack-trace', ->
       $(this).toggleClass('expanded')
+
+    @reloadButton.on 'click', -> require('ipc').send('call-window-method', 'restart')
 
   reportRunnerResults: (runner) ->
     @updateSpecCounts()
