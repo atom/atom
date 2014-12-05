@@ -20,6 +20,11 @@ describe "TextEditorElement", ->
       element = jasmineContent.firstChild
       expect(element.getModel().getPlaceholderText()).toBe 'testing'
 
+    it "honors the text content", ->
+      jasmineContent.innerHTML = "<atom-text-editor>testing</atom-text-editor>"
+      element = jasmineContent.firstChild
+      expect(element.getModel().getText()).toBe 'testing'
+
   describe "when the model is assigned", ->
     it "adds the 'mini' attribute if .isMini() returns true on the model", ->
       element = new TextEditorElement
