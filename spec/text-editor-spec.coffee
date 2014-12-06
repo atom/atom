@@ -4096,13 +4096,101 @@ describe "TextEditor", ->
       expect(editor.getCursorBufferPosition()).toEqual([0, 3])
 
     describe "when 2 cursors", ->
-      fit "traverses both camelCase words", ->
+      it "traverses both camelCase words", ->
         editor.setText("curOp\ncursorOptions\n")
         editor.setCursorBufferPosition([0, 0])
         editor.addCursorAtBufferPosition([1, 0])
         [cursor1, cursor2] = editor.getCursors()
 
         editor.moveToNextSubwordBoundary()
-
         expect(cursor1.getBufferPosition()).toEqual([0, 3])
         expect(cursor2.getBufferPosition()).toEqual([1, 6])
+
+  describe ".selectToPreviousSubwordBoundary", ->
+    it "selects subwords", ->
+      editor.setText("")
+      editor.insertText("_word\n")
+      editor.insertText(" getPreviousWord\n")
+      editor.insertText("e, => \n")
+      editor.insertText(" 88 \n")
+      editor.setCursorBufferPosition([0,5])
+      editor.addCursorAtBufferPosition([1,7])
+      editor.addCursorAtBufferPosition([2,5])
+      editor.addCursorAtBufferPosition([3,3])
+      [selection1, selection2, selection3, selection4] = editor.getSelections()
+
+      editor.selectToPreviousSubwordBoundary()
+      expect(selection1.getBufferRange()).toEqual([[0,1], [0,5]])
+      expect(selection1.isReversed()).toBeTruthy()
+      expect(selection2.getBufferRange()).toEqual([[1,4], [1,7]])
+      expect(selection2.isReversed()).toBeTruthy()
+      expect(selection3.getBufferRange()).toEqual([[2,3], [2,5]])
+      expect(selection3.isReversed()).toBeTruthy()
+      expect(selection4.getBufferRange()).toEqual([[3,1], [3,3]])
+      expect(selection4.isReversed()).toBeTruthy()
+
+  describe ".selectToNextSubwordBoundary", ->
+    it "selects subwords", ->
+      editor.setText("")
+      editor.insertText("word_\n")
+      editor.insertText("getPreviousWord\n")
+      editor.insertText("e, => \n")
+      editor.insertText(" 88 \n")
+      editor.setCursorBufferPosition([0,1])
+      editor.addCursorAtBufferPosition([1,7])
+      editor.addCursorAtBufferPosition([2,2])
+      editor.addCursorAtBufferPosition([3,1])
+      [selection1, selection2, selection3, selection4] = editor.getSelections()
+
+      editor.selectToNextSubwordBoundary()
+      expect(selection1.getBufferRange()).toEqual([[0,1], [0,4]])
+      expect(selection1.isReversed()).toBeFalsy()
+      expect(selection2.getBufferRange()).toEqual([[1,7], [1,11]])
+      expect(selection2.isReversed()).toBeFalsy()
+      expect(selection3.getBufferRange()).toEqual([[2,2], [2,5]])
+      expect(selection3.isReversed()).toBeFalsy()
+      expect(selection4.getBufferRange()).toEqual([[3,1], [3,3]])
+      expect(selection4.isReversed()).toBeFalsy()
+
+  describe ".deleteToBeginningOfSubword", ->
+    fit "deletes subwords", ->
+      editor.setText("")
+      editor.insertText("_word\n")
+      editor.insertText(" getPreviousWord\n")
+      editor.insertText("e, => \n")
+      editor.insertText(" 88 \n")
+      editor.setCursorBufferPosition([0,5])
+      editor.addCursorAtBufferPosition([1,7])
+      editor.addCursorAtBufferPosition([2,5])
+      editor.addCursorAtBufferPosition([3,3])
+      [cursor1, cursor2, cursor3, cursor4] = editor.getCursors()
+
+      editor.deleteToBeginningOfSubword()
+      expect(buffer.lineForRow(0)).toBe('_')
+      expect(buffer.lineForRow(1)).toBe(' getviousWord')
+      expect(buffer.lineForRow(2)).toBe('e,  ')
+      expect(buffer.lineForRow(3)).toBe('  ')
+      expect(cursor1.getBufferPosition()).toEqual([0,1])
+      expect(cursor2.getBufferPosition()).toEqual([1,4])
+      expect(cursor3.getBufferPosition()).toEqual([2,3])
+      expect(cursor4.getBufferPosition()).toEqual([3,1])
+
+      editor.deleteToBeginningOfSubword()
+      expect(buffer.lineForRow(0)).toBe('')
+      expect(buffer.lineForRow(1)).toBe(' viousWord')
+      expect(buffer.lineForRow(2)).toBe('e ')
+      expect(buffer.lineForRow(3)).toBe(' ')
+      expect(cursor1.getBufferPosition()).toEqual([0,0])
+      expect(cursor2.getBufferPosition()).toEqual([1,1])
+      expect(cursor3.getBufferPosition()).toEqual([2,1])
+      expect(cursor4.getBufferPosition()).toEqual([3,0])
+
+      editor.deleteToBeginningOfSubword()
+      expect(buffer.lineForRow(0)).toBe('')
+      expect(buffer.lineForRow(1)).toBe('viousWord')
+      expect(buffer.lineForRow(2)).toBe('  ')
+      expect(buffer.lineForRow(3)).toBe('')
+      expect(cursor1.getBufferPosition()).toEqual([0,0])
+      expect(cursor2.getBufferPosition()).toEqual([1,0])
+      expect(cursor3.getBufferPosition()).toEqual([2,0])
+      expect(cursor4.getBufferPosition()).toEqual([2,1])
