@@ -3957,9 +3957,7 @@ describe "TextEditor", ->
     it 'does not change an empty file', ->
       editor.setText('')
       editor.moveToPreviousSubwordBoundary()
-      cursorPosition = editor.getCursorBufferPosition()
-      expect(cursorPosition.row).toBe 0
-      expect(cursorPosition.column).toBe 0
+      expect(editor.getCursorBufferPosition()).toEqual([0, 0])
 
     it "traverses normal words", ->
       editor.setText("_word \n")
@@ -4028,6 +4026,83 @@ describe "TextEditor", ->
         [cursor1, cursor2] = editor.getCursors()
 
         editor.moveToPreviousSubwordBoundary()
+
+        expect(cursor1.getBufferPosition()).toEqual([0, 3])
+        expect(cursor2.getBufferPosition()).toEqual([1, 6])
+
+  describe ".moveToNextSubwordBoundary", ->
+    it 'does not change an empty file', ->
+      editor.setText('')
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 0])
+
+    it "traverses normal words", ->
+      editor.setText(" word_ \n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 5])
+
+      editor.setText("word \n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+    it "traverses camelCase words", ->
+      editor.setText("getPreviousWord \n")
+      editor.setCursorBufferPosition([0, 0])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 3])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 11])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 15])
+
+    it "traverses consecutive non-word characters", ->
+      editor.setText(", => \n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+    it "traverses consecutive uppercase characters", ->
+      editor.setText(" AAADF \n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 6])
+
+      editor.setText("ALPhA\n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 2])
+
+    it "traverses consecutive numbers", ->
+      editor.setText(" 88 \n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 3])
+
+    describe "when 2 cursors", ->
+      fit "traverses both camelCase words", ->
+        editor.setText("curOp\ncursorOptions\n")
+        editor.setCursorBufferPosition([0, 0])
+        editor.addCursorAtBufferPosition([1, 0])
+        [cursor1, cursor2] = editor.getCursors()
+
+        editor.moveToNextSubwordBoundary()
 
         expect(cursor1.getBufferPosition()).toEqual([0, 3])
         expect(cursor2.getBufferPosition()).toEqual([1, 6])
