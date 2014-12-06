@@ -405,10 +405,9 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the next subword boundary.
   moveToNextSubwordBoundary: ->
-    # options = {wordRegex: @subwordRegExp()}
-    # if position = @getNextWordBoundaryBufferPosition(options)
-    #   @setBufferPosition(position)
-    true
+    options = {wordRegex: @subwordRegExp()}
+    if position = @getNextWordBoundaryBufferPosition(options)
+      @setBufferPosition(position)
 
   # Public: Moves the cursor to the next word boundary.
   moveToNextWordBoundary: ->
