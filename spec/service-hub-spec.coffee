@@ -1,5 +1,5 @@
 describe 'ServiceHub', ->
-  fdescribe 'apiVersion', ->
+  describe 'apiVersion', ->
     it 'gets the API version for the default API', ->
       spyOn(atom.services, 'getPackageInfo').andReturn
         apiVersion: '1.2.3'
