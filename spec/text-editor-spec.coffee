@@ -4153,7 +4153,7 @@ describe "TextEditor", ->
       expect(selection4.isReversed()).toBeFalsy()
 
   describe ".deleteToBeginningOfSubword", ->
-    fit "deletes subwords", ->
+    it "deletes subwords", ->
       editor.setText("")
       editor.insertText("_word\n")
       editor.insertText(" getPreviousWord\n")
@@ -4194,3 +4194,35 @@ describe "TextEditor", ->
       expect(cursor2.getBufferPosition()).toEqual([1,0])
       expect(cursor3.getBufferPosition()).toEqual([2,0])
       expect(cursor4.getBufferPosition()).toEqual([2,1])
+
+  describe ".deleteToEndOfSubword", ->
+    it "deletes subwords", ->
+      editor.setText("")
+      editor.insertText("word_\n")
+      editor.insertText("getPreviousWord \n")
+      editor.insertText("e, => \n")
+      editor.insertText(" 88 \n")
+      editor.setCursorBufferPosition([0,0])
+      editor.addCursorAtBufferPosition([1,0])
+      editor.addCursorAtBufferPosition([2,2])
+      editor.addCursorAtBufferPosition([3,0])
+      [cursor1, cursor2, cursor3, cursor4] = editor.getCursors()
+
+      editor.deleteToEndOfSubword()
+      expect(buffer.lineForRow(0)).toBe('_')
+      expect(buffer.lineForRow(1)).toBe('PreviousWord ')
+      expect(buffer.lineForRow(2)).toBe('e, ')
+      expect(buffer.lineForRow(3)).toBe('88 ')
+      expect(cursor1.getBufferPosition()).toEqual([0,0])
+      expect(cursor2.getBufferPosition()).toEqual([1,0])
+      expect(cursor3.getBufferPosition()).toEqual([2,2])
+      expect(cursor4.getBufferPosition()).toEqual([3,0])
+
+      editor.deleteToEndOfSubword()
+      expect(buffer.lineForRow(0)).toBe('Word ')
+      expect(buffer.lineForRow(1)).toBe('e, ')
+      expect(buffer.lineForRow(2)).toBe('')
+      expect(cursor1.getBufferPosition()).toEqual([0,0])
+      expect(cursor2.getBufferPosition()).toEqual([0,0])
+      expect(cursor3.getBufferPosition()).toEqual([1,2])
+      expect(cursor4.getBufferPosition()).toEqual([1,2])

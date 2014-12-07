@@ -461,6 +461,7 @@ class Selection extends Model
   # selection to the end of the current word if nothing is selected.
   deleteToEndOfSubword: ->
     @selectToNextSubwordBoundary() if @isEmpty()
+    @deleteSelectedText()
 
   # Public: Removes only the selected text.
   deleteSelectedText: ->
