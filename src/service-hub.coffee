@@ -37,6 +37,41 @@ _ServiceHub = require('service-hub')
 # atom.services.provide "status-bar.view", "1.0.0", statusBarElement
 # ```
 #
+# For convenience, you can place the version of APIs you provide in the
+# `package.json` of your package. If your package provides a single API, it can
+# be specified using a string value:
+#
+# ```json
+# {
+#   "name": "package-name",
+#   "version": "1.2.3",
+#   "apiVersion": "1.0.1"
+# }
+# ```
+#
+# If your package provides multiple named APIs, they can be specified by nesting
+# the values:
+#
+# ```json
+# {
+#   "name": "package-name",
+#   "version": "1.2.3",
+#   "apiVersion": {
+#     "view": "1.0.0",
+#     "update": "1.0.1"
+#   }
+# }
+# ```
+#
+# When the API version information is specified in the `package.json`, you may
+# omit the version text in the `atom.services.provide` method call:
+#
+# ```coffee
+# atom.services.provide "status-bar",
+#   addRightItem: (item) -> # ...
+#   addLeftItem: (item) -> # ...
+# ```
+#
 # By convention, every package owns its package name in the services namespace.
 # Your package can provide a service under another package's namespace, but you
 # should always conform to that package's API. If you want to make additions to
@@ -67,13 +102,17 @@ class ServiceHub extends _ServiceHub
   #
   # * `keyPath` A {String} of `.` separated keys indicating the services's
   #   location in the namespace of all services.
-  # * `version` A {String} containing a [semantic version](http://semver.org/)
+  # * `version` (Optional) A {String} containing a [semantic version](http://semver.org/)
   #   for the service's API.
   # * `service` An object exposing the service API.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # provided service.
   provide: (keyPath, version, service) ->
+    unless service
+      service = version
+      version = @apiVersion(keyPath)
+
     super
 
   # Experimental: Consume a service by invoking the given callback for all
@@ -91,3 +130,25 @@ class ServiceHub extends _ServiceHub
   # consumer.
   consume: (keyPath, versionRange, callback) ->
     super
+
+  # Private: Retrieves the version of the named API from that package's `package.json`.
+  #
+  # * `keyPath` A {String} of `.` separated keys indicating the services's
+  #   location in the namespace of all services.
+  #
+  # Returns the API version information specified.
+  apiVersion: (keyPath) ->
+    try
+      [packageName, apiName...] = keyPath.split('.')
+      version = @getPackageInfo(packageName).apiVersion
+      version = version[component] for component in apiName
+      version
+
+  # Private: Gets the named package's information.
+  #
+  # * `name` A {String} naming the package whose metadata to retrieve.
+  #
+  # Returns the metadata {Object} for the package.
+  getPackageInfo: (name) ->
+    packagePath = atom.packages.resolvePackagePath(name)
+    JSON.parse(fs.readFileSync(path.join(packagePath, 'package.json')))
