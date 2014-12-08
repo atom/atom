@@ -134,7 +134,7 @@ class Atom extends Model
   # Public: A {Clipboard} instance
   clipboard: null
 
-  # Public: A {ServiceHub} instance
+  # A {ServiceHub} instance
   services: null
 
   # Public: A {ContextMenuManager} instance
