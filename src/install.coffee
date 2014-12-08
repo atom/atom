@@ -213,7 +213,7 @@ class Install extends Command
           filePath = path.join(temp.mkdirSync(), 'package.tgz')
           writeStream = fs.createWriteStream(filePath)
           readStream.pipe(writeStream)
-          writeStream.on 'error', (errror) ->
+          writeStream.on 'error', (error) ->
             callback("Unable to download #{packageUrl}: #{error.message}")
           writeStream.on 'close', -> callback(null, filePath)
         else
