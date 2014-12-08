@@ -17,7 +17,9 @@ Atom will automatically update when a new release is available.
 
 ### Windows
 
-Install the [Atom chocolatey package](https://chocolatey.org/packages/Atom).
+There are multiple ways to install Atom on Windows. Here are some of them.
+
+Installing the [Atom chocolatey package](https://chocolatey.org/packages/Atom):
 
 1. Install [chocolatey](https://chocolatey.org).
 2. Close and reopen your command prompt or PowerShell window.
@@ -25,8 +27,9 @@ Install the [Atom chocolatey package](https://chocolatey.org/packages/Atom).
 4. In the future run `cup Atom` to upgrade to the latest release.
 
 You can also download a `.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
-The Windows version does not currently automatically update so you will need to
-manually upgrade to future releases by re-downloading the `.zip` file.
+The .zip version does not have the ability to auto-update to the latest Atom release, so you have to manually update it by downloading the '.zip' file for the new version.
+
+Another option is to download the Atom installer at the [releases page](https://github.com/atom/atom/releases/latest) and clicking on the `AtomSetup.exe` file which will download the file. Atom will automatically update to the latest release whenever a new version comes out if you install Atom with the installer. If you are new to Atom and installing Atom for the first time, installing Atom via the Windows Installer is the best option. 
 
 ### Debian Linux (Ubuntu)
 
