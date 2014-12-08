@@ -86,7 +86,7 @@ setupConfigDirPath = ->
     if fs.existsSync(portablePath)
       portablePath
     else
-      fs.absolute('~/.atom')
+      path.join(app.getHomeDir(), '.atom')
 
 parseCommandLine = ->
   version = app.getVersion()
