@@ -29,7 +29,7 @@ Installing the [Atom chocolatey package](https://chocolatey.org/packages/Atom):
 You can also download a `.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
 The .zip version does not have the ability to auto-update to the latest Atom release, so you have to manually update it by downloading the '.zip' file for the new version.
 
-Another option is to download the Atom installer at the [releases page](https://github.com/atom/atom/releases/latest) and clicking on the 'AtomSetup.exe' file which will download the file. Atom will automatically update to the latest release whenever a new version comes out if you install Atom with the installer. If you are new to Atom and installing Atom for the first time, installing Atom via the Windows Installer is the best option. 
+Another option is to download the Atom installer at the [releases page](https://github.com/atom/atom/releases/latest) and clicking on the `AtomSetup.exe` file which will download the file. Atom will automatically update to the latest release whenever a new version comes out if you install Atom with the installer. If you are new to Atom and installing Atom for the first time, installing Atom via the Windows Installer is the best option. 
 
 ### Debian Linux (Ubuntu)
 
