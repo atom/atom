@@ -12,7 +12,7 @@
     "fs-plus": "2.x",
     "github-releases": "~0.2.0",
     "grunt": "~0.4.1",
-    "grunt-atom-shell-installer": "^0.12.0",
+    "grunt-atom-shell-installer": "^0.13.0",
     "grunt-cli": "~0.1.9",
     "grunt-coffeelint": "git+https://github.com/atom/grunt-coffeelint.git#cfb99aa99811d52687969532bd5a98011ed95bfe",
     "grunt-contrib-coffee": "~0.9.0",
