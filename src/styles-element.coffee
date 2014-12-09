@@ -92,6 +92,7 @@ class StylesElement extends HTMLElement
     upgradedSelectors = []
 
     for rule in styleElement.sheet.cssRules
+      continue unless rule.selectorText?
       continue if /\:host/.test(rule.selectorText)
 
       inputSelector = rule.selectorText

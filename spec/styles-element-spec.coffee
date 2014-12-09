@@ -105,3 +105,8 @@ describe "StylesElement", ->
 
       document.querySelector('#jasmine-content').appendChild(element)
       expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
+
+    it "does not throw exceptions on rules with no selectors", ->
+      atom.styles.addStyleSheet """
+        @media screen {font-size: 10px;}
+      """, context: 'atom-text-editor'
