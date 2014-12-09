@@ -21,3 +21,7 @@ describe "Panel", ->
       panel.show()
       expect(panel.isVisible()).toBe true
       expect(spy).toHaveBeenCalledWith(true)
+
+      panel.destroy()
+      expect(panel.isVisible()).toBe false
+      expect(spy).toHaveBeenCalledWith(false)

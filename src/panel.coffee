@@ -21,6 +21,7 @@ class Panel
 
   # Public: Destroy and remove this panel from the UI.
   destroy: ->
+    @hide()
     @emitter.emit 'did-destroy', this
     @emitter.dispose()
 
