@@ -169,13 +169,22 @@ class TextEditorElement extends HTMLElement
 
   isUpdatedSynchronously: -> @updatedSynchronously
 
+  # Extended: get the width of a character of text displayed in this element.
+  #
+  # Returns a {Number} of pixels.
   getDefaultCharacterWidth: ->
     throw new Error("The editor must be attached to get the default character width") unless @attached
     @getModel().getDefaultCharWidth()
 
+  # Extended: call the given `callback` when the editor is attached to the DOM.
+  #
+  # * `callback` {Function}
   onDidAttach: (callback) ->
     @emitter.on("did-attach", callback)
 
+  # Extended: call the given `callback` when the editor is detached from the DOM.
+  #
+  # * `callback` {Function}
   onDidDetach: (callback) ->
     @emitter.on("did-detach", callback)
 
