@@ -62,3 +62,5 @@ repeat these steps to upgrade to future releases.
 Check out the [guides](https://atom.io/docs/latest) and the [API reference](https://atom.io/docs/api).
 
 Hi!
+
+Another Hi!
