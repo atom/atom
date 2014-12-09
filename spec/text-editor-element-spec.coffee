@@ -124,3 +124,13 @@ describe "TextEditorElement", ->
       element.getModel().setText("goodbye")
       expect(window.requestAnimationFrame).not.toHaveBeenCalled()
       expect(element.shadowRoot.textContent).toContain "goodbye"
+
+  describe "::getDefaultCharacterWidth", ->
+    it "throws an exception if the editor is not attached", ->
+      element = new TextEditorElement
+      expect(-> element.getDefaultCharacterWidth()).toThrow("The editor must be attached to get the default character width")
+
+    it "returns the width of a character in the root scope", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
+      expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)

@@ -13,6 +13,7 @@ class TextEditorElement extends HTMLElement
   model: null
   componentDescriptor: null
   component: null
+  attached: false
   lineOverdrawMargin: null
   focusOnAttach: false
 
@@ -57,10 +58,14 @@ class TextEditorElement extends HTMLElement
     @__spacePenView = new TextEditorView(this)
 
   attachedCallback: ->
+    @attached = true
     @buildModel() unless @getModel()?
     @mountComponent() unless @component?.isMounted()
     @component.checkForVisibilityChange()
     @focus() if @focusOnAttach
+
+  detachedCallback: ->
+    @attached = false
 
   initialize: (model) ->
     @setModel(model)
@@ -159,6 +164,10 @@ class TextEditorElement extends HTMLElement
   setUpdatedSynchronously: (@updatedSynchronously) -> @updatedSynchronously
 
   isUpdatedSynchronously: -> @updatedSynchronously
+
+  getDefaultCharacterWidth: ->
+    throw new Error("The editor must be attached to get the default character width") unless @attached
+    @getModel().getDefaultCharWidth()
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
