@@ -664,8 +664,13 @@ TextEditorComponent = React.createClass
   onStylesheetsChanged: (styleElement) ->
     return unless @performedInitialMeasurement
     return unless atom.themes.isInitialLoadComplete()
-    @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
-    @handleStylingChange()
+
+    # This delay prevents the styling from going haywire when stylesheets are
+    # reloaded in dev mode. It seems like a workaround for a browser bug, but
+    # not totally sure.
+    requestAnimationFrame =>
+      @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
+      @handleStylingChange()
 
   onAllThemesLoaded: ->
     @refreshScrollbars()

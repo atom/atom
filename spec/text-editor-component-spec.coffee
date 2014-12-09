@@ -1908,7 +1908,8 @@ describe "TextEditorComponent", ->
         }
       """, context: 'atom-text-editor'
 
-      nextAnimationFrame()
+      nextAnimationFrame() # handle stylesheet change event
+      nextAnimationFrame() # perform requested update
 
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')
       expect(verticalScrollbarNode.offsetWidth).toBe 8
