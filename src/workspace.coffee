@@ -423,14 +423,14 @@ class Workspace extends Model
 
     uri = atom.project.resolve(uri)
 
-    item = @activePane.itemForUri(uri)
+    item = @getActivePane().itemForUri(uri)
     if uri
       item ?= opener(uri, options) for opener in @getOpeners() when !item
     item ?= atom.project.openSync(uri, {initialLine, initialColumn})
 
-    @activePane.activateItem(item)
+    @getActivePane().activateItem(item)
     @itemOpened(item)
-    @activePane.activate() if activatePane
+    @getActivePane().activate() if activatePane
     item
 
   openUriInPane: (uri, pane, options={}) ->
@@ -557,7 +557,7 @@ class Workspace extends Model
   # {::saveActivePaneItemAs} # will be called instead. This method does nothing
   # if the active item does not implement a `.save` method.
   saveActivePaneItem: ->
-    @activePane?.saveActiveItem()
+    @getActivePane().saveActiveItem()
 
   # Prompt the user for a path and save the active pane item to it.
   #
@@ -565,14 +565,14 @@ class Workspace extends Model
   # `.saveAs` on the item with the selected path. This method does nothing if
   # the active item does not implement a `.saveAs` method.
   saveActivePaneItemAs: ->
-    @activePane?.saveActiveItemAs()
+    @getActivePane().saveActiveItemAs()
 
   # Destroy (close) the active pane item.
   #
   # Removes the active pane item and calls the `.destroy` method on it if one is
   # defined.
   destroyActivePaneItem: ->
-    @activePane?.destroyActiveItem()
+    @getActivePane().destroyActiveItem()
 
   ###
   Section: Panes
@@ -616,7 +616,7 @@ class Workspace extends Model
 
   # Destroy (close) the active pane.
   destroyActivePane: ->
-    @activePane?.destroy()
+    @getActivePane()?.destroy()
 
   # Destroy the active pane item or the active pane if it is empty.
   destroyActivePaneItemOrEmptyPane: ->
