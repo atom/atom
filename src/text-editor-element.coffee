@@ -1,3 +1,4 @@
+{Emitter} = require 'event-kit'
 {View, $, callRemoveHooks} = require 'space-pen'
 React = require 'react-atom-fork'
 Path = require 'path'
@@ -13,10 +14,12 @@ class TextEditorElement extends HTMLElement
   model: null
   componentDescriptor: null
   component: null
+  attached: false
   lineOverdrawMargin: null
   focusOnAttach: false
 
   createdCallback: ->
+    @emitter = new Emitter
     @initializeContent()
     @createSpacePenShim()
     @addEventListener 'focus', @focused.bind(this)
@@ -61,6 +64,10 @@ class TextEditorElement extends HTMLElement
     @mountComponent() unless @component?.isMounted()
     @component.checkForVisibilityChange()
     @focus() if @focusOnAttach
+    @emitter.emit("did-attach")
+
+  detachedCallback: ->
+    @emitter.emit("did-detach")
 
   initialize: (model) ->
     @setModel(model)
@@ -159,6 +166,24 @@ class TextEditorElement extends HTMLElement
   setUpdatedSynchronously: (@updatedSynchronously) -> @updatedSynchronously
 
   isUpdatedSynchronously: -> @updatedSynchronously
+
+  # Extended: get the width of a character of text displayed in this element.
+  #
+  # Returns a {Number} of pixels.
+  getDefaultCharacterWidth: ->
+    @getModel().getDefaultCharWidth()
+
+  # Extended: call the given `callback` when the editor is attached to the DOM.
+  #
+  # * `callback` {Function}
+  onDidAttach: (callback) ->
+    @emitter.on("did-attach", callback)
+
+  # Extended: call the given `callback` when the editor is detached from the DOM.
+  #
+  # * `callback` {Function}
+  onDidDetach: (callback) ->
+    @emitter.on("did-detach", callback)
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}

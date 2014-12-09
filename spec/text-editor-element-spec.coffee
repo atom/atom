@@ -104,6 +104,27 @@ describe "TextEditorElement", ->
       scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
       expect(scrollbarWidth).toEqual(8)
 
+  describe "::onDidAttach and ::onDidDetach", ->
+    it "invokes callbacks when the element is attached and detached", ->
+      element = new TextEditorElement
+
+      attachedCallback = jasmine.createSpy("attachedCallback")
+      detachedCallback = jasmine.createSpy("detachedCallback")
+
+      element.onDidAttach(attachedCallback)
+      element.onDidDetach(detachedCallback)
+
+      jasmine.attachToDOM(element)
+
+      expect(attachedCallback).toHaveBeenCalled()
+      expect(detachedCallback).not.toHaveBeenCalled()
+
+      attachedCallback.reset()
+      element.remove()
+
+      expect(attachedCallback).not.toHaveBeenCalled()
+      expect(detachedCallback).toHaveBeenCalled()
+
   describe "::setUpdatedSynchronously", ->
     it "controls whether the text editor is updated synchronously", ->
       spyOn(window, 'requestAnimationFrame').andCallFake (fn) -> fn()
@@ -124,3 +145,13 @@ describe "TextEditorElement", ->
       element.getModel().setText("goodbye")
       expect(window.requestAnimationFrame).not.toHaveBeenCalled()
       expect(element.shadowRoot.textContent).toContain "goodbye"
+
+  describe "::getDefaultCharacterWidth", ->
+    it "returns null before the element is attached", ->
+      element = new TextEditorElement
+      expect(element.getDefaultCharacterWidth()).toBeNull()
+
+    it "returns the width of a character in the root scope", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
+      expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
