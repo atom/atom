@@ -15,7 +15,7 @@ class PanelElement extends HTMLElement
     this
 
   getModel: ->
-    @model or= new Panel({})
+    @model ?= new Panel
 
   getItemView: ->
     atom.views.getView(@getModel().getItem())
