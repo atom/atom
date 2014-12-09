@@ -81,7 +81,11 @@ setupCoffeeScript = ->
 
 # Set Atom's home in process.env.ATOM_HOME
 setupConfigDirPath = ->
-  portablePath = process.resourcesPath.slice(0, -10) + '/.atom'
+  portablePath =
+    if process.platform == 'darwin'
+      process.resourcesPath.slice(0, -19) + '/.atom'
+    else
+      process.resourcesPath.slice(0, -10) + '/.atom'
   process.env.ATOM_HOME =
     if fs.existsSync(portablePath)
       portablePath
