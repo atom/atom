@@ -147,9 +147,9 @@ describe "TextEditorElement", ->
       expect(element.shadowRoot.textContent).toContain "goodbye"
 
   describe "::getDefaultCharacterWidth", ->
-    it "throws an exception if the editor is not attached", ->
+    it "returns null before the element is attached", ->
       element = new TextEditorElement
-      expect(-> element.getDefaultCharacterWidth()).toThrow("The editor must be attached to get the default character width")
+      expect(element.getDefaultCharacterWidth()).toBeNull()
 
     it "returns the width of a character in the root scope", ->
       element = new TextEditorElement

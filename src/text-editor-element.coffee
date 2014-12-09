@@ -60,7 +60,6 @@ class TextEditorElement extends HTMLElement
     @__spacePenView = new TextEditorView(this)
 
   attachedCallback: ->
-    @attached = true
     @buildModel() unless @getModel()?
     @mountComponent() unless @component?.isMounted()
     @component.checkForVisibilityChange()
@@ -68,7 +67,6 @@ class TextEditorElement extends HTMLElement
     @emitter.emit("did-attach")
 
   detachedCallback: ->
-    @attached = false
     @emitter.emit("did-detach")
 
   initialize: (model) ->
@@ -173,7 +171,6 @@ class TextEditorElement extends HTMLElement
   #
   # Returns a {Number} of pixels.
   getDefaultCharacterWidth: ->
-    throw new Error("The editor must be attached to get the default character width") unless @attached
     @getModel().getDefaultCharWidth()
 
   # Extended: call the given `callback` when the editor is attached to the DOM.
