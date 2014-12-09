@@ -14,7 +14,7 @@ class Panel
   Section: Construction and Destruction
   ###
 
-  constructor: ({@item, @visible, @priority, @className}) ->
+  constructor: ({@item, @visible, @priority, @className}={}) ->
     @emitter = new Emitter
     @visible ?= true
     @priority ?= 100
