@@ -107,8 +107,9 @@ class List extends Command
   listInstalledPackages: (options) ->
     @listDevPackages options, (error, packages) =>
       @logPackages(packages, options)
-    @listUserPackages options, (error, packages) =>
-      @logPackages(packages, options)
+
+      @listUserPackages options, (error, packages) =>
+        @logPackages(packages, options)
 
   listPackagesAsJson: (options) ->
     output =
