@@ -31,7 +31,7 @@ This is no longer recommended now that the Atom Windows installer & auto-updater
 exists.
 
 To switch from Chocolatey to the new installer:
-  * Upgrade to Atom 0.155 by running `cup Atom`
+  * Upgrade to Atom 0.155 or above by running `cup Atom`
   * Run `cuninst Atom` to uninstall the Chocolatey version of Atom
   * Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
   * Double-click the downloaded file to install Atom
