@@ -8,8 +8,6 @@ class AutoUpdater
   setFeedUrl: (@updateUrl) ->
 
   quitAndInstall: ->
-    console.log 'restarting new atom.exe'
-
     if SquirrelUpdate.existsSync()
       SquirrelUpdate.restartAtom()
     else
@@ -46,7 +44,6 @@ class AutoUpdater
 
     @downloadUpdate (error, update) =>
       if error?
-        console.log "Failed to download: #{error.message} - #{error.code} - #{error.stdout}"
         @emit 'update-not-available'
         return
 
@@ -56,11 +53,8 @@ class AutoUpdater
 
       @installUpdate (error) =>
         if error?
-          console.log "Failed to update: #{error.message} - #{error.code} - #{error.stdout}"
           @emit 'update-not-available'
           return
-
-        console.log "Updated to #{update.version}"
 
         @emit 'update-available'
         @emit 'update-downloaded', {}, update.releaseNotes, update.version, new Date(), 'https://atom.io', => @quitAndInstall()
