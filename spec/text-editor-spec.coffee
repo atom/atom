@@ -192,12 +192,18 @@ describe "TextEditor", ->
         expect(editor.getCursorBufferPosition()).toEqual [1, 1]
 
       it "emits an event with the old position, new position, and the cursor that moved", ->
-        editor.onDidChangeCursorPosition positionChangedHandler = jasmine.createSpy()
+        cursorCallback = jasmine.createSpy('cursor-changed-position')
+        editorCallback = jasmine.createSpy('editor-changed-cursor-position')
+
+        editor.getLastCursor().onDidChangePosition(cursorCallback)
+        editor.onDidChangeCursorPosition(editorCallback)
 
         editor.setCursorBufferPosition([2, 4])
 
-        expect(positionChangedHandler).toHaveBeenCalled()
-        eventObject = positionChangedHandler.mostRecentCall.args[0]
+        expect(editorCallback).toHaveBeenCalled()
+        expect(cursorCallback).toHaveBeenCalled()
+        eventObject = editorCallback.mostRecentCall.args[0]
+        expect(cursorCallback.mostRecentCall.args[0]).toEqual(eventObject)
 
         expect(eventObject.oldBufferPosition).toEqual [0, 0]
         expect(eventObject.oldScreenPosition).toEqual [0, 0]
