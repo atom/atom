@@ -33,7 +33,7 @@ exists.
 To switch from Chocolatey to the new installer:
   * Upgrade to Atom 0.155 or above by running `cup Atom`
   * Run `cuninst Atom` to uninstall the Chocolatey version of Atom
-    * This will not delete your installed packages or saved Atom state.
+    * This will not delete any of your installed packages or Atom config files.
   * Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
   * Double-click the downloaded file to install Atom
 
