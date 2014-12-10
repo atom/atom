@@ -99,7 +99,7 @@ class List extends Command
       _atomPackages ?= {}
 
       if options.argv.json
-        packageMetadata = (v['metadata'] for k, v of _atomPackages)
+        packageMetadata = (v.metadata for k, v of _atomPackages)
         packages = packageMetadata.filter ({name}) ->
           packageDependencies.hasOwnProperty(name)
       else
@@ -115,25 +115,24 @@ class List extends Command
       callback?(null, packages)
 
   listInstalledPackages: (options) ->
-    @listDevPackages options, (err, packages) =>
+    @listDevPackages options, (error, packages) =>
       @logPackages(packages, options)
-    @listUserPackages options, (err, packages) =>
+    @listUserPackages options, (error, packages) =>
       @logPackages(packages, options)
 
   listPackagesAsJson: (options) ->
-    out =
+    output =
       core: []
       dev: []
       user: []
 
-    @listBundledPackages options, (err, packages) =>
-      out.core = packages
-      @listDevPackages options, (err, packages) =>
-        out.dev = packages
-        @listUserPackages options, (err, packages) =>
-          out.user = packages
-          console.log JSON.stringify(out)
-
+    @listBundledPackages options, (error, packages) =>
+      output.core = packages
+      @listDevPackages options, (error, packages) =>
+        output.dev = packages
+        @listUserPackages options, (error, packages) =>
+          output.user = packages
+          console.log JSON.stringify(output)
 
   run: (options) ->
     {callback} = options
@@ -145,7 +144,7 @@ class List extends Command
       @listInstalledPackages(options)
       callback()
     else
-      @listBundledPackages options, (err, packages) =>
+      @listBundledPackages options, (error, packages) =>
         @logPackages(packages, options)
         @listInstalledPackages(options)
         callback()
