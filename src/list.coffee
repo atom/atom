@@ -89,22 +89,12 @@ class List extends Command
 
   listBundledPackages: (options, callback) ->
     config.getResourcePath (resourcePath) =>
-      nodeModulesDirectory = path.join(resourcePath, 'node_modules')
-      packages = @listPackages(nodeModulesDirectory, options)
-
       try
         metadataPath = path.join(resourcePath, 'package.json')
         {packageDependencies, _atomPackages} = JSON.parse(fs.readFileSync(metadataPath))
       packageDependencies ?= {}
       _atomPackages ?= {}
-
-      if options.argv.json
-        packageMetadata = (v.metadata for k, v of _atomPackages)
-        packages = packageMetadata.filter ({name}) ->
-          packageDependencies.hasOwnProperty(name)
-      else
-        packages = packages.filter ({name}) ->
-          packageDependencies.hasOwnProperty(name)
+      packages = (metadata for packageName, {metadata} of _atomPackages)
 
       unless options.argv.bare or options.argv.json
         if options.argv.themes
