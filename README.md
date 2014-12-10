@@ -24,6 +24,18 @@ Atom will automatically update when a new release is available.
 You can also download an `atom-windows.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
 The `.zip` version will not automatically update.
 
+#### Uninstalling Chocolatey Version
+
+The recommended installation of Atom on Windows used to be using [Chocolatey](https://chocolatey.org/packages/Atom/).
+This is no longer recommended now that the Atom Windows installer & auto-updater
+exists.
+
+To switch from Chocolatey to the new installer:
+  * Upgrade to Atom 0.155 by running `cup Atom`
+  * Run `cuninst Atom` to uninstall the Chocolatey version of Atom
+  * Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
+  * Double-click the downloaded file to install Atom
+
 ### Debian Linux (Ubuntu)
 
 Currently only a 64-bit version is available.
