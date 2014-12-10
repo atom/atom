@@ -36,8 +36,8 @@ class List extends Command
     options.alias('b', 'bare').boolean('bare').describe('bare', 'Print packages one per line with no formatting')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('i', 'installed').boolean('installed').describe('installed', 'Only list installed packages/themes')
-    options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
     options.alias('j', 'json').boolean('json').describe('json',  'Output all packages as a JSON object')
+    options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
 
   isPackageDisabled: (name) ->
     @disabledPackages.indexOf(name) isnt -1
