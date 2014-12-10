@@ -115,8 +115,7 @@ class Install extends Command
     @updateWindowsEnv(env) if config.isWin32()
     @addNodeBinToEnv(env)
     installOptions = {env}
-
-    installOptions['streaming'] = true if @verbose
+    installOptions.streaming = true if @verbose
 
     installGlobally = options.installGlobally ? true
     if installGlobally
