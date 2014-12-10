@@ -47,6 +47,7 @@ class Install extends Command
     options.alias('s', 'silent').boolean('silent').describe('silent', 'Set the npm log level to silent')
     options.alias('q', 'quiet').boolean('quiet').describe('quiet', 'Set the npm log level to warn')
     options.boolean('check').describe('check', 'Check that native build tools are installed')
+    options.boolean('verbose').default('verbose', false).describe('verbose', 'Show verbose debug information')
     options.string('packages-file').describe('packages-file', 'A text file containing the packages to install')
 
   installNode: (callback) =>
@@ -72,7 +73,10 @@ class Install extends Command
       proxy = npm.config.get('https-proxy') or npm.config.get('proxy')
       installNodeArgs.push("--proxy=#{proxy}") if proxy
 
-      @fork @atomNodeGypPath, installNodeArgs, {env, cwd: @atomDirectory}, (code, stderr='', stdout='') ->
+      opts = {env, cwd: @atomDirectory}
+      opts.streaming = true if @verbose
+
+      @fork @atomNodeGypPath, installNodeArgs, opts, (code, stderr='', stdout='') ->
         if code is 0
           callback()
         else
@@ -111,6 +115,8 @@ class Install extends Command
     @updateWindowsEnv(env) if config.isWin32()
     @addNodeBinToEnv(env)
     installOptions = {env}
+
+    installOptions['streaming'] = true if @verbose
 
     installGlobally = options.installGlobally ? true
     if installGlobally
@@ -172,6 +178,7 @@ class Install extends Command
     @addNodeBinToEnv(env)
     installOptions = {env}
     installOptions.cwd = options.cwd if options.cwd
+    installOptions.streaming = true if @verbose
 
     @fork(@atomNpmPath, installArgs, installOptions, callback)
 
@@ -372,6 +379,7 @@ class Install extends Command
       @updateWindowsEnv(env) if config.isWin32()
       @addNodeBinToEnv(env)
       buildOptions = {env}
+      buildOptions.streaming = true if @verbose
 
       fs.removeSync(path.resolve(__dirname, '..', 'native-module', 'build'))
 
@@ -457,6 +465,9 @@ class Install extends Command
     @createAtomDirectories()
 
     return @checkNativeBuildTools(callback) if options.argv.check
+
+    @verbose = options.argv.verbose
+    process.env.NODE_DEBUG = 'request' if @verbose
 
     installPackage = (name, callback) =>
       if name is '.'
