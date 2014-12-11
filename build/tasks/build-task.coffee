@@ -151,8 +151,8 @@ module.exports = (grunt) ->
           grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
     if process.platform is 'win32'
-      cp path.join('win', 'resources', 'atom.cmd'), path.join(shellAppDir, 'cli', 'atom.cmd')
-      cp path.join('win', 'resources', 'atom.js'), path.join(shellAppDir, 'cli', 'atom.js')
+      cp path.join('resources', 'win', 'atom.cmd'), path.join(shellAppDir, 'cli', 'atom.cmd')
+      cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'cli', 'atom.js')
 
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
