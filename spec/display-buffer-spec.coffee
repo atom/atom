@@ -1085,6 +1085,12 @@ describe "DisplayBuffer", ->
         expect(oldProperties).toEqual decorationProperties
         expect(newProperties).toEqual type: 'gutter', class: 'two', id: decoration.id
 
+    describe "::getDecorations(properties)", ->
+      it "returns decorations matching the given optional properties", ->
+        expect(displayBuffer.getDecorations()).toEqual [decoration]
+        expect(displayBuffer.getDecorations(class: 'two').length).toEqual 0
+        expect(displayBuffer.getDecorations(class: 'one').length).toEqual 1
+
   describe "::setScrollTop", ->
     beforeEach ->
       displayBuffer.manageScrollPosition = true

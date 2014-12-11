@@ -1310,33 +1310,48 @@ class TextEditor extends Model
 
   # Extended: Get all decorations.
   #
+  # * `propertyFilter` (optional) An {Object} containing key value pairs that
+  #   the returned decorations' properties must match.
+  #
   # Returns an {Array} of {Decoration}s.
-  getDecorations: ->
-    @displayBuffer.getDecorations()
+  getDecorations: (propertyFilter) ->
+    @displayBuffer.getDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'line'.
   #
+  # * `propertyFilter` (optional) An {Object} containing key value pairs that
+  #   the returned decorations' properties must match.
+  #
   # Returns an {Array} of {Decoration}s.
-  getLineDecorations: ->
-    @displayBuffer.getLineDecorations()
+  getLineDecorations: (propertyFilter) ->
+    @displayBuffer.getLineDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'gutter'.
   #
+  # * `propertyFilter` (optional) An {Object} containing key value pairs that
+  #   the returned decorations' properties must match.
+  #
   # Returns an {Array} of {Decoration}s.
-  getGutterDecorations: ->
-    @displayBuffer.getGutterDecorations()
+  getGutterDecorations: (propertyFilter) ->
+    @displayBuffer.getGutterDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'highlight'.
   #
+  # * `propertyFilter` (optional) An {Object} containing key value pairs that
+  #   the returned decorations' properties must match.
+  #
   # Returns an {Array} of {Decoration}s.
-  getHighlightDecorations: ->
-    @displayBuffer.getHighlightDecorations()
+  getHighlightDecorations: (propertyFilter) ->
+    @displayBuffer.getHighlightDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'overlay'.
   #
+  # * `propertyFilter` (optional) An {Object} containing key value pairs that
+  #   the returned decorations' properties must match.
+  #
   # Returns an {Array} of {Decoration}s.
-  getOverlayDecorations: ->
-    @displayBuffer.getOverlayDecorations()
+  getOverlayDecorations: (propertyFilter) ->
+    @displayBuffer.getOverlayDecorations(propertyFilter)
 
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)

@@ -883,23 +883,28 @@ class DisplayBuffer extends Model
   decorationForId: (id) ->
     @decorationsById[id]
 
-  getDecorations: ->
+  getDecorations: (propertyFilter) ->
     allDecorations = []
     for markerId, decorations of @decorationsByMarkerId
       allDecorations = allDecorations.concat(decorations) if decorations?
+    if propertyFilter?
+      allDecorations = allDecorations.filter (decoration) ->
+        for key, value of propertyFilter
+          return false unless decoration.properties[key] is value
+        true
     allDecorations
 
-  getLineDecorations: ->
-    @getDecorations().filter (decoration) -> decoration.isType('line')
+  getLineDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line')
 
-  getGutterDecorations: ->
-    @getDecorations().filter (decoration) -> decoration.isType('gutter')
+  getGutterDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('gutter')
 
-  getHighlightDecorations: ->
-    @getDecorations().filter (decoration) -> decoration.isType('highlight')
+  getHighlightDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('highlight')
 
-  getOverlayDecorations: ->
-    @getDecorations().filter (decoration) -> decoration.isType('overlay')
+  getOverlayDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('overlay')
 
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
