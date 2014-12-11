@@ -98,6 +98,11 @@ module.exports =
         type: ['string', 'null']
 
       # These can be used as globals or scoped, thus defaults.
+      completions:
+        type: "array"
+        items:
+          type: "string"
+        default: []
       fontFamily:
         type: 'string'
         default: ''
