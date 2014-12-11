@@ -1,3 +1,5 @@
 '.source.omg':
   'editor':
     'increaseIndentPattern': '^a'
+    'commentStart': '/*'
+    'commentEnd': '*/'

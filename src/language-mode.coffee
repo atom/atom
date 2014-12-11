@@ -30,13 +30,15 @@ class LanguageMode
   # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([start, 0])
-    properties = atom.config.settingsForScopeDescriptor(scopeDescriptor, 'editor.commentStart')[0]
-    return unless properties
 
-    commentStartString = _.valueForKeyPath(properties, 'editor.commentStart')
-    commentEndString = _.valueForKeyPath(properties, 'editor.commentEnd')
+    commentStrings = atom.config.get(scopeDescriptor, 'editor.comment')
 
-    return unless commentStartString
+    return unless commentStrings?
+
+    commentStartString = commentStrings.start
+    commentEndString = commentStrings.end
+
+    return unless commentStartString?
 
     buffer = @editor.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')

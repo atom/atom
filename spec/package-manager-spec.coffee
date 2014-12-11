@@ -1,3 +1,4 @@
+Grim = require 'grim'
 {$, $$} = require '../src/space-pen-extensions'
 Package = require '../src/package'
 
@@ -5,6 +6,7 @@ describe "PackageManager", ->
   workspaceElement = null
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
+    spyOn(Grim, 'deprecate') # suppress deprecation warnings due to comment strings
 
   describe "::loadPackage(name)", ->
     it "continues if the package has an invalid package.json", ->
@@ -369,6 +371,18 @@ describe "PackageManager", ->
           runs ->
             expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
+        it "combines 'editor.commentStart' and 'editor.commentEnd' strings under the 'editor.comment' key path", ->
+          if atom.packages.isPackageLoaded("package-with-scoped-properties")
+            atom.packages.unloadPackage("package-with-scoped-properties")
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-scoped-properties")
+
+          runs ->
+            expect(atom.config.get ['.source.omg'], 'editor.comment.start').toBe '/*'
+            expect(atom.config.get ['.source.omg'], 'editor.comment.end').toBe '*/'
+            expect(Grim.deprecate).toHaveBeenCalled()
+
     describe "converted textmate packages", ->
       it "loads the package's grammars", ->
         expect(atom.grammars.selectGrammar("file.rb").name).toBe "Null Grammar"
@@ -386,7 +400,7 @@ describe "PackageManager", ->
           atom.packages.activatePackage('language-ruby')
 
         runs ->
-          expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBe '# '
+          expect(atom.config.get(['.source.ruby'], 'editor.comment.start')).toBe '# '
 
   describe "::deactivatePackage(id)", ->
     afterEach ->

@@ -1,3 +1,4 @@
+Grim = require 'grim'
 CSON = require 'season'
 {CompositeDisposable} = require 'event-kit'
 
@@ -11,6 +12,19 @@ class ScopedProperties
         callback(null, new ScopedProperties(scopedPropertiesPath, scopedProperties))
 
   constructor: (@path, @scopedProperties) ->
+    for selector, properties of @scopedProperties
+      if properties.editor?.commentStart?
+        properties.editor.comment ?= {}
+        properties.editor.comment.start ?= properties.editor.commentStart
+        delete properties.editor.commentStart
+        Grim.deprecate("The 'editor.commentStart' setting has been moved to 'editor.comment.start'.  Please update `#{@path}`.")
+
+      if properties.editor?.commentEnd?
+        properties.editor.comment ?= {}
+        properties.editor.comment.end ?= properties.editor.commentEnd
+        delete properties.editor.commentEnd
+        Grim.deprecate("The 'editor.commentEnd' setting has been moved to 'editor.comment.end'. Please update `#{@path}`.")
+
     @propertyDisposable = new CompositeDisposable
 
   activate: ->
