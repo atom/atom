@@ -150,7 +150,7 @@ atom.commands.add 'atom-workspace',
   'window:focus-pane-on-right': -> @focusPaneViewOnRight()
   'window:save-all': -> @getModel().saveAll()
   'window:toggle-invisibles': -> atom.config.toggle("editor.showInvisibles")
-  'window:log-deprecation-warnings': -> Grim.logDeprecationWarnings()
+  'window:log-deprecation-warnings': -> Grim.logDeprecations()
   'window:toggle-auto-indent': -> atom.config.toggle("editor.autoIndent")
   'pane:reopen-closed-item': -> @getModel().reopenItem()
   'core:close': -> @getModel().destroyActivePaneItemOrEmptyPane()
