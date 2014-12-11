@@ -112,10 +112,10 @@ uninstallContextMenu = (callback) ->
 addCommandsToPath = (callback) ->
   installCommands = (callback) ->
     atomCommandPath = path.join(binFolder, 'atom.cmd')
-    relativeCmdPath = path.relative(binFolder, path.join(appFolder, 'cli', 'atom.cmd'))
+    relativeAtomPath = path.relative(binFolder, path.join(appFolder, 'cli', 'atom.cmd'))
     atomCommand = """
       @echo off
-      "%~dp0\\#{relativeExePath}" %*
+      "%~dp0\\#{relativeAtomPath}" %*
     """
 
     apmCommandPath = path.join(binFolder, 'apm.cmd')
