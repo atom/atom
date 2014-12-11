@@ -3,7 +3,8 @@ ChildProcess = require 'child_process'
 fs = require 'fs-plus'
 path = require 'path'
 
-rootAtomFolder = path.resolve(process.execPath, '..', '..')
+appFolder = path.resolve(process.execPath, '..')
+rootAtomFolder = path.resolve(appFolder, '..')
 binFolder = path.join(rootAtomFolder, 'bin')
 updateDotExe = path.join(rootAtomFolder, 'Update.exe')
 exeName = path.basename(process.execPath)
@@ -111,7 +112,7 @@ uninstallContextMenu = (callback) ->
 addCommandsToPath = (callback) ->
   installCommands = (callback) ->
     atomCommandPath = path.join(binFolder, 'atom.cmd')
-    relativeExePath = path.relative(binFolder, process.execPath)
+    relativeCmdPath = path.relative(binFolder, path.join(appFolder, 'cli', 'atom.cmd'))
     atomCommand = """
       @echo off
       "%~dp0\\#{relativeExePath}" %*

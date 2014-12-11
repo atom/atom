@@ -1,20 +1,23 @@
 @echo off
 
-SET EXPECTOUTPUT=
+SET EXPECT_OUTPUT=
 
 FOR %%a IN (%*) DO (
-  IF /I "%%a"=="-h"           SET EXPECTOUTPUT=YES
-  IF /I "%%a"=="--help"       SET EXPECTOUTPUT=YES
-  IF /I "%%a"=="-v"           SET EXPECTOUTPUT=YES
-  IF /I "%%a"=="--version"    SET EXPECTOUTPUT=YES
-  IF /I "%%a"=="-f"           SET EXPECTOUTPUT=YES
-  IF /I "%%a"=="--foreground" SET EXPECTOUTPUT=YES
-  IF /I "%%a"=="-w"           SET EXPECTOUTPUT=YES
-  IF /I "%%a"=="--wait"       SET EXPECTOUTPUT=YES
+  IF /I "%%a"=="-h"           SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="--help"       SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="-v"           SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="--version"    SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="-f"           SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="--foreground" SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="-w"           SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="--wait"       SET EXPECT_OUTPUT=YES
 )
 
-IF "%EXPECTOUTPUT%"=="YES" (
-  "C:\Users\kevin\AppData\Local\atom\app-0.156.0\atom.exe" %*
+SET ATOM_COMMAND="%~dp0\..\atom.exe"
+SET NODE_COMMAND="%~dp0\..\resources\app\apm\node_modules\atom-package-manager\bin\node.exe"
+
+IF "%EXPECT_OUTPUT%"=="YES" (
+  "%ATOM_COMMAND%" %*
 ) ELSE (
-  node "%~dp0\atom.js" "C:\Users\kevin\AppData\Local\atom\app-0.156.0\atom.exe" %* --executed-from=%CD%
+  "%NODE_COMMAND%" "%~dp0\atom.js" "%ATOM_COMMAND%" %* --executed-from=%CD%
 )

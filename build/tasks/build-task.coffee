@@ -149,10 +149,8 @@ module.exports = (grunt) ->
           grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
     if process.platform is 'win32'
-      # Set up chocolatey ignore and gui files
-      fs.writeFileSync path.join(appDir, 'apm', 'node_modules', 'atom-package-manager', 'bin', 'node.exe.ignore'), ''
-      fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
-      fs.writeFileSync path.join(shellAppDir, 'atom.exe.gui'), ''
+      cp path.join('win', 'resources', 'atom.cmd'), path.join(shellAppDir, 'cli', 'atom.cmd')
+      cp path.join('win', 'resources', 'atom.js'), path.join(shellAppDir, 'cli', 'atom.js')
 
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
