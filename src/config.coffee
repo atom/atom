@@ -517,7 +517,7 @@ class Config
         return false
 
     if scopeSelector?
-      @setRawScopedValue(scopeSelector, keyPath, value)
+      @usersScopedSettings.add @setRawScopedValue('user-config', scopeSelector, keyPath, value, @usersScopedSettingPriority)
     else
       @setRawValue(keyPath, value)
 
@@ -888,16 +888,10 @@ class Config
     @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', newScopedSettings, @usersScopedSettingPriority)
     @emitter.emit 'did-change'
 
-  addScopedSettings: (source, selector, value, options) ->
-    settingsBySelector = {}
-    settingsBySelector[selector] = value
-    disposable = @scopedSettingsStore.addProperties(source, settingsBySelector, options)
-    @emitter.emit 'did-change'
-    new Disposable =>
-      disposable.dispose()
-      @emitter.emit 'did-change'
+  addScopedSettings: (sourceName, selector, value, options) ->
+    @setRawScopedValue(sourceName, selector, null, value, options)
 
-  setRawScopedValue: (selector, keyPath, value) ->
+  setRawScopedValue: (sourceName, selector, keyPath, value, options) ->
     if keyPath?
       newValue = {}
       _.setValueForKeyPath(newValue, keyPath, value)
@@ -905,8 +899,11 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', settingsBySelector, @usersScopedSettingPriority)
+    disposable = @scopedSettingsStore.addProperties(sourceName, settingsBySelector, options)
     @emitter.emit 'did-change'
+    new Disposable =>
+      disposable.dispose()
+      @emitter.emit 'did-change'
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
