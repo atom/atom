@@ -501,13 +501,13 @@ class Config
   # * `value` The value of the setting. Passing `undefined` will revert the
   #   setting to the default value.
   #
-  # Returns a {Boolean}
-  # * `true` if the value was set.
-  # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
+  # Returns:
+  # * a {Disposable} that can be used to remove the setting, if the value was set.
+  # * `null` if the value was not able to be coerced to the type specified in the schema.
   set: (args...) ->
     disposable = @setFromSource('user-config', args...)
     @usersScopedSettings.add(disposable)
-    disposable?
+    disposable
 
   # Extended: Sets the value for a configuration setting and associates
   # the value with a given source.

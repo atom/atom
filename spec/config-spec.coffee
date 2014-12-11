@@ -12,7 +12,7 @@ describe "Config", ->
 
   describe ".get(keyPath)", ->
     it "allows a key path's value to be read", ->
-      expect(atom.config.set("foo.bar.baz", 42)).toBe true
+      expect(atom.config.set("foo.bar.baz", 42)).toBeTruthy()
       expect(atom.config.get("foo.bar.baz")).toBe 42
       expect(atom.config.get("bogus.key.path")).toBeUndefined()
 
@@ -37,7 +37,7 @@ describe "Config", ->
 
   describe ".set(keyPath, value)", ->
     it "allows a key path's value to be written", ->
-      expect(atom.config.set("foo.bar.baz", 42)).toBe true
+      expect(atom.config.set("foo.bar.baz", 42)).toBeTruthy()
       expect(atom.config.get("foo.bar.baz")).toBe 42
 
     it "updates observers and saves when a key path is set", ->
@@ -979,19 +979,19 @@ describe "Config", ->
         expect(atom.config.get('foo.bar.aString')).toBe 'yep'
 
       it 'will only set strings', ->
-        expect(atom.config.set('foo.bar.aString', 123)).toBe false
+        expect(atom.config.set('foo.bar.aString', 123)).toBeNull()
         expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
-        expect(atom.config.set('foo.bar.aString', true)).toBe false
+        expect(atom.config.set('foo.bar.aString', true)).toBeNull()
         expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
-        expect(atom.config.set('foo.bar.aString', null)).toBe false
+        expect(atom.config.set('foo.bar.aString', null)).toBeNull()
         expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
-        expect(atom.config.set('foo.bar.aString', [])).toBe false
+        expect(atom.config.set('foo.bar.aString', [])).toBeNull()
         expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
-        expect(atom.config.set('foo.bar.aString', nope: 'nope')).toBe false
+        expect(atom.config.set('foo.bar.aString', nope: 'nope')).toBeNull()
         expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
     describe 'when the value has an "object" type', ->
@@ -1025,7 +1025,7 @@ describe "Config", ->
           anInt: 'nope'
           nestedObject:
             nestedBool: true
-        ).toBe true
+        ).toBeTruthy()
         expect(atom.config.get('foo.bar.anInt')).toEqual 12
         expect(atom.config.get('foo.bar.nestedObject.nestedBool')).toEqual true
 
@@ -1065,24 +1065,24 @@ describe "Config", ->
         atom.config.setSchema('foo.bar', schema)
 
       it 'will only set a string when the string is in the enum values', ->
-        expect(atom.config.set('foo.bar.str', 'nope')).toBe false
+        expect(atom.config.set('foo.bar.str', 'nope')).toBeNull()
         expect(atom.config.get('foo.bar.str')).toBe 'ok'
 
-        expect(atom.config.set('foo.bar.str', 'one')).toBe true
+        expect(atom.config.set('foo.bar.str', 'one')).toBeTruthy()
         expect(atom.config.get('foo.bar.str')).toBe 'one'
 
       it 'will only set an integer when the integer is in the enum values', ->
-        expect(atom.config.set('foo.bar.int', '400')).toBe false
+        expect(atom.config.set('foo.bar.int', '400')).toBeNull()
         expect(atom.config.get('foo.bar.int')).toBe 2
 
-        expect(atom.config.set('foo.bar.int', '3')).toBe true
+        expect(atom.config.set('foo.bar.int', '3')).toBeTruthy()
         expect(atom.config.get('foo.bar.int')).toBe 3
 
       it 'will only set an array when the array values are in the enum values', ->
-        expect(atom.config.set('foo.bar.arr', ['one', 'five'])).toBe true
+        expect(atom.config.set('foo.bar.arr', ['one', 'five'])).toBeTruthy()
         expect(atom.config.get('foo.bar.arr')).toEqual ['one']
 
-        expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
+        expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBeTruthy()
         expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
 
     describe "when scoped settings are used", ->
@@ -1138,7 +1138,7 @@ describe "Config", ->
         atom.config.setFromSource("config", ".source", "foo.bar.baz", 11)
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
 
-        expect(atom.config.set(".source.coffee .string.quoted.double.coffee", "foo.bar.baz", 100)).toBe true
+        expect(atom.config.set(".source.coffee .string.quoted.double.coffee", "foo.bar.baz", 100)).toBeTruthy()
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 100
 
       it "allows properties to be removed by name", ->
