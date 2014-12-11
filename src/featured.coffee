@@ -26,11 +26,11 @@ class Featured extends Command
     options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
     options.boolean('json').describe('json', 'Output featured packages as JSON array')
 
-  getFeaturedPackages: (atomVersion, callback) ->
+  getFeaturedPackages: (atomVersion, packageType, callback) ->
     [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
 
     requestSettings =
-      url: "#{config.getAtomPackagesUrl()}/featured"
+      url: "#{config.getAtomApiUrl()}/#{packageType}/featured"
       json: true
     requestSettings.qs = engine: atomVersion if atomVersion
 
@@ -50,13 +50,12 @@ class Featured extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    @getFeaturedPackages options.argv.compatible, (error, packages) ->
+    packageType = if options.argv.themes then 'themes' else 'packages'
+
+    @getFeaturedPackages options.argv.compatible, packageType, (error, packages) ->
       if error?
         callback(error)
         return
-
-      if options.argv.themes
-        packages = packages.filter ({theme}) -> theme
 
       if options.argv.json
         console.log(JSON.stringify(packages))

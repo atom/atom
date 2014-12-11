@@ -11,12 +11,15 @@ describe 'apm featured', ->
     spyOnToken()
 
     app = express()
-    app.get '/featured', (request, response) ->
-      response.sendfile path.join(__dirname, 'fixtures', 'available.json')
+    app.get '/packages/featured', (request, response) ->
+      response.sendfile path.join(__dirname, 'fixtures', 'packages.json')
+    app.get '/themes/featured', (request, response) ->
+      response.sendfile path.join(__dirname, 'fixtures', 'themes.json')
+
     server =  http.createServer(app)
     server.listen(3000)
 
-    process.env.ATOM_PACKAGES_URL = "http://localhost:3000"
+    process.env.ATOM_API_URL = "http://localhost:3000"
 
   afterEach ->
     server.close()
@@ -33,7 +36,7 @@ describe 'apm featured', ->
       expect(console.log.argsForCall[1][0]).toContain 'beverly-hills'
 
   describe 'when the theme flag is specified', ->
-    it "only lists themes", ->
+    it "lists the featured themes", ->
       callback = jasmine.createSpy('callback')
       apm.run(['featured', '--themes'], callback)
 

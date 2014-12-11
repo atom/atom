@@ -1,0 +1,24 @@
+[
+  {
+    "name": "beverly-hills",
+    "releases": {
+      "latest": "9.0.2.1.0"
+    },
+    "metadata": {
+      "name": "beverly-hills",
+      "version": "9.0.2.1.0",
+      "description": "Home of the peach pit after dark"
+    }
+  },
+  {
+    "name": "multi-version",
+    "releases": {
+      "latest": "2.0.0",
+      "other": "1.0.0"
+    },
+    "metadata": {
+      "name": "multi-version",
+      "version": "2.0.0"
+    }
+  }
+]
