@@ -21,7 +21,9 @@ module.exports = (grunt) ->
 
     mkdir appDir
 
-    cp 'atom.sh', path.join(appDir, 'atom.sh')
+    if process.platform isnt 'win32'
+      cp 'atom.sh', path.join(appDir, 'atom.sh')
+
     cp 'package.json', path.join(appDir, 'package.json')
 
     packageDirectories = []
