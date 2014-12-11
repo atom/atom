@@ -14,7 +14,7 @@ FOR %%a IN (%*) DO (
 )
 
 IF "%EXPECTOUTPUT%"=="YES" (
-  "C:\\Users\\kevin\\AppData\\Local\\atom\\app-0.156.0\\atom.exe" %*
+  "C:\Users\kevin\AppData\Local\atom\app-0.156.0\atom.exe" %*
 ) ELSE (
-  node "%~dp0\\atom.js" "C:\\Users\\kevin\\AppData\\Local\\atom\\app-0.156.0\\atom.exe" %* --executed-from=%CD%
+  node "%~dp0\atom.js" "C:\Users\kevin\AppData\Local\atom\app-0.156.0\atom.exe" %* --executed-from=%CD%
 )
