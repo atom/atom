@@ -18,6 +18,10 @@ ChildProcess = require 'child_process'
 # ```
 module.exports =
 class BufferedProcess
+  ###
+  Section: Construction
+  ###
+
   # Public: Runs the given command by spawning a new child process.
   #
   # * `options` An {Object} with the following keys:
@@ -105,8 +109,20 @@ class BufferedProcess
         e.name = 'BufferedProcessError'
         throw e
 
+  ###
+  Section: Event Subscription
+  ###
+
+  # Public: Will call your callback when an error is raised by the process.
+  # Usually this is due to the command not being available or not on the PATH.
+  #
+  # Returns a {Disposable}
   onDidThrowError: (callback) ->
     @emitter.on 'did-throw-error', callback
+
+  ###
+  Section: Helper Methods
+  ###
 
   # Helper method to pass data line by line.
   #
