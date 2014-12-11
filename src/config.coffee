@@ -504,8 +504,24 @@ class Config
   # Returns a {Boolean}
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set: (scopeSelector, keyPath, value) ->
-    if arguments.length < 3
+  set: (args...) ->
+    disposable = @setFromSource('user-config', args...)
+    @usersScopedSettings.add(disposable)
+    disposable?
+
+  # Extended: Sets the value for a configuration setting and associates
+  # the value with a given source.
+  #
+  # * `sourceName` The string {String} source name to associate with the setting
+  # * `scopeSelector` (optional) {String}. See the `scopeSelector` parameter to {::set}
+  # * `keyPath` {String}. See the `keyPath` parameter to {::set}
+  # * `value` See the `value` parameter to {::set}
+  #
+  # Returns:
+  # * a {Disposable} that can be used to remove the setting, if the value was set.
+  # * `null` if the value was not able to be coerced to the type specified in the schema.
+  setFromSource: (sourceName, scopeSelector, keyPath, value) ->
+    if arguments.length < 4
       value = keyPath
       keyPath = scopeSelector
       scopeSelector = undefined
@@ -514,15 +530,18 @@ class Config
       try
         value = @makeValueConformToSchema(keyPath, value)
       catch e
-        return false
+        return null
 
     if scopeSelector?
-      @usersScopedSettings.add @setRawScopedValue('user-config', scopeSelector, keyPath, value, @usersScopedSettingPriority)
+      options = @usersScopedSettingPriority if sourceName is 'user-config'
+      disposable = @setRawScopedValue(sourceName, scopeSelector, keyPath, value, options)
     else
       @setRawValue(keyPath, value)
+      disposable = new Disposable =>
+        @restoreDefault(keyPath)
 
     @save() unless @configFileHasErrors
-    true
+    disposable
 
   # Extended: Restore the global setting at `keyPath` to its default value.
   #
@@ -543,7 +562,7 @@ class Config
         @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
         _.setValueForKeyPath(settings, keyPath, undefined)
         settings = withoutEmptyObjects(settings)
-        @addScopedSettings('user-config', scopeSelector, settings, @usersScopedSettingPriority) if settings?
+        @setRawScopedValue('user-config', scopeSelector, null, settings, @usersScopedSettingPriority) if settings?
         @save() unless @configFileHasErrors
         @getDefault(scopeSelector, keyPath)
     else
@@ -889,6 +908,7 @@ class Config
     @emitter.emit 'did-change'
 
   addScopedSettings: (sourceName, selector, value, options) ->
+    deprecate "Use ::setFromSource instead"
     @setRawScopedValue(sourceName, selector, null, value, options)
 
   setRawScopedValue: (sourceName, selector, keyPath, value, options) ->
