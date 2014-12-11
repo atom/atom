@@ -13,11 +13,8 @@ FOR %%a IN (%*) DO (
   IF /I "%%a"=="--wait"       SET EXPECT_OUTPUT=YES
 )
 
-SET ATOM_COMMAND="%~dp0\..\atom.exe"
-SET NODE_COMMAND="%~dp0\..\resources\app\apm\node_modules\atom-package-manager\bin\node.exe"
-
 IF "%EXPECT_OUTPUT%"=="YES" (
-  "%ATOM_COMMAND%" %*
+  "%~dp0\..\atom.exe" %*
 ) ELSE (
-  "%NODE_COMMAND%" "%~dp0\atom.js" "%ATOM_COMMAND%" %* --executed-from=%CD%
+  "%~dp0\..\resources\app\apm\node_modules\atom-package-manager\bin\node.exe" "%~dp0\atom.js" %*
 )
