@@ -5,3 +5,4 @@ var options = {
   stdio: 'ignore'
 }
 spawn("C:\\Users\\kevin\\AppData\\Local\\atom\\app-0.156.0\\atom.exe", [], options).disconnect();
+process.exit();
