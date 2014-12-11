@@ -105,7 +105,7 @@ class Package
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
-    @activationDeferred.resolve()
+    @activationDeferred?.resolve()
 
   activateConfig: ->
     return if @configActivated
