@@ -669,8 +669,9 @@ TextEditorComponent = React.createClass
     # reloaded in dev mode. It seems like a workaround for a browser bug, but
     # not totally sure.
     requestAnimationFrame =>
-      @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
-      @handleStylingChange()
+      if @isMounted()
+        @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
+        @handleStylingChange()
 
   onAllThemesLoaded: ->
     @refreshScrollbars()
