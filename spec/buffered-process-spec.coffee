@@ -17,14 +17,15 @@ describe "BufferedProcess", ->
           args: ['nothing']
           options: {}
 
-        process.onDidThrowError errorSpy = jasmine.createSpy()
+        errorSpy = jasmine.createSpy().andCallFake (error) -> error.handle()
+        process.onWillThrowError(errorSpy)
 
         waitsFor -> errorSpy.callCount > 0
 
         runs ->
           expect(window.onerror).not.toHaveBeenCalled()
           expect(errorSpy).toHaveBeenCalled()
-          expect(errorSpy.mostRecentCall.args[0].message).toContain 'spawn bad-command-nope ENOENT'
+          expect(errorSpy.mostRecentCall.args[0].error.message).toContain 'spawn bad-command-nope ENOENT'
 
     describe "when there is not an error handler specified", ->
       it "calls the error handler and does not throw an exception", ->

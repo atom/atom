@@ -101,24 +101,35 @@ class BufferedProcess
         triggerExitCallback()
 
     @process.on 'error', (error) =>
-      handlers = @emitter.handlersByEventName['did-throw-error']
-      if handlers? and handlers.length
-        @emitter.emit 'did-throw-error', error
-      else
-        e = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
-        e.name = 'BufferedProcessError'
-        throw e
+      handled = false
+      handle = -> handled = true
+
+      @emitter.emit 'will-throw-error', {error, handle}
+
+      if error.code is 'ENOENT' and error.syscall.indexOf('spawn') is 0
+        error = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
+        error.name = 'BufferedProcessError'
+
+      throw error unless handled
 
   ###
   Section: Event Subscription
   ###
 
-  # Public: Will call your callback when an error is raised by the process.
+  # Public: Will call your callback when an error will be raised by the process.
   # Usually this is due to the command not being available or not on the PATH.
+  # You can call `handle()` on the object passed to your callback to indicate
+  # that you have handled this error.
+  #
+  # * `callback` {Function} callback
+  #   * `errorObject` {Object}
+  #     * `error` {Object} the error object
+  #     * `handle` {Function} call this to indicate you have handled the error.
+  #       The error will not be thrown if this function is called.
   #
   # Returns a {Disposable}
-  onDidThrowError: (callback) ->
-    @emitter.on 'did-throw-error', callback
+  onWillThrowError: (callback) ->
+    @emitter.on 'will-throw-error', callback
 
   ###
   Section: Helper Methods
