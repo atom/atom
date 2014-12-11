@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 ChildProcess = require 'child_process'
+{Emitter} = require 'event-kit'
 
 # Extended: A wrapper which provides standard error/output line buffering for
 # Node's ChildProcess.
@@ -39,6 +40,7 @@ class BufferedProcess
   #   * `exit` The callback {Function} which receives a single argument
   #            containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
+    @emitter = new Emitter
     options ?= {}
     # Related to joyent/node#2318
     if process.platform is "win32"
@@ -93,6 +95,18 @@ class BufferedProcess
         exitCode = code
         processExited = true
         triggerExitCallback()
+
+    @process.on 'error', (error) =>
+      handlers = @emitter.handlersByEventName['did-throw-error']
+      if handlers? and handlers.length
+        @emitter.emit 'did-throw-error', error
+      else
+        e = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
+        e.name = 'BufferedProcessError'
+        throw e
+
+  onDidThrowError: (callback) ->
+    @emitter.on 'did-throw-error', callback
 
   # Helper method to pass data line by line.
   #
