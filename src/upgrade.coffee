@@ -91,10 +91,13 @@ class Upgrade extends Command
 
           latestVersion = version if semver.gt(version, latestVersion)
 
-        if latestVersion isnt pack.version
+        if latestVersion isnt pack.version and @hasRepo(pack)
           callback(null, {pack, latestVersion})
         else
           callback()
+
+  hasRepo: (packageA) ->
+    repo = Packages.getRepository(packageA)
 
   getAvailableUpdates: (packages, callback) ->
     async.map packages, @getLatestVersion.bind(this), (error, updates) =>

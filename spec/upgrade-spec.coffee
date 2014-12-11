@@ -106,6 +106,18 @@ describe "apm upgrade", ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'different-repo 0.3.0 -> 0.4.0'
 
+  it "does not display updates when the installed package's repository does not exist", ->
+    fs.writeFileSync(path.join(packagesDir, 'different-repo', 'package.json'), JSON.stringify({name: 'different-repo', version: '0.3.0'}))
+
+    callback = jasmine.createSpy('callback')
+    apm.run(['upgrade', '--list', '--no-color'], callback)
+
+    waitsFor 'waiting for upgrade to complete', 600000, ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[1][0]).toContain 'empty'
 
   it "logs an error when the installed location of Atom cannot be found", ->
     process.env.ATOM_RESOURCE_PATH = '/tmp/atom/is/not/installed/here'
