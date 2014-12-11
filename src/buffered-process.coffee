@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 ChildProcess = require 'child_process'
+{Emitter} = require 'event-kit'
 
 # Extended: A wrapper which provides standard error/output line buffering for
 # Node's ChildProcess.
@@ -17,6 +18,10 @@ ChildProcess = require 'child_process'
 # ```
 module.exports =
 class BufferedProcess
+  ###
+  Section: Construction
+  ###
+
   # Public: Runs the given command by spawning a new child process.
   #
   # * `options` An {Object} with the following keys:
@@ -39,6 +44,7 @@ class BufferedProcess
   #   * `exit` The callback {Function} which receives a single argument
   #            containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
+    @emitter = new Emitter
     options ?= {}
     # Related to joyent/node#2318
     if process.platform is "win32"
@@ -93,6 +99,41 @@ class BufferedProcess
         exitCode = code
         processExited = true
         triggerExitCallback()
+
+    @process.on 'error', (error) =>
+      handled = false
+      handle = -> handled = true
+
+      @emitter.emit 'will-throw-error', {error, handle}
+
+      if error.code is 'ENOENT' and error.syscall.indexOf('spawn') is 0
+        error = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
+        error.name = 'BufferedProcessError'
+
+      throw error unless handled
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Public: Will call your callback when an error will be raised by the process.
+  # Usually this is due to the command not being available or not on the PATH.
+  # You can call `handle()` on the object passed to your callback to indicate
+  # that you have handled this error.
+  #
+  # * `callback` {Function} callback
+  #   * `errorObject` {Object}
+  #     * `error` {Object} the error object
+  #     * `handle` {Function} call this to indicate you have handled the error.
+  #       The error will not be thrown if this function is called.
+  #
+  # Returns a {Disposable}
+  onWillThrowError: (callback) ->
+    @emitter.on 'will-throw-error', callback
+
+  ###
+  Section: Helper Methods
+  ###
 
   # Helper method to pass data line by line.
   #
