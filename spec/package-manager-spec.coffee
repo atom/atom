@@ -369,7 +369,7 @@ describe "PackageManager", ->
             atom.packages.activatePackage("package-with-scoped-properties")
 
           runs ->
-            expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+            expect(atom.config.get ['.source.omg'], 'editor.indent.increasePattern').toBe '^a'
 
         it "combines 'editor.commentStart' and 'editor.commentEnd' strings under the 'editor.comment' key path", ->
           if atom.packages.isPackageLoaded("package-with-scoped-properties")
@@ -381,6 +381,18 @@ describe "PackageManager", ->
           runs ->
             expect(atom.config.get ['.source.omg'], 'editor.comment.start').toBe '/*'
             expect(atom.config.get ['.source.omg'], 'editor.comment.end').toBe '*/'
+            expect(Grim.deprecate).toHaveBeenCalled()
+
+        it "combines 'editor.increaseIndentPattern' and 'editor.decreaseIndentPattern' strings under the 'editor.indent' key path", ->
+          if atom.packages.isPackageLoaded("package-with-scoped-properties")
+            atom.packages.unloadPackage("package-with-scoped-properties")
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-scoped-properties")
+
+          runs ->
+            expect(atom.config.get ['.source.omg'], 'editor.indent.increasePattern').toBe '^a'
+            expect(atom.config.get ['.source.omg'], 'editor.indent.decreasePattern').toBe '^z'
             expect(Grim.deprecate).toHaveBeenCalled()
 
     describe "converted textmate packages", ->
@@ -507,9 +519,9 @@ describe "PackageManager", ->
           atom.packages.activatePackage("package-with-scoped-properties")
 
         runs ->
-          expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+          expect(atom.config.get ['.source.omg'], 'editor.indent.increasePattern').toBe '^a'
           atom.packages.deactivatePackage("package-with-scoped-properties")
-          expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
+          expect(atom.config.get ['.source.omg'], 'editor.indent.increasePattern').toBeUndefined()
 
     describe "textmate packages", ->
       it "removes the package's grammars", ->

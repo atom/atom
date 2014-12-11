@@ -88,10 +88,13 @@ module.exports =
             type: ['string', 'null']
           end:
             type: ['string', 'null']
-      increaseIndentPattern:
-        type: ['string', 'null']
-      decreaseIndentPattern:
-        type: ['string', 'null']
+      indent:
+        type: 'object'
+        properties:
+          increasePattern:
+            type: ['string', 'null']
+          decreasePattern:
+            type: ['string', 'null']
       foldEndPattern:
         type: ['string', 'null']
 

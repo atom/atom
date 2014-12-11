@@ -249,7 +249,14 @@ class LanguageMode
   suggestedIndentForBufferRow: (bufferRow, options) ->
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+
+    indentPatterns = atom.config.get(scopeDescriptor, 'editor.indent')
+    if indentPatterns?.increasePattern?
+      increaseIndentRegex = new OnigRegExp(indentPatterns.increasePattern)
+    if indentPatterns?.decreasePattern?
+      decreaseIndentRegex = new OnigRegExp(indentPatterns.decreasePattern)
+
+    return currentIndentLevel unless increaseIndentRegex?
 
     currentLine = @buffer.lineForRow(bufferRow)
     if options?.skipBlankLines ? true
@@ -263,7 +270,7 @@ class LanguageMode
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
-    return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    return desiredIndentLevel unless decreaseIndentRegex?
     desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
 
     Math.max(desiredIndentLevel, 0)
@@ -299,8 +306,13 @@ class LanguageMode
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+
+    indentPatterns = atom.config.get(scopeDescriptor, 'editor.indent')
+    if indentPatterns?.increasePattern?
+      increaseIndentRegex = new OnigRegExp(indentPatterns.increasePattern)
+    if indentPatterns?.decreasePattern?
+      decreaseIndentRegex = new OnigRegExp(indentPatterns.decreasePattern)
+
     return unless increaseIndentRegex and decreaseIndentRegex
 
     line = @buffer.lineForRow(bufferRow)
@@ -320,12 +332,6 @@ class LanguageMode
   getRegexForProperty: (scopeDescriptor, property) ->
     if pattern = atom.config.get(scopeDescriptor, property)
       new OnigRegExp(pattern)
-
-  increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')
-
-  decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
