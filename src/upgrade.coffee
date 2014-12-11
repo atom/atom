@@ -96,8 +96,8 @@ class Upgrade extends Command
         else
           callback()
 
-  hasRepo: (packageA) ->
-    repo = Packages.getRepository(packageA)
+  hasRepo: (pack) ->
+    Packages.getRepository(pack)?
 
   getAvailableUpdates: (packages, callback) ->
     async.map packages, @getLatestVersion.bind(this), (error, updates) =>
