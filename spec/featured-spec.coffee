@@ -24,7 +24,7 @@ describe 'apm featured', ->
   afterEach ->
     server.close()
 
-  it 'lists the featured packages', ->
+  it 'lists the featured packages and themes', ->
     callback = jasmine.createSpy('callback')
     apm.run(['featured'], callback)
 
@@ -34,6 +34,8 @@ describe 'apm featured', ->
     runs ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'beverly-hills'
+      expect(console.log.argsForCall[2][0]).toContain 'multi-version'
+      expect(console.log.argsForCall[3][0]).toContain 'duckblur'
 
   describe 'when the theme flag is specified', ->
     it "lists the featured themes", ->
@@ -46,4 +48,4 @@ describe 'apm featured', ->
       runs ->
         expect(console.log).toHaveBeenCalled()
         expect(console.log.argsForCall[1][0]).toContain 'duckblur'
-        expect(console.log.argsForCall[1][0]).not.toContain 'beverly-hills'
+        expect(console.log.argsForCall[2][0]).toBeUndefined()

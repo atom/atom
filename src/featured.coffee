@@ -18,15 +18,15 @@ class Featured extends Command
              apm featured --themes
              apm featured --compatible 0.49.0
 
-      List the Atom packages/themes that are currently featured in the atom.io
-      registry.
+      List the Atom packages and themes that are currently featured in the
+      atom.io registry.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
     options.alias('c', 'compatible').string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
     options.boolean('json').describe('json', 'Output featured packages as JSON array')
 
-  getFeaturedPackages: (atomVersion, packageType, callback) ->
+  getFeaturedPackagesByType: (atomVersion, packageType, callback) ->
     [callback, atomVersion] = [atomVersion, null] if _.isFunction(atomVersion)
 
     requestSettings =
@@ -46,16 +46,20 @@ class Featured extends Command
         message = request.getErrorMessage(response, body)
         callback("Requesting packages failed: #{message}")
 
+  getAllFeaturedPackages: (atomVersion, callback) ->
+    @getFeaturedPackagesByType atomVersion, 'packages', (error, packages) =>
+      return callback(error) if error?
+
+      @getFeaturedPackagesByType atomVersion, 'themes', (error, themes) ->
+        return callback(error) if error?
+        callback(null, packages.concat(themes))
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    packageType = if options.argv.themes then 'themes' else 'packages'
-
-    @getFeaturedPackages options.argv.compatible, packageType, (error, packages) ->
-      if error?
-        callback(error)
-        return
+    listCallback = (error, packages) ->
+      return callback(error) if error?
 
       if options.argv.json
         console.log(JSON.stringify(packages))
@@ -76,3 +80,8 @@ class Featured extends Command
         console.log()
 
       callback()
+
+    if options.argv.themes
+      @getFeaturedPackagesByType(options.argv.compatible, 'themes', listCallback)
+    else
+      @getAllFeaturedPackages(options.argv.compatible, listCallback)
