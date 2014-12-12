@@ -504,13 +504,20 @@ class Config
   # Returns a {Boolean}
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set: (scopeSelector, keyPath, value) ->
-    if arguments.length < 3
-      value = keyPath
-      keyPath = scopeSelector
-      scopeSelector = undefined
+  set: ->
+    if arguments[0][0] is '.'
+      Grim.deprecate """
+        Passing a scope selector as the first argument to Config::set is deprecated.
+        Pass a `scopeSelector` in an options hash as the final argument instead.
+      """
+      scopeSelector = arguments[0]
+      keyPath = arguments[1]
+      value = arguments[2]
+    else
+      [keyPath, value, options] = arguments
+      scopeSelector = options?.scopeSelector
 
-    unless value == undefined
+    unless value is undefined
       try
         value = @makeValueConformToSchema(keyPath, value)
       catch e

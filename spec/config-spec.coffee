@@ -97,7 +97,7 @@ describe "Config", ->
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
         expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
 
-        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
 
   describe ".isDefault(keyPath)", ->
@@ -118,7 +118,7 @@ describe "Config", ->
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
 
-        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
 
   describe ".setDefaults(keyPath)", ->
@@ -174,7 +174,7 @@ describe "Config", ->
     describe "when scoped settings are used", ->
       it "restores the global default when no scoped default set", ->
         atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
@@ -183,8 +183,8 @@ describe "Config", ->
       it "restores the scoped default when a scoped default is set", ->
         atom.config.setDefaults("foo", bar: baz: 10)
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
-        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
-        atom.config.set('.source.coffee', 'foo.bar.ok', 100)
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
+        atom.config.set('foo.bar.ok', 100, scopeSelector: '.source.coffee')
         expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
@@ -194,7 +194,7 @@ describe "Config", ->
       it "calls ::save()", ->
         atom.config.setDefaults("foo", bar: baz: 10)
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
-        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         atom.config.save.reset()
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
@@ -216,8 +216,8 @@ describe "Config", ->
         jasmine.unspy atom.config, 'save'
 
         atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
-        atom.config.set('.source.coffee', 'foo.bar.zfoo', 20)
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
+        atom.config.set('foo.bar.zfoo', 20, scopeSelector: '.source.coffee')
         CSON.writeFileSync.reset()
         expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
 
@@ -239,7 +239,7 @@ describe "Config", ->
 
       it "does not call ::save when the value is already at the default", ->
         atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.set('.source.coffee', 'foo.bar.baz', 55)
+        atom.config.set('foo.bar.baz', 55)
         atom.config.save.reset()
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.ok')
@@ -353,9 +353,9 @@ describe "Config", ->
 
     describe "when scoped settings are defined", ->
       it 'writes out explicitly set config settings', ->
-        atom.config.set('.source.ruby', 'foo.bar', 'ruby')
-        atom.config.set('.source.ruby', 'foo.omg', 'wow')
-        atom.config.set('.source.coffee', 'foo.bar', 'coffee')
+        atom.config.set('foo.bar', 'ruby', scopeSelector: '.source.ruby')
+        atom.config.set('foo.omg', 'wow', scopeSelector: '.source.ruby')
+        atom.config.set('foo.bar', 'coffee', scopeSelector: '.source.coffee')
 
         CSON.writeFileSync.reset()
         atom.config.save()
@@ -1125,7 +1125,7 @@ describe "Config", ->
       describe 'setting priority', ->
         describe 'when package settings are added after user settings', ->
           it "returns the user's setting because the user's setting has higher priority", ->
-            atom.config.set(".source.coffee", "foo.bar.baz", 100)
+            atom.config.set("foo.bar.baz", 100, scopeSelector: ".source.coffee")
             atom.config.addScopedSettings("some-package", ".source.coffee", foo: bar: baz: 1)
             expect(atom.config.get([".source.coffee"], "foo.bar.baz")).toBe 100
 
@@ -1137,7 +1137,7 @@ describe "Config", ->
 
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
 
-        expect(atom.config.set(".source.coffee .string.quoted.double.coffee", "foo.bar.baz", 100)).toBe true
+        expect(atom.config.set("foo.bar.baz", 100, scopeSelector: ".source.coffee .string.quoted.double.coffee")).toBe true
         expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 100
 
     describe ".removeScopedSettingsForName(name)", ->
