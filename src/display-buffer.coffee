@@ -67,10 +67,10 @@ class DisplayBuffer extends Model
 
     oldConfigSettings = @configSettings
     @configSettings =
-      scrollPastEnd: atom.config.get(scopeDescriptor, 'editor.scrollPastEnd')
-      softWrap: atom.config.get(scopeDescriptor, 'editor.softWrap')
-      softWrapAtPreferredLineLength: atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
-      preferredLineLength: atom.config.get(scopeDescriptor, 'editor.preferredLineLength')
+      scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
+      softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
+      softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
 
     subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', ({newValue}) =>
       @configSettings.softWrap = newValue
@@ -82,7 +82,7 @@ class DisplayBuffer extends Model
 
     subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', ({newValue}) =>
       @configSettings.preferredLineLength = newValue
-      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
+      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
 
     subscriptions.add atom.config.observe scopeDescriptor, 'editor.scrollPastEnd', (value) =>
       @configSettings.scrollPastEnd = value

@@ -175,21 +175,21 @@ describe "Config", ->
       it "restores the global default when no scoped default set", ->
         atom.config.setDefaults("foo", bar: baz: 10)
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 10
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
 
       it "restores the scoped default when a scoped default is set", ->
         atom.config.setDefaults("foo", bar: baz: 10)
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         atom.config.set('foo.bar.ok', 100, scopeSelector: '.source.coffee')
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 42
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.ok')).toBe 100
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 42
+        expect(atom.config.get('foo.bar.ok', scope: ['.source.coffee'])).toBe 100
 
       it "calls ::save()", ->
         atom.config.setDefaults("foo", bar: baz: 10)
@@ -204,7 +204,7 @@ describe "Config", ->
         # see https://github.com/atom/atom/issues/4175
         atom.config.setDefaults("foo", bar: baz: 10)
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 10
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
 
         expect(atom.config.save).not.toHaveBeenCalled()
 
@@ -219,11 +219,11 @@ describe "Config", ->
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         atom.config.set('foo.bar.zfoo', 20, scopeSelector: '.source.coffee')
         CSON.writeFileSync.reset()
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 10
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.zfoo')).toBe 20
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
+        expect(atom.config.get('foo.bar.zfoo', scope: ['.source.coffee'])).toBe 20
         expect(CSON.writeFileSync).toHaveBeenCalled()
         properties = CSON.writeFileSync.mostRecentCall.args[1]
         expect(properties['.coffee.source']).toEqual
@@ -244,7 +244,7 @@ describe "Config", ->
 
         atom.config.restoreDefault('.source.coffee', 'foo.bar.ok')
         expect(atom.config.save).not.toHaveBeenCalled()
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.baz')).toBe 55
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
   describe ".getSettings()", ->
     it "returns all settings including defaults", ->
@@ -533,7 +533,7 @@ describe "Config", ->
 
       it "updates the config data based on the file contents", ->
         expect(atom.config.get("foo.bar")).toBe 'baz'
-        expect(atom.config.get(['.source.ruby'], "foo.bar")).toBe 'more-specific'
+        expect(atom.config.get("foo.bar", scope: ['.source.ruby'])).toBe 'more-specific'
 
     describe "when the config file contains valid cson", ->
       beforeEach ->
@@ -675,7 +675,7 @@ describe "Config", ->
           waitsFor 'update event', -> updatedHandler.callCount > 0
           runs ->
             expect(scopedSpy).toHaveBeenCalled()
-            expect(atom.config.get(['.source.ruby'], 'foo.scoped')).toBe false
+            expect(atom.config.get('foo.scoped', scope: ['.source.ruby'])).toBe false
 
         it "does not fire a change event for paths that did not change", ->
           atom.config.onDidChange ['.source.ruby'], 'foo.scoped', noChangeSpy = jasmine.createSpy()
@@ -691,8 +691,8 @@ describe "Config", ->
           waitsFor 'update event', -> updatedHandler.callCount > 0
           runs ->
             expect(noChangeSpy).not.toHaveBeenCalled()
-            expect(atom.config.get(['.source.ruby'], 'foo.bar')).toBe 'baz'
-            expect(atom.config.get(['.source.ruby'], 'foo.scoped')).toBe true
+            expect(atom.config.get('foo.bar', scope: ['.source.ruby'])).toBe 'baz'
+            expect(atom.config.get('foo.scoped', scope: ['.source.ruby'])).toBe true
 
     describe "when the config file changes to omit a setting with a default", ->
       it "resets the setting back to the default", ->
@@ -1095,8 +1095,8 @@ describe "Config", ->
 
       it 'it respects the scoped defaults', ->
         expect(atom.config.get('foo.bar.str')).toBe 'ok'
-        expect(atom.config.get(['.source.js'], 'foo.bar.str')).toBe 'omg'
-        expect(atom.config.get(['.source.coffee'], 'foo.bar.str')).toBe 'ok'
+        expect(atom.config.get('foo.bar.str', scope: ['.source.js'])).toBe 'omg'
+        expect(atom.config.get('foo.bar.str', scope: ['.source.coffee'])).toBe 'ok'
 
   describe "scoped settings", ->
     describe ".get(scopeDescriptor, keyPath)", ->
@@ -1105,29 +1105,29 @@ describe "Config", ->
         atom.config.addScopedSettings("config", ".source .string.quoted.double", foo: bar: baz: 22)
         atom.config.addScopedSettings("config", ".source", foo: bar: baz: 11)
 
-        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
-        expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBe 22
-        expect(atom.config.get([".source.js", ".variable.assignment.js"], "foo.bar.baz")).toBe 11
-        expect(atom.config.get([".text"], "foo.bar.baz")).toBeUndefined()
+        expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 42
+        expect(atom.config.get("foo.bar.baz", scope: [".source.js", ".string.quoted.double.js"])).toBe 22
+        expect(atom.config.get("foo.bar.baz", scope: [".source.js", ".variable.assignment.js"])).toBe 11
+        expect(atom.config.get("foo.bar.baz", scope: [".text"])).toBeUndefined()
 
       it "favors the most recently added properties in the event of a specificity tie", ->
         atom.config.addScopedSettings("config", ".source.coffee .string.quoted.single", foo: bar: baz: 42)
         atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double", foo: bar: baz: 22)
 
-        expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.bar.baz")).toBe 42
-        expect(atom.config.get([".source.coffee", ".string.quoted.single.double"], "foo.bar.baz")).toBe 22
+        expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.single"])).toBe 42
+        expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.single.double"])).toBe 22
 
       describe 'when there are global defaults', ->
         it 'falls back to the global when there is no scoped property specified', ->
           atom.config.setDefaults("foo", hasDefault: 'ok')
-          expect(atom.config.get([".source.coffee", ".string.quoted.single"], "foo.hasDefault")).toBe 'ok'
+          expect(atom.config.get("foo.hasDefault", scope: [".source.coffee", ".string.quoted.single"])).toBe 'ok'
 
       describe 'setting priority', ->
         describe 'when package settings are added after user settings', ->
           it "returns the user's setting because the user's setting has higher priority", ->
             atom.config.set("foo.bar.baz", 100, scopeSelector: ".source.coffee")
             atom.config.addScopedSettings("some-package", ".source.coffee", foo: bar: baz: 1)
-            expect(atom.config.get([".source.coffee"], "foo.bar.baz")).toBe 100
+            expect(atom.config.get("foo.bar.baz", scope: [".source.coffee"])).toBe 100
 
     describe ".set(scope, keyPath, value)", ->
       it "sets the value and overrides the others", ->
@@ -1135,10 +1135,10 @@ describe "Config", ->
         atom.config.addScopedSettings("config", ".source .string.quoted.double", foo: bar: baz: 22)
         atom.config.addScopedSettings("config", ".source", foo: bar: baz: 11)
 
-        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
+        expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 42
 
         expect(atom.config.set("foo.bar.baz", 100, scopeSelector: ".source.coffee .string.quoted.double.coffee")).toBe true
-        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 100
+        expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 100
 
     describe ".removeScopedSettingsForName(name)", ->
       it "allows properties to be removed by name", ->
@@ -1146,8 +1146,8 @@ describe "Config", ->
         disposable2 = atom.config.addScopedSettings("b", ".source .string.quoted.double", foo: bar: baz: 22)
 
         disposable2.dispose()
-        expect(atom.config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBeUndefined()
-        expect(atom.config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
+        expect(atom.config.get("foo.bar.baz", scope: [".source.js", ".string.quoted.double.js"])).toBeUndefined()
+        expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 42
 
     describe ".observe(scopeDescriptor, keyPath)", ->
       it 'calls the supplied callback when the value at the descriptor/keypath changes', ->

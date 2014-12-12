@@ -455,15 +455,27 @@ class Config
   #
   # Returns the value from Atom's default settings, the user's configuration
   # file in the type specified by the configuration schema.
-  get: (scopeDescriptor, keyPath) ->
-    if arguments.length == 1
-      # cannot assign to keyPath for the sake of v8 optimization
-      globalKeyPath = scopeDescriptor
-      @getRawValue(globalKeyPath)
+  get: ->
+    if arguments.length > 1
+      if typeof arguments[0] is 'string'
+        keyPath = arguments[0]
+        options = arguments[1]
+        {scope} = options
+      else
+        Grim.deprecate """
+          Passing a scope descriptor as the first argument to Config::get is deprecated.
+          Pass a `scope` in an options hash as the final argument instead.
+        """
+        scope = arguments[0]
+        keyPath = arguments[1]
     else
-      value = @getRawScopedValue(scopeDescriptor, keyPath)
-      value ?= @getRawValue(keyPath)
-      value
+      keyPath = arguments[0]
+
+    if scope?
+      value = @getRawScopedValue(scope, keyPath)
+      value ? @getRawValue(keyPath)
+    else
+      @getRawValue(keyPath)
 
   # Essential: Sets the value for a configuration setting.
   #
@@ -919,22 +931,22 @@ class Config
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
     @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath)
 
-  observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
-    oldValue = @get(scopeDescriptor, keyPath)
+  observeScopedKeyPath: (scope, keyPath, callback) ->
+    oldValue = @get(keyPath, {scope})
 
     callback(oldValue)
 
     didChange = =>
-      newValue = @get(scopeDescriptor, keyPath)
+      newValue = @get(keyPath, {scope})
       callback(newValue) unless _.isEqual(oldValue, newValue)
       oldValue = newValue
 
     @emitter.on 'did-change', didChange
 
-  onDidChangeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
-    oldValue = @get(scopeDescriptor, keyPath)
+  onDidChangeScopedKeyPath: (scope, keyPath, callback) ->
+    oldValue = @get(keyPath, {scope})
     didChange = =>
-      newValue = @get(scopeDescriptor, keyPath)
+      newValue = @get(keyPath, {scope})
       callback({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
       oldValue = newValue
 

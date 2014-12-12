@@ -367,7 +367,7 @@ describe "PackageManager", ->
             atom.packages.activatePackage("package-with-scoped-properties")
 
           runs ->
-            expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+            expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
 
     describe "converted textmate packages", ->
       it "loads the package's grammars", ->
@@ -380,13 +380,13 @@ describe "PackageManager", ->
           expect(atom.grammars.selectGrammar("file.rb").name).toBe "Ruby"
 
       it "loads the translated scoped properties", ->
-        expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+        expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBeUndefined()
 
         waitsForPromise ->
           atom.packages.activatePackage('language-ruby')
 
         runs ->
-          expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBe '# '
+          expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBe '# '
 
   describe "::deactivatePackage(id)", ->
     afterEach ->
@@ -493,9 +493,9 @@ describe "PackageManager", ->
           atom.packages.activatePackage("package-with-scoped-properties")
 
         runs ->
-          expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
+          expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
           atom.packages.deactivatePackage("package-with-scoped-properties")
-          expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
+          expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBeUndefined()
 
     describe "textmate packages", ->
       it "removes the package's grammars", ->

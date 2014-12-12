@@ -2812,17 +2812,17 @@ class TextEditor extends Model
   ###
 
   shouldAutoIndent: ->
-    atom.config.get(@getRootScopeDescriptor(), "editor.autoIndent")
+    atom.config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
 
   shouldAutoIndentOnPaste: ->
-    atom.config.get(@getRootScopeDescriptor(), "editor.autoIndentOnPaste")
+    atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
 
   shouldShowInvisibles: ->
-    not @mini and atom.config.get(@getRootScopeDescriptor(), 'editor.showInvisibles')
+    not @mini and atom.config.get('editor.showInvisibles', scope: @getRootScopeDescriptor())
 
   updateInvisibles: ->
     if @shouldShowInvisibles()
-      @displayBuffer.setInvisibles(atom.config.get(@getRootScopeDescriptor(), 'editor.invisibles'))
+      @displayBuffer.setInvisibles(atom.config.get('editor.invisibles', scope: @getRootScopeDescriptor()))
     else
       @displayBuffer.setInvisibles(null)
 
