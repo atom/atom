@@ -6,7 +6,7 @@ CSON = require 'season'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
-{deprecate} = require 'grim'
+Grim = require 'grim'
 
 ScopedPropertyStore = require 'scoped-property-store'
 ScopeDescriptor = require './scope-descriptor'
@@ -362,7 +362,7 @@ class Config
 
       message = ""
       message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
-      deprecate "Config::observe no longer supports options; see https://atom.io/docs/api/latest/Config. #{message}"
+      Grim.deprecate "Config::observe no longer supports options; see https://atom.io/docs/api/latest/Config. #{message}"
     else
       console.error 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
       return
@@ -607,7 +607,7 @@ class Config
   # Deprecated: Returns a new {Object} containing all of the global settings and
   # defaults. Returns the scoped settings when a `scopeSelector` is specified.
   getSettings: ->
-    deprecate "Use ::get(keyPath) instead"
+    Grim.deprecate "Use ::get(keyPath) instead"
     _.deepExtend({}, @settings, @defaultSettings)
 
   # Extended: Get the {String} path to the config file being used.
@@ -619,25 +619,25 @@ class Config
   ###
 
   getInt: (keyPath) ->
-    deprecate '''Config::getInt is no longer necessary. Use ::get instead.
+    Grim.deprecate '''Config::getInt is no longer necessary. Use ::get instead.
     Make sure the config option you are accessing has specified an `integer`
     schema. See the schema section of
     https://atom.io/docs/api/latest/Config for more info.'''
     parseInt(@get(keyPath))
 
   getPositiveInt: (keyPath, defaultValue=0) ->
-    deprecate '''Config::getPositiveInt is no longer necessary. Use ::get instead.
+    Grim.deprecate '''Config::getPositiveInt is no longer necessary. Use ::get instead.
     Make sure the config option you are accessing has specified an `integer`
     schema with `minimum: 1`. See the schema section of
     https://atom.io/docs/api/latest/Config for more info.'''
     Math.max(@getInt(keyPath), 0) or defaultValue
 
   toggle: (keyPath) ->
-    deprecate 'Config::toggle is no longer supported. Please remove from your code.'
+    Grim.deprecate 'Config::toggle is no longer supported. Please remove from your code.'
     @set(keyPath, !@get(keyPath))
 
   unobserve: (keyPath) ->
-    deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
+    Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
   ###
   Section: Internal methods used by core
