@@ -11,11 +11,11 @@ module.exports = (grunt) ->
 
   packageSpecQueue = null
 
-  logDeprecations = (label, {stdout}={}) ->
-    if process.env.JANKY_SHA1 and stdout?.indexOf('Calls to deprecated functions') isnt -1
+  logDeprecations = (label, {stderr}={}) ->
+    if process.env.JANKY_SHA1 and stderr?.indexOf('Calls to deprecated functions') isnt -1
       grunt.log.error(label)
-      stdout = stdout.replace(/^\[.*\] "/g, '')
-      stdout = stdout.replace(/source: .*$/g, '')
+      stderr = stderr.replace(/^\[.*\] "/g, '')
+      stderr = stderr.replace(/source: .*$/g, '')
       grunt.log.error(stdout)
 
   getAppPath = ->
