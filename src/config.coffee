@@ -557,12 +557,12 @@ class Config
       scopeSelector = null
 
     if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
+      settings = @scopedSettingsStore.propertiesForSourceAndSelector(@getUserConfigPath(), scopeSelector)
       if _.valueForKeyPath(settings, keyPath)?
-        @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
+        @scopedSettingsStore.removePropertiesForSourceAndSelector(@getUserConfigPath(), scopeSelector)
         _.setValueForKeyPath(settings, keyPath, undefined)
         settings = withoutEmptyObjects(settings)
-        @addScopedSettings('user-config', scopeSelector, settings, @usersScopedSettingPriority) if settings?
+        @addScopedSettings(@getUserConfigPath(), scopeSelector, settings, @usersScopedSettingPriority) if settings?
         @save() unless @configFileHasErrors
         @getDefault(scopeSelector, keyPath)
     else
@@ -583,7 +583,7 @@ class Config
       scopeSelector = null
 
     if scopeSelector?
-      defaultValue = @scopedSettingsStore.getPropertyValue(scopeSelector, keyPath, excludeSources: ['user-config'])
+      defaultValue = @scopedSettingsStore.getPropertyValue(scopeSelector, keyPath, excludeSources: [@getUserConfigPath()])
       defaultValue ?= _.valueForKeyPath(@defaultSettings, keyPath)
     else
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
@@ -602,7 +602,7 @@ class Config
       scopeSelector = null
 
     if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
+      settings = @scopedSettingsStore.propertiesForSourceAndSelector(@getUserConfigPath(), scopeSelector)
       not _.valueForKeyPath(settings, keyPath)?
     else
       not _.valueForKeyPath(@settings, keyPath)?
@@ -758,7 +758,7 @@ class Config
 
   save: ->
     allSettings = global: @settings
-    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource('user-config')
+    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
     CSON.writeFileSync(@configFilePath, allSettings)
 
   ###
@@ -904,7 +904,7 @@ class Config
   resetUserScopedSettings: (newScopedSettings) ->
     @usersScopedSettings?.dispose()
     @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', newScopedSettings, @usersScopedSettingPriority)
+    @usersScopedSettings.add @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, @usersScopedSettingPriority)
     @emitter.emit 'did-change'
 
   addScopedSettings: (source, selector, value, options) ->
@@ -924,7 +924,7 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', settingsBySelector, @usersScopedSettingPriority)
+    @usersScopedSettings.add @scopedSettingsStore.addProperties(@getUserConfigPath(), settingsBySelector, @usersScopedSettingPriority)
     @emitter.emit 'did-change'
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->
