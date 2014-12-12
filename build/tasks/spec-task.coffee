@@ -14,6 +14,8 @@ module.exports = (grunt) ->
   logDeprecations = (label, {stdout}={}) ->
     if process.env.JANKY_SHA1 and stdout?.indexOf('Calls to deprecated functions') isnt -1
       grunt.log.error(label)
+      stdout = stdout.replace(/^\[.*\] "/g, '')
+      stdout = stdout.replace(/source: .*$/g, '')
       grunt.log.error(stdout)
 
   getAppPath = ->
