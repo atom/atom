@@ -112,6 +112,10 @@ class WorkspaceElement extends HTMLElement
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
+  runPackageSpecs: ->
+    [projectPath] = atom.project.getPaths()
+    ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
+
 atom.commands.add 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
   'window:decrease-font-size': -> @getModel().decreaseFontSize()
@@ -141,7 +145,7 @@ atom.commands.add 'atom-workspace',
   'application:open-your-snippets': -> ipc.send('command', 'application:open-your-snippets')
   'application:open-your-stylesheet': -> ipc.send('command', 'application:open-your-stylesheet')
   'application:open-license': -> @getModel().openLicense()
-  'window:run-package-specs': -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
+  'window:run-package-specs': -> @runPackageSpecs()
   'window:focus-next-pane': -> @getModel().activateNextPane()
   'window:focus-previous-pane': -> @getModel().activatePreviousPane()
   'window:focus-pane-above': -> @focusPaneViewAbove()
