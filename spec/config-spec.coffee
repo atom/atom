@@ -44,7 +44,8 @@ describe "Config", ->
         expect(atom.config.get("x.y", sources: ["a"], scope: [".foo"])).toBe 1
         expect(atom.config.get("x.y", sources: ["b"], scope: [".foo"])).toBe 2
         expect(atom.config.get("x.y", sources: ["c"], scope: [".foo"])).toBe 3
-        expect(atom.config.get("x.y", sources: ["x"], scope: [".foo"])).toBe 4
+        # Schema defaults never match a specific source. We could potentially add a special "schema" source.
+        expect(atom.config.get("x.y", sources: ["x"], scope: [".foo"])).toBeUndefined()
 
     describe "when an 'excludeSources' option is specified", ->
       it "only retrieves values from the specified sources", ->

@@ -808,7 +808,7 @@ class Config
 
   getRawValue: (keyPath, options) ->
     value = _.valueForKeyPath(@settings, keyPath)
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath) unless options?.sources?.length > 0
 
     if value?
       value = _.deepClone(value)
