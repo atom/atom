@@ -75,7 +75,7 @@ describe "Config", ->
       expect(observeHandler).toHaveBeenCalledWith 42
 
     describe "when the value equals the default value", ->
-      it "does not store the value", ->
+      it "does not store the value in the user's config", ->
         atom.config.setDefaults "foo",
           same: 1
           changes: 1
@@ -91,10 +91,12 @@ describe "Config", ->
         atom.config.set('foo.null', undefined)
         atom.config.set('foo.undefined', null)
         atom.config.set('foo.sameObject', {b: 2, a: 1})
-        expect(atom.config.settings.foo).toEqual {changes: 2}
 
+        expect(atom.config.get("foo.same", sources: [atom.config.getUserConfigPath()])).toBeUndefined()
+
+        expect(atom.config.get("foo.changes", sources: [atom.config.getUserConfigPath()])).toBe 2
         atom.config.set('foo.changes', 1)
-        expect(atom.config.settings.foo).toEqual {}
+        expect(atom.config.get("foo.changes", sources: [atom.config.getUserConfigPath()])).toBeUndefined()
 
   describe ".getDefault(keyPath)", ->
     it "returns a clone of the default value", ->
