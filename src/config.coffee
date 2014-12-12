@@ -604,11 +604,9 @@ class Config
       keyPath = scopeSelector
       scopeSelector = null
 
-    if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
-      not _.valueForKeyPath(settings, keyPath)?
-    else
-      not _.valueForKeyPath(@settings, keyPath)?
+    scopeSelector ?= "*"
+    settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
+    not _.valueForKeyPath(settings, keyPath)?
 
   # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
@@ -630,7 +628,7 @@ class Config
   # defaults. Returns the scoped settings when a `scopeSelector` is specified.
   getSettings: ->
     deprecate "Use ::get(keyPath) instead"
-    _.deepExtend(@settings, @defaultSettings)
+    @get()
 
   # Extended: Get the {String} path to the config file being used.
   getUserConfigPath: ->
@@ -807,7 +805,7 @@ class Config
         console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
   getRawValue: (keyPath) ->
-    value = _.valueForKeyPath(@settings, keyPath)
+    value = @getRawScopedValue(["XXX-XXX"], keyPath)
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
@@ -820,10 +818,11 @@ class Config
 
   setRawValue: (keyPath, value) ->
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+    oldValue = _.clone(@get(keyPath))
     value = undefined if _.isEqual(defaultValue, value)
 
-    oldValue = _.clone(@get(keyPath))
-    _.setValueForKeyPath(@settings, keyPath, value)
+    @setRawScopedValue("user-config", "*", keyPath, value)
+
     newValue = @get(keyPath)
     @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
 
@@ -930,7 +929,8 @@ class Config
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
+    value = @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
+    value ? @getDefault(keyPath)
 
   observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
     oldValue = @get(scopeDescriptor, keyPath)
