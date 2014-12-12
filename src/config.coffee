@@ -641,10 +641,11 @@ class Config
     Grim.deprecate("Use `not ::get(keyPath, {scope, sources: [atom.config.getUserConfigPath()]})?` instead")
     if arguments.length is 1
       [keyPath] = arguments
+      scopeSelector = '*'
     else
       [scopeSelector, keyPath] = arguments
-      scope = [scopeSelector]
-    not @get(keyPath, {scope, sources: [@getUserConfigPath()]})?
+
+    not @get(keyPath, {scope: [scopeSelector], sources: [@getUserConfigPath()]})?
 
   # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
