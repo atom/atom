@@ -35,6 +35,14 @@ describe "Config", ->
       atom.config.setDefaults("bar", baz: 7)
       expect(atom.config.get("bar.baz")).toEqual {a: 3}
 
+    describe "when a 'sources' option is specified", ->
+      it "only returns assigned values that were assigned from the specified source", ->
+        atom.config.setFromSource("source-a", ".foo", "x.y", 1)
+        atom.config.setFromSource("source-b", ".foo", "x.y", 2)
+
+        expect(atom.config.get([".foo"], "x.y", sources: ["source-a"])).toBe 1
+        expect(atom.config.get([".foo"], "x.y", sources: ["source-b"])).toBe 2
+
   describe ".set(keyPath, value)", ->
     it "allows a key path's value to be written", ->
       expect(atom.config.set("foo.bar.baz", 42)).toBeTruthy()

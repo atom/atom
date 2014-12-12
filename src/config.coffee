@@ -455,15 +455,18 @@ class Config
   #
   # Returns the value from Atom's default settings, the user's configuration
   # file in the type specified by the configuration schema.
-  get: (scopeDescriptor, keyPath) ->
-    if arguments.length == 1
-      # cannot assign to keyPath for the sake of v8 optimization
-      globalKeyPath = scopeDescriptor
-      @getRawValue(globalKeyPath)
-    else
-      value = @getRawScopedValue(scopeDescriptor, keyPath)
+  get: ->
+    argIndex = arguments.length - 1
+    options = arguments[argIndex--] if isPlainObject(arguments[argIndex])
+    keyPath = arguments[argIndex--]
+    scopeDescriptor = arguments[argIndex--]
+
+    if scopeDescriptor?
+      value = @getRawScopedValue(scopeDescriptor, keyPath, options)
       value ?= @getRawValue(keyPath)
       value
+    else
+      @getRawValue(keyPath)
 
   # Essential: Sets the value for a configuration setting.
   #
@@ -925,9 +928,9 @@ class Config
       disposable.dispose()
       @emitter.emit 'did-change'
 
-  getRawScopedValue: (scopeDescriptor, keyPath) ->
+  getRawScopedValue: (scopeDescriptor, keyPath, options) ->
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath)
+    @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
 
   observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
     oldValue = @get(scopeDescriptor, keyPath)
