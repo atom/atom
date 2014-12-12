@@ -16,7 +16,7 @@ module.exports = (grunt) ->
       grunt.log.error(label)
       stderr = stderr.replace(/^\[.*\] "/g, '')
       stderr = stderr.replace(/source: .*$/g, '')
-      grunt.log.error(stdout)
+      grunt.log.error(stderr)
 
   getAppPath = ->
     contentsDir = grunt.config.get('atom.contentsDir')
