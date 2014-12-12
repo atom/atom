@@ -543,6 +543,15 @@ describe "Config", ->
       atom.config.configDirPath = dotAtomPath
       atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
       expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
+      atom.config.setSchema 'foo',
+        type: 'object'
+        properties:
+          bar:
+            type: 'string'
+            default: 'def'
+          int:
+            type: 'integer'
+            default: 12
 
     afterEach ->
       fs.removeSync(dotAtomPath)
@@ -600,43 +609,42 @@ describe "Config", ->
         expect(fs.existsSync(atom.config.configFilePath)).toBe true
         expect(CSON.readFileSync(atom.config.configFilePath)).toEqual {}
 
-    describe "when a schema is specified", ->
+    describe "when the config file contains values that do not adhere to the schema", ->
+      warnSpy = null
       beforeEach ->
-        schema =
-          type: 'object'
-          properties:
-            bar:
-              type: 'string'
-              default: 'def'
-            int:
-              type: 'integer'
-              default: 12
+        warnSpy = spyOn console, 'warn'
+        fs.writeFileSync atom.config.configFilePath, """
+          foo:
+            bar: 'baz'
+            int: 'bad value'
+        """
+        atom.config.loadUserConfig()
 
-        atom.config.setSchema('foo', schema)
+      it "updates the only the settings that have values matching the schema", ->
+        expect(atom.config.get("foo.bar")).toBe 'baz'
+        expect(atom.config.get("foo.int")).toBe 12
 
-      describe "when the config file contains values that do not adhere to the schema", ->
-        warnSpy = null
-        beforeEach ->
-          warnSpy = spyOn console, 'warn'
-          fs.writeFileSync atom.config.configFilePath, """
-            foo:
-              bar: 'baz'
-              int: 'bad value'
-          """
-          atom.config.loadUserConfig()
-
-        it "updates the only the settings that have values matching the schema", ->
-          expect(atom.config.get("foo.bar")).toBe 'baz'
-          expect(atom.config.get("foo.int")).toBe 12
-
-          expect(warnSpy).toHaveBeenCalled()
-          expect(warnSpy.mostRecentCall.args[0]).toContain "'foo.int' could not be set"
+        expect(warnSpy).toHaveBeenCalled()
+        expect(warnSpy.mostRecentCall.args[0]).toContain "foo.int"
 
   describe ".observeUserConfig()", ->
     updatedHandler = null
 
     beforeEach ->
-      atom.config.setDefaults('foo', bar: 'def')
+      atom.config.setSchema 'foo',
+        type: 'object'
+        properties:
+          bar:
+            type: 'string'
+            default: 'def'
+          baz:
+            type: 'string'
+          scoped:
+            type: 'boolean'
+          int:
+            type: 'integer'
+            default: 12
+
       atom.config.configDirPath = dotAtomPath
       atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
       expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
@@ -669,15 +677,19 @@ describe "Config", ->
       it "does not fire a change event for paths that did not change", ->
         atom.config.onDidChange 'foo.bar', noChangeSpy = jasmine.createSpy()
 
-        fs.writeFileSync(atom.config.configFilePath, "foo: { bar: 'baz', omg: 'ok'}")
+        fs.writeFileSync(atom.config.configFilePath, "foo: { bar: 'baz', baz: 'ok'}")
         waitsFor 'update event', -> updatedHandler.callCount > 0
         runs ->
           expect(noChangeSpy).not.toHaveBeenCalled()
           expect(atom.config.get('foo.bar')).toBe 'baz'
-          expect(atom.config.get('foo.omg')).toBe 'ok'
+          expect(atom.config.get('foo.baz')).toBe 'ok'
 
       describe 'when the default value is a complex value', ->
         beforeEach ->
+          atom.config.setSchema 'foo.bar',
+            type: 'array'
+            items:
+              type: 'string'
           fs.writeFileSync(atom.config.configFilePath, "foo: { bar: ['baz', 'ok']}")
           waitsFor 'update event', -> updatedHandler.callCount > 0
           runs -> updatedHandler.reset()
@@ -685,12 +697,12 @@ describe "Config", ->
         it "does not fire a change event for paths that did not change", ->
           atom.config.onDidChange 'foo.bar', noChangeSpy = jasmine.createSpy()
 
-          fs.writeFileSync(atom.config.configFilePath, "foo: { bar: ['baz', 'ok'], omg: 'another'}")
+          fs.writeFileSync(atom.config.configFilePath, "foo: { bar: ['baz', 'ok'], baz: 'another'}")
           waitsFor 'update event', -> updatedHandler.callCount > 0
           runs ->
             expect(noChangeSpy).not.toHaveBeenCalled()
             expect(atom.config.get('foo.bar')).toEqual ['baz', 'ok']
-            expect(atom.config.get('foo.omg')).toBe 'another'
+            expect(atom.config.get('foo.baz')).toBe 'another'
 
       describe 'when scoped settings are used', ->
         it "fires a change event for scoped settings that are removed", ->
