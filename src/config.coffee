@@ -809,9 +809,10 @@ class Config
     console.error detail
 
   save: ->
-    allSettings = global: @settings
-    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
-    CSON.writeFileSync(@configFilePath, allSettings)
+    settings = @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    settings.global = settings['*']
+    delete settings['*']
+    CSON.writeFileSync(@configFilePath, settings)
 
   ###
   Section: Private methods managing global settings

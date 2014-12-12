@@ -410,56 +410,37 @@ describe "Config", ->
       spyOn(CSON, 'writeFileSync')
       jasmine.unspy atom.config, 'save'
 
-    describe "when ~/.atom/config.json exists", ->
-      it "writes any non-default properties to ~/.atom/config.json", ->
-        atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.json")
-        atom.config.set("a.b.c", 1)
-        atom.config.set("a.b.d", 2)
-        atom.config.set("x.y.z", 3)
-        atom.config.setDefaults("a.b", e: 4, f: 5)
+    it "writes properties from the user config path source to the user config path", ->
+      atom.config.configFilePath = "/fake/config/path"
+      atom.config.set("a.b.c", 1)
+      atom.config.set("a.b.d", 2)
+      atom.config.set("x.y.z", 3)
+      atom.config.set("x.y.q", 3, source: "/not/user/config")
+      atom.config.set('foo.bar', 'ruby', scopeSelector: '.source.ruby')
+      atom.config.set('foo.omg', 'wow', scopeSelector: '.source.ruby')
+      atom.config.set('foo.bar', 'coffee', scopeSelector: '.source.coffee')
 
-        CSON.writeFileSync.reset()
-        atom.config.save()
+      atom.config.setDefaults("a.b", e: 4, f: 5)
 
-        expect(CSON.writeFileSync.argsForCall[0][0]).toBe path.join(atom.config.configDirPath, "atom.config.json")
-        writtenConfig = CSON.writeFileSync.argsForCall[0][1]
-        expect(writtenConfig).toEqual global: atom.config.settings
+      CSON.writeFileSync.reset()
+      atom.config.save()
 
-    describe "when ~/.atom/config.json doesn't exist", ->
-      it "writes any non-default properties to ~/.atom/config.cson", ->
-        atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
-        atom.config.set("a.b.c", 1)
-        atom.config.set("a.b.d", 2)
-        atom.config.set("x.y.z", 3)
-        atom.config.setDefaults("a.b", e: 4, f: 5)
-
-        CSON.writeFileSync.reset()
-        atom.config.save()
-
-        expect(CSON.writeFileSync.argsForCall[0][0]).toBe path.join(atom.config.configDirPath, "atom.config.cson")
-        writtenConfig = CSON.writeFileSync.argsForCall[0][1]
-        expect(writtenConfig).toEqual global: atom.config.settings
-
-    describe "when scoped settings are defined", ->
-      it 'writes out explicitly set config settings', ->
-        atom.config.set('foo.bar', 'ruby', scopeSelector: '.source.ruby')
-        atom.config.set('foo.omg', 'wow', scopeSelector: '.source.ruby')
-        atom.config.set('foo.bar', 'coffee', scopeSelector: '.source.coffee')
-
-        CSON.writeFileSync.reset()
-        atom.config.save()
-
-        writtenConfig = CSON.writeFileSync.argsForCall[0][1]
-        expect(writtenConfig).toEqualJson
-          global:
-            atom.config.settings
-          '.ruby.source':
-            foo:
-              bar: 'ruby'
-              omg: 'wow'
-          '.coffee.source':
-            foo:
-              bar: 'coffee'
+      expect(CSON.writeFileSync.argsForCall[0][0]).toBe atom.config.getUserConfigPath()
+      writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+      global.debug = true
+      expect(writtenConfig).toEqual
+        'global':
+          a: b:
+            c: 1
+            d: 2
+          x: y: z: 3
+        '.ruby.source':
+          foo:
+            bar: 'ruby'
+            omg: 'wow'
+        '.coffee.source':
+          foo:
+            bar: 'coffee'
 
   describe ".setDefaults(keyPath, defaults)", ->
     it "assigns any previously-unassigned keys to the object at the key path", ->
