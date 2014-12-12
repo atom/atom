@@ -11,6 +11,10 @@ module.exports = (grunt) ->
 
   packageSpecQueue = null
 
+  logDeprecations = ({stdout}={}) ->
+    if process.env.JANKY_SHA1 and stdout?.indexOf('Calls to deprecated functions') isnt -1
+      grunt.log.error(stdout)
+
   getAppPath = ->
     contentsDir = grunt.config.get('atom.contentsDir')
     switch process.platform
@@ -54,6 +58,7 @@ module.exports = (grunt) ->
           fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
         failedPackages.push path.basename(packagePath) if error
+        logDeprecations(results)
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -87,6 +92,7 @@ module.exports = (grunt) ->
       else
         # TODO: Restore concurrency on Windows
         packageSpecQueue.concurrency = concurrency
+        logDeprecations(results)
 
       callback(null, error)
 
