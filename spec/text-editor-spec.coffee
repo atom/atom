@@ -3420,11 +3420,11 @@ describe "TextEditor", ->
         describe "when the cursor is before whitespace", ->
           it "retains the whitespace following the cursor on the new line", ->
             editor.setText("  var sort = function() {}")
-            editor.setCursorScreenPosition([0, 23])
+            editor.setCursorScreenPosition([0, 12])
             editor.insertNewline()
 
-            expect(buffer.lineForRow(0)).toBe '  var sort = function()'
-            expect(buffer.lineForRow(1)).toBe '   {}'
+            expect(buffer.lineForRow(0)).toBe '  var sort ='
+            expect(buffer.lineForRow(1)).toBe '   function() {}'
             expect(editor.getCursorScreenPosition()).toEqual [1, 2]
 
       describe "when inserted text matches a decrease indent pattern", ->
