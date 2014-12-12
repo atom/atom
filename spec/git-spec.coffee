@@ -259,6 +259,10 @@ describe "GitRepository", ->
       editor.getBuffer().emitter.emit 'did-change-path'
       expect(statusHandler.callCount).toBe 1
 
+    it "stops listening to the buffer when the repository is destroyed (regression)", ->
+      atom.project.getRepositories()[0].destroy()
+      expect(-> editor.save()).not.toThrow()
+
   describe "when a project is deserialized", ->
     [buffer, project2] = []
 

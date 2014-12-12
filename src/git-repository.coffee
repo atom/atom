@@ -412,6 +412,8 @@ class GitRepository
     bufferSubscriptions.add buffer.onDidDestroy =>
       bufferSubscriptions.dispose()
       @subscriptions.remove(bufferSubscriptions)
+    @subscriptions.add(bufferSubscriptions)
+    return
 
   # Subscribes to editor view event.
   checkoutHeadForEditor: (editor) ->
