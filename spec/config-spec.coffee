@@ -47,6 +47,8 @@ describe "Config", ->
         # Schema defaults never match a specific source. We could potentially add a special "schema" source.
         expect(atom.config.get("x.y", sources: ["x"], scope: [".foo"])).toBeUndefined()
 
+        expect(atom.config.get(null, sources: ['a'], scope: [".foo"]).x.y).toBe 1
+
     describe "when an 'excludeSources' option is specified", ->
       it "only retrieves values from the specified sources", ->
         atom.config.set("x.y", 1, scopeSelector: ".foo", source: "a")

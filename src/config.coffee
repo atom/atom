@@ -457,7 +457,7 @@ class Config
   # file in the type specified by the configuration schema.
   get: ->
     if arguments.length > 1
-      if typeof arguments[0] is 'string'
+      if typeof arguments[0] is 'string' or not arguments[0]?
         keyPath = arguments[0]
         options = arguments[1]
         {scope} = options
