@@ -16,7 +16,7 @@ FOR %%a IN (%*) DO (
 )
 
 IF "%EXPECT_OUTPUT%"=="YES" (
-  "%~dp0\..\atom.exe" %*
+  "%~dp0\..\..\atom.exe" %*
 ) ELSE (
   "%~dp0\..\app\apm\node_modules\atom-package-manager\bin\node.exe" "%~dp0\atom.js" %*
 )
