@@ -84,7 +84,7 @@
     "bracket-matcher": "0.64.0",
     "command-palette": "0.30.0",
     "deprecation-cop": "0.19.0",
-    "dev-live-reload": "0.35.0",
+    "dev-live-reload": "0.36.0",
     "encoding-selector": "0.10.0",
     "exception-reporting": "0.21.0",
     "find-and-replace": "0.152.0",
