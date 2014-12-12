@@ -252,23 +252,12 @@ describe "Config", ->
       atom.config.setDefaults("foo", bar: baz: 10)
       atom.config.set("foo.ok", 12)
 
+      jasmine.snapshotDeprecations()
       expect(atom.config.getSettings().foo).toEqual
         ok: 12
         bar:
           baz: 10
-
-    describe "when scoped settings are used", ->
-      it "returns all the scoped settings including all the defaults", ->
-        atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.set("foo.ok", 12)
-        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
-        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: omg: 'omg')
-
-        expect(atom.config.getSettings(".source.coffee").foo).toEqual
-          ok: 12
-          bar:
-            baz: 42
-            omg: 'omg'
+      jasmine.restoreDeprecationsSnapshot()
 
   describe ".pushAtKeyPath(keyPath, value)", ->
     it "pushes the given value to the array at the key path and updates observers", ->

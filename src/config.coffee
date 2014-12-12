@@ -604,18 +604,11 @@ class Config
       schema = schema.properties[key]
     schema
 
-  # Extended: Returns a new {Object} containing all of the global settings and
+  # Deprecated: Returns a new {Object} containing all of the global settings and
   # defaults. Returns the scoped settings when a `scopeSelector` is specified.
-  #
-  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  getSettings: (scopeSelector) ->
-    settings = _.deepExtend(@settings, @defaultSettings)
-
-    if scopeSelector?
-      scopedSettings = @scopedSettingsStore.propertiesForSelector(scopeSelector)
-      settings = _.deepExtend(scopedSettings, settings)
-
-    settings
+  getSettings: ->
+    deprecate "Use ::get(keyPath) instead"
+    _.deepExtend(@settings, @defaultSettings)
 
   # Extended: Get the {String} path to the config file being used.
   getUserConfigPath: ->
