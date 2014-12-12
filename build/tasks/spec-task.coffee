@@ -11,8 +11,9 @@ module.exports = (grunt) ->
 
   packageSpecQueue = null
 
-  logDeprecations = ({stdout}={}) ->
+  logDeprecations = (label, {stdout}={}) ->
     if process.env.JANKY_SHA1 and stdout?.indexOf('Calls to deprecated functions') isnt -1
+      grunt.log.error(label)
       grunt.log.error(stdout)
 
   getAppPath = ->
@@ -58,7 +59,7 @@ module.exports = (grunt) ->
           fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
         failedPackages.push path.basename(packagePath) if error
-        logDeprecations(results)
+        logDeprecations("#{path.basename(packagePath)} Specs", results)
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -92,7 +93,7 @@ module.exports = (grunt) ->
       else
         # TODO: Restore concurrency on Windows
         packageSpecQueue.concurrency = concurrency
-        logDeprecations(results)
+        logDeprecations('Core Specs', results)
 
       callback(null, error)
 
