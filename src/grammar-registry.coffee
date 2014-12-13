@@ -53,13 +53,16 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     deprecate("Do not use this. Use a public method on Config")
     atom.config.scopedSettingsStore
 
-  addProperties: (args...) ->
-    args.unshift(null) if args.length == 2
-    deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedSettings().'
-    atom.config.addScopedSettings(args...)
+  addProperties: (sourceName, selector, properties) ->
+    deprecate 'Use atom.config.setFromSource instead'
+    if args.length == 2
+      properties = selector
+      selector = sourceName
+      sourceName = null
+    atom.config.setFromSource(sourceName, selector, null, properties)
 
   removeProperties: (name) ->
-    deprecate 'atom.config.addScopedSettings() now returns a disposable you can call .dispose() on'
+    deprecate 'atom.config.setFromSource now returns a disposable you can call .dispose() on'
     atom.config.scopedSettingsStore.removeProperties(name)
 
   getProperty: (scope, keyPath) ->

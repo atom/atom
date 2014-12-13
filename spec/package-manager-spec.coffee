@@ -94,8 +94,8 @@ describe "PackageManager", ->
             expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 1
             expect(atom.config.get('package-with-config-schema.numbers.two')).toBe 2
 
-            expect(atom.config.set('package-with-config-schema.numbers.one', 'nope')).toBe false
-            expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe true
+            expect(atom.config.set('package-with-config-schema.numbers.one', 'nope')).toBeNull()
+            expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBeTruthy()
             expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 10
 
         describe "when a package has configDefaults", ->
