@@ -80,9 +80,6 @@ describe "Config", ->
       expect(atom.config.save).toHaveBeenCalled()
       expect(observeHandler).toHaveBeenCalledWith 42
 
-    it "does not allow a 'source' option without a 'scopeSelector'", ->
-      expect(-> atom.config.set("foo", 1, source: [".source.ruby"])).toThrow()
-
     describe "when the value equals the default value", ->
       it "does not store the value in the user's config", ->
         atom.config.setDefaults "foo",
@@ -228,9 +225,6 @@ describe "Config", ->
 
       atom.config.unset('a.c')
       expect(atom.config.save.callCount).toBe 1
-
-    it "throws when called with a source but no scope", ->
-      expect(-> atom.config.unset("a.b", source: "the-source")).toThrow()
 
     describe "when scoped settings are used", ->
       it "restores the global default when no scoped default set", ->
@@ -481,12 +475,21 @@ describe "Config", ->
 
         atom.config.set('foo.bar.baz', "value 1")
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
+        observeHandler.reset()
+
+        atom.config.set('foo.bar', {baz: "value 3"})
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 3', oldValue: 'value 1'})
+        observeHandler.reset()
+
+        atom.config.set('foo.bar', null)
+        expect(observeHandler).toHaveBeenCalledWith({newValue: undefined, oldValue: 'value 3'})
+        observeHandler.reset()
 
     describe 'when a keyPath is not specified', ->
       beforeEach ->
         observeHandler = jasmine.createSpy("observeHandler")
-        atom.config.set("foo.bar.baz", "value 1")
-        observeSubscription = atom.config.onDidChange observeHandler
+        atom.config.set("foo", bar: baz: "value 1")
+        observeSubscription = atom.config.onDidChange(observeHandler)
 
       it "does not fire the given callback initially", ->
         expect(observeHandler).not.toHaveBeenCalled()
@@ -494,6 +497,7 @@ describe "Config", ->
       it "fires the callback every time any value changes", ->
         observeHandler.reset() # clear the initial call
         atom.config.set('foo.bar.baz', "value 2")
+
         expect(observeHandler).toHaveBeenCalled()
         expect(observeHandler.mostRecentCall.args[0].newValue.foo.bar.baz).toBe("value 2")
         expect(observeHandler.mostRecentCall.args[0].oldValue.foo.bar.baz).toBe("value 1")
@@ -529,6 +533,21 @@ describe "Config", ->
 
       atom.config.set('foo.bar.baz', "value 1")
       expect(observeHandler).toHaveBeenCalledWith("value 1")
+      observeHandler.reset()
+
+      atom.config.set('foo.bar', {baz: "value 3"})
+      expect(observeHandler).toHaveBeenCalledWith("value 3")
+      observeHandler.reset()
+
+      atom.config.set('foo.bar', null)
+      expect(observeHandler).toHaveBeenCalledWith(undefined)
+      observeHandler.reset()
+
+      atom.config.set('foo.bar.baz.quux', "value 4")
+      expect(observeHandler).toHaveBeenCalledWith({quux: "value 4"})
+
+      atom.config.set('foo.bar.baz.buzz', "value 5")
+      expect(observeHandler).toHaveBeenCalledWith({quux: "value 4", buzz: "value 5"})
 
       observeHandler.reset()
       atom.config.loadUserConfig()

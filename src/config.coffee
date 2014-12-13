@@ -539,7 +539,7 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
-    if arguments[0][0] is '.'
+    if arguments[0]?[0] is '.'
       Grim.deprecate """
         Passing a scope selector as the first argument to Config::set is deprecated.
         Pass a `scopeSelector` in an options hash as the final argument instead.
@@ -549,9 +549,6 @@ class Config
       [keyPath, value, options] = arguments
       scopeSelector = options?.scopeSelector
       source = options?.source
-
-    if source and not scopeSelector
-      throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
 
     source ?= @getUserConfigPath()
 
@@ -566,6 +563,7 @@ class Config
     else
       @setRawValue(source, keyPath, value)
 
+    @emitChangeEvent()
     @save() unless @configFileHasErrors
     true
 
@@ -585,9 +583,6 @@ class Config
       keyPath = options
     else
       {scopeSelector, source} = options ? {}
-
-    if source and not scopeSelector
-      throw new Error("::unset with a 'source' and no 'sourceSelector' is not yet implemented!")
 
     source ?= @getUserConfigPath()
 
@@ -820,42 +815,28 @@ class Config
   ###
 
   resetUserSettings: (newSettings) ->
+    @scopedSettingsStore.removePropertiesForSource(@getUserConfigPath())
+
     unless isPlainObject(newSettings)
-      @settings = {}
       @emitChangeEvent()
       return
 
-    if newSettings.global?
-      scopedSettings = newSettings
-      newSettings = newSettings.global
-      delete scopedSettings.global
-      @resetUserScopedSettings(scopedSettings)
+    unless newSettings.global?
+      newSettings = {global: newSettings}
 
-    unsetUnspecifiedValues = (keyPath, value) =>
-      if isPlainObject(value)
-        keys = splitKeyPath(keyPath)
-        for key, childValue of value
-          continue unless value.hasOwnProperty(key)
-          unsetUnspecifiedValues(keys.concat([key]).join('.'), childValue)
+    for selector, settings of newSettings
+      unless settings is undefined
+        try
+          settings = @makeValueConformToSchema(null, settings)
+        catch e
+          continue
+
+      if selector is 'global'
+        @setRawValue(@getUserConfigPath(), null, settings)
       else
-        @setRawValue(@getUserConfigPath(), keyPath, undefined) unless _.valueForKeyPath(newSettings, keyPath)?
-      return
+        @setRawScopedValue(@getUserConfigPath(), selector, null, settings)
 
-    @setRecursive(null, newSettings)
-    unsetUnspecifiedValues(null, @settings)
-
-  setRecursive: (keyPath, value) ->
-    if isPlainObject(value)
-      keys = splitKeyPath(keyPath)
-      for key, childValue of value
-        continue unless value.hasOwnProperty(key)
-        @setRecursive(keys.concat([key]).join('.'), childValue)
-    else
-      try
-        value = @makeValueConformToSchema(keyPath, value)
-        @setRawValue(@getUserConfigPath(), keyPath, value)
-      catch e
-        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+    @emitChangeEvent()
 
   getRawValue: (keyPath, options) ->
     value = @getRawScopedValue(['xxx'], keyPath, options)
@@ -877,18 +858,10 @@ class Config
     @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
-    callback(@get(keyPath))
-    @onDidChangeKeyPath keyPath, (event) -> callback(event.newValue)
+    @observeScopedKeyPath(["xxx"], keyPath, callback)
 
   onDidChangeKeyPath: (keyPath, callback) ->
-    oldValue = @get(keyPath)
-
-    didChange = =>
-      newValue = @get(keyPath)
-      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+    @onDidChangeScopedKeyPath(["xxx"], keyPath, callback)
 
   isSubKeyPath: (keyPath, subKeyPath) ->
     return false unless keyPath? and subKeyPath?
@@ -910,6 +883,7 @@ class Config
       try
         defaults = @makeValueConformToSchema(keyPath, defaults)
         @setRawDefault(keyPath, defaults)
+        @emitChangeEvent()
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
@@ -959,12 +933,6 @@ class Config
   emitChangeEvent: ->
     @emitter.emit 'did-change' unless @transactDepth > 0
 
-  resetUserScopedSettings: (newScopedSettings) ->
-    @usersScopedSettings?.dispose()
-    @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettings.add @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
-    @emitChangeEvent()
-
   addScopedSettings: (source, selector, value, options) ->
     settingsBySelector = {}
     settingsBySelector[selector] = value
@@ -983,32 +951,24 @@ class Config
     settingsBySelector = {}
     settingsBySelector[selector] = value
     @usersScopedSettings.add @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
-    @emitChangeEvent()
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
+    value = @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
+    value
 
   observeScopedKeyPath: (scope, keyPath, callback) ->
-    oldValue = @get(keyPath, {scope})
-
-    callback(oldValue)
-
-    didChange = =>
-      newValue = @get(keyPath, {scope})
-      callback(newValue) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+    callback(@get(keyPath, {scope}))
+    @onDidChangeScopedKeyPath scope, keyPath, ({newValue}) ->
+      callback(newValue)
 
   onDidChangeScopedKeyPath: (scope, keyPath, callback) ->
-    oldValue = @get(keyPath, {scope})
-    didChange = =>
+    oldValue = _.deepClone(@get(keyPath, {scope}))
+    @emitter.on 'did-change', (event) =>
       newValue = @get(keyPath, {scope})
-      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+      unless _.isEqual(newValue, oldValue)
+        callback({newValue, oldValue})
+      oldValue = _.deepClone(newValue)
 
   # TODO: figure out how to change / remove this. The return value is awkward.
   # * language mode uses it for one thing.
@@ -1074,7 +1034,11 @@ Config.addSchemaEnforcers
       for prop, childSchema of schema.properties
         continue unless value.hasOwnProperty(prop)
         try
-          newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", value[prop], childSchema)
+          newKeyPath = if keyPath?
+            "#{keyPath}.#{prop}"
+          else
+            prop
+          newValue[prop] = @executeSchemaEnforcers(newKeyPath, value[prop], childSchema)
         catch error
           console.warn "Error setting item in object: #{error.message}"
       newValue
