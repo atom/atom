@@ -159,24 +159,71 @@ To use the new views, you need to specify the `atom-space-pen-views` module in y
 
 ### Converting your views
 
-Sometimes it is as simple as converting the requires at the top of each view page. In the case of our above example, you can just convert them to the following:
+Sometimes it is as simple as converting the requires at the top of each view page. I assume you read the 'TL;DR' section and have updated all of your requires.
+
+### Upgrading classes extending any space-pen View
+
+The `afterAttach` and `beforeRemove` hooks have been replaced with
+`attached` and `detached` and their semantics have been altered. `attached` will only be called when all parents of the View are attached to the DOM.
 
 ```coffee
-{$, View} = require 'space-pen'
-{TextEditorView} = require 'atom-space-pen-views'
+# Old way
+{View} = require 'atom'
+class MyView extends View
+  afterAttach: (onDom) ->
+    #...
+
+  beforeRemove: ->
+    #...
 ```
 
-If you are using the lifecycle hooks, you will need to update code as well.
+```coffee
+# New way
+{View} = require 'atom-space-pen-views'
+class MyView extends View
+  attached: ->
+    # Always called with the equivalent of @afterAttach(true)!
+    #...
 
-### Upgrading to space-pen's TextEditorView
+  removed: ->
+    #...
+```
+
+### Upgrading to the new TextEditorView
 
 You should not need to change anything to use the new `TextEditorView`! See the [docs][TextEditorView] for more info.
 
-### Upgrading to space-pen's ScrollView
+### Upgrading to classes extending ScrollView
 
-See the [docs][ScrollView] for all the options.
+The `ScrollView` has very minor changes.
 
-### Upgrading to space-pen's SelectListView
+You can no longer use `@off` to remove default behavior for `core:move-up`, `core:move-down`, etc.
+
+```coffee
+# Old way to turn off default behavior
+class ResultsView extends ScrollView
+  initialize: (@model) ->
+    super
+    # turn off default scrolling behavior from ScrollView
+    @off 'core:move-up'
+    @off 'core:move-down'
+    @off 'core:move-left'
+    @off 'core:move-right'
+```
+
+```coffee
+# New way to turn off default behavior
+class ResultsView extends ScrollView
+  initialize: (@model) ->
+    disposable = super()
+    # turn off default scrolling behavior from ScrollView
+    disposable.dispose()
+```
+
+* Check out [an example](https://github.com/atom/find-and-replace/pull/311/files#diff-9) from find-and-replace.
+* See the [docs][ScrollView] for all the options.
+
+### Upgrading to classes extending SelectListView
 
 Your SelectListView might look something like this:
 
@@ -254,7 +301,8 @@ class CommandPaletteView extends SelectListView
     @panel?.hide()
 ```
 
-See the [SelectListView docs][SelectListView] for all the options. And check out the [conversion of CommandPaletteView][selectlistview-example] as a real-world example.
+* And check out the [conversion of CommandPaletteView][selectlistview-example] as a real-world example.
+* See the [SelectListView docs][SelectListView] for all options.
 
 ## Specs
 
