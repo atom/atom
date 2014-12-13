@@ -4,9 +4,65 @@ Atom is rapidly approaching 1.0. Much of the effort leading up to the 1.0 has be
 
 This document will guide you through the large bits of upgrading your package to work with 1.0 APIs.
 
+## TL;DR
+
+We've set deprecation messages and errors in strategic places to help make sure you dont miss anything. You should be able to get 95% of the way to an updated package just by fixing errors and deprecations. There are a couple of things you need to do to enable all these errors and deprecations.
+
+### Use atom-space-pen-views
+
+Add the `atom-space-pen-views` module to your package's `package.json` file's dependencies:
+
+```js
+{
+  "dependencies": {
+    "atom-space-pen-views": "^0.21"
+  }
+}
+```
+
+Then run `apm install` in your package directory.
+
+### Require views from atom-space-pen-views
+
+Anywhere you are requiring one of the following from `atom` you need to require them from `atom-space-pen-views` instead.
+
+```js
+// require these from 'atom-space-pen-views' rather than 'atom'
+$
+$$
+$$$
+View
+TextEditorView
+ScrollView
+SelectListView
+```
+
+So this:
+
+```coffee
+# Old way
+{$, TextEditorView, View, GitRepository} = require 'atom'
+```
+
+Would be replaced with this:
+
+```coffee
+# New way
+{GitRepository} = require 'atom'
+{$, TextEditorView, View} = require 'atom-space-pen-views'
+```
+
+### Run specs and test your package
+
+You wrote specs, right!? Here's where they shine. Run them with `cmd-shift-P`, and search for `run package specs`. It will show all the deprecation messages and errors.
+
+### Examples
+
+We have upgraded all the core packages. Please see [this issue](https://github.com/atom/atom/issues/4011) for a link to all the upgrade PRs.
+
 ## Deprecations
 
-All of the methods that have changes emit deprecation messages when called. These messages are shown in two places: your package specs, and in Deprecation Cop.
+All of the methods in core that have changes will emit deprecation messages when called. These messages are shown in two places: your **package specs**, and in **Deprecation Cop**.
 
 ### Specs
 
