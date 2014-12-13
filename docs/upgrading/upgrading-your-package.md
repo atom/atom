@@ -70,17 +70,20 @@ Just run your specs, and all the deprecations will be displayed in yellow.
 
 TODO: image of deprecations in specs
 
+TODO: Comand line spec deprecation image?
+
 ### Deprecation Cop
 
 Run an atom window in dev mode (`atom -d`) with your package loaded, and open Deprecation Cop (search for `deprecation` in the command palette).
 
 TODO: image of deprecations in DepCop
 
-## Views
+## View Changes
 
 Previous to 1.0, views in packages were baked into Atom core. These views were based on jQuery and `space-pen`. They looked something like this:
 
 ```coffee
+# The old way: getting views from atom
 {$, TextEditorView, View} = require 'atom'
 
 module.exports =
@@ -92,7 +95,7 @@ class SomeView extends View
   #...
 ```
 
-Requiring `atom` used to provide the following view helpers:
+Requiring `atom` _used to_ provide the following view helpers:
 
 ```
 $
@@ -102,13 +105,11 @@ View
 TextEditorView
 ScrollView
 SelectListView
-Workspace
-WorkspaceView
 ```
 
 ### The New
 
-Atom no longer provides these view helpers baked in. They are now available from two npm packages: `space-pen`, and `atom-space-pen-views`
+Atom no longer provides these view helpers baked in. Atom core is now 'view agnostic'. The preexisting view system is available from two npm packages: `space-pen`, and `atom-space-pen-views`
 
 `space-pen` now provides
 
@@ -119,30 +120,34 @@ $$$
 View
 ```
 
-`atom-space-pen-views` now provides
+`atom-space-pen-views` now provides all of `space-pen`, plus Atom specific views:
 
-```
+```js
+// Passed through from space-pen
+$
+$$
+$$$
+View
+
+// Atom specific views
 TextEditorView
 ScrollView
 SelectListView
 ```
 
-`Workspace` and `WorkspaceView` are _no longer provided_ in any capacity. They should be unnecessary
-
 ### Adding the module dependencies
 
-To use the new views, you need to specify a couple modules in your package dependencies in your `package.json` file:
+To use the new views, you need to specify the `atom-space-pen-views` module in your package's `package.json` file's dependencies:
 
 ```js
 {
   "dependencies": {
-    "space-pen": "^3"
-    "atom-space-pen-views": "^0"
+    "atom-space-pen-views": "^0.21"
   }
 }
 ```
 
-`space-pen` bundles jQuery. If you do not need `space-pen`, you can require jQuery directly.
+`space-pen` bundles jQuery. If you do not need `space-pen` or any of the views, you can require jQuery directly.
 
 ```js
 {
