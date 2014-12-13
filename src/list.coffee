@@ -29,12 +29,14 @@ class List extends Command
              apm list --themes
              apm list --installed
              apm list --installed --bare > my-packages.txt
+             apm list --json
 
       List all the installed packages and also the packages bundled with Atom.
     """
     options.alias('b', 'bare').boolean('bare').describe('bare', 'Print packages one per line with no formatting')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('i', 'installed').boolean('installed').describe('installed', 'Only list installed packages/themes')
+    options.alias('j', 'json').boolean('json').describe('json',  'Output all packages as a JSON object')
     options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
 
   isPackageDisabled: (name) ->
@@ -72,53 +74,68 @@ class List extends Command
 
     packages
 
-  listUserPackages: (options) ->
+  listUserPackages: (options, callback) ->
     userPackages = @listPackages(@userPackagesDirectory, options)
-    unless options.argv.bare
+    unless options.argv.bare or options.argv.json
       console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
-    @logPackages(userPackages, options)
+    callback?(null, userPackages)
 
-  listDevPackages: (options) ->
+  listDevPackages: (options, callback) ->
     devPackages = @listPackages(@devPackagesDirectory, options)
     if devPackages.length > 0
-      unless options.argv.bare
+      unless options.argv.bare or options.argv.json
         console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
-      @logPackages(devPackages, options)
+      callback?(null, devPackages)
 
   listBundledPackages: (options, callback) ->
     config.getResourcePath (resourcePath) =>
-      nodeModulesDirectory = path.join(resourcePath, 'node_modules')
-      packages = @listPackages(nodeModulesDirectory, options)
-
       try
         metadataPath = path.join(resourcePath, 'package.json')
-        {packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
+        {packageDependencies, _atomPackages} = JSON.parse(fs.readFileSync(metadataPath))
       packageDependencies ?= {}
+      _atomPackages ?= {}
+      packages = (metadata for packageName, {metadata} of _atomPackages)
 
-      packages = packages.filter ({name}) ->
-        packageDependencies.hasOwnProperty(name)
-
-      unless options.argv.bare
+      unless options.argv.bare or options.argv.json
         if options.argv.themes
           console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
         else
           console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
 
-      @logPackages(packages, options)
-      callback()
+      callback?(null, packages)
 
   listInstalledPackages: (options) ->
-    @listDevPackages(options)
-    @listUserPackages(options)
+    @listDevPackages options, (error, packages) =>
+      @logPackages(packages, options)
+
+      @listUserPackages options, (error, packages) =>
+        @logPackages(packages, options)
+
+  listPackagesAsJson: (options) ->
+    output =
+      core: []
+      dev: []
+      user: []
+
+    @listBundledPackages options, (error, packages) =>
+      output.core = packages
+      @listDevPackages options, (error, packages) =>
+        output.dev = packages
+        @listUserPackages options, (error, packages) =>
+          output.user = packages
+          console.log JSON.stringify(output)
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    if options.argv.installed
+    if options.argv.json
+      @listPackagesAsJson(options)
+    else if options.argv.installed
       @listInstalledPackages(options)
       callback()
     else
-      @listBundledPackages options, =>
+      @listBundledPackages options, (error, packages) =>
+        @logPackages(packages, options)
         @listInstalledPackages(options)
         callback()

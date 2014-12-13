@@ -29,6 +29,7 @@ able to run it from a terminal.
 
 ## Building
   * Clone the repository
+  * :penguin: Install `libgnome-keyring-dev` if you are on Linux
   * Run `npm install`
   * Run `grunt` to compile the CoffeeScript code
   * Run `npm test` to run the specs
