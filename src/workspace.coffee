@@ -459,8 +459,6 @@ class Workspace extends Model
         @emit "uri-opened"
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
-      .catch (error) ->
-        console.error(error.stack ? error)
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
