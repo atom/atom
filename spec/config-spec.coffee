@@ -4,7 +4,6 @@ CSON = require 'season'
 fs = require 'fs-plus'
 
 describe "Config", ->
-  dotAtomPath = path.join(temp.dir, 'dot-atom-dir')
   dotAtomPath = null
 
   beforeEach ->
