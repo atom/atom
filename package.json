@@ -53,7 +53,7 @@
     "reactionary-atom-fork": "^1.0.0",
     "runas": "1.0.1",
     "scandal": "1.0.3",
-    "scoped-property-store": "^0.15.1",
+    "scoped-property-store": "^0.15.2",
     "scrollbar-style": "^1.0.2",
     "season": "^1.0.2",
     "semver": "2.2.1",
@@ -63,7 +63,7 @@
     "temp": "0.7.0",
     "text-buffer": "^3.8.2",
     "theorist": "^1.0.2",
-    "underscore-plus": "^1.6.1",
+    "underscore-plus": "^1.6.3",
     "vm-compatibility-layer": "0.1.0"
   },
   "packageDependencies": {
