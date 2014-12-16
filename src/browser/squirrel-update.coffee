@@ -123,10 +123,15 @@ addCommandsToPath = (callback) ->
     relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm.cmd'))
     apmCommand = "@echo off\r\n\"%~dp0\\#{relativeApmPath}\" %*"
 
+    apmShCommandPath = path.join(binFolder, 'apm')
+    relativeApmShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'apm.sh'))
+    apmShCommand = "#!/bin/sh\r\n\"$0/#{relativeApmShPath.replace(/\\/g, '/')}\" \"$@\""
+
     fs.writeFile atomCommandPath, atomCommand, ->
       fs.writeFile atomShCommandPath, atomShCommand, ->
         fs.writeFile apmCommandPath, apmCommand, ->
-          callback()
+          fs.writeFile apmShCommandPath, apmShCommand, ->
+            callback()
 
   addBinToPath = (pathSegments, callback) ->
     pathSegments.push(binFolder)
