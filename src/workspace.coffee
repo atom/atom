@@ -555,7 +555,7 @@ class Workspace extends Model
   # {::saveActivePaneItemAs} # will be called instead. This method does nothing
   # if the active item does not implement a `.save` method.
   saveActivePaneItem: ->
-    @getActivePane().saveActiveItem()
+    @saveActivePaneItemAndReportErrors('saveActiveItem')
 
   # Prompt the user for a path and save the active pane item to it.
   #
@@ -563,7 +563,21 @@ class Workspace extends Model
   # `.saveAs` on the item with the selected path. This method does nothing if
   # the active item does not implement a `.saveAs` method.
   saveActivePaneItemAs: ->
-    @getActivePane().saveActiveItemAs()
+    @saveActivePaneItemAndReportErrors('saveActiveItemAs')
+
+  saveActivePaneItemAndReportErrors: (method) ->
+    try
+      @getActivePane()[method]()
+    catch error
+      if error.message.endsWith('is a directory')
+        atom.notifications.addWarning("Unable to save file: #{error.message}")
+      else if error.message.startsWith('EACCES,')
+        atom.notifications.addWarning("Unable to save file: #{error.message.replace('EACCES, ', '')}")
+      else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
+        fileName = errorMatch[1]
+        atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
+      else
+        throw error
 
   # Destroy (close) the active pane item.
   #
