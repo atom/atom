@@ -1,14 +1,17 @@
 {Emitter} = require 'event-kit'
 {View, $, callRemoveHooks} = require 'space-pen'
-React = require 'react-atom-fork'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
-TextEditorComponent = require './text-editor-component'
+TextEditorComponent = null
 TextEditorView = null
 
 ShadowStyleSheet = null
+
+React = null
+getReact: ->
+  React ?= require 'react-atom-fork'
 
 class TextEditorElement extends HTMLElement
   model: null
@@ -102,6 +105,7 @@ class TextEditorElement extends HTMLElement
     ))
 
   mountComponent: ->
+    TextEditorComponent ?= require './text-editor-component'
     @componentDescriptor ?= TextEditorComponent(
       hostElement: this
       rootElement: @rootElement
@@ -111,7 +115,7 @@ class TextEditorElement extends HTMLElement
       lineOverdrawMargin: @lineOverdrawMargin
       useShadowDOM: @useShadowDOM
     )
-    @component = React.renderComponent(@componentDescriptor, @rootElement)
+    @component = getReact().renderComponent(@componentDescriptor, @rootElement)
 
     if @useShadowDOM
       @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
@@ -123,7 +127,7 @@ class TextEditorElement extends HTMLElement
   unmountComponent: ->
     return unless @component?.isMounted()
     callRemoveHooks(this)
-    React.unmountComponentAtNode(this)
+    getReact().unmountComponentAtNode(this)
     @component = null
 
   focused: ->
