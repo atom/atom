@@ -314,10 +314,11 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
     @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettingPriority = {priority: 1000}
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
+    @prioritiesBySource = {}
+    @prioritiesBySource[@getUserConfigPath()] = 1000
 
   ###
   Section: Config Subscription
@@ -583,7 +584,7 @@ class Config
           @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
           _.setValueForKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
-          @addScopedSettings(source, scopeSelector, settings, @usersScopedSettingPriority) if settings?
+          @addScopedSettings(source, scopeSelector, settings, priority: @usersScopedSettingPriority) if settings?
           @save() unless @configFileHasErrors
       else
         @scopedSettingsStore.removePropertiesForSource(source)
@@ -937,7 +938,7 @@ class Config
   resetUserScopedSettings: (newScopedSettings) ->
     @usersScopedSettings?.dispose()
     @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettings.add @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, @usersScopedSettingPriority)
+    @usersScopedSettings.add @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
     @emitter.emit 'did-change'
 
   addScopedSettings: (source, selector, value, options) ->
@@ -957,7 +958,7 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @usersScopedSettings.add @scopedSettingsStore.addProperties(source, settingsBySelector, @usersScopedSettingPriority)
+    @usersScopedSettings.add @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
     @emitter.emit 'did-change'
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->
