@@ -614,7 +614,7 @@ class Config
     @unset(scopeSelector, keyPath)
     @get(keyPath)
 
-  # Extended: Get the global default value of the key path. _Please note_ that in most
+  # Deprecated: Get the global default value of the key path. _Please note_ that in most
   # cases calling this is not necessary! {::get} returns the default value when
   # a custom value is not specified.
   #
@@ -622,35 +622,30 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns the default value.
-  getDefault: (scopeSelector, keyPath) ->
-    if arguments.length == 1
-      keyPath = scopeSelector
-      scopeSelector = null
-
-    if scopeSelector?
-      defaultValue = @scopedSettingsStore.getPropertyValue(scopeSelector, keyPath, excludeSources: [@getUserConfigPath()])
-      defaultValue ?= _.valueForKeyPath(@defaultSettings, keyPath)
+  getDefault: ->
+    Grim.deprecate("Use the `excludeSources` to ::get instead")
+    if arguments.length is 1
+      [keyPath] = arguments
     else
-      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
-    _.deepClone(defaultValue)
+      [scopeSelector, keyPath] = arguments
+      scope = [scopeSelector]
+    @get(keyPath, {scope, excludeSources: [@getUserConfigPath()]})
 
-  # Extended: Is the value at `keyPath` its default value?
+  # Deprecated: Is the value at `keyPath` its default value?
   #
   # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
   # * `keyPath` The {String} name of the key.
   #
   # Returns a {Boolean}, `true` if the current value is the default, `false`
   # otherwise.
-  isDefault: (scopeSelector, keyPath) ->
-    if arguments.length == 1
-      keyPath = scopeSelector
-      scopeSelector = null
-
-    if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector(@getUserConfigPath(), scopeSelector)
-      not _.valueForKeyPath(settings, keyPath)?
+  isDefault: ->
+    Grim.deprecate("Use the `excludeSources` to ::get instead")
+    if arguments.length is 1
+      [keyPath] = arguments
     else
-      not _.valueForKeyPath(@settings, keyPath)?
+      [scopeSelector, keyPath] = arguments
+      scope = [scopeSelector]
+    @get(keyPath, {scope}) is @get(keyPath, {scope, excludeSources: [@getUserConfigPath()]})
 
   # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
@@ -849,8 +844,10 @@ class Config
         console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
   getRawValue: (keyPath, options) ->
-    value = _.valueForKeyPath(@settings, keyPath)
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath) unless options?.sources?.length > 0
+    unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
+      value = _.valueForKeyPath(@settings, keyPath)
+    unless options?.sources?.length > 0
+      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
       value = _.deepClone(value)

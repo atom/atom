@@ -52,6 +52,7 @@ describe "Config", ->
 
     describe "when an 'excludeSources' option is specified", ->
       it "only retrieves values from the specified sources", ->
+        atom.config.set("x.y", 0)
         atom.config.set("x.y", 1, scopeSelector: ".foo", source: "a")
         atom.config.set("x.y", 2, scopeSelector: ".foo", source: "b")
         atom.config.set("x.y", 3, scopeSelector: ".foo", source: "c")
@@ -60,7 +61,9 @@ describe "Config", ->
         expect(atom.config.get("x.y", excludeSources: ["a"], scope: [".foo"])).toBe 3
         expect(atom.config.get("x.y", excludeSources: ["c"], scope: [".foo"])).toBe 2
         expect(atom.config.get("x.y", excludeSources: ["b", "c"], scope: [".foo"])).toBe 1
-        expect(atom.config.get("x.y", excludeSources: ["b", "c", "a"], scope: [".foo"])).toBe 4
+        expect(atom.config.get("x.y", excludeSources: ["b", "c", "a"], scope: [".foo"])).toBe 0
+        expect(atom.config.get("x.y", excludeSources: ["b", "c", "a", atom.config.getUserConfigPath()], scope: [".foo"])).toBe 4
+        expect(atom.config.get("x.y", excludeSources: [atom.config.getUserConfigPath()])).toBe 4
 
   describe ".set(keyPath, value)", ->
     it "allows a key path's value to be written", ->
@@ -107,52 +110,74 @@ describe "Config", ->
   describe ".getDefault(keyPath)", ->
     it "returns a clone of the default value", ->
       atom.config.setDefaults("foo", same: 1, changes: 1)
+
+      spyOn(Grim, 'deprecate')
       expect(atom.config.getDefault('foo.same')).toBe 1
       expect(atom.config.getDefault('foo.changes')).toBe 1
+      expect(Grim.deprecate.callCount).toBe(2)
 
       atom.config.set('foo.same', 2)
       atom.config.set('foo.changes', 3)
+
       expect(atom.config.getDefault('foo.same')).toBe 1
       expect(atom.config.getDefault('foo.changes')).toBe 1
+      expect(Grim.deprecate.callCount).toBe(4)
 
       initialDefaultValue = [1, 2, 3]
       atom.config.setDefaults("foo", bar: initialDefaultValue)
       expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
       expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
+      expect(Grim.deprecate.callCount).toBe(6)
 
     describe "when scoped settings are used", ->
       it "returns the global default when no scoped default set", ->
         atom.config.setDefaults("foo", bar: baz: 10)
-        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 10
 
-      it "returns the scoped default when a scoped default is set", ->
+        spyOn(Grim, 'deprecate')
+        expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 10
+        expect(Grim.deprecate).toHaveBeenCalled()
+
+      it "returns the scoped settings not including the user's config file", ->
         atom.config.setDefaults("foo", bar: baz: 10)
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+
+        spyOn(Grim, 'deprecate')
         expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+        expect(Grim.deprecate.callCount).toBe(1)
 
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+        expect(Grim.deprecate.callCount).toBe(2)
 
   describe ".isDefault(keyPath)", ->
     it "returns true when the value of the key path is its default value", ->
       atom.config.setDefaults("foo", same: 1, changes: 1)
+
+      spyOn(Grim, 'deprecate')
       expect(atom.config.isDefault('foo.same')).toBe true
       expect(atom.config.isDefault('foo.changes')).toBe true
+      expect(Grim.deprecate.callCount).toBe(2)
 
       atom.config.set('foo.same', 2)
       atom.config.set('foo.changes', 3)
+
       expect(atom.config.isDefault('foo.same')).toBe false
       expect(atom.config.isDefault('foo.changes')).toBe false
+      expect(Grim.deprecate.callCount).toBe(4)
 
     describe "when scoped settings are used", ->
       it "returns false when a scoped setting was set by the user", ->
+        spyOn(Grim, 'deprecate')
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+        expect(Grim.deprecate.callCount).toBe(1)
 
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+        expect(Grim.deprecate.callCount).toBe(2)
 
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
+        expect(Grim.deprecate.callCount).toBe(3)
 
   describe ".setDefaults(keyPath)", ->
     it "sets a default when the setting's key contains an escaped dot", ->
