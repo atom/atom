@@ -32,6 +32,31 @@ describe "TextEditorElement", ->
       element.setModel(model)
       expect(element.hasAttribute('mini')).toBe true
 
+  describe "when the editor is attached to the DOM", ->
+    describe "when the editor.useShadowDOM config option is true", ->
+      it "mounts the react component and unmounts when removed from the dom", ->
+        atom.config.set('editor.useShadowDOM', true)
+
+        element = new TextEditorElement
+        jasmine.attachToDOM(element)
+
+        component = element.component
+        expect(component.isMounted()).toBe true
+        element.getModel().destroy()
+        expect(component.isMounted()).toBe false
+
+    describe "when the editor.useShadowDOM config option is false", ->
+      it "mounts the react component and unmounts when removed from the dom", ->
+        atom.config.set('editor.useShadowDOM', false)
+
+        element = new TextEditorElement
+        jasmine.attachToDOM(element)
+
+        component = element.component
+        expect(component.isMounted()).toBe true
+        element.getModel().destroy()
+        expect(component.isMounted()).toBe false
+
   describe "focus and blur handling", ->
     describe "when the editor.useShadowDOM config option is true", ->
       it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
