@@ -338,12 +338,13 @@ class Config
   #   # do stuff with value
   # ```
   #
-  # * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
-  #   the root of the syntax tree to a token. Get one by calling
-  #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` {String} name of the key to observe
+  # * `options` {Object}
+  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  #     the root of the syntax tree to a token. Get one by calling
+  #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
   #
@@ -379,13 +380,14 @@ class Config
   # Essential: Add a listener for changes to a given key path. If `keyPath` is
   # not specified, your callback will be called on changes to any key.
   #
-  # * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
-  #   the root of the syntax tree to a token. Get one by calling
-  #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
+  # * `optional` (optional) {Object}
+  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  #     the root of the syntax tree to a token. Get one by calling
+  #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
   #     * `newValue` the new value of the key
@@ -458,30 +460,34 @@ class Config
   # atom.config.get(scopeDescriptor, 'editor.tabLength') # => 2
   # ```
   #
-  # * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
-  #   the root of the syntax tree to a token. Get one by calling
-  #   {editor.getLastCursor().getScopeDescriptor()}
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` The {String} name of the key to retrieve.
+  # * `options` (optional) {Object}
+  #   * `sources` (optional) {Array} of {String} source names. If provided, only
+  #     values that were associated with these sources during {::set} will be used.
+  #   * `excludeSources` (optional) {Array} of {String} source names. If provided,
+  #     values that  were associated with these sources during {::set} will not
+  #     be used.
+  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  #     the root of the syntax tree to a token. Get one by calling
+  #     {editor.getLastCursor().getScopeDescriptor()}
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
   #
   # Returns the value from Atom's default settings, the user's configuration
   # file in the type specified by the configuration schema.
   get: ->
     if arguments.length > 1
       if typeof arguments[0] is 'string' or not arguments[0]?
-        keyPath = arguments[0]
-        options = arguments[1]
+        [keyPath, options] = arguments
         {scope} = options
       else
         Grim.deprecate """
           Passing a scope descriptor as the first argument to Config::get is deprecated.
           Pass a `scope` in an options hash as the final argument instead.
         """
-        scope = arguments[0]
-        keyPath = arguments[1]
+        [scope, keyPath] = arguments
     else
-      keyPath = arguments[0]
+      [keyPath] = arguments
 
     if scope?
       value = @getRawScopedValue(scope, keyPath, options)
@@ -518,12 +524,15 @@ class Config
   # atom.config.get(['source.js'], 'editor.tabLength') # => 4
   # ```
   #
-  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting. Passing `undefined` will revert the
   #   setting to the default value.
+  # * `options` (optional) {Object}
+  #   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
+  #   * `source` (optional) {String} The name of a file with which the setting
+  #     is associated. Defaults to the user's config file.
   #
   # Returns a {Boolean}
   # * `true` if the value was set.
@@ -561,6 +570,12 @@ class Config
     @save() unless @configFileHasErrors
     true
 
+  # Essential: Restore the setting at `keyPath` to its default value.
+  #
+  # * `keyPath` The {String} name of the key.
+  # * `options` (optional) {Object}
+  #   * `scopeSelector` (optional) {String}. See {::set}
+  #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
     if typeof options is 'string'
       Grim.deprecate """
@@ -593,15 +608,11 @@ class Config
 
   # Deprecated: Restore the global setting at `keyPath` to its default value.
   #
-  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
-  # * `keyPath` The {String} name of the key.
-  #
   # Returns the new value.
   restoreDefault: (scopeSelector, keyPath) ->
     Grim.deprecate("Use ::unset instead.")
     @unset(scopeSelector, keyPath)
+    @get(keyPath)
 
   # Extended: Get the global default value of the key path. _Please note_ that in most
   # cases calling this is not necessary! {::get} returns the default value when
