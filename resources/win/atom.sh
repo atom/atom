@@ -16,7 +16,7 @@ while getopts ":fhtvw-:" opt; do
 done
 
 if [ $EXPECT_OUTPUT ]; then
-  "$0/../../atom.exe" "$@"
+  "$0/../../../atom.exe" "$@"
 else
-  "$0/../app/apm/node_modules/atom-package-manager/bin/node.exe" "$0/atom.js" "$@"
+  "$0/../../app/apm/node_modules/atom-package-manager/bin/node.exe" "$0/atom.js" "$@"
 fi
