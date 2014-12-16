@@ -168,8 +168,8 @@ class TextEditor extends Model
 
     scopeDescriptor = @getRootScopeDescriptor()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.showInvisibles', => @updateInvisibles()
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.invisibles', => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange 'editor.invisibles', scope: scopeDescriptor, => @updateInvisibles()
 
   getViewClass: ->
     require './text-editor-view'
@@ -2812,17 +2812,17 @@ class TextEditor extends Model
   ###
 
   shouldAutoIndent: ->
-    atom.config.get(@getRootScopeDescriptor(), "editor.autoIndent")
+    atom.config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
 
   shouldAutoIndentOnPaste: ->
-    atom.config.get(@getRootScopeDescriptor(), "editor.autoIndentOnPaste")
+    atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
 
   shouldShowInvisibles: ->
-    not @mini and atom.config.get(@getRootScopeDescriptor(), 'editor.showInvisibles')
+    not @mini and atom.config.get('editor.showInvisibles', scope: @getRootScopeDescriptor())
 
   updateInvisibles: ->
     if @shouldShowInvisibles()
-      @displayBuffer.setInvisibles(atom.config.get(@getRootScopeDescriptor(), 'editor.invisibles'))
+      @displayBuffer.setInvisibles(atom.config.get('editor.invisibles', scope: @getRootScopeDescriptor()))
     else
       @displayBuffer.setInvisibles(null)
 
