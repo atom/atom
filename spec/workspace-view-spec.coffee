@@ -296,7 +296,7 @@ describe "WorkspaceView", ->
       modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
       expect(modalContainer.parentNode).toBe workspaceElement
 
-  fdescribe "saving the active item", ->
+  describe "saving the active item", ->
     describe "saveActivePaneItem", ->
       describe "when there is an error", ->
         beforeEach ->
