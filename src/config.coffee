@@ -560,7 +560,37 @@ class Config
     @save() unless @configFileHasErrors
     true
 
-  # Extended: Restore the global setting at `keyPath` to its default value.
+  unset: (keyPath, options) ->
+    if typeof options is 'string'
+      Grim.deprecate """
+        Passing a scope selector as the first argument to Config::unset is deprecated.
+        Pass a `scopeSelector` in an options hash as the second argument instead.
+      """
+      scopeSelector = keyPath
+      keyPath = options
+    else
+      {scopeSelector, source} = options ? {}
+
+    if source and not scopeSelector
+      throw new Error("::unset with a 'source' and no 'sourceSelector' is not yet implemented!")
+
+    source ?= @getUserConfigPath()
+
+    if scopeSelector?
+      if keyPath?
+        settings = @scopedSettingsStore.propertiesForSourceAndSelector(source, scopeSelector)
+        if _.valueForKeyPath(settings, keyPath)?
+          @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
+          _.setValueForKeyPath(settings, keyPath, undefined)
+          settings = withoutEmptyObjects(settings)
+          @addScopedSettings(source, scopeSelector, settings, @usersScopedSettingPriority) if settings?
+          @save() unless @configFileHasErrors
+      else
+        @scopedSettingsStore.removePropertiesForSource(source)
+    else
+      @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+
+  # Deprecated: Restore the global setting at `keyPath` to its default value.
   #
   # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
   #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
@@ -569,22 +599,8 @@ class Config
   #
   # Returns the new value.
   restoreDefault: (scopeSelector, keyPath) ->
-    if arguments.length == 1
-      keyPath = scopeSelector
-      scopeSelector = null
-
-    if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector(@getUserConfigPath(), scopeSelector)
-      if _.valueForKeyPath(settings, keyPath)?
-        @scopedSettingsStore.removePropertiesForSourceAndSelector(@getUserConfigPath(), scopeSelector)
-        _.setValueForKeyPath(settings, keyPath, undefined)
-        settings = withoutEmptyObjects(settings)
-        @addScopedSettings(@getUserConfigPath(), scopeSelector, settings, @usersScopedSettingPriority) if settings?
-        @save() unless @configFileHasErrors
-        @getDefault(scopeSelector, keyPath)
-    else
-      @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
-      @get(keyPath)
+    Grim.deprecate("Use ::unset instead.")
+    @unset(scopeSelector, keyPath)
 
   # Extended: Get the global default value of the key path. _Please note_ that in most
   # cases calling this is not necessary! {::get} returns the default value when

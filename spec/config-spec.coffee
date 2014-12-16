@@ -183,17 +183,17 @@ describe "Config", ->
       atom.config.toggle('foo.a')
       expect(atom.config.get('foo.a')).toBe false
 
-  describe ".restoreDefault(keyPath)", ->
+  describe ".unset(keyPath, {scope})", ->
     it "sets the value of the key path to its default", ->
       atom.config.setDefaults('a', b: 3)
       atom.config.set('a.b', 4)
       expect(atom.config.get('a.b')).toBe 4
-      atom.config.restoreDefault('a.b')
+      atom.config.unset('a.b')
       expect(atom.config.get('a.b')).toBe 3
 
       atom.config.set('a.c', 5)
       expect(atom.config.get('a.c')).toBe 5
-      atom.config.restoreDefault('a.c')
+      atom.config.unset('a.c')
       expect(atom.config.get('a.c')).toBeUndefined()
 
     it "calls ::save()", ->
@@ -201,8 +201,11 @@ describe "Config", ->
       atom.config.set('a.b', 4)
       atom.config.save.reset()
 
-      atom.config.restoreDefault('a.c')
+      atom.config.unset('a.c')
       expect(atom.config.save.callCount).toBe 1
+
+    it "throws when called with a source but no scope", ->
+      expect(-> atom.config.unset("a.b", source: "the-source")).toThrow()
 
     describe "when scoped settings are used", ->
       it "restores the global default when no scoped default set", ->
@@ -210,7 +213,7 @@ describe "Config", ->
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
-        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        atom.config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
 
       it "restores the scoped default when a scoped default is set", ->
@@ -220,7 +223,7 @@ describe "Config", ->
         atom.config.set('foo.bar.ok', 100, scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
-        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        atom.config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 42
         expect(atom.config.get('foo.bar.ok', scope: ['.source.coffee'])).toBe 100
 
@@ -230,13 +233,31 @@ describe "Config", ->
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         atom.config.save.reset()
 
-        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        atom.config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         expect(atom.config.save.callCount).toBe 1
+
+      it "allows removing settings for a specific source and scope selector", ->
+        atom.config.set('foo.bar', 55, scopeSelector: '.source.coffee', source: "source-a")
+        atom.config.set('foo.bar', 65, scopeSelector: '.source.coffee', source: "source-b")
+        expect(atom.config.get('foo.bar', scope: ['.source.coffee'])).toBe 65
+
+        atom.config.unset('foo.bar', source: "source-b", scopeSelector: ".source.coffee")
+        expect(atom.config.get('foo.bar', scope: ['.source.coffee', '.string'])).toBe 55
+
+      it "allows removing all settings for a specific source", ->
+        atom.config.set('foo.bar', 55, scopeSelector: '.source.coffee', source: "source-a")
+        atom.config.set('foo.bar', 65, scopeSelector: '.source.coffee', source: "source-b")
+        atom.config.set('foo.baz', 65, scopeSelector: '.source.coffee', source: "source-b")
+        expect(atom.config.get('foo.bar', scope: ['.source.coffee'])).toBe 65
+
+        atom.config.unset(null, source: "source-b", scopeSelector: ".source.coffee")
+        expect(atom.config.get('foo.bar', scope: ['.source.coffee', '.string'])).toBe 55
+        expect(atom.config.get('foo.baz', scope: ['.source.coffee', '.string'])).toBe undefined
 
       it "does not call ::save or add a scoped property when no value has been set", ->
         # see https://github.com/atom/atom/issues/4175
         atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        atom.config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
 
         expect(atom.config.save).not.toHaveBeenCalled()
@@ -254,7 +275,7 @@ describe "Config", ->
         CSON.writeFileSync.reset()
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
-        atom.config.restoreDefault('.source.coffee', 'foo.bar.baz')
+        atom.config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
         expect(atom.config.get('foo.bar.zfoo', scope: ['.source.coffee'])).toBe 20
         expect(CSON.writeFileSync).toHaveBeenCalled()
@@ -265,7 +286,7 @@ describe "Config", ->
               zfoo: 20
 
         CSON.writeFileSync.reset()
-        atom.config.restoreDefault('.source.coffee', 'foo.bar.zfoo')
+        atom.config.unset('foo.bar.zfoo', scopeSelector: '.source.coffee')
         expect(CSON.writeFileSync).toHaveBeenCalled()
         properties = CSON.writeFileSync.mostRecentCall.args[1]
         expect(properties['.coffee.source']).toBeUndefined()
@@ -275,9 +296,19 @@ describe "Config", ->
         atom.config.set('foo.bar.baz', 55)
         atom.config.save.reset()
 
-        atom.config.restoreDefault('.source.coffee', 'foo.bar.ok')
+        atom.config.unset('foo.bar.ok', scopeSelector: '.source.coffee')
         expect(atom.config.save).not.toHaveBeenCalled()
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
+
+      it "deprecates passing a scope selector as the first argument", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
+
+        spyOn(Grim, 'deprecate')
+        atom.config.unset('.source.coffee', 'foo.bar.baz')
+        expect(Grim.deprecate).toHaveBeenCalled()
+
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
 
   describe ".getSettings()", ->
     it "returns all settings including defaults", ->
