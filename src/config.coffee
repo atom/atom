@@ -608,7 +608,7 @@ class Config
   # defaults. Returns the scoped settings when a `scopeSelector` is specified.
   getSettings: ->
     deprecate "Use ::get(keyPath) instead"
-    _.deepExtend(@settings, @defaultSettings)
+    _.deepExtend({}, @settings, @defaultSettings)
 
   # Extended: Get the {String} path to the config file being used.
   getUserConfigPath: ->
