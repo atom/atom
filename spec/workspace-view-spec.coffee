@@ -3,6 +3,7 @@ Q = require 'q'
 path = require 'path'
 temp = require 'temp'
 TextEditorView = require '../src/text-editor-view'
+Pane = require '../src/pane'
 PaneView = require '../src/pane-view'
 Workspace = require '../src/workspace'
 
@@ -294,3 +295,26 @@ describe "WorkspaceView", ->
 
       modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
       expect(modalContainer.parentNode).toBe workspaceElement
+
+  describe "saving the active item", ->
+    describe "saveActivePaneItem", ->
+      describe "when there is an error", ->
+        beforeEach ->
+
+        it "emits a warning notification when the file cannot be saved", ->
+          spyOn(Pane::, 'saveActiveItem').andCallFake ->
+            throw new Error("'/some/file' is a directory")
+
+          atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+
+          atom.workspace.saveActivePaneItem()
+
+          expect(addedSpy).toHaveBeenCalled()
+          expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+        it "emits a warning notification when the file cannot be saved", ->
+          spyOn(Pane::, 'saveActiveItem').andCallFake ->
+            throw new Error("no one knows")
+
+          save = -> atom.workspace.saveActivePaneItem()
+          expect(save).toThrow()
