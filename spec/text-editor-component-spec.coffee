@@ -1612,6 +1612,22 @@ describe "TextEditorComponent", ->
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
+      describe "when the editor is destroyed while dragging", ->
+        it "cleans up the handlers for window.mouseup and window.mousemove", ->
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
+          linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
+          nextAnimationFrame()
+
+          spyOn(window, 'removeEventListener').andCallThrough()
+
+          linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 10]), which: 1))
+          editor.destroy()
+          nextAnimationFrame()
+
+          call.args.pop() for call in window.removeEventListener.calls
+          expect(window.removeEventListener).toHaveBeenCalledWith('mouseup')
+          expect(window.removeEventListener).toHaveBeenCalledWith('mousemove')
+
     describe "when a line is folded", ->
       beforeEach ->
         editor.foldBufferRow 4

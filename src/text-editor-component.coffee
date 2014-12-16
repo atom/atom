@@ -750,10 +750,12 @@ TextEditorComponent = React.createClass
     lastMousePosition = {}
     animationLoop = =>
       @requestAnimationFrame =>
-        if dragging
+        if dragging and @isMounted()
           screenPosition = @screenPositionForMouseEvent(lastMousePosition)
           dragHandler(screenPosition)
           animationLoop()
+        else if not @isMounted()
+          stopDragging()
 
     onMouseMove = (event) ->
       lastMousePosition.clientX = event.clientX
@@ -768,10 +770,13 @@ TextEditorComponent = React.createClass
       onMouseUp() if event.which is 0
 
     onMouseUp = ->
+      stopDragging()
+      editor.finalizeSelections()
+
+    stopDragging = ->
       dragging = false
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
-      editor.finalizeSelections()
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
