@@ -77,6 +77,9 @@ describe "Config", ->
       expect(atom.config.save).toHaveBeenCalled()
       expect(observeHandler).toHaveBeenCalledWith 42
 
+    it "does not allow a 'source' option without a 'scopeSelector'", ->
+      expect(-> atom.config.set("foo", 1, source: [".source.ruby"])).toThrow()
+
     describe "when the value equals the default value", ->
       it "does not store the value in the user's config", ->
         atom.config.setDefaults "foo",

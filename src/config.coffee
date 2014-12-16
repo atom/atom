@@ -541,6 +541,9 @@ class Config
       scopeSelector = options?.scopeSelector
       source = options?.source
 
+    if source and not scopeSelector
+      throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
+
     source ?= @getUserConfigPath()
 
     unless value is undefined
