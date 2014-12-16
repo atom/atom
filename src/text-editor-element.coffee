@@ -123,7 +123,7 @@ class TextEditorElement extends HTMLElement
   unmountComponent: ->
     return unless @component?.isMounted()
     callRemoveHooks(this)
-    React.unmountComponentAtNode(this)
+    React.unmountComponentAtNode(@rootElement)
     @component = null
 
   focused: ->
