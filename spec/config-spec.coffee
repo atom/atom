@@ -114,20 +114,20 @@ describe "Config", ->
       spyOn(Grim, 'deprecate')
       expect(atom.config.getDefault('foo.same')).toBe 1
       expect(atom.config.getDefault('foo.changes')).toBe 1
-      expect(Grim.deprecate.callCount).toBe(2)
+      expect(Grim.deprecate.callCount).toBe 2
 
       atom.config.set('foo.same', 2)
       atom.config.set('foo.changes', 3)
 
       expect(atom.config.getDefault('foo.same')).toBe 1
       expect(atom.config.getDefault('foo.changes')).toBe 1
-      expect(Grim.deprecate.callCount).toBe(4)
+      expect(Grim.deprecate.callCount).toBe 4
 
       initialDefaultValue = [1, 2, 3]
       atom.config.setDefaults("foo", bar: initialDefaultValue)
       expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
       expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
-      expect(Grim.deprecate.callCount).toBe(6)
+      expect(Grim.deprecate.callCount).toBe 6
 
     describe "when scoped settings are used", ->
       it "returns the global default when no scoped default set", ->
@@ -143,11 +143,11 @@ describe "Config", ->
 
         spyOn(Grim, 'deprecate')
         expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
-        expect(Grim.deprecate.callCount).toBe(1)
+        expect(Grim.deprecate.callCount).toBe 1
 
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
-        expect(Grim.deprecate.callCount).toBe(2)
+        expect(Grim.deprecate.callCount).toBe 2
 
   describe ".isDefault(keyPath)", ->
     it "returns true when the value of the key path is its default value", ->
@@ -156,28 +156,28 @@ describe "Config", ->
       spyOn(Grim, 'deprecate')
       expect(atom.config.isDefault('foo.same')).toBe true
       expect(atom.config.isDefault('foo.changes')).toBe true
-      expect(Grim.deprecate.callCount).toBe(2)
+      expect(Grim.deprecate.callCount).toBe 2
 
       atom.config.set('foo.same', 2)
       atom.config.set('foo.changes', 3)
 
       expect(atom.config.isDefault('foo.same')).toBe false
       expect(atom.config.isDefault('foo.changes')).toBe false
-      expect(Grim.deprecate.callCount).toBe(4)
+      expect(Grim.deprecate.callCount).toBe 4
 
     describe "when scoped settings are used", ->
       it "returns false when a scoped setting was set by the user", ->
         spyOn(Grim, 'deprecate')
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
-        expect(Grim.deprecate.callCount).toBe(1)
+        expect(Grim.deprecate.callCount).toBe 1
 
         atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
-        expect(Grim.deprecate.callCount).toBe(2)
+        expect(Grim.deprecate.callCount).toBe 2
 
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
-        expect(Grim.deprecate.callCount).toBe(3)
+        expect(Grim.deprecate.callCount).toBe 3
 
   describe ".setDefaults(keyPath)", ->
     it "sets a default when the setting's key contains an escaped dot", ->
@@ -421,7 +421,7 @@ describe "Config", ->
         CSON.writeFileSync.reset()
         atom.config.save()
 
-        expect(CSON.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.json"))
+        expect(CSON.writeFileSync.argsForCall[0][0]).toBe path.join(atom.config.configDirPath, "atom.config.json")
         writtenConfig = CSON.writeFileSync.argsForCall[0][1]
         expect(writtenConfig).toEqual global: atom.config.settings
 
@@ -436,7 +436,7 @@ describe "Config", ->
         CSON.writeFileSync.reset()
         atom.config.save()
 
-        expect(CSON.writeFileSync.argsForCall[0][0]).toBe(path.join(atom.config.configDirPath, "atom.config.cson"))
+        expect(CSON.writeFileSync.argsForCall[0][0]).toBe path.join(atom.config.configDirPath, "atom.config.cson")
         writtenConfig = CSON.writeFileSync.argsForCall[0][1]
         expect(writtenConfig).toEqual global: atom.config.settings
 
