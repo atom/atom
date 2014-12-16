@@ -115,6 +115,7 @@ addCommandsToPath = (callback) ->
     relativeAtomPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.cmd'))
     atomCommand = "@echo off\r\n\"%~dp0\\#{relativeAtomPath}\" %*"
 
+    atomShCommandPath = path.join(binFolder, 'atom')
     relativeAtomShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.sh'))
     atomShCommand = "#!/bin/sh\r\n\"$0\\#{relativeAtomPath}\" \"$@\""
 
