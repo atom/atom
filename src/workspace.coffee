@@ -571,9 +571,11 @@ class Workspace extends Model
     catch error
       if error.message.endsWith('is a directory')
         atom.notifications.addWarning("Unable to save file: #{error.message}")
+      else if error.message.startsWith('EACCES,')
+        atom.notifications.addWarning("Unable to save file: #{error.message.replace('EACCES, ', '')}")
       else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
         fileName = errorMatch[1]
-        atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to.")
+        atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
       else
         throw error
 

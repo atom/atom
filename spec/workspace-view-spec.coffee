@@ -319,7 +319,15 @@ describe "WorkspaceView", ->
           atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
 
           atom.workspace.saveActivePaneItem()
+          expect(addedSpy).toHaveBeenCalled()
+          expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
 
+        it "emits a warning notification when the user does not have permission", ->
+          spyOn(Pane::, 'saveActiveItem').andCallFake ->
+            throw new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
+
+          atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+          atom.workspace.saveActivePaneItem()
           expect(addedSpy).toHaveBeenCalled()
           expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
 
