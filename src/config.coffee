@@ -348,21 +348,24 @@ class Config
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  observe: (scopeDescriptor, keyPath, options, callback) ->
-    args = Array::slice.call(arguments)
-    if args.length is 2
-      # observe(keyPath, callback)
-      [keyPath, callback, scopeDescriptor, options] = args
-    else if args.length is 3 and (Array.isArray(scopeDescriptor) or scopeDescriptor instanceof ScopeDescriptor)
-      # observe(scopeDescriptor, keyPath, callback)
-      [scopeDescriptor, keyPath, callback, options] = args
-    else if args.length is 3 and _.isString(scopeDescriptor) and _.isObject(keyPath)
-      # observe(keyPath, options, callback) # Deprecated!
-      [keyPath, options, callback, scopeDescriptor] = args
-
-      message = ""
-      message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
-      Grim.deprecate "Config::observe no longer supports options; see https://atom.io/docs/api/latest/Config. #{message}"
+  observe: ->
+    if arguments.length is 2
+      [keyPath, callback] = arguments
+    else if arguments.length is 3 and (_.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor)
+      Grim.deprecate """
+        Passing a scope descriptor as the first argument to Config::observe is deprecated.
+        Pass a `scope` in an options hash as the third argument instead.
+      """
+      [scopeDescriptor, keyPath, callback] = arguments
+    else if arguments.length is 3 and (_.isString(arguments[0]) and _.isObject(arguments[1]))
+      [keyPath, options, callback] = arguments
+      scopeDescriptor = options.scope
+      if options.callNow?
+        Grim.deprecate """
+          Config::observe no longer takes a `callNow` option. Use ::onDidChange instead.
+          Note that ::onDidChange passes its callback different arguments.
+          See https://atom.io/docs/api/latest/Config
+        """
     else
       console.error 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
       return

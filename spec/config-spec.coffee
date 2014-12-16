@@ -2,6 +2,7 @@ path = require 'path'
 temp = require 'temp'
 CSON = require 'season'
 fs = require 'fs-plus'
+Grim = require 'grim'
 
 describe "Config", ->
   dotAtomPath = null
@@ -469,7 +470,7 @@ describe "Config", ->
     beforeEach ->
       observeHandler = jasmine.createSpy("observeHandler")
       atom.config.set("foo.bar.baz", "value 1")
-      observeSubscription = atom.config.observe "foo.bar.baz", observeHandler
+      observeSubscription = atom.config.observe("foo.bar.baz", observeHandler)
 
     it "fires the given callback with the current value at the keypath", ->
       expect(observeHandler).toHaveBeenCalledWith("value 1")
@@ -510,6 +511,31 @@ describe "Config", ->
       bazCatHandler.reset()
       atom.config.set('foo.bar.baz', "value 10")
       expect(bazCatHandler).not.toHaveBeenCalled()
+
+    describe "observing scoped settings", ->
+      otherHandler = null
+
+      beforeEach ->
+        observeSubscription.dispose()
+        otherHandler = jasmine.createSpy('otherHandler')
+
+      it "allows settings to be observed in a specific scope", ->
+        atom.config.observe("foo.bar.baz", scope: [".some.scope"], observeHandler)
+        atom.config.observe("foo.bar.baz", scope: [".another.scope"], otherHandler)
+
+        atom.config.set('foo.bar.baz', "value 2", scopeSelector: ".some")
+        expect(observeHandler).toHaveBeenCalledWith("value 2")
+        expect(otherHandler).not.toHaveBeenCalledWith("value 2")
+
+      it "deprecates using a scope descriptor as the first argument", ->
+        spyOn(Grim, 'deprecate')
+        atom.config.observe([".some.scope"], "foo.bar.baz", observeHandler)
+        atom.config.observe([".another.scope"], "foo.bar.baz", otherHandler)
+        expect(Grim.deprecate).toHaveBeenCalled()
+
+        atom.config.set('foo.bar.baz', "value 2", scopeSelector: ".some")
+        expect(observeHandler).toHaveBeenCalledWith("value 2")
+        expect(otherHandler).not.toHaveBeenCalledWith("value 2")
 
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
@@ -1192,7 +1218,8 @@ describe "Config", ->
 
     describe ".observe(scopeDescriptor, keyPath)", ->
       it 'calls the supplied callback when the value at the descriptor/keypath changes', ->
-        atom.config.observe [".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz", changeSpy = jasmine.createSpy()
+        changeSpy = jasmine.createSpy()
+        atom.config.observe("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"], changeSpy)
         expect(changeSpy).toHaveBeenCalledWith(undefined)
         changeSpy.reset()
 
