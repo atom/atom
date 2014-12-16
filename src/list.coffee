@@ -85,14 +85,13 @@ class List extends Command
     if devPackages.length > 0
       unless options.argv.bare or options.argv.json
         console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
-      callback?(null, devPackages)
+    callback?(null, devPackages)
 
   listBundledPackages: (options, callback) ->
     config.getResourcePath (resourcePath) =>
       try
         metadataPath = path.join(resourcePath, 'package.json')
-        {packageDependencies, _atomPackages} = JSON.parse(fs.readFileSync(metadataPath))
-      packageDependencies ?= {}
+        {_atomPackages} = JSON.parse(fs.readFileSync(metadataPath))
       _atomPackages ?= {}
       packages = (metadata for packageName, {metadata} of _atomPackages)
 
@@ -106,7 +105,7 @@ class List extends Command
 
   listInstalledPackages: (options) ->
     @listDevPackages options, (error, packages) =>
-      @logPackages(packages, options)
+      @logPackages(packages, options) if packages.length > 0
 
       @listUserPackages options, (error, packages) =>
         @logPackages(packages, options)
