@@ -202,7 +202,7 @@
 ]
 
 'context-menu':
-  '.overlayer': [
+  'atom-text-editor, .overlayer': [
     {label: 'Undo', command: 'core:undo'}
     {label: 'Redo', command: 'core:redo'}
     {type: 'separator'}
