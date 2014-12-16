@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-child_process = require 'child_process'
+{fork} = require 'child_process'
 {Emitter} = require 'emissary'
 
 # Extended: Run a node script in a separate process.
@@ -98,7 +98,7 @@ class Task
     taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = child_process.fork '--eval', [bootstrap], {env, cwd: __dirname}
+    @childProcess = fork '--eval', [bootstrap], {env, cwd: __dirname}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
