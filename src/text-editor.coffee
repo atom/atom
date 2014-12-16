@@ -168,8 +168,8 @@ class TextEditor extends Model
 
     scopeDescriptor = @getRootScopeDescriptor()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.showInvisibles', => @updateInvisibles()
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.invisibles', => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange 'editor.invisibles', scope: scopeDescriptor, => @updateInvisibles()
 
   getViewClass: ->
     require './text-editor-view'

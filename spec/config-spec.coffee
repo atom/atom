@@ -721,7 +721,8 @@ describe "Config", ->
           runs -> updatedHandler.reset()
 
         it "does not fire a change event for paths that did not change", ->
-          atom.config.onDidChange 'foo.bar', noChangeSpy = jasmine.createSpy()
+          noChangeSpy = jasmine.createSpy()
+          atom.config.onDidChange('foo.bar', noChangeSpy)
 
           fs.writeFileSync(atom.config.configFilePath, "foo: { bar: ['baz', 'ok'], baz: 'another'}")
           waitsFor 'update event', -> updatedHandler.callCount > 0
@@ -732,7 +733,8 @@ describe "Config", ->
 
       describe 'when scoped settings are used', ->
         it "fires a change event for scoped settings that are removed", ->
-          atom.config.onDidChange ['.source.ruby'], 'foo.scoped', scopedSpy = jasmine.createSpy()
+          scopedSpy = jasmine.createSpy()
+          atom.config.onDidChange('foo.scoped', scope: ['.source.ruby'], scopedSpy)
 
           fs.writeFileSync atom.config.configFilePath, """
             global:
@@ -745,7 +747,8 @@ describe "Config", ->
             expect(atom.config.get('foo.scoped', scope: ['.source.ruby'])).toBe false
 
         it "does not fire a change event for paths that did not change", ->
-          atom.config.onDidChange ['.source.ruby'], 'foo.scoped', noChangeSpy = jasmine.createSpy()
+          noChangeSpy = jasmine.createSpy()
+          atom.config.onDidChange('foo.scoped', scope: ['.source.ruby'], noChangeSpy)
 
           fs.writeFileSync atom.config.configFilePath, """
             global:
@@ -1250,7 +1253,38 @@ describe "Config", ->
     describe ".onDidChange(scopeDescriptor, keyPath)", ->
       it 'calls the supplied callback when the value at the descriptor/keypath changes', ->
         keyPath = "foo.bar.baz"
+        changeSpy = jasmine.createSpy('onDidChange callback')
+        atom.config.onDidChange keyPath, scope: [".source.coffee", ".string.quoted.double.coffee"], changeSpy
+
+        atom.config.set("foo.bar.baz", 12)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12, keyPath})
+        changeSpy.reset()
+
+        disposable1 = atom.config.addScopedSettings("a", ".source .string.quoted.double", foo: bar: baz: 22)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: 22, keyPath})
+        changeSpy.reset()
+
+        disposable2 = atom.config.addScopedSettings("b", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 42, keyPath})
+        changeSpy.reset()
+
+        disposable2.dispose()
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 42, newValue: 22, keyPath})
+        changeSpy.reset()
+
+        disposable1.dispose()
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 12, keyPath})
+        changeSpy.reset()
+
+        atom.config.set("foo.bar.baz", undefined)
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: undefined, keyPath})
+        changeSpy.reset()
+
+      it 'deprecates using a scope descriptor as an optional first argument', ->
+        keyPath = "foo.bar.baz"
+        spyOn(Grim, 'deprecate')
         atom.config.onDidChange [".source.coffee", ".string.quoted.double.coffee"], keyPath, changeSpy = jasmine.createSpy()
+        expect(Grim.deprecate).toHaveBeenCalled()
 
         atom.config.set("foo.bar.baz", 12)
         expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12, keyPath})

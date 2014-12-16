@@ -393,12 +393,20 @@ class Config
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  onDidChange: (scopeDescriptor, keyPath, callback) ->
-    args = Array::slice.call(arguments)
+  onDidChange: ->
     if arguments.length is 1
-      [callback, scopeDescriptor, keyPath] = args
+      [callback] = arguments
     else if arguments.length is 2
-      [keyPath, callback, scopeDescriptor] = args
+      [keyPath, callback] = arguments
+    else if _.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor
+      Grim.deprecate """
+        Passing a scope descriptor as the first argument to Config::onDidChange is deprecated.
+        Pass a `scope` in an options hash as the third argument instead.
+      """
+      [scopeDescriptor, keyPath, callback] = arguments
+    else
+      [keyPath, options, callback] = arguments
+      scopeDescriptor = options.scope
 
     if scopeDescriptor?
       @onDidChangeScopedKeyPath(scopeDescriptor, keyPath, callback)
