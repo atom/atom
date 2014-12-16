@@ -182,7 +182,9 @@ exports.existsSync = ->
 
 # Restart Atom using the version pointed to by the atom.cmd shim
 exports.restartAtom = ->
-  app.once 'will-quit', -> spawn(path.join(binFolder, 'atom.cmd'))
+  if projectPath = global.atomApplication?.lastFocusedWindow?.projectPath
+    args = [projectPath]
+  app.once 'will-quit', -> spawn(path.join(binFolder, 'atom.cmd'), args)
   app.quit()
 
 # Handle squirrel events denoted by --squirrel-* command line arguments.
