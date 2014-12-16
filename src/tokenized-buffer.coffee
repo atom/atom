@@ -84,10 +84,10 @@ class TokenizedBuffer extends Model
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
 
-    @configSettings = tabLength: atom.config.get('editor.tabLength', scope: @rootScopeDescriptor)
+    @configSettings = tabLength: atom.config.get(@rootScopeDescriptor, 'editor.tabLength')
 
     @grammarTabLengthSubscription?.dispose()
-    @grammarTabLengthSubscription = atom.config.onDidChange 'editor.tabLength', scope: @rootScopeDescriptor, ({newValue}) =>
+    @grammarTabLengthSubscription = atom.config.onDidChange @rootScopeDescriptor, 'editor.tabLength', ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
     @subscribe @grammarTabLengthSubscription

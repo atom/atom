@@ -316,7 +316,7 @@ class LanguageMode
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   getRegexForProperty: (scopeDescriptor, property) ->
-    if pattern = atom.config.get(property, scope: scopeDescriptor)
+    if pattern = atom.config.get(scopeDescriptor, property)
       new OnigRegExp(pattern)
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->

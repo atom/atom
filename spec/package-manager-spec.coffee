@@ -367,7 +367,7 @@ describe "PackageManager", ->
             atom.packages.activatePackage("package-with-scoped-properties")
 
           runs ->
-            expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
+            expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
 
     describe "converted textmate packages", ->
       it "loads the package's grammars", ->
@@ -380,13 +380,13 @@ describe "PackageManager", ->
           expect(atom.grammars.selectGrammar("file.rb").name).toBe "Ruby"
 
       it "loads the translated scoped properties", ->
-        expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBeUndefined()
+        expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
         waitsForPromise ->
           atom.packages.activatePackage('language-ruby')
 
         runs ->
-          expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBe '# '
+          expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBe '# '
 
   describe "::deactivatePackage(id)", ->
     afterEach ->
@@ -493,9 +493,9 @@ describe "PackageManager", ->
           atom.packages.activatePackage("package-with-scoped-properties")
 
         runs ->
-          expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
+          expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBe '^a'
           atom.packages.deactivatePackage("package-with-scoped-properties")
-          expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBeUndefined()
+          expect(atom.config.get ['.source.omg'], 'editor.increaseIndentPattern').toBeUndefined()
 
     describe "textmate packages", ->
       it "removes the package's grammars", ->
@@ -515,7 +515,7 @@ describe "PackageManager", ->
 
         runs ->
           atom.packages.deactivatePackage('language-ruby')
-          expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBeUndefined()
+          expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
 
   describe "::activate()", ->
     packageActivator = null
