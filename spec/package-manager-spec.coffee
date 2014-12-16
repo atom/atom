@@ -515,7 +515,7 @@ describe "PackageManager", ->
 
         runs ->
           atom.packages.deactivatePackage('language-ruby')
-          expect(atom.config.get(['.source.ruby'], 'editor.commentStart')).toBeUndefined()
+          expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBeUndefined()
 
   describe "::activate()", ->
     packageActivator = null
