@@ -296,7 +296,7 @@ describe "WorkspaceView", ->
       modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
       expect(modalContainer.parentNode).toBe workspaceElement
 
-  describe "saving the active item", ->
+  fdescribe "saving the active item", ->
     describe "saveActivePaneItem", ->
       describe "when there is an error", ->
         beforeEach ->
@@ -304,6 +304,17 @@ describe "WorkspaceView", ->
         it "emits a warning notification when the file cannot be saved", ->
           spyOn(Pane::, 'saveActiveItem').andCallFake ->
             throw new Error("'/some/file' is a directory")
+
+          atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+
+          atom.workspace.saveActivePaneItem()
+
+          expect(addedSpy).toHaveBeenCalled()
+          expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+        it "emits a warning notification when the directory cannot be written to", ->
+          spyOn(Pane::, 'saveActiveItem').andCallFake ->
+            throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
 
           atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
 
