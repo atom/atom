@@ -623,7 +623,7 @@ class Config
   #
   # Returns the default value.
   getDefault: ->
-    Grim.deprecate("Use the `excludeSources` to ::get instead")
+    Grim.deprecate("Use `::get(keyPath, {scope, excludeSources: [atom.config.getUserConfigPath()]})` instead")
     if arguments.length is 1
       [keyPath] = arguments
     else
@@ -639,13 +639,13 @@ class Config
   # Returns a {Boolean}, `true` if the current value is the default, `false`
   # otherwise.
   isDefault: ->
-    Grim.deprecate("Use the `excludeSources` to ::get instead")
+    Grim.deprecate("Use `not ::get(keyPath, {scope, sources: [atom.config.getUserConfigPath()]})?` instead")
     if arguments.length is 1
       [keyPath] = arguments
     else
       [scopeSelector, keyPath] = arguments
       scope = [scopeSelector]
-    @get(keyPath, {scope}) is @get(keyPath, {scope, excludeSources: [@getUserConfigPath()]})
+    not @get(keyPath, {scope, sources: [@getUserConfigPath()]})?
 
   # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
