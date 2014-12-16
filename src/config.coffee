@@ -543,9 +543,7 @@ class Config
         Passing a scope selector as the first argument to Config::set is deprecated.
         Pass a `scopeSelector` in an options hash as the final argument instead.
       """
-      scopeSelector = arguments[0]
-      keyPath = arguments[1]
-      value = arguments[2]
+      [scopeSelector, keyPath, value] = arguments
     else
       [keyPath, value, options] = arguments
       scopeSelector = options?.scopeSelector
