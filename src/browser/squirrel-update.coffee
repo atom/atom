@@ -117,7 +117,7 @@ addCommandsToPath = (callback) ->
 
     atomShCommandPath = path.join(binFolder, 'atom')
     relativeAtomShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.sh'))
-    atomShCommand = "#!/bin/sh\r\n\"$0\\#{relativeAtomPath}\" \"$@\""
+    atomShCommand = "#!/bin/sh\r\n\"$0/#{relativeAtomShPath.replace(/\\/g, '/')}\" \"$@\""
 
     apmCommandPath = path.join(binFolder, 'apm.cmd')
     relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm.cmd'))
