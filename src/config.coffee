@@ -800,19 +800,22 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
 
-    oldValue = _.clone(@get(keyPath))
     _.setValueForKeyPath(@settings, keyPath, value)
-    newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
+    @emitter.emit 'did-change'
 
   observeKeyPath: (keyPath, options, callback) ->
-    callback(_.clone(@get(keyPath))) unless options.callNow == false
-    @emitter.on 'did-change', (event) =>
-      callback(event.newValue) if keyPath? and @isSubKeyPath(keyPath, event?.keyPath)
+    callback(@get(keyPath))
+    @onDidChangeKeyPath keyPath, (event) -> callback(event.newValue)
 
   onDidChangeKeyPath: (keyPath, callback) ->
-    @emitter.on 'did-change', (event) =>
-      callback(event) if not keyPath? or (keyPath? and @isSubKeyPath(keyPath, event?.keyPath))
+    oldValue = @get(keyPath)
+
+    didChange = =>
+      newValue = @get(keyPath)
+      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
+      oldValue = newValue
+
+    @emitter.on 'did-change', didChange
 
   isSubKeyPath: (keyPath, subKeyPath) ->
     return false unless keyPath? and subKeyPath?
@@ -821,10 +824,8 @@ class Config
     _.isEqual(pathTokens, pathSubTokens)
 
   setRawDefault: (keyPath, value) ->
-    oldValue = _.clone(@get(keyPath))
     _.setValueForKeyPath(@defaultSettings, keyPath, value)
-    newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
+    @emitter.emit 'did-change'
 
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
@@ -928,7 +929,7 @@ class Config
     oldValue = @get(scopeDescriptor, keyPath)
     didChange = =>
       newValue = @get(scopeDescriptor, keyPath)
-      callback({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
+      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
       oldValue = newValue
 
     @emitter.on 'did-change', didChange
