@@ -492,6 +492,26 @@ describe "Config", ->
       atom.config.set('foo.bar.baz', "value 10")
       expect(bazCatHandler).not.toHaveBeenCalled()
 
+  describe ".transact(callback)", ->
+    changeSpy = null
+
+    beforeEach ->
+      changeSpy = jasmine.createSpy('onDidChange callback')
+      atom.config.onDidChange("foo.bar.baz", changeSpy)
+
+    it "allows only one change event for the duration of the given callback", ->
+      atom.config.transact ->
+        atom.config.set("foo.bar.baz", 1)
+        atom.config.set("foo.bar.baz", 2)
+        atom.config.set("foo.bar.baz", 3)
+
+      expect(changeSpy.callCount).toBe(1)
+      expect(changeSpy.argsForCall[0][0]).toEqual(newValue: 3, oldValue: undefined)
+
+    it "does not emit an event if no changes occur while paused", ->
+      atom.config.transact ->
+      expect(changeSpy).not.toHaveBeenCalled()
+
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
       if fs.existsSync(dotAtomPath)
