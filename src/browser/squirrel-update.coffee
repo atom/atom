@@ -178,9 +178,11 @@ updateShortcuts = (callback) ->
     # and keep it deleted if it was
     fs.exists desktopShortcutPath, (desktopShortcutExists) ->
       createShortcuts ->
-        return callback() unless desktopShortcutExists
-        # Remove the unwanted desktop shortcut that was recreated
-        fs.unlink(desktopShortcutPath, callback)
+        if desktopShortcutExists
+          callback()
+        else
+          # Remove the unwanted desktop shortcut that was recreated
+          fs.unlink(desktopShortcutPath, callback)
   else
     createShortcuts(callback)
 
