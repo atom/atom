@@ -1,4 +1,3 @@
-app = require 'app'
 ChildProcess = require 'child_process'
 fs = require 'fs-plus'
 path = require 'path'
@@ -198,15 +197,15 @@ exports.existsSync = ->
   fs.existsSync(updateDotExe)
 
 # Restart Atom using the version pointed to by the atom.cmd shim
-exports.restartAtom = ->
+exports.restartAtom = (app) ->
   if projectPath = global.atomApplication?.lastFocusedWindow?.projectPath
     args = [projectPath]
   app.once 'will-quit', -> spawn(path.join(binFolder, 'atom.cmd'), args)
   app.quit()
 
 # Handle squirrel events denoted by --squirrel-* command line arguments.
-exports.handleStartupEvent = ->
-  switch process.argv[1]
+exports.handleStartupEvent = (app, squirrelCommand) ->
+  switch squirrelCommand
     when '--squirrel-install'
       createShortcuts ->
         installContextMenu ->

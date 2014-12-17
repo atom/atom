@@ -26,7 +26,8 @@ fs.lstatSyncNoException = (pathToStat) ->
 start = ->
   if process.platform is 'win32'
     SquirrelUpdate = require './squirrel-update'
-    return if SquirrelUpdate.handleStartupEvent()
+    squirrelCommand = process.argv[1]
+    return if SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
   args = parseCommandLine()
 
