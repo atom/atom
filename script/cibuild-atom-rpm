@@ -9,3 +9,4 @@ docker run \
  --env JANKY_BRANCH="$JANKY_BRANCH" \
  --env ATOM_ACCESS_TOKEN="$BUILD_ATOM_RPM_ACCESS_TOKEN" \
  atom-rpm /atom/script/rpmbuild
+docker rmi atom-rpm
