@@ -2713,26 +2713,35 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
   describe "middle mouse paste on Linux", ->
-    it "pastes the previously selected text", ->
+    originalPlatform = null
+
+    beforeEach ->
+      originalPlatform = process.platform
+      Object.defineProperty process, 'platform', value: 'linux'
+
+    afterEach ->
+      Object.defineProperty process, 'platform', value: originalPlatform
+
+    it "pastes the previously selected text at the clicked location", ->
+      jasmine.unspy(window, 'setTimeout')
+      clipboardWrittenTo = false
       spyOn(require('ipc'), 'send').andCallFake (eventName, selectedText) ->
         if eventName is 'write-text-to-selection-clipboard'
           require('clipboard').writeText(selectedText, 'selection')
+          clipboardWrittenTo = true
 
       atom.clipboard.write('')
-      component.listenForMiddleMousePaste()
-
-      editor.setCursorBufferPosition([10, 0])
-      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', which: 2))
-
-      expect(atom.clipboard.read()).toBe ''
-      expect(editor.lineTextForBufferRow(10)).toBe ''
-
+      component.trackSelectionClipboard()
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
-      editor.setCursorBufferPosition([10, 0])
-      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', which: 2))
 
-      expect(atom.clipboard.read()).toBe 'sort'
-      expect(editor.lineTextForBufferRow(10)).toBe 'sort'
+      waitsFor ->
+        clipboardWrittenTo
+
+      runs ->
+        componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([10, 0]), button: 1))
+        componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([10, 0]), which: 2))
+        expect(atom.clipboard.read()).toBe 'sort'
+        expect(editor.lineTextForBufferRow(10)).toBe 'sort'
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)

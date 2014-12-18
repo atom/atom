@@ -436,13 +436,15 @@ TextEditorComponent = React.createClass
   # in the selection clipboard. This is only applicable on Linux.
   trackSelectionClipboard: ->
     timeoutId = null
+    {editor} = @props
     writeSelectedTextToSelectionClipboard = =>
-      if selectedText = @props.editor.getSelectedText()
+      return if editor.isDestroyed()
+      if selectedText = editor.getSelectedText()
         # This uses ipc.send instead of clipboard.writeText because
         # clipboard.writeText is a sync ipc call on Linux and that
         # will slow down selections.
         ipc.send('write-text-to-selection-clipboard', selectedText)
-    @subscribe @props.editor.onDidChangeSelectionRange ->
+    @subscribe editor.onDidChangeSelectionRange ->
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
@@ -782,7 +784,7 @@ TextEditorComponent = React.createClass
       window.removeEventListener('mouseup', onMouseUp)
 
     pasteSelectionClipboard = (event) ->
-      if event.which is 2 and process.platform is 'linux'
+      if event?.which is 2 and process.platform is 'linux'
         if selection = require('clipboard').readText('selection')
           editor.insertText(selection)
 
