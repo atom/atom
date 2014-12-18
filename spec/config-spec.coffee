@@ -406,11 +406,11 @@ describe "Config", ->
       it "fires the callback every time the observed value changes", ->
         observeHandler.reset() # clear the initial call
         atom.config.set('foo.bar.baz', "value 2")
-        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1', keyPath: 'foo.bar.baz'})
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()
 
         atom.config.set('foo.bar.baz', "value 1")
-        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2', keyPath: 'foo.bar.baz'})
+        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
 
     describe 'when a keyPath is not specified', ->
       beforeEach ->
@@ -424,15 +424,21 @@ describe "Config", ->
       it "fires the callback every time any value changes", ->
         observeHandler.reset() # clear the initial call
         atom.config.set('foo.bar.baz', "value 2")
-        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1', keyPath: 'foo.bar.baz'})
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.mostRecentCall.args[0].newValue.foo.bar.baz).toBe("value 2")
+        expect(observeHandler.mostRecentCall.args[0].oldValue.foo.bar.baz).toBe("value 1")
 
         observeHandler.reset()
         atom.config.set('foo.bar.baz', "value 1")
-        expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2', keyPath: 'foo.bar.baz'})
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.mostRecentCall.args[0].newValue.foo.bar.baz).toBe("value 1")
+        expect(observeHandler.mostRecentCall.args[0].oldValue.foo.bar.baz).toBe("value 2")
 
         observeHandler.reset()
         atom.config.set('foo.bar.int', 1)
-        expect(observeHandler).toHaveBeenCalledWith({newValue: 1, oldValue: undefined, keyPath: 'foo.bar.int'})
+        expect(observeHandler).toHaveBeenCalled()
+        expect(observeHandler.mostRecentCall.args[0].newValue.foo.bar.int).toBe(1)
+        expect(observeHandler.mostRecentCall.args[0].oldValue.foo.bar.int).toBe(undefined)
 
   describe ".observe(keyPath)", ->
     [observeHandler, observeSubscription] = []
@@ -453,6 +459,10 @@ describe "Config", ->
 
       atom.config.set('foo.bar.baz', "value 1")
       expect(observeHandler).toHaveBeenCalledWith("value 1")
+
+      observeHandler.reset()
+      atom.config.loadUserConfig()
+      expect(observeHandler).toHaveBeenCalledWith(undefined)
 
     it "fires the callback when the observed value is deleted", ->
       observeHandler.reset() # clear the initial call
@@ -481,6 +491,26 @@ describe "Config", ->
       bazCatHandler.reset()
       atom.config.set('foo.bar.baz', "value 10")
       expect(bazCatHandler).not.toHaveBeenCalled()
+
+  describe ".transact(callback)", ->
+    changeSpy = null
+
+    beforeEach ->
+      changeSpy = jasmine.createSpy('onDidChange callback')
+      atom.config.onDidChange("foo.bar.baz", changeSpy)
+
+    it "allows only one change event for the duration of the given callback", ->
+      atom.config.transact ->
+        atom.config.set("foo.bar.baz", 1)
+        atom.config.set("foo.bar.baz", 2)
+        atom.config.set("foo.bar.baz", 3)
+
+      expect(changeSpy.callCount).toBe(1)
+      expect(changeSpy.argsForCall[0][0]).toEqual(newValue: 3, oldValue: undefined)
+
+    it "does not emit an event if no changes occur while paused", ->
+      atom.config.transact ->
+      expect(changeSpy).not.toHaveBeenCalled()
 
   describe ".initializeConfigDirectory()", ->
     beforeEach ->
@@ -1185,25 +1215,25 @@ describe "Config", ->
         atom.config.onDidChange [".source.coffee", ".string.quoted.double.coffee"], keyPath, changeSpy = jasmine.createSpy()
 
         atom.config.set("foo.bar.baz", 12)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12, keyPath})
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12})
         changeSpy.reset()
 
         disposable1 = atom.config.addScopedSettings("a", ".source .string.quoted.double", foo: bar: baz: 22)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: 22, keyPath})
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: 22})
         changeSpy.reset()
 
         disposable2 = atom.config.addScopedSettings("b", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 42, keyPath})
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 42})
         changeSpy.reset()
 
         disposable2.dispose()
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 42, newValue: 22, keyPath})
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 42, newValue: 22})
         changeSpy.reset()
 
         disposable1.dispose()
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 12, keyPath})
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 12})
         changeSpy.reset()
 
         atom.config.set("foo.bar.baz", undefined)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: undefined, keyPath})
+        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: undefined})
         changeSpy.reset()

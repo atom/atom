@@ -318,6 +318,7 @@ class Config
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
+    @transactDepth = 0
 
   ###
   Section: Config Subscription
@@ -614,6 +615,19 @@ class Config
   getUserConfigPath: ->
     @configFilePath
 
+  # Extended: Suppress calls to handler functions registered with {::onDidChange}
+  # and {::observe} for the duration of `callback`. After `callback` executes,
+  # handlers will be called once if the value for their key-path has changed.
+  #
+  # * `callback` {Function} to execute while suppressing calls to handlers.
+  transact: (callback) ->
+    @transactDepth++
+    try
+      callback()
+    finally
+      @transactDepth--
+      @emitChangeEvent()
+
   ###
   Section: Deprecated
   ###
@@ -749,7 +763,7 @@ class Config
   resetUserSettings: (newSettings) ->
     unless isPlainObject(newSettings)
       @settings = {}
-      @emitter.emit 'did-change'
+      @emitChangeEvent()
       return
 
     if newSettings.global?
@@ -800,19 +814,22 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
 
-    oldValue = _.clone(@get(keyPath))
     _.setValueForKeyPath(@settings, keyPath, value)
-    newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
+    @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
-    callback(_.clone(@get(keyPath))) unless options.callNow == false
-    @emitter.on 'did-change', (event) =>
-      callback(event.newValue) if keyPath? and @isSubKeyPath(keyPath, event?.keyPath)
+    callback(@get(keyPath))
+    @onDidChangeKeyPath keyPath, (event) -> callback(event.newValue)
 
   onDidChangeKeyPath: (keyPath, callback) ->
-    @emitter.on 'did-change', (event) =>
-      callback(event) if not keyPath? or (keyPath? and @isSubKeyPath(keyPath, event?.keyPath))
+    oldValue = @get(keyPath)
+
+    didChange = =>
+      newValue = @get(keyPath)
+      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
+      oldValue = newValue
+
+    @emitter.on 'did-change', didChange
 
   isSubKeyPath: (keyPath, subKeyPath) ->
     return false unless keyPath? and subKeyPath?
@@ -821,10 +838,8 @@ class Config
     _.isEqual(pathTokens, pathSubTokens)
 
   setRawDefault: (keyPath, value) ->
-    oldValue = _.clone(@get(keyPath))
     _.setValueForKeyPath(@defaultSettings, keyPath, value)
-    newValue = @get(keyPath)
-    @emitter.emit 'did-change', {oldValue, newValue, keyPath} unless _.isEqual(newValue, oldValue)
+    @emitChangeEvent()
 
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
@@ -882,20 +897,23 @@ class Config
   Section: Private Scoped Settings
   ###
 
+  emitChangeEvent: ->
+    @emitter.emit 'did-change' unless @transactDepth > 0
+
   resetUserScopedSettings: (newScopedSettings) ->
     @usersScopedSettings?.dispose()
     @usersScopedSettings = new CompositeDisposable
     @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', newScopedSettings, @usersScopedSettingPriority)
-    @emitter.emit 'did-change'
+    @emitChangeEvent()
 
   addScopedSettings: (source, selector, value, options) ->
     settingsBySelector = {}
     settingsBySelector[selector] = value
     disposable = @scopedSettingsStore.addProperties(source, settingsBySelector, options)
-    @emitter.emit 'did-change'
+    @emitChangeEvent()
     new Disposable =>
       disposable.dispose()
-      @emitter.emit 'did-change'
+      @emitChangeEvent()
 
   setRawScopedValue: (selector, keyPath, value) ->
     if keyPath?
@@ -906,7 +924,7 @@ class Config
     settingsBySelector = {}
     settingsBySelector[selector] = value
     @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', settingsBySelector, @usersScopedSettingPriority)
-    @emitter.emit 'did-change'
+    @emitChangeEvent()
 
   getRawScopedValue: (scopeDescriptor, keyPath) ->
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
@@ -928,7 +946,7 @@ class Config
     oldValue = @get(scopeDescriptor, keyPath)
     didChange = =>
       newValue = @get(scopeDescriptor, keyPath)
-      callback({oldValue, newValue, keyPath}) unless _.isEqual(oldValue, newValue)
+      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
       oldValue = newValue
 
     @emitter.on 'did-change', didChange

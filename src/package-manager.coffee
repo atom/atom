@@ -329,7 +329,8 @@ class PackageManager
     @packageActivators.push([activator, types])
 
   activatePackages: (packages) ->
-    @activatePackage(pack.name) for pack in packages
+    atom.config.transact =>
+      @activatePackage(pack.name) for pack in packages
     @observeDisabledPackages()
 
   # Activate a single package by name
@@ -344,7 +345,8 @@ class PackageManager
 
   # Deactivate all packages
   deactivatePackages: ->
-    @deactivatePackage(pack.name) for pack in @getLoadedPackages()
+    atom.config.transact =>
+      @deactivatePackage(pack.name) for pack in @getLoadedPackages()
     @unobserveDisabledPackages()
 
   # Deactivate the package with the given name
