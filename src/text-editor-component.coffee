@@ -404,7 +404,7 @@ TextEditorComponent = React.createClass
     window.addEventListener 'resize', @requestHeightAndWidthMeasurement
 
     @listenForIMEEvents()
-    @listenForMiddleMousePaste() if process.platform is 'linux'
+    @trackSelectionClipboard() if process.platform is 'linux'
 
   listenForIMEEvents: ->
     node = @getDOMNode()
@@ -432,21 +432,21 @@ TextEditorComponent = React.createClass
       editor.insertText(selectedText, select: true, undo: 'skip')
       event.target.value = ''
 
-  listenForMiddleMousePaste: ->
-    clipboard = require 'clipboard'
-
-    @refs.scrollView.getDOMNode().addEventListener 'mouseup', ({which}) =>
-      return unless which is 2
-
-      if selection = clipboard.readText('selection')
-        @props.editor.insertText(selection)
-
-    @subscribe @props.editor.onDidChangeSelectionRange =>
-      if selectedText = @props.editor.getSelectedText()
+  # Listen for selection changes and store the currently selected text
+  # in the selection clipboard. This is only applicable on Linux.
+  trackSelectionClipboard: ->
+    timeoutId = null
+    {editor} = @props
+    writeSelectedTextToSelectionClipboard = =>
+      return if editor.isDestroyed()
+      if selectedText = editor.getSelectedText()
         # This uses ipc.send instead of clipboard.writeText because
         # clipboard.writeText is a sync ipc call on Linux and that
         # will slow down selections.
         ipc.send('write-text-to-selection-clipboard', selectedText)
+    @subscribe editor.onDidChangeSelectionRange ->
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
   observeConfig: ->
     @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
@@ -560,7 +560,11 @@ TextEditorComponent = React.createClass
       scrollViewNode.scrollLeft = 0
 
   onMouseDown: (event) ->
-    return unless event.button is 0 # only handle the left mouse button
+    unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
+      # Only handle mouse down events for left mouse button on all platforms
+      # and middle mouse button on Linux since it pastes the selection clipboard
+      return
+
     return if event.target?.classList.contains('horizontal-scrollbar')
 
     {editor} = @props
@@ -769,14 +773,20 @@ TextEditorComponent = React.createClass
       # Stop dragging when cursor enters dev tools because we can't detect mouseup
       onMouseUp() if event.which is 0
 
-    onMouseUp = ->
+    onMouseUp = (event) ->
       stopDragging()
       editor.finalizeSelections()
+      pasteSelectionClipboard(event)
 
     stopDragging = ->
       dragging = false
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
+
+    pasteSelectionClipboard = (event) ->
+      if event?.which is 2 and process.platform is 'linux'
+        if selection = require('clipboard').readText('selection')
+          editor.insertText(selection)
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
