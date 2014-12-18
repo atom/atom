@@ -554,7 +554,11 @@ TextEditorComponent = React.createClass
       scrollViewNode.scrollLeft = 0
 
   onMouseDown: (event) ->
-    return unless event.button is 0 # only handle the left mouse button
+    unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
+      # Only handle mouse down events for left mouse button on all platforms
+      # and middle mouse button on Linux since it pastes the selection clipboard
+      return
+
     return if event.target?.classList.contains('horizontal-scrollbar')
 
     {editor} = @props
