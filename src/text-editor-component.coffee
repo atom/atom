@@ -442,7 +442,7 @@ TextEditorComponent = React.createClass
         # clipboard.writeText is a sync ipc call on Linux and that
         # will slow down selections.
         ipc.send('write-text-to-selection-clipboard', selectedText)
-    @subscribe @props.editor.onDidChangeSelectionRange =>
+    @subscribe @props.editor.onDidChangeSelectionRange ->
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
