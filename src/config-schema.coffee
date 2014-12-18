@@ -16,6 +16,10 @@ module.exports =
         type: 'boolean'
         default: true
         title: 'Exclude VCS Ignored Paths'
+      followSymlinks:
+        type: 'boolean'
+        default: true
+        title: 'Follow symlinks when searching and scanning root directory'
       disabledPackages:
         type: 'array'
         default: []

@@ -195,6 +195,7 @@ class Project extends Model
       includeHidden: true
       excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
       exclusions: atom.config.get('core.ignoredNames')
+      follow: atom.config.get('core.followSymlinks')
 
     # TODO: need to support all paths in @getPaths()
     task = Task.once require.resolve('./scan-handler'), @getPaths()[0], regex.source, searchOptions, ->
