@@ -18,7 +18,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone, @safeMode} = settings
+    {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone, @safeMode, @devMode} = settings
 
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
@@ -38,6 +38,8 @@ class AtomWindow
     loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
+    loadSettings.devMode ?= false
+    loadSettings.safeMode ?= false
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec

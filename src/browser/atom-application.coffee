@@ -140,14 +140,18 @@ class AtomApplication
 
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
+    getLoadSettings = =>
+      devMode: @focusedWindow()?.devMode
+      safeMode: @focusedWindow()?.safeMode
+
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
-    @on 'application:new-window', -> @openPath(windowDimensions: @focusedWindow()?.getDimensions())
+    @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
-    @on 'application:open', -> @promptForPath(type: 'all')
-    @on 'application:open-file', -> @promptForPath(type: 'file')
-    @on 'application:open-folder', -> @promptForPath(type: 'folder')
+    @on 'application:open', -> @promptForPath(_.extend(type: 'all', getLoadSettings()))
+    @on 'application:open-file', -> @promptForPath(_.extend(type: 'file', getLoadSettings()))
+    @on 'application:open-folder', -> @promptForPath(_.extend(type: 'folder', getLoadSettings()))
     @on 'application:open-dev', -> @promptForPath(devMode: true)
     @on 'application:open-safe', -> @promptForPath(safeMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
