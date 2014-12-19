@@ -1,5 +1,6 @@
-BufferedProcess  = require '../src/buffered-process'
 ChildProcess = require 'child_process'
+path = require 'path'
+BufferedProcess  = require '../src/buffered-process'
 
 describe "BufferedProcess", ->
   describe "when a bad command is specified", ->
@@ -42,7 +43,7 @@ describe "BufferedProcess", ->
           expect(window.onerror.mostRecentCall.args[0]).toContain 'Failed to spawn command `bad-command-nope`'
           expect(window.onerror.mostRecentCall.args[4].name).toBe 'BufferedProcessError'
 
-  describe "when the explorer command is spawned on Windows", ->
+  describe "on Windows", ->
     originalPlatform = null
 
     beforeEach ->
@@ -61,6 +62,14 @@ describe "BufferedProcess", ->
     afterEach ->
       Object.defineProperty process, 'platform', value: originalPlatform
 
-    it "doesn't quote arguments of the form /root,C...", ->
-      new BufferedProcess({command: 'explorer.exe', args: ['/root,C:\\foo']})
-      expect(ChildProcess.spawn.argsForCall[0][1][2]).toBe '"explorer.exe /root,C:\\foo"'
+    describe "when the explorer command is spawned on Windows", ->
+      it "doesn't quote arguments of the form /root,C...", ->
+        new BufferedProcess({command: 'explorer.exe', args: ['/root,C:\\foo']})
+        expect(ChildProcess.spawn.argsForCall[0][1][2]).toBe '"explorer.exe /root,C:\\foo"'
+
+    it "spawns the command using a cmd.exe wrapper", ->
+      new BufferedProcess({command: 'dir'})
+      expect(path.basename(ChildProcess.spawn.argsForCall[0][0])).toBe 'cmd.exe'
+      expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe '/s'
+      expect(ChildProcess.spawn.argsForCall[0][1][1]).toBe '/c'
+      expect(ChildProcess.spawn.argsForCall[0][1][2]).toBe '"dir"'
