@@ -38,6 +38,8 @@ class AtomWindow
     loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
+    loadSettings.devMode ?= false
+    loadSettings.safeMode ?= false
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
