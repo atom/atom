@@ -341,6 +341,10 @@ class Atom extends Model
   inDevMode: ->
     @getLoadSettings().devMode
 
+  # Public: Is the current window in safe mode?
+  inSafeMode: ->
+    @getLoadSettings().safeMode
+
   # Public: Is the current window running specs?
   inSpecMode: ->
     @getLoadSettings().isSpec
