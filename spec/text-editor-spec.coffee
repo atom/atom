@@ -1327,7 +1327,7 @@ describe "TextEditor", ->
           coffeeEditor.selectWordsContainingCursors()
           expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 6], [0, 15]]
 
-          atom.config.set '.source.coffee', 'editor.nonWordCharacters', 'qusort'
+          atom.config.set 'editor.nonWordCharacters', 'qusort', scopeSelector: '.source.coffee'
 
           coffeeEditor.setCursorBufferPosition [0, 9]
           coffeeEditor.selectWordsContainingCursors()
@@ -3276,7 +3276,7 @@ describe "TextEditor", ->
         atom.packages.unloadPackages()
 
       it 'returns correct values based on the scope of the set grammars', ->
-        atom.config.set '.source.coffee', 'editor.tabLength', 6
+        atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.coffee'
 
         expect(editor.getTabLength()).toBe 2
         expect(coffeeEditor.getTabLength()).toBe 6
@@ -3298,12 +3298,12 @@ describe "TextEditor", ->
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
 
-        atom.config.set '.source.js', 'editor.tabLength', 6
+        atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.js'
         expect(editor.getTabLength()).toBe 6
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
 
       it 'updates the tab length when the grammar changes', ->
-        atom.config.set '.source.coffee', 'editor.tabLength', 6
+        atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.coffee'
 
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
@@ -3473,8 +3473,8 @@ describe "TextEditor", ->
           atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
         runs ->
-          atom.config.set('.source.js', 'editor.autoIndent', true)
-          atom.config.set('.source.coffee', 'editor.autoIndent', false)
+          atom.config.set('editor.autoIndent', true, scopeSelector: '.source.js')
+          atom.config.set('editor.autoIndent', false, scopeSelector: '.source.coffee')
 
       afterEach: ->
         atom.packages.deactivatePackages()

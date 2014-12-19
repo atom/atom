@@ -2593,9 +2593,9 @@ describe "TextEditorComponent", ->
 
     describe 'soft wrap settings', ->
       beforeEach ->
-        atom.config.set '.source.coffee', 'editor.softWrap', true
-        atom.config.set '.source.coffee', 'editor.preferredLineLength', 17
-        atom.config.set '.source.coffee', 'editor.softWrapAtPreferredLineLength', true
+        atom.config.set 'editor.softWrap', true, scopeSelector: '.source.coffee'
+        atom.config.set 'editor.preferredLineLength', 17, scopeSelector: '.source.coffee'
+        atom.config.set 'editor.softWrapAtPreferredLineLength', true, scopeSelector: '.source.coffee'
 
         editor.setEditorWidthInChars(20)
         coffeeEditor.setEditorWidthInChars(20)
@@ -2605,18 +2605,18 @@ describe "TextEditorComponent", ->
         expect(coffeeEditor.lineTextForScreenRow(3)).toEqual '    return items '
 
       it 'updates the wrapped lines when editor.preferredLineLength changes', ->
-        atom.config.set '.source.coffee', 'editor.preferredLineLength', 20
+        atom.config.set 'editor.preferredLineLength', 20, scopeSelector: '.source.coffee'
         expect(coffeeEditor.lineTextForScreenRow(2)).toEqual '    return items if '
 
       it 'updates the wrapped lines when editor.softWrapAtPreferredLineLength changes', ->
-        atom.config.set '.source.coffee', 'editor.softWrapAtPreferredLineLength', false
+        atom.config.set 'editor.softWrapAtPreferredLineLength', false, scopeSelector: '.source.coffee'
         expect(coffeeEditor.lineTextForScreenRow(2)).toEqual '    return items if '
 
       it 'updates the wrapped lines when editor.softWrap changes', ->
-        atom.config.set '.source.coffee', 'editor.softWrap', false
+        atom.config.set 'editor.softWrap', false, scopeSelector: '.source.coffee'
         expect(coffeeEditor.lineTextForScreenRow(2)).toEqual '    return items if items.length <= 1'
 
-        atom.config.set '.source.coffee', 'editor.softWrap', true
+        atom.config.set 'editor.softWrap', true, scopeSelector: '.source.coffee'
         expect(coffeeEditor.lineTextForScreenRow(3)).toEqual '    return items '
 
       it 'updates the wrapped lines when the grammar changes', ->
@@ -2644,11 +2644,11 @@ describe "TextEditorComponent", ->
           tab: 'F'
           cr: 'E'
 
-        atom.config.set '.source.js', 'editor.showInvisibles', true
-        atom.config.set '.source.js', 'editor.invisibles', jsInvisibles
+        atom.config.set 'editor.showInvisibles', true, scopeSelector: '.source.js'
+        atom.config.set 'editor.invisibles', jsInvisibles, scopeSelector: '.source.js'
 
-        atom.config.set '.source.coffee', 'editor.showInvisibles', false
-        atom.config.set '.source.coffee', 'editor.invisibles', coffeeInvisibles
+        atom.config.set 'editor.showInvisibles', false, scopeSelector: '.source.coffee'
+        atom.config.set 'editor.invisibles', coffeeInvisibles, scopeSelector: '.source.coffee'
 
         editor.setText " a line with tabs\tand spaces \n"
         nextAnimationFrame()
@@ -2664,7 +2664,7 @@ describe "TextEditorComponent", ->
       it "re-renders the invisibles when the invisible settings change", ->
         jsGrammar = editor.getGrammar()
         editor.setGrammar(coffeeEditor.getGrammar())
-        atom.config.set '.source.coffee', 'editor.showInvisibles', true
+        atom.config.set 'editor.showInvisibles', true, scopeSelector: '.source.coffee'
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{coffeeInvisibles.space}a line with tabs#{coffeeInvisibles.tab}and spaces#{coffeeInvisibles.space}#{coffeeInvisibles.eol}"
 
@@ -2673,7 +2673,7 @@ describe "TextEditorComponent", ->
           space: 'E'
           tab: 'W'
           cr: 'I'
-        atom.config.set '.source.coffee', 'editor.invisibles', newInvisibles
+        atom.config.set 'editor.invisibles', newInvisibles, scopeSelector: '.source.coffee'
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{newInvisibles.space}a line with tabs#{newInvisibles.tab}and spaces#{newInvisibles.space}#{newInvisibles.eol}"
 
@@ -2683,8 +2683,8 @@ describe "TextEditorComponent", ->
 
     describe 'editor.showIndentGuide', ->
       beforeEach ->
-        atom.config.set '.source.js', 'editor.showIndentGuide', true
-        atom.config.set '.source.coffee', 'editor.showIndentGuide', false
+        atom.config.set 'editor.showIndentGuide', true, scopeSelector: '.source.js'
+        atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.coffee'
 
       it "has an 'indent-guide' class when scoped editor.showIndentGuide is true, but not when scoped editor.showIndentGuide is false", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -2705,7 +2705,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe true
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
-        atom.config.set '.source.js', 'editor.showIndentGuide', false
+        atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.js'
 
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
