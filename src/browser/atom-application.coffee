@@ -145,9 +145,9 @@ class AtomApplication
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(windowDimensions: @focusedWindow()?.getDimensions())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
-    @on 'application:open', -> @promptForPath(type: 'all')
-    @on 'application:open-file', -> @promptForPath(type: 'file')
-    @on 'application:open-folder', -> @promptForPath(type: 'folder')
+    @on 'application:open', (loadSettings) -> @promptForPath(_.extend(type: 'all', loadSettings))
+    @on 'application:open-file', (loadSettings) -> @promptForPath(_.extend(type: 'file', loadSettings))
+    @on 'application:open-folder', (loadSettings) -> @promptForPath(_.extend(type: 'folder', loadSettings))
     @on 'application:open-dev', -> @promptForPath(devMode: true)
     @on 'application:open-safe', -> @promptForPath(safeMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
@@ -227,8 +227,8 @@ class AtomApplication
     ipc.on 'run-package-specs', (event, specDirectory) =>
       @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
 
-    ipc.on 'command', (event, command) =>
-      @emit(command)
+    ipc.on 'command', (event, command, options) =>
+      @emit(command, options)
 
     ipc.on 'window-command', (event, command, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
