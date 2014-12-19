@@ -67,24 +67,24 @@ class DisplayBuffer extends Model
 
     oldConfigSettings = @configSettings
     @configSettings =
-      scrollPastEnd: atom.config.get(scopeDescriptor, 'editor.scrollPastEnd')
-      softWrap: atom.config.get(scopeDescriptor, 'editor.softWrap')
-      softWrapAtPreferredLineLength: atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
-      preferredLineLength: atom.config.get(scopeDescriptor, 'editor.preferredLineLength')
+      scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
+      softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
+      softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', ({newValue}) =>
+    subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrap = newValue
       @updateWrappedScreenLines()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', ({newValue}) =>
+    subscriptions.add atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrapAtPreferredLineLength = newValue
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', ({newValue}) =>
+    subscriptions.add atom.config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.preferredLineLength = newValue
-      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
+      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
 
-    subscriptions.add atom.config.observe scopeDescriptor, 'editor.scrollPastEnd', (value) =>
+    subscriptions.add atom.config.observe 'editor.scrollPastEnd', scope: scopeDescriptor, (value) =>
       @configSettings.scrollPastEnd = value
 
     @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
