@@ -1,4 +1,5 @@
 BufferedProcess  = require '../src/buffered-process'
+ChildProcess = require 'child_process'
 
 describe "BufferedProcess", ->
   describe "when a bad command is specified", ->
@@ -40,3 +41,26 @@ describe "BufferedProcess", ->
           expect(window.onerror).toHaveBeenCalled()
           expect(window.onerror.mostRecentCall.args[0]).toContain 'Failed to spawn command `bad-command-nope`'
           expect(window.onerror.mostRecentCall.args[4].name).toBe 'BufferedProcessError'
+
+  describe "when the explorer command is spawned on Windows", ->
+    originalPlatform = null
+
+    beforeEach ->
+      # Prevent any commands from actually running and affecting the host
+      originalSpawn = ChildProcess.spawn
+      spyOn(ChildProcess, 'spawn').andCallFake ->
+        # Just spawn something that won't actually modify the host
+        if originalPlatform is 'win32'
+          originalSpawn('dir')
+        else
+          originalSpawn('ls')
+
+      originalPlatform = process.platform
+      Object.defineProperty process, 'platform', value: 'win32'
+
+    afterEach ->
+      Object.defineProperty process, 'platform', value: originalPlatform
+
+    it "doesn't quote arguments of the form /root,C...", ->
+      new BufferedProcess({command: 'explorer.exe', args: ['/root,C:\\foo']})
+      expect(ChildProcess.spawn.argsForCall[0][1][2]).toBe '"explorer.exe /root,C:\\foo"'

@@ -47,12 +47,12 @@ class BufferedProcess
     @emitter = new Emitter
     options ?= {}
     # Related to joyent/node#2318
-    if process.platform is "win32"
+    if process.platform is 'win32'
       # Quote all arguments and escapes inner quotes
       if args?
         cmdArgs = args.filter (arg) -> arg?
-        cmdArgs = cmdArgs.map (arg) ->
-          if command in ['explorer.exe', 'explorer'] and /^\/[a-zA-Z]+,.*$/.test(arg)
+        cmdArgs = cmdArgs.map (arg) =>
+          if @isExplorerCommand(command) and /^\/[a-zA-Z]+,.*$/.test(arg)
             # Don't wrap /root,C:\folder style arguments to explorer calls in
             # quotes since they will not be interpreted correctly if they are
             arg
@@ -190,6 +190,14 @@ class BufferedProcess
   killProcess: ->
     @process?.kill()
     @process = null
+
+  isExplorerCommand: (command) ->
+    if command is 'explorer.exe' or command is 'explorer'
+      true
+    else if process.env.SystemRoot
+      command is path.join(process.env.SystemRoot, 'explorer.exe') or command is path.join(process.env.SystemRoot, 'explorer')
+    else
+      false
 
   # Public: Terminate the process.
   kill: ->
