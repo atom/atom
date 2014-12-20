@@ -202,7 +202,7 @@ class BufferedProcess
 
   getCmdPath: ->
     if process.env.comspec
-      process.env.compec
+      process.env.comspec
     else if process.env.SystemRoot
       path.join(process.env.SystemRoot, 'System32', 'cmd.exe')
     else
