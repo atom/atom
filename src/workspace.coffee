@@ -645,7 +645,7 @@ class Workspace extends Model
 
   # Restore to a default editor font size.
   resetFontSize: ->
-    atom.config.restoreDefault("editor.fontSize")
+    atom.config.unset("editor.fontSize")
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->

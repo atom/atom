@@ -314,11 +314,12 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
     @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettingPriority = {priority: 1000}
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
+    @prioritiesBySource = {}
+    @prioritiesBySource[@getUserConfigPath()] = 1000
 
   ###
   Section: Config Subscription
@@ -338,32 +339,36 @@ class Config
   #   # do stuff with value
   # ```
   #
-  # * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
-  #   the root of the syntax tree to a token. Get one by calling
-  #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` {String} name of the key to observe
+  # * `options` {Object}
+  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  #     the root of the syntax tree to a token. Get one by calling
+  #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  observe: (scopeDescriptor, keyPath, options, callback) ->
-    args = Array::slice.call(arguments)
-    if args.length is 2
-      # observe(keyPath, callback)
-      [keyPath, callback, scopeDescriptor, options] = args
-    else if args.length is 3 and (Array.isArray(scopeDescriptor) or scopeDescriptor instanceof ScopeDescriptor)
-      # observe(scopeDescriptor, keyPath, callback)
-      [scopeDescriptor, keyPath, callback, options] = args
-    else if args.length is 3 and _.isString(scopeDescriptor) and _.isObject(keyPath)
-      # observe(keyPath, options, callback) # Deprecated!
-      [keyPath, options, callback, scopeDescriptor] = args
-
-      message = ""
-      message = "`callNow` was set to false. Use ::onDidChange instead. Note that ::onDidChange calls back with different arguments." if options.callNow == false
-      Grim.deprecate "Config::observe no longer supports options; see https://atom.io/docs/api/latest/Config. #{message}"
+  observe: ->
+    if arguments.length is 2
+      [keyPath, callback] = arguments
+    else if arguments.length is 3 and (_.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor)
+      Grim.deprecate """
+        Passing a scope descriptor as the first argument to Config::observe is deprecated.
+        Pass a `scope` in an options hash as the third argument instead.
+      """
+      [scopeDescriptor, keyPath, callback] = arguments
+    else if arguments.length is 3 and (_.isString(arguments[0]) and _.isObject(arguments[1]))
+      [keyPath, options, callback] = arguments
+      scopeDescriptor = options.scope
+      if options.callNow?
+        Grim.deprecate """
+          Config::observe no longer takes a `callNow` option. Use ::onDidChange instead.
+          Note that ::onDidChange passes its callback different arguments.
+          See https://atom.io/docs/api/latest/Config
+        """
     else
       console.error 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
       return
@@ -376,13 +381,14 @@ class Config
   # Essential: Add a listener for changes to a given key path. If `keyPath` is
   # not specified, your callback will be called on changes to any key.
   #
-  # * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
-  #   the root of the syntax tree to a token. Get one by calling
-  #   {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
+  # * `optional` (optional) {Object}
+  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  #     the root of the syntax tree to a token. Get one by calling
+  #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
   #     * `newValue` the new value of the key
@@ -391,12 +397,20 @@ class Config
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
-  onDidChange: (scopeDescriptor, keyPath, callback) ->
-    args = Array::slice.call(arguments)
+  onDidChange: ->
     if arguments.length is 1
-      [callback, scopeDescriptor, keyPath] = args
+      [callback] = arguments
     else if arguments.length is 2
-      [keyPath, callback, scopeDescriptor] = args
+      [keyPath, callback] = arguments
+    else if _.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor
+      Grim.deprecate """
+        Passing a scope descriptor as the first argument to Config::onDidChange is deprecated.
+        Pass a `scope` in an options hash as the third argument instead.
+      """
+      [scopeDescriptor, keyPath, callback] = arguments
+    else
+      [keyPath, options, callback] = arguments
+      scopeDescriptor = options.scope
 
     if scopeDescriptor?
       @onDidChangeScopedKeyPath(scopeDescriptor, keyPath, callback)
@@ -447,24 +461,40 @@ class Config
   # atom.config.get(scopeDescriptor, 'editor.tabLength') # => 2
   # ```
   #
-  # * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
-  #   the root of the syntax tree to a token. Get one by calling
-  #   {editor.getLastCursor().getScopeDescriptor()}
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` The {String} name of the key to retrieve.
+  # * `options` (optional) {Object}
+  #   * `sources` (optional) {Array} of {String} source names. If provided, only
+  #     values that were associated with these sources during {::set} will be used.
+  #   * `excludeSources` (optional) {Array} of {String} source names. If provided,
+  #     values that  were associated with these sources during {::set} will not
+  #     be used.
+  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  #     the root of the syntax tree to a token. Get one by calling
+  #     {editor.getLastCursor().getScopeDescriptor()}
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
   #
   # Returns the value from Atom's default settings, the user's configuration
   # file in the type specified by the configuration schema.
-  get: (scopeDescriptor, keyPath) ->
-    if arguments.length == 1
-      # cannot assign to keyPath for the sake of v8 optimization
-      globalKeyPath = scopeDescriptor
-      @getRawValue(globalKeyPath)
+  get: ->
+    if arguments.length > 1
+      if typeof arguments[0] is 'string' or not arguments[0]?
+        [keyPath, options] = arguments
+        {scope} = options
+      else
+        Grim.deprecate """
+          Passing a scope descriptor as the first argument to Config::get is deprecated.
+          Pass a `scope` in an options hash as the final argument instead.
+        """
+        [scope, keyPath] = arguments
     else
-      value = @getRawScopedValue(scopeDescriptor, keyPath)
-      value ?= @getRawValue(keyPath)
-      value
+      [keyPath] = arguments
+
+    if scope?
+      value = @getRawScopedValue(scope, keyPath, options)
+      value ? @getRawValue(keyPath, options)
+    else
+      @getRawValue(keyPath, options)
 
   # Essential: Sets the value for a configuration setting.
   #
@@ -495,63 +525,90 @@ class Config
   # atom.config.get(['source.js'], 'editor.tabLength') # => 4
   # ```
   #
-  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` The {String} name of the key.
   # * `value` The value of the setting. Passing `undefined` will revert the
   #   setting to the default value.
+  # * `options` (optional) {Object}
+  #   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
+  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     for more information.
+  #   * `source` (optional) {String} The name of a file with which the setting
+  #     is associated. Defaults to the user's config file.
   #
   # Returns a {Boolean}
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set: (scopeSelector, keyPath, value) ->
-    if arguments.length < 3
-      value = keyPath
-      keyPath = scopeSelector
-      scopeSelector = undefined
+  set: ->
+    if arguments[0]?[0] is '.'
+      Grim.deprecate """
+        Passing a scope selector as the first argument to Config::set is deprecated.
+        Pass a `scopeSelector` in an options hash as the final argument instead.
+      """
+      [scopeSelector, keyPath, value] = arguments
+    else
+      [keyPath, value, options] = arguments
+      scopeSelector = options?.scopeSelector
+      source = options?.source
 
-    unless value == undefined
+    source ?= @getUserConfigPath()
+
+    unless value is undefined
       try
         value = @makeValueConformToSchema(keyPath, value)
       catch e
         return false
 
     if scopeSelector?
-      @setRawScopedValue(scopeSelector, keyPath, value)
+      @setRawScopedValue(source, scopeSelector, keyPath, value)
     else
-      @setRawValue(keyPath, value)
+      @setRawValue(source, keyPath, value)
 
+    @emitChangeEvent()
     @save() unless @configFileHasErrors
     true
 
-  # Extended: Restore the global setting at `keyPath` to its default value.
+  # Essential: Restore the setting at `keyPath` to its default value.
   #
-  # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #   See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
-  #   for more information.
   # * `keyPath` The {String} name of the key.
+  # * `options` (optional) {Object}
+  #   * `scopeSelector` (optional) {String}. See {::set}
+  #   * `source` (optional) {String}. See {::set}
+  unset: (keyPath, options) ->
+    if typeof options is 'string'
+      Grim.deprecate """
+        Passing a scope selector as the first argument to Config::unset is deprecated.
+        Pass a `scopeSelector` in an options hash as the second argument instead.
+      """
+      scopeSelector = keyPath
+      keyPath = options
+    else
+      {scopeSelector, source} = options ? {}
+
+    source ?= @getUserConfigPath()
+
+    if scopeSelector?
+      if keyPath?
+        settings = @scopedSettingsStore.propertiesForSourceAndSelector(source, scopeSelector)
+        if _.valueForKeyPath(settings, keyPath)?
+          @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
+          _.setValueForKeyPath(settings, keyPath, undefined)
+          settings = withoutEmptyObjects(settings)
+          @addScopedSettings(source, scopeSelector, settings, priority: @usersScopedSettingPriority) if settings?
+          @save() unless @configFileHasErrors
+      else
+        @scopedSettingsStore.removePropertiesForSource(source)
+    else
+      @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+
+  # Deprecated: Restore the global setting at `keyPath` to its default value.
   #
   # Returns the new value.
   restoreDefault: (scopeSelector, keyPath) ->
-    if arguments.length == 1
-      keyPath = scopeSelector
-      scopeSelector = null
+    Grim.deprecate("Use ::unset instead.")
+    @unset(scopeSelector, keyPath)
+    @get(keyPath)
 
-    if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
-      if _.valueForKeyPath(settings, keyPath)?
-        @scopedSettingsStore.removePropertiesForSourceAndSelector('user-config', scopeSelector)
-        _.setValueForKeyPath(settings, keyPath, undefined)
-        settings = withoutEmptyObjects(settings)
-        @addScopedSettings('user-config', scopeSelector, settings, @usersScopedSettingPriority) if settings?
-        @save() unless @configFileHasErrors
-        @getDefault(scopeSelector, keyPath)
-    else
-      @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
-      @get(keyPath)
-
-  # Extended: Get the global default value of the key path. _Please note_ that in most
+  # Deprecated: Get the global default value of the key path. _Please note_ that in most
   # cases calling this is not necessary! {::get} returns the default value when
   # a custom value is not specified.
   #
@@ -559,35 +616,31 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns the default value.
-  getDefault: (scopeSelector, keyPath) ->
-    if arguments.length == 1
-      keyPath = scopeSelector
-      scopeSelector = null
-
-    if scopeSelector?
-      defaultValue = @scopedSettingsStore.getPropertyValue(scopeSelector, keyPath, excludeSources: ['user-config'])
-      defaultValue ?= _.valueForKeyPath(@defaultSettings, keyPath)
+  getDefault: ->
+    Grim.deprecate("Use `::get(keyPath, {scope, excludeSources: [atom.config.getUserConfigPath()]})` instead")
+    if arguments.length is 1
+      [keyPath] = arguments
     else
-      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
-    _.deepClone(defaultValue)
+      [scopeSelector, keyPath] = arguments
+      scope = [scopeSelector]
+    @get(keyPath, {scope, excludeSources: [@getUserConfigPath()]})
 
-  # Extended: Is the value at `keyPath` its default value?
+  # Deprecated: Is the value at `keyPath` its default value?
   #
   # * `scopeSelector` (optional) {String}. eg. '.source.ruby'
   # * `keyPath` The {String} name of the key.
   #
   # Returns a {Boolean}, `true` if the current value is the default, `false`
   # otherwise.
-  isDefault: (scopeSelector, keyPath) ->
-    if arguments.length == 1
-      keyPath = scopeSelector
-      scopeSelector = null
-
-    if scopeSelector?
-      settings = @scopedSettingsStore.propertiesForSourceAndSelector('user-config', scopeSelector)
-      not _.valueForKeyPath(settings, keyPath)?
+  isDefault: ->
+    Grim.deprecate("Use `not ::get(keyPath, {scope, sources: [atom.config.getUserConfigPath()]})?` instead")
+    if arguments.length is 1
+      [keyPath] = arguments
+      scopeSelector = '*'
     else
-      not _.valueForKeyPath(@settings, keyPath)?
+      [scopeSelector, keyPath] = arguments
+
+    not @get(keyPath, {scope: [scopeSelector], sources: [@getUserConfigPath()]})?
 
   # Extended: Retrieve the schema for a specific key path. The schema will tell
   # you what type the keyPath expects, and other metadata about the config
@@ -609,7 +662,7 @@ class Config
   # defaults. Returns the scoped settings when a `scopeSelector` is specified.
   getSettings: ->
     Grim.deprecate "Use ::get(keyPath) instead"
-    _.deepExtend({}, @settings, @defaultSettings)
+    _.deepExtend({}, @defaultSettings, @scopedSettingsStore.getProperties('.xxx')...)
 
   # Extended: Get the {String} path to the config file being used.
   getUserConfigPath: ->
@@ -752,55 +805,43 @@ class Config
     console.error detail
 
   save: ->
-    allSettings = global: @settings
-    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource('user-config')
-    CSON.writeFileSync(@configFilePath, allSettings)
+    settings = @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    settings.global = settings['*']
+    delete settings['*']
+    CSON.writeFileSync(@configFilePath, settings)
 
   ###
   Section: Private methods managing global settings
   ###
 
   resetUserSettings: (newSettings) ->
+    @scopedSettingsStore.removePropertiesForSource(@getUserConfigPath())
+
     unless isPlainObject(newSettings)
-      @settings = {}
       @emitChangeEvent()
       return
 
-    if newSettings.global?
-      scopedSettings = newSettings
-      newSettings = newSettings.global
-      delete scopedSettings.global
-      @resetUserScopedSettings(scopedSettings)
+    unless newSettings.global?
+      newSettings = {global: newSettings}
 
-    unsetUnspecifiedValues = (keyPath, value) =>
-      if isPlainObject(value)
-        keys = splitKeyPath(keyPath)
-        for key, childValue of value
-          continue unless value.hasOwnProperty(key)
-          unsetUnspecifiedValues(keys.concat([key]).join('.'), childValue)
+    for selector, settings of newSettings
+      unless settings is undefined
+        try
+          settings = @makeValueConformToSchema(null, settings)
+        catch e
+          continue
+
+      if selector is 'global'
+        @setRawValue(@getUserConfigPath(), null, settings)
       else
-        @setRawValue(keyPath, undefined) unless _.valueForKeyPath(newSettings, keyPath)?
-      return
+        @setRawScopedValue(@getUserConfigPath(), selector, null, settings)
 
-    @setRecursive(null, newSettings)
-    unsetUnspecifiedValues(null, @settings)
+    @emitChangeEvent()
 
-  setRecursive: (keyPath, value) ->
-    if isPlainObject(value)
-      keys = splitKeyPath(keyPath)
-      for key, childValue of value
-        continue unless value.hasOwnProperty(key)
-        @setRecursive(keys.concat([key]).join('.'), childValue)
-    else
-      try
-        value = @makeValueConformToSchema(keyPath, value)
-        @setRawValue(keyPath, value)
-      catch e
-        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
-
-  getRawValue: (keyPath) ->
-    value = _.valueForKeyPath(@settings, keyPath)
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+  getRawValue: (keyPath, options) ->
+    value = @getRawScopedValue(['xxx'], keyPath, options)
+    unless options?.sources?.length > 0
+      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
       value = _.deepClone(value)
@@ -810,26 +851,17 @@ class Config
 
     value
 
-  setRawValue: (keyPath, value) ->
+  setRawValue: (source, keyPath, value) ->
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
-
-    _.setValueForKeyPath(@settings, keyPath, value)
+    @setRawScopedValue(source, '*', keyPath, value)
     @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
-    callback(@get(keyPath))
-    @onDidChangeKeyPath keyPath, (event) -> callback(event.newValue)
+    @observeScopedKeyPath(["xxx"], keyPath, callback)
 
   onDidChangeKeyPath: (keyPath, callback) ->
-    oldValue = @get(keyPath)
-
-    didChange = =>
-      newValue = @get(keyPath)
-      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+    @onDidChangeScopedKeyPath(["xxx"], keyPath, callback)
 
   isSubKeyPath: (keyPath, subKeyPath) ->
     return false unless keyPath? and subKeyPath?
@@ -851,6 +883,7 @@ class Config
       try
         defaults = @makeValueConformToSchema(keyPath, defaults)
         @setRawDefault(keyPath, defaults)
+        @emitChangeEvent()
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
 
@@ -900,12 +933,6 @@ class Config
   emitChangeEvent: ->
     @emitter.emit 'did-change' unless @transactDepth > 0
 
-  resetUserScopedSettings: (newScopedSettings) ->
-    @usersScopedSettings?.dispose()
-    @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', newScopedSettings, @usersScopedSettingPriority)
-    @emitChangeEvent()
-
   addScopedSettings: (source, selector, value, options) ->
     settingsBySelector = {}
     settingsBySelector[selector] = value
@@ -915,41 +942,33 @@ class Config
       disposable.dispose()
       @emitChangeEvent()
 
-  setRawScopedValue: (selector, keyPath, value) ->
+  setRawScopedValue: (source, selector, keyPath, value) ->
     if keyPath?
       newValue = {}
-      _.setValueForKeyPath(newValue, keyPath, value)
+      setValueAtKeyPath(newValue, keyPath, value)
       value = newValue
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @usersScopedSettings.add @scopedSettingsStore.addProperties('user-config', settingsBySelector, @usersScopedSettingPriority)
-    @emitChangeEvent()
+    @usersScopedSettings.add @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
 
-  getRawScopedValue: (scopeDescriptor, keyPath) ->
+  getRawScopedValue: (scopeDescriptor, keyPath, options) ->
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath)
+    value = @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
+    value
 
-  observeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
-    oldValue = @get(scopeDescriptor, keyPath)
+  observeScopedKeyPath: (scope, keyPath, callback) ->
+    callback(@get(keyPath, {scope}))
+    @onDidChangeScopedKeyPath scope, keyPath, ({newValue}) ->
+      callback(newValue)
 
-    callback(oldValue)
-
-    didChange = =>
-      newValue = @get(scopeDescriptor, keyPath)
-      callback(newValue) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
-
-  onDidChangeScopedKeyPath: (scopeDescriptor, keyPath, callback) ->
-    oldValue = @get(scopeDescriptor, keyPath)
-    didChange = =>
-      newValue = @get(scopeDescriptor, keyPath)
-      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+  onDidChangeScopedKeyPath: (scope, keyPath, callback) ->
+    oldValue = _.deepClone(@get(keyPath, {scope}))
+    @emitter.on 'did-change', (event) =>
+      newValue = @get(keyPath, {scope})
+      unless _.isEqual(newValue, oldValue)
+        callback({newValue, oldValue})
+      oldValue = _.deepClone(newValue)
 
   # TODO: figure out how to change / remove this. The return value is awkward.
   # * language mode uses it for one thing.
@@ -1015,7 +1034,11 @@ Config.addSchemaEnforcers
       for prop, childSchema of schema.properties
         continue unless value.hasOwnProperty(prop)
         try
-          newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", value[prop], childSchema)
+          newKeyPath = if keyPath?
+            "#{keyPath}.#{prop}"
+          else
+            prop
+          newValue[prop] = @executeSchemaEnforcers(newKeyPath, value[prop], childSchema)
         catch error
           console.warn "Error setting item in object: #{error.message}"
       newValue
@@ -1067,6 +1090,21 @@ splitKeyPath = (keyPath) ->
       startIndex = i + 1
   keyPathArray.push keyPath.substr(startIndex, keyPath.length)
   keyPathArray
+
+getValueAtKeyPath = (object, keyPath) ->
+  keys = splitKeyPath(keyPath)
+  for key in keys
+    object = object[key]
+    return unless object?
+  object
+
+setValueAtKeyPath = (object, keyPath, value) ->
+  keys = splitKeyPath(keyPath)
+  while keys.length > 1
+    key = keys.shift()
+    object[key] ?= {}
+    object = object[key]
+  object[keys.shift()] = value
 
 withoutEmptyObjects = (object) ->
   resultObject = undefined
