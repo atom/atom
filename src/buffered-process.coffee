@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 ChildProcess = require 'child_process'
 {Emitter} = require 'event-kit'
+path = require 'path'
 
 # Extended: A wrapper which provides standard error/output line buffering for
 # Node's ChildProcess.
