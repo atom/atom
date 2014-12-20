@@ -19,7 +19,8 @@ module.exports =
       followSymlinks:
         type: 'boolean'
         default: true
-        title: 'Follow symlinks when searching and scanning root directory'
+        title: 'Follow symlinks'
+        description: 'Used when searching and when opening files with the fuzzy finder.'
       disabledPackages:
         type: 'array'
         default: []
