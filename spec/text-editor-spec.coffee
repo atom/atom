@@ -78,6 +78,37 @@ describe "TextEditor", ->
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 8
 
+  describe "when the editor is reopened with an initialLine option", ->
+    it "positions the cursor on the specified line", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialLine: 5).then (o) -> editor = o
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialLine: 4).then (o) -> editor = o
+
+      runs ->
+        buffer = editor.buffer
+        expect(editor.getLastCursor().getBufferPosition().row).toEqual 4
+        expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
+
+  describe "when the editor is reopened with an initialColumn option", ->
+    it "positions the cursor on the specified column", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialColumn: 8).then (o) -> editor = o
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialColumn: 7).then (o) -> editor = o
+
+      runs ->
+        buffer = editor.buffer
+        expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
+        expect(editor.getLastCursor().getBufferPosition().column).toEqual 7
+
+
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])

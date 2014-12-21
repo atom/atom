@@ -455,6 +455,8 @@ class Workspace extends Model
         @itemOpened(item)
         pane.activateItem(item)
         pane.activate() if activatePane
+        if options.initialLine? or options.initialColumn?
+          item.setCursorBufferPosition([options.initialLine, options.initialColumn])
         index = pane.getActiveItemIndex()
         @emit "uri-opened"
         @emitter.emit 'did-open', {uri, pane, item, index}

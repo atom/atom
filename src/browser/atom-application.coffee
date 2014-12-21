@@ -359,7 +359,7 @@ class AtomApplication
 
     if existingWindow?
       openedWindow = existingWindow
-      openedWindow.openPath(pathToOpen, initialLine)
+      openedWindow.openPath(pathToOpen, initialLine, initialColumn)
       if openedWindow.isMinimized()
         openedWindow.restore()
       else
