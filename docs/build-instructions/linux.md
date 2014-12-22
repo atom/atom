@@ -33,6 +33,10 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 * `sbopkg -k -i node -i atom`
 
+### openSUSE
+
+* `sudo zypper install nodejs make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+
 ## Instructions
 
 If you have problems with permissions don't forget to prefix with `sudo`
