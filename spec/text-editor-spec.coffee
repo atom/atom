@@ -89,7 +89,6 @@ describe "TextEditor", ->
         atom.workspace.open('sample.less', initialLine: 4).then (o) -> editor = o
 
       runs ->
-        buffer = editor.buffer
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 4
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
 
@@ -104,10 +103,8 @@ describe "TextEditor", ->
         atom.workspace.open('sample.less', initialColumn: 7).then (o) -> editor = o
 
       runs ->
-        buffer = editor.buffer
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 7
-
 
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
