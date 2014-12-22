@@ -62,7 +62,6 @@ describe "TextEditor", ->
         atom.workspace.open('sample.less', initialLine: 5).then (o) -> editor = o
 
       runs ->
-        buffer = editor.buffer
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 5
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
 
@@ -74,7 +73,6 @@ describe "TextEditor", ->
         atom.workspace.open('sample.less', initialColumn: 8).then (o) -> editor = o
 
       runs ->
-        buffer = editor.buffer
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 8
 
