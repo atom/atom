@@ -86,14 +86,20 @@ module.exports =
     type: 'object'
     properties:
       # These settings are used in scoped fashion only. No defaults.
-      commentStart:
-        type: ['string', 'null']
-      commentEnd:
-        type: ['string', 'null']
-      increaseIndentPattern:
-        type: ['string', 'null']
-      decreaseIndentPattern:
-        type: ['string', 'null']
+      comment:
+        type: 'object'
+        properties:
+          start:
+            type: ['string', 'null']
+          end:
+            type: ['string', 'null']
+      indent:
+        type: 'object'
+        properties:
+          increasePattern:
+            type: ['string', 'null']
+          decreasePattern:
+            type: ['string', 'null']
       foldEndPattern:
         type: ['string', 'null']
 
