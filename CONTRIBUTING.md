@@ -87,6 +87,7 @@ For more information on how to work with Atom's official packages, see
     * :white_check_mark: `:white_check_mark:` when adding tests
     * :lock: `:lock:` when dealing with security
     * :arrow_up: `:arrow_up:` when upgrading dependencies
+    * :arrow_down: `:arrow_down:` when downgrading dependencies
 
 ## CoffeeScript Styleguide
 
