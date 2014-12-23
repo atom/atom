@@ -3792,8 +3792,12 @@ describe "TextEditor", ->
     it "updates the grammar based on grammar overrides", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
       atom.grammars.setGrammarOverrideForPath(editor.getPath(), 'source.coffee')
+      callback = jasmine.createSpy('callback')
+      editor.onDidChangeGrammar(callback)
       editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
+      expect(callback.callCount).toBe 1
+      expect(callback.argsForCall[0][0]).toBe atom.grammars.grammarForScopeName('source.coffee')
 
   describe "when the editor's grammar has an injection selector", ->
     beforeEach ->
