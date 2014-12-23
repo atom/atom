@@ -2838,7 +2838,7 @@ class TextEditor extends Model
     @subscribeToScopedConfigSettings()
     @unfoldAll()
     @emit 'grammar-changed'
-    @emitter.emit 'did-change-grammar'
+    @emitter.emit 'did-change-grammar', @getGrammar()
 
   handleMarkerCreated: (marker) =>
     if marker.matchesProperties(@getSelectionMarkerAttributes())
