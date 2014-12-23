@@ -335,6 +335,21 @@ describe "Config", ->
 
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
 
+  describe ".getSources()", ->
+    it "returns an array of all of the config's source names", ->
+      expect(atom.config.getSources()).toEqual([])
+
+      atom.config.set("a.b", 1, scopeSelector: ".x1", source: "source-1")
+      atom.config.set("a.c", 1, scopeSelector: ".x1", source: "source-1")
+      atom.config.set("a.b", 2, scopeSelector: ".x2", source: "source-2")
+      atom.config.set("a.b", 1, scopeSelector: ".x3", source: "source-3")
+
+      expect(atom.config.getSources()).toEqual([
+        "source-1"
+        "source-2"
+        "source-3"
+      ])
+
   describe ".getSettings()", ->
     it "returns all settings including defaults", ->
       atom.config.setDefaults("foo", bar: baz: 10)
