@@ -9,7 +9,6 @@ EmitterMixin = require('emissary').Emitter
 Q = require 'q'
 {deprecate} = require 'grim'
 
-$ = null # Defer require in case this is in the window-less browser process
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
