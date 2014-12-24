@@ -14,7 +14,7 @@ module.exports = (grunt) ->
   logDeprecations = (label, {stderr}={}) ->
     if process.env.JANKY_SHA1 and stderr?.indexOf('Calls to deprecated functions') isnt -1
       grunt.log.error(label)
-      stderr = stderr.replace(/^\[.*\] "/g, '')
+      stderr = stderr.replace(/\[[^\]]+\] "/g, '')
       stderr = stderr.replace(/source: .*$/g, '')
       grunt.log.error(stderr)
 
