@@ -131,7 +131,9 @@ describe "ThemeManager", ->
   describe "when a theme fails to load", ->
     it "logs a warning", ->
       spyOn(console, 'warn')
-      expect(-> atom.packages.activatePackage('a-theme-that-will-not-be-found')).toThrow()
+      atom.packages.activatePackage('a-theme-that-will-not-be-found')
+      expect(console.warn.callCount).toBe 1
+      expect(console.warn.argsForCall[0][0]).toContain "Could not resolve 'a-theme-that-will-not-be-found'"
 
   describe "::requireStylesheet(path)", ->
     beforeEach ->

@@ -882,13 +882,12 @@ class Config
 
   onDidChangeKeyPath: (keyPath, callback) ->
     oldValue = @get(keyPath)
-
-    didChange = =>
+    @emitter.on 'did-change', =>
       newValue = @get(keyPath)
-      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+      unless _.isEqual(oldValue, newValue)
+        event = {oldValue, newValue}
+        oldValue = newValue
+        callback(event)
 
   isSubKeyPath: (keyPath, subKeyPath) ->
     return false unless keyPath? and subKeyPath?
@@ -1003,12 +1002,12 @@ class Config
 
   onDidChangeScopedKeyPath: (scope, keyPath, callback) ->
     oldValue = @get(keyPath, {scope})
-    didChange = =>
+    @emitter.on 'did-change', =>
       newValue = @get(keyPath, {scope})
-      callback({oldValue, newValue}) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+      unless _.isEqual(oldValue, newValue)
+        event = {oldValue, newValue}
+        oldValue = newValue
+        callback(event)
 
   # TODO: figure out how to change / remove this. The return value is awkward.
   # * language mode uses it for one thing.
