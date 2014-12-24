@@ -605,6 +605,11 @@ class Config
     else
       @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
 
+  # Extended: Get an {Array} of all of the `source` {String}s with which
+  # settings have been added via {::set}.
+  getSources: ->
+    _.uniq(_.pluck(@scopedSettingsStore.propertySets, 'source')).sort()
+
   # Deprecated: Restore the global setting at `keyPath` to its default value.
   #
   # Returns the new value.
