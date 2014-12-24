@@ -3,19 +3,36 @@ Package = require '../src/package'
 
 describe "PackageManager", ->
   workspaceElement = null
+
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
 
   describe "::loadPackage(name)", ->
-    it "continues if the package has an invalid package.json", ->
-      spyOn(console, 'warn')
+    beforeEach ->
       atom.config.set("core.disabledPackages", [])
-      expect(-> atom.packages.loadPackage("package-with-broken-package-json")).not.toThrow()
 
-    it "continues if the package has an invalid keymap", ->
+    it "returns the package", ->
+      pack = atom.packages.loadPackage("package-with-index")
+      expect(pack instanceof Package).toBe true
+      expect(pack.metadata.name).toBe "package-with-index"
+
+    it "returns the package if it has an invalid keymap", ->
       spyOn(console, 'warn')
-      atom.config.set("core.disabledPackages", [])
-      expect(-> atom.packages.loadPackage("package-with-broken-keymap")).not.toThrow()
+      pack = atom.packages.loadPackage("package-with-broken-keymap")
+      expect(pack instanceof Package).toBe true
+      expect(pack.metadata.name).toBe "package-with-broken-keymap"
+
+    it "returns null if the package has an invalid package.json", ->
+      spyOn(console, 'warn')
+      expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
+      expect(console.warn.callCount).toBe(1)
+      expect(console.warn.argsForCall[0][0]).toContain("Failed to load package.json")
+
+    it "returns null if the package is not found in any package directory", ->
+      spyOn(console, 'warn')
+      expect(atom.packages.loadPackage("this-package-cannot-be-found")).toBeNull()
+      expect(console.warn.callCount).toBe(1)
+      expect(console.warn.argsForCall[0][0]).toContain("Could not resolve")
 
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
@@ -197,11 +214,35 @@ describe "PackageManager", ->
           runs ->
             expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
-      it "logs warning instead of throwing an exception if the package fails to load", ->
-        atom.config.set("core.disabledPackages", [])
-        spyOn(console, "warn")
-        expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
-        expect(console.warn).toHaveBeenCalled()
+      describe "when the package throws an error while loading", ->
+        it "logs warning instead of throwing an exception", ->
+          atom.config.set("core.disabledPackages", [])
+          spyOn(console, "warn")
+          expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
+          expect(console.warn).toHaveBeenCalled()
+
+      describe "when the package is not found", ->
+        it "rejects the promise", ->
+          atom.config.set("core.disabledPackages", [])
+
+          onSuccess = jasmine.createSpy('onSuccess')
+          onFailure = jasmine.createSpy('onFailure')
+          spyOn(console, 'warn')
+
+          atom.packages.activatePackage("this-doesnt-exist").then(
+            onSuccess,
+            onFailure
+          )
+
+          waitsFor "promise to be rejected", 1000, ->
+            onFailure.callCount > 0
+
+          runs ->
+            expect(console.warn.callCount).toBe 1
+            expect(onFailure.mostRecentCall.args[0] instanceof Error).toBe true
+            expect(onFailure.mostRecentCall.args[0].message).toContain(
+              "Failed to load package 'this-doesnt-exist'"
+            )
 
       describe "keymap loading", ->
         describe "when the metadata does not contain a 'keymaps' manifest", ->
@@ -552,9 +593,9 @@ describe "PackageManager", ->
       themes = themeActivator.mostRecentCall.args[0]
       expect(['theme']).toContain(theme.getType()) for theme in themes
 
-  describe "::enablePackage() and ::disablePackage()", ->
+  describe "::enablePackage(id) and ::disablePackage(id)", ->
     describe "with packages", ->
-      it ".enablePackage() enables a disabled package", ->
+      it "enables a disabled package", ->
         packageName = 'package-with-main'
         atom.config.pushAtKeyPath('core.disabledPackages', packageName)
         atom.packages.observeDisabledPackages()
@@ -572,7 +613,7 @@ describe "PackageManager", ->
           expect(activatedPackages).toContain(pack)
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
-      it ".disablePackage() disables an enabled package", ->
+      it "disables an enabled package", ->
         packageName = 'package-with-main'
         waitsForPromise ->
           atom.packages.activatePackage(packageName)
@@ -587,6 +628,11 @@ describe "PackageManager", ->
           expect(activatedPackages).not.toContain(pack)
           expect(atom.config.get('core.disabledPackages')).toContain packageName
 
+      it "returns null if the package cannot be loaded", ->
+        spyOn(console, 'warn')
+        expect(atom.packages.enablePackage("this-doesnt-exist")).toBeNull()
+        expect(console.warn.callCount).toBe 1
+
     describe "with themes", ->
       reloadedHandler = null
 
@@ -597,7 +643,7 @@ describe "PackageManager", ->
       afterEach ->
         atom.themes.deactivateThemes()
 
-      it ".enablePackage() and .disablePackage() enables and disables a theme", ->
+      it "enables and disables a theme", ->
         packageName = 'theme-with-package-file'
 
         expect(atom.config.get('core.themes')).not.toContain packageName
