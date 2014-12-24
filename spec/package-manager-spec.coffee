@@ -229,20 +229,15 @@ describe "PackageManager", ->
           onFailure = jasmine.createSpy('onFailure')
           spyOn(console, 'warn')
 
-          atom.packages.activatePackage("this-doesnt-exist").then(
-            onSuccess,
-            onFailure
-          )
+          atom.packages.activatePackage("this-doesnt-exist").then(onSuccess, onFailure)
 
-          waitsFor "promise to be rejected", 1000, ->
+          waitsFor "promise to be rejected", ->
             onFailure.callCount > 0
 
           runs ->
             expect(console.warn.callCount).toBe 1
             expect(onFailure.mostRecentCall.args[0] instanceof Error).toBe true
-            expect(onFailure.mostRecentCall.args[0].message).toContain(
-              "Failed to load package 'this-doesnt-exist'"
-            )
+            expect(onFailure.mostRecentCall.args[0].message).toContain "Failed to load package 'this-doesnt-exist'"
 
       describe "keymap loading", ->
         describe "when the metadata does not contain a 'keymaps' manifest", ->
