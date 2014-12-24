@@ -493,13 +493,19 @@ describe "Config", ->
         expect(observeHandler).not.toHaveBeenCalled()
 
       it "fires the callback every time the observed value changes", ->
-        observeHandler.reset() # clear the initial call
         atom.config.set('foo.bar.baz', "value 2")
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 2', oldValue: 'value 1'})
         observeHandler.reset()
 
-        atom.config.set('foo.bar.baz', "value 1")
+        observeHandler.andCallFake -> throw new Error("oops")
+        expect(-> atom.config.set('foo.bar.baz', "value 1")).toThrow("oops")
         expect(observeHandler).toHaveBeenCalledWith({newValue: 'value 1', oldValue: 'value 2'})
+        observeHandler.reset()
+
+        # Regression: exception in earlier handler shouldn't put observer
+        # into a bad state.
+        atom.config.set('something.else', "new value")
+        expect(observeHandler).not.toHaveBeenCalled()
 
     describe 'when a keyPath is not specified', ->
       beforeEach ->
@@ -567,7 +573,7 @@ describe "Config", ->
       atom.config.set("foo.bar.baz", "i'm back")
       expect(observeHandler).toHaveBeenCalledWith("i'm back")
 
-    it "does not fire the callback once the observe subscription is off'ed", ->
+    it "does not fire the callback once the subscription is disposed", ->
       observeHandler.reset() # clear the initial call
       observeSubscription.dispose()
       atom.config.set('foo.bar.baz', "value 2")
