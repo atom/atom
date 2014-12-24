@@ -12,11 +12,18 @@ module.exports = (grunt) ->
   packageSpecQueue = null
 
   logDeprecations = (label, {stderr}={}) ->
-    if process.env.JANKY_SHA1 and stderr?.indexOf('Calls to deprecated functions') isnt -1
-      grunt.log.error(label)
-      stderr = stderr.replace(/\[[^\]]+\] "/g, '')
-      stderr = stderr.replace(/source: .*$/g, '')
-      grunt.log.error(stderr)
+    return unless process.env.JANKY_SHA1
+    stderr ?= ''
+    deprecatedStart = stderr.indexOf('Calls to deprecated functions')
+    return if deprecatedStart.length is -1
+
+    grunt.log.error(label)
+    stderr = stderr.substring(deprecatedStart)
+    stderr = stderr.replace(/^\s*\[[^\]]+\]\s+/gm, '')
+    stderr = stderr.replace(/source: .*$/gm, '')
+    stderr = stderr.replace(/^"/gm, '')
+    stderr = stderr.replace(/",\s*$/gm, '')
+    grunt.log.error(stderr)
 
   getAppPath = ->
     contentsDir = grunt.config.get('atom.contentsDir')
