@@ -215,7 +215,7 @@ describe "PackageManager", ->
             expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
       describe "when the package throws an error while loading", ->
-        it "logs warning instead of throwing an exception", ->
+        it "logs a warning instead of throwing an exception", ->
           atom.config.set("core.disabledPackages", [])
           spyOn(console, "warn")
           expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
