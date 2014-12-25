@@ -566,7 +566,7 @@ class Config
     else
       @setRawValue(keyPath, value)
 
-    @save() unless @configFileHasErrors
+    @save() unless @configFileHasErrors or options?.save is false
     true
 
   # Essential: Restore the setting at `keyPath` to its default value.
@@ -834,31 +834,9 @@ class Config
       delete scopedSettings.global
       @resetUserScopedSettings(scopedSettings)
 
-    unsetUnspecifiedValues = (keyPath, value) =>
-      if isPlainObject(value)
-        keys = splitKeyPath(keyPath)
-        for key, childValue of value
-          continue unless value.hasOwnProperty(key)
-          unsetUnspecifiedValues(keys.concat([key]).join('.'), childValue)
-      else
-        @setRawValue(keyPath, undefined) unless _.valueForKeyPath(newSettings, keyPath)?
-      return
-
-    @setRecursive(null, newSettings)
-    unsetUnspecifiedValues(null, @settings)
-
-  setRecursive: (keyPath, value) ->
-    if isPlainObject(value)
-      keys = splitKeyPath(keyPath)
-      for key, childValue of value
-        continue unless value.hasOwnProperty(key)
-        @setRecursive(keys.concat([key]).join('.'), childValue)
-    else
-      try
-        value = @makeValueConformToSchema(keyPath, value)
-        @setRawValue(keyPath, value)
-      catch e
-        console.warn("'#{keyPath}' could not be set. Attempted value: #{JSON.stringify(value)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+    @transact =>
+      @settings = {}
+      @set(key, value, save: false) for key, value of newSettings
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
