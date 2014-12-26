@@ -436,14 +436,14 @@ class Config
   # files.
   #
   # ```coffee
-  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
   # ```
   #
   # This setting in ruby files might be different than the global tabLength setting
   #
   # ```coffee
   # atom.config.get('editor.tabLength') # => 4
-  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
+  # atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
   # ```
   #
   # You can get the language scope descriptor via
@@ -451,14 +451,14 @@ class Config
   # for the editor's language.
   #
   # ```coffee
-  # atom.config.get(@editor.getRootScopeDescriptor(), 'editor.tabLength') # => 2
+  # atom.config.get('editor.tabLength', scope: @editor.getRootScopeDescriptor()) # => 2
   # ```
   #
   # Additionally, you can get the setting at the specific cursor position.
   #
   # ```coffee
   # scopeDescriptor = @editor.getLastCursor().getScopeDescriptor()
-  # atom.config.get(scopeDescriptor, 'editor.tabLength') # => 2
+  # atom.config.get('editor.tabLength', scope: scopeDescriptor) # => 2
   # ```
   #
   # * `keyPath` The {String} name of the key to retrieve.
@@ -468,7 +468,7 @@ class Config
   #   * `excludeSources` (optional) {Array} of {String} source names. If provided,
   #     values that  were associated with these sources during {::set} will not
   #     be used.
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}
   #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
@@ -513,16 +513,16 @@ class Config
   #
   # ```coffee
   # atom.config.get('editor.tabLength') # => 4
-  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 4
-  # atom.config.get(['source.js'], 'editor.tabLength') # => 4
+  # atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 4
+  # atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
   #
   # # Set ruby to 2
-  # atom.config.set('source.ruby', 'editor.tabLength', 2) # => true
+  # atom.config.set('editor.tabLength', 2, scopeSelector: 'source.ruby') # => true
   #
   # # Notice it's only set to 2 in the case of ruby
   # atom.config.get('editor.tabLength') # => 4
-  # atom.config.get(['source.ruby'], 'editor.tabLength') # => 2
-  # atom.config.get(['source.js'], 'editor.tabLength') # => 4
+  # atom.config.get('editor.tabLength', scope: ['source.ruby']) # => 2
+  # atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
   # ```
   #
   # * `keyPath` The {String} name of the key.
