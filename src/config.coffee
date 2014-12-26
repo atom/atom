@@ -539,7 +539,7 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
-    if arguments[0][0] is '.'
+    if arguments[0]?[0] is '.'
       Grim.deprecate """
         Passing a scope selector as the first argument to Config::set is deprecated.
         Pass a `scopeSelector` in an options hash as the final argument instead.
@@ -856,7 +856,10 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
 
-    _.setValueForKeyPath(@settings, keyPath, value)
+    if keyPath?
+      _.setValueForKeyPath(@settings, keyPath, value)
+    else
+      @settings = value
     @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
