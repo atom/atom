@@ -972,16 +972,8 @@ class Config
     @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
 
   observeScopedKeyPath: (scope, keyPath, callback) ->
-    oldValue = @get(keyPath, {scope})
-
-    callback(oldValue)
-
-    didChange = =>
-      newValue = @get(keyPath, {scope})
-      callback(newValue) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+    callback(@get(keyPath, {scope}))
+    @onDidChangeScopedKeyPath scope, keyPath, (event) -> callback(event.newValue)
 
   onDidChangeScopedKeyPath: (scope, keyPath, callback) ->
     oldValue = @get(keyPath, {scope})
