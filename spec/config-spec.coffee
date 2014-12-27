@@ -193,8 +193,14 @@ describe "Config", ->
       atom.config.unset('a.c')
       expect(atom.config.save.callCount).toBe 1
 
-    it "throws when called with a source but no scope", ->
-      expect(-> atom.config.unset("a.b", source: "the-source")).toThrow()
+    describe "when a 'source' and no 'scopeSelector' is given", ->
+      it "removes all scoped settings with the given source", ->
+        atom.config.set("foo.bar.baz", 1, scopeSelector: ".a", source: "source-a")
+        atom.config.set("foo.bar.quux", 2, scopeSelector: ".b", source: "source-a")
+        expect(atom.config.get("foo.bar", scope: [".a.b"])).toEqual(baz: 1, quux: 2)
+
+        atom.config.unset(null, source: "source-a")
+        expect(atom.config.get("foo.bar", scope: [".a"])).toEqual(baz: 0, ok: 0)
 
     describe "when a 'scopeSelector' is given", ->
       it "restores the global default when no scoped default set", ->

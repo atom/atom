@@ -585,9 +585,6 @@ class Config
     else
       {scopeSelector, source} = options ? {}
 
-    if source and not scopeSelector
-      throw new Error("::unset with a 'source' and no 'sourceSelector' is not yet implemented!")
-
     source ?= @getUserConfigPath()
 
     if scopeSelector?
@@ -603,7 +600,10 @@ class Config
         @scopedSettingsStore.removePropertiesForSource(source)
         @emitChangeEvent()
     else
-      @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+      @scopedSettingsStore.removePropertiesForSource(source)
+      if keyPath?
+        @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+
 
   # Extended: Get an {Array} of all of the `source` {String}s with which
   # settings have been added via {::set}.
