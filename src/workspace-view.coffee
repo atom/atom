@@ -229,7 +229,7 @@ class WorkspaceView extends View
         when 'cursor:moved'
           deprecate('Use TextEditor::onDidChangeCursorPosition instead')
         when 'editor:attached'
-          deprecate('Use TextEditor::onDidAddTextEditor instead')
+          deprecate('Use Workspace::onDidAddTextEditor instead')
         when 'editor:detached'
           deprecate('Use TextEditor::onDidDestroy instead')
         when 'editor:will-be-removed'
