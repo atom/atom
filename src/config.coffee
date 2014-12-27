@@ -313,7 +313,6 @@ class Config
     @defaultSettings = {}
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
-    @usersScopedSettings = new CompositeDisposable
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
@@ -598,10 +597,11 @@ class Config
           @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
           _.setValueForKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
-          @addScopedSettings(source, scopeSelector, settings, priority: @usersScopedSettingPriority) if settings?
+          @set(null, settings, {scopeSelector, source, priority: @prioritiesBySource[source]}) if settings?
           @save() unless @configFileHasErrors
       else
         @scopedSettingsStore.removePropertiesForSource(source)
+        @emitChangeEvent()
     else
       @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
 
@@ -945,12 +945,12 @@ class Config
     @emitter.emit 'did-change' unless @transactDepth > 0
 
   resetUserScopedSettings: (newScopedSettings) ->
-    @usersScopedSettings?.dispose()
-    @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettings.add @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
+    @scopedSettingsStore.removePropertiesForSource(@getUserConfigPath())
+    @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
     @emitChangeEvent()
 
   addScopedSettings: (source, selector, value, options) ->
+    Grim.deprecate("Use ::set instead")
     settingsBySelector = {}
     settingsBySelector[selector] = value
     disposable = @scopedSettingsStore.addProperties(source, settingsBySelector, options)
@@ -967,7 +967,7 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @usersScopedSettings.add @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
+    @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
     @emitChangeEvent()
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->

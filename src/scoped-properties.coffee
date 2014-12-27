@@ -11,12 +11,13 @@ class ScopedProperties
         callback(null, new ScopedProperties(scopedPropertiesPath, scopedProperties))
 
   constructor: (@path, @scopedProperties) ->
-    @propertyDisposable = new CompositeDisposable
 
   activate: ->
     for selector, properties of @scopedProperties
-      @propertyDisposable.add atom.config.addScopedSettings(@path, selector, properties)
+      atom.config.set(null, properties, scopeSelector: selector, source: @path)
     return
 
   deactivate: ->
-    @propertyDisposable.dispose()
+    for selector of @scopedProperties
+      atom.config.unset(null, scopeSelector: selector, source: @path)
+    return

@@ -14,7 +14,7 @@ describe "Config", ->
     it "allows a key path's value to be read", ->
       expect(atom.config.set("foo.bar.baz", 42)).toBe true
       expect(atom.config.get("foo.bar.baz")).toBe 42
-      expect(atom.config.get("bogus.key.path")).toBeUndefined()
+      expect(atom.config.get("foo.quux")).toBeUndefined()
 
     it "returns a deep clone of the key path's value", ->
       atom.config.set('value', array: [1, b: 2, 3])
@@ -24,12 +24,13 @@ describe "Config", ->
       expect(atom.config.get('value')).toEqual(array: [1, b: 2, 3])
 
     it "merges defaults into the returned value if both the assigned value and the default value are objects", ->
-      atom.config.setDefaults("foo", a: 1, b: 2)
-      atom.config.set("foo", a: 3)
-      expect(atom.config.get("foo")).toEqual {a: 3, b: 2}
+      atom.config.setDefaults("foo.bar", baz: 1, ok: 2)
+      atom.config.set("foo.bar", baz: 3)
+      expect(atom.config.get("foo.bar")).toEqual {baz: 3, ok: 2}
 
-      atom.config.set("foo", 7)
-      expect(atom.config.get("foo")).toBe 7
+      atom.config.setDefaults("other", baz: 1)
+      atom.config.set("other", 7)
+      expect(atom.config.get("other")).toBe 7
 
       atom.config.set("bar.baz", a: 3)
       atom.config.setDefaults("bar", baz: 7)
@@ -67,9 +68,9 @@ describe "Config", ->
 
     describe "when a 'scope' option is given", ->
       it "returns the property with the most specific scope selector", ->
-        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        atom.config.addScopedSettings("config", ".source .string.quoted.double", foo: bar: baz: 22)
-        atom.config.addScopedSettings("config", ".source", foo: bar: baz: 11)
+        atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee .string.quoted.double.coffee")
+        atom.config.set("foo.bar.baz", 22, scopeSelector: ".source .string.quoted.double")
+        atom.config.set("foo.bar.baz", 11, scopeSelector: ".source")
 
         expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 42
         expect(atom.config.get("foo.bar.baz", scope: [".source.js", ".string.quoted.double.js"])).toBe 22
@@ -77,8 +78,8 @@ describe "Config", ->
         expect(atom.config.get("foo.bar.baz", scope: [".text"])).toBeUndefined()
 
       it "favors the most recently added properties in the event of a specificity tie", ->
-        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.single", foo: bar: baz: 42)
-        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double", foo: bar: baz: 22)
+        atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee .string.quoted.single")
+        atom.config.set("foo.bar.baz", 22, scopeSelector: ".source.coffee .string.quoted.double")
 
         expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.single"])).toBe 42
         expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.single.double"])).toBe 22
@@ -91,7 +92,7 @@ describe "Config", ->
       describe 'when package settings are added after user settings', ->
         it "returns the user's setting because the user's setting has higher priority", ->
           atom.config.set("foo.bar.baz", 100, scopeSelector: ".source.coffee")
-          atom.config.addScopedSettings("some-package", ".source.coffee", foo: bar: baz: 1)
+          atom.config.set("foo.bar.baz", 1, scopeSelector: ".source.coffee", source: "some-package")
           expect(atom.config.get("foo.bar.baz", scope: [".source.coffee"])).toBe 100
 
   describe ".set(keyPath, value, {source, scopeSelector})", ->
@@ -145,9 +146,9 @@ describe "Config", ->
 
     describe "when a 'scopeSelector' is given", ->
       it "sets the value and overrides the others", ->
-        atom.config.addScopedSettings("config", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        atom.config.addScopedSettings("config", ".source .string.quoted.double", foo: bar: baz: 22)
-        atom.config.addScopedSettings("config", ".source", foo: bar: baz: 11)
+        atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee .string.quoted.double.coffee")
+        atom.config.set("foo.bar.baz", 22, scopeSelector: ".source .string.quoted.double")
+        atom.config.set("foo.bar.baz", 11, scopeSelector: ".source")
 
         expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 42
 
@@ -155,6 +156,23 @@ describe "Config", ->
         expect(atom.config.get("foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"])).toBe 100
 
   describe ".unset(keyPath, {source, scopeSelector})", ->
+    beforeEach ->
+      atom.config.setSchema 'foo',
+        type: 'object'
+        properties:
+          bar:
+            type: 'object'
+            properties:
+              baz:
+                type: 'integer'
+                default: 0
+              ok:
+                type: 'integer'
+                default: 0
+          quux:
+            type: 'integer'
+            default: 0
+
     it "sets the value of the key path to its default", ->
       atom.config.setDefaults('a', b: 3)
       atom.config.set('a.b', 4)
@@ -189,7 +207,7 @@ describe "Config", ->
 
       it "restores the scoped default when a scoped default is set", ->
         atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+        atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee", source: "some-source")
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         atom.config.set('foo.bar.ok', 100, scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
@@ -200,7 +218,6 @@ describe "Config", ->
 
       it "calls ::save()", ->
         atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
         atom.config.save.reset()
 
@@ -208,22 +225,22 @@ describe "Config", ->
         expect(atom.config.save.callCount).toBe 1
 
       it "allows removing settings for a specific source and scope selector", ->
-        atom.config.set('foo.bar', 55, scopeSelector: '.source.coffee', source: "source-a")
-        atom.config.set('foo.bar', 65, scopeSelector: '.source.coffee', source: "source-b")
-        expect(atom.config.get('foo.bar', scope: ['.source.coffee'])).toBe 65
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee', source: "source-a")
+        atom.config.set('foo.bar.baz', 65, scopeSelector: '.source.coffee', source: "source-b")
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 65
 
-        atom.config.unset('foo.bar', source: "source-b", scopeSelector: ".source.coffee")
-        expect(atom.config.get('foo.bar', scope: ['.source.coffee', '.string'])).toBe 55
+        atom.config.unset('foo.bar.baz', source: "source-b", scopeSelector: ".source.coffee")
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee', '.string'])).toBe 55
 
       it "allows removing all settings for a specific source", ->
-        atom.config.set('foo.bar', 55, scopeSelector: '.source.coffee', source: "source-a")
-        atom.config.set('foo.bar', 65, scopeSelector: '.source.coffee', source: "source-b")
-        atom.config.set('foo.baz', 65, scopeSelector: '.source.coffee', source: "source-b")
-        expect(atom.config.get('foo.bar', scope: ['.source.coffee'])).toBe 65
+        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee', source: "source-a")
+        atom.config.set('foo.bar.baz', 65, scopeSelector: '.source.coffee', source: "source-b")
+        atom.config.set('foo.bar.ok', 65, scopeSelector: '.source.coffee', source: "source-b")
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 65
 
         atom.config.unset(null, source: "source-b", scopeSelector: ".source.coffee")
-        expect(atom.config.get('foo.bar', scope: ['.source.coffee', '.string'])).toBe 55
-        expect(atom.config.get('foo.baz', scope: ['.source.coffee', '.string'])).toBe undefined
+        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee', '.string'])).toBe 55
+        expect(atom.config.get('foo.bar.ok', scope: ['.source.coffee', '.string'])).toBe 0
 
       it "does not call ::save or add a scoped property when no value has been set", ->
         # see https://github.com/atom/atom/issues/4175
@@ -242,22 +259,22 @@ describe "Config", ->
 
         atom.config.setDefaults("foo", bar: baz: 10)
         atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
-        atom.config.set('foo.bar.zfoo', 20, scopeSelector: '.source.coffee')
+        atom.config.set('foo.bar.ok', 20, scopeSelector: '.source.coffee')
         CSON.writeFileSync.reset()
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
         atom.config.unset('foo.bar.baz', scopeSelector: '.source.coffee')
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
-        expect(atom.config.get('foo.bar.zfoo', scope: ['.source.coffee'])).toBe 20
+        expect(atom.config.get('foo.bar.ok', scope: ['.source.coffee'])).toBe 20
         expect(CSON.writeFileSync).toHaveBeenCalled()
         properties = CSON.writeFileSync.mostRecentCall.args[1]
         expect(properties['.coffee.source']).toEqual
           foo:
             bar:
-              zfoo: 20
+              ok: 20
 
         CSON.writeFileSync.reset()
-        atom.config.unset('foo.bar.zfoo', scopeSelector: '.source.coffee')
+        atom.config.unset('foo.bar.ok', scopeSelector: '.source.coffee')
         expect(CSON.writeFileSync).toHaveBeenCalled()
         properties = CSON.writeFileSync.mostRecentCall.args[1]
         expect(properties['.coffee.source']).toBeUndefined()
@@ -338,27 +355,26 @@ describe "Config", ->
 
     describe "when a 'scope' is given", ->
       it 'calls the supplied callback when the value at the descriptor/keypath changes', ->
-        keyPath = "foo.bar.baz"
         changeSpy = jasmine.createSpy('onDidChange callback')
-        atom.config.onDidChange keyPath, scope: [".source.coffee", ".string.quoted.double.coffee"], changeSpy
+        atom.config.onDidChange "foo.bar.baz", scope: [".source.coffee", ".string.quoted.double.coffee"], changeSpy
 
         atom.config.set("foo.bar.baz", 12)
         expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12})
         changeSpy.reset()
 
-        disposable1 = atom.config.addScopedSettings("a", ".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.set("foo.bar.baz", 22, scopeSelector: ".source .string.quoted.double", source: "a")
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: 22})
         changeSpy.reset()
 
-        disposable2 = atom.config.addScopedSettings("b", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee .string.quoted.double.coffee", source: "b")
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 42})
         changeSpy.reset()
 
-        disposable2.dispose()
+        atom.config.unset(null, scopeSelector: ".source.coffee .string.quoted.double.coffee", source: "b")
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 42, newValue: 22})
         changeSpy.reset()
 
-        disposable1.dispose()
+        atom.config.unset(null, scopeSelector: ".source .string.quoted.double", source: "a")
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 12})
         changeSpy.reset()
 
@@ -374,27 +390,6 @@ describe "Config", ->
 
         atom.config.set("foo.bar.baz", 12)
         expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12})
-        changeSpy.reset()
-
-        disposable1 = atom.config.addScopedSettings("a", ".source .string.quoted.double", foo: bar: baz: 22)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: 22})
-        changeSpy.reset()
-
-        disposable2 = atom.config.addScopedSettings("b", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 42})
-        changeSpy.reset()
-
-        disposable2.dispose()
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 42, newValue: 22})
-        changeSpy.reset()
-
-        disposable1.dispose()
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 22, newValue: 12})
-        changeSpy.reset()
-
-        atom.config.set("foo.bar.baz", undefined)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: undefined})
-        changeSpy.reset()
 
   describe ".observe(keyPath, {scope})", ->
     [observeHandler, observeSubscription] = []
@@ -483,19 +478,19 @@ describe "Config", ->
         expect(changeSpy).toHaveBeenCalledWith(12)
         changeSpy.reset()
 
-        disposable1 = atom.config.addScopedSettings("a", ".source .string.quoted.double", foo: bar: baz: 22)
+        atom.config.set("foo.bar.baz", 22, scopeSelector: ".source .string.quoted.double", source: "a")
         expect(changeSpy).toHaveBeenCalledWith(22)
         changeSpy.reset()
 
-        disposable2 = atom.config.addScopedSettings("b", ".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
+        atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee .string.quoted.double.coffee", source: "b")
         expect(changeSpy).toHaveBeenCalledWith(42)
         changeSpy.reset()
 
-        disposable2.dispose()
+        atom.config.unset(null, scopeSelector: ".source.coffee .string.quoted.double.coffee", source: "b")
         expect(changeSpy).toHaveBeenCalledWith(22)
         changeSpy.reset()
 
-        disposable1.dispose()
+        atom.config.unset(null, scopeSelector: ".source .string.quoted.double", source: "a")
         expect(changeSpy).toHaveBeenCalledWith(12)
         changeSpy.reset()
 
@@ -1312,7 +1307,7 @@ describe "Config", ->
 
         it "returns the scoped settings not including the user's config file", ->
           atom.config.setDefaults("foo", bar: baz: 10)
-          atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+          atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee", source: "some-source")
 
           spyOn(Grim, 'deprecate')
           expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
@@ -1344,7 +1339,7 @@ describe "Config", ->
           expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
           expect(Grim.deprecate.callCount).toBe 1
 
-          atom.config.addScopedSettings("default", ".source.coffee", foo: bar: baz: 42)
+          atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee", source: "something-else")
           expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
           expect(Grim.deprecate.callCount).toBe 2
 
