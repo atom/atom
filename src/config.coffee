@@ -313,7 +313,6 @@ class Config
     @defaultSettings = {}
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
-    @usersScopedSettings = new CompositeDisposable
     @configFileHasErrors = false
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
@@ -539,7 +538,7 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
-    if arguments[0][0] is '.'
+    if arguments[0]?[0] is '.'
       Grim.deprecate """
         Passing a scope selector as the first argument to Config::set is deprecated.
         Pass a `scopeSelector` in an options hash as the final argument instead.
@@ -586,9 +585,6 @@ class Config
     else
       {scopeSelector, source} = options ? {}
 
-    if source and not scopeSelector
-      throw new Error("::unset with a 'source' and no 'sourceSelector' is not yet implemented!")
-
     source ?= @getUserConfigPath()
 
     if scopeSelector?
@@ -598,12 +594,16 @@ class Config
           @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
           _.setValueForKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
-          @addScopedSettings(source, scopeSelector, settings, priority: @usersScopedSettingPriority) if settings?
+          @set(null, settings, {scopeSelector, source, priority: @prioritiesBySource[source]}) if settings?
           @save() unless @configFileHasErrors
       else
         @scopedSettingsStore.removePropertiesForSource(source)
+        @emitChangeEvent()
     else
-      @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+      @scopedSettingsStore.removePropertiesForSource(source)
+      if keyPath?
+        @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+
 
   # Extended: Get an {Array} of all of the `source` {String}s with which
   # settings have been added via {::set}.
@@ -856,7 +856,10 @@ class Config
     defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
 
-    _.setValueForKeyPath(@settings, keyPath, value)
+    if keyPath?
+      _.setValueForKeyPath(@settings, keyPath, value)
+    else
+      @settings = value
     @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
@@ -942,12 +945,12 @@ class Config
     @emitter.emit 'did-change' unless @transactDepth > 0
 
   resetUserScopedSettings: (newScopedSettings) ->
-    @usersScopedSettings?.dispose()
-    @usersScopedSettings = new CompositeDisposable
-    @usersScopedSettings.add @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
+    @scopedSettingsStore.removePropertiesForSource(@getUserConfigPath())
+    @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
     @emitChangeEvent()
 
   addScopedSettings: (source, selector, value, options) ->
+    Grim.deprecate("Use ::set instead")
     settingsBySelector = {}
     settingsBySelector[selector] = value
     disposable = @scopedSettingsStore.addProperties(source, settingsBySelector, options)
@@ -964,7 +967,7 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @usersScopedSettings.add @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
+    @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
     @emitChangeEvent()
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->
@@ -972,16 +975,8 @@ class Config
     @scopedSettingsStore.getPropertyValue(scopeDescriptor.getScopeChain(), keyPath, options)
 
   observeScopedKeyPath: (scope, keyPath, callback) ->
-    oldValue = @get(keyPath, {scope})
-
-    callback(oldValue)
-
-    didChange = =>
-      newValue = @get(keyPath, {scope})
-      callback(newValue) unless _.isEqual(oldValue, newValue)
-      oldValue = newValue
-
-    @emitter.on 'did-change', didChange
+    callback(@get(keyPath, {scope}))
+    @onDidChangeScopedKeyPath scope, keyPath, (event) -> callback(event.newValue)
 
   onDidChangeScopedKeyPath: (scope, keyPath, callback) ->
     oldValue = @get(keyPath, {scope})
