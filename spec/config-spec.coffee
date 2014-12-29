@@ -95,6 +95,30 @@ describe "Config", ->
           atom.config.set("foo.bar.baz", 1, scopeSelector: ".source.coffee", source: "some-package")
           expect(atom.config.get("foo.bar.baz", scope: [".source.coffee"])).toBe 100
 
+  describe ".getAll(keyPath, {scope, sources, excludeSources})", ->
+    it "reads all of the values for a given key-path", ->
+      expect(atom.config.set("foo", 41)).toBe true
+      expect(atom.config.set("foo", 43, scopeSelector: ".a .b")).toBe true
+      expect(atom.config.set("foo", 42, scopeSelector: ".a")).toBe true
+      expect(atom.config.set("foo", 44, scopeSelector: ".a .b.c")).toBe true
+
+      expect(atom.config.set("foo", -44, scopeSelector: ".d")).toBe true
+
+      expect(atom.config.getAll("foo", scope: [".a", ".b.c"])).toEqual [
+        {scopeSelector: '.a .b.c', value: 44}
+        {scopeSelector: '.a .b', value: 43}
+        {scopeSelector: '.a', value: 42}
+        {scopeSelector: '*', value: 41}
+      ]
+
+    it "includes the schema's default value", ->
+      atom.config.setSchema("foo", type: 'number', default: 40)
+      expect(atom.config.set("foo", 43, scopeSelector: ".a .b")).toBe true
+      expect(atom.config.getAll("foo", scope: [".a", ".b.c"])).toEqual [
+        {scopeSelector: '.a .b', value: 43}
+        {scopeSelector: '*', value: 40}
+      ]
+
   describe ".set(keyPath, value, {source, scopeSelector})", ->
     it "allows a key path's value to be written", ->
       expect(atom.config.set("foo.bar.baz", 42)).toBe true

@@ -437,7 +437,7 @@ TextEditorComponent = React.createClass
   trackSelectionClipboard: ->
     timeoutId = null
     {editor} = @props
-    writeSelectedTextToSelectionClipboard = =>
+    writeSelectedTextToSelectionClipboard = ->
       return if editor.isDestroyed()
       if selectedText = editor.getSelectedText()
         # This uses ipc.send instead of clipboard.writeText because

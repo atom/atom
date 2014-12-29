@@ -495,6 +495,28 @@ class Config
     else
       @getRawValue(keyPath, options)
 
+  # Extended: Get all of the values for the given key-path, along with their
+  # associated scope selector.
+  #
+  # * `keyPath` The {String} name of the key to retrieve
+  # * `options` (optional) {Object} see the `options` argument to {::get}
+  #
+  # Returns an {Array} of {Object}s with the following keys:
+  #  * `scopeSelector` The scope-selector {String} with which the value is associated
+  #  * `value` The value for the key-path
+  getAll: (keyPath, options) ->
+    {scope, sources} = options if options?
+    result = []
+
+    if scope?
+      scopeDescriptor = ScopeDescriptor.fromObject(scope)
+      result = result.concat @scopedSettingsStore.getAll(scopeDescriptor.getScopeChain(), keyPath, options)
+
+    if globalValue = @getRawValue(keyPath, options)
+      result.push(scopeSelector: '*', value: globalValue)
+
+    result
+
   # Essential: Sets the value for a configuration setting.
   #
   # This value is stored in Atom's internal configuration file.
@@ -987,10 +1009,8 @@ class Config
         oldValue = newValue
         callback(event)
 
-  # TODO: figure out how to change / remove this. The return value is awkward.
-  # * language mode uses it for one thing.
-  # * autocomplete uses it for editor.completions
   settingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
+    Grim.deprecate("Use Config::getAll instead")
     scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
     @scopedSettingsStore.getProperties(scopeDescriptor.getScopeChain(), keyPath)
 
