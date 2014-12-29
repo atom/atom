@@ -176,92 +176,13 @@ class Project extends Model
   Section: Searching and Replacing
   ###
 
-  # Public: Performs a search across all the files in the project.
-  #
-  # * `regex` {RegExp} to search with.
-  # * `options` (optional) {Object} (default: {})
-  #   * `paths` An {Array} of glob patterns to search within
-  # * `iterator` {Function} callback on each file found
   scan: (regex, options={}, iterator) ->
-    if _.isFunction(options)
-      iterator = options
-      options = {}
+    Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
+    atom.workspace.scan(regex, options, iterator)
 
-    deferred = Q.defer()
-
-    searchOptions =
-      ignoreCase: regex.ignoreCase
-      inclusions: options.paths
-      includeHidden: true
-      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-      exclusions: atom.config.get('core.ignoredNames')
-      follow: atom.config.get('core.followSymlinks')
-
-    # TODO: need to support all paths in @getPaths()
-    task = Task.once require.resolve('./scan-handler'), @getPaths()[0], regex.source, searchOptions, ->
-      deferred.resolve()
-
-    task.on 'scan:result-found', (result) =>
-      iterator(result) unless @isPathModified(result.filePath)
-
-    task.on 'scan:file-error', (error) ->
-      iterator(null, error)
-
-    if _.isFunction(options.onPathsSearched)
-      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
-        options.onPathsSearched(numberOfPathsSearched)
-
-    for buffer in @getBuffers() when buffer.isModified()
-      filePath = buffer.getPath()
-      continue unless @contains(filePath)
-      matches = []
-      buffer.scan regex, (match) -> matches.push match
-      iterator {filePath, matches} if matches.length > 0
-
-    promise = deferred.promise
-    promise.cancel = ->
-      task.terminate()
-      deferred.resolve('cancelled')
-    promise
-
-  # Public: Performs a replace across all the specified files in the project.
-  #
-  # * `regex` A {RegExp} to search with.
-  # * `replacementText` Text to replace all matches of regex with
-  # * `filePaths` List of file path strings to run the replace on.
-  # * `iterator` A {Function} callback on each file with replacements:
-  #   * `options` {Object} with keys `filePath` and `replacements`
   replace: (regex, replacementText, filePaths, iterator) ->
-    deferred = Q.defer()
-
-    openPaths = (buffer.getPath() for buffer in @getBuffers())
-    outOfProcessPaths = _.difference(filePaths, openPaths)
-
-    inProcessFinished = !openPaths.length
-    outOfProcessFinished = !outOfProcessPaths.length
-    checkFinished = ->
-      deferred.resolve() if outOfProcessFinished and inProcessFinished
-
-    unless outOfProcessFinished.length
-      flags = 'g'
-      flags += 'i' if regex.ignoreCase
-
-      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
-        outOfProcessFinished = true
-        checkFinished()
-
-      task.on 'replace:path-replaced', iterator
-      task.on 'replace:file-error', (error) -> iterator(null, error)
-
-    for buffer in @getBuffers()
-      continue unless buffer.getPath() in filePaths
-      replacements = buffer.replace(regex, replacementText, iterator)
-      iterator({filePath: buffer.getPath(), replacements}) if replacements
-
-    inProcessFinished = true
-    checkFinished()
-
-    deferred.promise
+    Grim.deprecate("Use atom.workspace.replace instead of atom.project.replace")
+    atom.workspace.replace(regex, replacementText, filePaths, iterator)
 
   ###
   Section: Private
