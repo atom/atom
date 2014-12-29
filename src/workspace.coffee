@@ -14,6 +14,7 @@ PanelElement = require './panel-element'
 PanelContainer = require './panel-container'
 PanelContainerElement = require './panel-container-element'
 WorkspaceElement = require './workspace-element'
+Task = require './task'
 
 # Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
@@ -780,3 +781,57 @@ class Workspace extends Model
   addPanel: (location, options) ->
     options ?= {}
     @panelContainers[location].addPanel(new Panel(options))
+
+  ###
+  Section: Searching and Replacing
+  ###
+
+  # Public: Performs a search across all the files in the workspace.
+  #
+  # * `regex` {RegExp} to search with.
+  # * `options` (optional) {Object} (default: {})
+  #   * `paths` An {Array} of glob patterns to search within
+  # * `iterator` {Function} callback on each file found
+  #
+  # Returns a `Promise`.
+  scan: (regex, options={}, iterator) ->
+    if _.isFunction(options)
+      iterator = options
+      options = {}
+
+    deferred = Q.defer()
+
+    searchOptions =
+      ignoreCase: regex.ignoreCase
+      inclusions: options.paths
+      includeHidden: true
+      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+      exclusions: atom.config.get('core.ignoredNames')
+      follow: atom.config.get('core.followSymlinks')
+
+    # TODO: need to support all paths in @getPaths()
+    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths()[0], regex.source, searchOptions, ->
+      deferred.resolve()
+
+    task.on 'scan:result-found', (result) =>
+      iterator(result) unless atom.project.isPathModified(result.filePath)
+
+    task.on 'scan:file-error', (error) ->
+      iterator(null, error)
+
+    if _.isFunction(options.onPathsSearched)
+      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
+        options.onPathsSearched(numberOfPathsSearched)
+
+    for buffer in atom.project.getBuffers() when buffer.isModified()
+      filePath = buffer.getPath()
+      continue unless atom.project.contains(filePath)
+      matches = []
+      buffer.scan regex, (match) -> matches.push match
+      iterator {filePath, matches} if matches.length > 0
+
+    promise = deferred.promise
+    promise.cancel = ->
+      task.terminate()
+      deferred.resolve('cancelled')
+    promise

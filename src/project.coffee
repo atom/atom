@@ -176,53 +176,9 @@ class Project extends Model
   Section: Searching and Replacing
   ###
 
-  # Public: Performs a search across all the files in the project.
-  #
-  # * `regex` {RegExp} to search with.
-  # * `options` (optional) {Object} (default: {})
-  #   * `paths` An {Array} of glob patterns to search within
-  # * `iterator` {Function} callback on each file found
   scan: (regex, options={}, iterator) ->
-    if _.isFunction(options)
-      iterator = options
-      options = {}
-
-    deferred = Q.defer()
-
-    searchOptions =
-      ignoreCase: regex.ignoreCase
-      inclusions: options.paths
-      includeHidden: true
-      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-      exclusions: atom.config.get('core.ignoredNames')
-      follow: atom.config.get('core.followSymlinks')
-
-    # TODO: need to support all paths in @getPaths()
-    task = Task.once require.resolve('./scan-handler'), @getPaths()[0], regex.source, searchOptions, ->
-      deferred.resolve()
-
-    task.on 'scan:result-found', (result) =>
-      iterator(result) unless @isPathModified(result.filePath)
-
-    task.on 'scan:file-error', (error) ->
-      iterator(null, error)
-
-    if _.isFunction(options.onPathsSearched)
-      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
-        options.onPathsSearched(numberOfPathsSearched)
-
-    for buffer in @getBuffers() when buffer.isModified()
-      filePath = buffer.getPath()
-      continue unless @contains(filePath)
-      matches = []
-      buffer.scan regex, (match) -> matches.push match
-      iterator {filePath, matches} if matches.length > 0
-
-    promise = deferred.promise
-    promise.cancel = ->
-      task.terminate()
-      deferred.resolve('cancelled')
-    promise
+    Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
+    atom.workspace.scan(regex, options, iterator)
 
   # Public: Performs a replace across all the specified files in the project.
   #
