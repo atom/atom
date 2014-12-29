@@ -504,7 +504,7 @@ class Config
   # Returns an {Array} of {Object}s with the following keys:
   #  * `scopeSelector` The scope-selector {String} with which the value is associated
   #  * `value` The value for the key-path
-  getAll: (keyPath, options)->
+  getAll: (keyPath, options) ->
     {scope, sources} = options if options?
     result = []
 
