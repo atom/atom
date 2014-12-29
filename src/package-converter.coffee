@@ -28,7 +28,7 @@ class PackageConverter
     ]
 
     @directoryMappings = {
-      'Preferences': 'scoped-properties'
+      'Preferences': 'settings'
       'Snippets': 'snippets'
       'Syntaxes': 'grammars'
     }
@@ -178,7 +178,7 @@ class PackageConverter
     return unless fs.isDirectorySync(sourcePreferences)
 
     preferencesBySelector = {}
-    destination = path.join(@destinationPath, 'scoped-properties')
+    destination = path.join(@destinationPath, 'settings')
     for child in fs.readdirSync(sourcePreferences)
       {scope, settings} = @readFileSync(path.join(sourcePreferences, child)) ? {}
       continue unless scope and settings
