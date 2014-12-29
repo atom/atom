@@ -180,44 +180,9 @@ class Project extends Model
     Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
     atom.workspace.scan(regex, options, iterator)
 
-  # Public: Performs a replace across all the specified files in the project.
-  #
-  # * `regex` A {RegExp} to search with.
-  # * `replacementText` Text to replace all matches of regex with
-  # * `filePaths` List of file path strings to run the replace on.
-  # * `iterator` A {Function} callback on each file with replacements:
-  #   * `options` {Object} with keys `filePath` and `replacements`
   replace: (regex, replacementText, filePaths, iterator) ->
-    deferred = Q.defer()
-
-    openPaths = (buffer.getPath() for buffer in @getBuffers())
-    outOfProcessPaths = _.difference(filePaths, openPaths)
-
-    inProcessFinished = !openPaths.length
-    outOfProcessFinished = !outOfProcessPaths.length
-    checkFinished = ->
-      deferred.resolve() if outOfProcessFinished and inProcessFinished
-
-    unless outOfProcessFinished.length
-      flags = 'g'
-      flags += 'i' if regex.ignoreCase
-
-      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
-        outOfProcessFinished = true
-        checkFinished()
-
-      task.on 'replace:path-replaced', iterator
-      task.on 'replace:file-error', (error) -> iterator(null, error)
-
-    for buffer in @getBuffers()
-      continue unless buffer.getPath() in filePaths
-      replacements = buffer.replace(regex, replacementText, iterator)
-      iterator({filePath: buffer.getPath(), replacements}) if replacements
-
-    inProcessFinished = true
-    checkFinished()
-
-    deferred.promise
+    Grim.deprecate("Use atom.workspace.replace instead of atom.project.replace")
+    atom.workspace.replace(regex, replacementText, filePaths, iterator)
 
   ###
   Section: Private

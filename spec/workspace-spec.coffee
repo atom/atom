@@ -558,7 +558,7 @@ describe "Workspace", ->
         expect(atom.workspace.panelForItem(item)).toBe panel
         expect(atom.workspace.panelForItem(itemWithNoPanel)).toBe null
 
-  describe "::scan(options, callback)", ->
+  describe "::scan(regex, options, callback)", ->
     describe "when called with a regex", ->
       it "calls the callback with all regex results in all files in the project", ->
         results = []
@@ -741,3 +741,103 @@ describe "Workspace", ->
 
         runs ->
           expect(results).toHaveLength 0
+
+  describe "::replace(regex, replacementText, paths, iterator)", ->
+    [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
+
+    beforeEach ->
+      atom.project.setPaths([atom.project.resolve('../')])
+
+      filePath = atom.project.resolve('sample.js')
+      commentFilePath = atom.project.resolve('sample-with-comments.js')
+      sampleContent = fs.readFileSync(filePath).toString()
+      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
+
+    afterEach ->
+      fs.writeFileSync(filePath, sampleContent)
+      fs.writeFileSync(commentFilePath, sampleCommentContent)
+
+    describe "when a file doesn't exist", ->
+      it "calls back with an error", ->
+        errors = []
+        missingPath = path.resolve('/not-a-file.js')
+        expect(fs.existsSync(missingPath)).toBeFalsy()
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [missingPath], (result, error) ->
+            errors.push(error)
+
+        runs ->
+          expect(errors).toHaveLength 1
+          expect(errors[0].path).toBe missingPath
+
+    describe "when called with unopened files", ->
+      it "replaces properly", ->
+        results = []
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+    describe "when a buffer is already open", ->
+      it "replaces properly and saves when not modified", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open('sample.js').then (o) -> editor = o
+
+        runs ->
+          expect(editor.isModified()).toBeFalsy()
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+          expect(editor.isModified()).toBeFalsy()
+
+      it "does not replace when the path is not specified", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open('sample-with-comments.js').then (o) -> editor = o
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [commentFilePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe commentFilePath
+
+      it "does NOT save when modified", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open('sample.js').then (o) -> editor = o
+
+        runs ->
+          editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
+          expect(editor.isModified()).toBeTruthy()
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'okthen', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+          expect(editor.isModified()).toBeTruthy()
