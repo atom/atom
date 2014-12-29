@@ -51,7 +51,7 @@ class Package
   stylesheets: null
   stylesheetDisposables: null
   grammars: null
-  scopedProperties: null
+  settings: null
   mainModulePath: null
   resolvedMainModulePath: false
   mainModule: null
@@ -117,7 +117,7 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @scopedPropertiesPromise = @loadScopedProperties()
+        @settingsPromise = @loadSettings()
         @requireMainModule() unless @hasActivationCommands()
 
       catch error
@@ -129,7 +129,7 @@ class Package
     @keymaps = []
     @menus = []
     @grammars = []
-    @scopedProperties = []
+    @settings = []
 
   activate: ->
     @grammarsPromise ?= @loadGrammars()
@@ -143,7 +143,7 @@ class Package
         else
           @activateNow()
 
-    Q.all([@grammarsPromise, @scopedPropertiesPromise, @activationDeferred.promise])
+    Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
 
   activateNow: ->
     try
@@ -198,8 +198,8 @@ class Package
       grammar.activate() for grammar in @grammars
       @grammarsActivated = true
 
-    scopedProperties.activate() for scopedProperties in @scopedProperties
-    @scopedPropertiesActivated = true
+    settings.activate() for settings in @settings
+    @settingsActivated = true
 
   loadKeymaps: ->
     if @bundledPackage and packagesCache[@name]?
@@ -282,22 +282,28 @@ class Package
       async.each grammarPaths, loadGrammar, -> deferred.resolve()
     deferred.promise
 
-  loadScopedProperties: ->
-    @scopedProperties = []
+  loadSettings: ->
+    @settings = []
 
-    loadScopedPropertiesFile = (scopedPropertiesPath, callback) =>
-      ScopedProperties.load scopedPropertiesPath, (error, scopedProperties) =>
+    loadSettingsFile = (settingsPath, callback) =>
+      ScopedProperties.load settingsPath, (error, settings) =>
         if error?
-          console.warn("Failed to load scoped properties: #{scopedPropertiesPath}", error.stack ? error)
+          console.warn("Failed to load package settings: #{settingsPath}", error.stack ? error)
         else
-          @scopedProperties.push(scopedProperties)
-          scopedProperties.activate() if @scopedPropertiesActivated
+          @settings.push(settings)
+          settings.activate() if @settingsActivated
         callback()
 
     deferred = Q.defer()
-    scopedPropertiesDirPath = path.join(@path, 'scoped-properties')
-    fs.list scopedPropertiesDirPath, ['json', 'cson'], (error, scopedPropertiesPaths=[]) ->
-      async.each scopedPropertiesPaths, loadScopedPropertiesFile, -> deferred.resolve()
+
+    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+      settingsDirPath = path.join(@path, 'scoped-properties')
+      deprecate("Store package settings files in the `settings` directory instead of `scoped-properties`")
+    else
+      settingsDirPath = path.join(@path, 'settings')
+
+    fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
+      async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
     deferred.promise
 
   serialize: ->
@@ -327,12 +333,12 @@ class Package
 
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
-    scopedProperties.deactivate() for scopedProperties in @scopedProperties
+    settings.deactivate() for settings in @settings
     @stylesheetDisposables?.dispose()
     @activationDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
-    @scopedPropertiesActivated = false
+    @settingsActivated = false
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
