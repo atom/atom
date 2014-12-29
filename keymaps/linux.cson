@@ -12,6 +12,8 @@
   'ctrl-alt-s': 'application:run-all-specs'
   'ctrl-alt-o': 'application:open-dev'
   'ctrl-shift-o': 'application:open-folder'
+  'ctrl-shift-pageup': 'pane:move-item-left'
+  'ctrl-shift-pagedown': 'pane:move-item-right'
   'F11': 'window:toggle-full-screen'
 
   # Sublime Parity
@@ -99,7 +101,7 @@
   'ctrl-k ctrl-l': 'editor:lower-case'
   'ctrl-l': 'editor:select-line'
 
-'atom-workspace atom-text-editor:not(.mini)':
+'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'

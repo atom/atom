@@ -25,6 +25,9 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
         log(str)
       onComplete: (runner) ->
         fs.closeSync(logStream) if logStream?
+        if process.env.JANKY_SHA1
+          grim = require 'grim'
+          grim.logDeprecations() if grim.getDeprecationsLength() > 0
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
     AtomReporter = require './atom-reporter'

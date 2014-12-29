@@ -11,6 +11,7 @@ module.exports = (grunt) ->
     appDir = grunt.config.get('atom.appDir')
 
     rm shellAppDir
+    rm path.join(buildDir, 'installer')
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
@@ -20,7 +21,9 @@ module.exports = (grunt) ->
 
     mkdir appDir
 
-    cp 'atom.sh', path.join(appDir, 'atom.sh')
+    if process.platform isnt 'win32'
+      cp 'atom.sh', path.join(appDir, 'atom.sh')
+
     cp 'package.json', path.join(appDir, 'package.json')
 
     packageDirectories = []
@@ -148,10 +151,10 @@ module.exports = (grunt) ->
           grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
     if process.platform is 'win32'
-      # Set up chocolatey ignore and gui files
-      fs.writeFileSync path.join(appDir, 'apm', 'node_modules', 'atom-package-manager', 'bin', 'node.exe.ignore'), ''
-      fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
-      fs.writeFileSync path.join(shellAppDir, 'atom.exe.gui'), ''
+      cp path.join('resources', 'win', 'atom.cmd'), path.join(shellAppDir, 'resources', 'cli', 'atom.cmd')
+      cp path.join('resources', 'win', 'atom.sh'), path.join(shellAppDir, 'resources', 'cli', 'atom.sh')
+      cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'resources', 'cli', 'atom.js')
+      cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
 
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'

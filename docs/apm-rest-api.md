@@ -59,6 +59,8 @@ Link: <https://www.atom.io/api/packages?page=1>; rel="self",
       <https://www.atom.io/api/packages?page=2>; rel="next"
 ```
 
+By default, results are sorted by download count, descending.
+
 ### Searching packages
 
 #### GET /api/packages/search

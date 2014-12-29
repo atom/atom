@@ -70,7 +70,7 @@ class AtomApplication
 
     @autoUpdateManager = new AutoUpdateManager(@version)
     @applicationMenu = new ApplicationMenu(@version)
-    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
+    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
@@ -140,14 +140,18 @@ class AtomApplication
 
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
+    getLoadSettings = =>
+      devMode: @focusedWindow()?.devMode
+      safeMode: @focusedWindow()?.safeMode
+
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
-    @on 'application:new-window', -> @openPath(windowDimensions: @focusedWindow()?.getDimensions())
+    @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
-    @on 'application:open', -> @promptForPath(type: 'all')
-    @on 'application:open-file', -> @promptForPath(type: 'file')
-    @on 'application:open-folder', -> @promptForPath(type: 'folder')
+    @on 'application:open', -> @promptForPath(_.extend(type: 'all', getLoadSettings()))
+    @on 'application:open-file', -> @promptForPath(_.extend(type: 'file', getLoadSettings()))
+    @on 'application:open-folder', -> @promptForPath(_.extend(type: 'folder', getLoadSettings()))
     @on 'application:open-dev', -> @promptForPath(devMode: true)
     @on 'application:open-safe', -> @promptForPath(safeMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
@@ -155,7 +159,13 @@ class AtomApplication
       atomWindow?.browserWindow.inspectElement(x, y)
 
     @on 'application:open-documentation', -> require('shell').openExternal('https://atom.io/docs/latest/?app')
+    @on 'application:open-discussions', -> require('shell').openExternal('https://discuss.atom.io')
+    @on 'application:open-roadmap', -> require('shell').openExternal('https://atom.io/roadmap?app')
+    @on 'application:open-faq', -> require('shell').openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
+    @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/issues/new')
+    @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
+
     @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
@@ -231,6 +241,11 @@ class AtomApplication
     ipc.on 'call-window-method', (event, method, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
+
+    clipboard = null
+    ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
+      clipboard ?= require 'clipboard'
+      clipboard.writeText(selectedText, 'selection')
 
   # Public: Executes the given command.
   #
@@ -344,7 +359,7 @@ class AtomApplication
 
     if existingWindow?
       openedWindow = existingWindow
-      openedWindow.openPath(pathToOpen, initialLine)
+      openedWindow.openPath(pathToOpen, initialLine, initialColumn)
       if openedWindow.isMinimized()
         openedWindow.restore()
       else

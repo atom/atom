@@ -17,9 +17,15 @@ HighlightsComponent = React.createClass
     highlightComponents = []
     for markerId, {startPixelPosition, endPixelPosition, decorations} of highlightDecorations
       for decoration in decorations
-        highlightComponents.push(HighlightComponent({editor, key: "#{markerId}-#{decoration.class}", startPixelPosition, endPixelPosition, decoration, lineHeightInPixels}))
+        highlightComponents.push(HighlightComponent({editor, key: "#{markerId}-#{decoration.id}", startPixelPosition, endPixelPosition, decoration, lineHeightInPixels}))
 
     highlightComponents
+
+  componentDidMount: ->
+    if atom.config.get('editor.useShadowDOM')
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', '.underlayer')
+      @getDOMNode().appendChild(insertionPoint)
 
   shouldComponentUpdate: (newProps) ->
     not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth', 'scopedCharacterWidthsChangeCount')

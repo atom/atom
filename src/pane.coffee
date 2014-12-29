@@ -53,9 +53,6 @@ class Pane extends Model
     params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
     params
 
-  getView: (object) ->
-    @container.getView(object)
-
   getParent: -> @parent
 
   setParent: (@parent) -> @parent
@@ -289,6 +286,18 @@ class Pane extends Model
     else
       @activateItemAtIndex(@items.length - 1)
 
+  # Public: Move the active tab to the right.
+  moveItemRight: ->
+    index = @getActiveItemIndex()
+    rightItemIndex = index + 1
+    @moveItem(@getActiveItem(), rightItemIndex) unless rightItemIndex > @items.length - 1
+
+  # Public: Move the active tab to the left
+  moveItemLeft: ->
+    index = @getActiveItemIndex()
+    leftItemIndex = index - 1
+    @moveItem(@getActiveItem(), leftItemIndex) unless leftItemIndex < 0
+
   # Public: Get the index of the active item.
   #
   # Returns a {Number}.
@@ -359,7 +368,7 @@ class Pane extends Model
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroyed
     @emitter.emit 'did-remove-item', {item, index, destroyed}
-    @container?.paneItemDestroyed(item) if destroyed
+    @container?.didDestroyPaneItem({item, index, pane: this}) if destroyed
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Move the given item to the given index.
@@ -393,11 +402,14 @@ class Pane extends Model
   # If the item is active, the next item will be activated. If the item is the
   # last item, the pane will be destroyed if the `core.destroyEmptyPanes` config
   # setting is `true`.
+  #
+  # * `item` Item to destroy
   destroyItem: (item) ->
     index = @items.indexOf(item)
     if index isnt -1
       @emit 'before-item-destroyed', item
       @emitter.emit 'will-destroy-item', {item, index}
+      @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
         @removeItem(item, true)
         item.destroy?()
@@ -502,6 +514,8 @@ class Pane extends Model
 
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
+    throw new Error("Pane has been destroyed") if @isDestroyed()
+
     @container?.setActivePane(this)
     @emit 'activated'
     @emitter.emit 'did-activate'
@@ -522,6 +536,7 @@ class Pane extends Model
     @emitter.emit 'did-destroy'
     @emitter.dispose()
     item.destroy?() for item in @items.slice()
+    @container?.didDestroyPane(pane: this)
 
   ###
   Section: Splitting
@@ -606,3 +621,11 @@ class Pane extends Model
         rightmostSibling
     else
       @splitRight()
+
+  close: ->
+    @destroy() if @confirmClose()
+
+  confirmClose: ->
+    for item in @getItems()
+      return false unless @promptToSaveItem(item)
+    true

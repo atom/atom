@@ -22,20 +22,18 @@ class ApplicationMenu
   # keystrokesByCommand - An Object where the keys are commands and the values
   #                       are Arrays containing the keystroke.
   update: (window, template, keystrokesByCommand) ->
-    return unless window is @lastFocusedWindow
-
     @translateTemplate(template, keystrokesByCommand)
     @substituteVersion(template)
     @windowTemplates.set(window, template)
-    @setActiveTemplate(template)
-
-    @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
+    @setActiveTemplate(template) if window is @lastFocusedWindow
 
   setActiveTemplate: (template) ->
     unless _.isEqual(template, @activeTemplate)
       @activeTemplate = template
       @menu = Menu.buildFromTemplate(_.deepClone(template))
       Menu.setApplicationMenu(@menu)
+
+    @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
 
   # Register a BrowserWindow with this application menu.
   addWindow: (window) ->

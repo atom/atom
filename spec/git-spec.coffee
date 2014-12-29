@@ -132,7 +132,7 @@ describe "GitRepository", ->
         atom.workspace.open(filePath)
 
       runs ->
-        editor = atom.workspace.getActiveEditor()
+        editor = atom.workspace.getActiveTextEditor()
 
     it "displays a confirmation dialog by default", ->
       spyOn(atom, 'confirm').andCallFake ({buttons}) -> buttons.OK()
@@ -258,6 +258,10 @@ describe "GitRepository", ->
       expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
       editor.getBuffer().emitter.emit 'did-change-path'
       expect(statusHandler.callCount).toBe 1
+
+    it "stops listening to the buffer when the repository is destroyed (regression)", ->
+      atom.project.getRepositories()[0].destroy()
+      expect(-> editor.save()).not.toThrow()
 
   describe "when a project is deserialized", ->
     [buffer, project2] = []

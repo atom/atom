@@ -18,7 +18,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone, @safeMode} = settings
+    {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone, @safeMode, @devMode} = settings
 
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
@@ -38,6 +38,8 @@ class AtomWindow
     loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
+    loadSettings.devMode ?= false
+    loadSettings.safeMode ?= false
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
@@ -58,7 +60,7 @@ class AtomWindow
     @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
-    @openPath(pathToOpen, initialLine, initialColumn)
+    @openPath(pathToOpen, initialLine, initialColumn) unless @isSpecWindow()
 
   getUrl: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
@@ -143,9 +145,12 @@ class AtomWindow
   openPath: (pathToOpen, initialLine, initialColumn) ->
     if @loaded
       @focus()
-      @sendCommand('window:open-path', {pathToOpen, initialLine, initialColumn})
+      @sendMessage 'open-path', {pathToOpen, initialLine, initialColumn}
     else
       @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine, initialColumn)
+
+  sendMessage: (message, detail) ->
+    @browserWindow.webContents.send 'message', message, detail
 
   sendCommand: (command, args...) ->
     if @isSpecWindow()
@@ -154,7 +159,6 @@ class AtomWindow
           when 'window:reload' then @reload()
           when 'window:toggle-dev-tools' then @toggleDevTools()
           when 'window:close' then @close()
-          when 'window:update-available' then @sendCommandToBrowserWindow(command, args...) # For spec testing
     else if @isWebViewFocused()
       @sendCommandToBrowserWindow(command, args...)
     else

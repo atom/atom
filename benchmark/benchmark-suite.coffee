@@ -1,5 +1,7 @@
 require './benchmark-helper'
-{$, _, WorkspaceView} = require 'atom'
+{$} = require '../src/space-pen-extensions'
+_ = require 'underscore-plus'
+{WorkspaceView} = require 'atom'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editorView.", ->
@@ -7,7 +9,7 @@ describe "editorView.", ->
 
   beforeEach ->
     atom.workspaceViewParentSelector = '#jasmine-content'
-    atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
+    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
     atom.workspaceView.attachToDom()
 
     atom.workspaceView.width(1024)

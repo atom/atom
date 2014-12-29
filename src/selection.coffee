@@ -4,6 +4,8 @@
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
+NonWhitespaceRegExp = /\S/
+
 # Extended: Represents a selection in the {TextEditor}.
 module.exports =
 class Selection extends Model
@@ -322,7 +324,7 @@ class Selection extends Model
   # * `row` The line {Number} to select (default: the row of the cursor).
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(@getBufferRange().union(range))
+    @setBufferRange(@getBufferRange().union(range), autoscroll: true)
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()
@@ -348,6 +350,7 @@ class Selection extends Model
   #   * `autoIndentNewline` if `true`, indent newline appropriately.
   #   * `autoDecreaseIndent` if `true`, decreases indent level appropriately
   #     (for example, when a closing bracket is inserted).
+  #   * `normalizeLineEndings` (optional) {Boolean} (default: true)
   #   * `undo` if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
@@ -356,10 +359,13 @@ class Selection extends Model
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
 
-    if options.indentBasis? and not options.autoIndent
-      text = @normalizeIndents(text, options.indentBasis)
+    precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
+    startLevel = @editor.indentLevelForLine(precedingText)
 
-    newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo'))
+    if options.indentBasis? and not options.autoIndent
+      text = @adjustIndent(text, startLevel - options.indentBasis)
+
+    newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo', 'normalizeLineEndings'))
 
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
@@ -367,13 +373,16 @@ class Selection extends Model
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
     if options.autoIndent
-      @editor.autoIndentBufferRow(row) for row in newBufferRange.getRows()
+      precedingText = @editor.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
+      unless NonWhitespaceRegExp.test(precedingText)
+        @editor.autoIndentBufferRow(newBufferRange.getRows()[0])
+      @editor.autoIndentBufferRow(row) for row, i in newBufferRange.getRows() when i > 0
     else if options.autoIndentNewline and text == '\n'
       currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
-      @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true)
+      @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
       if @editor.indentationForBufferRow(newBufferRange.end.row) < currentIndentation
         @editor.setIndentationForBufferRow(newBufferRange.end.row, currentIndentation)
-    else if options.autoDecreaseIndent and /\S/.test text
+    else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
     newBufferRange
@@ -540,8 +549,9 @@ class Selection extends Model
   # Public: Copies the selection to the clipboard and then deletes it.
   #
   # * `maintainClipboard` {Boolean} (default: false) See {::copy}
-  cut: (maintainClipboard=false) ->
-    @copy(maintainClipboard)
+  # * `fullLine` {Boolean} (default: false) See {::copy}
+  cut: (maintainClipboard=false, fullLine=false) ->
+    @copy(maintainClipboard, fullLine)
     @delete()
 
   # Public: Copies the current selection to the clipboard.
@@ -550,22 +560,36 @@ class Selection extends Model
   #   is created to store each content copied to the clipboard. The clipboard
   #   `text` still contains the concatenation of the clipboard with the
   #   current selection. (default: false)
-  copy: (maintainClipboard=false) ->
+  # * `fullLine` {Boolean} if `true`, the copied text will always be pasted
+  #   at the beginning of the line containing the cursor, regardless of the
+  #   cursor's horizontal position. (default: false)
+  copy: (maintainClipboard=false, fullLine=false) ->
     return if @isEmpty()
-    text = @editor.buffer.getTextInRange(@getBufferRange())
+    {start, end} = @getBufferRange()
+    selectionText = @editor.getTextInRange([start, end])
+    precedingText = @editor.getTextInRange([[start.row, 0], start])
+    startLevel = @editor.indentLevelForLine(precedingText)
+
     if maintainClipboard
       {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
-
-      if metadata?.selections?
-        metadata.selections.push(text)
-      else
-        metadata = { selections: [clipboardText, text] }
-
-      text = "" + (clipboardText) + "\n" + text
+      metadata ?= {}
+      unless metadata.selections?
+        metadata.selections = [{
+          text: clipboardText,
+          indentBasis: metadata.indentBasis,
+          fullLine: metadata.fullLine,
+        }]
+      metadata.selections.push({
+        text: selectionText,
+        indentBasis: startLevel,
+        fullLine: fullLine
+      })
+      atom.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
-      metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
-
-    atom.clipboard.write(text, metadata)
+      atom.clipboard.write(selectionText, {
+        indentBasis: startLevel,
+        fullLine: fullLine
+      })
 
   # Public: Creates a fold containing the current selection.
   fold: ->
@@ -573,34 +597,22 @@ class Selection extends Model
     @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  # Public: Indents the given text to the suggested level based on the grammar.
+  # Public: Increases the indentation level of
   #
-  # * `text` The {String} to indent within the selection.
-  # * `indentBasis` The beginning indent level.
-  normalizeIndents: (text, indentBasis) ->
-    textPrecedingCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferColumn()]
-    isCursorInsideExistingLine = /\S/.test(textPrecedingCursor)
 
+  # * `indentIncrease` The beginning indent level.
+  adjustIndent: (text, indentIncrease) ->
     lines = text.split('\n')
-    firstLineIndentLevel = @editor.indentLevelForLine(lines[0])
-    if isCursorInsideExistingLine
-      minimumIndentLevel = @editor.indentationForBufferRow(@cursor.getBufferRow())
-    else
-      minimumIndentLevel = @cursor.getIndentLevel()
-
-    normalizedLines = []
-    for line, i in lines
-      if i == 0
-        indentLevel = 0
-      else if line == '' # remove all indentation from empty lines
-        indentLevel = 0
+    for line, i in lines when i > 0
+      if indentIncrease == 0
+        continue
+      else if indentIncrease > 0
+        lines[i] = @editor.buildIndentString(indentIncrease) + line
       else
-        lineIndentLevel = @editor.indentLevelForLine(lines[i])
-        indentLevel = minimumIndentLevel + (lineIndentLevel - indentBasis)
-
-      normalizedLines.push(@setIndentationForLine(line, indentLevel))
-
-    normalizedLines.join('\n')
+        currentIndentLevel = @editor.indentLevelForLine(lines[i])
+        indentLevel = Math.max(0, currentIndentLevel + indentIncrease)
+        lines[i] = line.replace(/^[\t ]+/, @editor.buildIndentString(indentLevel))
+    lines.join('\n')
 
   # Indent the current line(s).
   #
@@ -632,11 +644,6 @@ class Selection extends Model
     [start, end] = @getBufferRowRange()
     for row in [start..end]
       @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
-
-  setIndentationForLine: (line, indentLevel) ->
-    desiredIndentLevel = Math.max(0, indentLevel)
-    desiredIndentString = @editor.buildIndentString(desiredIndentLevel)
-    line.replace(/^[\t ]*/, desiredIndentString)
 
   ###
   Section: Managing multiple selections

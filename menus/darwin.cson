@@ -190,13 +190,19 @@
     submenu: [
       { label: 'Terms of Use', command: 'application:open-terms-of-use' }
       { label: 'Documentation', command: 'application:open-documentation' }
+      { label: 'Roadmap', command: 'application:open-roadmap' }
+      { label: 'Frequently Asked Questions', command: 'application:open-faq' }
+      { type: 'separator' }
+      { label: 'Community Discussions', command: 'application:open-discussions' }
+      { label: 'Report Issue', command: 'application:report-issue' }
+      { label: 'Search Issues', command: 'application:search-issues' }
       { type: 'separator' }
     ]
   }
 ]
 
 'context-menu':
-  '.overlayer': [
+  'atom-text-editor, .overlayer': [
     {label: 'Undo', command: 'core:undo'}
     {label: 'Redo', command: 'core:redo'}
     {type: 'separator'}

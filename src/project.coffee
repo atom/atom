@@ -64,7 +64,7 @@ class Project extends Model
   ###
 
   serializeParams: ->
-    path: @path
+    paths: @getPaths()
     buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
 
   deserializeParams: (params) ->
@@ -195,8 +195,10 @@ class Project extends Model
       includeHidden: true
       excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
       exclusions: atom.config.get('core.ignoredNames')
+      follow: atom.config.get('core.followSymlinks')
 
-    task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
+    # TODO: need to support all paths in @getPaths()
+    task = Task.once require.resolve('./scan-handler'), @getPaths()[0], regex.source, searchOptions, ->
       deferred.resolve()
 
     task.on 'scan:result-found', (result) =>
@@ -322,6 +324,7 @@ class Project extends Model
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer.setEncoding(atom.config.get('core.fileEncoding'))
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -337,6 +340,7 @@ class Project extends Model
       throw new Error("Atom can only handle files < 2MB for now.")
 
     buffer = new TextBuffer({filePath: absoluteFilePath})
+    buffer.setEncoding(atom.config.get('core.fileEncoding'))
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)

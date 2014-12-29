@@ -295,12 +295,12 @@ class PackageManager
           pack = new Package(packagePath, metadata)
         pack.load()
         @loadedPackages[pack.name] = pack
-        pack
+        return pack
       catch error
         console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error
-
     else
-      throw new Error("Could not resolve '#{nameOrPath}' to a package path")
+      console.warn "Could not resolve '#{nameOrPath}' to a package path"
+    null
 
   unloadPackages: ->
     @unloadPackage(name) for name in _.keys(@loadedPackages)
@@ -329,22 +329,25 @@ class PackageManager
     @packageActivators.push([activator, types])
 
   activatePackages: (packages) ->
-    @activatePackage(pack.name) for pack in packages
+    atom.config.transact =>
+      @activatePackage(pack.name) for pack in packages
     @observeDisabledPackages()
 
   # Activate a single package by name
   activatePackage: (name) ->
     if pack = @getActivePackage(name)
       Q(pack)
-    else
-      pack = @loadPackage(name)
+    else if pack = @loadPackage(name)
       pack.activate().then =>
         @activePackages[pack.name] = pack
         pack
+    else
+      Q.reject(new Error("Failed to load package '#{name}'"))
 
   # Deactivate all packages
   deactivatePackages: ->
-    @deactivatePackage(pack.name) for pack in @getLoadedPackages()
+    atom.config.transact =>
+      @deactivatePackage(pack.name) for pack in @getLoadedPackages()
     @unobserveDisabledPackages()
 
   # Deactivate the package with the given name

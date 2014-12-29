@@ -7,12 +7,12 @@ Subscriber.includeInto(SpacePen.View)
 jQuery = SpacePen.jQuery
 JQueryCleanData = jQuery.cleanData
 jQuery.cleanData = (elements) ->
-  jQuery(element).view()?.unsubscribe() for element in elements
+  jQuery(element).view()?.unsubscribe?() for element in elements
   JQueryCleanData(elements)
 
 SpacePenCallRemoveHooks = SpacePen.callRemoveHooks
 SpacePen.callRemoveHooks = (element) ->
-  view.unsubscribe() for view in SpacePen.viewsForElement(element)
+  view.unsubscribe?() for view in SpacePen.viewsForElement(element)
   SpacePenCallRemoveHooks(element)
 
 NativeEventNames = new Set
@@ -20,13 +20,16 @@ NativeEventNames.add(nativeEvent) for nativeEvent in ["blur", "focus", "focusin"
 "focusout", "load", "resize", "scroll", "unload", "click", "dblclick", "mousedown",
 "mouseup", "mousemove", "mouseover", "mouseout", "mouseenter", "mouseleave", "change",
 "select", "submit", "keydown", "keypress", "keyup", "error", "contextmenu", "textInput",
-"textinput"]
+"textinput", "beforeunload"]
 
 JQueryTrigger = jQuery.fn.trigger
 jQuery.fn.trigger = (eventName, data) ->
   if NativeEventNames.has(eventName) or typeof eventName is 'object'
     JQueryTrigger.call(this, eventName, data)
   else
+    data ?= {}
+    data.jQueryTrigger = true
+
     for element in this
       atom.commands.dispatch(element, eventName, data)
     this
@@ -77,6 +80,18 @@ jQuery.event.remove = (elem, types, originalHandler, selector, mappedTypes) ->
   if originalHandler?
     handler = HandlersByOriginalHandler.get(originalHandler) ? originalHandler
   JQueryEventRemove(elem, types, handler, selector, mappedTypes, RemoveEventListener if atom?.commands?)
+
+JQueryContains = jQuery.contains
+
+jQuery.contains = (a, b) ->
+  shadowRoot = null
+  currentNode = b
+  while currentNode
+    if currentNode instanceof ShadowRoot and a.contains(currentNode.host)
+      return true
+    currentNode = currentNode.parentNode
+
+  JQueryContains.call(this, a, b)
 
 tooltipDefaults =
   delay:

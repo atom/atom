@@ -4,7 +4,6 @@ _ = require 'underscore-plus'
 {Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
-Delegator = require 'delegato'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 TextEditor = require './text-editor'
@@ -14,7 +13,6 @@ Panel = require './panel'
 PanelElement = require './panel-element'
 PanelContainer = require './panel-container'
 PanelContainerElement = require './panel-container-element'
-ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
 
 # Essential: Represents the state of the user interface for the entire window.
@@ -31,10 +29,17 @@ class Workspace extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
+  Object.defineProperty @::, 'activePaneItem',
+    get: ->
+      Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"
+      @getActivePaneItem()
+
+  Object.defineProperty @::, 'activePane',
+    get: ->
+      Grim.deprecate "Use ::getActivePane() instead of the ::activePane property"
+      @getActivePane()
 
   @properties
-    viewRegistry: null
     paneContainer: null
     fullScreen: false
     destroyedItemUris: -> []
@@ -45,22 +50,22 @@ class Workspace extends Model
     @emitter = new Emitter
     @openers = []
 
-    @viewRegistry ?= new ViewRegistry
-    @paneContainer ?= new PaneContainer({@viewRegistry})
-    @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
+    @paneContainer ?= new PaneContainer()
+    @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @panelContainers =
-      top: new PanelContainer({@viewRegistry, location: 'top'})
-      left: new PanelContainer({@viewRegistry, location: 'left'})
-      right: new PanelContainer({@viewRegistry, location: 'right'})
-      bottom: new PanelContainer({@viewRegistry, location: 'bottom'})
+      top: new PanelContainer({location: 'top'})
+      left: new PanelContainer({location: 'left'})
+      right: new PanelContainer({location: 'right'})
+      bottom: new PanelContainer({location: 'bottom'})
+      modal: new PanelContainer({location: 'modal'})
 
     @subscribeToActiveItem()
 
     @addOpener (filePath) =>
       switch filePath
         when 'atom://.atom/stylesheet'
-          @open(atom.themes.getUserStylesheetPath())
+          @open(atom.styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
           @open(atom.keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
@@ -68,25 +73,20 @@ class Workspace extends Model
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
 
-    @addViewProvider
-      modelConstructor: Workspace
-      viewConstructor: WorkspaceElement
+    atom.views.addViewProvider Workspace, (model) ->
+      new WorkspaceElement().initialize(model)
 
-    @addViewProvider
-      modelConstructor: PanelContainer
-      viewConstructor: PanelContainerElement
+    atom.views.addViewProvider PanelContainer, (model) ->
+      new PanelContainerElement().initialize(model)
 
-    @addViewProvider
-      modelConstructor: Panel
-      viewConstructor: PanelElement
+    atom.views.addViewProvider Panel, (model) ->
+      new PanelElement().initialize(model)
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     for packageName in params.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
-    params.viewRegistry = new ViewRegistry
-    params.paneContainer.viewRegistry = params.viewRegistry
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -105,13 +105,13 @@ class Workspace extends Model
 
       packageNames.push(packageName)
       for scopeName in includedGrammarScopes ? []
-        addGrammar(atom.syntax.grammarForScopeName(scopeName))
+        addGrammar(atom.grammars.grammarForScopeName(scopeName))
 
     editors = @getTextEditors()
     addGrammar(editor.getGrammar()) for editor in editors
 
     if editors.length > 0
-      for grammar in atom.syntax.getGrammars() when grammar.injectionSelector
+      for grammar in atom.grammars.getGrammars() when grammar.injectionSelector
         addGrammar(grammar)
 
     _.uniq(packageNames)
@@ -240,6 +240,16 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPane: (callback) -> @paneContainer.onDidAddPane(callback)
 
+  # Extended: Invoke the given callback when a pane is destroyed in the
+  # workspace.
+  #
+  # * `callback` {Function} to be called panes are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `pane` The destroyed pane.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroyPane: (callback) -> @paneContainer.onDidDestroyPane(callback)
+
   # Extended: Invoke the given callback with all current and future panes in the
   # workspace.
   #
@@ -271,7 +281,7 @@ class Workspace extends Model
   # Extended: Invoke the given callback when a pane item is added to the
   # workspace.
   #
-  # * `callback` {Function} to be called when panes are added.
+  # * `callback` {Function} to be called when pane items are added.
   #   * `event` {Object} with the following keys:
   #     * `item` The added pane item.
   #     * `pane` {Pane} containing the added item.
@@ -279,6 +289,31 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
+
+  # Extended: Invoke the given callback when a pane item is about to be
+  # destroyed, before the user is prompted to save it.
+  #
+  # * `callback` {Function} to be called before pane items are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The item to be destroyed.
+  #     * `pane` {Pane} containing the item to be destroyed.
+  #     * `index` {Number} indicating the index of the item to be destroyed in
+  #       its pane.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
+  onWillDestroyPaneItem: (callback) -> @paneContainer.onWillDestroyPaneItem(callback)
+
+  # Extended: Invoke the given callback when a pane item is destroyed.
+  #
+  # * `callback` {Function} to be called when pane items are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The destroyed item.
+  #     * `pane` {Pane} containing the destroyed item.
+  #     * `index` {Number} indicating the index of the destroyed item in its
+  #       pane.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
+  onDidDestroyPaneItem: (callback) -> @paneContainer.onDidDestroyPaneItem(callback)
 
   # Extended: Invoke the given callback when a text editor is added to the
   # workspace.
@@ -315,7 +350,7 @@ class Workspace extends Model
       when 'editor-created'
         deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
       when 'uri-opened'
-        deprecate("Use Workspace::onDidAddPaneItem instead.")
+        deprecate("Use Workspace::onDidOpen or Workspace::onDidAddPaneItem instead. https://atom.io/docs/api/latest/Workspace#instance-onDidOpen")
       else
         deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
 
@@ -377,25 +412,35 @@ class Workspace extends Model
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
-    deprecate("Don't use the `changeFocus` option") if options.changeFocus?
+    # TODO: Remove deprecated changeFocus option
+    if options.changeFocus?
+      deprecate("The `changeFocus` option has been renamed to `activatePane`")
+      options.activatePane = options.changeFocus
+      delete options.changeFocus
 
     {initialLine, initialColumn} = options
-    # TODO: Remove deprecated changeFocus option
-    activatePane = options.activatePane ? options.changeFocus ? true
+    activatePane = options.activatePane ? true
+
     uri = atom.project.resolve(uri)
 
-    item = @activePane.itemForUri(uri)
+    item = @getActivePane().itemForUri(uri)
     if uri
       item ?= opener(uri, options) for opener in @getOpeners() when !item
     item ?= atom.project.openSync(uri, {initialLine, initialColumn})
 
-    @activePane.activateItem(item)
+    @getActivePane().activateItem(item)
     @itemOpened(item)
-    @activePane.activate() if activatePane
+    @getActivePane().activate() if activatePane
     item
 
   openUriInPane: (uri, pane, options={}) ->
-    changeFocus = options.changeFocus ? true
+    # TODO: Remove deprecated changeFocus option
+    if options.changeFocus?
+      deprecate("The `changeFocus` option has been renamed to `activatePane`")
+      options.activatePane = options.changeFocus
+      delete options.changeFocus
+
+    activatePane = options.activatePane ? true
 
     if uri?
       item = pane.itemForUri(uri)
@@ -409,13 +454,13 @@ class Workspace extends Model
           @paneContainer.root = pane
         @itemOpened(item)
         pane.activateItem(item)
-        pane.activate() if changeFocus
+        pane.activate() if activatePane
+        if options.initialLine? or options.initialColumn?
+          item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
         index = pane.getActiveItemIndex()
         @emit "uri-opened"
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
-      .catch (error) ->
-        console.error(error.stack ? error)
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
@@ -493,9 +538,10 @@ class Workspace extends Model
     activeItem = @getActivePaneItem()
     activeItem if activeItem instanceof TextEditor
 
-  # Deprecated:
+  # Deprecated
   getActiveEditor: ->
-    @activePane?.getActiveEditor()
+    Grim.deprecate "Call ::getActiveTextEditor instead"
+    @getActivePane()?.getActiveEditor()
 
   # Save all pane items.
   saveAll: ->
@@ -511,7 +557,7 @@ class Workspace extends Model
   # {::saveActivePaneItemAs} # will be called instead. This method does nothing
   # if the active item does not implement a `.save` method.
   saveActivePaneItem: ->
-    @activePane?.saveActiveItem()
+    @saveActivePaneItemAndReportErrors('saveActiveItem')
 
   # Prompt the user for a path and save the active pane item to it.
   #
@@ -519,14 +565,28 @@ class Workspace extends Model
   # `.saveAs` on the item with the selected path. This method does nothing if
   # the active item does not implement a `.saveAs` method.
   saveActivePaneItemAs: ->
-    @activePane?.saveActiveItemAs()
+    @saveActivePaneItemAndReportErrors('saveActiveItemAs')
+
+  saveActivePaneItemAndReportErrors: (method) ->
+    try
+      @getActivePane()[method]()
+    catch error
+      if error.message.endsWith('is a directory')
+        atom.notifications.addWarning("Unable to save file: #{error.message}")
+      else if error.message.startsWith('EACCES,')
+        atom.notifications.addWarning("Unable to save file: #{error.message.replace('EACCES, ', '')}")
+      else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
+        fileName = errorMatch[1]
+        atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
+      else
+        throw error
 
   # Destroy (close) the active pane item.
   #
   # Removes the active pane item and calls the `.destroy` method on it if one is
   # defined.
   destroyActivePaneItem: ->
-    @activePane?.destroyActiveItem()
+    @getActivePane().destroyActiveItem()
 
   ###
   Section: Panes
@@ -552,7 +612,7 @@ class Workspace extends Model
   activatePreviousPane: ->
     @paneContainer.activatePreviousPane()
 
-  # Extended: Get the first pane {Pane} with an item for the given URI.
+  # Extended: Get the first {Pane} with an item for the given URI.
   #
   # * `uri` {String} uri
   #
@@ -560,9 +620,17 @@ class Workspace extends Model
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
 
+  # Extended: Get the {Pane} containing the given item.
+  #
+  # * `item` Item the returned pane contains.
+  #
+  # Returns a {Pane} or `undefined` if no pane exists for the given item.
+  paneForItem: (item) ->
+    @paneContainer.paneForItem(item)
+
   # Destroy (close) the active pane.
   destroyActivePane: ->
-    @activePane?.destroy()
+    @getActivePane()?.destroy()
 
   # Destroy the active pane item or the active pane if it is empty.
   destroyActivePaneItemOrEmptyPane: ->
@@ -579,7 +647,7 @@ class Workspace extends Model
 
   # Restore to a default editor font size.
   resetFontSize: ->
-    atom.config.restoreDefault("editor.fontSize")
+    atom.config.unset("editor.fontSize")
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
@@ -587,7 +655,7 @@ class Workspace extends Model
       _.remove(@destroyedItemUris, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
-  onPaneItemDestroyed: (item) =>
+  didDestroyPaneItem: ({item}) =>
     if uri = item.getUri?()
       @destroyedItemUris.push(uri)
 
@@ -601,12 +669,16 @@ class Workspace extends Model
   Section: Panels
   ###
 
+  # Essential: Get an {Array} of all the panel items at the bottom of the editor window.
+  getBottomPanels: ->
+    @getPanels('bottom')
+
   # Essential: Adds a panel item to the bottom of the editor window.
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -616,12 +688,16 @@ class Workspace extends Model
   addBottomPanel: (options) ->
     @addPanel('bottom', options)
 
+  # Essential: Get an {Array} of all the panel items to the left of the editor window.
+  getLeftPanels: ->
+    @getPanels('left')
+
   # Essential: Adds a panel item to the left of the editor window.
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -631,12 +707,16 @@ class Workspace extends Model
   addLeftPanel: (options) ->
     @addPanel('left', options)
 
+  # Essential: Get an {Array} of all the panel items to the right of the editor window.
+  getRightPanels: ->
+    @getPanels('right')
+
   # Essential: Adds a panel item to the right of the editor window.
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -646,12 +726,16 @@ class Workspace extends Model
   addRightPanel: (options) ->
     @addPanel('right', options)
 
+  # Essential: Get an {Array} of all the panel items at the top of the editor window.
+  getTopPanels: ->
+    @getPanels('top')
+
   # Essential: Adds a panel item to the top of the editor window above the tabs.
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {::addViewProvider}. We recommend the
-  #     latter. See {::addViewProvider} for more information.
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
@@ -661,89 +745,38 @@ class Workspace extends Model
   addTopPanel: (options) ->
     @addPanel('top', options)
 
+  # Essential: Get an {Array} of all the modal panel items
+  getModalPanels: ->
+    @getPanels('modal')
+
+  # Essential: Adds a panel item as a modal dialog.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addModalPanel: (options={}) ->
+    @addPanel('modal', options)
+
+  # Essential: Returns the {Panel} associated with the given item. Returns
+  # `null` when the item has no panel.
+  #
+  # * `item` Item the panel contains
+  panelForItem: (item) ->
+    for location, container of @panelContainers
+      panel = container.panelForItem(item)
+      return panel if panel?
+    null
+
+  getPanels: (location) ->
+    @panelContainers[location].getPanels()
+
   addPanel: (location, options) ->
     options ?= {}
-    options.viewRegistry = @viewRegistry
     @panelContainers[location].addPanel(new Panel(options))
-
-  ###
-  Section: View Management
-  ###
-
-  # Essential: Get the view associated with an object in the workspace.
-  #
-  # If you're just *using* the workspace, you shouldn't need to access the view
-  # layer, but view layer access may be necessary if you want to perform DOM
-  # manipulation that isn't supported via the model API.
-  #
-  # ## Examples
-  #
-  # ### Getting An Editor View
-  # ```coffee
-  # textEditor = atom.workspace.getActiveTextEditor()
-  # textEditorView = atom.workspace.getView(textEditor)
-  # ```
-  #
-  # ### Getting A Pane View
-  # ```coffee
-  # pane = atom.workspace.getActivePane()
-  # paneView = atom.workspace.getView(pane)
-  # ```
-  #
-  # ### Getting The Workspace View
-  #
-  # ```coffee
-  # workspaceView = atom.workspace.getView(atom.workspace)
-  # ```
-  #
-  # * `object` The object for which you want to retrieve a view. This can be a
-  #   pane item, a pane, or the workspace itself.
-  #
-  # Returns a DOM element.
-  getView: (object) ->
-    @viewRegistry.getView(object)
-
-  # Essential: Add a provider that will be used to construct views in the
-  # workspace's view layer based on model objects in its model layer.
-  #
-  # If you're adding your own kind of pane item, a good strategy for all but the
-  # simplest items is to separate the model and the view. The model handles
-  # application logic and is the primary point of API interaction. The view
-  # just handles presentation.
-  #
-  # Use view providers to inform the workspace how your model objects should be
-  # presented in the DOM. A view provider must always return a DOM node, which
-  # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
-  # an ideal tool for implementing views in Atom.
-  #
-  # ## Examples
-  #
-  # Text editors are divided into a model and a view layer, so when you interact
-  # with methods like `atom.workspace.getActiveTextEditor()` you're only going
-  # to get the model object. We display text editors on screen by teaching the
-  # workspace what view constructor it should use to represent them:
-  #
-  # ```coffee
-  # atom.workspace.addViewProvider
-  #   modelConstructor: TextEditor
-  #   viewConstructor: TextEditorElement
-  # ```
-  #
-  # * `providerSpec` {Object} containing the following keys:
-  #   * `modelConstructor` Constructor {Function} for your model.
-  #   * `viewConstructor` (Optional) Constructor {Function} for your view. It
-  #     should be a subclass of `HTMLElement` (that is, your view should be a
-  #     DOM node) and   have a `::setModel()` method which will be called
-  #     immediately after construction. If you don't supply this property, you
-  #     must supply the `createView` property with a function that never returns
-  #     `undefined`.
-  #   * `createView` (Optional) Factory {Function} that must return a subclass
-  #     of `HTMLElement` or `undefined`. If this property is not present or the
-  #     function returns `undefined`, the view provider will fall back to the
-  #     `viewConstructor` property. If you don't provide this property, you must
-  #     provider a `viewConstructor` property.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to remove the
-  # added provider.
-  addViewProvider: (providerSpec) ->
-    @viewRegistry.addViewProvider(providerSpec)

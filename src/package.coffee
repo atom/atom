@@ -9,7 +9,6 @@ EmitterMixin = require('emissary').Emitter
 Q = require 'q'
 {deprecate} = require 'grim'
 
-$ = null # Defer require in case this is in the window-less browser process
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
@@ -50,6 +49,7 @@ class Package
   keymaps: null
   menus: null
   stylesheets: null
+  stylesheetDisposables: null
   grammars: null
   scopedProperties: null
   mainModulePath: null
@@ -155,7 +155,7 @@ class Package
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
-    @activationDeferred.resolve()
+    @activationDeferred?.resolve()
 
   activateConfig: ->
     return if @configActivated
@@ -175,16 +175,24 @@ class Package
   activateStylesheets: ->
     return if @stylesheetsActivated
 
-    type = @getStylesheetType()
-    for [stylesheetPath, content] in @stylesheets
-      atom.themes.applyStylesheet(stylesheetPath, content, type)
+    group = @getStylesheetType()
+    @stylesheetDisposables = new CompositeDisposable
+    for [sourcePath, source] in @stylesheets
+      if match = path.basename(sourcePath).match(/[^.]*\.([^.]*)\./)
+        context = match[1]
+      else if @metadata.theme is 'syntax'
+        context = 'atom-text-editor'
+      else
+        context = undefined
+
+      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, group, context}))
     @stylesheetsActivated = true
 
   activateResources: ->
     @activationDisposables = new CompositeDisposable
     @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
-    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus
-    @activationDisposables.add(atom.menu.add(map.menu)) for [menuPath, map] in @menus when map.menu
+    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus when map['context-menu']?
+    @activationDisposables.add(atom.menu.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
@@ -245,7 +253,7 @@ class Package
     grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
     for grammarPath in grammarPaths
       try
-        grammar = atom.syntax.readGrammarSync(grammarPath)
+        grammar = atom.grammars.readGrammarSync(grammarPath)
         grammar.packageName = @name
         @grammars.push(grammar)
         grammar.activate()
@@ -259,7 +267,7 @@ class Package
     return Q() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
-      atom.syntax.readGrammar grammarPath, (error, grammar) =>
+      atom.grammars.readGrammar grammarPath, (error, grammar) =>
         if error?
           console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
         else
@@ -320,7 +328,7 @@ class Package
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
     scopedProperties.deactivate() for scopedProperties in @scopedProperties
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    @stylesheetDisposables?.dispose()
     @activationDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
@@ -329,11 +337,10 @@ class Package
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
-    @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
-
-  reloadStylesheet: (stylesheetPath, content) ->
-    atom.themes.applyStylesheet(stylesheetPath, content, @getStylesheetType())
+    @stylesheetDisposables?.dispose()
+    @stylesheetDisposables = new CompositeDisposable
+    @stylesheetsActivated = false
+    @activateStylesheets()
 
   requireMainModule: ->
     return @mainModule if @mainModule?
@@ -400,6 +407,16 @@ class Package
           @activationCommands[selector].push(commands...)
 
     if @metadata.activationEvents?
+      deprecate """
+        Use `activationCommands` instead of `activationEvents` in your package.json
+        Commands should be grouped by selector as follows:
+        ```json
+          "activationCommands": {
+            "atom-workspace": ["foo:bar", "foo:baz"],
+            "atom-text-editor": ["foo:quux"]
+          }
+        ```
+      """
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
           @activationCommands['atom-workspace'] ?= []

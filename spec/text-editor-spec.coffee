@@ -62,7 +62,6 @@ describe "TextEditor", ->
         atom.workspace.open('sample.less', initialLine: 5).then (o) -> editor = o
 
       runs ->
-        buffer = editor.buffer
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 5
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
 
@@ -74,9 +73,36 @@ describe "TextEditor", ->
         atom.workspace.open('sample.less', initialColumn: 8).then (o) -> editor = o
 
       runs ->
-        buffer = editor.buffer
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 8
+
+  describe "when the editor is reopened with an initialLine option", ->
+    it "positions the cursor on the specified line", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialLine: 5).then (o) -> editor = o
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialLine: 4).then (o) -> editor = o
+
+      runs ->
+        expect(editor.getLastCursor().getBufferPosition().row).toEqual 4
+        expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
+
+  describe "when the editor is reopened with an initialColumn option", ->
+    it "positions the cursor on the specified column", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialColumn: 8).then (o) -> editor = o
+
+      waitsForPromise ->
+        atom.workspace.open('sample.less', initialColumn: 7).then (o) -> editor = o
+
+      runs ->
+        expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
+        expect(editor.getLastCursor().getBufferPosition().column).toEqual 7
 
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
@@ -98,12 +124,13 @@ describe "TextEditor", ->
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
 
   describe "config defaults", ->
-    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs` config values", ->
+    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs`, and `core.fileEncoding` config values", ->
       editor1 = null
       editor2 = null
       atom.config.set('editor.tabLength', 4)
       atom.config.set('editor.softWrap', true)
       atom.config.set('editor.softTabs', false)
+      atom.config.set('core.fileEncoding', 'utf16le')
 
       waitsForPromise ->
         atom.workspace.open('a').then (o) -> editor1 = o
@@ -112,10 +139,12 @@ describe "TextEditor", ->
         expect(editor1.getTabLength()).toBe 4
         expect(editor1.isSoftWrapped()).toBe true
         expect(editor1.getSoftTabs()).toBe false
+        expect(editor1.getEncoding()).toBe 'utf16le'
 
         atom.config.set('editor.tabLength', 8)
         atom.config.set('editor.softWrap', false)
         atom.config.set('editor.softTabs', true)
+        atom.config.set('core.fileEncoding', 'macroman')
 
       waitsForPromise ->
         atom.workspace.open('b').then (o) -> editor2 = o
@@ -124,6 +153,7 @@ describe "TextEditor", ->
         expect(editor2.getTabLength()).toBe 8
         expect(editor2.isSoftWrapped()).toBe false
         expect(editor2.getSoftTabs()).toBe true
+        expect(editor2.getEncoding()).toBe 'macroman'
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -188,12 +218,18 @@ describe "TextEditor", ->
         expect(editor.getCursorBufferPosition()).toEqual [1, 1]
 
       it "emits an event with the old position, new position, and the cursor that moved", ->
-        editor.onDidChangeCursorPosition positionChangedHandler = jasmine.createSpy()
+        cursorCallback = jasmine.createSpy('cursor-changed-position')
+        editorCallback = jasmine.createSpy('editor-changed-cursor-position')
+
+        editor.getLastCursor().onDidChangePosition(cursorCallback)
+        editor.onDidChangeCursorPosition(editorCallback)
 
         editor.setCursorBufferPosition([2, 4])
 
-        expect(positionChangedHandler).toHaveBeenCalled()
-        eventObject = positionChangedHandler.mostRecentCall.args[0]
+        expect(editorCallback).toHaveBeenCalled()
+        expect(cursorCallback).toHaveBeenCalled()
+        eventObject = editorCallback.mostRecentCall.args[0]
+        expect(cursorCallback.mostRecentCall.args[0]).toEqual(eventObject)
 
         expect(eventObject.oldBufferPosition).toEqual [0, 0]
         expect(eventObject.oldScreenPosition).toEqual [0, 0]
@@ -612,7 +648,7 @@ describe "TextEditor", ->
         describe "when invisible characters are enabled with hard tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
             atom.config.set('editor.showInvisibles', true)
-            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', false)
+            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', normalizeLineEndings: false)
 
             editor.setCursorScreenPosition [1,7]
             editor.moveToFirstCharacterOfLine()
@@ -1158,6 +1194,21 @@ describe "TextEditor", ->
         editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[0,0], [2,0]]
 
+      it "autoscrolls to the selection", ->
+        editor.manageScrollPosition = true
+        editor.setLineHeightInPixels(10)
+        editor.setDefaultCharWidth(10)
+        editor.setHeight(50)
+        editor.setWidth(50)
+        editor.setHorizontalScrollbarHeight(0)
+        editor.setCursorScreenPosition([5, 6])
+
+        editor.scrollToTop()
+        expect(editor.getScrollTop()).toBe 0
+
+        editor.selectLinesContainingCursors()
+        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+
     describe ".selectToBeginningOfWord()", ->
       it "selects text from cusor position to beginning of word", ->
         editor.setCursorScreenPosition [0,13]
@@ -1302,7 +1353,7 @@ describe "TextEditor", ->
           coffeeEditor.selectWordsContainingCursors()
           expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 6], [0, 15]]
 
-          atom.config.set '.source.coffee', 'editor.nonWordCharacters', 'qusort'
+          atom.config.set 'editor.nonWordCharacters', 'qusort', scopeSelector: '.source.coffee'
 
           coffeeEditor.setCursorBufferPosition [0, 9]
           coffeeEditor.selectWordsContainingCursors()
@@ -1804,6 +1855,16 @@ describe "TextEditor", ->
 
           expect(willInsertSpy).toHaveBeenCalled()
           expect(didInsertSpy).not.toHaveBeenCalled()
+
+      describe "when the undo option is set to 'skip'", ->
+        beforeEach ->
+          editor.setSelectedBufferRange([[1, 2], [1, 2]])
+
+        it "does not undo the skipped operation", ->
+          range = editor.insertText('x')
+          range = editor.insertText('y', undo: 'skip')
+          editor.undo()
+          expect(buffer.lineForRow(1)).toBe '  yvar sort = function(items) {'
 
     describe ".insertNewline()", ->
       describe "when there is a single cursor", ->
@@ -2448,16 +2509,32 @@ describe "TextEditor", ->
           expect(editor.getCursorScreenPosition()).toEqual [0, editor.getTabLength() * 2]
 
     describe "clipboard operations", ->
-      beforeEach ->
-        editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
-
       describe ".cutSelectedText()", ->
         it "removes the selected text from the buffer and places it on the clipboard", ->
+          editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
           editor.cutSelectedText()
           expect(buffer.lineForRow(0)).toBe "var  = function () {"
           expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
-
           expect(clipboard.readText()).toBe 'quicksort\nsort'
+
+        describe "when no text is selected", ->
+          beforeEach ->
+            editor.setSelectedBufferRanges([
+              [[0, 0], [0, 0]],
+              [[5, 0], [5, 0]],
+            ])
+
+          it "cuts the lines on which there are cursors", ->
+            editor.cutSelectedText()
+            expect(buffer.getLineCount()).toBe(11)
+            expect(buffer.lineForRow(1)).toBe("    if (items.length <= 1) return items;")
+            expect(buffer.lineForRow(4)).toBe("      current < pivot ? left.push(current) : right.push(current);")
+            expect(atom.clipboard.read()).toEqual """
+              var quicksort = function () {
+
+                    current = items.shift();
+
+            """
 
       describe ".cutToEndOfLine()", ->
         describe "when soft wrap is on", ->
@@ -2497,37 +2574,165 @@ describe "TextEditor", ->
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
           expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
           expect(clipboard.readText()).toBe 'quicksort\nsort\nitems'
-          expect(atom.clipboard.readWithMetadata().metadata.selections).toEqual([
-            'quicksort'
-            'sort'
-            'items'
-          ])
+          expect(atom.clipboard.read()).toEqual """
+            quicksort
+            sort
+            items
+          """
+
+        describe "when no text is selected", ->
+          beforeEach ->
+            editor.setSelectedBufferRanges([
+              [[1, 5], [1, 5]],
+              [[5, 8], [5, 8]]
+            ])
+
+          it "copies the lines on which there are cursors", ->
+            editor.copySelectedText()
+            expect(atom.clipboard.read()).toEqual([
+              "  var sort = function(items) {\n"
+              "      current = items.shift();\n"
+            ].join("\n"))
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[1, 5], [1, 5]],
+              [[5, 8], [5, 8]]
+            ])
 
       describe ".pasteText()", ->
+        copyText = (text, {startColumn, textEditor}={}) ->
+          startColumn ?= 0
+          textEditor ?= editor
+          textEditor.setCursorBufferPosition([0, 0])
+          textEditor.insertText(text)
+          numberOfNewlines = text.match(/\n/g)?.length
+          endColumn = text.match(/[^\n]*$/)[0]?.length
+          textEditor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
+          textEditor.cutSelectedText()
+
         it "pastes text into the buffer", ->
+          editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
           atom.clipboard.write('first')
           editor.pasteText()
           expect(editor.lineTextForBufferRow(0)).toBe "var first = function () {"
           expect(editor.lineTextForBufferRow(1)).toBe "  var first = function(items) {"
 
+        describe "when `autoIndentOnPaste` is true", ->
+          beforeEach ->
+            atom.config.set("editor.autoIndentOnPaste", true)
+
+          describe "when only whitespace precedes the cursor", ->
+            it "auto-indents the lines spanned by the pasted text", ->
+              atom.clipboard.write("console.log(x);\nconsole.log(y);\n")
+              editor.setCursorBufferPosition([5, 2])
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(5)).toBe("      console.log(x);")
+              expect(editor.lineTextForBufferRow(6)).toBe("      console.log(y);")
+
+          describe "when non-whitespace characters precede the cursor", ->
+            it "does not auto-indent the first line being pasted", ->
+              editor.setText """
+              if (x) {
+                  y();
+              }
+              """
+
+              atom.clipboard.write(" z();")
+              editor.setCursorBufferPosition([1, Infinity])
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(1)).toBe("    y(); z();")
+
+        describe "when `autoIndentOnPaste` is false", ->
+          beforeEach ->
+            atom.config.set('editor.autoIndentOnPaste', false)
+
+          describe "when the cursor is indented further than the original copied text", ->
+            it "increases the indentation of the copied lines to match", ->
+              editor.setSelectedBufferRange([[1, 2], [3, 0]])
+              editor.copySelectedText()
+
+              editor.setCursorBufferPosition([5, 6])
+              editor.pasteText()
+
+              expect(editor.lineTextForBufferRow(5)).toBe "      var sort = function(items) {"
+              expect(editor.lineTextForBufferRow(6)).toBe "        if (items.length <= 1) return items;"
+
+          describe "when the cursor is indented less far than the original copied text", ->
+            it "decreases the indentation of the copied lines to match", ->
+              editor.setSelectedBufferRange([[6, 6], [8, 0]])
+              editor.copySelectedText()
+
+              editor.setCursorBufferPosition([1, 2])
+              editor.pasteText()
+
+              expect(editor.lineTextForBufferRow(1)).toBe "  current < pivot ? left.push(current) : right.push(current);"
+              expect(editor.lineTextForBufferRow(2)).toBe "}"
+
+          describe "when the first copied line has leading whitespace", ->
+            it "preserves the line's leading whitespace", ->
+              editor.setSelectedBufferRange([[4, 0], [6, 0]])
+              editor.copySelectedText()
+
+              editor.setCursorBufferPosition([0, 0])
+              editor.pasteText()
+
+              expect(editor.lineTextForBufferRow(0)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(1)).toBe "      current = items.shift();"
+
         describe 'when the clipboard has many selections', ->
+          beforeEach ->
+            atom.config.set("editor.autoIndentOnPaste", false)
+            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+            editor.copySelectedText()
+
           it "pastes each selection separately into the buffer", ->
-            atom.clipboard.write('first\nsecond', {selections: ['first', 'second'] })
+            editor.copySelectedText()
+            editor.moveRight()
+            editor.insertText("_")
             editor.pasteText()
-            expect(editor.lineTextForBufferRow(0)).toBe "var first = function () {"
-            expect(editor.lineTextForBufferRow(1)).toBe "  var second = function(items) {"
+            expect(editor.lineTextForBufferRow(0)).toBe "var quicksort_quicksort = function () {"
+            expect(editor.lineTextForBufferRow(1)).toBe "  var sort_sort = function(items) {"
 
           describe 'and the selections count does not match', ->
-            it "pastes the whole text into the buffer", ->
-              atom.clipboard.write('first\nsecond\nthird', {selections: ['first', 'second', 'third'] })
-              editor.pasteText()
-              expect(editor.lineTextForBufferRow(0)).toBe "var first"
-              expect(editor.lineTextForBufferRow(1)).toBe "second"
-              expect(editor.lineTextForBufferRow(2)).toBe "third = function () {"
+            beforeEach ->
+              editor.setSelectedBufferRanges([[[0, 4], [0, 13]]])
 
-              expect(editor.lineTextForBufferRow(3)).toBe "  var first"
-              expect(editor.lineTextForBufferRow(4)).toBe "second"
-              expect(editor.lineTextForBufferRow(5)).toBe "third = function(items) {"
+            it "pastes the whole text into the buffer", ->
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(0)).toBe "var quicksort"
+              expect(editor.lineTextForBufferRow(1)).toBe "sort = function () {"
+
+        describe "when a full line was cut", ->
+          beforeEach ->
+            editor.setCursorBufferPosition([2, 13])
+            editor.cutSelectedText()
+            editor.setCursorBufferPosition([2, 13])
+
+          it "pastes the line above the cursor and retains the cursor's column", ->
+            editor.pasteText()
+            expect(editor.lineTextForBufferRow(2)).toBe("    if (items.length <= 1) return items;")
+            expect(editor.lineTextForBufferRow(3)).toBe("    var pivot = items.shift(), current, left = [], right = [];")
+            expect(editor.getCursorBufferPosition()).toEqual([3, 13])
+
+        describe "when a full line was copied", ->
+          beforeEach ->
+            editor.setCursorBufferPosition([2, 13])
+            editor.copySelectedText()
+
+          describe "when there is a selection", ->
+            it "overwrites the selection as with any copied text", ->
+              editor.setSelectedBufferRange([[1, 2], [1, Infinity]])
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(1)).toBe("  if (items.length <= 1) return items;")
+              expect(editor.lineTextForBufferRow(2)).toBe("  ")
+              expect(editor.lineTextForBufferRow(3)).toBe("    if (items.length <= 1) return items;")
+              expect(editor.getCursorBufferPosition()).toEqual([2, 2])
+
+          describe "when there is no selection", ->
+            it "pastes the line above the cursor and retains the cursor's column", ->
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(2)).toBe("    if (items.length <= 1) return items;")
+              expect(editor.lineTextForBufferRow(3)).toBe("    if (items.length <= 1) return items;")
+              expect(editor.getCursorBufferPosition()).toEqual([3, 13])
 
     describe ".indentSelectedRows()", ->
       describe "when nothing is selected", ->
@@ -2657,6 +2862,18 @@ describe "TextEditor", ->
           expect(buffer.lineForRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
 
           expect(editor.getSelectedBufferRange()).toEqual [[0, 1], [3, 0]]
+
+    describe ".autoIndentSelectedRows", ->
+      it "auto-indents the selection", ->
+        editor.setCursorBufferPosition([2, 0])
+        editor.insertText("function() {\ninside=true\n}\n  i=1\n")
+        editor.getLastSelection().setBufferRange([[2,0], [6,0]])
+        editor.autoIndentSelectedRows()
+
+        expect(editor.lineTextForBufferRow(2)).toBe "    function() {"
+        expect(editor.lineTextForBufferRow(3)).toBe "      inside=true"
+        expect(editor.lineTextForBufferRow(4)).toBe "    }"
+        expect(editor.lineTextForBufferRow(5)).toBe "    i=1"
 
     describe ".toggleLineCommentsInSelection()", ->
       it "toggles comments on the selected lines", ->
@@ -2829,18 +3046,16 @@ describe "TextEditor", ->
         expect(editor.isFoldedAtBufferRow(1)).toBeFalsy()
         expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
 
-    describe "begin/commitTransaction()", ->
+    describe "::transact", ->
       it "restores the selection when the transaction is undone/redone", ->
         buffer.setText('1234')
         editor.setSelectedBufferRange([[0, 1], [0, 3]])
-        editor.beginTransaction()
 
-        editor.delete()
-        editor.moveToEndOfLine()
-        editor.insertText('5')
-        expect(buffer.getText()).toBe '145'
-
-        editor.commitTransaction()
+        editor.transact ->
+          editor.delete()
+          editor.moveToEndOfLine()
+          editor.insertText('5')
+          expect(buffer.getText()).toBe '145'
 
         editor.undo()
         expect(buffer.getText()).toBe '1234'
@@ -3087,7 +3302,7 @@ describe "TextEditor", ->
         atom.packages.unloadPackages()
 
       it 'returns correct values based on the scope of the set grammars', ->
-        atom.config.set '.source.coffee', 'editor.tabLength', 6
+        atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.coffee'
 
         expect(editor.getTabLength()).toBe 2
         expect(coffeeEditor.getTabLength()).toBe 6
@@ -3100,16 +3315,21 @@ describe "TextEditor", ->
         expect(editor.getTabLength()).toBe 6
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
 
+        changeHandler = jasmine.createSpy('changeHandler')
+        editor.onDidChange(changeHandler)
+        editor.setTabLength(6)
+        expect(changeHandler).not.toHaveBeenCalled()
+
       it 'retokenizes when the editor.tabLength setting is updated', ->
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
 
-        atom.config.set '.source.js', 'editor.tabLength', 6
+        atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.js'
         expect(editor.getTabLength()).toBe 6
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
 
       it 'updates the tab length when the grammar changes', ->
-        atom.config.set '.source.coffee', 'editor.tabLength', 6
+        atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.coffee'
 
         expect(editor.getTabLength()).toBe 2
         expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
@@ -3142,251 +3362,158 @@ describe "TextEditor", ->
     it "switches to the better-matched grammar and re-tokenizes the buffer", ->
       editor.destroy()
 
-      jsGrammar = atom.syntax.selectGrammar('a.js')
-      atom.syntax.removeGrammar(jsGrammar)
+      jsGrammar = atom.grammars.selectGrammar('a.js')
+      atom.grammars.removeGrammar(jsGrammar)
 
       waitsForPromise ->
         atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
 
       runs ->
-        expect(editor.getGrammar()).toBe atom.syntax.nullGrammar
+        expect(editor.getGrammar()).toBe atom.grammars.nullGrammar
         expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
 
-        atom.syntax.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(jsGrammar)
         expect(editor.getGrammar()).toBe jsGrammar
         expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBeGreaterThan 1
 
-  describe "auto-indent", ->
-    copyText = (text, {startColumn, textEditor}={}) ->
-      startColumn ?= 0
-      textEditor ?= editor
-      textEditor.setCursorBufferPosition([0, 0])
-      textEditor.insertText(text)
-      numberOfNewlines = text.match(/\n/g)?.length
-      endColumn = text.match(/[^\n]*$/)[0]?.length
-      textEditor.getLastSelection().setBufferRange([[0,startColumn], [numberOfNewlines,endColumn]])
-      textEditor.cutSelectedText()
-
-    describe "editor.autoIndent", ->
-      describe "when editor.autoIndent is false (default)", ->
-        describe "when `indent` is triggered", ->
-          it "does not auto-indent the line", ->
-            editor.setCursorBufferPosition([1, 30])
-            editor.insertText("\n ")
-            expect(editor.lineTextForBufferRow(2)).toBe " "
-
-            atom.config.set("editor.autoIndent", false)
-            editor.indent()
-            expect(editor.lineTextForBufferRow(2)).toBe "  "
-
-      describe "when editor.autoIndent is true", ->
-        beforeEach ->
-          atom.config.set("editor.autoIndent", true)
-
-        describe "when `indent` is triggered", ->
-          it "auto-indents the line", ->
-            editor.setCursorBufferPosition([1, 30])
-            editor.insertText("\n ")
-            expect(editor.lineTextForBufferRow(2)).toBe " "
-
-            atom.config.set("editor.autoIndent", true)
-            editor.indent()
-            expect(editor.lineTextForBufferRow(2)).toBe "    "
-
-        describe "when a newline is added", ->
-          describe "when the line preceding the newline adds a new level of indentation", ->
-            it "indents the newline to one additional level of indentation beyond the preceding line", ->
-              editor.setCursorBufferPosition([1, Infinity])
-              editor.insertText('\n')
-              expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
-
-          describe "when the line preceding the newline does't add a level of indentation", ->
-            it "indents the new line to the same level a as the preceding line", ->
-              editor.setCursorBufferPosition([5, 14])
-              editor.insertText('\n')
-              expect(editor.indentationForBufferRow(6)).toBe editor.indentationForBufferRow(5)
-
-          describe "when the line preceding the newline is a comment", ->
-            it "maintains the indent of the commented line", ->
-              editor.setCursorBufferPosition([0, 0])
-              editor.insertText('    //')
-              editor.setCursorBufferPosition([0, Infinity])
-              editor.insertText('\n')
-              expect(editor.indentationForBufferRow(1)).toBe 2
-
-          it "does not indent the line preceding the newline", ->
-            editor.setCursorBufferPosition([2, 0])
-            editor.insertText('  var this-line-should-be-indented-more\n')
-            expect(editor.indentationForBufferRow(1)).toBe 1
-
-            atom.config.set("editor.autoIndent", true)
-            editor.setCursorBufferPosition([2, Infinity])
-            editor.insertText('\n')
-            expect(editor.indentationForBufferRow(1)).toBe 1
-            expect(editor.indentationForBufferRow(2)).toBe 1
-
-          describe "when the cursor is before whitespace", ->
-            it "retains the whitespace following the cursor on the new line", ->
-              editor.setText("  var sort = function() {}")
-              editor.setCursorScreenPosition([0, 23])
-              editor.insertNewline()
-
-              expect(buffer.lineForRow(0)).toBe '  var sort = function()'
-              expect(buffer.lineForRow(1)).toBe '   {}'
-              expect(editor.getCursorScreenPosition()).toEqual [1, 2]
-
-        describe "when inserted text matches a decrease indent pattern", ->
-          describe "when the preceding line matches an increase indent pattern", ->
-            it "decreases the indentation to match that of the preceding line", ->
-              editor.setCursorBufferPosition([1, Infinity])
-              editor.insertText('\n')
-              expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
-              editor.insertText('}')
-              expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1)
-
-          describe "when the preceding line doesn't match an increase indent pattern", ->
-            it "decreases the indentation to be one level below that of the preceding line", ->
-              editor.setCursorBufferPosition([3, Infinity])
-              editor.insertText('\n    ')
-              expect(editor.indentationForBufferRow(4)).toBe editor.indentationForBufferRow(3)
-              editor.insertText('}')
-              expect(editor.indentationForBufferRow(4)).toBe editor.indentationForBufferRow(3) - 1
-
-            it "doesn't break when decreasing the indentation on a row that has no indentation", ->
-              editor.setCursorBufferPosition([12, Infinity])
-              editor.insertText("\n}; # too many closing brackets!")
-              expect(editor.lineTextForBufferRow(13)).toBe "}; # too many closing brackets!"
-
-        describe "when inserted text does not match a decrease indent pattern", ->
-          it "does not decrease the indentation", ->
-            editor.setCursorBufferPosition([12, 0])
-            editor.insertText('  ')
-            expect(editor.lineTextForBufferRow(12)).toBe '  };'
-            editor.insertText('\t\t')
-            expect(editor.lineTextForBufferRow(12)).toBe '  \t\t};'
-
-        describe "when the current line does not match a decrease indent pattern", ->
-          it "leaves the line unchanged", ->
-            editor.setCursorBufferPosition([2, 4])
-            expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
-            editor.insertText('foo')
-            expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
-
-      describe 'when scoped settings are used', ->
-        coffeeEditor = null
-        beforeEach ->
-          waitsForPromise ->
-            atom.packages.activatePackage('language-coffee-script')
-          waitsForPromise ->
-            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
-
-          runs ->
-            atom.config.set('.source.js', 'editor.autoIndent', true)
-            atom.config.set('.source.coffee', 'editor.autoIndent', false)
-
-        afterEach: ->
-          atom.packages.deactivatePackages()
-          atom.packages.unloadPackages()
-
-        it "does not auto-indent the line for javascript files", ->
+  describe "editor.autoIndent", ->
+    describe "when editor.autoIndent is false (default)", ->
+      describe "when `indent` is triggered", ->
+        it "does not auto-indent the line", ->
           editor.setCursorBufferPosition([1, 30])
-          editor.insertText("\n")
+          editor.insertText("\n ")
+          expect(editor.lineTextForBufferRow(2)).toBe " "
+
+          atom.config.set("editor.autoIndent", false)
+          editor.indent()
+          expect(editor.lineTextForBufferRow(2)).toBe "  "
+
+    describe "when editor.autoIndent is true", ->
+      beforeEach ->
+        atom.config.set("editor.autoIndent", true)
+
+      describe "when `indent` is triggered", ->
+        it "auto-indents the line", ->
+          editor.setCursorBufferPosition([1, 30])
+          editor.insertText("\n ")
+          expect(editor.lineTextForBufferRow(2)).toBe " "
+
+          atom.config.set("editor.autoIndent", true)
+          editor.indent()
           expect(editor.lineTextForBufferRow(2)).toBe "    "
 
-          coffeeEditor.setCursorBufferPosition([1, 18])
-          coffeeEditor.insertText("\n")
-          expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
-
-    describe "editor.normalizeIndentOnPaste", ->
-      beforeEach ->
-        atom.config.set('editor.normalizeIndentOnPaste', true)
-
-      it "does not normalize the indentation level of the text when editor.normalizeIndentOnPaste is false", ->
-        copyText("   function() {\nvar cool = 1;\n  }\n")
-        atom.config.set('editor.normalizeIndentOnPaste', false)
-        editor.setCursorBufferPosition([5, 2])
-        editor.pasteText()
-        expect(editor.lineTextForBufferRow(5)).toBe "     function() {"
-        expect(editor.lineTextForBufferRow(6)).toBe "var cool = 1;"
-        expect(editor.lineTextForBufferRow(7)).toBe "  }"
-
-      describe "when the inserted text contains no newlines", ->
-        it "does not adjust the indentation level of the text", ->
-          editor.setCursorBufferPosition([5, 2])
-          editor.insertText("foo", indentBasis: 5)
-          expect(editor.lineTextForBufferRow(5)).toBe "  foo    current = items.shift();"
-
-        it "does not adjust the whitespace if there are preceding characters", ->
-          copyText(" foo")
-          editor.setCursorBufferPosition([5, 30])
-          editor.pasteText()
-
-          expect(editor.lineTextForBufferRow(5)).toBe "      current = items.shift(); foo"
-
-      describe "when the inserted text contains newlines", ->
-        describe "when the cursor is preceded only by whitespace characters", ->
-          it "normalizes indented lines to the cursor's current indentation level", ->
-            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2})
-            editor.setCursorBufferPosition([3, 4])
-            editor.pasteText()
-
-            expect(editor.lineTextForBufferRow(3)).toBe "    while (true) {"
-            expect(editor.lineTextForBufferRow(4)).toBe "      foo();"
-            expect(editor.lineTextForBufferRow(5)).toBe "    }"
-            expect(editor.lineTextForBufferRow(6)).toBe "var pivot = items.shift(), current, left = [], right = [];"
-
-        describe "when the cursor is preceded by non-whitespace characters", ->
-          it "normalizes the indentation level of all lines based on the level of the existing first line", ->
-            copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 0})
+      describe "when a newline is added", ->
+        describe "when the line preceding the newline adds a new level of indentation", ->
+          it "indents the newline to one additional level of indentation beyond the preceding line", ->
             editor.setCursorBufferPosition([1, Infinity])
-            editor.pasteText()
+            editor.insertText('\n')
+            expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
-            expect(editor.lineTextForBufferRow(1)).toBe "  var sort = function(items) {while (true) {"
-            expect(editor.lineTextForBufferRow(2)).toBe "    foo();"
-            expect(editor.lineTextForBufferRow(3)).toBe "  }"
-            expect(editor.lineTextForBufferRow(4)).toBe ""
+        describe "when the line preceding the newline does't add a level of indentation", ->
+          it "indents the new line to the same level a as the preceding line", ->
+            editor.setCursorBufferPosition([5, 14])
+            editor.insertText('\n')
+            expect(editor.indentationForBufferRow(6)).toBe editor.indentationForBufferRow(5)
 
-      describe 'when scoped settings are used', ->
-        coffeeEditor = null
-        beforeEach ->
-          waitsForPromise ->
-            atom.packages.activatePackage('language-coffee-script')
-          waitsForPromise ->
-            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+        describe "when the line preceding the newline is a comment", ->
+          it "maintains the indent of the commented line", ->
+            editor.setCursorBufferPosition([0, 0])
+            editor.insertText('    //')
+            editor.setCursorBufferPosition([0, Infinity])
+            editor.insertText('\n')
+            expect(editor.indentationForBufferRow(1)).toBe 2
 
-          runs ->
-            atom.config.set('.source.js', 'editor.normalizeIndentOnPaste', true)
-            atom.config.set('.source.coffee', 'editor.normalizeIndentOnPaste', false)
+        describe "when the line preceding the newline contains only whitespace", ->
+          it "bases the new line's indentation on only the preceding line", ->
+            editor.setCursorBufferPosition([6, Infinity])
+            editor.insertText("\n  ")
+            expect(editor.getCursorBufferPosition()).toEqual([7, 2])
 
-        afterEach: ->
-          atom.packages.deactivatePackages()
-          atom.packages.unloadPackages()
+            editor.insertNewline()
+            expect(editor.lineTextForBufferRow(8)).toBe("  ")
 
-        it "normalizes the indentation level based on scoped settings", ->
-          copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2, textEditor: coffeeEditor})
-          coffeeEditor.setCursorBufferPosition([4, 4])
-          coffeeEditor.pasteText()
-          expect(coffeeEditor.lineTextForBufferRow(4)).toBe "      while (true) {"
-          expect(coffeeEditor.lineTextForBufferRow(5)).toBe "      foo();"
-          expect(coffeeEditor.lineTextForBufferRow(6)).toBe "    }"
+        it "does not indent the line preceding the newline", ->
+          editor.setCursorBufferPosition([2, 0])
+          editor.insertText('  var this-line-should-be-indented-more\n')
+          expect(editor.indentationForBufferRow(1)).toBe 1
 
-          copyText("    while (true) {\n      foo();\n    }\n", {startColumn: 2})
-          editor.setCursorBufferPosition([3, 4])
-          editor.pasteText()
-          expect(editor.lineTextForBufferRow(3)).toBe "    while (true) {"
-          expect(editor.lineTextForBufferRow(4)).toBe "      foo();"
-          expect(editor.lineTextForBufferRow(5)).toBe "    }"
+          atom.config.set("editor.autoIndent", true)
+          editor.setCursorBufferPosition([2, Infinity])
+          editor.insertText('\n')
+          expect(editor.indentationForBufferRow(1)).toBe 1
+          expect(editor.indentationForBufferRow(2)).toBe 1
 
-    it "autoIndentSelectedRows auto-indents the selection", ->
-      editor.setCursorBufferPosition([2, 0])
-      editor.insertText("function() {\ninside=true\n}\n  i=1\n")
-      editor.getLastSelection().setBufferRange([[2,0], [6,0]])
-      editor.autoIndentSelectedRows()
+        describe "when the cursor is before whitespace", ->
+          it "retains the whitespace following the cursor on the new line", ->
+            editor.setText("  var sort = function() {}")
+            editor.setCursorScreenPosition([0, 12])
+            editor.insertNewline()
 
-      expect(editor.lineTextForBufferRow(2)).toBe "    function() {"
-      expect(editor.lineTextForBufferRow(3)).toBe "      inside=true"
-      expect(editor.lineTextForBufferRow(4)).toBe "    }"
-      expect(editor.lineTextForBufferRow(5)).toBe "    i=1"
+            expect(buffer.lineForRow(0)).toBe '  var sort ='
+            expect(buffer.lineForRow(1)).toBe '   function() {}'
+            expect(editor.getCursorScreenPosition()).toEqual [1, 2]
+
+      describe "when inserted text matches a decrease indent pattern", ->
+        describe "when the preceding line matches an increase indent pattern", ->
+          it "decreases the indentation to match that of the preceding line", ->
+            editor.setCursorBufferPosition([1, Infinity])
+            editor.insertText('\n')
+            expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
+            editor.insertText('}')
+            expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1)
+
+        describe "when the preceding line doesn't match an increase indent pattern", ->
+          it "decreases the indentation to be one level below that of the preceding line", ->
+            editor.setCursorBufferPosition([3, Infinity])
+            editor.insertText('\n    ')
+            expect(editor.indentationForBufferRow(4)).toBe editor.indentationForBufferRow(3)
+            editor.insertText('}')
+            expect(editor.indentationForBufferRow(4)).toBe editor.indentationForBufferRow(3) - 1
+
+          it "doesn't break when decreasing the indentation on a row that has no indentation", ->
+            editor.setCursorBufferPosition([12, Infinity])
+            editor.insertText("\n}; # too many closing brackets!")
+            expect(editor.lineTextForBufferRow(13)).toBe "}; # too many closing brackets!"
+
+      describe "when inserted text does not match a decrease indent pattern", ->
+        it "does not decrease the indentation", ->
+          editor.setCursorBufferPosition([12, 0])
+          editor.insertText('  ')
+          expect(editor.lineTextForBufferRow(12)).toBe '  };'
+          editor.insertText('\t\t')
+          expect(editor.lineTextForBufferRow(12)).toBe '  \t\t};'
+
+      describe "when the current line does not match a decrease indent pattern", ->
+        it "leaves the line unchanged", ->
+          editor.setCursorBufferPosition([2, 4])
+          expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
+          editor.insertText('foo')
+          expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
+
+    describe 'when scoped settings are used', ->
+      coffeeEditor = null
+      beforeEach ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+        waitsForPromise ->
+          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+
+        runs ->
+          atom.config.set('editor.autoIndent', true, scopeSelector: '.source.js')
+          atom.config.set('editor.autoIndent', false, scopeSelector: '.source.coffee')
+
+      afterEach: ->
+        atom.packages.deactivatePackages()
+        atom.packages.unloadPackages()
+
+      it "does not auto-indent the line for javascript files", ->
+        editor.setCursorBufferPosition([1, 30])
+        editor.insertText("\n")
+        expect(editor.lineTextForBufferRow(2)).toBe "    "
+
+        coffeeEditor.setCursorBufferPosition([1, 18])
+        coffeeEditor.insertText("\n")
+        expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
 
   describe "soft and hard tabs", ->
     afterEach ->
@@ -3404,6 +3531,19 @@ describe "TextEditor", ->
 
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
+
+      runs ->
+        expect(editor.softTabs).toBe false
+
+    it "uses hard tabs in Makefile files", ->
+      # FIXME remove once this is handled by a scoped setting in the
+      # language-make package
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-make')
+
+      waitsForPromise ->
+        atom.project.open('Makefile').then (o) -> editor = o
 
       runs ->
         expect(editor.softTabs).toBe false
@@ -3651,9 +3791,13 @@ describe "TextEditor", ->
 
     it "updates the grammar based on grammar overrides", ->
       expect(editor.getGrammar().name).toBe 'JavaScript'
-      atom.syntax.setGrammarOverrideForPath(editor.getPath(), 'source.coffee')
+      atom.grammars.setGrammarOverrideForPath(editor.getPath(), 'source.coffee')
+      callback = jasmine.createSpy('callback')
+      editor.onDidChangeGrammar(callback)
       editor.reloadGrammar()
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
+      expect(callback.callCount).toBe 1
+      expect(callback.argsForCall[0][0]).toBe atom.grammars.grammarForScopeName('source.coffee')
 
   describe "when the editor's grammar has an injection selector", ->
     beforeEach ->
@@ -3669,7 +3813,7 @@ describe "TextEditor", ->
         atom.packages.activatePackage('language-hyperlink')
 
       runs ->
-        grammar = atom.syntax.selectGrammar("text.js")
+        grammar = atom.grammars.selectGrammar("text.js")
         {tokens} = grammar.tokenizeLine("var i; // http://github.com")
 
         expect(tokens[0].value).toBe "var"

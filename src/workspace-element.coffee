@@ -23,6 +23,7 @@ class WorkspaceElement extends HTMLElement
     @focus()
 
   detachedCallback: ->
+    @subscriptions.dispose()
     @model.destroy()
 
   initializeGlobalTextEditorStyleSheet: ->
@@ -61,22 +62,17 @@ class WorkspaceElement extends HTMLElement
     WorkspaceView ?= require './workspace-view'
     @__spacePenView = new WorkspaceView(this)
 
-  getModel: -> @model
-
-  setModel: (@model) ->
-    @paneContainer = @model.getView(@model.paneContainer)
+  initialize: (@model) ->
+    @paneContainer = atom.views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
-
     @addEventListener 'focus', @handleFocus.bind(this)
-    handleWindowFocus = @handleWindowFocus.bind(this)
-    window.addEventListener 'focus', handleWindowFocus
-    @subscriptions.add(new Disposable -> window.removeEventListener 'focus', handleWindowFocus)
 
     @panelContainers =
-      top: @model.panelContainers.top.getView()
-      left: @model.panelContainers.left.getView()
-      right: @model.panelContainers.right.getView()
-      bottom: @model.panelContainers.bottom.getView()
+      top: atom.views.getView(@model.panelContainers.top)
+      left: atom.views.getView(@model.panelContainers.left)
+      right: atom.views.getView(@model.panelContainers.right)
+      bottom: atom.views.getView(@model.panelContainers.bottom)
+      modal: atom.views.getView(@model.panelContainers.modal)
 
     @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
     @horizontalAxis.appendChild(@panelContainers.right)
@@ -84,7 +80,12 @@ class WorkspaceElement extends HTMLElement
     @verticalAxis.insertBefore(@panelContainers.top, @paneContainer)
     @verticalAxis.appendChild(@panelContainers.bottom)
 
+    @appendChild(@panelContainers.modal)
+
     @__spacePenView.setModel(@model)
+    this
+
+  getModel: -> @model
 
   setTextEditorFontSize: (fontSize) ->
     @updateGlobalEditorStyle('font-size', fontSize + 'px')
@@ -103,9 +104,6 @@ class WorkspaceElement extends HTMLElement
   handleFocus: (event) ->
     @model.getActivePane().activate()
 
-  handleWindowFocus: (event) ->
-    @handleFocus(event) if document.activeElement is document.body
-
   focusPaneViewAbove: -> @paneContainer.focusPaneViewAbove()
 
   focusPaneViewBelow: -> @paneContainer.focusPaneViewBelow()
@@ -113,6 +111,10 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnLeft: -> @paneContainer.focusPaneViewOnLeft()
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
+
+  runPackageSpecs: ->
+    [projectPath] = atom.project.getPaths()
+    ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
 
 atom.commands.add 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
@@ -143,7 +145,7 @@ atom.commands.add 'atom-workspace',
   'application:open-your-snippets': -> ipc.send('command', 'application:open-your-snippets')
   'application:open-your-stylesheet': -> ipc.send('command', 'application:open-your-stylesheet')
   'application:open-license': -> @getModel().openLicense()
-  'window:run-package-specs': -> ipc.send('run-package-specs', path.join(atom.project.getPath(), 'spec'))
+  'window:run-package-specs': -> @runPackageSpecs()
   'window:focus-next-pane': -> @getModel().activateNextPane()
   'window:focus-previous-pane': -> @getModel().activatePreviousPane()
   'window:focus-pane-above': -> @focusPaneViewAbove()
@@ -152,7 +154,7 @@ atom.commands.add 'atom-workspace',
   'window:focus-pane-on-right': -> @focusPaneViewOnRight()
   'window:save-all': -> @getModel().saveAll()
   'window:toggle-invisibles': -> atom.config.toggle("editor.showInvisibles")
-  'window:log-deprecation-warnings': -> Grim.logDeprecationWarnings()
+  'window:log-deprecation-warnings': -> Grim.logDeprecations()
   'window:toggle-auto-indent': -> atom.config.toggle("editor.autoIndent")
   'pane:reopen-closed-item': -> @getModel().reopenItem()
   'core:close': -> @getModel().destroyActivePaneItemOrEmptyPane()

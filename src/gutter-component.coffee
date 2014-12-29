@@ -16,12 +16,12 @@ GutterComponent = React.createClass
   measuredWidth: null
 
   render: ->
-    {scrollHeight, scrollViewHeight, onMouseDown, backgroundColor, gutterBackgroundColor} = @props
+    {scrollHeight, scrollViewHeight, backgroundColor, gutterBackgroundColor} = @props
 
     if gutterBackgroundColor isnt 'rbga(0, 0, 0, 0)'
       backgroundColor = gutterBackgroundColor
 
-    div className: 'gutter', onClick: @onClick, onMouseDown: @onMouseDown,
+    div className: 'gutter',
       div className: 'line-numbers', ref: 'lineNumbers', style:
         height: Math.max(scrollHeight, scrollViewHeight)
         WebkitTransform: @getTransform()
@@ -44,6 +44,10 @@ GutterComponent = React.createClass
   componentDidMount: ->
     @appendDummyLineNumber()
     @updateLineNumbers() if @props.performedInitialMeasurement
+
+    node = @getDOMNode()
+    node.addEventListener 'click', @onClick
+    node.addEventListener 'mousedown', @onMouseDown
 
   # Only update the gutter if the visible row range has changed or if a
   # non-zero-delta change to the screen lines has occurred within the current

@@ -11,6 +11,20 @@ module.exports = (grunt) ->
 
   packageSpecQueue = null
 
+  logDeprecations = (label, {stderr}={}) ->
+    return unless process.env.JANKY_SHA1
+    stderr ?= ''
+    deprecatedStart = stderr.indexOf('Calls to deprecated functions')
+    return if deprecatedStart.length is -1
+
+    grunt.log.error(label)
+    stderr = stderr.substring(deprecatedStart)
+    stderr = stderr.replace(/^\s*\[[^\]]+\]\s+/gm, '')
+    stderr = stderr.replace(/source: .*$/gm, '')
+    stderr = stderr.replace(/^"/gm, '')
+    stderr = stderr.replace(/",\s*$/gm, '')
+    grunt.log.error(stderr)
+
   getAppPath = ->
     contentsDir = grunt.config.get('atom.contentsDir')
     switch process.platform
@@ -54,6 +68,7 @@ module.exports = (grunt) ->
           fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
         failedPackages.push path.basename(packagePath) if error
+        logDeprecations("#{path.basename(packagePath)} Specs", results)
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -87,6 +102,7 @@ module.exports = (grunt) ->
       else
         # TODO: Restore concurrency on Windows
         packageSpecQueue.concurrency = concurrency
+        logDeprecations('Core Specs', results)
 
       callback(null, error)
 

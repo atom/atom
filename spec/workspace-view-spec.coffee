@@ -1,8 +1,9 @@
-{$, $$, WorkspaceView, View} = require 'atom'
+{$, $$, View} = require '../src/space-pen-extensions'
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
 TextEditorView = require '../src/text-editor-view'
+Pane = require '../src/pane'
 PaneView = require '../src/pane-view'
 Workspace = require '../src/workspace'
 
@@ -10,15 +11,20 @@ describe "WorkspaceView", ->
   pathToOpen = null
 
   beforeEach ->
+    jasmine.snapshotDeprecations()
+
     atom.project.setPaths([atom.project.resolve('dir')])
     pathToOpen = atom.project.resolve('a')
     atom.workspace = new Workspace
-    atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
+    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
     atom.workspaceView.enableKeymap()
     atom.workspaceView.focus()
 
     waitsForPromise ->
       atom.workspace.open(pathToOpen)
+
+  afterEach ->
+    jasmine.restoreDeprecationsSnapshot()
 
   describe "@deserialize()", ->
     viewState = null
@@ -29,7 +35,7 @@ describe "WorkspaceView", ->
       atom.workspaceView.remove()
       atom.project = atom.deserializers.deserialize(projectState)
       atom.workspace = Workspace.deserialize(workspaceState)
-      atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
+      atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
       atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
@@ -274,15 +280,54 @@ describe "WorkspaceView", ->
   describe 'panel containers', ->
     workspaceElement = null
     beforeEach ->
-      workspaceElement = atom.workspace.getView(atom.workspace)
+      workspaceElement = atom.views.getView(atom.workspace)
 
     it 'inserts panel container elements in the correct places in the DOM', ->
-      leftContainer = workspaceElement.querySelector('atom-panel-container[location="left"]')
-      rightContainer = workspaceElement.querySelector('atom-panel-container[location="right"]')
+      leftContainer = workspaceElement.querySelector('atom-panel-container.left')
+      rightContainer = workspaceElement.querySelector('atom-panel-container.right')
       expect(leftContainer.nextSibling).toBe workspaceElement.verticalAxis
       expect(rightContainer.previousSibling).toBe workspaceElement.verticalAxis
 
-      topContainer = workspaceElement.querySelector('atom-panel-container[location="top"]')
-      bottomContainer = workspaceElement.querySelector('atom-panel-container[location="bottom"]')
+      topContainer = workspaceElement.querySelector('atom-panel-container.top')
+      bottomContainer = workspaceElement.querySelector('atom-panel-container.bottom')
       expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
       expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
+
+      modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
+      expect(modalContainer.parentNode).toBe workspaceElement
+
+  describe "::saveActivePaneItem()", ->
+    describe "when there is an error", ->
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("'/some/file' is a directory")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the directory cannot be written to", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the user does not have permission", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("no one knows")
+
+        save = -> atom.workspace.saveActivePaneItem()
+        expect(save).toThrow()

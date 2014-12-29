@@ -67,24 +67,24 @@ class DisplayBuffer extends Model
 
     oldConfigSettings = @configSettings
     @configSettings =
-      scrollPastEnd: atom.config.get(scopeDescriptor, 'editor.scrollPastEnd')
-      softWrap: atom.config.get(scopeDescriptor, 'editor.softWrap')
-      softWrapAtPreferredLineLength: atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
-      preferredLineLength: atom.config.get(scopeDescriptor, 'editor.preferredLineLength')
+      scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
+      softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
+      softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrap', ({newValue}) =>
+    subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrap = newValue
       @updateWrappedScreenLines()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.softWrapAtPreferredLineLength', ({newValue}) =>
+    subscriptions.add atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrapAtPreferredLineLength = newValue
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    subscriptions.add atom.config.onDidChange scopeDescriptor, 'editor.preferredLineLength', ({newValue}) =>
+    subscriptions.add atom.config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.preferredLineLength = newValue
-      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get(scopeDescriptor, 'editor.softWrapAtPreferredLineLength')
+      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
 
-    subscriptions.add atom.config.observe scopeDescriptor, 'editor.scrollPastEnd', (value) =>
+    subscriptions.add atom.config.observe 'editor.scrollPastEnd', scope: scopeDescriptor, (value) =>
       @configSettings.scrollPastEnd = value
 
     @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
@@ -735,9 +735,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
-    # TODO: Expand this exception to cover all versions once we burn it in on non-release builds
-    if @isDestroyed() and not atom.isReleasedVersion()
-      throw new Error("This TextEditor has been destroyed")
+    throw new Error("This TextEditor has been destroyed") if @isDestroyed()
 
     { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
@@ -885,11 +883,28 @@ class DisplayBuffer extends Model
   decorationForId: (id) ->
     @decorationsById[id]
 
-  getDecorations: ->
+  getDecorations: (propertyFilter) ->
     allDecorations = []
     for markerId, decorations of @decorationsByMarkerId
       allDecorations = allDecorations.concat(decorations) if decorations?
+    if propertyFilter?
+      allDecorations = allDecorations.filter (decoration) ->
+        for key, value of propertyFilter
+          return false unless decoration.properties[key] is value
+        true
     allDecorations
+
+  getLineDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line')
+
+  getGutterDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('gutter')
+
+  getHighlightDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('highlight')
+
+  getOverlayDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('overlay')
 
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
@@ -1077,8 +1092,9 @@ class DisplayBuffer extends Model
 
   destroyed: ->
     marker.unsubscribe() for id, marker of @markers
-    @tokenizedBuffer.destroy()
+    @scopedConfigSubscriptions.dispose()
     @unsubscribe()
+    @tokenizedBuffer.destroy()
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]

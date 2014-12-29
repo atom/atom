@@ -26,8 +26,8 @@ class TokenizedBuffer extends Model
   constructor: ({@buffer, @tabLength, @invisibles}) ->
     @emitter = new Emitter
 
-    @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
-    @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
+    @subscribe atom.grammars.onDidAddGrammar(@grammarAddedOrUpdated)
+    @subscribe atom.grammars.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
     @subscribe @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
@@ -84,10 +84,10 @@ class TokenizedBuffer extends Model
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
 
-    @configSettings = tabLength: atom.config.get(@rootScopeDescriptor, 'editor.tabLength')
+    @configSettings = tabLength: atom.config.get('editor.tabLength', scope: @rootScopeDescriptor)
 
     @grammarTabLengthSubscription?.dispose()
-    @grammarTabLengthSubscription = atom.config.onDidChange @rootScopeDescriptor, 'editor.tabLength', ({newValue}) =>
+    @grammarTabLengthSubscription = atom.config.onDidChange 'editor.tabLength', scope: @rootScopeDescriptor, ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
     @subscribe @grammarTabLengthSubscription
@@ -98,7 +98,7 @@ class TokenizedBuffer extends Model
     @emitter.emit 'did-change-grammar', grammar
 
   reloadGrammar: ->
-    if grammar = atom.syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar)
     else
       throw new Error("No grammar found for path: #{path}")
@@ -125,7 +125,10 @@ class TokenizedBuffer extends Model
   getTabLength: ->
     @tabLength ? @configSettings.tabLength
 
-  setTabLength: (@tabLength) ->
+  setTabLength: (tabLength) ->
+    return if tabLength is @tabLength
+
+    @tabLength = tabLength
     @retokenizeLines()
 
   setInvisibles: (invisibles) ->

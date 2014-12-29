@@ -7,6 +7,7 @@ CheckingState = 'checking'
 DownladingState = 'downloading'
 UpdateAvailableState = 'update-available'
 NoUpdateAvailableState = 'no-update-available'
+UnsupportedState = 'unsupported'
 ErrorState = 'error'
 
 module.exports =
@@ -15,15 +16,20 @@ class AutoUpdateManager
 
   constructor: (@version) ->
     @state = IdleState
-    @feedUrl = "https://atom.io/api/updates?version=#{@version}"
+    if process.platform is 'win32'
+      # Squirrel for Windows can't handle query params
+      # https://github.com/Squirrel/Squirrel.Windows/issues/132
+      @feedUrl = 'https://atom.io/api/updates'
+    else
+      @feedUrl = "https://atom.io/api/updates?version=#{@version}"
 
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
-    autoUpdater = require 'auto-updater'
-
     if process.platform is 'win32'
-      autoUpdater.checkForUpdates = => @checkForUpdatesShim()
+      autoUpdater = require './auto-updater-win32'
+    else
+      autoUpdater = require 'auto-updater'
 
     autoUpdater.setFeedUrl @feedUrl
 
@@ -48,28 +54,16 @@ class AutoUpdateManager
     unless /\w{7}/.test(@version)
       @check(hidePopups: true)
 
-  # Windows doesn't have an auto-updater, so use this method to shim the events.
-  checkForUpdatesShim: ->
-    autoUpdater.emit 'checking-for-update'
-
-    https = require 'https'
-    request = https.get @feedUrl, (response) ->
-      if response.statusCode == 200
-        body = ""
-        response.on 'data', (chunk) -> body += chunk
-        response.on 'end', ->
-          {notes, name} = JSON.parse(body)
-          autoUpdater.emit 'update-downloaded', null, notes, name
-      else
-        autoUpdater.emit 'update-not-available'
-
-    request.on 'error', (error) ->
-      autoUpdater.emit 'error', null, error.message
+    switch process.platform
+      when 'win32'
+        @setState(UnsupportedState) unless autoUpdater.supportsUpdates()
+      when 'linux'
+        @setState(UnsupportedState)
 
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion? and @releaseNotes
     for atomWindow in windows
-      atomWindow.sendCommand('window:update-available', [@releaseVersion, @releaseNotes])
+      atomWindow.sendMessage('update-available', {@releaseVersion, @releaseNotes})
 
   setState: (state) ->
     return if @state is state

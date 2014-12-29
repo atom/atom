@@ -18,5 +18,9 @@
 * [Developing Node Modules](advanced/node-modules.md)
 * [Keymaps](advanced/keymaps.md)
 * [Serialization](advanced/serialization.md)
-* [View System](advanced/view-system.md)
 * [Scopes and Scope Descriptors](advanced/scopes-and-scope-descriptors.md)
+
+### Upgrading to 1.0 APIs
+
+* [Upgrading Your UI Theme Or Package Selectors](upgrading/upgrading-your-ui-theme.md)
+* [Upgrading Your Syntax Theme](upgrading/upgrading-your-syntax-theme.md)

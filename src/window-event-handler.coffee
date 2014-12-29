@@ -1,6 +1,7 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
+{Disposable} = require 'event-kit'
 ipc = require 'ipc'
 shell = require 'shell'
 {Subscriber} = require 'emissary'
@@ -14,12 +15,34 @@ class WindowEventHandler
   constructor: ->
     @reloadRequested = false
 
+    @subscribe ipc, 'message', (message, detail) ->
+      switch message
+        when 'open-path'
+          {pathToOpen, initialLine, initialColumn} = detail
+
+          unless atom.project?.getPaths().length
+            if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
+              atom.project?.setPaths([pathToOpen])
+
+          unless fs.isDirectorySync(pathToOpen)
+            atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+
+        when 'update-available'
+          atom.updateAvailable(detail)
+
+          # FIXME: Remove this when deprecations are removed
+          {releaseVersion, releaseNotes} = detail
+          detail = [releaseVersion, releaseNotes]
+          if workspaceElement = atom.views.getView(atom.workspace)
+            atom.commands.dispatch workspaceElement, "window:update-available", detail
+
     @subscribe ipc, 'command', (command, args...) ->
       activeElement = document.activeElement
-      # Use root view if body has focus
-      if activeElement is document.body and atom.workspaceView?
-        activeElement = atom.workspaceView
-      $(activeElement).trigger(command, args...)
+      # Use the workspace element view if body has focus
+      if activeElement is document.body and workspaceElement = atom.views.getView(atom.workspace)
+        activeElement = workspaceElement
+
+      atom.commands.dispatch(activeElement, command, args[0])
 
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
@@ -27,14 +50,6 @@ class WindowEventHandler
     @subscribe $(window), 'focus', -> document.body.classList.remove('is-blurred')
 
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
-
-    @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
-      unless atom.project?.getPath()
-        if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
-          atom.project?.setPath(pathToOpen)
-
-      unless fs.isDirectorySync(pathToOpen)
-        atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
     @subscribe $(window), 'beforeunload', =>
       confirmed = atom.workspace?.confirmClose()
@@ -61,21 +76,23 @@ class WindowEventHandler
 
     @subscribeToCommand $(window), 'window:toggle-dev-tools', -> atom.toggleDevTools()
 
+    if process.platform in ['win32', 'linux']
+      @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
+        atom.config.set('core.autoHideMenuBar', !atom.config.get('core.autoHideMenuBar'))
+
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
 
     document.addEventListener 'keydown', @onKeydown
 
-    @subscribe $(document), 'drop', (e) ->
-      e.preventDefault()
-      e.stopPropagation()
-      pathsToOpen = _.pluck(e.originalEvent.dataTransfer.files, 'path')
-      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+    document.addEventListener 'drop', @onDrop
+    @subscribe new Disposable =>
+      document.removeEventListener('drop', @onDrop)
 
-    @subscribe $(document), 'dragover', (e) ->
-      e.preventDefault()
-      e.stopPropagation()
+    document.addEventListener 'dragover', @onDragOver
+    @subscribe new Disposable =>
+      document.removeEventListener('dragover', @onKeydown)
 
     @subscribe $(document), 'click', 'a', @openLink
 
@@ -105,6 +122,16 @@ class WindowEventHandler
   onKeydown: (event) ->
     atom.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
+
+  onDrop: (event) ->
+    event.preventDefault()
+    event.stopPropagation()
+    pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
+    atom.open({pathsToOpen}) if pathsToOpen.length > 0
+
+  onDragOver: (event) ->
+    event.preventDefault()
+    event.stopPropagation()
 
   openLink: ({target, currentTarget}) ->
     location = target?.getAttribute('href') or currentTarget?.getAttribute('href')

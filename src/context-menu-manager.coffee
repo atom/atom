@@ -76,8 +76,8 @@ class ContextMenuManager
   #     * `event` The click event that deployed the context menu.
   add: (itemsBySelector) ->
     # Detect deprecated file path as first argument
-    unless typeof itemsBySelector is 'object'
-      Grim.deprecate("ContextMenuManage::add has changed to take a single object as its argument. Please consult the documentation.")
+    if itemsBySelector? and typeof itemsBySelector isnt 'object'
+      Grim.deprecate("ContextMenuManager::add has changed to take a single object as its argument. Please consult the documentation.")
       itemsBySelector = arguments[1]
       devMode = arguments[2]?.devMode
 

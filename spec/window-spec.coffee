@@ -1,4 +1,4 @@
-{$, $$} = require 'atom'
+{$, $$} = require '../src/space-pen-extensions'
 path = require 'path'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
@@ -95,13 +95,13 @@ describe "Window", ->
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       workspaceState = atom.workspace.serialize()
-      syntaxState = atom.syntax.serialize()
+      syntaxState = atom.grammars.serialize()
       projectState = atom.project.serialize()
 
       atom.unloadEditorWindow()
 
       expect(atom.state.workspace).toEqual workspaceState
-      expect(atom.state.syntax).toEqual syntaxState
+      expect(atom.state.grammars).toEqual syntaxState
       expect(atom.state.project).toEqual projectState
       expect(atom.saveSync).toHaveBeenCalled()
 
@@ -112,9 +112,9 @@ describe "Window", ->
 
       runs ->
         buffer = atom.workspace.getActivePaneItem().buffer
-        pane = atom.workspaceView.getActivePaneView()
-        pane.splitRight(pane.copyActiveItem())
-        expect(atom.workspaceView.find('atom-text-editor').length).toBe 2
+        pane = atom.workspace.getActivePane()
+        pane.splitRight(copyActiveItem: true)
+        expect(atom.workspace.getTextEditors().length).toBe 2
 
         atom.removeEditorWindow()
 
@@ -128,17 +128,15 @@ describe "Window", ->
         setData: (key, value) -> @data[key] = value
         getData: (key) -> @data[key]
 
-      event = $.Event(type)
-      event.originalEvent = { dataTransfer }
-      event.preventDefault = ->
-      event.stopPropagation = ->
+      event = new CustomEvent("drop")
+      event.dataTransfer = dataTransfer
       event
 
     describe "when a file is dragged to window", ->
       it "opens it", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
-        $(document).trigger(event)
+        document.dispatchEvent(event)
         expect(atom.open.callCount).toBe 1
         expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
 
@@ -146,7 +144,7 @@ describe "Window", ->
       it "does nothing", ->
         spyOn(atom, "open")
         event = buildDragEvent("drop", [])
-        $(document).trigger(event)
+        document.dispatchEvent(event)
         expect(atom.open).not.toHaveBeenCalled()
 
   describe "when a link is clicked", ->
@@ -259,24 +257,23 @@ describe "Window", ->
 
       describe "when the opened path exists", ->
         it "sets the project path to the opened path", ->
-          $(window).trigger('window:open-path', [{pathToOpen: __filename}])
-
+          atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
           expect(atom.project.getPaths()[0]).toBe __dirname
 
       describe "when the opened path does not exist but its parent directory does", ->
         it "sets the project path to the opened path's parent directory", ->
-          $(window).trigger('window:open-path', [{pathToOpen: path.join(__dirname, 'this-path-does-not-exist.txt')}])
-
+          pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+          atom.getCurrentWindow().send 'message', 'open-path', {pathToOpen}
           expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path is a file", ->
       it "opens it in the workspace", ->
-        $(window).trigger('window:open-path', [{pathToOpen: __filename}])
+        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
 
         expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
 
     describe "when the opened path is a directory", ->
       it "does not open it in the workspace", ->
-        $(window).trigger('window:open-path', [{pathToOpen: __dirname}])
+        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __dirname
 
         expect(atom.workspace.open.callCount).toBe 0

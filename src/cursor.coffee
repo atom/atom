@@ -17,7 +17,7 @@ class Cursor extends Model
   visible: true
   needsAutoscroll: null
 
-  # Instantiated by an {TextEditor}
+  # Instantiated by a {TextEditor}
   constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
 
@@ -45,7 +45,7 @@ class Cursor extends Model
         cursor: this
 
       @emit 'moved', movedEvent
-      @emitter.emit 'did-change-position'
+      @emitter.emit 'did-change-position', movedEvent
       @editor.cursorMoved(movedEvent)
     @marker.onDidDestroy =>
       @destroyed = true
@@ -171,6 +171,10 @@ class Cursor extends Model
   Section: Cursor Position Details
   ###
 
+  # Public: Returns the underlying {Marker} for the cursor.
+  # Useful with overlay {Decoration}s.
+  getMarker: -> @marker
+
   # Public: Identifies if the cursor is surrounded by whitespace.
   #
   # "Surrounded" here means that the character directly before and after the
@@ -198,7 +202,7 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = atom.config.get(@getScopeDescriptor(), 'editor.nonWordCharacters').split('')
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
     _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
@@ -392,7 +396,7 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the next word boundary.
   moveToNextWordBoundary: ->
-    if position = @getMoveNextWordBoundaryBufferPosition()
+    if position = @getNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
   # Public: Moves the cursor to the beginning of the buffer line, skipping all
@@ -419,6 +423,61 @@ class Cursor extends Model
   ###
   Section: Local Positions and Ranges
   ###
+
+  # Public: Returns buffer position of previous word boundary. It might be on
+  # the current word, or the previous word.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #      (default: {::wordRegExp})
+  getPreviousWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
+    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
+
+    beginningOfWordPosition = null
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
+      if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
+        # force it to stop at the beginning of each line
+        beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
+      else if range.end.isLessThan(currentBufferPosition)
+        beginningOfWordPosition = range.end
+      else
+        beginningOfWordPosition = range.start
+
+      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    beginningOfWordPosition or currentBufferPosition
+
+  # Public: Returns buffer position of the next word boundary. It might be on
+  # the current word, or the previous word.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #      (default: {::wordRegExp})
+  getNextWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
+
+    endOfWordPosition = null
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
+      if range.start.row > currentBufferPosition.row
+        # force it to stop at the beginning of each line
+        endOfWordPosition = new Point(range.start.row, 0)
+      else if range.start.isGreaterThan(currentBufferPosition)
+        endOfWordPosition = range.start
+      else
+        endOfWordPosition = range.end
+
+      if not endOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    endOfWordPosition or currentBufferPosition
+
+  getMoveNextWordBoundaryBufferPosition: (options) ->
+    Grim.deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
+    @getNextWordBoundaryBufferPosition(options)
 
   # Public: Retrieves the buffer position of where the current word starts.
   #
@@ -451,49 +510,6 @@ class Cursor extends Model
       new Point(0, 0)
     else
       currentBufferPosition
-
-  # Public: Retrieves buffer position of previous word boundary. It might be on
-  # the current word, or the previous word.
-  getPreviousWordBoundaryBufferPosition: (options = {}) ->
-    currentBufferPosition = @getBufferPosition()
-    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
-    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
-
-    beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
-      if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
-        # force it to stop at the beginning of each line
-        beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
-      else if range.end.isLessThan(currentBufferPosition)
-        beginningOfWordPosition = range.end
-      else
-        beginningOfWordPosition = range.start
-
-      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
-        stop()
-
-    beginningOfWordPosition or currentBufferPosition
-
-  # Public: Retrieves buffer position of the next word boundary. It might be on
-  # the current word, or the previous word.
-  getMoveNextWordBoundaryBufferPosition: (options = {}) ->
-    currentBufferPosition = @getBufferPosition()
-    scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
-
-    endOfWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
-      if range.start.row > currentBufferPosition.row
-        # force it to stop at the beginning of each line
-        endOfWordPosition = new Point(range.start.row, 0)
-      else if range.start.isGreaterThan(currentBufferPosition)
-        endOfWordPosition = range.start
-      else
-        endOfWordPosition = range.end
-
-      if not endOfWordPosition?.isEqual(currentBufferPosition)
-        stop()
-
-    endOfWordPosition or currentBufferPosition
 
   # Public: Retrieves the buffer position of where the current word ends.
   #
@@ -620,7 +636,7 @@ class Cursor extends Model
   # Returns a {RegExp}.
   wordRegExp: ({includeNonWordCharacters}={}) ->
     includeNonWordCharacters ?= true
-    nonWordCharacters = atom.config.get(@getScopeDescriptor(), 'editor.nonWordCharacters')
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
     segments = ["^[\t ]*$"]
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
     if includeNonWordCharacters
@@ -649,7 +665,7 @@ class Cursor extends Model
   autoscroll: (options) ->
     @editor.scrollToScreenRange(@getScreenRange(), options)
 
-  getBeginningOfNextParagraphBufferPosition: (editor) ->
+  getBeginningOfNextParagraphBufferPosition: ->
     start = @getBufferPosition()
     eof = @editor.getEofBufferPosition()
     scanRange = [start, eof]
@@ -663,8 +679,8 @@ class Cursor extends Model
         stop()
     @editor.screenPositionForBufferPosition(position)
 
-  getBeginningOfPreviousParagraphBufferPosition: (editor) ->
-    start = @editor.getCursorBufferPosition()
+  getBeginningOfPreviousParagraphBufferPosition: ->
+    start = @getBufferPosition()
 
     {row, column} = start
     scanRange = [[row-1, column], [0,0]]

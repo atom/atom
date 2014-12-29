@@ -1,16 +1,14 @@
-ViewRegistry = require '../src/view-registry'
 Panel = require '../src/panel'
 PanelContainer = require '../src/panel-container'
 
 describe "PanelContainer", ->
-  [container, viewRegistry] = []
+  [container] = []
 
   class TestPanelItem
     constructior: ->
 
   beforeEach ->
-    viewRegistry = new ViewRegistry
-    container = new PanelContainer({viewRegistry})
+    container = new PanelContainer
 
   describe "::addPanel(panel)", ->
     it 'emits an onDidAddPanel event with the index the panel was inserted at', ->
@@ -46,7 +44,7 @@ describe "PanelContainer", ->
       [initialPanel] = []
       beforeEach ->
         # 'left' logic is the same as 'top'
-        container = new PanelContainer({viewRegistry, location: 'left'})
+        container = new PanelContainer({location: 'left'})
         initialPanel = new Panel(item: new TestPanelItem())
         container.addPanel(initialPanel)
 
@@ -75,7 +73,7 @@ describe "PanelContainer", ->
       [initialPanel] = []
       beforeEach ->
         # 'bottom' logic is the same as 'right'
-        container = new PanelContainer({viewRegistry, location: 'right'})
+        container = new PanelContainer({location: 'right'})
         initialPanel = new Panel(item: new TestPanelItem())
         container.addPanel(initialPanel)
 

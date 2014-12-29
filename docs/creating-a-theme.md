@@ -59,6 +59,8 @@ window in dev mode. To open a Dev Mode Atom window run `atom --dev .` in the
 terminal, use `cmd-shift-o` or use the _View > Developer > Open in Dev Mode_
 menu. When you edit your theme, changes will instantly be reflected!
 
+> Note: It's advised to _not_ specify a `font-family` in your syntax theme because it will override the Font Family field in Atom's settings. If you still like to recommend a font that goes well with your theme, we recommend you do so in your README.
+
 ## Creating an Interface Theme
 
 Interface themes **must** provide a `ui-variables.less` file which contains all

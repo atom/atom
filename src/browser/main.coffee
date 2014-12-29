@@ -13,7 +13,22 @@ process.on 'uncaughtException', (error={}) ->
   nslog(error.message) if error.message?
   nslog(error.stack) if error.stack?
 
+# Patch fs.statSyncNoException/fs.lstatSyncNoException to fail for non-strings
+# https://github.com/atom/atom-shell/issues/843
+{lstatSyncNoException, statSyncNoException} = fs
+fs.statSyncNoException = (pathToStat) ->
+  return false unless pathToStat and typeof pathToStat is 'string'
+  statSyncNoException(pathToStat)
+fs.lstatSyncNoException = (pathToStat) ->
+  return false unless pathToStat and typeof pathToStat is 'string'
+  lstatSyncNoException(pathToStat)
+
 start = ->
+  if process.platform is 'win32'
+    SquirrelUpdate = require './squirrel-update'
+    squirrelCommand = process.argv[1]
+    return if SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
+
   args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
@@ -133,6 +148,10 @@ parseCommandLine = ->
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
+
+  # On Yosemite the $PATH is not inherited by the "open" command, so we have to
+  # explicitly pass it by command line, see http://git.io/YC8_Ew.
+  process.env.PATH = args['path-environment'] if args['path-environment']
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
 

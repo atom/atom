@@ -2,10 +2,33 @@ window.onload = function() {
   try {
     var startTime = Date.now();
 
+    var fs = require('fs');
+    var path = require('path');
+
+    // Patch fs.statSyncNoException/fs.lstatSyncNoException to fail for non-strings
+    // https://github.com/atom/atom-shell/issues/843
+    var statSyncNoException = fs.statSyncNoException;
+    var lstatSyncNoException = fs.lstatSyncNoException;
+    fs.statSyncNoException = function(pathToStat) {
+      if (pathToStat && typeof pathToStat === 'string')
+        return statSyncNoException(pathToStat);
+      else
+        return false;
+    };
+    fs.lstatSyncNoException = function(pathToStat) {
+      if (pathToStat && typeof pathToStat === 'string')
+        return lstatSyncNoException(pathToStat);
+      else
+        return false;
+    };
+
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
-    var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + require('path').sep);
+    // Normalize to make sure drive letter case is consistent on Windows
+    process.resourcesPath = path.normalize(process.resourcesPath);
+
+    var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
     // Require before the module cache in dev mode
     if (devMode) {

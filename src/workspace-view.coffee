@@ -12,7 +12,7 @@ PaneView = require './pane-view'
 PaneContainerView = require './pane-container-view'
 TextEditor = require './text-editor'
 
-# Extended: The top-level view for the entire window. An instance of this class is
+# Deprecated: The top-level view for the entire window. An instance of this class is
 # available via the `atom.workspaceView` global.
 #
 # It is backed by a model object, an instance of {Workspace}, which is available
@@ -59,7 +59,7 @@ class WorkspaceView extends View
 
   constructor: (@element) ->
     unless @element?
-      return atom.workspace.getView(atom.workspace).__spacePenView
+      return atom.views.getView(atom.workspace).__spacePenView
     super
     @deprecateViewEvents()
 

@@ -6,7 +6,6 @@ os = require 'os'
 # modules work under node v0.11.x.
 require 'vm-compatibility-layer'
 
-fm = require 'json-front-matter'
 _ = require 'underscore-plus'
 
 packageJson = require '../package.json'
@@ -22,9 +21,9 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-csslint')
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
-  grunt.loadNpmTasks('grunt-markdown')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadNpmTasks('grunt-download-atom-shell')
+  grunt.loadNpmTasks('grunt-atom-shell-installer')
   grunt.loadNpmTasks('grunt-peg')
   grunt.loadTasks('tasks')
 
@@ -194,31 +193,18 @@ module.exports = (grunt) ->
         'static/**/*.less'
       ]
 
-    markdown:
-      guides:
-        files: [
-          expand: true
-          cwd: 'docs'
-          src: '**/*.md'
-          dest: 'docs/output/'
-          ext: '.html'
-        ]
-        options:
-          template: 'docs/template.jst'
-          templateContext:
-            tag: "v#{major}.#{minor}"
-          markdownOptions:
-            gfm: true
-          preCompile: (src, context) ->
-            parsed = fm.parse(src)
-            _.extend(context, parsed.attributes)
-            parsed.body
-
     'download-atom-shell':
       version: packageJson.atomShellVersion
       outputDir: 'atom-shell'
       downloadDir: atomShellDownloadDir
       rebuild: true  # rebuild native modules after atom-shell is updated
+
+    'create-windows-installer':
+      appDirectory: shellAppDir
+      outputDirectory: path.join(buildDir, 'installer')
+      authors: 'GitHub Inc.'
+      loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
+      iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
 
     shell:
       'kill-atom':
@@ -237,6 +223,7 @@ module.exports = (grunt) ->
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint')
   ciTasks.push('mkdeb') if process.platform is 'linux'
+  ciTasks.push('create-windows-installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
   ciTasks.push('codesign')
   ciTasks.push('publish-build')

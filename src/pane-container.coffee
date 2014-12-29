@@ -9,7 +9,6 @@ PaneAxisElement = require './pane-axis-element'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
 TextEditorElement = require './text-editor-element'
-ViewRegistry = require './view-registry'
 ItemRegistry = require './item-registry'
 
 module.exports =
@@ -36,10 +35,11 @@ class PaneContainer extends Model
     @subscriptions = new CompositeDisposable
 
     @itemRegistry = new ItemRegistry
-    @viewRegistry = params?.viewRegistry ? new ViewRegistry
     @registerViewProviders()
 
     @setRoot(params?.root ? new Pane)
+    @setActivePane(@getPanes()[0]) unless @getActivePane()
+
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
     @monitorActivePaneItem()
@@ -56,24 +56,14 @@ class PaneContainer extends Model
     activePaneId: @activePane.id
 
   registerViewProviders: ->
-    @viewRegistry.addViewProvider
-      modelConstructor: PaneContainer
-      viewConstructor: PaneContainerElement
-
-    @viewRegistry.addViewProvider
-      modelConstructor: PaneAxis
-      viewConstructor: PaneAxisElement
-
-    @viewRegistry.addViewProvider
-      modelConstructor: Pane
-      viewConstructor: PaneElement
-
-    @viewRegistry.addViewProvider
-      modelConstructor: TextEditor
-      viewConstructor: TextEditorElement
-
-  getView: (object) ->
-    @viewRegistry.getView(object)
+    atom.views.addViewProvider PaneContainer, (model) ->
+      new PaneContainerElement().initialize(model)
+    atom.views.addViewProvider PaneAxis, (model) ->
+      new PaneAxisElement().initialize(model)
+    atom.views.addViewProvider Pane, (model) ->
+      new PaneElement().initialize(model)
+    atom.views.addViewProvider TextEditor, (model) ->
+      new TextEditorElement().initialize(model)
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn
@@ -88,6 +78,9 @@ class PaneContainer extends Model
   observePanes: (fn) ->
     fn(pane) for pane in @getPanes()
     @onDidAddPane ({pane}) -> fn(pane)
+
+  onDidDestroyPane: (fn) ->
+    @emitter.on 'did-destroy-pane', fn
 
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
@@ -109,6 +102,9 @@ class PaneContainer extends Model
   observeActivePaneItem: (fn) ->
     fn(@getActivePaneItem())
     @onDidChangeActivePaneItem(fn)
+
+  onWillDestroyPaneItem: (fn) ->
+    @emitter.on 'will-destroy-pane-item', fn
 
   onDidDestroyPaneItem: (fn) ->
     @emitter.on 'did-destroy-pane-item', fn
@@ -137,6 +133,9 @@ class PaneContainer extends Model
 
   setActivePane: (activePane) ->
     if activePane isnt @activePane
+      unless activePane in @getPanes()
+        throw new Error("Setting active pane that is not present in pane container")
+
       @activePane = activePane
       @emitter.emit 'did-change-active-pane', @activePane
     @activePane
@@ -146,6 +145,9 @@ class PaneContainer extends Model
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
+
+  paneForItem: (item) ->
+    @getPanes().find (pane) -> item in pane.getItems()
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
@@ -185,11 +187,17 @@ class PaneContainer extends Model
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
 
-  paneItemDestroyed: (item) ->
-    @emitter.emit 'did-destroy-pane-item', item
+  willDestroyPaneItem: (event) ->
+    @emitter.emit 'will-destroy-pane-item', event
 
-  didAddPane: (pane) ->
-    @emitter.emit 'did-add-pane', pane
+  didDestroyPaneItem: (event) ->
+    @emitter.emit 'did-destroy-pane-item', event
+
+  didAddPane: (event) ->
+    @emitter.emit 'did-add-pane', event
+
+  didDestroyPane: (event) ->
+    @emitter.emit 'did-destroy-pane', event
 
   # Called by Model superclass when destroyed
   destroyed: ->
