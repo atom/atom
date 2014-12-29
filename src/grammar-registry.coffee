@@ -67,5 +67,5 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     atom.config.getRawScopedValue(scope, keyPath)
 
   propertiesForScope: (scope, keyPath) ->
-    deprecate 'A direct (but private) replacement is available at atom.config.scopedSettingsForScopeDescriptor().'
+    deprecate 'Use atom.config.getAll instead.'
     atom.config.settingsForScopeDescriptor(scope, keyPath)
