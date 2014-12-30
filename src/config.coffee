@@ -1023,8 +1023,8 @@ class Config
 
   settingsForScopeDescriptor: (scopeDescriptor, keyPath) ->
     Grim.deprecate("Use Config::getAll instead")
-    scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
-    @scopedSettingsStore.getProperties(scopeDescriptor.getScopeChain(), keyPath)
+    entries = @getAll(null, scope: scopeDescriptor)
+    value for {value} in entries when _.valueForKeyPath(value, keyPath)?
 
 # Base schema enforcers. These will coerce raw input into the specified type,
 # and will throw an error when the value cannot be coerced. Throwing the error
