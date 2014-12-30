@@ -998,8 +998,6 @@ class TextEditor extends Model
   # Extended: Toggle line comments for rows intersecting selections.
   #
   # If the current grammar doesn't support comments, does nothing.
-  #
-  # Returns an {Array} of the commented {Range}s.
   toggleLineCommentsInSelection: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
 

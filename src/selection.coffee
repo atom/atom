@@ -536,8 +536,6 @@ class Selection extends Model
   # of a comment.
   #
   # Removes the comment if they are currently wrapped in a comment.
-  #
-  # Returns an Array of the commented {Range}s.
   toggleLineComments: ->
     @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 

@@ -26,8 +26,6 @@ class LanguageMode
   #
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
-  #
-  # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @editor.scopeDescriptorForBufferPosition([start, 0])
     commentStartEntry = atom.config.getAll('editor.commentStart', {scope})[0]
@@ -97,6 +95,7 @@ class LanguageMode
             buffer.insert([row, indentLength], commentStartString)
           else
             buffer.setTextInRange([[row, 0], [row, indentString.length]], indentString + commentStartString)
+    return
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->
