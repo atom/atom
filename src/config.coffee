@@ -317,8 +317,6 @@ class Config
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
-    @prioritiesBySource = {}
-    @prioritiesBySource[@getUserConfigPath()] = 1000
 
   ###
   Section: Config Subscription
@@ -595,7 +593,7 @@ class Config
           @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
           _.setValueForKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
-          @set(null, settings, {scopeSelector, source, priority: @prioritiesBySource[source]}) if settings?
+          @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
           @save() unless @configFileHasErrors
       else
         @scopedSettingsStore.removePropertiesForSource(source)
@@ -942,12 +940,19 @@ class Config
   Section: Private Scoped Settings
   ###
 
+  priorityForSource: (source) ->
+    if source is @getUserConfigPath()
+      1000
+    else
+      0
+
   emitChangeEvent: ->
     @emitter.emit 'did-change' unless @transactDepth > 0
 
   resetUserScopedSettings: (newScopedSettings) ->
-    @scopedSettingsStore.removePropertiesForSource(@getUserConfigPath())
-    @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
+    source = @getUserConfigPath()
+    @scopedSettingsStore.removePropertiesForSource(source)
+    @scopedSettingsStore.addProperties(source, newScopedSettings, priority: @priorityForSource(source))
     @emitChangeEvent()
 
   addScopedSettings: (source, selector, value, options) ->
@@ -968,7 +973,7 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
+    @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @priorityForSource(source))
     @emitChangeEvent()
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->

@@ -9,6 +9,8 @@ describe "Config", ->
 
   beforeEach ->
     dotAtomPath = temp.path('dot-atom-dir')
+    atom.config.configDirPath = dotAtomPath
+    atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
 
   describe ".get(keyPath, {scope, sources, excludeSources})", ->
     it "allows a key path's value to be read", ->
@@ -553,7 +555,6 @@ describe "Config", ->
 
       describe "when ~/.atom/config.json exists", ->
         it "writes any non-default properties to ~/.atom/config.json", ->
-          atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.json")
           atom.config.set("a.b.c", 1)
           atom.config.set("a.b.d", 2)
           atom.config.set("x.y.z", 3)
@@ -562,13 +563,12 @@ describe "Config", ->
           CSON.writeFileSync.reset()
           atom.config.save()
 
-          expect(CSON.writeFileSync.argsForCall[0][0]).toBe path.join(atom.config.configDirPath, "atom.config.json")
+          expect(CSON.writeFileSync.argsForCall[0][0]).toBe atom.config.configFilePath
           writtenConfig = CSON.writeFileSync.argsForCall[0][1]
           expect(writtenConfig).toEqual global: atom.config.settings
 
       describe "when ~/.atom/config.json doesn't exist", ->
         it "writes any non-default properties to ~/.atom/config.cson", ->
-          atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
           atom.config.set("a.b.c", 1)
           atom.config.set("a.b.d", 2)
           atom.config.set("x.y.z", 3)
@@ -604,8 +604,6 @@ describe "Config", ->
 
     describe ".loadUserConfig()", ->
       beforeEach ->
-        atom.config.configDirPath = dotAtomPath
-        atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
         expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
         atom.config.setSchema 'foo',
           type: 'object'
@@ -709,8 +707,6 @@ describe "Config", ->
               type: 'integer'
               default: 12
 
-        atom.config.configDirPath = dotAtomPath
-        atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")
         expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
         fs.writeFileSync atom.config.configFilePath, """
           global:
