@@ -251,17 +251,12 @@ describe "ThemeManager", ->
   describe "base style sheet loading", ->
     workspaceElement = null
     beforeEach ->
-      jasmine.snapshotDeprecations()
-
       workspaceElement = atom.views.getView(atom.workspace)
       jasmine.attachToDOM(workspaceElement)
       workspaceElement.appendChild document.createElement('atom-text-editor')
 
       waitsForPromise ->
         themeManager.activateThemes()
-
-    beforeEach ->
-      jasmine.restoreDeprecationsSnapshot()
 
     it "loads the correct values from the theme's ui-variables file", ->
       themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
