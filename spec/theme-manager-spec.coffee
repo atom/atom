@@ -248,7 +248,7 @@ describe "ThemeManager", ->
 
       expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
-  describe "base stylesheet loading", ->
+  describe "base style sheet loading", ->
     workspaceElement = null
     beforeEach ->
       jasmine.snapshotDeprecations()
