@@ -837,7 +837,7 @@ class Config
     console.error detail
 
   save: ->
-    allSettings = global: @settings
+    allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
     CSON.writeFileSync(@configFilePath, allSettings)
 
@@ -852,9 +852,13 @@ class Config
       return
 
     if newSettings.global?
+      newSettings['*'] = newSettings.global
+      delete newSettings.global
+
+    if newSettings['*']?
       scopedSettings = newSettings
-      newSettings = newSettings.global
-      delete scopedSettings.global
+      newSettings = newSettings['*']
+      delete scopedSettings['*']
       @resetUserScopedSettings(scopedSettings)
 
     @transact =>
