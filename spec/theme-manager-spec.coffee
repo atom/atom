@@ -128,6 +128,29 @@ describe "ThemeManager", ->
         expect(importPaths.length).toBe 1
         expect(importPaths[0]).toContain 'atom-dark-ui'
 
+    it 'adds theme-* classes to the workspace for each active theme', ->
+      workspaceElement = atom.views.getView(atom.workspace)
+      themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
+
+      waitsForPromise ->
+        themeManager.activateThemes()
+
+      runs ->
+        expect(workspaceElement).toHaveClass 'theme-atom-dark-ui'
+
+        themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
+        atom.config.set('core.themes', ['theme-with-ui-variables', 'theme-with-syntax-variables'])
+
+      waitsFor ->
+        reloadHandler.callCount > 0
+
+      runs ->
+        # `theme-` twice as it prefixes the name with `theme-`
+        expect(workspaceElement).toHaveClass 'theme-theme-with-ui-variables'
+        expect(workspaceElement).toHaveClass 'theme-theme-with-syntax-variables'
+        expect(workspaceElement).not.toHaveClass 'theme-atom-dark-ui'
+        expect(workspaceElement).not.toHaveClass 'theme-atom-dark-syntax'
+
   describe "when a theme fails to load", ->
     it "logs a warning", ->
       spyOn(console, 'warn')
@@ -271,22 +294,6 @@ describe "ThemeManager", ->
           # from within the theme itself
           expect($("atom-text-editor").css("background-color")).toBe "rgb(0, 152, 255)"
 
-    describe "theme classes on the workspace", ->
-      it 'adds theme-* classes to the workspace for each active theme', ->
-        expect(workspaceElement).toHaveClass 'theme-atom-dark-ui'
-
-        themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
-        atom.config.set('core.themes', ['theme-with-ui-variables', 'theme-with-syntax-variables'])
-
-        waitsFor ->
-          reloadHandler.callCount > 0
-
-        runs ->
-          # `theme-` twice as it prefixes the name with `theme-`
-          expect(workspaceElement).toHaveClass 'theme-theme-with-ui-variables'
-          expect(workspaceElement).toHaveClass 'theme-theme-with-syntax-variables'
-          expect(workspaceElement).not.toHaveClass 'theme-atom-dark-ui'
-          expect(workspaceElement).not.toHaveClass 'theme-atom-dark-syntax'
 
   describe "when the user stylesheet changes", ->
     beforeEach ->
