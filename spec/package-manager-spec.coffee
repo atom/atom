@@ -400,7 +400,7 @@ describe "PackageManager", ->
       describe "scoped-property loading", ->
         it "loads the scoped properties", ->
           waitsForPromise ->
-            atom.packages.activatePackage("package-with-scoped-properties")
+            atom.packages.activatePackage("package-with-settings")
 
           runs ->
             expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
@@ -526,11 +526,11 @@ describe "PackageManager", ->
 
       it "removes the package's scoped-properties", ->
         waitsForPromise ->
-          atom.packages.activatePackage("package-with-scoped-properties")
+          atom.packages.activatePackage("package-with-settings")
 
         runs ->
           expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
-          atom.packages.deactivatePackage("package-with-scoped-properties")
+          atom.packages.deactivatePackage("package-with-settings")
           expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBeUndefined()
 
     describe "textmate packages", ->
