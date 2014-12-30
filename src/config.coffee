@@ -317,8 +317,9 @@ class Config
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
-    @prioritiesBySource = {}
-    @prioritiesBySource[@getUserConfigPath()] = 1000
+
+    @debouncedSave = _.debounce(@save, 100)
+    @debouncedLoad = _.debounce(@loadUserConfig, 100)
 
   ###
   Section: Config Subscription
@@ -570,6 +571,7 @@ class Config
       [keyPath, value, options] = arguments
       scopeSelector = options?.scopeSelector
       source = options?.source
+      shouldSave = options?.save ? true
 
     if source and not scopeSelector
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
@@ -587,7 +589,7 @@ class Config
     else
       @setRawValue(keyPath, value)
 
-    @save() unless @configFileHasErrors or options?.save is false
+    @debouncedSave() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
     true
 
   # Essential: Restore the setting at `keyPath` to its default value.
@@ -616,16 +618,15 @@ class Config
           @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
           _.setValueForKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
-          @set(null, settings, {scopeSelector, source, priority: @prioritiesBySource[source]}) if settings?
-          @save() unless @configFileHasErrors
+          @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
+          @debouncedSave()
       else
-        @scopedSettingsStore.removePropertiesForSource(source)
+        @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
         @emitChangeEvent()
     else
       @scopedSettingsStore.removePropertiesForSource(source)
       if keyPath?
         @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
-
 
   # Extended: Get an {Array} of all of the `source` {String}s with which
   # settings have been added via {::set}.
@@ -820,7 +821,7 @@ class Config
   observeUserConfig: ->
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
-        @loadUserConfig() if eventType is 'change' and @watchSubscription?
+        @debouncedLoad() if eventType is 'change' and @watchSubscription?
     catch error
       @notifyFailure('Failed to watch user config', error)
 
@@ -963,12 +964,19 @@ class Config
   Section: Private Scoped Settings
   ###
 
+  priorityForSource: (source) ->
+    if source is @getUserConfigPath()
+      1000
+    else
+      0
+
   emitChangeEvent: ->
     @emitter.emit 'did-change' unless @transactDepth > 0
 
   resetUserScopedSettings: (newScopedSettings) ->
-    @scopedSettingsStore.removePropertiesForSource(@getUserConfigPath())
-    @scopedSettingsStore.addProperties(@getUserConfigPath(), newScopedSettings, priority: @prioritiesBySource[@getUserConfigPath()])
+    source = @getUserConfigPath()
+    @scopedSettingsStore.removePropertiesForSource(source)
+    @scopedSettingsStore.addProperties(source, newScopedSettings, priority: @priorityForSource(source))
     @emitChangeEvent()
 
   addScopedSettings: (source, selector, value, options) ->
@@ -989,7 +997,7 @@ class Config
 
     settingsBySelector = {}
     settingsBySelector[selector] = value
-    @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @prioritiesBySource[source])
+    @scopedSettingsStore.addProperties(source, settingsBySelector, priority: @priorityForSource(source))
     @emitChangeEvent()
 
   getRawScopedValue: (scopeDescriptor, keyPath, options) ->

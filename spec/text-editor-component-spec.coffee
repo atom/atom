@@ -755,7 +755,6 @@ describe "TextEditorComponent", ->
       expect(cursorNode.offsetWidth).toBe charWidth
 
     it "blinks cursors when they aren't moving", ->
-      spyOn(_._, 'now').andCallFake -> window.now # Ensure _.debounce is based on our fake spec timeline
       cursorsNode = componentNode.querySelector('.cursors')
 
       expect(cursorsNode.classList.contains('blink-off')).toBe false
@@ -2048,8 +2047,6 @@ describe "TextEditorComponent", ->
         expect(component.mouseWheelScreenRow).toBe null
 
       it "clears the mouseWheelScreenRow after a delay even if the event does not cause scrolling", ->
-        spyOn(_._, 'now').andCallFake -> window.now # Ensure _.debounce is based on our fake spec timeline
-
         expect(editor.getScrollTop()).toBe 0
 
         lineNode = componentNode.querySelector('.line')

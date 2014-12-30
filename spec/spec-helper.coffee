@@ -84,6 +84,10 @@ beforeEach ->
   atom.workspaceViewParentSelector = '#jasmine-content'
 
   window.resetTimeouts()
+  spyOn(_._, "now").andCallFake -> window.now
+  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
+  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+
   atom.packages.packageStates = {}
 
   serializedWindowState = null
@@ -102,9 +106,9 @@ beforeEach ->
   spyOn(atom.menu, 'sendToBrowserProcess')
 
   # reset config before each spec; don't load or save from/to `config.json`
+  spyOn(Config::, 'load')
+  spyOn(Config::, 'save')
   config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
-  spyOn(config, 'load')
-  spyOn(config, 'save')
   atom.config = config
   atom.loadConfig()
   config.set "core.destroyEmptyPanes", false
@@ -114,6 +118,7 @@ beforeEach ->
   config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
   config.set "editor.useShadowDOM", true
+  advanceClock(1000)
   config.load.reset()
   config.save.reset()
 
@@ -121,8 +126,6 @@ beforeEach ->
   TextEditorElement::setUpdatedSynchronously(true)
 
   spyOn(atom, "setRepresentedFilename")
-  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
-  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 
