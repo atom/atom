@@ -84,6 +84,10 @@ beforeEach ->
   atom.workspaceViewParentSelector = '#jasmine-content'
 
   window.resetTimeouts()
+  spyOn(_._, "now").andCallFake -> window.now
+  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
+  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+
   atom.packages.packageStates = {}
 
   serializedWindowState = null
@@ -121,8 +125,6 @@ beforeEach ->
   TextEditorElement::setUpdatedSynchronously(true)
 
   spyOn(atom, "setRepresentedFilename")
-  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
-  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 
