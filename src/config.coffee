@@ -318,6 +318,9 @@ class Config
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
 
+    @debouncedSave = _.debounce(@save, 100)
+    @debouncedLoad = _.debounce(@loadUserConfig, 100)
+
   ###
   Section: Config Subscription
   ###
@@ -564,7 +567,7 @@ class Config
     else
       @setRawValue(keyPath, value)
 
-    @save() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
+    @debouncedSave() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
     true
 
   # Essential: Restore the setting at `keyPath` to its default value.
@@ -594,15 +597,14 @@ class Config
           _.setValueForKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
           @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
-          @save() unless @configFileHasErrors
+          @debouncedSave()
       else
-        @scopedSettingsStore.removePropertiesForSource(source)
+        @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
         @emitChangeEvent()
     else
       @scopedSettingsStore.removePropertiesForSource(source)
       if keyPath?
         @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
-
 
   # Extended: Get an {Array} of all of the `source` {String}s with which
   # settings have been added via {::set}.
@@ -797,7 +799,7 @@ class Config
   observeUserConfig: ->
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
-        @loadUserConfig() if eventType is 'change' and @watchSubscription?
+        @debouncedLoad() if eventType is 'change' and @watchSubscription?
     catch error
       @notifyFailure('Failed to watch user config', error)
 
