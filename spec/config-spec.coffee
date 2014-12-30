@@ -110,6 +110,10 @@ describe "Config", ->
       expect(atom.config.save).toHaveBeenCalled()
       expect(observeHandler).toHaveBeenCalledWith 42
 
+    it "does not save when a non-default 'source' is given", ->
+      atom.config.set("foo.bar.baz", 42, source: 'some-other-source', scopeSelector: '.a')
+      expect(atom.config.save).not.toHaveBeenCalled()
+
     it "does not allow a 'source' option without a 'scopeSelector'", ->
       expect(-> atom.config.set("foo", 1, source: [".source.ruby"])).toThrow()
 

@@ -548,6 +548,7 @@ class Config
       [keyPath, value, options] = arguments
       scopeSelector = options?.scopeSelector
       source = options?.source
+      shouldSave = options?.save ? true
 
     if source and not scopeSelector
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
@@ -565,7 +566,7 @@ class Config
     else
       @setRawValue(keyPath, value)
 
-    @save() unless @configFileHasErrors or options?.save is false
+    @save() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
     true
 
   # Essential: Restore the setting at `keyPath` to its default value.
