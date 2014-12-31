@@ -113,6 +113,7 @@ class LanguageMode
   #
   # indentLevel - A {Number} indicating indentLevel; 0 based.
   foldAllAtIndentLevel: (indentLevel) ->
+    @unfoldAll()
     for currentRow in [0..@buffer.getLastRow()]
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
