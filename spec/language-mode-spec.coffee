@@ -381,6 +381,23 @@ describe "LanguageMode", ->
         expect(languageMode.isFoldableAtBufferRow(3)).toBe false
         expect(languageMode.isFoldableAtBufferRow(4)).toBe true
 
+    describe ".foldAllAtIndentLevel(indentLevel)", ->
+      it "folds blocks of text at the given indentation level", ->
+        languageMode.foldAllAtIndentLevel(0)
+        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+        expect(editor.getLastScreenRow()).toBe 0
+
+        languageMode.foldAllAtIndentLevel(1)
+        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+        expect(editor.lineTextForScreenRow(1)).toBe "  var sort = function(items) {"
+        expect(editor.getLastScreenRow()).toBe 4
+
+        languageMode.foldAllAtIndentLevel(2)
+        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+        expect(editor.lineTextForScreenRow(1)).toBe "  var sort = function(items) {"
+        expect(editor.lineTextForScreenRow(2)).toBe "    if (items.length <= 1) return items;"
+        expect(editor.getLastScreenRow()).toBe 9
+
   describe "folding with comments", ->
     beforeEach ->
       waitsForPromise ->
