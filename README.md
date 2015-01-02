@@ -64,6 +64,7 @@ repeat these steps to upgrade to future releases.
 * [Linux](docs/build-instructions/linux.md)
 * [OS X](docs/build-instructions/os-x.md)
 * [FreeBSD](docs/build-instructions/freebsd.md)
+  * Highly experimental
 * [Windows](docs/build-instructions/windows.md)
 
 ## Developing
