@@ -206,10 +206,16 @@ class Cursor extends Model
     _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
-  isInsideWord: ->
+  #
+  # * `options` (optional) {Object}
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #     (default: {::wordRegExp}).
+  #
+  # Returns a {Boolean}
+  isInsideWord: (options) ->
     {row, column} = @getBufferPosition()
     range = [[row, column], [row, Infinity]]
-    @editor.getTextInBufferRange(range).search(@wordRegExp()) == 0
+    @editor.getTextInBufferRange(range).search(options?.wordRegex ? @wordRegExp()) == 0
 
   # Public: Returns the indentation level of the current line.
   getIndentLevel: ->
@@ -544,7 +550,7 @@ class Cursor extends Model
   # Returns a {Range}
   getBeginningOfNextWordBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
-    start = if @isInsideWord() then @getEndOfCurrentWordBufferPosition() else currentBufferPosition
+    start = if @isInsideWord(options) then @getEndOfCurrentWordBufferPosition(options) else currentBufferPosition
     scanRange = [start, @editor.getEofBufferPosition()]
 
     beginningOfNextWordPosition = null
