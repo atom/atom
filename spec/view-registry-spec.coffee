@@ -14,14 +14,14 @@ describe "ViewRegistry", ->
         expect(registry.getView(node)).toBe node
 
     describe "when passed a SpacePen view", ->
-      it "returns the root node of the view with a __spacePenView property pointing at the SpacePen view", ->
+      it "returns the root node of the view with a .spacePenView property pointing at the SpacePen view", ->
         class TestView extends View
           @content: -> @div "Hello"
 
         view = new TestView
         node = registry.getView(view)
         expect(node.textContent).toBe "Hello"
-        expect(node.__spacePenView).toBe view
+        expect(node.spacePenView).toBe view
 
     describe "when passed a model object", ->
       describe "when a view provider is registered matching the object's constructor", ->
@@ -62,7 +62,7 @@ describe "ViewRegistry", ->
             node = registry.getView(model)
 
             expect(node.textContent).toBe "hello"
-            view = node.__spacePenView
+            view = node.spacePenView
             expect(view instanceof TestView).toBe true
             expect(view.model).toBe model
 

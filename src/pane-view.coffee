@@ -153,7 +153,9 @@ class PaneView extends View
   activeItemModifiedChanged: =>
     @trigger 'pane:active-item-modified-status-changed'
 
-  @::accessor 'activeView', -> atom.views.getView(@activeItem)?.__spacePenView
+  @::accessor 'activeView', ->
+    element = atom.views.getView(@activeItem)
+    $(element).view() ? element
 
   splitLeft: (items...) -> atom.views.getView(@model.splitLeft({items})).__spacePenView
 
