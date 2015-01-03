@@ -668,6 +668,16 @@ class Workspace extends Model
 
   ###
   Section: Panels
+
+  Panels are used to display UI related to an editor window. They are placed at one of the four
+  edges of the window: left, right, top or bottom. If there are multiple panels on the same window
+  edge they are stacked in order of priority: higher priority is closer to the center, lower
+  priority towards the edge.
+
+  *Note:* If your panel changes its size throughout its lifetime, consider giving it a higher
+  priority, allowing fixed size panels to be closer to the edge. This allows control targets to
+  remain more static for easier targeting by users that employ mice or trackpads. (See
+  [atom/atom#4834](https://github.com/atom/atom/issues/4834) for discussion.)
   ###
 
   # Essential: Get an {Array} of all the panel items at the bottom of the editor window.
