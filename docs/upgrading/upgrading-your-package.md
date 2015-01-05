@@ -304,9 +304,100 @@ class CommandPaletteView extends SelectListView
 * And check out the [conversion of CommandPaletteView][selectlistview-example] as a real-world example.
 * See the [SelectListView docs][SelectListView] for all options.
 
-## Specs
+## Updating Specs
 
-TODO: come up with patterns for converting away from using `workspaceView` and `editorView`s everywhere.
+`WorkspaceView` and `EditorView` have been deprecated. These two objects are used heavily throughout specs, mostly to dispatch events and commands. This section will explain how to remove them while still retaining the ability to dispatch events and commands.
+
+### Removing WorkspaceView references
+
+`WorkspaceView` has been deprecated. Everything you could do on the view, you can now do on the `Workspace` model.
+
+Requiring `WorkspaceView` from `atom` and accessing any methods on it will throw a deprecation warning. Many specs lean heavily on `WorkspaceView` to trigger commands and fetch `EditorView` objects.
+
+Your specs might contain something like this:
+
+```coffee
+# Old!
+{WorkspaceView} = require 'atom'
+describe 'FindView', ->
+  beforeEach ->
+    atom.workspaceView = new WorkspaceView()
+```
+
+Instead, we will use the `atom.views.getView()` method. This will return a plain `HTMLElement`, not a `WorkspaceView` or jQuery object.
+
+```coffee
+# New!
+describe 'FindView', ->
+  workspaceElement = null
+  beforeEach ->
+    workspaceElement = atom.views.getView(atom.workspace)
+```
+
+### Attaching the workspace to the DOM
+
+The workspace needs to be attached to the DOM in some cases. For example, view hooks only work (`attached()` on `View`, `attachedCallback()` on custom elements) when there is a descendant attached to the DOM.
+
+You might see this in your specs:
+
+```coffee
+# Old!
+atom.workspaceView.attachToDom()
+```
+
+Change it to:
+
+```coffee
+# New!
+jasmine.attachToDOM(workspaceElement)
+```
+
+### Removing EditorView references
+
+Like `WorkspaceView`, `EditorView` has been deprecated. Everything you needed to do on the view you are now able to do on the `Editor` model.
+
+In many cases, you will not even need to get the editor's view anymore. Any of those instances should be updated to use the `Editor` instance. You should really only need the editor's view when you plan on triggering a command on the view in a spec.
+
+Your specs might contain something like this:
+
+```coffee
+# Old!
+describe 'Something', ->
+  [editorView] = []
+  beforeEach ->
+    editorView = atom.workspaceView.getActiveView()
+```
+
+We're going to use `atom.views.getView()` again to get the editor element. As in the case of the `workspaceElement`, `getView` will return a plain `HTMLElement` rather than an `EditorView` or jQuery object.
+
+```coffee
+# New!
+describe 'Something', ->
+  [editor, editorElement] = []
+  beforeEach ->
+    editor = atom.workspace.getActiveTextEditor()
+    editorElement = atom.views.getView(editor)
+```
+
+### Dispatching commands
+
+Since the `editorView` objects are no longer `jQuery` objects, they no longer support `trigger()`. Additionally, Atom has a new command dispatcher, `atom.commands`, that we use rather than commandeering jQuery's `trigger` method.
+
+From this:
+
+```coffee
+# Old!
+workspaceView.trigger 'a-package:toggle'
+editorView.trigger 'find-and-replace:show'
+```
+
+To this:
+
+```coffee
+# New!
+atom.commands.dispatch workspaceElement, 'a-package:toggle'
+atom.commands.dispatch editorElement, 'find-and-replace:show'
+```
 
 
 [texteditorview]:https://github.com/atom/atom-space-pen-views#texteditorview
