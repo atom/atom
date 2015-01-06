@@ -549,6 +549,10 @@ atom.workspaceView.command 'core:close core:cancel', ->
   'core:cancel': ->
 ```
 
+## Upgrading your stylesheet's selectors
+
+See [Upgrading Your Package Selectors guide][upgrading-selectors] for more information.
+
 [texteditorview]:https://github.com/atom/atom-space-pen-views#texteditorview
 [scrollview]:https://github.com/atom/atom-space-pen-views#scrollview
 [selectlistview]:https://github.com/atom/atom-space-pen-views#selectlistview
@@ -556,3 +560,4 @@ atom.workspaceView.command 'core:close core:cancel', ->
 [emitter]:https://atom.io/docs/api/latest/Emitter
 [disposable]:https://atom.io/docs/api/latest/Disposable
 [commands-add]:https://atom.io/docs/api/latest/CommandRegistry#instance-add
+[upgrading-selectors]:upgrading-your-ui-theme
