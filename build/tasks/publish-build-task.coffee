@@ -101,7 +101,7 @@ getAssets = ->
 logError = (message, error, details) ->
   grunt.log.error(message)
   grunt.log.error(error.message ? error) if error?
-  grunt.log.error(details) if details
+  grunt.log.error(require('util').inspect(details)) if details
 
 zipAssets = (buildDir, assets, callback) ->
   zip = (directory, sourcePath, assetName, callback) ->
