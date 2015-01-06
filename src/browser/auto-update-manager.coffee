@@ -1,6 +1,7 @@
 autoUpdater = null
 _ = require 'underscore-plus'
 {EventEmitter} = require 'events'
+path = require 'path'
 
 IdleState = 'idle'
 CheckingState = 'checking'
@@ -51,8 +52,7 @@ class AutoUpdateManager
       @emitUpdateAvailableEvent(@getWindows()...)
 
     # Only released versions should check for updates.
-    unless /\w{7}/.test(@version)
-      @check(hidePopups: true)
+    @check(hidePopups: true) unless /\w{7}/.test(@version)
 
     switch process.platform
       when 'win32'
@@ -86,12 +86,24 @@ class AutoUpdateManager
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
     dialog = require 'dialog'
-    dialog.showMessageBox type: 'info', buttons: ['OK'], message: 'No update available.', detail: "Version #{@version} is the latest version."
+    dialog.showMessageBox
+      type: 'info'
+      buttons: ['OK']
+      icon: path.join(process.resourcesPath, 'app', 'atom.png')
+      message: 'No update available.'
+      title: 'No Update Available'
+      detail: "Version #{@version} is the latest version."
 
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
     dialog = require 'dialog'
-    dialog.showMessageBox type: 'warning', buttons: ['OK'], message: 'There was an error checking for updates.', detail: message
+    dialog.showMessageBox
+      type: 'warning'
+      buttons: ['OK']
+      icon: path.join(process.resourcesPath, 'app', 'atom.png')
+      message: 'There was an error checking for updates.'
+      title: 'Update Error'
+      detail: message
 
   getWindows: ->
     global.atomApplication.windows

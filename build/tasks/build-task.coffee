@@ -25,6 +25,7 @@ module.exports = (grunt) ->
       cp 'atom.sh', path.join(appDir, 'atom.sh')
 
     cp 'package.json', path.join(appDir, 'package.json')
+    cp path.join('resources', 'atom.png'), path.join(appDir, 'atom.png')
 
     packageDirectories = []
     nonPackageDirectories = [
