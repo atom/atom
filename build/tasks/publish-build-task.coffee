@@ -142,7 +142,31 @@ getAtomDraftRelease = (callback) ->
             firstDraft.assets = assets
             callback(null, firstDraft)
       else
-        callback(new Error('No draft release in atom/atom repo'))
+        createAtomDraftRelease(callback)
+
+createAtomDraftRelease = (callback) ->
+  {version} = require('../../package.json')
+  options =
+    uri: 'https://api.github.com/repos/atom/atom/releases'
+    method: 'POST'
+    headers: defaultHeaders
+    json: true
+    qs:
+      tag_name: "v#{version}"
+      name: version
+      draft: true
+      body: """
+        ### Notable Changes
+
+        *
+      """
+
+  request options, (error, response, body='') ->
+    if error? or response.statusCode isnt 201
+      logError("Creating atom/atom draft release failed", error, body)
+      callback(error ? new Error(response.statusCode))
+    else
+      callback(null, body)
 
 deleteRelease = (release) ->
   options =
