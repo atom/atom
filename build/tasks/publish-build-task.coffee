@@ -150,8 +150,7 @@ createAtomDraftRelease = (callback) ->
     uri: 'https://api.github.com/repos/atom/atom/releases'
     method: 'POST'
     headers: defaultHeaders
-    json: true
-    qs:
+    json:
       tag_name: "v#{version}"
       name: version
       draft: true
