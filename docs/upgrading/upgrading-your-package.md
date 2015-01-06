@@ -399,8 +399,137 @@ atom.commands.dispatch workspaceElement, 'a-package:toggle'
 atom.commands.dispatch editorElement, 'find-and-replace:show'
 ```
 
+## Eventing and Disposables
+
+A couple large things changed with respect to events:
+
+1. All model events are now methods that return a [`Disposable`][disposable] object
+1. The `subscribe()` method is no longer available on `space-pen` `View` objects
+1. An Emitter is now provided from `require 'atom'`
+
+### Consuming Events
+
+All events from the Atom API are now methods that return a [`Disposable`][disposable] object, on which you can call `dispose()` to unsubscribe.
+
+```coffee
+# Old!
+editor.on 'changed', ->
+```
+
+```coffee
+# New!
+disposable = editor.onDidChange ->
+
+# You can unsubscribe at some point in the future via `dispose()`
+disposable.dispose()
+```
+
+Deprecation warnings will guide you toward the correct methods.
+
+#### Using a CompositeDisposable
+
+You can group multiple disposables into a single disposable with a `CompositeDisposable`.
+
+```coffee
+{CompositeDisposable} = require 'atom'
+
+class Something
+  constructor: ->
+    @disposables.add editor.onDidChange ->
+    @disposables.add editor.onDidChangePath ->
+
+  destroy: ->
+    @disposables.dispose()
+```
+
+### Removing View::subscribe calls
+
+There were a couple permutations of `subscribe()`. In these examples, a `CompositeDisposable` is used as it will commonly be useful where conversion is necessary.
+
+#### subscribe(unsubscribable)
+
+This one is very straight forward.
+
+```coffee
+# Old!
+@subscribe editor.on 'changed', ->
+```
+
+```coffee
+# New!
+disposables = new CompositeDisposable
+disposables.add editor.onDidChange ->
+```
+
+#### subscribe(modelObject, event, method)
+
+When the modelObject is an Atom model object, the change is very simple. Just use the correct event method, and add it to your CompositeDisposable.
+
+```coffee
+# Old!
+@subscribe editor, 'changed', ->
+```
+
+```coffee
+# New!
+disposables = new CompositeDisposable
+disposables.add editor.onDidChange ->
+```
+
+#### subscribe(jQueryObject, selector(optional), event, method)
+
+Things are a little more complicated when subscribing to a DOM or jQuery element. Atom no longer provides helpers for subscribing to elements. You can use jQuery or the native DOM APIs, whichever you prefer.
+
+```coffee
+# Old!
+@subscribe $(window), 'focus', ->
+```
+
+```coffee
+# New!
+{Disposable, CompositeDisposable} = require 'atom'
+disposables = new CompositeDisposable
+
+# New with jQuery
+focusCallback = ->
+$(window).on 'focus', focusCallback
+disposables.add new Disposable ->
+  $(window).off 'focus', focusCallback
+
+# New with native APIs
+focusCallback = ->
+window.addEventListener 'focus', focusCallback
+disposables.add new Disposable ->
+  window.removeEventListener 'focus', focusCallback
+```
+
+### Providing Events: Using the Emitter
+
+You no longer need to require emissary to get an emitter. We now provide an `Emitter` class from `require 'atom'`. We have a specific pattern for use of the `Emitter`. Rather than mixing it in, we instantiate a member variable, and create explicit subscription methods. For more information see the [`Emitter` docs][emitter].
+
+```coffee
+# New!
+{Emitter} = require 'atom'
+
+class Something
+  constructor: ->
+    @emitter = new Emitter
+
+  destroy: ->
+    @emitter.dispose()
+
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  methodThatFiresAChange: ->
+    @emitter.emit 'did-change'
+```
+
+## Subscribing To Commands
 
 [texteditorview]:https://github.com/atom/atom-space-pen-views#texteditorview
 [scrollview]:https://github.com/atom/atom-space-pen-views#scrollview
 [selectlistview]:https://github.com/atom/atom-space-pen-views#selectlistview
 [selectlistview-example]:https://github.com/atom/command-palette/pull/19/files
+[emitter]:https://atom.io/docs/api/latest/Emitter
+[disposable]:https://atom.io/docs/api/latest/Disposable
