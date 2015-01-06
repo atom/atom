@@ -15,7 +15,7 @@ If you use any class from `require 'atom'` with a `$` or `View` in the name, add
 ```js
 {
   "dependencies": {
-    "atom-space-pen-views": "^0.21"
+    "atom-space-pen-views": "^2.0.2"
   }
 }
 ```
@@ -122,7 +122,7 @@ To use the new views, you need to specify the `atom-space-pen-views` module in y
 ```js
 {
   "dependencies": {
-    "atom-space-pen-views": "^0.21"
+    "atom-space-pen-views": "^2.0.2"
   }
 }
 ```
