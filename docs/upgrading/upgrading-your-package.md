@@ -95,32 +95,12 @@ class SomeView extends View
   #...
 ```
 
-Requiring `atom` _used to_ provide the following view helpers:
-
-```
-$
-$$
-$$$
-View
-TextEditorView
-ScrollView
-SelectListView
-```
-
 ### The New
 
-Atom no longer provides these view helpers baked in. Atom core is now 'view agnostic'. The preexisting view system is available from two npm packages: `space-pen`, and `atom-space-pen-views`
+`require 'atom'` no longer provides view helpers or jQuery. Atom core is now 'view agnostic'. The preexisting view system is available from a new npm package: `atom-space-pen-views`.
 
-`space-pen` now provides
+`atom-space-pen-views` now provides jQuery, `space-pen` views, plus Atom specific views:
 
-```
-$
-$$
-$$$
-View
-```
-
-`atom-space-pen-views` now provides all of `space-pen`, plus Atom specific views:
 
 ```js
 // Passed through from space-pen
