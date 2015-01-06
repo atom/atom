@@ -70,8 +70,6 @@ Just run your specs, and all the deprecations will be displayed in yellow.
 
 ![spec-deps](https://cloud.githubusercontent.com/assets/69169/5637943/b85114ba-95b5-11e4-8681-b81ea8f556d7.png)
 
-
-
 ### Deprecation Cop
 
 Run an atom window in dev mode (`atom -d`) with your package loaded, and open Deprecation Cop (search for `deprecation` in the command palette).
