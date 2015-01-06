@@ -44,7 +44,7 @@ So this:
 {$, TextEditorView, View, GitRepository} = require 'atom'
 ```
 
-Would be replaced with this:
+Would be replaced by this:
 
 ```coffee
 # New way
