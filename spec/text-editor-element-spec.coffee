@@ -42,8 +42,11 @@ describe "TextEditorElement", ->
 
         component = element.component
         expect(component.isMounted()).toBe true
-        element.getModel().destroy()
+        element.remove()
         expect(component.isMounted()).toBe false
+
+        jasmine.attachToDOM(element)
+        expect(element.component.isMounted()).toBe true
 
     describe "when the editor.useShadowDOM config option is false", ->
       it "mounts the react component and unmounts when removed from the dom", ->
