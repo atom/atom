@@ -99,17 +99,15 @@ class SomeView extends View
 
 `require 'atom'` no longer provides view helpers or jQuery. Atom core is now 'view agnostic'. The preexisting view system is available from a new npm package: `atom-space-pen-views`.
 
-`atom-space-pen-views` now provides jQuery, `space-pen` views, plus Atom specific views:
+`atom-space-pen-views` now provides jQuery, `space-pen` views, and Atom specific views:
 
 
-```js
-// Passed through from space-pen
+```coffee
+# These are now provided by atom-space-pen-views
 $
 $$
 $$$
 View
-
-// Atom specific views
 TextEditorView
 ScrollView
 SelectListView
@@ -144,7 +142,7 @@ Sometimes it is as simple as converting the requires at the top of each view pag
 ### Upgrading classes extending any space-pen View
 
 The `afterAttach` and `beforeRemove` hooks have been replaced with
-`attached` and `detached` and their semantics have been altered. `attached` will only be called when all parents of the View are attached to the DOM.
+`attached` and `detached`. The `attached` method semantics have changed: it will only be called when all parents of the View are attached to the DOM. The `detached` semantics have not changed.
 
 ```coffee
 # Old way
@@ -165,7 +163,7 @@ class MyView extends View
     # Always called with the equivalent of @afterAttach(true)!
     #...
 
-  removed: ->
+  detached: ->
     #...
 ```
 
