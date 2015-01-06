@@ -62,6 +62,7 @@ class WorkspaceView extends View
       return atom.views.getView(atom.workspace).__spacePenView
     super
     @deprecateViewEvents()
+    @attachedEditorViews = new WeakSet
 
   setModel: (@model) ->
     @horizontal = @find('atom-workspace-axis.horizontal')
@@ -95,10 +96,17 @@ class WorkspaceView extends View
   # Returns a subscription object with an `.off` method that you can call to
   # unregister the callback.
   eachEditorView: (callback) ->
-    callback(editorView) for editorView in @getEditorViews()
-    attachedCallback = (e, editorView) ->
-      callback(editorView) unless editorView.mini
+    for editorView in @getEditorViews()
+      @attachedEditorViews.add(editorView)
+      callback(editorView)
+
+    attachedCallback = (e, editorView) =>
+      unless @attachedEditorViews.has(editorView)
+        @attachedEditorViews.add(editorView)
+        callback(editorView) unless editorView.mini
+
     @on('editor:attached', attachedCallback)
+
     off: => @off('editor:attached', attachedCallback)
 
   # Essential: Register a function to be called for every current and future

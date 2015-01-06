@@ -67,6 +67,7 @@ class TextEditorElement extends HTMLElement
     @emitter.emit("did-attach")
 
   detachedCallback: ->
+    @unmountComponent()
     @emitter.emit("did-detach")
 
   initialize: (model) ->
