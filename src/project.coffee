@@ -166,9 +166,33 @@ class Project extends Model
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     @rootDirectory?.relativize(fullPath) ? fullPath
 
-  # Public: Returns whether the given path is inside this project.
+  # Public: Determines whether the given path (real or symbolic) is inside the
+  # project's directory.
+  #
+  # This method does not actually check if the path exists, it just checks their
+  # locations relative to each other.
+  #
+  # ## Examples
+  #
+  # Basic operation
+  #
+  # ```coffee
+  # # Project's root directory is /foo/bar
+  # project.contains('/foo/bar/baz')        # => true
+  # project.contains('/usr/lib/baz')        # => false
+  # ```
+  #
+  # Existence of the path is not required
+  #
+  # ```coffee
+  # # Project's root directory is /foo/bar
+  # fs.existsSync('/foo/bar/baz')           # => false
+  # project.contains('/foo/bar/baz')        # => true
+  # ```
   #
   # * `pathToCheck` {String} path
+  #
+  # Returns whether the path is inside the project's root directory.
   contains: (pathToCheck) ->
     @rootDirectory?.contains(pathToCheck) ? false
 
