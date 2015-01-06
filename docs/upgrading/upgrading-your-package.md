@@ -26,8 +26,8 @@ Then run `apm install` in your package directory.
 
 Anywhere you are requiring one of the following from `atom` you need to require them from `atom-space-pen-views` instead.
 
-```js
-// require these from 'atom-space-pen-views' rather than 'atom'
+```coffee
+# require these from 'atom-space-pen-views' rather than 'atom'
 $
 $$
 $$$
