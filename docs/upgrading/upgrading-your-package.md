@@ -10,7 +10,7 @@ We've set deprecation messages and errors in strategic places to help make sure 
 
 ### Use atom-space-pen-views
 
-Add the `atom-space-pen-views` module to your package's `package.json` file's dependencies:
+If you use any class from `require 'atom'` with a `$` or `View` in the name, add the `atom-space-pen-views` module to your package's `package.json` file's dependencies:
 
 ```js
 {
@@ -62,7 +62,7 @@ We have upgraded all the core packages. Please see [this issue](https://github.c
 
 ## Deprecations
 
-All of the methods in core that have changes will emit deprecation messages when called. These messages are shown in two places: your **package specs**, and in **Deprecation Cop**.
+All of the methods in Atom core that have changes will emit deprecation messages when called. These messages are shown in two places: your **package specs**, and in **Deprecation Cop**.
 
 ### Specs
 
@@ -78,9 +78,9 @@ Run an atom window in dev mode (`atom -d`) with your package loaded, and open De
 
 TODO: image of deprecations in DepCop
 
-## View Changes
+## Upgrading your Views
 
-Previous to 1.0, views in packages were baked into Atom core. These views were based on jQuery and `space-pen`. They looked something like this:
+Previous to 1.0, views were baked into Atom core. These views were based on jQuery and `space-pen`. They looked something like this:
 
 ```coffee
 # The old way: getting views from atom
@@ -228,6 +228,7 @@ class ResultsView extends ScrollView
 Your SelectListView might look something like this:
 
 ```coffee
+# Old!
 class CommandPaletteView extends SelectListView
   initialize: ->
     super
@@ -262,6 +263,7 @@ This attaches and detaches itself from the dom when toggled, canceling magically
 Using the new APIs it should look like this:
 
 ```coffee
+# New!
 class CommandPaletteView extends SelectListView
   initialize: ->
     super
