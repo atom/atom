@@ -6,7 +6,7 @@ This document will guide you through the large bits of upgrading your package to
 
 ## TL;DR
 
-We've set deprecation messages and errors in strategic places to help make sure you dont miss anything. You should be able to get 95% of the way to an updated package just by fixing errors and deprecations. There are a couple of things you need to do to enable all these errors and deprecations.
+We've set deprecation messages and errors in strategic places to help make sure you don't miss anything. You should be able to get 95% of the way to an updated package just by fixing errors and deprecations. There are a couple of things you need to do to enable all these errors and deprecations.
 
 ### Use atom-space-pen-views
 
