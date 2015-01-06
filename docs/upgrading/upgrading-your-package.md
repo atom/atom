@@ -68,15 +68,15 @@ All of the methods in Atom core that have changes will emit deprecation messages
 
 Just run your specs, and all the deprecations will be displayed in yellow.
 
-TODO: image of deprecations in specs
+![spec-deps](https://cloud.githubusercontent.com/assets/69169/5637943/b85114ba-95b5-11e4-8681-b81ea8f556d7.png)
 
-TODO: Comand line spec deprecation image?
+
 
 ### Deprecation Cop
 
 Run an atom window in dev mode (`atom -d`) with your package loaded, and open Deprecation Cop (search for `deprecation` in the command palette).
 
-TODO: image of deprecations in DepCop
+![dep-cop](https://cloud.githubusercontent.com/assets/69169/5637914/6e702fa2-95b5-11e4-92cc-a236ddacee21.png)
 
 ## Upgrading your Views
 
