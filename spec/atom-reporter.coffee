@@ -117,7 +117,7 @@ class AtomReporter extends View
           @div class: 'result-message fail deprecation-message', =>
             @raw marked(deprecation.message)
 
-          for stack in deprecation.stacks
+          for stack in deprecation.getStacks()
             fullStack = stack.map ({functionName, location}) ->
               if functionName is '<unknown>'
                 "  at #{location}"
