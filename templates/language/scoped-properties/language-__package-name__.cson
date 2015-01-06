@@ -1,6 +1,0 @@
-# If you want some examples of scoped properties, check out:
-# https://github.com/atom/language-gfm/blob/master/scoped-properties/gfm.cson
-
-'.source.__package-name__':
-  'editor':
-    'commentStart': '@@ '

@@ -53,7 +53,7 @@ describe "apm init", ->
 
       it "generates the proper file structure", ->
         expect(fs.existsSync(packagePath)).toBeTruthy()
-        expect(fs.isFileSync(path.join(packagePath, 'scoped-properties', 'fake-package.cson'))).toBe true
+        expect(fs.isFileSync(path.join(packagePath, 'settings', 'fake-package.cson'))).toBe true
         expect(fs.isFileSync(path.join(packagePath, 'snippets', 'fake-package.cson'))).toBe true
         expect(fs.isFileSync(path.join(packagePath, 'grammars', 'r.cson'))).toBe true
         expect(fs.existsSync(path.join(packagePath, 'command'))).toBeFalsy()
@@ -66,7 +66,7 @@ describe "apm init", ->
           body: 'attach($1) *outlet'
           prefix: 'att'
         }
-        expect(CSON.readFileSync(path.join(packagePath, 'scoped-properties', 'fake-package.cson'))['.source.r']['editor']).toEqual {
+        expect(CSON.readFileSync(path.join(packagePath, 'settings', 'fake-package.cson'))['.source.r']['editor']).toEqual {
           foldEndPattern: '(^\\s*\\)|^\\s*\\})'
           commentStart: '# '
         }
@@ -159,7 +159,7 @@ describe "apm init", ->
       runs ->
         expect(fs.existsSync(languagePath)).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'grammars', 'fake.cson'))).toBeTruthy()
-        expect(fs.existsSync(path.join(languagePath, 'scoped-properties', 'language-fake.cson'))).toBeTruthy()
+        expect(fs.existsSync(path.join(languagePath, 'settings', 'language-fake.cson'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'snippets', 'language-fake.cson'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'spec', 'language-fake-spec.coffee'))).toBeTruthy()
         expect(fs.existsSync(path.join(languagePath, 'package.json'))).toBeTruthy()
