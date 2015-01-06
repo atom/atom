@@ -442,7 +442,7 @@ class Something
     @disposables.dispose()
 ```
 
-### Removing View::subscribe calls
+### Removing View::subscribe and Subscriber::subscribe calls
 
 There were a couple permutations of `subscribe()`. In these examples, a `CompositeDisposable` is used as it will commonly be useful where conversion is necessary.
 
@@ -527,9 +527,32 @@ class Something
 
 ## Subscribing To Commands
 
+`$.fn.command` and `View::subscribeToCommand` are no longer available. Now we use `atom.commands.add`, and collect the results in a `CompositeDisposable`. See [the docs][commands-add] for more info.
+
+```coffee
+# Old!
+atom.workspaceView.command 'core:close core:cancel', ->
+
+# When inside a View class, you might see this
+@subscribeToCommand 'core:close core:cancel', ->
+```
+
+```coffee
+# New!
+@disposables.add atom.commands.add 'atom-workspace',
+  'core:close': ->
+  'core:cancel': ->
+
+# When in a View class, you should have a `@element` object available. `@element` is a raw HTML element
+@disposables.add atom.commands.add @element,
+  'core:close': ->
+  'core:cancel': ->
+```
+
 [texteditorview]:https://github.com/atom/atom-space-pen-views#texteditorview
 [scrollview]:https://github.com/atom/atom-space-pen-views#scrollview
 [selectlistview]:https://github.com/atom/atom-space-pen-views#selectlistview
 [selectlistview-example]:https://github.com/atom/command-palette/pull/19/files
 [emitter]:https://atom.io/docs/api/latest/Emitter
 [disposable]:https://atom.io/docs/api/latest/Disposable
+[commands-add]:https://atom.io/docs/api/latest/CommandRegistry#instance-add
