@@ -219,28 +219,30 @@ class ThemeManager
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # required stylesheet.
-  requireStylesheet: (stylesheetPath, type='bundled') ->
+  requireStylesheet: (stylesheetPath) ->
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content, type)
+      @applyStylesheet(fullPath, content)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
   unwatchUserStylesheet: ->
     @userStylesheetFile?.off()
     @userStylesheetFile = null
-    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
+    @userStyleSheetDisposable?.dispose()
+    @userStyleSheetDisposable = null
 
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
+
     userStylesheetPath = atom.styles.getUserStyleSheetPath()
     return unless fs.isFileSync(userStylesheetPath)
 
-    @userStylesheetPath = userStylesheetPath
     @userStylesheetFile = new File(userStylesheetPath)
     @userStylesheetFile.on 'contents-changed moved removed', => @loadUserStylesheet()
     userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
-    @applyStylesheet(userStylesheetPath, userStylesheetContents, 'user')
+
+    @userStyleSheetDisposable = atom.styles.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
 
   loadBaseStylesheets: ->
     @requireStylesheet('../static/bootstrap')
@@ -291,8 +293,8 @@ class ThemeManager
   removeStylesheet: (stylesheetPath) ->
     @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
 
-  applyStylesheet: (path, text, type='bundled') ->
-    @styleSheetDisposablesBySourcePath[path] = atom.styles.addStyleSheet(text, sourcePath: path, group: type)
+  applyStylesheet: (path, text) ->
+    @styleSheetDisposablesBySourcePath[path] = atom.styles.addStyleSheet(text, sourcePath: path)
 
   stringToId: (string) ->
     string.replace(/\\/g, '/')

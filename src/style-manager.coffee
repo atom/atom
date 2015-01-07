@@ -92,12 +92,7 @@ class StyleManager
   addStyleSheet: (source, params) ->
     sourcePath = params?.sourcePath
     context = params?.context
-    group = params?.group
-    priority = params?.priority ?
-      switch group
-        when 'bundled' then 0
-        when 'theme' then 1
-        when 'user' then 2
+    priority = params?.priority
 
     if sourcePath? and styleElement = @styleElementsBySourcePath[sourcePath]
       updated = true
@@ -110,10 +105,6 @@ class StyleManager
       if context?
         styleElement.context = context
         styleElement.setAttribute('context', context)
-
-      if group?
-        styleElement.group = group
-        styleElement.setAttribute('group', group)
 
       if priority?
         styleElement.priority = priority
@@ -129,14 +120,7 @@ class StyleManager
     new Disposable => @removeStyleElement(styleElement)
 
   addStyleElement: (styleElement) ->
-    {sourcePath, group, priority} = styleElement
-
-    if group?
-      for existingElement, index in @styleElements
-        if existingElement.group is group
-          insertIndex = index + 1
-        else
-          break if insertIndex?
+    {sourcePath, priority} = styleElement
 
     if priority?
       for existingElement, index in @styleElements

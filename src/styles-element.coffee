@@ -56,13 +56,6 @@ class StylesElement extends HTMLElement
     styleElementClone.priority = styleElement.priority
     @styleElementClonesByOriginalElement.set(styleElement, styleElementClone)
 
-    group = styleElement.getAttribute('group')
-    if group?
-      for child in @children
-        if child.getAttribute('group') is group and child.nextSibling?.getAttribute('group') isnt group
-          insertBefore = child.nextSibling
-          break
-
     priority = styleElement.priority
     if priority?
       for child in @children

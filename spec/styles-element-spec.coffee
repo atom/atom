@@ -45,17 +45,6 @@ describe "StylesElement", ->
     expect(element.children[initialChildCount + 2].textContent).toBe "a {color: yellow}"
     expect(element.children[initialChildCount + 3].textContent).toBe "a {color: green}"
 
-  it "orders style elements by group", ->
-    initialChildCount = element.children.length
-
-    atom.styles.addStyleSheet("a {color: red}", group: 'a')
-    atom.styles.addStyleSheet("a {color: blue}", group: 'b')
-    atom.styles.addStyleSheet("a {color: green}", group: 'a')
-
-    expect(element.children[initialChildCount].textContent).toBe "a {color: red}"
-    expect(element.children[initialChildCount + 1].textContent).toBe "a {color: green}"
-    expect(element.children[initialChildCount + 2].textContent).toBe "a {color: blue}"
-
   it "updates existing style nodes when style elements are updated", ->
     initialChildCount = element.children.length
 
