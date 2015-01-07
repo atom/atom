@@ -142,7 +142,11 @@ Sometimes it is as simple as converting the requires at the top of each view pag
 ### Upgrading classes extending any space-pen View
 
 The `afterAttach` and `beforeRemove` hooks have been replaced with
-`attached` and `detached`. The `attached` method semantics have changed: it will only be called when all parents of the View are attached to the DOM. The `detached` semantics have not changed.
+`attached` and `detached` and the semantics have changed.
+
+`afterAttach` was called whenever the node was attached to another DOM node, even if that node itself wasn't present in the document. `afterAttach` also was called with a boolean indicating whether or not the element and its parents were on the DOM. Now the `attached` hook is only called when the node and all of its parents are actually on the DOM, and is not called with a boolean.
+
+`beforeRemove` was only called when `$.fn.remove` was called, which was typically used when the node was completely removed from the DOM. The `detached` hook is called whenever the DOM node is _detached_, which could happen if the node is being detached for reattachment later. In short, if `beforeRemove` is called the node is never coming back. With `detached` it might be attached again later.
 
 ```coffee
 # Old way
