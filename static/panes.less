@@ -33,17 +33,14 @@ atom-pane-container {
       min-width: 0;
       position: relative;
 
-      .pane-item {
-        color: @text-color;
-        background-color: @pane-item-background-color;
-      }
-
       > *, > atom-text-editor.react > * {
         position: absolute;
         top: 0;
         right: 0;
         bottom: 0;
         left: 0;
+        color: @text-color;
+        background-color: @pane-item-background-color;
       }
     }
   }
