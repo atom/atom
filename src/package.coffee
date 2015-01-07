@@ -206,13 +206,13 @@ class Package
     if @bundledPackage and packagesCache[@name]?
       @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
     else
-      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
+      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
 
   loadMenus: ->
     if @bundledPackage and packagesCache[@name]?
       @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
     else
-      @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
+      @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')

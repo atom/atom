@@ -273,6 +273,14 @@ describe "PackageManager", ->
               expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-n', target:element1[0])[0].command).toBe 'keymap-2'
               expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-y', target:element3[0])).toHaveLength 0
 
+        describe "when the keymap file is empty", ->
+          it "does not throw an error on activation", ->
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-empty-keymap")
+
+            runs ->
+              expect(atom.packages.isPackageActive("package-with-empty-keymap")).toBe true
+
       describe "menu loading", ->
         beforeEach ->
           atom.contextMenu.definitions = []
@@ -310,6 +318,14 @@ describe "PackageManager", ->
               expect(atom.contextMenu.templateForElement(element)[0].label).toBe "Menu item 2"
               expect(atom.contextMenu.templateForElement(element)[1].label).toBe "Menu item 1"
               expect(atom.contextMenu.templateForElement(element)[2]).toBeUndefined()
+
+        describe "when the menu file is empty", ->
+          it "does not throw an error on activation", ->
+            waitsForPromise ->
+              atom.packages.activatePackage("package-with-empty-menu")
+
+            runs ->
+              expect(atom.packages.isPackageActive("package-with-empty-menu")).toBe true
 
       describe "stylesheet loading", ->
         describe "when the metadata contains a 'stylesheets' manifest", ->
