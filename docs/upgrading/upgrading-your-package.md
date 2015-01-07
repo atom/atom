@@ -72,9 +72,11 @@ Just run your specs, and all the deprecations will be displayed in yellow.
 
 ### Deprecation Cop
 
-Run an atom window in dev mode (`atom -d`) with your package loaded, and open Deprecation Cop (search for `deprecation` in the command palette).
+Run an atom window in dev mode (`atom -d`) with your package loaded, and open Deprecation Cop (search for `deprecation` in the command palette). Deprecated methods will be appear in Deprecation Cop only after they have been called.
 
 ![dep-cop](https://cloud.githubusercontent.com/assets/69169/5637914/6e702fa2-95b5-11e4-92cc-a236ddacee21.png)
+
+When deprecation cop is open, and deprecated methods are called, a `Refresh` button will appear in the top right of the Deprecation Cop interface. So exercise your package, then come back to Deprecation Cop and click the `Refresh` button.
 
 ## Upgrading your Views
 
