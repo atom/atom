@@ -547,7 +547,12 @@ class Something
     @emitter.on 'did-change', callback
 
   methodThatFiresAChange: ->
-    @emitter.emit 'did-change'
+    @emitter.emit 'did-change', {data: 2}
+
+something = new Something
+something.onDidChange (eventObject) ->
+  console.log eventObject.data # => 2
+something.methodThatFiresAChange()
 ```
 
 ## Subscribing To Commands
@@ -568,7 +573,9 @@ atom.workspaceView.command 'core:close core:cancel', ->
   'core:close': ->
   'core:cancel': ->
 
-# When in a View class, you should have a `@element` object available. `@element` is a raw HTML element
+# You can register commands directly on individual DOM elements in addition to
+# using selectors. When in a View class, you should have a `@element` object
+# available. `@element` is a plain HTMLElement object
 @disposables.add atom.commands.add @element,
   'core:close': ->
   'core:cancel': ->
