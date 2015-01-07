@@ -141,6 +141,8 @@ Sometimes it is as simple as converting the requires at the top of each view pag
 
 ### Upgrading classes extending any space-pen View
 
+#### `afterAttach` and `beforeRemove` updated
+
 The `afterAttach` and `beforeRemove` hooks have been replaced with
 `attached` and `detached` and the semantics have changed.
 
@@ -170,6 +172,10 @@ class MyView extends View
   detached: ->
     #...
 ```
+
+#### `subscribe` and `subscribeToCommand` methods removed
+
+Additionally, the `subscribe` and `subscribeToCommand` methods have been removed. See the Eventing and Disposables section for more info.
 
 ### Upgrading to the new TextEditorView
 
