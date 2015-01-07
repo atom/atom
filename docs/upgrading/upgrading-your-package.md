@@ -169,7 +169,7 @@ class MyView extends View
 
 You should not need to change anything to use the new `TextEditorView`! See the [docs][TextEditorView] for more info.
 
-### Upgrading to classes extending ScrollView
+### Upgrading classes extending ScrollView
 
 The `ScrollView` has very minor changes.
 
@@ -199,7 +199,7 @@ class ResultsView extends ScrollView
 * Check out [an example](https://github.com/atom/find-and-replace/pull/311/files#diff-9) from find-and-replace.
 * See the [docs][ScrollView] for all the options.
 
-### Upgrading to classes extending SelectListView
+### Upgrading classes extending SelectListView
 
 Your SelectListView might look something like this:
 
