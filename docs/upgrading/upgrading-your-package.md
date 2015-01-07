@@ -413,6 +413,7 @@ You can group multiple disposables into a single disposable with a `CompositeDis
 
 class Something
   constructor: ->
+    editor = atom.workspace.getActiveTextEditor()
     @disposables.add editor.onDidChange ->
     @disposables.add editor.onDidChangePath ->
 
