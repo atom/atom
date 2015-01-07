@@ -288,9 +288,49 @@ class CommandPaletteView extends SelectListView
 * And check out the [conversion of CommandPaletteView][selectlistview-example] as a real-world example.
 * See the [SelectListView docs][SelectListView] for all options.
 
+## Using the model layer rather than the view layer
+
+The API no longer exposes any view objects or view classes. `atom.workspaceView`, and all the view classes: `WorkspaceView`, `EditorView`, `PaneView`, etc. have been globally deprecated.
+
+Nearly all of the atom-specific actions performed by the old view objects can now be managed via the model layer. For example, here's adding a panel to the interface using the `atom.workspace` model instead of the `workspaceView`:
+
+```coffee
+# Old!
+div = document.createElement('div')
+atom.workspaceView.appendToTop(div)
+```
+
+```coffee
+# New!
+div = document.createElement('div')
+atom.workspace.addTopPanel(item: div)
+```
+
+For actions that still require the view, such as dispatching commands or munging css classes, you'll access the view via the `atom.views.getView()` method. This will return a subclass of `HTMLElement` rather than a jQuery object or an instance of a deprecated view class (e.g. `WorkspaceView`).
+
+```coffee
+# Old!
+workspaceView = atom.workspaceView
+editorView = workspaceView.getActiveEditorView()
+paneView = editorView.getPaneView()
+```
+
+```coffee
+# New!
+# Generally, just use the models
+workspace = atom.workspace
+editor = workspace.getActiveTextEditor()
+pane = editor.getPane()
+
+# If you need views, get them with `getView`
+workspaceElement = atom.views.getView(atom.workspace)
+editorElement = atom.views.getView(editor)
+paneElement = atom.views.getView(pane)
+```
+
 ## Updating Specs
 
-`WorkspaceView` and `EditorView` have been deprecated. These two objects are used heavily throughout specs, mostly to dispatch events and commands. This section will explain how to remove them while still retaining the ability to dispatch events and commands.
+`atom.workspaceView`, the `WorkspaceView` class and the `EditorView` class have been deprecated. These two objects are used heavily throughout specs, mostly to dispatch events and commands. This section will explain how to remove them while still retaining the ability to dispatch events and commands.
 
 ### Removing WorkspaceView references
 
