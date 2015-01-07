@@ -17,7 +17,7 @@ SpecificityCache = {}
 # An instance of this class is always available as the `atom.contextMenu`
 # global.
 #
-# ## Format
+# ## Context Menu CSON Format
 #
 # # ```coffee
 # 'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
