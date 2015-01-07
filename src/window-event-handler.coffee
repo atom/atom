@@ -92,7 +92,7 @@ class WindowEventHandler
 
     document.addEventListener 'dragover', @onDragOver
     @subscribe new Disposable =>
-      document.removeEventListener('dragover', @onKeydown)
+      document.removeEventListener('dragover', @onDragOver)
 
     @subscribe $(document), 'click', 'a', @openLink
 
