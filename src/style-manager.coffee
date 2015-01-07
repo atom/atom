@@ -92,7 +92,7 @@ class StyleManager
   addStyleSheet: (source, params) ->
     sourcePath = params?.sourcePath
     context = params?.context
-    group = params?.group
+    priority = params?.priority
 
     if sourcePath? and styleElement = @styleElementsBySourcePath[sourcePath]
       updated = true
@@ -106,9 +106,9 @@ class StyleManager
         styleElement.context = context
         styleElement.setAttribute('context', context)
 
-      if group?
-        styleElement.group = group
-        styleElement.setAttribute('group', group)
+      if priority?
+        styleElement.priority = priority
+        styleElement.setAttribute('priority', priority)
 
     styleElement.textContent = source
 
@@ -120,14 +120,14 @@ class StyleManager
     new Disposable => @removeStyleElement(styleElement)
 
   addStyleElement: (styleElement) ->
-    {sourcePath, group} = styleElement
+    {sourcePath, priority} = styleElement
 
-    if group?
+    if priority?
       for existingElement, index in @styleElements
-        if existingElement.group is group
-          insertIndex = index + 1
-        else
-          break if insertIndex?
+        if existingElement.priority > priority
+          insertIndex = index
+          break
+
     insertIndex ?= @styleElements.length
 
     @styleElements.splice(insertIndex, 0, styleElement)

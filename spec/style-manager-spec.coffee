@@ -53,14 +53,16 @@ describe "StyleManager", ->
         expect(addEvents[0].getAttribute('source-path')).toBe '/foo/bar'
         expect(addEvents[0].textContent).toBe "a {color: yellow;}"
 
-    describe "when a group parameter is specified", ->
-      it "inserts the stylesheet at the end of any existing stylesheets for the same group", ->
-        manager.addStyleSheet("a {color: red}", group: 'a')
-        manager.addStyleSheet("a {color: blue}", group: 'b')
-        manager.addStyleSheet("a {color: green}", group: 'a')
+    describe "when a priority parameter is specified", ->
+      it "inserts the style sheet based on the priority", ->
+        manager.addStyleSheet("a {color: red}", priority: 1)
+        manager.addStyleSheet("a {color: blue}", priority: 0)
+        manager.addStyleSheet("a {color: green}", priority: 2)
+        manager.addStyleSheet("a {color: yellow}", priority: 1)
 
         expect(manager.getStyleElements().map (elt) -> elt.textContent).toEqual [
-          "a {color: red}"
-          "a {color: green}"
           "a {color: blue}"
+          "a {color: red}"
+          "a {color: yellow}"
+          "a {color: green}"
         ]
