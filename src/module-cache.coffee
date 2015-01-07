@@ -59,6 +59,8 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
     if childMetadata?.version
       try
         mainPath = require.resolve(childPath)
+      catch error
+        mainPath = null
 
       if mainPath
         moduleCache.dependencies.push
