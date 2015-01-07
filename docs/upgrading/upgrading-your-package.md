@@ -397,15 +397,15 @@ We're going to use `atom.views.getView()` again to get the editor element. As in
 ```coffee
 # New!
 describe 'Something', ->
-  [editor, editorView] = []
+  [editor, editorElement] = []
   beforeEach ->
     editor = atom.workspace.getActiveTextEditor()
-    editorView = atom.views.getView(editor)
+    editorElement = atom.views.getView(editor)
 ```
 
 ### Dispatching commands
 
-Since the `editorView` objects are no longer `jQuery` objects, they no longer support `trigger()`. Additionally, Atom has a new command dispatcher, `atom.commands`, that we use rather than commandeering jQuery's `trigger` method.
+Since the `editorElement` objects are no longer `jQuery` objects, they no longer support `trigger()`. Additionally, Atom has a new command dispatcher, `atom.commands`, that we use rather than commandeering jQuery's `trigger` method.
 
 From this:
 
@@ -420,14 +420,14 @@ To this:
 ```coffee
 # New!
 atom.commands.dispatch workspaceElement, 'a-package:toggle'
-atom.commands.dispatch editorView, 'find-and-replace:show'
+atom.commands.dispatch editorElement, 'find-and-replace:show'
 ```
 
 ## Eventing and Disposables
 
 A couple large things changed with respect to events:
 
-1. All model events are now methods that return a [`Disposable`][disposable] object
+1. All model events are now exposed as event subscription methods that return [`Disposable`][disposable] objects
 1. The `subscribe()` method is no longer available on `space-pen` `View` objects
 1. An Emitter is now provided from `require 'atom'`
 
