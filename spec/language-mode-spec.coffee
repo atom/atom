@@ -1,4 +1,4 @@
-fdescribe "LanguageMode", ->
+describe "LanguageMode", ->
   [editor, buffer, languageMode] = []
 
   afterEach ->
