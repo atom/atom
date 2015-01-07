@@ -240,7 +240,7 @@ class ThemeManager
     @userStylesheetFile = new File(userStylesheetPath)
     @userStylesheetFile.on 'contents-changed moved removed', => @loadUserStylesheet()
     userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
-    @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
+    @applyStylesheet(userStylesheetPath, userStylesheetContents, 'user')
 
   loadBaseStylesheets: ->
     @requireStylesheet('../static/bootstrap')
