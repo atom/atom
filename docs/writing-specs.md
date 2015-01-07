@@ -47,6 +47,9 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
       expect("oranges").not.toEqual("apples")
   ```
 
+Atom also includes some [custom matchers](#Custom-Matchers) that can be
+used in package specs.
+
 ## Asynchronous specs
 
 Writing Asynchronous specs can be tricky at first. Some examples.
@@ -127,3 +130,91 @@ describe "when a test is written", ->
     expect("apples").toEqual("apples")
     expect("oranges").not.toEqual("apples")
 ```
+
+# Spec Helpers
+
+Atom provides a few global helper functions in specs:
+
+# `advanceClock(delta=1)`
+
+Advances the clock by `delta` milliseconds. Can be used to execute events
+dependent on `setTimeout()`.
+
+This works because Atom sets [Jasmine spies][jspies] on the globals
+`setTimeout()` and `clearTimeout()` to implement its own event loop. This
+means that specs may use `advanceClock` to artificially advance the
+clock anywhere that these two globals are used. This also means that
+tests that would have run asynchronously using only `setTimeout` can be run
+synchronously:
+
+```coffee
+describe 'when a test uses advanceClock()', ->
+  it 'can synchronously call setTimeout callbacks in the future', ->
+    futureCallback = jasmine.createSpy('futureCallback')
+
+    setTimeout(futureCallback, 1000)
+    advanceClock(1001)
+
+    expect(futureCallback).toHaveBeenCalled()
+
+  it 'allows timeouts to be cleared', ->
+    futureCallback = jasmine.createSpy('futureCallback')
+
+    id = setTimeout(futureCallback, 1000)
+    advanceClock(999)
+    clearTimeout(id)
+
+    advanceClock(1000)
+    expect(futureCallback).not.toHaveBeenCalled()
+```
+
+
+Atom mocks the following methods in specs:
+
+ * `TextEditor::shouldPromptToSave` -- always False
+
+ * `clipboard.writeText` -- Does not interact with the system clipboard.
+ * `clipboard.readText` -- Initial a placeholder value: `'initial clipboard content'`
+
+# Custom Matchers
+
+<!-- TODO: Write documentation on these! -->
+
+##  `toBeInstanceOf(constructor)`
+
+Tests the expected value against its argument using `instanceof`:
+
+  ```coffee
+  describe "The 'toBeInstanceOf' matcher", ->
+    it "should test an object against its type", ->
+      expect({}).toBeInstanceOf Object
+      expect([]).toBeInstanceOf Array
+      expect(->).toBeInstanceOf Function
+      expect(/ab+/).toBeInstanceOf RegExp
+
+      class BaseContrivedTestClass
+      class ContrivedTestClass extends BaseContrivedTestClass
+      expect(new ContrivedTestClass).toBeInstanceOf BaseContrivedTestClass
+
+      expect(new Number(42)).toBeInstanceOf Number
+
+    it "does NOT work with primitive values", ->
+      expect("hello").not.toBeInstanceOf String
+      expect(1).not.toBeInstanceOf Number
+  ```
+
+## `toExistOnDisk(filePath)`
+
+Tests if the given file path exists on the filesystem.
+
+<!-- TODO: spec! -->
+
+## `toHaveFocus()`
+
+Tests given that the given element (either `jQuery` or a DOM object)
+has focus.
+
+## `toShow`
+
+<!-- TODO: spec! -->
+
