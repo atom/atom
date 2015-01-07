@@ -490,7 +490,6 @@ class TokenizedLine
     while iterator.next()
       scopes = iterator.getScopes()
       continue if scopes.length is 1
-      continue unless NonWhitespaceRegex.test(iterator.getText())
       for scope in scopes
         return true if CommentScopeRegex.test(scope)
       break
