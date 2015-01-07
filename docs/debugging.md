@@ -3,7 +3,8 @@
 Atom provides several tools to help you understand unexpected behavior and debug problems. This guide describes some of those tools and a few approaches to help you debug and provide more helpful information when [submitting issues]:
 
 * [Update to the latest version](#update-to-the-latest-version)
-* [Check Atom and package settings](#check-atom-and-package-settings) 
+* [Check for linked packages](#check-for-linked-packages)
+* [Check Atom and package settings](#check-atom-and-package-settings)
 * [Check the keybindings](#check-the-keybindings)
 * [Check if the problem shows up in safe mode](#check-if-the-problem-shows-up-in-safe-mode)
 * [Check your config files](#check-your-config-files)
@@ -23,6 +24,16 @@ $ atom --version
 ```
 
 Head on over to the [list of releases][atom releases] and see if there's a more recent release. You can update to the most recent release by downloading Atom from the releases page, or with the in-app auto-updater. The in-app auto-updater checks for and downloads a new version after you restart Atom, or if you use the Atom > Check for Update menu option.
+
+## Check for linked packages
+
+If you develop or contribute to Atom packages, there may be left-over packages linked to your `~/.atom/packages` or `~/.atom/dev/packages` directories. You can use:
+
+```shell
+$ apm links
+```
+
+to list all linked development packages. You can remove the links using the `apm unlink` command. See `apm unlink --help` for details.
 
 ## Check Atom and package settings
 
