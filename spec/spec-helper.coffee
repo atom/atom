@@ -207,10 +207,10 @@ jasmine.attachToDOM = (element) ->
 
 deprecationsSnapshot = null
 jasmine.snapshotDeprecations = ->
-  deprecationsSnapshot = Grim.getDeprecations() # suppress deprecations!!
+  deprecationsSnapshot = _.clone(Grim.deprecations)
 
 jasmine.restoreDeprecationsSnapshot = ->
-  Grim.grimDeprecations = deprecationsSnapshot
+  Grim.deprecations = deprecationsSnapshot
 
 addCustomMatchers = (spec) ->
   spec.addMatchers
