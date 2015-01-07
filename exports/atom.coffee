@@ -40,11 +40,11 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   Object.defineProperty module.exports, '$', get: ->
     deprecate """
       Requiring `$` from `atom` is no longer supported.
-      If you are using `space-pen`, please require `$` from `space-pen`. Otherwise require `jquery` instead:
-        `{$} = require 'space-pen'`
+      If you are using `space-pen`, please require `$` from `atom-space-pen-views`. Otherwise require `jquery` instead:
+        `{$} = require 'atom-space-pen-views'`
         or
         `$ = require 'jquery'`
-      Add `"space-pen": "^4"` to your package dependencies.
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
       Or add `"jquery": "^2"` to your package dependencies.
     """
     $
@@ -52,27 +52,27 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   Object.defineProperty module.exports, '$$', get: ->
     deprecate """
       Requiring `$$` from `atom` is no longer supported.
-      Please require `space-pen` instead:
-        `{$$} = require 'space-pen'`
-      Add `"space-pen": "^4"` to your package dependencies.
+      Please require `atom-space-pen-views` instead:
+        `{$$} = require 'atom-space-pen-views'`
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
     """
     $$
 
   Object.defineProperty module.exports, '$$$', get: ->
     deprecate """
       Requiring `$$$` from `atom` is no longer supported.
-      Please require `space-pen` instead:
-        `{$$$} = require 'space-pen'`
-      Add `"space-pen": "^4"` to your package dependencies.
+      Please require `atom-space-pen-views` instead:
+        `{$$$} = require 'atom-space-pen-views'`
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
     """
     $$$
 
   Object.defineProperty module.exports, 'View', get: ->
     deprecate """
       Requiring `View` from `atom` is no longer supported.
-      Please require `space-pen` instead:
-        `{View} = require 'space-pen'`
-      Add `"space-pen": "^4"` to your package dependencies.
+      Please require `atom-space-pen-views` instead:
+        `{View} = require 'atom-space-pen-views'`
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
     """
     View
 
@@ -81,7 +81,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       Requiring `EditorView` from `atom` is no longer supported.
       Please require `TextEditorView` from `atom-space-pen-view` instead:
         `{TextEditorView} = require 'atom-space-pen-views'`
-      Add `"atom-space-pen-views": "^0"` to your package dependencies.
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
     """
     require '../src/text-editor-view'
 
@@ -90,7 +90,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       Requiring `TextEditorView` from `atom` is no longer supported.
       Please require `TextEditorView` from `atom-space-pen-view` instead:
         `{TextEditorView} = require 'atom-space-pen-views'`
-      Add `"atom-space-pen-views": "^0"` to your package dependencies.
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
     """
     require '../src/text-editor-view'
 
@@ -100,7 +100,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       Please require `ScrollView` from `atom-space-pen-view` instead:
         `{ScrollView} = require 'atom-space-pen-views'`
       Note that the API has changed slightly! Please read the docs at https://github.com/atom/atom-space-pen-views
-      Add `"atom-space-pen-views": "^0"` to your package dependencies.
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
     """
     require '../src/scroll-view'
 
@@ -110,7 +110,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       Please require `SelectListView` from `atom-space-pen-view` instead:
         `{SelectListView} = require 'atom-space-pen-views'`
       Note that the API has changed slightly! Please read the docs at https://github.com/atom/atom-space-pen-views
-      Add `"atom-space-pen-views": "^0"` to your package dependencies.
+      Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
     """
     require '../src/select-list-view'
 
