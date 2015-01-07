@@ -25,9 +25,15 @@ environmentKeyPath = 'HKCU\\Environment'
 # Spawn a command and invoke the callback when it completes with an error
 # and the output from standard out.
 spawn = (command, args, callback) ->
-  spawnedProcess = ChildProcess.spawn(command, args)
-
   stdout = ''
+
+  try
+    spawnedProcess = ChildProcess.spawn(command, args)
+  catch error
+    # Spawn can throw an error
+    process.nextTick -> callback?(error, stdout)
+    return
+
   spawnedProcess.stdout.on 'data', (data) -> stdout += data
 
   error = null

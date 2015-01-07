@@ -25,6 +25,16 @@ describe "Windows squirrel updates", ->
       else
         originalSpawn('ls')
 
+  it "ignores errors spawning Squirrel", ->
+    jasmine.unspy(ChildProcess, 'spawn')
+    spyOn(ChildProcess, 'spawn').andCallFake -> throw new Error("EBUSY")
+
+    app = quit: jasmine.createSpy('quit')
+    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
+
+    waitsFor ->
+      app.quit.callCount is 1
+
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
 
