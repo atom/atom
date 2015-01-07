@@ -24,8 +24,8 @@ SpecificityCache = {}
 # 'atom-text-editor': [{
 #   label: 'History',
 #   submenu: [
-#     {label: 'Undo': command:'core:undo'}
-#     {label: 'Redo': command:'core:redo'}
+#     {label: 'Undo', command:'core:undo'}
+#     {label: 'Redo', command:'core:redo'}
 #   ]
 # }]
 # ```
@@ -71,8 +71,8 @@ class ContextMenuManager
   #   'atom-text-editor': [{
   #     label: 'History',
   #     submenu: [
-  #       {label: 'Undo': command:'core:undo'}
-  #       {label: 'Redo': command:'core:redo'}
+  #       {label: 'Undo', command:'core:undo'}
+  #       {label: 'Redo', command:'core:redo'}
   #     ]
   #   }]
   # }
