@@ -93,7 +93,11 @@ class StyleManager
     sourcePath = params?.sourcePath
     context = params?.context
     group = params?.group
-    priority = params?.priority
+    priority = params?.priority ?
+      switch group
+        when 'bundled' then 0
+        when 'theme' then 1
+        when 'user' then 2
 
     if sourcePath? and styleElement = @styleElementsBySourcePath[sourcePath]
       updated = true

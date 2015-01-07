@@ -65,6 +65,17 @@ describe "StyleManager", ->
           "a {color: blue}"
         ]
 
+      it "assigns priorities to 'bundled', 'theme', and 'user' groups that place them in the proper order", ->
+        manager.addStyleSheet("a {color: red}", group: 'user')
+        manager.addStyleSheet("a {color: blue}", group: 'bundled')
+        manager.addStyleSheet("a {color: green}", group: 'theme')
+
+        expect(manager.getStyleElements().map (elt) -> elt.textContent).toEqual [
+          "a {color: blue}"
+          "a {color: green}"
+          "a {color: red}"
+        ]
+
     describe "when a priority parameter is specified", ->
       it "inserts the style sheet based on the priority", ->
         manager.addStyleSheet("a {color: red}", priority: 1)
