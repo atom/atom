@@ -29,7 +29,7 @@ SpecificityCache = {}
 #   ]
 # }]
 # ```
-
+#
 # In your package's menu `.cson` file you need to specify it under a
 # `context-menu` key:
 #
