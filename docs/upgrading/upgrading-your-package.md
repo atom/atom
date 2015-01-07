@@ -173,7 +173,7 @@ class MyView extends View
 
 ### Upgrading to the new TextEditorView
 
-You should not need to change anything to use the new `TextEditorView`! See the [docs][TextEditorView] for more info.
+All of the atom-specific methods available on the `TextEditorView` have been moved to the `TextEditor`, available via `TextEditorView::getModel`. See the [`TextEditorView` docs][TextEditorView] and [`TextEditor` docs][TextEditor] for more info.
 
 ### Upgrading classes extending ScrollView
 
@@ -543,6 +543,7 @@ See [Upgrading Your Package Selectors guide][upgrading-selectors] for more infor
 [selectlistview]:https://github.com/atom/atom-space-pen-views#selectlistview
 [selectlistview-example]:https://github.com/atom/command-palette/pull/19/files
 [emitter]:https://atom.io/docs/api/latest/Emitter
+[texteditor]:https://atom.io/docs/api/latest/TextEditor
 [disposable]:https://atom.io/docs/api/latest/Disposable
 [commands-add]:https://atom.io/docs/api/latest/CommandRegistry#instance-add
 [upgrading-selectors]:upgrading-your-ui-theme
