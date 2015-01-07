@@ -146,9 +146,9 @@ Sometimes it is as simple as converting the requires at the top of each view pag
 The `afterAttach` and `beforeRemove` hooks have been replaced with
 `attached` and `detached` and the semantics have changed.
 
-`afterAttach` was called whenever the node was attached to another DOM node, even if that node itself wasn't present in the document. `afterAttach` also was called with a boolean indicating whether or not the element and its parents were on the DOM. Now the `attached` hook is only called when the node and all of its parents are actually on the DOM, and is not called with a boolean.
+`afterAttach` was called whenever the node was attached to another DOM node, even if that parent node wasn't present in the DOM. `afterAttach` also was called with a boolean indicating whether or not the element and its parents were on the DOM. Now the `attached` hook is _only_ called when the node and all of its parents are actually on the DOM, and is not called with a boolean.
 
-`beforeRemove` was only called when `$.fn.remove` was called, which was typically used when the node was completely removed from the DOM. The `detached` hook is called whenever the DOM node is _detached_, which could happen if the node is being detached for reattachment later. In short, if `beforeRemove` is called the node is never coming back. With `detached` it might be attached again later.
+`beforeRemove` was only called when `$.fn.remove` was called, which was typically used when the node was completely removed from the DOM. The new `detached` hook is called whenever the DOM node is _detached_, which could happen if the node is being detached for reattachment later. In short, if `beforeRemove` is called the node is never coming back. With `detached` it might be attached again later.
 
 ```coffee
 # Old way
@@ -175,7 +175,7 @@ class MyView extends View
 
 #### `subscribe` and `subscribeToCommand` methods removed
 
-Additionally, the `subscribe` and `subscribeToCommand` methods have been removed. See the Eventing and Disposables section for more info.
+The `subscribe` and `subscribeToCommand` methods have been removed. See the Eventing and Disposables section for more info.
 
 ### Upgrading to the new TextEditorView
 
@@ -296,7 +296,7 @@ class CommandPaletteView extends SelectListView
 
 ## Using the model layer rather than the view layer
 
-The API no longer exposes any view objects or view classes. `atom.workspaceView`, and all the view classes: `WorkspaceView`, `EditorView`, `PaneView`, etc. have been globally deprecated.
+The API no longer exposes any specialized view objects or view classes. `atom.workspaceView`, and all the view classes: `WorkspaceView`, `EditorView`, `PaneView`, etc. have been globally deprecated.
 
 Nearly all of the atom-specific actions performed by the old view objects can now be managed via the model layer. For example, here's adding a panel to the interface using the `atom.workspace` model instead of the `workspaceView`:
 
@@ -466,6 +466,7 @@ You can group multiple disposables into a single disposable with a `CompositeDis
 class Something
   constructor: ->
     editor = atom.workspace.getActiveTextEditor()
+    @disposables = new CompositeDisposable
     @disposables.add editor.onDidChange ->
     @disposables.add editor.onDidChangePath ->
 
@@ -536,7 +537,7 @@ disposables.add new Disposable ->
 
 ### Providing Events: Using the Emitter
 
-You no longer need to require emissary to get an emitter. We now provide an `Emitter` class from `require 'atom'`. We have a specific pattern for use of the `Emitter`. Rather than mixing it in, we instantiate a member variable, and create explicit subscription methods. For more information see the [`Emitter` docs][emitter].
+You no longer need to require `emissary` to get an emitter. We now provide an `Emitter` class from `require 'atom'`. We have a specific pattern for use of the `Emitter`. Rather than mixing it in, we instantiate a member variable, and create explicit subscription methods. For more information see the [`Emitter` docs][emitter].
 
 ```coffee
 # New!
@@ -555,6 +556,7 @@ class Something
   methodThatFiresAChange: ->
     @emitter.emit 'did-change', {data: 2}
 
+# Using the evented class
 something = new Something
 something.onDidChange (eventObject) ->
   console.log eventObject.data # => 2
@@ -589,7 +591,7 @@ atom.workspaceView.command 'core:close core:cancel', ->
 
 ## Upgrading your stylesheet's selectors
 
-See [Upgrading Your Package Selectors guide][upgrading-selectors] for more information.
+Many selectors have changed, and we have introduced the [Shadow DOM][shadowdom] to the editor. See [Upgrading Your Package Selectors guide][upgrading-selectors] for more information in upgrading your package stylesheets.
 
 [texteditorview]:https://github.com/atom/atom-space-pen-views#texteditorview
 [scrollview]:https://github.com/atom/atom-space-pen-views#scrollview
@@ -600,3 +602,4 @@ See [Upgrading Your Package Selectors guide][upgrading-selectors] for more infor
 [disposable]:https://atom.io/docs/api/latest/Disposable
 [commands-add]:https://atom.io/docs/api/latest/CommandRegistry#instance-add
 [upgrading-selectors]:upgrading-your-ui-theme
+[shadowdom]:http://blog.atom.io/2014/11/18/avoiding-style-pollution-with-the-shadow-dom.html
