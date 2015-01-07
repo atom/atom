@@ -378,9 +378,9 @@ jasmine.attachToDOM(workspaceElement)
 
 ### Removing EditorView references
 
-Like `WorkspaceView`, `EditorView` has been deprecated. Everything you needed to do on the view you are now able to do on the `Editor` model.
+Like `WorkspaceView`, `EditorView` has been deprecated. Everything you needed to do on the view you are now able to do on the `TextEditor` model.
 
-In many cases, you will not even need to get the editor's view anymore. Any of those instances should be updated to use the `Editor` instance. You should really only need the editor's view when you plan on triggering a command on the view in a spec.
+In many cases, you will not even need to get the editor's view anymore. Any of those instances should be updated to use the `TextEditor` instance instead. You should really only need the editor's view when you plan on triggering a command on the view in a spec.
 
 Your specs might contain something like this:
 
@@ -392,7 +392,7 @@ describe 'Something', ->
     editorView = atom.workspaceView.getActiveView()
 ```
 
-We're going to use `atom.views.getView()` again to get the editor element. As in the case of the `workspaceElement`, `getView` will return a plain `HTMLElement` rather than an `EditorView` or jQuery object.
+We're going to use `atom.views.getView()` again to get the editor element. As in the case of the `workspaceElement`, `getView` will return a subclass of `HTMLElement` rather than an `EditorView` or jQuery object.
 
 ```coffee
 # New!
