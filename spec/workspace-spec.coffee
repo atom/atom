@@ -285,6 +285,18 @@ describe "Workspace", ->
             expect(notification.getType()).toBe 'warning'
             expect(notification.getMessage()).toContain < '2MB'
 
+      describe "when a file does not exist", ->
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('not-a-file.md', workspace.getActivePane())
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain < 'No such file'
+            expect(notification.getMessage()).toContain < 'not-a-file.md'
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()

@@ -453,6 +453,8 @@ class Workspace extends Model
     catch error
       if error.name is 'OversizeFileError'
         atom.notifications.addWarning(error.message)
+      else if error.code is 'ENOENT' and error.path?
+        atom.notifications.addWarning("No such file '#{error.path}'")
       return Q()
 
     Q(item)
