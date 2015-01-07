@@ -823,7 +823,7 @@ class Workspace extends Model
     task = Task.once require.resolve('./scan-handler'), atom.project.getPaths()[0], regex.source, searchOptions, ->
       deferred.resolve()
 
-    task.on 'scan:result-found', (result) =>
+    task.on 'scan:result-found', (result) ->
       iterator(result) unless atom.project.isPathModified(result.filePath)
 
     task.on 'scan:file-error', (error) ->
