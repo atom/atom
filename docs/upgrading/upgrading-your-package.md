@@ -56,6 +56,18 @@ Would be replaced by this:
 
 You wrote specs, right!? Here's where they shine. Run them with `cmd-shift-P`, and search for `run package specs`. It will show all the deprecation messages and errors.
 
+### Update the engines field in package.json
+
+When you are deprecation free and all done converting, upgrade the `engines` field in your package.json:
+
+```json
+{
+  "engines": {
+    "atom": ">=0.x.0, <2.0.0"
+  }
+}
+```
+
 ### Examples
 
 We have upgraded all the core packages. Please see [this issue](https://github.com/atom/atom/issues/4011) for a link to all the upgrade PRs.
