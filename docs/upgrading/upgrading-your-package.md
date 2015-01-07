@@ -242,7 +242,7 @@ class CommandPaletteView extends SelectListView
 
 This attaches and detaches itself from the dom when toggled, canceling magically detaches it from the DOM, and it uses the classes `overlay` and `from-top`.
 
-Using the new APIs it should look like this:
+The new SelectListView no longer automatically detaches itself from the DOM when cancelled. It's up to you to implement whatever cancel beahavior you want. Using the new APIs to mimic the sematics of the old class, it should look like this:
 
 ```coffee
 # New!
