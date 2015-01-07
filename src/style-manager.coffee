@@ -125,7 +125,7 @@ class StyleManager
     new Disposable => @removeStyleElement(styleElement)
 
   addStyleElement: (styleElement) ->
-    {sourcePath, group} = styleElement
+    {sourcePath, group, priority} = styleElement
 
     if group?
       for existingElement, index in @styleElements
@@ -133,6 +133,13 @@ class StyleManager
           insertIndex = index + 1
         else
           break if insertIndex?
+
+    if priority?
+      for existingElement, index in @styleElements
+        if existingElement.priority > priority
+          insertIndex = index
+          break
+
     insertIndex ?= @styleElements.length
 
     @styleElements.splice(insertIndex, 0, styleElement)
