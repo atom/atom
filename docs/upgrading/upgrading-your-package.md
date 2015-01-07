@@ -224,7 +224,7 @@ class CommandPaletteView extends SelectListView
   attach: ->
     @storeFocusedElement()
 
-    items = # build items
+    items = [] # TODO: build items
     @setItems(items)
 
     atom.workspaceView.append(this)
