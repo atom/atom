@@ -447,7 +447,13 @@ class Workspace extends Model
     if uri?
       item = pane.itemForURI(uri)
       item ?= opener(uri, options) for opener in @getOpeners() when !item
-    item ?= atom.project.open(uri, options)
+
+    try
+      item ?= atom.project.open(uri, options)
+    catch error
+      if error.name is 'OversizeFileError'
+        atom.notifications.addWarning(error.message)
+      return Q()
 
     Q(item)
       .then (item) =>

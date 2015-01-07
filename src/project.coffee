@@ -279,7 +279,9 @@ class Project extends Model
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
     if fs.getSizeSync(absoluteFilePath) >= 2 * 1048576 # 2MB
-      throw new Error("Atom can only handle files < 2MB for now.")
+      error = new Error("Atom can only handle files < 2MB for now.")
+      error.name = 'OversizeFileError'
+      throw error
 
     buffer = new TextBuffer({filePath: absoluteFilePath})
     buffer.setEncoding(atom.config.get('core.fileEncoding'))

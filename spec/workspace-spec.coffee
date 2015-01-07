@@ -266,6 +266,25 @@ describe "Workspace", ->
         expect(deprecations[0].getStacks()[0].metadata.packageName).toBe "package-with-deprecated-pane-item-method"
         jasmine.restoreDeprecationsSnapshot()
 
+    describe "when there is an error opening the file", ->
+      notificationSpy = null
+      beforeEach ->
+        atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
+      describe "when a large file is opened", ->
+        beforeEach ->
+          spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1', workspace.getActivePane())
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain < '2MB'
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
