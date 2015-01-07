@@ -16,6 +16,31 @@ SpecificityCache = {}
 #
 # An instance of this class is always available as the `atom.contextMenu`
 # global.
+#
+# ## Format
+#
+# # ```coffee
+# 'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+# 'atom-text-editor': [{
+#   label: 'History',
+#   submenu: [
+#     {label: 'Undo': command:'core:undo'}
+#     {label: 'Redo': command:'core:redo'}
+#   ]
+# }]
+# ```
+
+# In your package's menu `.cson` file you need to specify it under a
+# `context-menu` key:
+#
+# ```coffee
+# 'context-menu':
+#   'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+#   ...
+# ```
+#
+# The format for use in {::add} is the same minus the `context-menu` key. See
+# {::add} for more information.
 module.exports =
 class ContextMenuManager
   constructor: ({@resourcePath, @devMode}) ->
@@ -77,14 +102,22 @@ class ContextMenuManager
   add: (itemsBySelector) ->
     # Detect deprecated file path as first argument
     if itemsBySelector? and typeof itemsBySelector isnt 'object'
-      Grim.deprecate("ContextMenuManager::add has changed to take a single object as its argument. Please consult the documentation.")
+      Grim.deprecate """
+        ContextMenuManager::add has changed to take a single object as its
+        argument. Please see
+        https://atom.io/docs/api/latest/ContextMenuManager for more info.
+      """
       itemsBySelector = arguments[1]
       devMode = arguments[2]?.devMode
 
     # Detect deprecated format for items object
     for key, value of itemsBySelector
       unless _.isArray(value)
-        Grim.deprecate("The format for declaring context menu items has changed. Please consult the documentation.")
+        Grim.deprecate """
+          ContextMenuManager::add has changed to take a single object as its
+          argument. Please see
+          https://atom.io/docs/api/latest/ContextMenuManager for more info.
+        """
         itemsBySelector = @convertLegacyItemsBySelector(itemsBySelector, devMode)
 
     addedItemSets = []
