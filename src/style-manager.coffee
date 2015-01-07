@@ -93,6 +93,7 @@ class StyleManager
     sourcePath = params?.sourcePath
     context = params?.context
     group = params?.group
+    priority = params?.priority
 
     if sourcePath? and styleElement = @styleElementsBySourcePath[sourcePath]
       updated = true
@@ -109,6 +110,10 @@ class StyleManager
       if group?
         styleElement.group = group
         styleElement.setAttribute('group', group)
+
+      if priority?
+        styleElement.priority = priority
+        styleElement.setAttribute('priority', priority)
 
     styleElement.textContent = source
 

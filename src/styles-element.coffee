@@ -53,6 +53,7 @@ class StylesElement extends HTMLElement
     styleElementClone = styleElement.cloneNode(true)
     styleElementClone.sourcePath = styleElement.sourcePath
     styleElementClone.context = styleElement.context
+    styleElementClone.priority = styleElement.priority
     @styleElementClonesByOriginalElement.set(styleElement, styleElementClone)
 
     group = styleElement.getAttribute('group')
@@ -60,6 +61,13 @@ class StylesElement extends HTMLElement
       for child in @children
         if child.getAttribute('group') is group and child.nextSibling?.getAttribute('group') isnt group
           insertBefore = child.nextSibling
+          break
+
+    priority = styleElement.priority
+    if priority?
+      for child in @children
+        if child.priority > priority
+          insertBefore = child
           break
 
     @insertBefore(styleElementClone, insertBefore)

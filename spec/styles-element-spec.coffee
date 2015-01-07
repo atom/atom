@@ -32,6 +32,19 @@ describe "StylesElement", ->
     expect(element.children[initialChildCount].textContent).toBe "a {color: blue;}"
     expect(removedStyleElements).toEqual [addedStyleElements[0]]
 
+  it "orders style elements by priority", ->
+    initialChildCount = element.children.length
+
+    atom.styles.addStyleSheet("a {color: red}", priority: 1)
+    atom.styles.addStyleSheet("a {color: blue}", priority: 0)
+    atom.styles.addStyleSheet("a {color: green}", priority: 2)
+    atom.styles.addStyleSheet("a {color: yellow}", priority: 1)
+
+    expect(element.children[initialChildCount].textContent).toBe "a {color: blue}"
+    expect(element.children[initialChildCount + 1].textContent).toBe "a {color: red}"
+    expect(element.children[initialChildCount + 2].textContent).toBe "a {color: yellow}"
+    expect(element.children[initialChildCount + 3].textContent).toBe "a {color: green}"
+
   it "orders style elements by group", ->
     initialChildCount = element.children.length
 
