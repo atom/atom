@@ -179,7 +179,7 @@ You can no longer use `@off` to remove default behavior for `core:move-up`, `cor
 # Old way to turn off default behavior
 class ResultsView extends ScrollView
   initialize: (@model) ->
-    super
+    super()
     # turn off default scrolling behavior from ScrollView
     @off 'core:move-up'
     @off 'core:move-down'
@@ -207,7 +207,7 @@ Your SelectListView might look something like this:
 # Old!
 class CommandPaletteView extends SelectListView
   initialize: ->
-    super
+    super()
     @addClass('command-palette overlay from-top')
     atom.workspaceView.command 'command-palette:toggle', => @toggle()
 
@@ -242,10 +242,10 @@ Using the new APIs it should look like this:
 # New!
 class CommandPaletteView extends SelectListView
   initialize: ->
-    super
+    super()
     # no more need for the `overlay` and `from-top` classes
     @addClass('command-palette')
-    atom.workspaceView.command 'command-palette:toggle', => @toggle()
+    atom.commands.add 'atom-workspace', 'command-palette:toggle', => @toggle()
 
   # You need to implement the `cancelled` method and hide.
   cancelled: ->
@@ -270,7 +270,7 @@ class CommandPaletteView extends SelectListView
 
     @storeFocusedElement()
 
-    items = # build items
+    items = [] # TODO: build items
     @setItems(items)
 
     @focusFilterEditor()
@@ -351,10 +351,10 @@ We're going to use `atom.views.getView()` again to get the editor element. As in
 ```coffee
 # New!
 describe 'Something', ->
-  [editor, editorElement] = []
+  [editor, editorView] = []
   beforeEach ->
     editor = atom.workspace.getActiveTextEditor()
-    editorElement = atom.views.getView(editor)
+    editorView = atom.views.getView(editor)
 ```
 
 ### Dispatching commands
@@ -374,7 +374,7 @@ To this:
 ```coffee
 # New!
 atom.commands.dispatch workspaceElement, 'a-package:toggle'
-atom.commands.dispatch editorElement, 'find-and-replace:show'
+atom.commands.dispatch editorView, 'find-and-replace:show'
 ```
 
 ## Eventing and Disposables
