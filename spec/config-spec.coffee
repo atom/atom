@@ -1313,6 +1313,10 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 100, green: 255, blue: 2, alpha: .5}
           atom.config.set('foo.bar.aColor', {red: 255})
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', {red: 1000})
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', {red: 'dark'})
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 0, blue: 0, alpha: 1}
 
         it 'reverts back to the default value when undefined is passed to set', ->
           atom.config.set('foo.bar.aColor', 'rgb(255,255,255)')
