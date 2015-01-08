@@ -457,6 +457,8 @@ class Workspace extends Model
         atom.notifications.addWarning("No such file '#{error.path}'")
       else if error.code is 'EACCES' and error.path?
         atom.notifications.addWarning("Permission denied '#{error.path}'")
+      else
+        throw error
       return Q()
 
     Q(item)

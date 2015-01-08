@@ -316,6 +316,14 @@ describe "Workspace", ->
             expect(notification.getMessage()).toContain 'Permission denied'
             expect(notification.getMessage()).toContain 'file1'
 
+      describe "when there is an unhandled error", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path)->
+            throw new Error("I dont even know what is happening right now!!")
+
+        it "creates a notification", ->
+          open = -> workspace.open('file1', workspace.getActivePane())
+          expect(open).toThrow()
 
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
