@@ -434,130 +434,109 @@ describe "PackageManager", ->
     afterEach ->
       atom.packages.unloadPackages()
 
-    describe "atom packages", ->
-      it "calls `deactivate` on the package's main module if activate was successful", ->
-        pack = null
-        waitsForPromise ->
-          atom.packages.activatePackage("package-with-deactivate").then (p) -> pack = p
+    it "calls `deactivate` on the package's main module if activate was successful", ->
+      pack = null
+      waitsForPromise ->
+        atom.packages.activatePackage("package-with-deactivate").then (p) -> pack = p
 
-        runs ->
-          expect(atom.packages.isPackageActive("package-with-deactivate")).toBeTruthy()
-          spyOn(pack.mainModule, 'deactivate').andCallThrough()
+      runs ->
+        expect(atom.packages.isPackageActive("package-with-deactivate")).toBeTruthy()
+        spyOn(pack.mainModule, 'deactivate').andCallThrough()
 
-          atom.packages.deactivatePackage("package-with-deactivate")
-          expect(pack.mainModule.deactivate).toHaveBeenCalled()
-          expect(atom.packages.isPackageActive("package-with-module")).toBeFalsy()
+        atom.packages.deactivatePackage("package-with-deactivate")
+        expect(pack.mainModule.deactivate).toHaveBeenCalled()
+        expect(atom.packages.isPackageActive("package-with-module")).toBeFalsy()
 
-          spyOn(console, 'warn')
-
-        badPack = null
-        waitsForPromise ->
-          atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
-
-        runs ->
-          expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeTruthy()
-          spyOn(badPack.mainModule, 'deactivate').andCallThrough()
-
-          atom.packages.deactivatePackage("package-that-throws-on-activate")
-          expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
-          expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
-
-      it "does not serialize packages that have not been activated called on their main module", ->
         spyOn(console, 'warn')
-        badPack = null
-        waitsForPromise ->
-          atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
 
-        runs ->
-          spyOn(badPack.mainModule, 'serialize').andCallThrough()
+      badPack = null
+      waitsForPromise ->
+        atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
 
-          atom.packages.deactivatePackage("package-that-throws-on-activate")
-          expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
+      runs ->
+        expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeTruthy()
+        spyOn(badPack.mainModule, 'deactivate').andCallThrough()
 
-      it "absorbs exceptions that are thrown by the package module's serialize method", ->
-        spyOn(console, 'error')
+        atom.packages.deactivatePackage("package-that-throws-on-activate")
+        expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
+        expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
 
-        waitsForPromise ->
-          atom.packages.activatePackage('package-with-serialize-error')
+    it "does not serialize packages that have not been activated called on their main module", ->
+      spyOn(console, 'warn')
+      badPack = null
+      waitsForPromise ->
+        atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
 
-        waitsForPromise ->
-          atom.packages.activatePackage('package-with-serialization')
+      runs ->
+        spyOn(badPack.mainModule, 'serialize').andCallThrough()
 
-        runs ->
-          atom.packages.deactivatePackages()
-          expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
-          expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
-          expect(console.error).toHaveBeenCalled()
+        atom.packages.deactivatePackage("package-that-throws-on-activate")
+        expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
-      it "absorbs exceptions that are thrown by the package module's deactivate method", ->
-        spyOn(console, 'error')
+    it "absorbs exceptions that are thrown by the package module's serialize method", ->
+      spyOn(console, 'error')
 
-        waitsForPromise ->
-          atom.packages.activatePackage("package-that-throws-on-deactivate")
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-serialize-error')
 
-        runs ->
-          expect(-> atom.packages.deactivatePackage("package-that-throws-on-deactivate")).not.toThrow()
-          expect(console.error).toHaveBeenCalled()
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-serialization')
 
-      it "removes the package's grammars", ->
-        waitsForPromise ->
-          atom.packages.activatePackage('package-with-grammars')
+      runs ->
+        atom.packages.deactivatePackages()
+        expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+        expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
+        expect(console.error).toHaveBeenCalled()
 
-        runs ->
-          atom.packages.deactivatePackage('package-with-grammars')
-          expect(atom.grammars.selectGrammar('a.alot').name).toBe 'Null Grammar'
-          expect(atom.grammars.selectGrammar('a.alittle').name).toBe 'Null Grammar'
+    it "absorbs exceptions that are thrown by the package module's deactivate method", ->
+      spyOn(console, 'error')
 
-      it "removes the package's keymaps", ->
-        waitsForPromise ->
-          atom.packages.activatePackage('package-with-keymaps')
+      waitsForPromise ->
+        atom.packages.activatePackage("package-that-throws-on-deactivate")
 
-        runs ->
-          atom.packages.deactivatePackage('package-with-keymaps')
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
+      runs ->
+        expect(-> atom.packages.deactivatePackage("package-that-throws-on-deactivate")).not.toThrow()
+        expect(console.error).toHaveBeenCalled()
 
-      it "removes the package's stylesheets", ->
-        waitsForPromise ->
-          atom.packages.activatePackage('package-with-stylesheets')
+    it "removes the package's grammars", ->
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-grammars')
 
-        runs ->
-          atom.packages.deactivatePackage('package-with-stylesheets')
-          one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
-          two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
-          three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
-          expect(atom.themes.stylesheetElementForId(one)).not.toExist()
-          expect(atom.themes.stylesheetElementForId(two)).not.toExist()
-          expect(atom.themes.stylesheetElementForId(three)).not.toExist()
+      runs ->
+        atom.packages.deactivatePackage('package-with-grammars')
+        expect(atom.grammars.selectGrammar('a.alot').name).toBe 'Null Grammar'
+        expect(atom.grammars.selectGrammar('a.alittle').name).toBe 'Null Grammar'
 
-      it "removes the package's scoped-properties", ->
-        waitsForPromise ->
-          atom.packages.activatePackage("package-with-settings")
+    it "removes the package's keymaps", ->
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-keymaps')
 
-        runs ->
-          expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
-          atom.packages.deactivatePackage("package-with-settings")
-          expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBeUndefined()
+      runs ->
+        atom.packages.deactivatePackage('package-with-keymaps')
+        expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
 
-    describe "textmate packages", ->
-      it "removes the package's grammars", ->
-        expect(atom.grammars.selectGrammar("file.rb").name).toBe "Null Grammar"
+    it "removes the package's stylesheets", ->
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-stylesheets')
 
-        waitsForPromise ->
-          atom.packages.activatePackage('language-ruby')
+      runs ->
+        atom.packages.deactivatePackage('package-with-stylesheets')
+        one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
+        two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
+        three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
+        expect(atom.themes.stylesheetElementForId(one)).not.toExist()
+        expect(atom.themes.stylesheetElementForId(two)).not.toExist()
+        expect(atom.themes.stylesheetElementForId(three)).not.toExist()
 
-        runs ->
-          expect(atom.grammars.selectGrammar("file.rb").name).toBe "Ruby"
-          atom.packages.deactivatePackage('language-ruby')
-          expect(atom.grammars.selectGrammar("file.rb").name).toBe "Null Grammar"
+    it "removes the package's scoped-properties", ->
+      waitsForPromise ->
+        atom.packages.activatePackage("package-with-settings")
 
-      it "removes the package's scoped properties", ->
-        waitsForPromise ->
-          atom.packages.activatePackage('language-ruby')
-
-        runs ->
-          atom.packages.deactivatePackage('language-ruby')
-          expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBeUndefined()
+      runs ->
+        expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
+        atom.packages.deactivatePackage("package-with-settings")
+        expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBeUndefined()
 
   describe "::activate()", ->
     beforeEach ->
