@@ -1305,6 +1305,10 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 1, green: 2, blue: 3, alpha: 1}
           atom.config.set('foo.bar.aColor', 'rgba(4,5,6,.7)')
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 4, green: 5, blue: 6, alpha: .7}
+          atom.config.set('foo.bar.aColor', 'hsl(120,100%,50%)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 255, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', 'hsla(120,100%,50%,0.3)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 255, blue: 0, alpha: .3}
 
         it 'reverts back to the default value when undefined is passed to set', ->
           atom.config.set('foo.bar.aColor', 'rgb(255,255,255)')
