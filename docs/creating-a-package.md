@@ -123,8 +123,8 @@ like you.
 
 Style sheets for your package should be placed in the _stylesheets_ directory.
 Any style sheets in this directory will be loaded and attached to the DOM when
-your package is activated. Style sheets can be written as CSS or [LESS] \(but
-LESS is recommended).
+your package is activated. Style sheets can be written as CSS or [LESS], but
+LESS is recommended.
 
 Ideally, you won't need much in the way of styling. We've provided a standard
 set of components which define both the colors and UI elements for any package
