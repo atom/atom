@@ -280,7 +280,7 @@ class Atom extends Model
       deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
       @grammars
 
-    @subscribe @packages.onDidActivateAll => @watchThemes()
+    @subscribe @packages.onDidActivateInitialPackages => @watchThemes()
 
     Project = require './project'
     TextBuffer = require 'text-buffer'

@@ -65,15 +65,19 @@ class PackageManager
   # * `callback` {Function}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidActivateInitialPackages: (callback) ->
+    @emitter.on 'did-activate-initial-packages', callback
+
   onDidActivateAll: (callback) ->
-    @emitter.on 'did-activate-all', callback
+    Grim.deprecate("Use `::onDidActivateInitialPackages` instead.")
+    @onDidActivateInitialPackages(callback)
 
   on: (eventName) ->
     switch eventName
       when 'loaded'
         deprecate 'Use PackageManager::onDidLoadAll instead'
       when 'activated'
-        deprecate 'Use PackageManager::onDidActivateAll instead'
+        deprecate 'Use PackageManager::onDidActivateInitialPackages instead'
       else
         deprecate 'PackageManager::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
@@ -325,7 +329,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       activator.activatePackages(packages)
     @emit 'activated'
-    @emitter.emit 'did-activate-all'
+    @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
   # See ThemeManager

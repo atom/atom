@@ -61,7 +61,7 @@ class MenuManager
     @pendingUpdateOperation = null
     @template = []
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
-    atom.packages.onDidActivateAll => @sortPackagesMenu()
+    atom.packages.onDidActivateInitialPackages => @sortPackagesMenu()
 
   # Public: Adds the given items to the application menu.
   #
