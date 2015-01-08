@@ -18,7 +18,7 @@ module.exports =
 class AtomProtocolHandler
   constructor: (resourcePath, safeMode) ->
     @loadPaths = []
-    @dotAtomDirectory = path.join(app.getHomeDir(), '.atom')
+    @dotAtomDirectory = process.env.ATOM_HOME
 
     unless safeMode
       @loadPaths.push(path.join(@dotAtomDirectory, 'dev', 'packages'))

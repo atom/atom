@@ -53,6 +53,7 @@ start = ->
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       path.resolve(args.executedFrom ? process.cwd(), pathToOpen.toString())
 
+    setupConfigDirPath()
     setupCoffeeScript()
     if args.devMode
       require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
@@ -78,6 +79,19 @@ setupCoffeeScript = ->
     coffee = fs.readFileSync(filePath, 'utf8')
     js = CoffeeScript.compile(coffee, filename: filePath)
     module._compile(js, filePath)
+
+# Set Atom's home in process.env.ATOM_HOME
+setupConfigDirPath = ->
+  portablePath =
+    if process.platform == 'darwin'
+      process.resourcesPath.slice(0, -19) + '/.atom'
+    else
+      process.resourcesPath.slice(0, -10) + '/.atom'
+  process.env.ATOM_HOME =
+    if fs.existsSync(portablePath)
+      portablePath
+    else
+      path.join(app.getHomeDir(), '.atom')
 
 parseCommandLine = ->
   version = app.getVersion()

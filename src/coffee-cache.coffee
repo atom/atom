@@ -5,7 +5,8 @@ CoffeeScript = require 'coffee-script'
 CSON = require 'season'
 fs = require 'fs-plus'
 
-cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
+homeDir = process.env.ATOM_HOME ?= require('remote').process.env.ATOM_HOME
+cacheDir = path.join(homeDir, 'compile-cache')
 coffeeCacheDir = path.join(cacheDir, 'coffee')
 CSON.setCacheDir(path.join(cacheDir, 'cson'))
 

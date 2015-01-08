@@ -96,7 +96,7 @@ class Atom extends Model
   #
   # Returns the absolute path to ~/.atom
   @getConfigDirPath: ->
-    @configDirPath ?= fs.absolute('~/.atom')
+    @configDirPath ?= remote.process.env.ATOM_HOME
 
   # Get the path to Atom's storage directory.
   #
