@@ -48,7 +48,7 @@ class PackageManager
   Section: Event Subscription
   ###
 
-  # Public: Invoke the given callback when all packages have been activated.
+  # Public: Invoke the given callback when all packages have been loaded.
   #
   # * `callback` {Function}
   #
