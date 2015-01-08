@@ -81,6 +81,15 @@ class PackageManager
   onDidActivatePackage: (callback) ->
     @emitter.on 'did-activate-package', callback
 
+  # Public: Invoke the given callback when a package is deactivated.
+  #
+  # * `callback` A {Function} to be invoked when a package is deactivated.
+  #   * `package` The {Package} that was deactivated.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDeactivatePackage: (callback) ->
+    @emitter.on 'did-deactivate-package', callback
+
   on: (eventName) ->
     switch eventName
       when 'loaded'
@@ -381,3 +390,4 @@ class PackageManager
       @setPackageState(pack.name, state) if state = pack.serialize?()
     pack.deactivate()
     delete @activePackages[pack.name]
+    @emitter.emit 'did-deactivate-package', pack

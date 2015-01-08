@@ -538,6 +538,16 @@ describe "PackageManager", ->
         atom.packages.deactivatePackage("package-with-settings")
         expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBeUndefined()
 
+    it "invokes ::onDidDeactivatePackage listeners with the deactivated package", ->
+      waitsForPromise ->
+        atom.packages.activatePackage("package-with-main")
+
+      runs ->
+        deactivatedPackage = null
+        atom.packages.onDidDeactivatePackage (pack) -> deactivatedPackage = pack
+        atom.packages.deactivatePackage("package-with-main")
+        expect(deactivatedPackage.name).toBe "package-with-main"
+
   describe "::activate()", ->
     beforeEach ->
       jasmine.snapshotDeprecations()
