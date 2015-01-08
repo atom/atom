@@ -213,6 +213,16 @@ describe "PackageManager", ->
         runs ->
           expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
+    it "invokes ::onDidActivatePackage listeners with the activated package", ->
+      activatedPackage = null
+      atom.packages.onDidActivatePackage (pack) ->
+        activatedPackage = pack
+
+      atom.packages.activatePackage('package-with-main')
+
+      waitsFor -> activatedPackage?
+      runs -> expect(activatedPackage.name).toBe 'package-with-main'
+
     describe "when the package throws an error while loading", ->
       it "logs a warning instead of throwing an exception", ->
         atom.config.set("core.disabledPackages", [])

@@ -72,6 +72,15 @@ class PackageManager
     Grim.deprecate("Use `::onDidActivateInitialPackages` instead.")
     @onDidActivateInitialPackages(callback)
 
+  # Public: Invoke the given callback when a package is activated.
+  #
+  # * `callback` A {Function} to be invoked when a package is activated.
+  #   * `package` The {Package} that was activated.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidActivatePackage: (callback) ->
+    @emitter.on 'did-activate-package', callback
+
   on: (eventName) ->
     switch eventName
       when 'loaded'
@@ -354,6 +363,7 @@ class PackageManager
     else if pack = @loadPackage(name)
       pack.activate().then =>
         @activePackages[pack.name] = pack
+        @emitter.emit 'did-activate-package', pack
         pack
     else
       Q.reject(new Error("Failed to load package '#{name}'"))
