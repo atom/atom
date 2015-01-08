@@ -157,7 +157,7 @@ createAtomDraftRelease = (callback) ->
       body: """
         ### Notable Changes
 
-        *
+        * Something new
       """
 
   request options, (error, response, body='') ->
