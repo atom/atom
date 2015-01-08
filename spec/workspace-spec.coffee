@@ -297,6 +297,26 @@ describe "Workspace", ->
             expect(notification.getMessage()).toContain 'No such file'
             expect(notification.getMessage()).toContain 'not-a-file.md'
 
+      describe "when the user does not have access to the file", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path)->
+            error = new Error("EACCES, permission denied '#{path}'")
+            error.path = path
+            error.code = 'EACCES'
+            throw error
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1', workspace.getActivePane())
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Permission denied'
+            expect(notification.getMessage()).toContain 'file1'
+
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
