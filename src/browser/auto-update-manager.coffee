@@ -89,7 +89,7 @@ class AutoUpdateManager
     dialog.showMessageBox
       type: 'info'
       buttons: ['OK']
-      icon: path.join(process.resourcesPath, 'app', 'atom.png')
+      icon: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
       message: 'No update available.'
       title: 'No Update Available'
       detail: "Version #{@version} is the latest version."
@@ -100,7 +100,7 @@ class AutoUpdateManager
     dialog.showMessageBox
       type: 'warning'
       buttons: ['OK']
-      icon: path.join(process.resourcesPath, 'app', 'atom.png')
+      icon: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
       message: 'There was an error checking for updates.'
       title: 'Update Error'
       detail: message
