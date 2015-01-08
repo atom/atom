@@ -217,6 +217,21 @@ ScopeDescriptor = require './scope-descriptor'
 #         maximum: 11.5
 # ```
 #
+# #### color
+#
+# Values will be coerced into an object with `red`, `green`, `blue`, and `alpha`
+# properties that all have numeric values. `red`, `green`, `blue` will be in
+# the range 0 to 255 and `value` will be in the range 0 to 1. Values can be any
+# valid CSS color format such as `#abc`, `#abcdef`, `white`,
+# `rgb(50, 100, 150)`, and `rgba(25, 75, 125, .75)`.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'color'
+#     default: 'white'
+# ```
+#
 # ### Other Supported Keys
 #
 # #### enum
