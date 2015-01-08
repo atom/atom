@@ -325,11 +325,13 @@ class PackageManager
 
   # Activate all the packages that should be activated.
   activate: ->
+    promises = []
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
-      activator.activatePackages(packages)
-    @emit 'activated'
-    @emitter.emit 'did-activate-initial-packages'
+      promises = promises.concat(activator.activatePackages(packages))
+    Q.all(promises).then =>
+      @emit 'activated'
+      @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
   # See ThemeManager
@@ -337,9 +339,13 @@ class PackageManager
     @packageActivators.push([activator, types])
 
   activatePackages: (packages) ->
+    promises = []
     atom.config.transact =>
-      @activatePackage(pack.name) for pack in packages
+      for pack in packages
+        promise = @activatePackage(pack.name)
+        promises.push(promise) unless pack.hasActivationCommands()
     @observeDisabledPackages()
+    promises
 
   # Activate a single package by name
   activatePackage: (name) ->

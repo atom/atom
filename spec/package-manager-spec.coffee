@@ -570,9 +570,6 @@ describe "PackageManager", ->
           expect(atom.config.get('editor.commentStart', scope: ['.source.ruby'])).toBeUndefined()
 
   describe "::activate()", ->
-    packageActivator = null
-    themeActivator = null
-
     beforeEach ->
       jasmine.snapshotDeprecations()
       spyOn(console, 'warn')
@@ -580,9 +577,6 @@ describe "PackageManager", ->
 
       loadedPackages = atom.packages.getLoadedPackages()
       expect(loadedPackages.length).toBeGreaterThan 0
-
-      packageActivator = spyOn(atom.packages, 'activatePackages')
-      themeActivator = spyOn(atom.themes, 'activatePackages')
 
     afterEach ->
       atom.packages.deactivatePackages()
@@ -593,6 +587,9 @@ describe "PackageManager", ->
       jasmine.restoreDeprecationsSnapshot()
 
     it "activates all the packages, and none of the themes", ->
+      packageActivator = spyOn(atom.packages, 'activatePackages')
+      themeActivator = spyOn(atom.themes, 'activatePackages')
+
       atom.packages.activate()
 
       expect(packageActivator).toHaveBeenCalled()
@@ -603,6 +600,23 @@ describe "PackageManager", ->
 
       themes = themeActivator.mostRecentCall.args[0]
       expect(['theme']).toContain(theme.getType()) for theme in themes
+
+    it "calls callbacks registered with ::onDidActivateInitialPackages", ->
+      package1 = atom.packages.loadPackage('package-with-main')
+      package2 = atom.packages.loadPackage('package-with-index')
+      package3 = atom.packages.loadPackage('package-with-activation-commands')
+      spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2])
+
+      activateSpy = jasmine.createSpy('activateSpy')
+      atom.packages.onDidActivateInitialPackages(activateSpy)
+
+      atom.packages.activate()
+      waitsFor -> activateSpy.callCount > 0
+      runs ->
+        jasmine.unspy(atom.packages, 'getLoadedPackages')
+        expect(package1 in atom.packages.getActivePackages()).toBe true
+        expect(package2 in atom.packages.getActivePackages()).toBe true
+        expect(package3 in atom.packages.getActivePackages()).toBe false
 
   describe "::enablePackage(id) and ::disablePackage(id)", ->
     describe "with packages", ->
@@ -684,4 +698,3 @@ describe "PackageManager", ->
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
-          
