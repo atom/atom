@@ -90,6 +90,24 @@ class PackageManager
   onDidDeactivatePackage: (callback) ->
     @emitter.on 'did-deactivate-package', callback
 
+  # Public: Invoke the given callback when a package is loaded.
+  #
+  # * `callback` A {Function} to be invoked when a package is loaded.
+  #   * `package` The {Package} that was loaded.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidLoadPackage: (callback) ->
+    @emitter.on 'did-load-package', callback
+
+  # Public: Invoke the given callback when a package is unloaded.
+  #
+  # * `callback` A {Function} to be invoked when a package is unloaded.
+  #   * `package` The {Package} that was unloaded.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidUnloadPackage: (callback) ->
+    @emitter.on 'did-unload-package', callback
+
   on: (eventName) ->
     switch eventName
       when 'loaded'
@@ -321,6 +339,7 @@ class PackageManager
           pack = new Package(packagePath, metadata)
         pack.load()
         @loadedPackages[pack.name] = pack
+        @emitter.emit 'did-load-package', pack
         return pack
       catch error
         console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error
@@ -338,6 +357,7 @@ class PackageManager
 
     if pack = @getLoadedPackage(name)
       delete @loadedPackages[pack.name]
+      @emitter.emit 'did-unload-package', pack
     else
       throw new Error("No loaded package for name '#{name}'")
 

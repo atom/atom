@@ -34,6 +34,14 @@ describe "PackageManager", ->
       expect(console.warn.callCount).toBe(1)
       expect(console.warn.argsForCall[0][0]).toContain("Could not resolve")
 
+    it "invokes ::onDidLoadPackage listeners with the loaded package", ->
+      loadedPackage = null
+      atom.packages.onDidLoadPackage (pack) -> loadedPackage = pack
+
+      atom.packages.loadPackage("package-with-main")
+
+      expect(loadedPackage.name).toBe "package-with-main"
+
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
       it "throws an error", ->
@@ -60,6 +68,13 @@ describe "PackageManager", ->
         expect(atom.packages.isPackageLoaded(pack.name)).toBeTruthy()
         atom.packages.unloadPackage(pack.name)
         expect(atom.packages.isPackageLoaded(pack.name)).toBeFalsy()
+
+    it "invokes ::onDidUnloadPackage listeners with the unloaded package", ->
+      atom.packages.loadPackage('package-with-main')
+      unloadedPackage = null
+      atom.packages.onDidUnloadPackage (pack) -> unloadedPackage = pack
+      atom.packages.unloadPackage('package-with-main')
+      expect(unloadedPackage.name).toBe 'package-with-main'
 
   describe "::activatePackage(id)", ->
     describe "when called multiple times", ->
