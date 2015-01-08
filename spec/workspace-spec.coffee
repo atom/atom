@@ -1,6 +1,7 @@
 path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
+Pane = require '../src/pane'
 {View} = require '../src/space-pen-extensions'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
@@ -916,3 +917,42 @@ describe "Workspace", ->
           expect(results[0].replacements).toBe 6
 
           expect(editor.isModified()).toBeTruthy()
+
+  describe "::saveActivePaneItem()", ->
+    describe "when there is an error", ->
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("'/some/file' is a directory")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the directory cannot be written to", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the user does not have permission", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
+          error.code = 'EACCES'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("no one knows")
+
+        save = -> atom.workspace.saveActivePaneItem()
+        expect(save).toThrow()
