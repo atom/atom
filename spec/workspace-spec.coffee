@@ -300,7 +300,7 @@ describe "Workspace", ->
 
       describe "when the user does not have access to the file", ->
         beforeEach ->
-          spyOn(fs, 'openSync').andCallFake (path)->
+          spyOn(fs, 'openSync').andCallFake (path) ->
             error = new Error("EACCES, permission denied '#{path}'")
             error.path = path
             error.code = 'EACCES'
@@ -319,7 +319,7 @@ describe "Workspace", ->
 
       describe "when there is an unhandled error", ->
         beforeEach ->
-          spyOn(fs, 'openSync').andCallFake (path)->
+          spyOn(fs, 'openSync').andCallFake (path) ->
             throw new Error("I dont even know what is happening right now!!")
 
         it "creates a notification", ->
