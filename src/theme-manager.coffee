@@ -195,10 +195,11 @@ class ThemeManager
     # the first/top theme to override later themes in the stack.
     themeNames.reverse()
 
-  # Public: Set the list of enabled themes.
+  # Set the list of enabled themes.
   #
   # * `enabledThemeNames` An {Array} of {String} theme names.
   setEnabledThemes: (enabledThemeNames) ->
+    Grim.deprecate("Use `atom.config.set('core.themes', arrayOfThemeNames)` instead")
     atom.config.set('core.themes', enabledThemeNames)
 
   ###
