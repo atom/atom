@@ -1313,6 +1313,13 @@ describe "Config", ->
           atom.config.set('foo.bar.aColor', undefined)
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
 
+        it 'will not set non-colors', ->
+          atom.config.set('foo.bar.aColor', null)
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
+          atom.config.set('foo.bar.aColor', 'nope')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
       describe 'when the `enum` key is used', ->
         beforeEach ->
           schema =
