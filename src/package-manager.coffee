@@ -53,8 +53,12 @@ class PackageManager
   # * `callback` {Function}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidLoadInitialPackages: (callback) ->
+    @emitter.on 'did-load-initial-packages', callback
+
   onDidLoadAll: (callback) ->
-    @emitter.on 'did-load-all', callback
+    Grim.deprecate("Use `::onDidLoadInitialPackages` instead.")
+    @onDidLoadInitialPackages(callback)
 
   # Public: Invoke the given callback when all packages have been activated.
   #
@@ -278,7 +282,7 @@ class PackageManager
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
     @loadPackage(packagePath) for packagePath in packagePaths
     @emit 'loaded'
-    @emitter.emit 'did-load-all'
+    @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
     return pack if pack = @getLoadedPackage(nameOrPath)
