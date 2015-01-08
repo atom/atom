@@ -5,6 +5,7 @@ EmitterMixin = require('emissary').Emitter
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
+Color = require 'color'
 pathWatcher = require 'pathwatcher'
 Grim = require 'grim'
 
@@ -1102,6 +1103,18 @@ Config.addSchemaEnforcers
         newValue
       else
         value
+
+  'color':
+    coerce: (keyPath, value, schema) ->
+      try
+        color = new Color(value)
+      catch error
+        throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a color")
+
+      red: color.red()
+      green: color.green()
+      blue: color.blue()
+      alpha: color.alpha()
 
   '*':
     coerceMinimumAndMaximum: (keyPath, value, schema) ->

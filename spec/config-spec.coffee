@@ -1287,6 +1287,25 @@ describe "Config", ->
           atom.config.set 'foo.bar', ['2', '3', '4']
           expect(atom.config.get('foo.bar')).toEqual  [2, 3, 4]
 
+      describe 'when the value has a "color" type', ->
+        beforeEach ->
+          schema =
+            type: 'color'
+            default: true
+          atom.config.setSchema('foo.bar.aColor', schema)
+
+        it 'coerces various types to a color object', ->
+          atom.config.set('foo.bar.aColor', 'red')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', '#020')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 34, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', '#abcdef')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 171, green: 205, blue: 239, alpha: 1}
+          atom.config.set('foo.bar.aColor', 'rgb(1,2,3)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 1, green: 2, blue: 3, alpha: 1}
+          atom.config.set('foo.bar.aColor', 'rgba(4,5,6,.7)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 4, green: 5, blue: 6, alpha: .7}
+
       describe 'when the `enum` key is used', ->
         beforeEach ->
           schema =
