@@ -1,8 +1,8 @@
 # Creating a Theme
 
-Atom's interface is rendered using HTML, and it's styled via [LESS] \(a superset
-of CSS). Don't worry if you haven't heard of LESS before; it's just like CSS,
-but with a few handy extensions.
+Atom's interface is rendered using HTML, and it's styled via [LESS] which is a
+superset of CSS. Don't worry if you haven't heard of LESS before; it's just like
+CSS, but with a few handy extensions.
 
 Atom supports two types of themes: _UI_ and _syntax_.  UI themes style
 elements such as the tree view, the tabs, drop-down lists, and the status bar.
