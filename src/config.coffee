@@ -1126,10 +1126,16 @@ Config.addSchemaEnforcers
       catch error
         throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a color")
 
-      red: color.red()
-      green: color.green()
-      blue: color.blue()
-      alpha: color.alpha()
+      value =
+        red: color.red()
+        green: color.green()
+        blue: color.blue()
+        alpha: color.alpha()
+      value.red = 0 if isNaN(value.red)
+      value.green = 0 if isNaN(value.green)
+      value.blue = 0 if isNaN(value.blue)
+      value.alpha = 1 if isNaN(value.alpha)
+      value
 
   '*':
     coerceMinimumAndMaximum: (keyPath, value, schema) ->
