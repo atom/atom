@@ -39,6 +39,6 @@ class ThemeConverter
       catch error
         return callback(error)
 
-      fs.writeFileSync(path.join(@destinationPath, 'stylesheets', 'base.less'), theme.getStylesheet())
-      fs.writeFileSync(path.join(@destinationPath, 'stylesheets', 'syntax-variables.less'), theme.getSyntaxVariables())
+      fs.writeFileSync(path.join(@destinationPath, 'styles', 'base.less'), theme.getStylesheet())
+      fs.writeFileSync(path.join(@destinationPath, 'styles', 'syntax-variables.less'), theme.getSyntaxVariables())
       callback()
