@@ -39,9 +39,7 @@ class Project extends Model
     @emitter = new Emitter
     @buffers ?= []
 
-    for buffer in @buffers
-      do (buffer) =>
-        buffer.onDidDestroy => @removeBuffer(buffer)
+    @subscribeToBuffer(buffer) for buffer in @buffers
 
     Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor") if path?
     paths ?= _.compact([path])
@@ -297,11 +295,11 @@ class Project extends Model
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
-    buffer.onDidDestroy => @removeBuffer(buffer)
+    @subscribeToBuffer(buffer)
 
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
-    buffer.onDidDestroy => @removeBuffer(buffer)
+    @subscribeToBuffer(buffer)
     @emit 'buffer-created', buffer
     buffer
 
@@ -329,6 +327,17 @@ class Project extends Model
       subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
+
+  subscribeToBuffer: (buffer) ->
+    buffer.onDidDestroy => @removeBuffer(buffer)
+    buffer.onWillThrowWatchError ({error, handle}) =>
+      handle()
+      atom.notifications.addWarning """
+        Unable to read file after file change event.
+        Make sure you have permission to access the file.
+        """,
+        detail: error.message
+        dismissable: true
 
   # Deprecated: delegate
   registerOpener: (opener) ->
