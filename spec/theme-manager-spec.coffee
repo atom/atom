@@ -362,7 +362,7 @@ describe "ThemeManager", ->
         themeManager.activateThemes()
 
     it 'uses the default dark UI and syntax themes and logs a warning', ->
-      activeThemeNames = themeManager.getActiveNames()
+      activeThemeNames = themeManager.getActiveThemeNames()
       expect(console.warn.callCount).toBe 2
       expect(activeThemeNames.length).toBe(2)
       expect(activeThemeNames).toContain('atom-dark-ui')
@@ -380,7 +380,7 @@ describe "ThemeManager", ->
           themeManager.activateThemes()
 
       it 'uses the enabled themes', ->
-        activeThemeNames = themeManager.getActiveNames()
+        activeThemeNames = themeManager.getActiveThemeNames()
         expect(activeThemeNames.length).toBe(2)
         expect(activeThemeNames).toContain('atom-light-ui')
         expect(activeThemeNames).toContain('atom-dark-syntax')
@@ -393,7 +393,7 @@ describe "ThemeManager", ->
           themeManager.activateThemes()
 
       it 'uses the default dark UI and syntax themes', ->
-        activeThemeNames = themeManager.getActiveNames()
+        activeThemeNames = themeManager.getActiveThemeNames()
         expect(activeThemeNames.length).toBe(2)
         expect(activeThemeNames).toContain('atom-dark-ui')
         expect(activeThemeNames).toContain('atom-dark-syntax')
@@ -406,7 +406,7 @@ describe "ThemeManager", ->
           themeManager.activateThemes()
 
       it 'uses the default dark UI theme', ->
-        activeThemeNames = themeManager.getActiveNames()
+        activeThemeNames = themeManager.getActiveThemeNames()
         expect(activeThemeNames.length).toBe(2)
         expect(activeThemeNames).toContain('atom-dark-ui')
         expect(activeThemeNames).toContain('atom-light-syntax')
@@ -419,7 +419,7 @@ describe "ThemeManager", ->
           themeManager.activateThemes()
 
       it 'uses the default dark syntax theme', ->
-        activeThemeNames = themeManager.getActiveNames()
+        activeThemeNames = themeManager.getActiveThemeNames()
         expect(activeThemeNames.length).toBe(2)
         expect(activeThemeNames).toContain('atom-light-ui')
         expect(activeThemeNames).toContain('atom-dark-syntax')
