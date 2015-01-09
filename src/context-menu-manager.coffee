@@ -19,7 +19,7 @@ SpecificityCache = {}
 #
 # ## Context Menu CSON Format
 #
-# # ```coffee
+# ```coffee
 # 'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
 # 'atom-text-editor': [{
 #   label: 'History',
