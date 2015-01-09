@@ -1,10 +1,17 @@
 _ = require 'underscore-plus'
 ParsedColor = require 'color'
 
-# Public: A simple Color class returned from `atom.config.get` when the value at
-# the key path is of type 'color'.
+# Essential: A simple Color class returned from `atom.config.get` when the value
+# at the key path is of type 'color'.
 module.exports =
 class Color
+  # Essential: Parse a {String} or {Object} into a {Color}
+  #
+  # * `value` - A {String} such as `'white'`, `#ff00ff`, or
+  #             `'rgba(255, 15, 60, .75)'` or an {Object} with `red`, `green`,
+  #             `blue`, and `alpha` properties.
+  #
+  # Returns a {Color} or `null` if it cannot be parsed.
   @parse: (value) ->
     return null if _.isArray(value)
     return null if _.isFunction(value)
@@ -45,11 +52,11 @@ class Color
         enumerable: true
         configurable: false
 
-  # Public: Returns a {String} in the form `'#abcdef'`
+  # Esssential: Returns a {String} in the form `'#abcdef'`
   toHexString: ->
     "##{numberToHexString(@red)}#{numberToHexString(@green)}#{numberToHexString(@blue)}"
 
-  # Public: Returns a {String} in the form `'rgba(25, 50, 75, .9)'`
+  # Esssential: Returns a {String} in the form `'rgba(25, 50, 75, .9)'`
   toRGBAString: ->
     "rgba(#{@red}, #{@green}, #{@blue}, #{@alpha})"
 
