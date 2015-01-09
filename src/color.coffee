@@ -1,8 +1,8 @@
 _ = require 'underscore-plus'
 ParsedColor = require 'color'
 
-# A simple Color class returned from `atom.config.get` when the value at the
-# key path is of type 'color'.
+# Public: A simple Color class returned from `atom.config.get` when the value at
+# the key path is of type 'color'.
 module.exports =
 class Color
   @parse: (value) ->
