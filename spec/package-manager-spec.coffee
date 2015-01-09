@@ -354,9 +354,9 @@ describe "PackageManager", ->
     describe "stylesheet loading", ->
       describe "when the metadata contains a 'stylesheets' manifest", ->
         it "loads stylesheets from the stylesheets directory as specified by the manifest", ->
-          one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
-          two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
-          three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
+          one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/styles/1.css")
+          two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/styles/2.less")
+          three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/styles/3.css")
 
           one = atom.themes.stringToId(one)
           two = atom.themes.stringToId(two)
@@ -377,10 +377,10 @@ describe "PackageManager", ->
 
       describe "when the metadata does not contain a 'stylesheets' manifest", ->
         it "loads all stylesheets from the stylesheets directory", ->
-          one = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/1.css")
-          two = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/2.less")
-          three = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/3.test-context.css")
-          four = require.resolve("./fixtures/packages/package-with-stylesheets/stylesheets/4.css")
+          one = require.resolve("./fixtures/packages/package-with-styles/styles/1.css")
+          two = require.resolve("./fixtures/packages/package-with-styles/styles/2.less")
+          three = require.resolve("./fixtures/packages/package-with-styles/styles/3.test-context.css")
+          four = require.resolve("./fixtures/packages/package-with-styles/styles/4.css")
 
           one = atom.themes.stringToId(one)
           two = atom.themes.stringToId(two)
@@ -393,7 +393,7 @@ describe "PackageManager", ->
           expect(atom.themes.stylesheetElementForId(four)).toBeNull()
 
           waitsForPromise ->
-            atom.packages.activatePackage("package-with-stylesheets")
+            atom.packages.activatePackage("package-with-styles")
 
           runs ->
             expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
@@ -404,7 +404,7 @@ describe "PackageManager", ->
 
       it "assigns the stylesheet's context based on the filename", ->
         waitsForPromise ->
-          atom.packages.activatePackage("package-with-stylesheets")
+          atom.packages.activatePackage("package-with-styles")
 
         runs ->
           count = 0
@@ -533,13 +533,13 @@ describe "PackageManager", ->
 
     it "removes the package's stylesheets", ->
       waitsForPromise ->
-        atom.packages.activatePackage('package-with-stylesheets')
+        atom.packages.activatePackage('package-with-styles')
 
       runs ->
-        atom.packages.deactivatePackage('package-with-stylesheets')
-        one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/1.css")
-        two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/2.less")
-        three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/stylesheets/3.css")
+        atom.packages.deactivatePackage('package-with-styles')
+        one = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/styles/1.css")
+        two = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/styles/2.less")
+        three = require.resolve("./fixtures/packages/package-with-stylesheets-manifest/styles/3.css")
         expect(atom.themes.stylesheetElementForId(one)).not.toExist()
         expect(atom.themes.stylesheetElementForId(two)).not.toExist()
         expect(atom.themes.stylesheetElementForId(three)).not.toExist()
