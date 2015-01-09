@@ -13,8 +13,7 @@ class Color
   #
   # Returns a {Color} or `null` if it cannot be parsed.
   @parse: (value) ->
-    return null if _.isArray(value)
-    return null if _.isFunction(value)
+    return null if _.isArray(value) or _.isFunction(value)
     return null unless _.isObject(value) or _.isString(value)
 
     try
