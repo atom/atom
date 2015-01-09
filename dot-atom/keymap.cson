@@ -1,7 +1,7 @@
 # Your keymap
 #
-# Atom keymaps work similarly to stylesheets. Just as stylesheets use selectors
-# to apply styles to elements, Atom keymaps use selectors to associate
+# Atom keymaps work similarly to style sheets. Just as style sheets use
+# selectors to apply styles to elements, Atom keymaps use selectors to associate
 # keystrokes with events in specific contexts.
 #
 # You can create a new keybinding in this file by typing "key" and then hitting

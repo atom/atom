@@ -1,4 +1,4 @@
 {
   "theme": "ui",
-  "stylesheets": ["first.css", "second.less", "last.css"]
+  "styleSheets": ["first.css", "second.less", "last.css"]
 }

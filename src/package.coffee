@@ -23,8 +23,6 @@ module.exports =
 class Package
   EmitterMixin.includeInto(this)
 
-  @stylesheetsDir: 'stylesheets'
-
   @isBundledPackagePath: (packagePath) ->
     if atom.packages.devMode
       return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
@@ -44,6 +42,15 @@ class Package
           throw error unless ignoreErrors
     metadata ?= {}
     metadata.name = packageName
+
+    if metadata.stylesheetMain?
+      deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in your `package.json`", {packageName})
+      metadata.mainStyleSheet = metadata.stylesheetMain
+
+    if metadata.stylesheets?
+      deprecate("Use the `styleSheets` key instead of `stylesheets` in your `package.json`", {packageName})
+      metadata.styleSheets = metadata.stylesheets
+
     metadata
 
   keymaps: null
@@ -233,15 +240,18 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    path.join(@path, @constructor.stylesheetsDir)
+    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
+      deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/`", packageName: @name)
+      path.join(@path, 'stylesheets')
+    else
+      path.join(@path, 'styles')
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
-
-    if @metadata.stylesheetMain
-      [fs.resolve(@path, @metadata.stylesheetMain)]
-    else if @metadata.stylesheets
-      @metadata.stylesheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+    if @metadata.mainStyleSheet
+      [fs.resolve(@path, @metadata.mainStyleSheet)]
+    else if @metadata.styleSheets
+      @metadata.styleSheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
     else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
       [indexStylesheet]
     else
@@ -299,7 +309,7 @@ class Package
 
     if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
-      deprecate("Store package settings files in the `settings` directory instead of `scoped-properties`", packageName: @name)
+      deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
     else
       settingsDirPath = path.join(@path, 'settings')
 
