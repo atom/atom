@@ -594,10 +594,6 @@ class Cursor extends Model
   Section: Visibility
   ###
 
-  # Public: If the marker range is empty, the cursor is marked as being visible.
-  updateVisibility: ->
-    @setVisible(@marker.getBufferRange().isEmpty())
-
   # Public: Sets whether the cursor is visible.
   setVisible: (visible) ->
     if @visible != visible
@@ -608,6 +604,9 @@ class Cursor extends Model
 
   # Public: Returns the visibility of the cursor.
   isVisible: -> @visible
+
+  updateVisibility: ->
+    @setVisible(@marker.getBufferRange().isEmpty())
 
   ###
   Section: Comparing to another cursor
