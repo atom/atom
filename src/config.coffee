@@ -703,7 +703,7 @@ class Config
     schema = @schema
     for key in keys
       break unless schema?
-      schema = schema.properties[key]
+      schema = schema.properties?[key]
     schema
 
   # Deprecated: Returns a new {Object} containing all of the global settings and

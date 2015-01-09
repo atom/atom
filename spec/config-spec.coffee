@@ -1060,6 +1060,9 @@ describe "Config", ->
           type: 'integer'
           default: 12
 
+        expect(atom.config.getSchema('foo.baz')).toBeUndefined()
+        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBeUndefined()
+
       it "respects the schema for scoped settings", ->
         schema =
           type: 'string'
