@@ -1322,9 +1322,6 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 0, blue: 0, alpha: 1}
 
         it 'reverts back to the default value when undefined is passed to set', ->
-          atom.config.set('foo.bar.aColor', 'rgb(255,255,255)')
-          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
-
           atom.config.set('foo.bar.aColor', undefined)
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
 
@@ -1333,6 +1330,12 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
 
           atom.config.set('foo.bar.aColor', 'nope')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
+          atom.config.set('foo.bar.aColor', 30)
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
+          atom.config.set('foo.bar.aColor', false)
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
 
       describe 'when the `enum` key is used', ->

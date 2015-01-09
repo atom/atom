@@ -1121,9 +1121,11 @@ Config.addSchemaEnforcers
 
   'color':
     coerce: (keyPath, value, schema) ->
-      try
-        color = new Color(value)
-      catch error
+      if isPlainObject(value) or typeof value is 'string'
+        try
+          color = new Color(value)
+
+      unless color?
         throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a color")
 
       value =
