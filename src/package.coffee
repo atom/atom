@@ -23,8 +23,6 @@ module.exports =
 class Package
   EmitterMixin.includeInto(this)
 
-  @stylesheetsDir: 'stylesheets'
-
   @isBundledPackagePath: (packagePath) ->
     if atom.packages.devMode
       return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
@@ -233,7 +231,11 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    path.join(@path, @constructor.stylesheetsDir)
+    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
+      deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/`", packageName: @name)
+      path.join(@path, 'stylesheets')
+    else
+      path.join(@path, 'styles')
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
@@ -299,7 +301,7 @@ class Package
 
     if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
-      deprecate("Store package settings files in the `settings` directory instead of `scoped-properties`", packageName: @name)
+      deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
     else
       settingsDirPath = path.join(@path, 'settings')
 
