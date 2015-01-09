@@ -52,11 +52,11 @@ class Color
         enumerable: true
         configurable: false
 
-  # Esssential: Returns a {String} in the form `'#abcdef'`
+  # Esssential: Returns a {String} in the form `'#abcdef'`.
   toHexString: ->
     "##{numberToHexString(@red)}#{numberToHexString(@green)}#{numberToHexString(@blue)}"
 
-  # Esssential: Returns a {String} in the form `'rgba(25, 50, 75, .9)'`
+  # Esssential: Returns a {String} in the form `'rgba(25, 50, 75, .9)'`.
   toRGBAString: ->
     "rgba(#{@red}, #{@green}, #{@blue}, #{@alpha})"
 
