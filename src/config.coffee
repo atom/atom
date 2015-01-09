@@ -888,10 +888,16 @@ class Config
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
-      value = _.deepClone(value)
-      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+      if value instanceof Color
+        value = value.clone()
+      else
+        value = _.deepClone(value)
+        _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
-      value = _.deepClone(defaultValue)
+      if defaultValue instanceof Color
+        value = defaultValue.clone()
+      else
+        value = _.deepClone(defaultValue)
 
     value
 

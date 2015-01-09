@@ -1297,6 +1297,19 @@ describe "Config", ->
             default: 'white'
           atom.config.setSchema('foo.bar.aColor', schema)
 
+        it 'returns a Color object', ->
+          color = atom.config.get('foo.bar.aColor')
+          expect(color.toHexString()).toBe '#ffffff'
+          expect(color.toRGBAString()).toBe 'rgba(255, 255, 255, 1)'
+
+          color.red = 0
+          color.green = 0
+          color.blue = 0
+          color.alpha = 0
+          atom.config.set('foo.bar.aColor', color)
+          expect(color.toHexString()).toBe '#000000'
+          expect(color.toRGBAString()).toBe 'rgba(0, 0, 0, 0)'
+
         it 'coerces various types to a color object', ->
           atom.config.set('foo.bar.aColor', 'red')
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
