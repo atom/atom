@@ -55,6 +55,7 @@ class PackageManager
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidLoadInitialPackages: (callback) ->
     @emitter.on 'did-load-initial-packages', callback
+    @emitter.on 'did-load-all', callback # TODO: Remove once deprecated pre-1.0 APIs are gone
 
   onDidLoadAll: (callback) ->
     Grim.deprecate("Use `::onDidLoadInitialPackages` instead.")
@@ -67,6 +68,7 @@ class PackageManager
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidActivateInitialPackages: (callback) ->
     @emitter.on 'did-activate-initial-packages', callback
+    @emitter.on 'did-activate-all', callback # TODO: Remove once deprecated pre-1.0 APIs are gone
 
   onDidActivateAll: (callback) ->
     Grim.deprecate("Use `::onDidActivateInitialPackages` instead.")

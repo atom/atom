@@ -63,6 +63,7 @@ class ThemeManager
   # * `callback` {Function}
   onDidChangeActiveThemes: (callback) ->
     @emitter.on 'did-change-active-themes', callback
+    @emitter.on 'did-reload-all', callback # TODO: Remove once deprecated pre-1.0 APIs are gone
 
   onDidReloadAll: (callback) ->
     Grim.deprecate("Use `::onDidChangeActiveThemes` instead.")
