@@ -451,7 +451,7 @@ class Workspace extends Model
     try
       item ?= atom.project.open(uri, options)
     catch error
-      if error.name is 'OversizeFileError'
+      if error.code is 'EFILETOOLARGE'
         atom.notifications.addWarning(error.message + " Large file support is being tracked at [atom/atom#307](https://github.com/atom/atom/issues/307).")
       else if error.code is 'ENOENT' and error.path?
         atom.notifications.addWarning("No such file '#{error.path}'")

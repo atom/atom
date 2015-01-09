@@ -283,7 +283,7 @@ class Project extends Model
   buildBuffer: (absoluteFilePath) ->
     if fs.getSizeSync(absoluteFilePath) >= 2 * 1048576 # 2MB
       error = new Error("Atom can only handle files < 2MB for now.")
-      error.name = 'OversizeFileError'
+      error.code = 'EFILETOOLARGE'
       throw error
 
     buffer = new TextBuffer({filePath: absoluteFilePath})
