@@ -63,7 +63,8 @@ class TextEditorElement extends HTMLElement
     @buildModel() unless @getModel()?
     @mountComponent() unless @component?.isMounted()
     @component.checkForVisibilityChange()
-    @focus() if @focusOnAttach
+    if this is document.activeElement
+      @focused()
     @emitter.emit("did-attach")
 
   detachedCallback: ->
@@ -128,10 +129,7 @@ class TextEditorElement extends HTMLElement
     @component = null
 
   focused: ->
-    if @component?
-      @component.focused()
-    else
-      @focusOnAttach = true
+    @component?.focused()
 
   blurred: (event) ->
     unless @useShadowDOM

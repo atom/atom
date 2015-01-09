@@ -98,6 +98,22 @@ describe "TextEditorElement", ->
         document.body.focus()
         expect(blurCalled).toBe true
 
+    describe "when focused while a parent node is being attached to the DOM", ->
+      class ElementThatFocusesChild extends HTMLDivElement
+        attachedCallback: ->
+          @firstChild.focus()
+
+      document.registerElement("element-that-focuses-child",
+        prototype: ElementThatFocusesChild.prototype
+      )
+
+      it "proxies the focus event to the hidden input", ->
+        element = new TextEditorElement
+        parentElement = document.createElement("element-that-focuses-child")
+        parentElement.appendChild(element)
+        jasmineContent.appendChild(parentElement)
+        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+
   describe "when the themes finish loading", ->
     [themeReloadCallback, initialThemeLoadComplete, element] = []
 
