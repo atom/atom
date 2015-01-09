@@ -170,7 +170,7 @@ describe "ThemeManager", ->
       themeManager.onDidChangeStylesheets stylesheetsChangedHandler = jasmine.createSpy("stylesheetsChangedHandler")
       themeManager.onDidAddStylesheet stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
 
-      cssPath = atom.project.getDirectories()[0]?.resolve('css.css')
+      cssPath = atom.project.resolve('css.css')
       lengthBefore = $('head style').length
 
       themeManager.requireStylesheet(cssPath)
@@ -194,7 +194,7 @@ describe "ThemeManager", ->
       $('head style[id*="css.css"]').remove()
 
     it "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
-      lessPath = atom.project.getDirectories()[0]?.resolve('sample.less')
+      lessPath = atom.project.resolve('sample.less')
       lengthBefore = $('head style').length
       themeManager.requireStylesheet(lessPath)
       expect($('head style').length).toBe lengthBefore + 1
@@ -218,9 +218,9 @@ describe "ThemeManager", ->
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect($('head style[source-path*="css.css"]').attr('source-path')).toBe themeManager.stringToId(atom.project.getDirectories()[0]?.resolve('css.css'))
+      expect($('head style[source-path*="css.css"]').attr('source-path')).toBe themeManager.stringToId(atom.project.resolve('css.css'))
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect($('head style[source-path*="sample.less"]').attr('source-path')).toBe themeManager.stringToId(atom.project.getDirectories()[0]?.resolve('sample.less'))
+      expect($('head style[source-path*="sample.less"]').attr('source-path')).toBe themeManager.stringToId(atom.project.resolve('sample.less'))
 
       $('head style[id*="css.css"]').remove()
       $('head style[id*="sample.less"]').remove()

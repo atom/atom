@@ -11,7 +11,7 @@ describe "Workspace", ->
   workspace = null
 
   beforeEach ->
-    atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
+    atom.project.setPaths([atom.project.resolve('dir')])
     atom.workspace = workspace = new Workspace
 
   describe "::open(uri, options)", ->
@@ -70,19 +70,19 @@ describe "Workspace", ->
 
               expect(openEvents).toEqual [
                 {
-                  uri: atom.project.getDirectories()[0]?.resolve('a')
+                  uri: atom.project.resolve('a')
                   item: editor1
                   pane: atom.workspace.getActivePane()
                   index: 0
                 }
                 {
-                  uri: atom.project.getDirectories()[0]?.resolve('b')
+                  uri: atom.project.resolve('b')
                   item: editor2
                   pane: atom.workspace.getActivePane()
                   index: 1
                 }
                 {
-                  uri: atom.project.getDirectories()[0]?.resolve('a')
+                  uri: atom.project.resolve('a')
                   item: editor1
                   pane: atom.workspace.getActivePane()
                   index: 0
@@ -96,7 +96,7 @@ describe "Workspace", ->
               workspace.open('a').then (o) -> editor = o
 
             runs ->
-              expect(editor.getUri()).toBe atom.project.getDirectories()[0]?.resolve('a')
+              expect(editor.getUri()).toBe atom.project.resolve('a')
               expect(workspace.getActivePaneItem()).toBe editor
               expect(workspace.getActivePane().items).toEqual [editor]
               expect(workspace.getActivePane().activate).toHaveBeenCalled()
@@ -230,7 +230,7 @@ describe "Workspace", ->
         workspace.addOpener(barOpener)
 
         waitsForPromise ->
-          pathToOpen = atom.project.getDirectories()[0]?.resolve('a.foo')
+          pathToOpen = atom.project.resolve('a.foo')
           workspace.open(pathToOpen, hey: "there").then (item) ->
             expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
 
@@ -271,11 +271,11 @@ describe "Workspace", ->
         expect(workspace.getActivePaneItem().getUri()).not.toBeUndefined()
 
         # destroy all items
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('file1')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('file1')
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('b')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('b')
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('a')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('a')
         pane.destroyActiveItem()
 
         # reopens items with uris
@@ -285,20 +285,20 @@ describe "Workspace", ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('a')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('a')
 
       # does not reopen items that are already open
       waitsForPromise ->
         workspace.open('b')
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('b')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('b')
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('file1')
+        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('file1')
 
   describe "::increase/decreaseFontSize()", ->
     it "increases/decreases the font size without going below 1", ->
@@ -568,7 +568,7 @@ describe "Workspace", ->
 
         runs ->
           expect(results).toHaveLength(3)
-          expect(results[0].filePath).toBe atom.project.getDirectories()[0]?.resolve('a')
+          expect(results[0].filePath).toBe atom.project.resolve('a')
           expect(results[0].matches).toHaveLength(3)
           expect(results[0].matches[0]).toEqual
             matchText: 'aaa'
@@ -585,7 +585,7 @@ describe "Workspace", ->
           expect(results.length).toBe 1
 
           {filePath, matches} = results[0]
-          expect(filePath).toBe atom.project.getDirectories()[0]?.resolve('a')
+          expect(filePath).toBe atom.project.resolve('a')
           expect(matches).toHaveLength 1
           expect(matches[0]).toEqual
             matchText: '$bill'
@@ -746,10 +746,10 @@ describe "Workspace", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
 
     beforeEach ->
-      atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('../')])
+      atom.project.setPaths([atom.project.resolve('../')])
 
-      filePath = atom.project.getDirectories()[0]?.resolve('sample.js')
-      commentFilePath = atom.project.getDirectories()[0]?.resolve('sample-with-comments.js')
+      filePath = atom.project.resolve('sample.js')
+      commentFilePath = atom.project.resolve('sample-with-comments.js')
       sampleContent = fs.readFileSync(filePath).toString()
       sampleCommentContent = fs.readFileSync(commentFilePath).toString()
 
