@@ -5,7 +5,7 @@ EmitterMixin = require('emissary').Emitter
 {Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 Q = require 'q'
-{deprecate} = require 'grim'
+Grim = require 'grim'
 
 Package = require './package'
 ThemePackage = require './theme-package'
@@ -111,11 +111,11 @@ class PackageManager
   on: (eventName) ->
     switch eventName
       when 'loaded'
-        deprecate 'Use PackageManager::onDidLoadAll instead'
+        Grim.deprecate 'Use PackageManager::onDidLoadAll instead'
       when 'activated'
-        deprecate 'Use PackageManager::onDidActivateInitialPackages instead'
+        Grim.deprecate 'Use PackageManager::onDidActivateInitialPackages instead'
       else
-        deprecate 'PackageManager::on is deprecated. Use event subscription methods instead.'
+        Grim.deprecate 'PackageManager::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
 
   ###
