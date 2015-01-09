@@ -383,7 +383,7 @@ class Workspace extends Model
   open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
-    uri = atom.project.resolve(uri)
+    uri = atom.project.getDirectories()[0]?.resolve(uri)
 
     pane = @paneContainer.paneForUri(uri) if searchAllPanes
     pane ?= switch split
@@ -422,7 +422,7 @@ class Workspace extends Model
     {initialLine, initialColumn} = options
     activatePane = options.activatePane ? true
 
-    uri = atom.project.resolve(uri)
+    uri = atom.project.getDirectories()[0]?.resolve(uri)
 
     item = @getActivePane().itemForUri(uri)
     if uri
@@ -445,7 +445,7 @@ class Workspace extends Model
 
     if uri?
       item = pane.itemForUri(uri)
-      item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
+      item ?= opener(atom.project.getDirectories()[0]?.resolve(uri), options) for opener in @getOpeners() when !item
     item ?= atom.project.open(uri, options)
 
     Q(item)
