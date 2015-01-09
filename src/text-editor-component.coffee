@@ -185,7 +185,7 @@ TextEditorComponent = React.createClass
     @subscribe stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
     @subscribe stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
     unless atom.themes.isInitialLoadComplete()
-      @subscribe atom.themes.onDidReloadAll @onAllThemesLoaded
+      @subscribe atom.themes.onDidChangeActiveThemes @onAllThemesLoaded
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
