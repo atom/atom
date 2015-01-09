@@ -349,8 +349,8 @@ TextEditorComponent = React.createClass
             decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
-              startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start)
-              endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end)
+              startPixelPosition: editor.pixelPositionForScreenPosition(screenRange.start, true)
+              endPixelPosition: editor.pixelPositionForScreenPosition(screenRange.end, true)
               decorations: []
             filteredDecorations[markerId].decorations.push decorationParams
     filteredDecorations
@@ -368,8 +368,8 @@ TextEditorComponent = React.createClass
             decorationParams = decoration.getProperties()
             filteredDecorations[markerId] ?=
               id: markerId
-              headPixelPosition: editor.pixelPositionForScreenPosition(headScreenPosition)
-              tailPixelPosition: editor.pixelPositionForScreenPosition(tailScreenPosition)
+              headPixelPosition: editor.pixelPositionForScreenPosition(headScreenPosition, true)
+              tailPixelPosition: editor.pixelPositionForScreenPosition(tailScreenPosition, true)
               decorations: []
             filteredDecorations[markerId].decorations.push decorationParams
     filteredDecorations

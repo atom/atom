@@ -429,7 +429,7 @@ describe "TextEditorComponent", ->
       it "excludes the null byte from character measurement", ->
         editor.setText("a\0b")
         nextAnimationFrame()
-        expect(editor.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
+        expect(wrapperNode.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
 
     describe "when there is a fold", ->
       it "renders a fold marker on the folded line", ->
@@ -801,7 +801,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       cursorNode = componentNode.querySelector('.cursor')
 
-      {left} = editor.pixelPositionForScreenPosition([1, 10])
+      {left} = wrapperNode.pixelPositionForScreenPosition([1, 10])
       expect(cursorNode.style['-webkit-transform']).toBe "translate(#{left}px, #{editor.getLineHeightInPixels()}px)"
 
   describe "selection rendering", ->
@@ -895,7 +895,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       selectionNode = componentNode.querySelector('.region')
       expect(selectionNode.offsetTop).toBe editor.getLineHeightInPixels()
-      expect(selectionNode.offsetLeft).toBe editor.pixelPositionForScreenPosition([1, 6]).left
+      expect(selectionNode.offsetLeft).toBe wrapperNode.pixelPositionForScreenPosition([1, 6]).left
 
     it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
@@ -1230,7 +1230,7 @@ describe "TextEditorComponent", ->
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([2, 5])
+        position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
         expect(overlay.style.left).toBe position.left + 'px'
@@ -1240,7 +1240,7 @@ describe "TextEditorComponent", ->
         editor.moveRight()
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([2, 7])
+        position = wrapperNode.pixelPositionForBufferPosition([2, 7])
 
         expect(overlay.style.left).toBe position.left + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
@@ -1251,7 +1251,7 @@ describe "TextEditorComponent", ->
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([2, 10])
+        position = wrapperNode.pixelPositionForBufferPosition([2, 10])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
         expect(overlay.style.left).toBe position.left + 'px'
@@ -1262,7 +1262,7 @@ describe "TextEditorComponent", ->
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([2, 5])
+        position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
         expect(overlay.style.left).toBe position.left + 'px'
@@ -1273,7 +1273,7 @@ describe "TextEditorComponent", ->
         decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([2, 5])
+        position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
         expect(overlay.style.left).toBe position.left + 'px'
@@ -1303,7 +1303,7 @@ describe "TextEditorComponent", ->
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([0, 26])
+        position = wrapperNode.pixelPositionForBufferPosition([0, 26])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
         expect(overlay.style.left).toBe position.left + 'px'
@@ -1312,7 +1312,7 @@ describe "TextEditorComponent", ->
         editor.insertText('a')
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([0, 27])
+        position = wrapperNode.pixelPositionForBufferPosition([0, 27])
 
         expect(overlay.style.left).toBe position.left - itemWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
@@ -1322,7 +1322,7 @@ describe "TextEditorComponent", ->
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([4, 0])
+        position = wrapperNode.pixelPositionForBufferPosition([4, 0])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
         expect(overlay.style.left).toBe position.left + 'px'
@@ -1331,7 +1331,7 @@ describe "TextEditorComponent", ->
         editor.insertNewline()
         nextAnimationFrame()
 
-        position = editor.pixelPositionForBufferPosition([5, 0])
+        position = wrapperNode.pixelPositionForBufferPosition([5, 0])
 
         expect(overlay.style.left).toBe position.left + 'px'
         expect(overlay.style.top).toBe position.top - itemHeight + 'px'
@@ -1353,7 +1353,7 @@ describe "TextEditorComponent", ->
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([0, 2])
+          position = wrapperNode.pixelPositionForBufferPosition([0, 2])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
           expect(overlay.style.left).toBe position.left + 'px'
@@ -1362,7 +1362,7 @@ describe "TextEditorComponent", ->
           editor.insertText('a')
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([0, 3])
+          position = wrapperNode.pixelPositionForBufferPosition([0, 3])
 
           expect(overlay.style.left).toBe position.left + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
@@ -1372,7 +1372,7 @@ describe "TextEditorComponent", ->
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([1, 0])
+          position = wrapperNode.pixelPositionForBufferPosition([1, 0])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
           expect(overlay.style.left).toBe position.left + 'px'
@@ -1381,7 +1381,7 @@ describe "TextEditorComponent", ->
           editor.insertNewline()
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([2, 0])
+          position = wrapperNode.pixelPositionForBufferPosition([2, 0])
 
           expect(overlay.style.left).toBe position.left + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
@@ -1394,7 +1394,7 @@ describe "TextEditorComponent", ->
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([0, 28])
+          position = wrapperNode.pixelPositionForBufferPosition([0, 28])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
           expect(overlay.style.left).toBe position.left + 'px'
@@ -1403,7 +1403,7 @@ describe "TextEditorComponent", ->
           editor.insertText('a')
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([0, 29])
+          position = wrapperNode.pixelPositionForBufferPosition([0, 29])
 
           expect(overlay.style.left).toBe position.left - itemWidth + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
@@ -1414,7 +1414,7 @@ describe "TextEditorComponent", ->
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([6, 0])
+          position = wrapperNode.pixelPositionForBufferPosition([6, 0])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
           expect(overlay.style.left).toBe position.left + 'px'
@@ -1423,7 +1423,7 @@ describe "TextEditorComponent", ->
           editor.insertNewline()
           nextAnimationFrame()
 
-          position = editor.pixelPositionForBufferPosition([7, 0])
+          position = wrapperNode.pixelPositionForBufferPosition([7, 0])
 
           expect(overlay.style.left).toBe position.left + 'px'
           expect(overlay.style.top).toBe position.top - itemHeight + 'px'
@@ -2751,14 +2751,14 @@ describe "TextEditorComponent", ->
     event
 
   clientCoordinatesForScreenPosition = (screenPosition) ->
-    positionOffset = editor.pixelPositionForScreenPosition(screenPosition)
+    positionOffset = wrapperNode.pixelPositionForScreenPosition(screenPosition)
     scrollViewClientRect = componentNode.querySelector('.scroll-view').getBoundingClientRect()
     clientX = scrollViewClientRect.left + positionOffset.left - editor.getScrollLeft()
     clientY = scrollViewClientRect.top + positionOffset.top - editor.getScrollTop()
     {clientX, clientY}
 
   clientCoordinatesForScreenRowInGutter = (screenRow) ->
-    positionOffset = editor.pixelPositionForScreenPosition([screenRow, 1])
+    positionOffset = wrapperNode.pixelPositionForScreenPosition([screenRow, 1])
     gutterClientRect = componentNode.querySelector('.gutter').getBoundingClientRect()
     clientX = gutterClientRect.left + positionOffset.left - editor.getScrollLeft()
     clientY = gutterClientRect.top + positionOffset.top - editor.getScrollTop()

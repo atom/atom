@@ -174,6 +174,24 @@ class TextEditorElement extends HTMLElement
   getDefaultCharacterWidth: ->
     @getModel().getDefaultCharWidth()
 
+  # Extended: Converts a buffer position to a pixel position.
+  #
+  # * `bufferPosition` An object that represents a buffer position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an {Object} with two values: `top` and `left`, representing the pixel position.
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @getModel().pixelPositionForBufferPosition(bufferPosition, true)
+
+  # Extended: Converts a screen position to a pixel position.
+  #
+  # * `screenPosition` An object that represents a screen position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
+  pixelPositionForScreenPosition: (screenPosition) ->
+    @getModel().pixelPositionForScreenPosition(screenPosition, true)
+
   # Extended: call the given `callback` when the editor is attached to the DOM.
   #
   # * `callback` {Function}

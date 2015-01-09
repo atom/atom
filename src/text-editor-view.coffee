@@ -174,12 +174,12 @@ class TextEditorView extends View
     @model.scrollToCursorPosition()
 
   pixelPositionForBufferPosition: (bufferPosition) ->
-    deprecate 'Use TextEditor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
-    @model.pixelPositionForBufferPosition(bufferPosition)
+    deprecate 'Use TextEditorElement::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
+    @model.pixelPositionForBufferPosition(bufferPosition, true)
 
   pixelPositionForScreenPosition: (screenPosition) ->
-    deprecate 'Use TextEditor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
-    @model.pixelPositionForScreenPosition(screenPosition)
+    deprecate 'Use TextEditorElement::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
+    @model.pixelPositionForScreenPosition(screenPosition, true)
 
   appendToLinesView: (view) ->
     view.css('position', 'absolute')

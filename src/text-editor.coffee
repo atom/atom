@@ -2875,21 +2875,15 @@ class TextEditor extends Model
   getLastVisibleScreenRow: ->
     @getVisibleRowRange()[1]
 
-  # Extended: Converts a buffer position to a pixel position.
-  #
-  # * `bufferPosition` An object that represents a buffer position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  #
-  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
-  pixelPositionForBufferPosition: (bufferPosition) -> @displayBuffer.pixelPositionForBufferPosition(bufferPosition)
+  pixelPositionForBufferPosition: (bufferPosition, suppressDeprecation) ->
+    unless suppressDeprecation
+      deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
+    @displayBuffer.pixelPositionForBufferPosition(bufferPosition)
 
-  # Extended: Converts a screen position to a pixel position.
-  #
-  # * `screenPosition` An object that represents a screen position. It can be either
-  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
-  #
-  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
-  pixelPositionForScreenPosition: (screenPosition) -> @displayBuffer.pixelPositionForScreenPosition(screenPosition)
+  pixelPositionForScreenPosition: (screenPosition, suppressDeprecation) ->
+    unless suppressDeprecation
+      deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
+    @displayBuffer.pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
     type: 'selection', editorId: @id, invalidate: 'never'
