@@ -138,7 +138,7 @@ taken from the active theme's [ui-variables.less][ui-variables]. For more
 information, see the [theme variables docs][theme-variables]. If you follow this
 guideline, your package will look good out of the box with any theme!
 
-An optional `stylesheets` array in your _package.json_ can list the style sheets
+An optional `styleSheets` array in your _package.json_ can list the style sheets
 by name to specify a loading order; otherwise, style sheets are loaded
 alphabetically.
 

@@ -42,6 +42,15 @@ class Package
           throw error unless ignoreErrors
     metadata ?= {}
     metadata.name = packageName
+
+    if metadata.stylesheetMain?
+      deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in your `package.json`", {packageName})
+      metadata.mainStyleSheet = metadata.stylesheetMain
+
+    if metadata.stylesheets?
+      deprecate("Use the `styleSheets` key instead of `stylesheets` in your `package.json`", {packageName})
+      metadata.styleSheets = metadata.stylesheets
+
     metadata
 
   keymaps: null
@@ -239,11 +248,10 @@ class Package
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
-
-    if @metadata.stylesheetMain
-      [fs.resolve(@path, @metadata.stylesheetMain)]
-    else if @metadata.stylesheets
-      @metadata.stylesheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+    if @metadata.mainStyleSheet
+      [fs.resolve(@path, @metadata.mainStyleSheet)]
+    else if @metadata.styleSheets
+      @metadata.styleSheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
     else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
       [indexStylesheet]
     else
