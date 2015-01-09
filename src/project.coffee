@@ -139,14 +139,11 @@ class Project extends Model
     Grim.deprecate("Use ::getDirectories instead")
     @rootDirectory
 
-  # Public: Given a uri, this resolves it relative to the project directory. If
-  # the path is already absolute or if it is prefixed with a scheme, it is
-  # returned unchanged.
-  #
-  # * `uri` The {String} name of the path to convert.
-  #
-  # Returns a {String} or undefined if the uri is not missing or empty.
   resolve: (uri) ->
+    Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
+    @resolvePath(uri)
+
+  resolvePath: (uri) ->
     return unless uri
 
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
@@ -220,14 +217,14 @@ class Project extends Model
   #
   # Returns a promise that resolves to an {TextEditor}.
   open: (filePath, options={}) ->
-    filePath = @resolve(filePath)
+    filePath = @resolvePath(filePath)
     @bufferForPath(filePath).then (buffer) =>
       @buildEditorForBuffer(buffer, options)
 
   # Deprecated
   openSync: (filePath, options={}) ->
     deprecate("Use Project::open instead")
-    filePath = @resolve(filePath)
+    filePath = @resolvePath(filePath)
     @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
@@ -239,14 +236,14 @@ class Project extends Model
 
   # Is the buffer for the given path modified?
   isPathModified: (filePath) ->
-    @findBufferForPath(@resolve(filePath))?.isModified()
+    @findBufferForPath(@resolvePath(filePath))?.isModified()
 
   findBufferForPath: (filePath) ->
     _.find @buffers, (buffer) -> buffer.getPath() == filePath
 
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
-    absoluteFilePath = @resolve(filePath)
+    absoluteFilePath = @resolvePath(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
@@ -259,7 +256,7 @@ class Project extends Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   bufferForPath: (filePath) ->
-    absoluteFilePath = @resolve(filePath)
+    absoluteFilePath = @resolvePath(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
     Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 

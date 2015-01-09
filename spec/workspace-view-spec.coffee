@@ -13,8 +13,8 @@ describe "WorkspaceView", ->
   beforeEach ->
     jasmine.snapshotDeprecations()
 
-    atom.project.setPaths([atom.project.resolve('dir')])
-    pathToOpen = atom.project.resolve('a')
+    atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
+    pathToOpen = atom.project.getDirectories()[0]?.resolve('a')
     atom.workspace = new Workspace
     atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
     atom.workspaceView.enableKeymap()
@@ -93,11 +93,11 @@ describe "WorkspaceView", ->
           editorView2 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane atom-text-editor:eq(0)').view()
           editorView4 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane atom-text-editor:eq(1)').view()
 
-          expect(editorView1.getEditor().getPath()).toBe atom.project.resolve('a')
-          expect(editorView2.getEditor().getPath()).toBe atom.project.resolve('b')
-          expect(editorView3.getEditor().getPath()).toBe atom.project.resolve('../sample.js')
+          expect(editorView1.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('a')
+          expect(editorView2.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
+          expect(editorView3.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.js')
           expect(editorView3.getEditor().getCursorScreenPosition()).toEqual [2, 4]
-          expect(editorView4.getEditor().getPath()).toBe atom.project.resolve('../sample.txt')
+          expect(editorView4.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.txt')
           expect(editorView4.getEditor().getCursorScreenPosition()).toEqual [0, 2]
 
           # ensure adjust pane dimensions is called

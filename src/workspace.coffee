@@ -6,6 +6,7 @@ Q = require 'q'
 Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
+fs = require 'fs-plus'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -383,7 +384,7 @@ class Workspace extends Model
   open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
-    uri = atom.project.resolve(uri)
+    uri = atom.project.resolvePath(uri)
 
     pane = @paneContainer.paneForUri(uri) if searchAllPanes
     pane ?= switch split
@@ -422,8 +423,7 @@ class Workspace extends Model
     {initialLine, initialColumn} = options
     activatePane = options.activatePane ? true
 
-    uri = atom.project.resolve(uri)
-
+    uri = atom.project.resolvePath(uri)
     item = @getActivePane().itemForUri(uri)
     if uri
       item ?= opener(uri, options) for opener in @getOpeners() when !item
@@ -445,7 +445,7 @@ class Workspace extends Model
 
     if uri?
       item = pane.itemForUri(uri)
-      item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
+      item ?= opener(uri, options) for opener in @getOpeners() when !item
     item ?= atom.project.open(uri, options)
 
     Q(item)

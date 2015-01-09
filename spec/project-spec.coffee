@@ -8,7 +8,7 @@ BufferedProcess = require '../src/buffered-process'
 
 describe "Project", ->
   beforeEach ->
-    atom.project.setPaths([atom.project.resolve('dir')])
+    atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
 
   describe "serialization", ->
     deserializedProject = null
@@ -109,7 +109,7 @@ describe "Project", ->
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
 
     it "returns number of read bytes as progress indicator", ->
-      filePath = atom.project.resolve 'a'
+      filePath = atom.project.getDirectories()[0]?.resolve 'a'
       totalBytes = 0
       promise = atom.project.open(filePath)
       promise.progress (bytesRead) -> totalBytes = bytesRead
@@ -147,27 +147,6 @@ describe "Project", ->
         waitsForPromise ->
           atom.project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
-
-  describe ".resolve(uri)", ->
-    describe "when passed an absolute or relative path", ->
-      it "returns an absolute path based on the atom.project's root", ->
-        absolutePath = require.resolve('./fixtures/dir/a')
-        expect(atom.project.resolve('a')).toBe absolutePath
-        expect(atom.project.resolve(absolutePath + '/../a')).toBe absolutePath
-        expect(atom.project.resolve('a/../a')).toBe absolutePath
-        expect(atom.project.resolve()).toBeUndefined()
-
-    describe "when passed a uri with a scheme", ->
-      it "does not modify uris that begin with a scheme", ->
-        expect(atom.project.resolve('http://zombo.com')).toBe 'http://zombo.com'
-
-    describe "when the project has no path", ->
-      it "returns undefined for relative URIs", ->
-        atom.project.setPaths([])
-        expect(atom.project.resolve('test.txt')).toBeUndefined()
-        expect(atom.project.resolve('http://github.com')).toBe 'http://github.com'
-        absolutePath = fs.absolute(__dirname)
-        expect(atom.project.resolve(absolutePath)).toBe absolutePath
 
   describe ".setPaths(path)", ->
     describe "when path is a file", ->
