@@ -61,8 +61,12 @@ class ThemeManager
   # updating the list of active themes have completed.
   #
   # * `callback` {Function}
+  onDidChangeActiveThemes: (callback) ->
+    @emitter.on 'did-change-active-themes', callback
+
   onDidReloadAll: (callback) ->
-    @emitter.on 'did-reload-all', callback
+    Grim.deprecate("Use `::onDidChangeActiveThemes` instead.")
+    @onDidChangeActiveThemes(callback)
 
   # Deprecated: Invoke `callback` when a stylesheet has been added to the dom.
   #
@@ -132,8 +136,12 @@ class ThemeManager
   ###
 
   # Public: Get an array of all the loaded theme names.
-  getLoadedNames: ->
+  getLoadedThemeNames: ->
     theme.name for theme in @getLoadedThemes()
+
+  getLoadedNames: ->
+    Grim.deprecate("Use `::getLoadedThemeNames` instead.")
+    @getLoadedThemeNames()
 
   # Public: Get an array of all the loaded themes.
   getLoadedThemes: ->
@@ -144,8 +152,12 @@ class ThemeManager
   ###
 
   # Public: Get an array of all the active theme names.
-  getActiveNames: ->
+  getActiveThemeNames: ->
     theme.name for theme in @getActiveThemes()
+
+  getActiveNames: ->
+    Grim.deprecate("Use `::getActiveThemeNames` instead.")
+    @getActiveThemeNames()
 
   # Public: Get an array of all the active themes.
   getActiveThemes: ->
@@ -323,7 +335,7 @@ class ThemeManager
         @reloadBaseStylesheets()
         @initialLoadComplete = true
         @emit 'reloaded'
-        @emitter.emit 'did-reload-all'
+        @emitter.emit 'did-change-active-themes'
         deferred.resolve()
 
     deferred.promise

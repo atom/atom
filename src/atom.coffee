@@ -721,7 +721,7 @@ class Atom extends Model
     @themes.load()
 
   watchThemes: ->
-    @themes.onDidReloadAll =>
+    @themes.onDidChangeActiveThemes =>
       # Only reload stylesheets from non-theme packages
       for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
         pack.reloadStylesheets?()

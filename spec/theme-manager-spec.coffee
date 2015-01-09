@@ -73,54 +73,54 @@ describe "ThemeManager", ->
 
   describe "when the core.themes config value changes", ->
     it "add/removes stylesheets to reflect the new config value", ->
-      themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
+      themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
       spyOn(atom.styles, 'getUserStyleSheetPath').andCallFake -> null
 
       waitsForPromise ->
         themeManager.activateThemes()
 
       runs ->
-        reloadHandler.reset()
+        didChangeActiveThemesHandler.reset()
         atom.config.set('core.themes', [])
 
       waitsFor ->
-        reloadHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount == 1
 
       runs ->
-        reloadHandler.reset()
+        didChangeActiveThemesHandler.reset()
         expect($('style.theme')).toHaveLength 0
         atom.config.set('core.themes', ['atom-dark-ui'])
 
       waitsFor ->
-        reloadHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount == 1
 
       runs ->
-        reloadHandler.reset()
+        didChangeActiveThemesHandler.reset()
         expect($('style[priority=1]')).toHaveLength 2
         expect($('style[priority=1]:eq(0)').attr('source-path')).toMatch /atom-dark-ui/
         atom.config.set('core.themes', ['atom-light-ui', 'atom-dark-ui'])
 
       waitsFor ->
-        reloadHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount == 1
 
       runs ->
-        reloadHandler.reset()
+        didChangeActiveThemesHandler.reset()
         expect($('style[priority=1]')).toHaveLength 2
         expect($('style[priority=1]:eq(0)').attr('source-path')).toMatch /atom-dark-ui/
         expect($('style[priority=1]:eq(1)').attr('source-path')).toMatch /atom-light-ui/
         atom.config.set('core.themes', [])
 
       waitsFor ->
-        reloadHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount == 1
 
       runs ->
-        reloadHandler.reset()
+        didChangeActiveThemesHandler.reset()
         expect($('style[priority=1]')).toHaveLength 2
         # atom-dark-ui has an directory path, the syntax one doesn't
         atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
 
       waitsFor ->
-        reloadHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount == 1
 
       runs ->
         expect($('style[priority=1]')).toHaveLength 2
@@ -130,7 +130,7 @@ describe "ThemeManager", ->
 
     it 'adds theme-* classes to the workspace for each active theme', ->
       workspaceElement = atom.views.getView(atom.workspace)
-      themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
+      themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
 
       waitsForPromise ->
         themeManager.activateThemes()
@@ -138,11 +138,11 @@ describe "ThemeManager", ->
       runs ->
         expect(workspaceElement).toHaveClass 'theme-atom-dark-ui'
 
-        themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
+        themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
         atom.config.set('core.themes', ['theme-with-ui-variables', 'theme-with-syntax-variables'])
 
       waitsFor ->
-        reloadHandler.callCount > 0
+        didChangeActiveThemesHandler.callCount > 0
 
       runs ->
         # `theme-` twice as it prefixes the name with `theme-`
@@ -259,11 +259,11 @@ describe "ThemeManager", ->
         themeManager.activateThemes()
 
     it "loads the correct values from the theme's ui-variables file", ->
-      themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
+      themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
       atom.config.set('core.themes', ['theme-with-ui-variables', 'theme-with-syntax-variables'])
 
       waitsFor ->
-        reloadHandler.callCount > 0
+        didChangeActiveThemesHandler.callCount > 0
 
       runs ->
         # an override loaded in the base css
@@ -276,11 +276,11 @@ describe "ThemeManager", ->
 
     describe "when there is a theme with incomplete variables", ->
       it "loads the correct values from the fallback ui-variables", ->
-        themeManager.onDidReloadAll reloadHandler = jasmine.createSpy()
+        themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
         atom.config.set('core.themes', ['theme-with-incomplete-ui-variables', 'theme-with-syntax-variables'])
 
         waitsFor ->
-          reloadHandler.callCount > 0
+          didChangeActiveThemesHandler.callCount > 0
 
         runs ->
           # an override loaded in the base css

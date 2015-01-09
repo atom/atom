@@ -107,7 +107,7 @@ describe "TextEditorElement", ->
 
       spyOn(atom.themes, 'isInitialLoadComplete').andCallFake ->
         initialThemeLoadComplete
-      spyOn(atom.themes, 'onDidReloadAll').andCallFake (fn) ->
+      spyOn(atom.themes, 'onDidChangeActiveThemes').andCallFake (fn) ->
         themeReloadCallback = fn
 
       atom.config.set("editor.useShadowDOM", false)

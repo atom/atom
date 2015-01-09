@@ -645,7 +645,7 @@ describe "PackageManager", ->
         expect(console.warn.callCount).toBe 1
 
     describe "with themes", ->
-      reloadedHandler = null
+      didChangeActiveThemesHandler = null
 
       beforeEach ->
         waitsForPromise ->
@@ -670,17 +670,18 @@ describe "PackageManager", ->
           expect(atom.config.get('core.themes')).toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
 
-          reloadedHandler = jasmine.createSpy('reloadedHandler')
-          reloadedHandler.reset()
-          atom.themes.onDidReloadAll reloadedHandler
+          didChangeActiveThemesHandler = jasmine.createSpy('didChangeActiveThemesHandler')
+          didChangeActiveThemesHandler.reset()
+          atom.themes.onDidChangeActiveThemes didChangeActiveThemesHandler
 
           pack = atom.packages.disablePackage(packageName)
 
         waitsFor ->
-          reloadedHandler.callCount is 1
+          didChangeActiveThemesHandler.callCount is 1
 
         runs ->
           expect(atom.packages.getActivePackages()).not.toContain pack
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+          
