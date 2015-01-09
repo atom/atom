@@ -5,10 +5,10 @@ EmitterMixin = require('emissary').Emitter
 CSON = require 'season'
 path = require 'path'
 async = require 'async'
-Color = require './color'
 pathWatcher = require 'pathwatcher'
 Grim = require 'grim'
 
+Color = require './color'
 ScopedPropertyStore = require 'scoped-property-store'
 ScopeDescriptor = require './scope-descriptor'
 
