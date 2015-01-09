@@ -111,7 +111,7 @@ class ThemeManager
   on: (eventName) ->
     switch eventName
       when 'reloaded'
-        Grim.deprecate 'Use ThemeManager::onDidReloadAll instead'
+        Grim.deprecate 'Use ThemeManager::onDidChangeActiveThemes instead'
       when 'stylesheet-added'
         Grim.deprecate 'Use ThemeManager::onDidAddStylesheet instead'
       when 'stylesheet-removed'

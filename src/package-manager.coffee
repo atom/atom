@@ -113,7 +113,7 @@ class PackageManager
   on: (eventName) ->
     switch eventName
       when 'loaded'
-        Grim.deprecate 'Use PackageManager::onDidLoadAll instead'
+        Grim.deprecate 'Use PackageManager::onDidLoadInitialPackages instead'
       when 'activated'
         Grim.deprecate 'Use PackageManager::onDidActivateInitialPackages instead'
       else
