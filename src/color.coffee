@@ -25,11 +25,6 @@ class Color
     new Color(parsedColor.red(), parsedColor.green(), parsedColor.blue(), parsedColor.alpha())
 
   constructor: (red, green, blue, alpha) ->
-    red = parseColor(red)
-    green = parseColor(green)
-    blue = parseColor(blue)
-    alpha = parseColor(alpha)
-
     Object.defineProperties this,
       red:
         set: (newRed) -> red = parseColor(newRed)
@@ -51,6 +46,11 @@ class Color
         get: -> alpha
         enumerable: true
         configurable: false
+
+    @red = red
+    @green = green
+    @blue = blue
+    @alpha = alpha
 
   # Esssential: Returns a {String} in the form `'#abcdef'`.
   toHexString: ->
