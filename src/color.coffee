@@ -78,8 +78,8 @@ parseColor = (color) ->
 parseAlpha = (alpha) ->
   alpha = parseFloat(alpha)
   alpha = 1 if isNaN(alpha)
-  alpha = Math.max(alpha, 1)
-  alpha = Math.min(alpha, 0)
+  alpha = Math.max(alpha, 0)
+  alpha = Math.min(alpha, 1)
   alpha
 
 numberToHexString = (number) ->

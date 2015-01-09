@@ -1307,8 +1307,20 @@ describe "Config", ->
           color.blue = 0
           color.alpha = 0
           atom.config.set('foo.bar.aColor', color)
+
+          color = atom.config.get('foo.bar.aColor')
           expect(color.toHexString()).toBe '#000000'
           expect(color.toRGBAString()).toBe 'rgba(0, 0, 0, 0)'
+
+          color.red = 300
+          color.green = -200
+          color.blue = -1
+          color.alpha = 'not see through'
+          atom.config.set('foo.bar.aColor', color)
+
+          color = atom.config.get('foo.bar.aColor')
+          expect(color.toHexString()).toBe '#ff0000'
+          expect(color.toRGBAString()).toBe 'rgba(255, 0, 0, 1)'
 
         it 'coerces various types to a color object', ->
           atom.config.set('foo.bar.aColor', 'red')
