@@ -31,22 +31,22 @@ class Color
     alpha = parseColor(alpha)
 
     Object.defineProperties this,
-      'red':
+      red:
         set: (newRed) -> red = parseColor(newRed)
         get: -> red
         enumerable: true
         configurable: false
-      'green':
+      green:
         set: (newGreen) -> green = parseColor(newGreen)
         get: -> green
         enumerable: true
         configurable: false
-      'blue':
+      blue:
         set: (newBlue) -> blue = parseColor(newBlue)
         get: -> blue
         enumerable: true
         configurable: false
-      'alpha':
+      alpha:
         set: (newAlpha) -> alpha = parseAlpha(newAlpha)
         get: -> alpha
         enumerable: true
