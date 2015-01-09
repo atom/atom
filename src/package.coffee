@@ -299,7 +299,7 @@ class Package
 
     if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
-      deprecate("Store package settings files in the `settings` directory instead of `scoped-properties`")
+      deprecate("Store package settings files in the `settings` directory instead of `scoped-properties`", packageName: @name)
     else
       settingsDirPath = path.join(@path, 'settings')
 
