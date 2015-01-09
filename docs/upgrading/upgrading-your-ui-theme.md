@@ -1,6 +1,6 @@
 # Upgrading Your UI Theme Or Package Selectors
 
-In addition to changes in Atom's scripting API, we'll also be making some breaking changes to Atom's DOM structure, requiring stylesheets and keymaps in both packages and themes to be updated.
+In addition to changes in Atom's scripting API, we'll also be making some breaking changes to Atom's DOM structure, requiring style sheets and keymaps in both packages and themes to be updated.
 
 ## Deprecation Cop
 
@@ -121,12 +121,12 @@ The selector features discussed above allow you to target shadow DOM content wit
 
 ```
 my-ui-theme/
-  stylesheets/
+  styles/
     index.less                   # loaded globally
     index.atom-text-editor.less  # loaded in the text editor shadow DOM
 ```
 
-Check out this [style sheet](https://github.com/atom/decoration-example/blob/master/stylesheets/decoration-example.atom-text-editor.less) from the decoration-example package for an example of context-targeting.
+Check out this [style sheet](https://github.com/atom/decoration-example/blob/master/styles/decoration-example.atom-text-editor.less) from the decoration-example package for an example of context-targeting.
 
 Inside a context-targeted style sheet, there's no need to use the `::shadow` or `/deep/` expressions. If you want to refer to the element containing the shadow root, you can use the `::host` pseudo-element.
 
@@ -134,4 +134,4 @@ During the transition phase, style sheets targeting the `atom-text-editor` conte
 
 [shadow-dom-101]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom
 [shadow-dom-201]: http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201#toc-style-cat-hat
-[find-and-replace]: https://github.com/atom/find-and-replace/blob/95351f261bc384960a69b66bf12eae8002da63f9/stylesheets/find-and-replace.less#L10
+[find-and-replace]: https://github.com/atom/find-and-replace/blob/95351f261bc384960a69b66bf12eae8002da63f9/styles/find-and-replace.less#L10

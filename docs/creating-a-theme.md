@@ -42,10 +42,10 @@ _Motif_ theme listed in the _Syntax Theme_ drop-down. Select it from the menu to
 activate it, now when you open an editor you should see that your new
 _motif-syntax_ theme in action.
 
-Open up _stylesheets/colors.less_ to change the various colors variables which
+Open up _styles/colors.less_ to change the various colors variables which
 have been already been defined. For example, turn `@red` into `#f4c2c1`.
 
-Then open _stylesheets/base.less_ and modify the various selectors that have
+Then open _styles/base.less_ and modify the various selectors that have
 been already been defined. These selectors style different parts of code in the
 editor such as comments, strings and the line numbers in the gutter.
 

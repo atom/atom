@@ -54,7 +54,7 @@ You can also use `apm` to find new packages to install:
 
 ## Customizing Key Bindings
 
-Atom keymaps work similarly to stylesheets. Just as stylesheets use selectors
+Atom keymaps work similarly to style sheets. Just as style sheets use selectors
 to apply styles to elements, Atom keymaps use selectors to associate keystrokes
 with events in specific contexts. Here's a small example, excerpted from Atom's
 built-in keymaps:
