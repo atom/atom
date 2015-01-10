@@ -75,7 +75,7 @@ module.exports =
 
       LGPL
     """
-  'cson-safe@1.0.2'
+  'cson-safe@1.0.2':
     license: 'BSD'
     source: 'LICENSE in the repository'
     sourceText: """
