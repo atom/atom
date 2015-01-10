@@ -832,25 +832,26 @@ class Config
       @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
-      @notifyFailure('Failed to load config.cson', error)
+      @notifyFailure('Failed to load config.cson', error.message)
 
   observeUserConfig: ->
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
         @debouncedLoad() if eventType is 'change' and @watchSubscription?
     catch error
-      @notifyFailure('Failed to watch user config', error)
+      @notifyFailure """
+        Unable to watch path: `config.cson`. Make sure you have permissions to
+        `~/.atom/config.cson`. On linux there are currently problems with watch
+        sizes. See [this document][watches] for more info.
+        [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
+      """
 
   unobserveUserConfig: ->
     @watchSubscription?.close()
     @watchSubscription = null
 
-  notifyFailure: (errorMessage, error) ->
-    message = "#{errorMessage}"
-    detail = error.stack
-    atom.notifications.addError(message, {detail, dismissable: true})
-    console.error message
-    console.error detail
+  notifyFailure: (errorMessage, detail) ->
+    atom.notifications.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
     allSettings = {'*': @settings}
