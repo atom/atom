@@ -944,6 +944,15 @@ describe "TextEditor", ->
         editor.undo()
         expect(editor.getScrollTop()).toBe 0
 
+    describe '.logCursorScope()', ->
+      beforeEach ->
+        spyOn(atom.notifications, 'addInfo')
+
+      it 'opens a notification', ->
+        editor.logCursorScope()
+
+        expect(atom.notifications.addInfo).toHaveBeenCalled()
+
   describe "selection", ->
     selection = null
 
