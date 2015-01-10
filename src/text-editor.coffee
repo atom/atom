@@ -2522,7 +2522,11 @@ class TextEditor extends Model
 
   logCursorScope: ->
     scopeDescriptor = @getLastCursor().getScopeDescriptor()
-    console.log scopeDescriptor.scopes, scopeDescriptor
+    list = scopeDescriptor.scopes.toString().split(',')
+    list = _.map list, (item) -> "* #{item}"
+    content = "Scopes at Cursor\n#{list.join('\n')}"
+
+    atom.notifications.addInfo(content, dismissable: true)
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
