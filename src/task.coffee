@@ -111,7 +111,7 @@ class Task
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
-      @emit(event, args...)
+      @emit(event, args...) if @childProcess?
 
   # Public: Starts the task.
   #
@@ -154,5 +154,4 @@ class Task
     @childProcess.kill()
     @childProcess = null
 
-    @off()
     undefined
