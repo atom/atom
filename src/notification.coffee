@@ -8,9 +8,13 @@ class Notification
     @timestamp = new Date()
     @dismissed = true
     @dismissed = false if @isDismissable()
+    @displayed = false
 
   onDidDismiss: (callback) ->
     @emitter.on 'did-dismiss', callback
+
+  onDidDisplay: (callback) ->
+    @emitter.on 'did-display', callback
 
   getOptions: -> @options
 
@@ -30,11 +34,16 @@ class Notification
   dismiss: ->
     return unless @isDismissable() and not @isDismissed()
     @dismissed = true
-    @emitter.emit 'did-dismiss'
+    @emitter.emit 'did-dismiss', this
 
   isDismissed: -> @dismissed
 
   isDismissable: -> !!@options.dismissable
+
+  wasDisplayed: -> @displayed
+
+  setDisplayed: (@displayed) ->
+    @emitter.emit 'did-display', this
 
   getIcon: ->
     return @options.icon if @options.icon?

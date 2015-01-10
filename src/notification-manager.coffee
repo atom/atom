@@ -48,3 +48,10 @@ class NotificationManager
   ###
 
   getNotifications: -> @notifications
+
+  ###
+  Section: Managing Notifications
+  ###
+
+  clear: ->
+    @notifications = []
