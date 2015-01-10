@@ -15,7 +15,7 @@ module.exports = (grunt) ->
     return unless process.env.JANKY_SHA1
     stderr ?= ''
     deprecatedStart = stderr.indexOf('Calls to deprecated functions')
-    return if deprecatedStart.length is -1
+    return if deprecatedStart is -1
 
     grunt.log.error(label)
     stderr = stderr.substring(deprecatedStart)
