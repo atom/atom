@@ -35,25 +35,6 @@ _ = require 'underscore-plus'
 #
 #   callback()
 # ```
-#
-# ## Events
-#
-# ### task:log
-#
-# Emitted when console.log is called within the task.
-#
-# ### task:warn
-#
-# Emitted when console.warn is called within the task.
-#
-# ### task:error
-#
-# Emitted when console.error is called within the task.
-#
-# ### task:completed
-#
-# Emitted when the task has succeeded or failed.
-#
 module.exports =
 class Task
   Emitter.includeInto(this)
@@ -143,6 +124,14 @@ class Task
     else
       throw new Error('Cannot send message to terminated process')
     undefined
+
+  # Public: Call a function when an event is emitted by the child process
+  #
+  # * `eventName` The {String} name of the event to handle.
+  # * `callback` The {Function} to call when the event is emitted.
+  #
+  # Returns a {Disposable} that can be used to stop listening for the event.
+  on: (eventName, callback) -> Emitter::on.call(this, eventName, callback)
 
   # Public: Forcefully stop the running task.
   #
