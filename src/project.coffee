@@ -217,9 +217,10 @@ class Project extends Model
   open: (filePath, options={}) ->
     filePath = @resolvePath(filePath)
 
-    # Make sure we have permissions
-    fileDescriptor = fs.openSync(filePath, 'r+')
-    fs.closeSync(fileDescriptor)
+    if filePath?
+      # Make sure we have permissions
+      fileDescriptor = fs.openSync(filePath, 'r+')
+      fs.closeSync(fileDescriptor)
 
     @bufferForPath(filePath).then (buffer) =>
       @buildEditorForBuffer(buffer, options)
