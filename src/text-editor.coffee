@@ -2523,7 +2523,7 @@ class TextEditor extends Model
   logCursorScope: ->
     scopeDescriptor = @getLastCursor().getScopeDescriptor()
     list = scopeDescriptor.scopes.toString().split(',')
-    list = _.map list, (item) -> "* #{item}"
+    list = list.map (item) -> "* #{item}"
     content = "Scopes at Cursor\n#{list.join('\n')}"
 
     atom.notifications.addInfo(content, dismissable: true)
