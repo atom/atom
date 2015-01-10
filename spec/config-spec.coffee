@@ -723,7 +723,7 @@ describe "Config", ->
           expect(warnSpy).toHaveBeenCalled()
           expect(warnSpy.mostRecentCall.args[0]).toContain "foo.int"
 
-    fdescribe ".observeUserConfig()", ->
+    describe ".observeUserConfig()", ->
       updatedHandler = null
 
       writeConfigFile = (data) ->
