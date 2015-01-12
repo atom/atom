@@ -144,7 +144,7 @@
     "language-text": "0.6.0",
     "language-todo": "0.15.0",
     "language-toml": "0.15.0",
-    "language-xml": "0.26.0",
+    "language-xml": "0.27.0",
     "language-yaml": "0.22.0"
   },
   "private": true,
