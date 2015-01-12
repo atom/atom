@@ -536,6 +536,17 @@ class TextEditor extends Model
 
   isMini: -> @mini
 
+  setGutterVisible: (gutterVisible) ->
+    unless gutterVisible is @gutterVisible
+      @gutterVisible = gutterVisible
+      @emitter.emit 'did-change-gutter-visible', @gutterVisible
+    @gutterVisible
+
+  isGutterVisible: -> @gutterVisible ? true
+
+  onDidChangeGutterVisible: (callback) ->
+    @emitter.on 'did-change-gutter-visible', callback
+
   # Set the number of characters that can be displayed horizontally in the
   # editor.
   #

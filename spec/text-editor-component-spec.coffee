@@ -552,14 +552,29 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
-    describe "when the editor.showLineNumbers config is false", ->
-      it "doesn't render any line numbers", ->
-        expect(component.refs.gutter).toBeDefined()
-        atom.config.set("editor.showLineNumbers", false)
-        expect(component.refs.gutter).not.toBeDefined()
-        atom.config.set("editor.showLineNumbers", true)
-        expect(component.refs.gutter).toBeDefined()
-        expect(component.lineNumberNodeForScreenRow(3)).toBeDefined()
+    it "hides or shows the gutter based on the '::isGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
+      expect(component.refs.gutter?).toBe true
+
+      editor.setGutterVisible(false)
+      nextAnimationFrame()
+
+      expect(component.refs.gutter?).toBe false
+
+      atom.config.set("editor.showLineNumbers", false)
+      nextAnimationFrame()
+
+      expect(component.refs.gutter?).toBe false
+
+      editor.setGutterVisible(true)
+      nextAnimationFrame()
+
+      expect(component.refs.gutter?).toBe false
+
+      atom.config.set("editor.showLineNumbers", true)
+      nextAnimationFrame()
+
+      expect(component.refs.gutter?).toBe true
+      expect(component.lineNumberNodeForScreenRow(3)?).toBe true
 
     describe "fold decorations", ->
       describe "rendering fold decorations", ->
