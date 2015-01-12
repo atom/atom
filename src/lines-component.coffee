@@ -23,12 +23,12 @@ LinesComponent = React.createClass
     if performedInitialMeasurement
       {editor, overlayDecorations, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
-      {scrollTop, scrollLeft, cursorPixelRects, mini} = @props
+      {scrollTop, scrollLeft, cursorPixelRects} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
         WebkitTransform: @getTransform()
-        backgroundColor: if mini then null else backgroundColor
+        backgroundColor: if editor.isMini() then null else backgroundColor
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
@@ -162,7 +162,7 @@ LinesComponent = React.createClass
     @lineNodesByLineId.hasOwnProperty(lineId)
 
   buildLineHTML: (line, screenRow) ->
-    {mini, showIndentGuide, lineHeightInPixels, lineDecorations, lineWidth} = @props
+    {showIndentGuide, lineHeightInPixels, lineDecorations, lineWidth} = @props
     {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
 
     classes = ''
@@ -208,7 +208,7 @@ LinesComponent = React.createClass
       @buildEndOfLineHTML(line) or '&nbsp;'
 
   buildLineInnerHTML: (line) ->
-    {mini, showIndentGuide} = @props
+    {editor, showIndentGuide} = @props
     {tokens, text} = line
     innerHTML = ""
 
@@ -217,7 +217,7 @@ LinesComponent = React.createClass
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
+      hasIndentGuide = not editor.isMini() and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0

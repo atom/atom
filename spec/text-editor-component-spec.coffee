@@ -561,12 +561,12 @@ describe "TextEditorComponent", ->
       expect(component.refs.gutter?).toBe false
 
       atom.config.set("editor.showLineNumbers", false)
-      nextAnimationFrame()
+      expect(nextAnimationFrame).toBe noAnimationFrame
 
       expect(component.refs.gutter?).toBe false
 
       editor.setGutterVisible(true)
-      nextAnimationFrame()
+      expect(nextAnimationFrame).toBe noAnimationFrame
 
       expect(component.refs.gutter?).toBe false
 
@@ -2517,7 +2517,8 @@ describe "TextEditorComponent", ->
 
   describe "when the 'mini' property is true", ->
     beforeEach ->
-      component.setProps(mini: true)
+      editor.setMini(true)
+      nextAnimationFrame()
 
     it "does not render the gutter", ->
       expect(componentNode.querySelector('.gutter')).toBeNull()

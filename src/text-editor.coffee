@@ -533,8 +533,13 @@ class TextEditor extends Model
     if mini isnt @mini
       @mini = mini
       @updateInvisibles()
+      @emitter.emit 'did-change-mini', @mini
+    @mini
 
   isMini: -> @mini
+
+  onDidChangeMini: (callback) ->
+    @emitter.on 'did-change-mini', callback
 
   setGutterVisible: (gutterVisible) ->
     unless gutterVisible is @gutterVisible

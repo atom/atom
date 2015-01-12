@@ -109,7 +109,6 @@ class TextEditorElement extends HTMLElement
       rootElement: @rootElement
       stylesElement: @stylesElement
       editor: @model
-      mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin
       useShadowDOM: @useShadowDOM
     )
