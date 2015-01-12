@@ -23,7 +23,7 @@
     "atom-keymap": "^2.5.0",
     "bootstrap": "git+https://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.4.0",
-    "coffee-script": "1.7.0",
+    "coffee-script": "1.8.0",
     "coffeestack": "0.7.0",
     "delegato": "^1",
     "emissary": "^1.3.1",
