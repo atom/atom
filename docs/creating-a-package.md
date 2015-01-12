@@ -38,7 +38,7 @@ In addition to the regular [npm package.json keys][npm-keys] available, Atom
 package.json files have their own additions.
 
 - `main` (**Required**): the path to the CoffeeScript file that's the entry point
-to your package
+to your package.
 - `styles` (**Optional**): an Array of Strings identifying the order of the
 style sheets your package needs to load. If not specified, style sheets in the
 _styles_ directory are added alphabetically.
