@@ -203,8 +203,7 @@ class Workspace extends Model
   # Essential: Invoke the given callback when the active pane item changes.
   #
   # * `callback` {Function} to be called when the active pane item changes.
-  #   * `event` {Object} with the following keys:
-  #     * `activeItem` The active pane item.
+  #   * `item` The active pane item.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
