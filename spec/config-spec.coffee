@@ -1060,6 +1060,9 @@ describe "Config", ->
           type: 'integer'
           default: 12
 
+        expect(atom.config.getSchema('foo.baz')).toBeUndefined()
+        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBeUndefined()
+
       it "respects the schema for scoped settings", ->
         schema =
           type: 'string'
@@ -1286,6 +1289,79 @@ describe "Config", ->
         it 'converts an array of strings to an array of ints', ->
           atom.config.set 'foo.bar', ['2', '3', '4']
           expect(atom.config.get('foo.bar')).toEqual  [2, 3, 4]
+
+      describe 'when the value has a "color" type', ->
+        beforeEach ->
+          schema =
+            type: 'color'
+            default: 'white'
+          atom.config.setSchema('foo.bar.aColor', schema)
+
+        it 'returns a Color object', ->
+          color = atom.config.get('foo.bar.aColor')
+          expect(color.toHexString()).toBe '#ffffff'
+          expect(color.toRGBAString()).toBe 'rgba(255, 255, 255, 1)'
+
+          color.red = 0
+          color.green = 0
+          color.blue = 0
+          color.alpha = 0
+          atom.config.set('foo.bar.aColor', color)
+
+          color = atom.config.get('foo.bar.aColor')
+          expect(color.toHexString()).toBe '#000000'
+          expect(color.toRGBAString()).toBe 'rgba(0, 0, 0, 0)'
+
+          color.red = 300
+          color.green = -200
+          color.blue = -1
+          color.alpha = 'not see through'
+          atom.config.set('foo.bar.aColor', color)
+
+          color = atom.config.get('foo.bar.aColor')
+          expect(color.toHexString()).toBe '#ff0000'
+          expect(color.toRGBAString()).toBe 'rgba(255, 0, 0, 1)'
+
+        it 'coerces various types to a color object', ->
+          atom.config.set('foo.bar.aColor', 'red')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', '#020')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 34, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', '#abcdef')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 171, green: 205, blue: 239, alpha: 1}
+          atom.config.set('foo.bar.aColor', 'rgb(1,2,3)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 1, green: 2, blue: 3, alpha: 1}
+          atom.config.set('foo.bar.aColor', 'rgba(4,5,6,.7)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 4, green: 5, blue: 6, alpha: .7}
+          atom.config.set('foo.bar.aColor', 'hsl(120,100%,50%)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 255, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', 'hsla(120,100%,50%,0.3)')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 255, blue: 0, alpha: .3}
+          atom.config.set('foo.bar.aColor', {red: 100, green: 255, blue: 2, alpha: .5})
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 100, green: 255, blue: 2, alpha: .5}
+          atom.config.set('foo.bar.aColor', {red: 255})
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', {red: 1000})
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
+          atom.config.set('foo.bar.aColor', {red: 'dark'})
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 0, green: 0, blue: 0, alpha: 1}
+
+        it 'reverts back to the default value when undefined is passed to set', ->
+          atom.config.set('foo.bar.aColor', undefined)
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
+        it 'will not set non-colors', ->
+          atom.config.set('foo.bar.aColor', null)
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
+          atom.config.set('foo.bar.aColor', 'nope')
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
+          atom.config.set('foo.bar.aColor', 30)
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
+
+          atom.config.set('foo.bar.aColor', false)
+          expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
 
       describe 'when the `enum` key is used', ->
         beforeEach ->

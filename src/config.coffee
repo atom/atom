@@ -8,6 +8,7 @@ async = require 'async'
 pathWatcher = require 'pathwatcher'
 Grim = require 'grim'
 
+Color = require './color'
 ScopedPropertyStore = require 'scoped-property-store'
 ScopeDescriptor = require './scope-descriptor'
 
@@ -214,6 +215,21 @@ ScopeDescriptor = require './scope-descriptor'
 #         type: 'integer'
 #         minimum: 1.5
 #         maximum: 11.5
+# ```
+#
+# #### color
+#
+# Values will be coerced into a {Color} with `red`, `green`, `blue`, and `alpha`
+# properties that all have numeric values. `red`, `green`, `blue` will be in
+# the range 0 to 255 and `value` will be in the range 0 to 1. Values can be any
+# valid CSS color format such as `#abc`, `#abcdef`, `white`,
+# `rgb(50, 100, 150)`, and `rgba(25, 75, 125, .75)`.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'color'
+#     default: 'white'
 # ```
 #
 # ### Other Supported Keys
@@ -687,7 +703,7 @@ class Config
     schema = @schema
     for key in keys
       break unless schema?
-      schema = schema.properties[key]
+      schema = schema.properties?[key]
     schema
 
   # Deprecated: Returns a new {Object} containing all of the global settings and
@@ -872,10 +888,16 @@ class Config
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
-      value = _.deepClone(value)
-      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+      if value instanceof Color
+        value = value.clone()
+      else
+        value = _.deepClone(value)
+        _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
-      value = _.deepClone(defaultValue)
+      if defaultValue instanceof Color
+        value = defaultValue.clone()
+      else
+        value = _.deepClone(defaultValue)
 
     value
 
@@ -1102,6 +1124,13 @@ Config.addSchemaEnforcers
         newValue
       else
         value
+
+  'color':
+    coerce: (keyPath, value, schema) ->
+      color = Color.parse(value)
+      unless color?
+        throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} cannot be coerced into a color")
+      color
 
   '*':
     coerceMinimumAndMaximum: (keyPath, value, schema) ->
