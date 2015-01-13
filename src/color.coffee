@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-ParsedColor = require 'color'
+ParsedColor = null
 
 # Essential: A simple color class returned from {Config::get} when the value
 # at the key path is of type 'color'.
@@ -15,6 +15,8 @@ class Color
   @parse: (value) ->
     return null if _.isArray(value) or _.isFunction(value)
     return null unless _.isObject(value) or _.isString(value)
+
+    ParsedColor ?= require 'color'
 
     try
       parsedColor = new ParsedColor(value)
