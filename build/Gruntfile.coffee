@@ -198,6 +198,7 @@ module.exports = (grunt) ->
       outputDir: 'atom-shell'
       downloadDir: atomShellDownloadDir
       rebuild: true  # rebuild native modules after atom-shell is updated
+      token: process.env.ATOM_ACCESS_TOKEN
 
     'create-windows-installer':
       appDirectory: shellAppDir
