@@ -354,7 +354,7 @@ class TextEditor extends Model
   # Immediately calls your callback for each existing cursor.
   #
   # * `callback` {Function}
-  #   * `selection` {Selection} that was added
+  #   * `cursor` {Cursor} that was added
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeCursors: (callback) ->
