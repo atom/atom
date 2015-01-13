@@ -99,6 +99,10 @@ For more information on how to work with Atom's official packages, see
 * Avoid spaces inside the curly-braces of hash literals:
     * `{a: 1, b: 2}` instead of `{ a: 1, b: 2 }`
 * Include a single line of whitespace between methods.
+* Capitalize initialisms and acronyms in names, except for the first word, which
+  should be lower-case:
+  * `getURI` instead of `getUri`
+  * `uriToOpen` instead of `URIToOpen`
 
 ## Documentation Styleguide
 
