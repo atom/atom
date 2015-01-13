@@ -99,7 +99,7 @@ class Init extends Command
         destinationPath = path.resolve(destinationPath)
         templatePath = path.resolve(__dirname, '..', 'templates', 'theme')
         @generateFromTemplate(destinationPath, templatePath)
-        fs.removeSync(path.join(destinationPath, 'stylesheets', 'colors.less'))
+        fs.removeSync(path.join(destinationPath, 'styles', 'colors.less'))
         fs.removeSync(path.join(destinationPath, 'LICENSE.md'))
         callback()
 
