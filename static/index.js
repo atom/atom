@@ -23,7 +23,14 @@ window.onload = function() {
     };
 
     // Skip "?loadSettings=".
-    var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
+    var rawLoadSettings = decodeURIComponent(location.search.substr(14));
+    var loadSettings;
+    try {
+      loadSettings = JSON.parse(rawLoadSettings);
+    } catch (error) {
+      console.error("Failed to parse load settings: " + rawLoadSettings);
+      throw error;
+    }
 
     // Normalize to make sure drive letter case is consistent on Windows
     process.resourcesPath = path.normalize(process.resourcesPath);
