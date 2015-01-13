@@ -278,7 +278,7 @@ describe "Workspace", ->
 
         it "creates a notification", ->
           waitsForPromise ->
-            workspace.open('file1', workspace.getActivePane())
+            workspace.open('file1')
 
           runs ->
             expect(notificationSpy).toHaveBeenCalled()
@@ -289,7 +289,7 @@ describe "Workspace", ->
       describe "when a file does not exist", ->
         it "creates a notification", ->
           waitsForPromise ->
-            workspace.open('not-a-file.md', workspace.getActivePane())
+            workspace.open('not-a-file.md')
 
           runs ->
             expect(notificationSpy).toHaveBeenCalled()
@@ -308,7 +308,7 @@ describe "Workspace", ->
 
         it "creates a notification", ->
           waitsForPromise ->
-            workspace.open('file1', workspace.getActivePane())
+            workspace.open('file1')
 
           runs ->
             expect(notificationSpy).toHaveBeenCalled()
