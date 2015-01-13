@@ -10,15 +10,20 @@ describe "TextEditorElement", ->
     jasmineContent = document.body.querySelector('#jasmine-content')
 
   describe "instantiation", ->
-    it "honors the mini attribute", ->
+    it "honors the 'mini' attribute", ->
       jasmineContent.innerHTML = "<atom-text-editor mini>"
       element = jasmineContent.firstChild
       expect(element.getModel().isMini()).toBe true
 
-    it "honors the placeholder-text attribute", ->
+    it "honors the 'placeholder-text' attribute", ->
       jasmineContent.innerHTML = "<atom-text-editor placeholder-text='testing'>"
       element = jasmineContent.firstChild
       expect(element.getModel().getPlaceholderText()).toBe 'testing'
+
+    it "honors the 'gutter-hidden' attribute", ->
+      jasmineContent.innerHTML = "<atom-text-editor gutter-hidden>"
+      element = jasmineContent.firstChild
+      expect(element.getModel().isGutterVisible()).toBe false
 
     it "honors the text content", ->
       jasmineContent.innerHTML = "<atom-text-editor>testing</atom-text-editor>"

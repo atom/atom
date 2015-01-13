@@ -48,7 +48,7 @@ TextEditorComponent = React.createClass
 
   render: ->
     {focused, showIndentGuide, showLineNumbers, visible} = @state
-    {editor, mini, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
+    {editor, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
@@ -96,7 +96,7 @@ TextEditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div {className, style},
-      if @shouldRenderGutter()
+      if @gutterVisible
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
           defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
@@ -118,7 +118,7 @@ TextEditorComponent = React.createClass
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
-          cursorBlinkPeriod, cursorBlinkResumeDelay, mini, useShadowDOM
+          cursorBlinkPeriod, cursorBlinkResumeDelay, useShadowDOM
         }
 
         ScrollbarComponent
@@ -159,9 +159,6 @@ TextEditorComponent = React.createClass
     {editor} = @props
     Math.max(1, Math.ceil(editor.getHeight() / editor.getLineHeightInPixels()))
 
-  shouldRenderGutter: ->
-    not @props.mini and @state.showLineNumbers
-
   getInitialState: -> {}
 
   getDefaultProps: ->
@@ -190,7 +187,7 @@ TextEditorComponent = React.createClass
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
     @updateParentViewFocusedClassIfNeeded({})
-    @updateParentViewMiniClassIfNeeded({})
+    @updateParentViewMiniClass()
     @checkForVisibilityChange()
 
   componentWillUnmount: ->
@@ -202,9 +199,6 @@ TextEditorComponent = React.createClass
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
 
-  componentWillReceiveProps: (newProps) ->
-    @props.editor.setMini(newProps.mini)
-
   componentDidUpdate: (prevProps, prevState) ->
     cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
@@ -214,7 +208,7 @@ TextEditorComponent = React.createClass
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
-      @updateParentViewMiniClassIfNeeded(prevState)
+      @updateParentViewMiniClass()
       @props.hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
       @props.hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
       @props.hostElement.__spacePenView.trigger 'editor:display-updated'
@@ -308,8 +302,8 @@ TextEditorComponent = React.createClass
     cursorPixelRects
 
   getLineDecorations: (decorationsByMarkerId) ->
-    {editor, mini} = @props
-    return {} if mini
+    {editor} = @props
+    return {} if editor.isMini()
 
     decorationsByScreenRow = {}
     for markerId, decorations of decorationsByMarkerId
@@ -377,6 +371,8 @@ TextEditorComponent = React.createClass
   observeEditor: ->
     {editor} = @props
     @subscribe editor.onDidChange(@onScreenLinesChanged)
+    @subscribe editor.onDidChangeGutterVisible(@updateGutterVisible)
+    @subscribe editor.onDidChangeMini(@setMini)
     @subscribe editor.observeGrammar(@onGrammarChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
     @subscribe editor.observeSelections(@onSelectionAdded)
@@ -463,7 +459,7 @@ TextEditorComponent = React.createClass
     scopeDescriptor = editor.getRootScopeDescriptor()
 
     subscriptions.add atom.config.observe 'editor.showIndentGuide', scope: scopeDescriptor, @setShowIndentGuide
-    subscriptions.add atom.config.observe 'editor.showLineNumbers', scope: scopeDescriptor, @setShowLineNumbers
+    subscriptions.add atom.config.observe 'editor.showLineNumbers', scope: scopeDescriptor, @updateGutterVisible
     subscriptions.add atom.config.observe 'editor.scrollSensitivity', scope: scopeDescriptor, @setScrollSensitivity
 
   focused: ->
@@ -881,7 +877,7 @@ TextEditorComponent = React.createClass
       @backgroundColor = backgroundColor
       @requestUpdate() unless suppressUpdate
 
-    if @shouldRenderGutter()
+    if @refs.gutter?
       gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
       if gutterBackgroundColor isnt @gutterBackgroundColor
         @gutterBackgroundColor = gutterBackgroundColor
@@ -1001,6 +997,16 @@ TextEditorComponent = React.createClass
   setShowIndentGuide: (showIndentGuide) ->
     @setState({showIndentGuide})
 
+  setMini: ->
+    @updateGutterVisible()
+    @requestUpdate()
+
+  updateGutterVisible: ->
+    gutterVisible = not @props.editor.isMini() and @props.editor.isGutterVisible() and atom.config.get('editor.showLineNumbers')
+    if gutterVisible isnt @gutterVisible
+      @gutterVisible = gutterVisible
+      @requestUpdate()
+
   # Deprecated
   setInvisibles: (invisibles={}) ->
     grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
@@ -1009,9 +1015,6 @@ TextEditorComponent = React.createClass
   # Deprecated
   setShowInvisibles: (showInvisibles) ->
     atom.config.set('editor.showInvisibles', showInvisibles)
-
-  setShowLineNumbers: (showLineNumbers) ->
-    @setState({showLineNumbers})
 
   setScrollSensitivity: (scrollSensitivity) ->
     if scrollSensitivity = parseInt(scrollSensitivity)
@@ -1047,10 +1050,9 @@ TextEditorComponent = React.createClass
       @props.hostElement.classList.toggle('is-focused', @state.focused)
       @props.rootElement.classList.toggle('is-focused', @state.focused)
 
-  updateParentViewMiniClassIfNeeded: (prevProps) ->
-    if prevProps.mini isnt @props.mini
-      @props.hostElement.classList.toggle('mini', @props.mini)
-      @props.rootElement.classList.toggle('mini', @props.mini)
+  updateParentViewMiniClass: ->
+    @props.hostElement.classList.toggle('mini', @props.editor.isMini())
+    @props.rootElement.classList.toggle('mini', @props.editor.isMini())
 
   runScrollBenchmark: ->
     unless process.env.NODE_ENV is 'production'

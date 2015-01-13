@@ -77,7 +77,7 @@ class TextEditor extends Model
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
     'manageScrollPosition', toProperty: 'displayBuffer'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @gutterVisible}) ->
     super
 
     @emitter = new Emitter
@@ -533,8 +533,24 @@ class TextEditor extends Model
     if mini isnt @mini
       @mini = mini
       @updateInvisibles()
+      @emitter.emit 'did-change-mini', @mini
+    @mini
 
   isMini: -> @mini
+
+  onDidChangeMini: (callback) ->
+    @emitter.on 'did-change-mini', callback
+
+  setGutterVisible: (gutterVisible) ->
+    unless gutterVisible is @gutterVisible
+      @gutterVisible = gutterVisible
+      @emitter.emit 'did-change-gutter-visible', @gutterVisible
+    @gutterVisible
+
+  isGutterVisible: -> @gutterVisible ? true
+
+  onDidChangeGutterVisible: (callback) ->
+    @emitter.on 'did-change-gutter-visible', callback
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.
