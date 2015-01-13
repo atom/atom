@@ -287,16 +287,14 @@ describe "Workspace", ->
             expect(notification.getMessage()).toContain '< 2MB'
 
       describe "when a file does not exist", ->
-        it "creates a notification", ->
+        it "creates an empty buffer for the specified path", ->
           waitsForPromise ->
             workspace.open('not-a-file.md')
 
           runs ->
-            expect(notificationSpy).toHaveBeenCalled()
-            notification = notificationSpy.mostRecentCall.args[0]
-            expect(notification.getType()).toBe 'warning'
-            expect(notification.getMessage()).toContain 'No such file'
-            expect(notification.getMessage()).toContain 'not-a-file.md'
+            editor = workspace.getActiveTextEditor()
+            expect(notificationSpy).not.toHaveBeenCalled()
+            expect(editor.getPath()).toContain 'not-a-file.md'
 
       describe "when the user does not have access to the file", ->
         beforeEach ->

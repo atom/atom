@@ -218,9 +218,12 @@ class Project extends Model
     filePath = @resolvePath(filePath)
 
     if filePath?
-      # Make sure we have permissions
-      fileDescriptor = fs.openSync(filePath, 'r+')
-      fs.closeSync(fileDescriptor)
+      try
+        fileDescriptor = fs.openSync(filePath, 'r+')
+        fs.closeSync(fileDescriptor)
+      catch error
+        # allow ENOENT errors to create an editor for paths that dont exist
+        throw error unless error.code is 'ENOENT'
 
     @bufferForPath(filePath).then (buffer) =>
       @buildEditorForBuffer(buffer, options)
