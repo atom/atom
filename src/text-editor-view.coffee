@@ -127,7 +127,7 @@ class TextEditorView extends View
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
   Object.defineProperty @::, 'isFocused', get: -> document.activeElement is @element or document.activeElement is @element.component?.refs.input.getDOMNode()
-  Object.defineProperty @::, 'mini', get: -> @component?.props.mini
+  Object.defineProperty @::, 'mini', get: -> @model?.isMini()
   Object.defineProperty @::, 'component', get: -> @element?.component
 
   afterAttach: (onDom) ->
