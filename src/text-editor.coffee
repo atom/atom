@@ -515,7 +515,11 @@ class TextEditor extends Model
   getBuffer: -> @buffer
 
   # Retrieves the current buffer's URI.
-  getUri: -> @buffer.getUri()
+  getURI: -> @buffer.getUri()
+
+  getUri: ->
+    deprecate("Use `::getURI` instead")
+    @getURI()
 
   # Create an {TextEditor} with its initial state based on this object
   copy: ->

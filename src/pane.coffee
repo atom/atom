@@ -43,14 +43,15 @@ class Pane extends Model
   serializeParams: ->
     id: @id
     items: compact(@items.map((item) -> item.serialize?()))
-    activeItemUri: @activeItem?.getUri?()
+    activeItemURI: @activeItem?.getURI?() ? @activeItem?.getUri?()
     focused: @focused
 
   # Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
-    {items, activeItemUri} = params
+    {items, activeItemURI, activeItemUri} = params
+    activeItemURI ?= activeItemUri
     params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
-    params.activeItem = find params.items, (item) -> item.getUri?() is activeItemUri
+    params.activeItem = find params.items, (item) -> (item.getURI?() ? item.getUri?()) is activeItemURI
     params
 
   getParent: -> @parent
@@ -426,10 +427,13 @@ class Pane extends Model
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
   promptToSaveItem: (item) ->
-    return true unless typeof item.getUri is 'function' and item.shouldPromptToSave?()
+    if typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
+      Grim.deprecate("Implement `::getURI` on pane items instead of `::getUri`")
+
+    return true unless (typeof item.getURI is 'function' or typeof item.getUri is 'function') and item.shouldPromptToSave?()
 
     chosen = atom.confirm
-      message: "'#{item.getTitle?() ? item.getUri()}' has changes, do you want to save them?"
+      message: "'#{item.getTitle?() ? item.getURI?() ? item.getUri?()}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
 
@@ -456,7 +460,7 @@ class Pane extends Model
   # * `nextAction` (optional) {Function} which will be called after the item is
   #   successfully saved.
   saveItem: (item, nextAction) ->
-    if item?.getUri?()
+    if (item?.getURI?() ? item?.getUri?())
       item.save?()
       nextAction?()
     else
@@ -485,18 +489,26 @@ class Pane extends Model
   # none exists.
   #
   # * `uri` {String} containing a URI.
+  itemForURI: (uri) ->
+    find @items, (item) -> item.getURI?() is uri or item.getUri?() is uri
+
   itemForUri: (uri) ->
-    find @items, (item) -> item.getUri?() is uri
+    Grim.deprecate("Use `::itemForURI` instead.")
+    @itemForURI(uri)
 
   # Public: Activate the first item that matches the given URI.
   #
   # Returns a {Boolean} indicating whether an item matching the URI was found.
-  activateItemForUri: (uri) ->
-    if item = @itemForUri(uri)
+  activateItemForURI: (uri) ->
+    if item = @itemForURI(uri)
       @activateItem(item)
       true
     else
       false
+
+  activateItemForUri: (uri) ->
+    Grim.deprecate("Use `::activateItemForURI` instead.")
+    @activateItemForURI(uri)
 
   copyActiveItem: ->
     if @activeItem?

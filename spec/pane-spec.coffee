@@ -9,7 +9,7 @@ describe "Pane", ->
   class Item extends Model
     @deserialize: ({name, uri}) -> new this(name, uri)
     constructor: (@name, @uri) ->
-    getUri: -> @uri
+    getURI: -> @uri
     getPath: -> @path
     serialize: -> {deserializer: 'Item', @name, @uri}
     isEqual: (other) -> @name is other?.name
@@ -231,18 +231,18 @@ describe "Pane", ->
         expect(pane.getActiveItem()).toBe item1
 
     describe "if the item is modified", ->
-      itemUri = null
+      itemURI = null
 
       beforeEach ->
         item1.shouldPromptToSave = -> true
         item1.save = jasmine.createSpy("save")
         item1.saveAs = jasmine.createSpy("saveAs")
-        item1.getUri = -> itemUri
+        item1.getURI = -> itemURI
 
       describe "if the [Save] option is selected", ->
         describe "when the item has a uri", ->
           it "saves the item before destroying it", ->
-            itemUri = "test"
+            itemURI = "test"
             spyOn(atom, 'confirm').andReturn(0)
             pane.destroyItem(item1)
 
@@ -252,7 +252,7 @@ describe "Pane", ->
 
         describe "when the item has no uri", ->
           it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
-            itemUri = null
+            itemURI = null
 
             spyOn(atom, 'showSaveDialogSync').andReturn("/selected/path")
             spyOn(atom, 'confirm').andReturn(0)
@@ -404,15 +404,15 @@ describe "Pane", ->
         pane.saveActiveItemAs()
         expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
-  describe "::itemForUri(uri)", ->
-    it "returns the item for which a call to .getUri() returns the given uri", ->
+  describe "::itemForURI(uri)", ->
+    it "returns the item for which a call to .getURI() returns the given uri", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
       [item1, item2, item3] = pane.getItems()
       item1.uri = "a"
       item2.uri = "b"
-      expect(pane.itemForUri("a")).toBe item1
-      expect(pane.itemForUri("b")).toBe item2
-      expect(pane.itemForUri("bogus")).toBeUndefined()
+      expect(pane.itemForURI("a")).toBe item1
+      expect(pane.itemForURI("b")).toBe item2
+      expect(pane.itemForURI("bogus")).toBeUndefined()
 
   describe "::moveItem(item, index)", ->
     [pane, item1, item2, item3, item4] = []
@@ -589,7 +589,7 @@ describe "Pane", ->
       [item1, item2] = pane.getItems()
 
       item1.shouldPromptToSave = -> true
-      item1.getUri = -> "/test/path"
+      item1.getURI = -> "/test/path"
       item1.save = jasmine.createSpy("save")
 
       spyOn(atom, 'confirm').andReturn(0)
@@ -604,7 +604,7 @@ describe "Pane", ->
       [item1, item2] = pane.getItems()
 
       item1.shouldPromptToSave = -> true
-      item1.getUri = -> "/test/path"
+      item1.getURI = -> "/test/path"
       item1.save = jasmine.createSpy("save")
 
       spyOn(atom, 'confirm').andReturn(1)

@@ -44,7 +44,7 @@ class Workspace extends Model
   @properties
     paneContainer: null
     fullScreen: false
-    destroyedItemUris: -> []
+    destroyedItemURIs: -> []
 
   constructor: (params) ->
     super
@@ -385,7 +385,7 @@ class Workspace extends Model
     split = options.split
     uri = atom.project.resolvePath(uri)
 
-    pane = @paneContainer.paneForUri(uri) if searchAllPanes
+    pane = @paneContainer.paneForURI(uri) if searchAllPanes
     pane ?= switch split
       when 'left'
         @getActivePane().findLeftmostSibling()
@@ -394,7 +394,7 @@ class Workspace extends Model
       else
         @getActivePane()
 
-    @openUriInPane(uri, pane, options)
+    @openURIInPane(uri, pane, options)
 
   # Open Atom's license in the active pane.
   openLicense: ->
@@ -423,7 +423,7 @@ class Workspace extends Model
     activatePane = options.activatePane ? true
 
     uri = atom.project.resolvePath(uri)
-    item = @getActivePane().itemForUri(uri)
+    item = @getActivePane().itemForURI(uri)
     if uri
       item ?= opener(uri, options) for opener in @getOpeners() when !item
     item ?= atom.project.openSync(uri, {initialLine, initialColumn})
@@ -433,7 +433,7 @@ class Workspace extends Model
     @getActivePane().activate() if activatePane
     item
 
-  openUriInPane: (uri, pane, options={}) ->
+  openURIInPane: (uri, pane, options={}) ->
     # TODO: Remove deprecated changeFocus option
     if options.changeFocus?
       deprecate("The `changeFocus` option has been renamed to `activatePane`")
@@ -443,7 +443,7 @@ class Workspace extends Model
     activatePane = options.activatePane ? true
 
     if uri?
-      item = pane.itemForUri(uri)
+      item = pane.itemForURI(uri)
       item ?= opener(uri, options) for opener in @getOpeners() when !item
     item ?= atom.project.open(uri, options)
 
@@ -467,7 +467,7 @@ class Workspace extends Model
   #
   # Returns a promise that is resolved when the item is opened
   reopenItem: ->
-    if uri = @destroyedItemUris.pop()
+    if uri = @destroyedItemURIs.pop()
       @open(uri)
     else
       Q()
@@ -475,7 +475,7 @@ class Workspace extends Model
   # Deprecated
   reopenItemSync: ->
     deprecate("Use Workspace::reopenItem instead")
-    if uri = @destroyedItemUris.pop()
+    if uri = @destroyedItemURIs.pop()
       @openSync(uri)
 
   # Public: Register an opener for a uri.
@@ -553,7 +553,7 @@ class Workspace extends Model
   # Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's
-  # `.getUri` method, calls `.save` on the item. Otherwise
+  # `.getURI` method, calls `.save` on the item. Otherwise
   # {::saveActivePaneItemAs} # will be called instead. This method does nothing
   # if the active item does not implement a `.save` method.
   saveActivePaneItem: ->
@@ -617,8 +617,12 @@ class Workspace extends Model
   # * `uri` {String} uri
   #
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
+  paneForURI: (uri) ->
+    @paneContainer.paneForURI(uri)
+
   paneForUri: (uri) ->
-    @paneContainer.paneForUri(uri)
+    deprecate("Use ::paneForURI instead.")
+    @paneForURI(uri)
 
   # Extended: Get the {Pane} containing the given item.
   #
@@ -651,13 +655,19 @@ class Workspace extends Model
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
-    if uri = item.getUri?()
-      _.remove(@destroyedItemUris, uri)
+    if typeof item.getUri is 'function' and not typeof item.getURI is 'function'
+      deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
+
+    if uri = item.getURI?() ? item.getUri?()
+      _.remove(@destroyedItemURIs, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
   didDestroyPaneItem: ({item}) =>
-    if uri = item.getUri?()
-      @destroyedItemUris.push(uri)
+    if typeof item.getUri is 'function' and not typeof item.getURI is 'function'
+      deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
+
+    if uri = item.getURI?() ? item.getUri?()
+      @destroyedItemURIs.push(uri)
 
   # Called by Model superclass when destroyed
   destroyed: ->

@@ -96,7 +96,7 @@ describe "Workspace", ->
               workspace.open('a').then (o) -> editor = o
 
             runs ->
-              expect(editor.getUri()).toBe atom.project.getDirectories()[0]?.resolve('a')
+              expect(editor.getURI()).toBe atom.project.getDirectories()[0]?.resolve('a')
               expect(workspace.getActivePaneItem()).toBe editor
               expect(workspace.getActivePane().items).toEqual [editor]
               expect(workspace.getActivePane().activate).toHaveBeenCalled()
@@ -261,21 +261,21 @@ describe "Workspace", ->
 
       runs ->
         # does not reopen items with no uri
-        expect(workspace.getActivePaneItem().getUri()).toBeUndefined()
+        expect(workspace.getActivePaneItem().getURI()).toBeUndefined()
         pane.destroyActiveItem()
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).not.toBeUndefined()
+        expect(workspace.getActivePaneItem().getURI()).not.toBeUndefined()
 
         # destroy all items
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('file1')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('file1')
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('b')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('b')
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('a')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('a')
         pane.destroyActiveItem()
 
         # reopens items with uris
@@ -285,20 +285,20 @@ describe "Workspace", ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('a')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('a')
 
       # does not reopen items that are already open
       waitsForPromise ->
         workspace.open('b')
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('b')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('b')
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.getDirectories()[0]?.resolve('file1')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('file1')
 
   describe "::increase/decreaseFontSize()", ->
     it "increases/decreases the font size without going below 1", ->

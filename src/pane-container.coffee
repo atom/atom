@@ -143,8 +143,8 @@ class PaneContainer extends Model
   getActivePaneItem: ->
     @getActivePane().getActiveItem()
 
-  paneForUri: (uri) ->
-    find @getPanes(), (pane) -> pane.itemForUri(uri)?
+  paneForURI: (uri) ->
+    find @getPanes(), (pane) -> pane.itemForURI(uri)?
 
   paneForItem: (item) ->
     @getPanes().find (pane) -> item in pane.getItems()

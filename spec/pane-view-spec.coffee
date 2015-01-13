@@ -15,7 +15,7 @@ describe "PaneView", ->
     initialize: ({@id, @text}) ->
       @emitter = new Emitter
     serialize: -> { deserializer: 'TestView', @id, @text }
-    getUri: -> @id
+    getURI: -> @id
     isEqual: (other) -> other? and @id == other.id and @text == other.text
     changeTitle: ->
       @emitter.emit 'did-change-title', 'title'

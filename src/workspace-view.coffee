@@ -52,7 +52,7 @@ module.exports =
 class WorkspaceView extends View
   Delegator.includeInto(this)
 
-  @delegatesProperty 'fullScreen', 'destroyedItemUris', toProperty: 'model'
+  @delegatesProperty 'fullScreen', 'destroyedItemURIs', toProperty: 'model'
   @delegatesMethods 'open', 'openSync',
     'saveActivePaneItem', 'saveActivePaneItemAs', 'saveAll', 'destroyActivePaneItem',
     'destroyActivePane', 'increaseFontSize', 'decreaseFontSize', toProperty: 'model'

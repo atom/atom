@@ -64,7 +64,7 @@ class PaneContainerView extends View
     @getActivePaneView()?.activeView
 
   paneForUri: (uri) ->
-    atom.views.getView(@model.paneForUri(uri)).__spacePenView
+    atom.views.getView(@model.paneForURI(uri)).__spacePenView
 
   focusNextPaneView: ->
     @model.activateNextPane()

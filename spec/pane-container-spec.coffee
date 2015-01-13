@@ -129,7 +129,7 @@ describe "PaneContainer", ->
     beforeEach ->
       class TestItem
         shouldPromptToSave: -> true
-        getUri: -> 'test'
+        getURI: -> 'test'
 
       container = new PaneContainer
       container.getRoot().splitRight()
