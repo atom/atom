@@ -356,6 +356,9 @@ describe "ThemeManager", ->
     describe "when there is an error reading the stylesheet", ->
       addErrorHandler = null
       beforeEach ->
+        themeManager.loadUserStylesheet()
+        spyOn(themeManager.lessCache, 'cssForFile').andCallFake ->
+          throw new Error('EACCES permission denied "styles.less"')
         atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
 
       it "creates an error notification", ->
@@ -368,7 +371,10 @@ describe "ThemeManager", ->
     describe "when there is an error watching the user stylesheet", ->
       addErrorHandler = null
       beforeEach ->
-        # styles.less already cannot be watched, so we just need to suppress the load error.
+        {File} = require 'pathwatcher'
+        spyOn(File::, 'on').andCallFake (event) ->
+          if event.indexOf('contents-changed') > -1
+            throw new Error('Unable to watch path')
         spyOn(themeManager, 'loadStylesheet').andReturn ''
         atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
 
