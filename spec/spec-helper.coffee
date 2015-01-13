@@ -119,6 +119,7 @@ beforeEach ->
     "package-with-broken-package-json", "package-with-broken-keymap"]
   config.set "editor.useShadowDOM", true
   advanceClock(1000)
+  window.setTimeout.reset()
   config.load.reset()
   config.save.reset()
 
