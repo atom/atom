@@ -30,17 +30,6 @@ describe "TextEditorElement", ->
       element = jasmineContent.firstChild
       expect(element.getModel().getText()).toBe 'testing'
 
-  describe "when attributes change", ->
-    it "honors addition/removal of the 'gutter-hidden' attribute", ->
-      element = new TextEditorElement
-      expect(element.getModel().isGutterVisible()).toBe true
-
-      element.setAttributeNode(document.createAttribute("gutter-hidden"))
-      expect(element.getModel().isGutterVisible()).toBe false
-
-      element.removeAttribute('gutter-hidden')
-      expect(element.getModel().isGutterVisible()).toBe true
-
   describe "when the model is assigned", ->
     it "adds the 'mini' attribute if .isMini() returns true on the model", ->
       element = new TextEditorElement

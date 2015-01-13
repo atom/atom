@@ -71,10 +71,6 @@ class TextEditorElement extends HTMLElement
     @unmountComponent()
     @emitter.emit("did-detach")
 
-  attributeChangedCallback: (name, oldValue, newValue) ->
-    if name is 'gutter-hidden'
-      @getModel().setGutterVisible(not @hasAttribute('gutter-hidden'))
-
   initialize: (model) ->
     @setModel(model)
     this
