@@ -23,6 +23,8 @@ describe 'apm stars', ->
       response.sendfile path.join(__dirname, 'fixtures', 'node.lib')
     app.get '/node/v0.10.3/x64/node.lib', (request, response) ->
       response.sendfile path.join(__dirname, 'fixtures', 'node_x64.lib')
+    app.get '/node/v0.10.3/SHASUMS256.txt', (request, response) ->
+      response.sendfile path.join(__dirname, 'fixtures', 'SHASUMS256.txt')
     app.get '/tarball/test-module-1.0.0.tgz', (request, response) ->
       response.sendfile path.join(__dirname, 'fixtures', 'test-module-1.0.0.tgz')
     app.get '/tarball/test-module2-2.0.0.tgz', (request, response) ->
