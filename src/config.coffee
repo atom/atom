@@ -832,10 +832,17 @@ class Config
       @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
-      if error.location?
-        @notifyFailure('Failed to load config.cson', error.stack)
+      fileName = path.basename(@configFilePath)
+      message = "Failed to load `#{fileName}`"
+
+      detail = if error.location?
+        # stack is the output from CSON in this case
+        error.stack
       else
-        @notifyFailure('Failed to load config.cson', error.message)
+        # message will be EACCES permission denied, et al
+        error.message
+
+      @notifyFailure(message, detail)
 
   observeUserConfig: ->
     try
@@ -843,8 +850,8 @@ class Config
         @debouncedLoad() if eventType is 'change' and @watchSubscription?
     catch error
       @notifyFailure """
-        Unable to watch path: `config.cson`. Make sure you have permissions to
-        `~/.atom/config.cson`. On linux there are currently problems with watch
+        Unable to watch path: `#{path.basename(@configFilePath)}`. Make sure you have permissions to
+        `#{@configFilePath}`. On linux there are currently problems with watch
         sizes. See [this document][watches] for more info.
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
       """
