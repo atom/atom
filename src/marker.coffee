@@ -268,7 +268,7 @@ class Marker
 
   # Extended: Sets the buffer position of the marker's head.
   #
-  # * `screenRange` The new {Point} to use
+  # * `bufferPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setHeadBufferPosition: (bufferPosition, properties) ->
     @bufferMarker.setHeadPosition(bufferPosition, properties)
@@ -281,7 +281,7 @@ class Marker
 
   # Extended: Sets the screen position of the marker's head.
   #
-  # * `screenRange` The new {Point} to use
+  # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setHeadScreenPosition: (screenPosition, properties) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, properties)
@@ -295,7 +295,7 @@ class Marker
 
   # Extended: Sets the buffer position of the marker's tail.
   #
-  # * `screenRange` The new {Point} to use
+  # * `bufferPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setTailBufferPosition: (bufferPosition) ->
     @bufferMarker.setTailPosition(bufferPosition)
@@ -308,7 +308,7 @@ class Marker
 
   # Extended: Sets the screen position of the marker's tail.
   #
-  # * `screenRange` The new {Point} to use
+  # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setTailScreenPosition: (screenPosition, options) ->
     screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
