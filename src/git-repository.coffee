@@ -33,7 +33,7 @@ Task = require './task'
 #
 # ```coffee
 # git = atom.project.getRepo()
-# console.log git.getOriginURL()
+# console.log git.getOriginUrl()
 # ```
 #
 # ### Requiring in packages
@@ -234,8 +234,8 @@ class GitRepository
   #   for, only needed if the repository has submodules.
   getOriginURL: (path) -> @getConfigValue('remote.origin.url', path)
   getOriginUrl: (path) ->
-    deprecate 'Use ::getOriginURL instead.'
-    @getOriginURL(path)
+    deprecate("Use ::getOriginURL instead.")
+    @getOriginURL()
 
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
