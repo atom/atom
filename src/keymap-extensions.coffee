@@ -41,7 +41,7 @@ KeymapManager::loadUserKeymap = ->
       atom.notifications.addFatalError(error.message, {detail, stack, dismissable: true})
 
 KeymapManager::subscribeToFileReadFailure = ->
-  this.onDidFailToReadFile (error) =>
+  @onDidFailToReadFile (error) =>
     userKeymapPath = @getUserKeymapPath()
     message = "Failed to load `#{userKeymapPath}`"
 
