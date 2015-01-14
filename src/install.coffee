@@ -246,7 +246,7 @@ class Install extends Command
     cacheDir = config.getPackageCacheDirectory()
     cachePath = path.join(cacheDir, packageName, packageVersion, 'package.tgz')
     if fs.isFileSync(cachePath)
-      tempPath = path.join(temp.mkdirSync(), 'package.tgz')
+      tempPath = path.join(temp.mkdirSync(), path.basename(cachePath))
       fs.cp cachePath, tempPath, (error) ->
         if error?
           callback(error)
