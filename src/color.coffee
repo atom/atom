@@ -7,9 +7,9 @@ module.exports =
 class Color
   # Essential: Parse a {String} or {Object} into a {Color}.
   #
-  # * `value` - A {String} such as `'white'`, `#ff00ff`, or
-  #             `'rgba(255, 15, 60, .75)'` or an {Object} with `red`, `green`,
-  #             `blue`, and `alpha` properties.
+  # * `value` A {String} such as `'white'`, `#ff00ff`, or
+  #   `'rgba(255, 15, 60, .75)'` or an {Object} with `red`, `green`, `blue`,
+  #   and `alpha` properties.
   #
   # Returns a {Color} or `null` if it cannot be parsed.
   @parse: (value) ->
