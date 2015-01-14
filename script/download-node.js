@@ -16,7 +16,7 @@ try {
   request = require('../src/request');
 }
 
-var tar = require('tar');
+var tar = require('npm/node_modules/tar');
 var temp = require('temp');
 
 temp.track();
