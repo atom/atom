@@ -253,7 +253,8 @@ class Install extends Command
         else
           callback(null, cachePath)
     else
-      process.nextTick -> callback(new Error("Package not in cache"))
+      process.nextTick ->
+        callback(new Error("#{packageName}@#{packageVersion} is not in the cache"))
 
   # Is the package at the specified version already installed?
   #
