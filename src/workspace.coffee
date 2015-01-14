@@ -658,7 +658,6 @@ class Workspace extends Model
     if typeof item.getURI is 'function'
       uri = item.getURI()
     else if typeof item.getUri is 'function'
-      deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
       uri = item.getUri()
 
     if uri?
@@ -669,7 +668,6 @@ class Workspace extends Model
     if typeof item.getURI is 'function'
       uri = item.getURI()
     else if typeof item.getUri is 'function'
-      deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
       uri = item.getUri()
 
     if uri?

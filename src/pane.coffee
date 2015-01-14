@@ -41,9 +41,14 @@ class Pane extends Model
 
   # Called by the Serializable mixin during serialization.
   serializeParams: ->
+    if typeof @activeItem?.getURI is 'function'
+      activeItemURI = @activeItem.getURI()
+    else if typeof @activeItem?.getUri is 'function'
+      activeItemURI = @activeItem.getUri()
+
     id: @id
     items: compact(@items.map((item) -> item.serialize?()))
-    activeItemURI: @activeItem?.getURI?() ? @activeItem?.getUri?()
+    activeItemURI: activeItemURI
     focused: @focused
 
   # Called by the Serializable mixin during deserialization.
@@ -51,7 +56,13 @@ class Pane extends Model
     {items, activeItemURI, activeItemUri} = params
     activeItemURI ?= activeItemUri
     params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
-    params.activeItem = find params.items, (item) -> (item.getURI?() ? item.getUri?()) is activeItemURI
+    params.activeItem = find params.items, (item) ->
+      if typeof item.getURI is 'function'
+        itemURI = item.getURI()
+      else if typeof item.getUri is 'function'
+        itemURI = item.getUri()
+
+      itemURI is activeItemURI
     params
 
   getParent: -> @parent
@@ -329,6 +340,9 @@ class Pane extends Model
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
+    if typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
+      Grim.deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
+
     if typeof item.on is 'function'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
@@ -432,7 +446,6 @@ class Pane extends Model
     if typeof item.getURI is 'function'
       uri = item.getURI()
     else if typeof item.getUri is 'function'
-      deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
       uri = item.getUri()
     else
       return true
@@ -465,7 +478,12 @@ class Pane extends Model
   # * `nextAction` (optional) {Function} which will be called after the item is
   #   successfully saved.
   saveItem: (item, nextAction) ->
-    if (item?.getURI?() ? item?.getUri?())
+    if typeof item?.getURI is 'function'
+      itemURI = item.getURI()
+    else if typeof item?.getUri is 'function'
+      itemURI = item.getUri()
+
+    if itemURI?
       item.save?()
       nextAction?()
     else
@@ -495,7 +513,13 @@ class Pane extends Model
   #
   # * `uri` {String} containing a URI.
   itemForURI: (uri) ->
-    find @items, (item) -> item.getURI?() is uri or item.getUri?() is uri
+    find @items, (item) ->
+      if typeof item.getURI is 'function'
+        itemUri = item.getURI()
+      else if typeof item.getUri is 'function'
+        itemUri = item.getUri()
+
+      itemUri is uri
 
   itemForUri: (uri) ->
     Grim.deprecate("Use `::itemForURI` instead.")
