@@ -155,6 +155,25 @@ describe "TextEditor", ->
         expect(editor2.getSoftTabs()).toBe true
         expect(editor2.getEncoding()).toBe 'macroman'
 
+    it "uses scoped `core.fileEncoding` values"
+      editor1 = null
+      editor2 = null
+
+      atom.config.set('core.fileEncoding', 'utf16le')
+      atom.config.set('core.fileEncoding', 'macroman', { scopeSelector: '.javascript' })
+
+      waitsForPromise ->
+        atom.workspace.open('a').then (o) -> editor1 = o
+
+      runs ->
+        expect(editor1.getEncoding()).toBe 'utf16le'
+
+      waitsForPromise ->
+        atom.workspace.open('test.js').then (o) -> editor2 = o
+
+      runs ->
+        expect(editor2.getEncoding()).toBe 'macroman'
+
   describe "title", ->
     describe ".getTitle()", ->
       it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
