@@ -290,6 +290,12 @@ describe "ThemeManager", ->
           expect($("atom-text-editor").css("background-color")).toBe "rgb(0, 152, 255)"
 
   describe "user stylesheet", ->
+    userStylesheetPath = null
+    beforeEach ->
+      userStylesheetPath = path.join(temp.mkdirSync("atom"), 'styles.less')
+      fs.writeFileSync(userStylesheetPath, 'body {border-style: dotted !important;}')
+      spyOn(atom.styles, 'getUserStyleSheetPath').andReturn userStylesheetPath
+
     describe "when the user stylesheet changes", ->
       beforeEach ->
         jasmine.snapshotDeprecations()
@@ -300,9 +306,6 @@ describe "ThemeManager", ->
       it "reloads it", ->
         [styleElementAddedHandler, styleElementRemovedHandler] = []
         [stylesheetRemovedHandler, stylesheetAddedHandler, stylesheetsChangedHandler] = []
-        userStylesheetPath = path.join(temp.mkdirSync("atom"), 'styles.less')
-        fs.writeFileSync(userStylesheetPath, 'body {border-style: dotted !important;}')
-        spyOn(atom.styles, 'getUserStyleSheetPath').andReturn userStylesheetPath
 
         waitsForPromise ->
           themeManager.activateThemes()
