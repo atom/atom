@@ -310,7 +310,6 @@ class Install extends Command
         commands.push (callback) =>
           @getPackageCachePath packageName, packageVersion, (error, packagePath) =>
             if packagePath
-              console.log 'installing from cache', packagePath
               callback(null, packagePath)
             else
               @downloadPackage(tarball, installGlobally, callback)
