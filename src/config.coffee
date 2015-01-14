@@ -832,8 +832,7 @@ class Config
       @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
-      fileName = path.basename(@configFilePath)
-      message = "Failed to load `#{fileName}`"
+      message = "Failed to load `#{path.basename(@configFilePath)}`"
 
       detail = if error.location?
         # stack is the output from CSON in this case
