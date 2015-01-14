@@ -169,6 +169,14 @@ describe "Window", ->
       $("<a href='#scroll-me'>link</a>").appendTo(document.body).click().remove()
       expect(shell.openExternal).not.toHaveBeenCalled()
 
+  describe "when a form is submitted", ->
+    it "prevents the default so that the window's URL isn't changed", ->
+      submitSpy = jasmine.createSpy('submit')
+      $(document).on('submit', 'form', submitSpy)
+      $("<form>foo</form>").appendTo(document.body).submit().remove()
+      expect(submitSpy.callCount).toBe 1
+      expect(submitSpy.argsForCall[0][0].isDefaultPrevented()).toBe true
+
   describe "core:focus-next and core:focus-previous", ->
     describe "when there is no currently focused element", ->
       it "focuses the element with the lowest/highest tabindex", ->

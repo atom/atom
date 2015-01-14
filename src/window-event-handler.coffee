@@ -96,6 +96,9 @@ class WindowEventHandler
 
     @subscribe $(document), 'click', 'a', @openLink
 
+    # Prevent form submits from changing the current window's URL
+    @subscribe $(document), 'submit', 'form', (e) -> e.preventDefault()
+
     @subscribe $(document), 'contextmenu', (e) ->
       e.preventDefault()
       atom.contextMenu.showForEvent(e)
