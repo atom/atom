@@ -12,6 +12,7 @@ fs = require './fs'
 
 setupTempDirectory = ->
   temp = require 'temp'
+  temp.track()
   tempDirectory = require('os').tmpdir()
   # Resolve ~ in tmp dir atom/atom#2271
   tempDirectory = path.resolve(fs.absolute(tempDirectory))
