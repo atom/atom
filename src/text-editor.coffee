@@ -105,6 +105,8 @@ class TextEditor extends Model
 
     @languageMode = new LanguageMode(this)
 
+    @setEncoding(atom.config.get(@getRootScopeDescriptor(), "core.fileEncoding"))
+
     @subscribe @$scrollTop, (scrollTop) =>
       @emit 'scroll-top-changed', scrollTop
       @emitter.emit 'did-change-scroll-top', scrollTop

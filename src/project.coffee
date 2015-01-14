@@ -309,7 +309,6 @@ class Project extends Model
 
   buildEditorForBuffer: (buffer, editorOptions) ->
     editor = new TextEditor(_.extend({buffer, registerEditor: true}, editorOptions))
-    editor.setEncoding(atom.config.get(editor.getRootScopeDescriptor(), "core.fileEncoding"))
     editor
 
   eachBuffer: (args...) ->
