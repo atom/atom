@@ -427,13 +427,18 @@ class Pane extends Model
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
   promptToSaveItem: (item) ->
-    if typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
-      Grim.deprecate("Implement `::getURI` on pane items instead of `::getUri`")
+    return true unless item.shouldPromptToSave?()
 
-    return true unless (typeof item.getURI is 'function' or typeof item.getUri is 'function') and item.shouldPromptToSave?()
+    if typeof item.getURI is 'function'
+      uri = item.getURI()
+    else if typeof item.getUri is 'function'
+      deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
+      uri = item.getUri()
+    else
+      return true
 
     chosen = atom.confirm
-      message: "'#{item.getTitle?() ? item.getURI?() ? item.getUri?()}' has changes, do you want to save them?"
+      message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
 

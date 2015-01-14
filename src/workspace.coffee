@@ -655,18 +655,24 @@ class Workspace extends Model
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
-    if typeof item.getUri is 'function' and not typeof item.getURI is 'function'
+    if typeof item.getURI is 'function'
+      uri = item.getURI()
+    else if typeof item.getUri is 'function'
       deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
+      uri = item.getUri()
 
-    if uri = item.getURI?() ? item.getUri?()
+    if uri?
       _.remove(@destroyedItemURIs, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
   didDestroyPaneItem: ({item}) =>
-    if typeof item.getUri is 'function' and not typeof item.getURI is 'function'
+    if typeof item.getURI is 'function'
+      uri = item.getURI()
+    else if typeof item.getUri is 'function'
       deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
+      uri = item.getUri()
 
-    if uri = item.getURI?() ? item.getUri?()
+    if uri?
       @destroyedItemURIs.push(uri)
 
   # Called by Model superclass when destroyed
