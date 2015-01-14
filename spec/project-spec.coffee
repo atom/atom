@@ -72,6 +72,7 @@ describe "Project", ->
       expect(notification.getType()).toBe 'warning'
       expect(notification.getDetail()).toBe 'SomeError'
       expect(notification.getMessage()).toContain '`resurrect`'
+      expect(notification.getMessage()).toContain 'fixtures/dir/a'
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []

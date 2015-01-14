@@ -338,7 +338,7 @@ class Project extends Model
       handle()
       atom.notifications.addWarning """
         Unable to read file after file `#{error.eventType}` event.
-        Make sure you have permission to access `#{@getPath()}`.
+        Make sure you have permission to access `#{buffer.getPath()}`.
         """,
         detail: error.message
         dismissable: true
