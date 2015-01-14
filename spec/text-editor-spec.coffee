@@ -155,7 +155,7 @@ describe "TextEditor", ->
         expect(editor2.getSoftTabs()).toBe true
         expect(editor2.getEncoding()).toBe 'macroman'
 
-    it "uses scoped `core.fileEncoding` values"
+    it "uses scoped `core.fileEncoding` values", ->
       editor1 = null
       editor2 = null
 
