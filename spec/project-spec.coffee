@@ -60,15 +60,18 @@ describe "Project", ->
     it "creates a warning notification", ->
       atom.notifications.onDidAddNotification noteSpy = jasmine.createSpy()
 
+      error = new Error('SomeError')
+      error.eventType = 'resurrect'
       editor.buffer.emitter.emit 'will-throw-watch-error',
         handle: jasmine.createSpy()
-        error: new Error('SomeError')
+        error: error
 
       expect(noteSpy).toHaveBeenCalled()
 
       notification = noteSpy.mostRecentCall.args[0]
       expect(notification.getType()).toBe 'warning'
       expect(notification.getDetail()).toBe 'SomeError'
+      expect(notification.getMessage()).toContain '`resurrect`'
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []

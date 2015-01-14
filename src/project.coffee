@@ -337,8 +337,8 @@ class Project extends Model
     buffer.onWillThrowWatchError ({error, handle}) =>
       handle()
       atom.notifications.addWarning """
-        Unable to read file after file change event.
-        Make sure you have permission to access the file.
+        Unable to read file after file `#{error.eventType}` event.
+        Make sure you have permission to access `#{@getPath()}`.
         """,
         detail: error.message
         dismissable: true
