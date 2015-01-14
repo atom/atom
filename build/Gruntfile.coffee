@@ -206,6 +206,7 @@ module.exports = (grunt) ->
       authors: 'GitHub Inc.'
       loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
       iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
+      setupIcon: path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
 
     shell:
       'kill-atom':
