@@ -160,7 +160,7 @@ describe "TextEditor", ->
       editor2 = null
 
       atom.config.set('core.fileEncoding', 'utf16le')
-      atom.config.set('core.fileEncoding', 'macroman', { scopeSelector: '.js' })
+      atom.config.set('core.fileEncoding', 'macroman', scopeSelector: '.js')
 
       waitsForPromise ->
         atom.workspace.open('a').then (o) -> editor1 = o
