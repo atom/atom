@@ -19,10 +19,9 @@ class Fold
 
   # Returns whether this fold is contained within another fold
   isInsideLargerFold: ->
-    if largestContainingFoldMarker = @displayBuffer.findMarker(class: 'fold', containsBufferRange: @getBufferRange())
-      not largestContainingFoldMarker.getBufferRange().isEqual(@getBufferRange())
-    else
-      false
+    largestContainingFoldMarker = @displayBuffer.findFoldMarker(containsRange: @getBufferRange())
+    largestContainingFoldMarker and
+      not largestContainingFoldMarker.getRange().isEqual(@getBufferRange())
 
   # Destroys this fold
   destroy: ->
