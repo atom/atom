@@ -48,16 +48,16 @@
     "mv": "2.0.0",
     "open": "0.0.4",
     "exit": "0.1.2",
-    "rimraf": "^2.2.8"
+    "rimraf": "~2.2.8"
   },
   "devDependencies": {
     "jasmine-focused": ">=1.0.5 <2.0",
     "grunt": "~0.4.1",
-    "grunt-contrib-coffee": "~0.9.0",
+    "grunt-contrib-coffee": "~0.12.0",
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
     "express": "~3.2.3",
     "grunt-coffeelint": "0.0.6",
-    "coffee-script": "^1.7.1"
+    "coffee-script": "^1.8.0"
   }
 }
