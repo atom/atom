@@ -251,7 +251,7 @@ class Install extends Command
         if error?
           callback(error)
         else
-          callback(null, cachePath)
+          callback(null, tempPath)
     else
       process.nextTick ->
         callback(new Error("#{packageName}@#{packageVersion} is not in the cache"))
