@@ -10,7 +10,7 @@ module.exports =
 class AtomWindow
   _.extend @prototype, EventEmitter.prototype
 
-  @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
+  @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom-browser-window.png')
   @includeShellLoadTime: true
 
   browserWindow: null
