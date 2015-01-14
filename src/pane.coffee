@@ -340,9 +340,6 @@ class Pane extends Model
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
-    if typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
-      Grim.deprecate("Pane items should implement `::getURI` instead of `::getUri`.")
-
     if typeof item.on is 'function'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 

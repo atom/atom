@@ -1,12 +1,14 @@
 {deprecate} = require 'grim'
 _ = require 'underscore-plus'
-{join} = require 'path'
+path = require 'path'
+{join} = path
 {Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 fs = require 'fs-plus'
+StackTraceParser = require 'stacktrace-parser'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -495,8 +497,17 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # opener.
   addOpener: (opener) ->
-    @openers.push(opener)
-    new Disposable => _.remove(@openers, opener)
+    packageName = @getCallingPackageName()
+
+    wrappedOpener = (uri, options) ->
+      item = opener(uri, options)
+      if item? and typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
+        Grim.deprecate("Pane item with class `#{item.constructor.name}` should implement `::getURI` instead of `::getUri`.", {packageName})
+      item
+
+    @openers.push(wrappedOpener)
+    new Disposable => _.remove(@openers, wrappedOpener)
+
   registerOpener: (opener) ->
     Grim.deprecate("Call Workspace::addOpener instead")
     @addOpener(opener)
@@ -507,6 +518,34 @@ class Workspace extends Model
 
   getOpeners: ->
     @openers
+
+  getCallingPackageName: ->
+    error = new Error
+    Error.captureStackTrace(error)
+    stack = StackTraceParser.parse(error.stack)
+
+    packagePaths = @getPackagePathsByPackageName()
+
+    for i in [0...stack.length]
+      stackFramePath = stack[i].file
+
+      # Empty when it was run from the dev console
+      return unless stackFramePath
+
+      for packageName, packagePath of packagePaths
+        continue if stackFramePath is 'node.js'
+        relativePath = path.relative(packagePath, stackFramePath)
+        return packageName unless /^\.\./.test(relativePath)
+    return
+
+  getPackagePathsByPackageName: ->
+    packagePathsByPackageName = {}
+    for pack in atom.packages.getLoadedPackages()
+      packagePath = pack.path
+      if packagePath.indexOf('.atom/dev/packages') > -1 or packagePath.indexOf('.atom/packages') > -1
+        packagePath = fs.realpathSync(packagePath)
+      packagePathsByPackageName[pack.name] = packagePath
+    packagePathsByPackageName
 
   ###
   Section: Pane Items

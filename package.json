@@ -61,6 +61,7 @@
     "serializable": "^1",
     "service-hub": "^0.1.0",
     "space-pen": "3.8.2",
+    "stacktrace-parser": "0.1.1",
     "temp": "0.7.0",
     "text-buffer": "^3.8.4",
     "theorist": "^1.0.2",
