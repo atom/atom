@@ -4,7 +4,7 @@ async = require 'async'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 CSON = require 'season'
-semver = require 'semver'
+semver = require 'npm/node_modules/semver'
 temp = require 'temp'
 
 config = require './config'

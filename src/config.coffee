@@ -2,7 +2,7 @@ child_process = require 'child_process'
 fs = require './fs'
 path = require 'path'
 npm = require 'npm'
-semver = require 'semver'
+semver = require 'npm/node_modules/semver'
 
 module.exports =
   getHomeDirectory: ->

@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 ncp = require 'ncp'
-rm = require 'rimraf'
+rm = require 'npm/node_modules/rimraf'
 wrench = require 'wrench'
 
 fsAdditions =
