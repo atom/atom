@@ -266,7 +266,6 @@ class Project extends Model
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
-    buffer.setEncoding(atom.config.get('core.fileEncoding'))
     @addBuffer(buffer)
     buffer.loadSync()
     buffer
@@ -282,7 +281,6 @@ class Project extends Model
       throw new Error("Atom can only handle files < 2MB for now.")
 
     buffer = new TextBuffer({filePath: absoluteFilePath})
-    buffer.setEncoding(atom.config.get('core.fileEncoding'))
     @addBuffer(buffer)
     buffer.load()
       .then((buffer) -> buffer)
@@ -311,6 +309,7 @@ class Project extends Model
 
   buildEditorForBuffer: (buffer, editorOptions) ->
     editor = new TextEditor(_.extend({buffer, registerEditor: true}, editorOptions))
+    editor.setEncoding(atom.config.get(editor.getRootScopeDescriptor(), "core.fileEncoding"))
     editor
 
   eachBuffer: (args...) ->
