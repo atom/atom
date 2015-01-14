@@ -832,7 +832,10 @@ class Config
       @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
-      @notifyFailure('Failed to load config.cson', error.message)
+      if error.location?
+        @notifyFailure('Failed to load config.cson', error.stack)
+      else
+        @notifyFailure('Failed to load config.cson', error.message)
 
   observeUserConfig: ->
     try
