@@ -63,7 +63,7 @@ When you are deprecation free and all done converting, upgrade the `engines` fie
 ```json
 {
   "engines": {
-    "atom": ">=0.x.0, <2.0.0"
+    "atom": ">=0.174.0, <2.0.0"
   }
 }
 ```
