@@ -59,3 +59,7 @@ If you are using a proxy you can configure `apm` to use it by setting the
 ```
 https-proxy = https://9.0.2.1:0
 ```
+
+You can run `apm config get https-proxy` to verify it has been set correctly.
+
+You can also run `apm list` to see all the custom config settings.
