@@ -6,7 +6,7 @@ optimist = require 'optimist'
 
 Command = require './command'
 fs = require './fs'
-config = require './config'
+config = require './apm'
 tree = require './tree'
 
 module.exports =

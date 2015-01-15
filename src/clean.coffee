@@ -6,7 +6,7 @@ optimist = require 'optimist'
 _ = require 'underscore-plus'
 
 Command = require './command'
-config = require './config'
+config = require './apm'
 fs = require './fs'
 
 module.exports =

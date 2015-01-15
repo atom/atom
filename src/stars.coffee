@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 optimist = require 'optimist'
 
 Command = require './command'
-config = require './config'
+config = require './apm'
 Install = require './install'
 Login = require './login'
 request = require './request'

@@ -2,7 +2,7 @@ path = require 'path'
 async = require 'async'
 optimist = require 'optimist'
 Command = require './command'
-config = require './config'
+config = require './apm'
 fs = require './fs'
 
 module.exports =

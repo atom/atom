@@ -1,7 +1,7 @@
 async = require 'async'
 optimist = require 'optimist'
 
-config = require './config'
+config = require './apm'
 Command = require './command'
 Login = require './login'
 request = require './request'

@@ -2,7 +2,7 @@ optimist = require 'optimist'
 open = require 'open'
 
 View = require './view'
-config = require './config'
+config = require './apm'
 
 module.exports =
 class Docs extends View
