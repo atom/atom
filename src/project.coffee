@@ -334,7 +334,7 @@ class Project extends Model
 
   subscribeToBuffer: (buffer) ->
     buffer.onDidDestroy => @removeBuffer(buffer)
-    buffer.onWillThrowWatchError ({error, handle}) =>
+    buffer.onWillThrowWatchError ({error, handle}) ->
       handle()
       atom.notifications.addWarning """
         Unable to read file after file `#{error.eventType}` event.
