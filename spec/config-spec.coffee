@@ -686,15 +686,14 @@ describe "Config", ->
           expect(observeHandler).toHaveBeenCalledWith 'baz'
 
       describe "when the config file contains invalid cson", ->
+        addErrorHandler = null
         beforeEach ->
-          spyOn(console, 'error')
-          spyOn(atom.notifications, 'addError')
+          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
           fs.writeFileSync(atom.config.configFilePath, "{{{{{")
 
         it "logs an error to the console and does not overwrite the config file on a subsequent save", ->
           atom.config.loadUserConfig()
-          expect(console.error).toHaveBeenCalled()
-          expect(atom.notifications.addError.callCount).toBe 1
+          expect(addErrorHandler.callCount).toBe 1
           atom.config.set("hair", "blonde") # trigger a save
           expect(atom.config.save).not.toHaveBeenCalled()
 
@@ -876,10 +875,11 @@ describe "Config", ->
             expect(atom.config.get('foo.bar')).toBe 'newVal'
 
       describe "when the config file changes to contain invalid cson", ->
+        addErrorHandler = null
         beforeEach ->
-          spyOn(console, 'error')
+          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
           writeConfigFile("}}}")
-          waitsFor "error to be logged", -> console.error.callCount > 0
+          waitsFor "error to be logged", -> addErrorHandler.callCount > 0
 
         it "logs a warning and does not update config data", ->
           expect(updatedHandler.callCount).toBe 0

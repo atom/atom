@@ -1,6 +1,7 @@
 path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
+Pane = require '../src/pane'
 {View} = require '../src/space-pen-extensions'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
@@ -265,6 +266,63 @@ describe "Workspace", ->
         expect(deprecations[0].message).toBe "Pane item with class `TestItem` should implement `::getURI` instead of `::getUri`."
         expect(deprecations[0].getStacks()[0].metadata.packageName).toBe "package-with-deprecated-pane-item-method"
         jasmine.restoreDeprecationsSnapshot()
+
+    describe "when there is an error opening the file", ->
+      notificationSpy = null
+      beforeEach ->
+        atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
+      describe "when a large file is opened", ->
+        beforeEach ->
+          spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain '< 2MB'
+
+      describe "when a file does not exist", ->
+        it "creates an empty buffer for the specified path", ->
+          waitsForPromise ->
+            workspace.open('not-a-file.md')
+
+          runs ->
+            editor = workspace.getActiveTextEditor()
+            expect(notificationSpy).not.toHaveBeenCalled()
+            expect(editor.getPath()).toContain 'not-a-file.md'
+
+      describe "when the user does not have access to the file", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            error = new Error("EACCES, permission denied '#{path}'")
+            error.path = path
+            error.code = 'EACCES'
+            throw error
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Permission denied'
+            expect(notification.getMessage()).toContain 'file1'
+
+      describe "when there is an unhandled error", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            throw new Error("I dont even know what is happening right now!!")
+
+        it "creates a notification", ->
+          open = -> workspace.open('file1', workspace.getActivePane())
+          expect(open).toThrow()
 
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
@@ -857,3 +915,42 @@ describe "Workspace", ->
           expect(results[0].replacements).toBe 6
 
           expect(editor.isModified()).toBeTruthy()
+
+  describe "::saveActivePaneItem()", ->
+    describe "when there is an error", ->
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("'/some/file' is a directory")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the directory cannot be written to", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the user does not have permission", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
+          error.code = 'EACCES'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          throw new Error("no one knows")
+
+        save = -> atom.workspace.saveActivePaneItem()
+        expect(save).toThrow()

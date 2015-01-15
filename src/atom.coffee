@@ -776,7 +776,9 @@ class Atom extends Model
       try
         require(userInitScriptPath) if fs.isFileSync(userInitScriptPath)
       catch error
-        console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+        atom.notifications.addError "Failed to load `#{userInitScriptPath}`",
+          detail: error.message
+          dismissable: true
 
   # Require the module with the given globals.
   #

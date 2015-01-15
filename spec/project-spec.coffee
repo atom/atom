@@ -51,6 +51,29 @@ describe "Project", ->
         editor.saveAs(tempFile)
         expect(atom.project.getPaths()[0]).toBe path.dirname(tempFile)
 
+  describe "when a watch error is thrown from the TextBuffer", ->
+    editor = null
+    beforeEach ->
+      waitsForPromise ->
+        atom.project.open(require.resolve('./fixtures/dir/a')).then (o) -> editor = o
+
+    it "creates a warning notification", ->
+      atom.notifications.onDidAddNotification noteSpy = jasmine.createSpy()
+
+      error = new Error('SomeError')
+      error.eventType = 'resurrect'
+      editor.buffer.emitter.emit 'will-throw-watch-error',
+        handle: jasmine.createSpy()
+        error: error
+
+      expect(noteSpy).toHaveBeenCalled()
+
+      notification = noteSpy.mostRecentCall.args[0]
+      expect(notification.getType()).toBe 'warning'
+      expect(notification.getDetail()).toBe 'SomeError'
+      expect(notification.getMessage()).toContain '`resurrect`'
+      expect(notification.getMessage()).toContain 'fixtures/dir/a'
+
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []
 

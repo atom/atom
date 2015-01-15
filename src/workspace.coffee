@@ -447,7 +447,18 @@ class Workspace extends Model
     if uri?
       item = pane.itemForURI(uri)
       item ?= opener(uri, options) for opener in @getOpeners() when !item
-    item ?= atom.project.open(uri, options)
+
+    try
+      item ?= atom.project.open(uri, options)
+    catch error
+      switch error.code
+        when 'EFILETOOLARGE'
+          atom.notifications.addWarning("#{error.message} Large file support is being tracked at [atom/atom#307](https://github.com/atom/atom/issues/307).")
+        when 'EACCES'
+          atom.notifications.addWarning("Permission denied '#{error.path}'")
+        else
+          throw error
+      return Q()
 
     Q(item)
       .then (item) =>
@@ -612,8 +623,8 @@ class Workspace extends Model
     catch error
       if error.message.endsWith('is a directory')
         atom.notifications.addWarning("Unable to save file: #{error.message}")
-      else if error.message.startsWith('EACCES,')
-        atom.notifications.addWarning("Unable to save file: #{error.message.replace('EACCES, ', '')}")
+      else if error.code is 'EACCES' and error.path?
+        atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
       else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
         fileName = errorMatch[1]
         atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
