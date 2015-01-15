@@ -1,4 +1,5 @@
 path = require 'path'
+fs = require 'fs'
 
 LessCache = require 'less-cache'
 
@@ -25,7 +26,10 @@ module.exports = (grunt) ->
       for theme in configuration
         # TODO Use AtomPackage class once it runs outside of an Atom context
         themePath = path.resolve('node_modules', theme)
-        stylesheetsDir = path.join(themePath, 'stylesheets')
+        if fs.existsSync(path.join(themePath, 'stylesheets'))
+          stylesheetsDir = path.join(themePath, 'stylesheets')
+        else
+          stylesheetsDir = path.join(themePath, 'styles')
         {main} = grunt.file.readJSON(path.join(themePath, 'package.json'))
         main ?= 'index.less'
         mainPath = path.join(themePath, main)
