@@ -62,4 +62,4 @@ https-proxy = https://9.0.2.1:0
 
 You can run `apm config get https-proxy` to verify it has been set correctly.
 
-You can also run `apm list` to see all the custom config settings.
+You can also run `apm config list` to see all the custom config settings.
