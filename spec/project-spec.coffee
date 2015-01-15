@@ -38,7 +38,7 @@ describe "Project", ->
         expect(deserializedProject.getBuffers().length).toBe 0
 
 
-    it "does not deserialize buffers when the path is a directory", ->
+    it "does not deserialize buffers when their path is a directory that exists", ->
       pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
 
       waitsForPromise ->
