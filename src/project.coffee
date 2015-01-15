@@ -226,8 +226,7 @@ class Project extends Model
 
     if filePath?
       try
-        fileDescriptor = fs.openSync(filePath, 'r+')
-        fs.closeSync(fileDescriptor)
+        fs.closeSync(fs.openSync(filePath, 'r+'))
       catch error
         # allow ENOENT errors to create an editor for paths that dont exist
         throw error unless error.code is 'ENOENT'
