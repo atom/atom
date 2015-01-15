@@ -88,6 +88,7 @@ For more information on how to work with Atom's official packages, see
     * :lock: `:lock:` when dealing with security
     * :arrow_up: `:arrow_up:` when upgrading dependencies
     * :arrow_down: `:arrow_down:` when downgrading dependencies
+    * :shirt: `:shirt:` when removing linter warnings
 
 ## CoffeeScript Styleguide
 
