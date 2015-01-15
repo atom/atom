@@ -312,7 +312,7 @@ TextEditorComponent = React.createClass
       headScreenRow = null
       if marker.isValid()
         for decoration in decorations
-          if decoration.isType('gutter') or decoration.isType('line')
+          if decoration.isType('line-number') or decoration.isType('line')
             decorationParams = decoration.getProperties()
             screenRange ?= marker.getScreenRange()
             headScreenRow ?= marker.getHeadScreenPosition().row

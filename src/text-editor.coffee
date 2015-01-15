@@ -1282,7 +1282,7 @@ class TextEditor extends Model
   #
   # * `marker` A {Marker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration e.g.
-  #   `{type: 'gutter', class: 'linter-error'}`
+  #   `{type: 'line-number', class: 'linter-error'}`
   #   * `type` There are a few supported decoration types: `gutter`, `line`,
   #     `highlight`, and `overlay`. The behavior of the types are as follows:
   #     * `gutter` Adds the given `class` to the line numbers overlapping the
@@ -1311,6 +1311,9 @@ class TextEditor extends Model
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
+    if decorationParams.type is 'gutter'
+      deprecate("Decorations of `type: 'gutter'` have been renamed to `type: 'line-number'`.")
+      decorationParams.type = 'line-number'
     @displayBuffer.decorateMarker(marker, decorationParams)
 
   # Public: Get all the decorations within a screen row range.
@@ -1319,7 +1322,7 @@ class TextEditor extends Model
   # * `endScreenRow` the {Number} end screen row (inclusive)
   #
   # Returns an {Object} of decorations in the form
-  #  `{1: [{id: 10, type: 'gutter', class: 'someclass'}], 2: ...}`
+  #  `{1: [{id: 10, type: 'line-number', class: 'someclass'}], 2: ...}`
   #   where the keys are {Marker} IDs, and the values are an array of decoration
   #   params objects attached to the marker.
   # Returns an empty object when no decorations are found
@@ -1344,7 +1347,7 @@ class TextEditor extends Model
   getLineDecorations: (propertyFilter) ->
     @displayBuffer.getLineDecorations(propertyFilter)
 
-  # Extended: Get all decorations of type 'gutter'.
+  # Extended: Get all decorations of type 'line-number'.
   #
   # * `propertyFilter` (optional) An {Object} containing key value pairs that
   #   the returned decorations' properties must match.
@@ -1747,8 +1750,8 @@ class TextEditor extends Model
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
-    @decorateMarker(marker, type: 'gutter', class: 'cursor-line')
-    @decorateMarker(marker, type: 'gutter', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
+    @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
+    @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
     @emit 'cursor-added', cursor
     @emitter.emit 'did-add-cursor', cursor

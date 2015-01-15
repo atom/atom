@@ -898,7 +898,7 @@ class DisplayBuffer extends Model
     @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line')
 
   getGutterDecorations: (propertyFilter) ->
-    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('gutter')
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line-number')
 
   getHighlightDecorations: (propertyFilter) ->
     @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('highlight')
@@ -1222,7 +1222,7 @@ class DisplayBuffer extends Model
       @emitter.emit 'did-create-marker', marker
 
   createFoldForMarker: (marker) ->
-    @decorateMarker(marker, type: 'gutter', class: 'folded')
+    @decorateMarker(marker, type: 'line-number', class: 'folded')
     new Fold(this, marker)
 
   foldForMarker: (marker) ->
