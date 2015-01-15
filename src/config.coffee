@@ -34,10 +34,12 @@ class Config extends Command
     configArgs = configArgs.concat(options.argv._)
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
-    configOptions = {env, streaming: true}
+    configOptions = {env}
 
     @fork @atomNpmPath, configArgs, configOptions, (code, stderr='', stdout='') ->
       if code is 0
+        process.stdout.write(stdout) if stdout
         callback()
       else
+        process.stdout.write(stderr) if stderr
         callback(new Error("npm config failed: #{code}"))
