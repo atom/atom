@@ -67,11 +67,14 @@ class Project extends Model
 
   deserializeParams: (params) ->
     params.buffers = _.compact params.buffers.map (bufferState) ->
-      try
-        atom.deserializers.deserialize(bufferState)
-      catch error
-        # Ignore buffers whose previous paths are now folders
-        throw error unless error.code is 'EISDIR'
+      # Check that buffer's file path is accessible
+      if bufferState.filePath
+        try
+          fs.closeSync(fs.openSync(bufferState.filePath, 'r+'))
+        catch error
+          return unless error.code is 'ENOENT'
+
+      atom.deserializers.deserialize(bufferState)
     params
 
   ###

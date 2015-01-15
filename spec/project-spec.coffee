@@ -50,6 +50,19 @@ describe "Project", ->
         deserializedProject = atom.project.testSerialization()
         expect(deserializedProject.getBuffers().length).toBe 0
 
+    it "does not deserialize buffers when their path is inaccessible", ->
+      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+      fs.writeFileSync(pathToOpen, '')
+
+      waitsForPromise ->
+        atom.project.open(pathToOpen)
+
+      runs ->
+        expect(atom.project.getBuffers().length).toBe 1
+        fs.chmodSync(pathToOpen, '000')
+        deserializedProject = atom.project.testSerialization()
+        expect(deserializedProject.getBuffers().length).toBe 0
+
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
