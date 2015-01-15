@@ -44,11 +44,11 @@ class Package
     metadata.name = packageName
 
     if metadata.stylesheetMain?
-      deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in your `package.json`", {packageName})
+      deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
       metadata.mainStyleSheet = metadata.stylesheetMain
 
     if metadata.stylesheets?
-      deprecate("Use the `styleSheets` key instead of `stylesheets` in your `package.json`", {packageName})
+      deprecate("Use the `styleSheets` key instead of `stylesheets` in the `package.json` of `#{packageName}`", {packageName})
       metadata.styleSheets = metadata.stylesheets
 
     metadata
@@ -241,7 +241,7 @@ class Package
 
   getStylesheetsPath: ->
     if fs.isDirectorySync(path.join(@path, 'stylesheets'))
-      deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/`", packageName: @name)
+      deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
       path.join(@path, 'stylesheets')
     else
       path.join(@path, 'styles')
