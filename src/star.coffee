@@ -5,7 +5,7 @@ async = require 'async'
 CSON = require 'season'
 optimist = require 'optimist'
 
-config = require './config'
+config = require './apm'
 Command = require './command'
 fs = require './fs'
 Login = require './login'

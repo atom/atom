@@ -4,7 +4,7 @@ async = require 'async'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 
-config = require './config'
+config = require './apm'
 Command = require './command'
 fs = require './fs'
 

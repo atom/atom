@@ -7,7 +7,7 @@ npm = require 'npm'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
-config = require './config'
+config = require './apm'
 fs = require './fs'
 
 setupTempDirectory = ->
@@ -24,6 +24,7 @@ setupTempDirectory()
 
 commandClasses = [
   require './clean'
+  require './config'
   require './dedupe'
   require './develop'
   require './docs'

@@ -7,7 +7,7 @@ read = require 'read'
 semver = require 'npm/node_modules/semver'
 
 Command = require './command'
-config = require './config'
+config = require './apm'
 fs = require './fs'
 Install = require './install'
 Packages = require './packages'

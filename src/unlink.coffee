@@ -4,7 +4,7 @@ CSON = require 'season'
 optimist = require 'optimist'
 
 Command = require './command'
-config = require './config'
+config = require './apm'
 fs = require './fs'
 
 module.exports =

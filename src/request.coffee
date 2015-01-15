@@ -1,7 +1,7 @@
 npm = require 'npm'
 request = require 'npm/node_modules/request'
 
-config = require './config'
+config = require './apm'
 
 loadNpm = (callback) ->
   npmOptions =

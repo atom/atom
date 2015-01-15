@@ -7,7 +7,7 @@ CSON = require 'season'
 semver = require 'npm/node_modules/semver'
 temp = require 'temp'
 
-config = require './config'
+config = require './apm'
 Command = require './command'
 fs = require './fs'
 RebuildModuleCache = require './rebuild-module-cache'

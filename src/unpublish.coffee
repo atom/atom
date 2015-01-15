@@ -5,7 +5,7 @@ optimist = require 'optimist'
 
 auth = require './auth'
 Command = require './command'
-config = require './config'
+config = require './apm'
 fs = require './fs'
 request = require './request'
 

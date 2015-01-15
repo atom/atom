@@ -3,7 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 
-config = require './config'
+config = require './apm'
 Command = require './command'
 Install = require './install'
 

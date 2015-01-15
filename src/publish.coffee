@@ -4,7 +4,7 @@ optimist = require 'optimist'
 Git = require 'git-utils'
 
 fs = require './fs'
-config = require './config'
+config = require './apm'
 Command = require './command'
 Login = require './login'
 Packages = require './packages'
