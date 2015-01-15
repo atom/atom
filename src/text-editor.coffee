@@ -1311,6 +1311,9 @@ class TextEditor extends Model
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
+    if decorationParams.type is 'gutter'
+      deprecate("Decorations of `type: 'gutter'` have been renamed to `type: 'line-number'`.")
+      decorationParams.type = 'line-number'
     @displayBuffer.decorateMarker(marker, decorationParams)
 
   # Public: Get all the decorations within a screen row range.
