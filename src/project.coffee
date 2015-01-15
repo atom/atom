@@ -66,7 +66,12 @@ class Project extends Model
     buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
 
   deserializeParams: (params) ->
-    params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
+    params.buffers = _.compact params.buffers.map (bufferState) ->
+      try
+        atom.deserializers.deserialize(bufferState)
+      catch error
+        # Ignore buffers for files that are now folders
+        throw error unless error.code is 'EISDIR'
     params
 
 
