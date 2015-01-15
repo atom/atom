@@ -251,8 +251,8 @@ class TextEditorView extends View
     @model.pageUp()
 
   getFirstVisibleScreenRow: ->
-    deprecate 'Use TextEditor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
-    @model.getFirstVisibleScreenRow()
+    deprecate 'Use TextEditorElement::getFirstVisibleScreenRow instead.'
+    @model.getFirstVisibleScreenRow(true)
 
   getLastVisibleScreenRow: ->
     deprecate 'Use TextEditor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'

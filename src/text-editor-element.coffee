@@ -190,6 +190,20 @@ class TextEditorElement extends HTMLElement
   pixelPositionForScreenPosition: (screenPosition) ->
     @getModel().pixelPositionForScreenPosition(screenPosition, true)
 
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # top of the editor.
+  #
+  # Returns a {Number}.
+  getFirstVisibleScreenRow: ->
+    @getModel().getFirstVisibleScreenRow(true)
+
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # bottom of the editor.
+  #
+  # Returns a {Number}.
+  getLastVisibleScreenRow: ->
+    @getModel().getLastVisibleScreenRow(true)
+
   # Extended: call the given `callback` when the editor is attached to the DOM.
   #
   # * `callback` {Function}

@@ -2885,18 +2885,14 @@ class TextEditor extends Model
     @placeholderText = placeholderText
     @emitter.emit 'did-change-placeholder-text', @placeholderText
 
-  # Extended: Retrieves the number of the row that is visible and currently at the
-  # top of the editor.
-  #
-  # Returns a {Number}.
-  getFirstVisibleScreenRow: ->
+  getFirstVisibleScreenRow: (suppressDeprecation) ->
+    unless suppressDeprecation
+      deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
     @getVisibleRowRange()[0]
 
-  # Extended: Retrieves the number of the row that is visible and currently at the
-  # bottom of the editor.
-  #
-  # Returns a {Number}.
-  getLastVisibleScreenRow: ->
+  getLastVisibleScreenRow: (suppressDeprecation) ->
+    unless suppressDeprecation
+      deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
     @getVisibleRowRange()[1]
 
   pixelPositionForBufferPosition: (bufferPosition, suppressDeprecation) ->
