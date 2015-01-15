@@ -74,7 +74,6 @@ class Project extends Model
         throw error unless error.code is 'EISDIR'
     params
 
-
   ###
   Section: Event Subscription
   ###
