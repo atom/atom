@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 async = require 'async'
 optimist = require 'optimist'
 read = require 'read'
-semver = require 'semver'
+semver = require 'npm/node_modules/semver'
 
 Command = require './command'
 config = require './config'

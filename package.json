@@ -31,9 +31,8 @@
     "temp": "~0.7.0",
     "wrench": "~1.5.1",
     "ncp": "~0.5.1",
-    "npm": "1.4.4",
-    "season": ">=5.0.2 <6.0",
-    "request": "~2.30.0",
+    "npm": "2.1.18",
+    "season": ">=5.0.5 <6.0",
     "colors": "~0.6.1",
     "wordwrap": "0.0.2",
     "fs-plus": "2.x",
@@ -41,23 +40,20 @@
     "read": "~1.0.5",
     "q": "~0.9.7",
     "plist": "git+https://github.com/nathansobo/node-plist.git",
-    "first-mate": ">=2.0.2 <3",
-    "tar": "~0.1.19",
-    "git-utils": ">=2.1.4 <3",
-    "semver": "~2.2.1",
+    "first-mate": ">=2.2.4 <3",
+    "git-utils": ">=2.2.0 <3",
     "mv": "2.0.0",
     "open": "0.0.4",
-    "exit": "0.1.2",
-    "rimraf": "^2.2.8"
+    "exit": "0.1.2"
   },
   "devDependencies": {
     "jasmine-focused": ">=1.0.5 <2.0",
     "grunt": "~0.4.1",
-    "grunt-contrib-coffee": "~0.9.0",
+    "grunt-contrib-coffee": "~0.12.0",
     "grunt-cli": "~0.1.8",
     "grunt-shell": "~0.2.2",
     "express": "~3.2.3",
     "grunt-coffeelint": "0.0.6",
-    "coffee-script": "^1.7.1"
+    "coffee-script": "^1.8.0"
   }
 }

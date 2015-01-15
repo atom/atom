@@ -4,7 +4,7 @@ async = require 'async'
 _ = require 'underscore-plus'
 optimist = require 'optimist'
 CSON = require 'season'
-semver = require 'semver'
+semver = require 'npm/node_modules/semver'
 temp = require 'temp'
 
 config = require './config'
@@ -239,12 +239,22 @@ class Install extends Command
   #
   #  packageName - The string name of the package.
   #  packageVersion - The string version of the package.
+  #  callback - The function to call with error and cachePath arguments.
   #
   # Returns a path to the cached tarball or undefined when not in the cache.
-  getPackageCachePath: (packageName, packageVersion) ->
+  getPackageCachePath: (packageName, packageVersion, callback) ->
     cacheDir = config.getPackageCacheDirectory()
     cachePath = path.join(cacheDir, packageName, packageVersion, 'package.tgz')
-    return cachePath if fs.isFileSync(cachePath)
+    if fs.isFileSync(cachePath)
+      tempPath = path.join(temp.mkdirSync(), path.basename(cachePath))
+      fs.cp cachePath, tempPath, (error) ->
+        if error?
+          callback(error)
+        else
+          callback(null, tempPath)
+    else
+      process.nextTick ->
+        callback(new Error("#{packageName}@#{packageVersion} is not in the cache"))
 
   # Is the package at the specified version already installed?
   #
@@ -299,10 +309,11 @@ class Install extends Command
 
         commands = []
         commands.push (callback) =>
-          if packagePath = @getPackageCachePath(packageName, packageVersion)
-            callback(null, packagePath)
-          else
-            @downloadPackage(tarball, installGlobally, callback)
+          @getPackageCachePath packageName, packageVersion, (error, packagePath) =>
+            if packagePath
+              callback(null, packagePath)
+            else
+              @downloadPackage(tarball, installGlobally, callback)
         installNode = options.installNode ? true
         if installNode
           commands.push (packagePath, callback) =>

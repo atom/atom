@@ -18,6 +18,7 @@ setupTempDirectory = ->
   temp.dir = tempDirectory
   try
     fs.makeTreeSync(temp.dir)
+  temp.track()
 
 setupTempDirectory()
 
