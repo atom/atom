@@ -34,8 +34,8 @@ class Decoration
 
   # Private: Check if the `decorationProperties.type` matches `type`
   #
-  # * `decorationProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
-  # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
+  # * `decorationProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
+  # * `type` {String} type like `'line-number'`, `'line'`, etc. `type` can also
   #   be an {Array} of {String}s, where it will return true if the decoration's
   #   type matches any in the array.
   #
@@ -107,7 +107,7 @@ class Decoration
 
   # Public: Check if this decoration is of type `type`
   #
-  # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
+  # * `type` {String} type like `'line-number'`, `'line'`, etc. `type` can also
   #   be an {Array} of {String}s, where it will return true if the decoration's
   #   type matches any in the array.
   #
@@ -131,10 +131,10 @@ class Decoration
   # ## Examples
   #
   # ```coffee
-  # decoration.update({type: 'gutter', class: 'my-new-class'})
+  # decoration.update({type: 'line-number', class: 'my-new-class'})
   # ```
   #
-  # * `newProperties` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
+  # * `newProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
   setProperties: (newProperties) ->
     return if @destroyed
     oldProperties = @properties

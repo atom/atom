@@ -931,7 +931,7 @@ describe "TextEditorComponent", ->
 
     beforeEach ->
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
-      decorationParams = {type: ['gutter', 'line'], class: 'a'}
+      decorationParams = {type: ['line-number', 'line'], class: 'a'}
       decoration = editor.decorateMarker(marker, decorationParams)
       nextAnimationFrame()
 
@@ -946,7 +946,7 @@ describe "TextEditorComponent", ->
 
       # Add decorations that are out of range
       marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
-      editor.decorateMarker(marker2, type: ['gutter', 'line'], class: 'b')
+      editor.decorateMarker(marker2, type: ['line-number', 'line'], class: 'b')
       nextAnimationFrame()
 
       # Scroll decorations into view
@@ -970,7 +970,7 @@ describe "TextEditorComponent", ->
 
       marker.destroy()
       marker = editor.markBufferRange([[0, 0], [0, 2]])
-      editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'b')
+      editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'b')
       nextAnimationFrame()
       expect(lineNumberHasClass(0, 'b')).toBe true
       expect(lineNumberHasClass(1, 'b')).toBe false
@@ -1039,7 +1039,7 @@ describe "TextEditorComponent", ->
 
     describe "when the decoration's 'onlyHead' property is true", ->
       it "only applies the decoration's class to lines containing the marker's head", ->
-        editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-head', onlyHead: true)
+        editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-head', onlyHead: true)
         nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(1, 'only-head')).toBe false
         expect(lineAndLineNumberHaveClass(2, 'only-head')).toBe false
@@ -1048,7 +1048,7 @@ describe "TextEditorComponent", ->
 
     describe "when the decoration's 'onlyEmpty' property is true", ->
       it "only applies the decoration when its marker is empty", ->
-        editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-empty', onlyEmpty: true)
+        editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-empty', onlyEmpty: true)
         nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
         expect(lineAndLineNumberHaveClass(3, 'only-empty')).toBe false
@@ -1060,7 +1060,7 @@ describe "TextEditorComponent", ->
 
     describe "when the decoration's 'onlyNonEmpty' property is true", ->
       it "only applies the decoration when its marker is non-empty", ->
-        editor.decorateMarker(marker, type: ['gutter', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
+        editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
         nextAnimationFrame()
         expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe true
         expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe true

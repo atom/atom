@@ -1063,7 +1063,7 @@ describe "DisplayBuffer", ->
     [marker, decoration, decorationProperties] = []
     beforeEach ->
       marker = displayBuffer.markBufferRange([[2, 13], [3, 15]])
-      decorationProperties = {type: 'gutter', class: 'one'}
+      decorationProperties = {type: 'line-number', class: 'one'}
       decoration = displayBuffer.decorateMarker(marker, decorationProperties)
 
     it "can add decorations associated with markers and remove them", ->
@@ -1084,11 +1084,11 @@ describe "DisplayBuffer", ->
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
         decoration.onDidChangeProperties updatedSpy = jasmine.createSpy()
-        decoration.setProperties type: 'gutter', class: 'two'
+        decoration.setProperties type: 'line-number', class: 'two'
 
         {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
         expect(oldProperties).toEqual decorationProperties
-        expect(newProperties).toEqual type: 'gutter', class: 'two', id: decoration.id
+        expect(newProperties).toEqual type: 'line-number', class: 'two', id: decoration.id
 
     describe "::getDecorations(properties)", ->
       it "returns decorations matching the given optional properties", ->

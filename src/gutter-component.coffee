@@ -163,7 +163,7 @@ GutterComponent = React.createClass
     classes = ''
     if lineDecorations? and decorations = lineDecorations[screenRow]
       for id, decoration of decorations
-        if Decoration.isType(decoration, 'gutter')
+        if Decoration.isType(decoration, 'line-number')
           classes += decoration.class + ' '
 
     classes += "foldable " if bufferRow >= 0 and editor.isFoldableAtBufferRow(bufferRow)
@@ -195,12 +195,12 @@ GutterComponent = React.createClass
 
     if previousDecorations?
       for id, decoration of previousDecorations
-        if Decoration.isType(decoration, 'gutter') and not @hasDecoration(decorations, decoration)
+        if Decoration.isType(decoration, 'line-number') and not @hasDecoration(decorations, decoration)
           node.classList.remove(decoration.class)
 
     if decorations?
       for id, decoration of decorations
-        if Decoration.isType(decoration, 'gutter') and not @hasDecoration(previousDecorations, decoration)
+        if Decoration.isType(decoration, 'line-number') and not @hasDecoration(previousDecorations, decoration)
           node.classList.add(decoration.class)
 
     unless @screenRowsByLineNumberId[lineNumberId] is screenRow
