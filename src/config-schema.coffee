@@ -9,7 +9,7 @@ module.exports =
     properties:
       ignoredNames:
         type: 'array'
-        default: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
+        default: [".git", ".hg", ".svn", ".DS_Store", "._*", "Thumbs.db"]
         items:
           type: 'string'
       excludeVcsIgnoredPaths:
