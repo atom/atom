@@ -50,8 +50,9 @@ start = ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
+    cwd = args.executedFrom?.toString() or process.cwd()
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      path.resolve(args.executedFrom ? process.cwd(), pathToOpen.toString())
+      path.resolve(cwd, pathToOpen.toString())
 
     setupCoffeeScript()
     if args.devMode
