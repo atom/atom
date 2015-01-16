@@ -66,9 +66,16 @@ class Project extends Model
     buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
 
   deserializeParams: (params) ->
-    params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
-    params
+    params.buffers = _.compact params.buffers.map (bufferState) ->
+      # Check that buffer's file path is accessible
+      if bufferState.filePath
+        try
+          fs.closeSync(fs.openSync(bufferState.filePath, 'r+'))
+        catch error
+          return unless error.code is 'ENOENT'
 
+      atom.deserializers.deserialize(bufferState)
+    params
 
   ###
   Section: Event Subscription
@@ -219,8 +226,7 @@ class Project extends Model
 
     if filePath?
       try
-        fileDescriptor = fs.openSync(filePath, 'r+')
-        fs.closeSync(fileDescriptor)
+        fs.closeSync(fs.openSync(filePath, 'r+'))
       catch error
         # allow ENOENT errors to create an editor for paths that dont exist
         throw error unless error.code is 'ENOENT'
