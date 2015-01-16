@@ -583,6 +583,7 @@ class Config
         Pass a `scopeSelector` in an options hash as the final argument instead.
       """
       [scopeSelector, keyPath, value] = arguments
+      shouldSave = true
     else
       [keyPath, value, options] = arguments
       scopeSelector = options?.scopeSelector
