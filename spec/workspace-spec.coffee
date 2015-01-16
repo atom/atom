@@ -315,6 +315,25 @@ describe "Workspace", ->
             expect(notification.getMessage()).toContain 'Permission denied'
             expect(notification.getMessage()).toContain 'file1'
 
+      describe "when the the operation is not permitted", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            error = new Error("EPERM, operation not permitted '#{path}'")
+            error.path = path
+            error.code = 'EPERM'
+            throw error
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Unable to open'
+            expect(notification.getMessage()).toContain 'file1'
+
       describe "when there is an unhandled error", ->
         beforeEach ->
           spyOn(fs, 'openSync').andCallFake (path) ->
@@ -940,6 +959,18 @@ describe "Workspace", ->
         spyOn(Pane::, 'saveActiveItem').andCallFake ->
           error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
           error.code = 'EACCES'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the operation is not permitted", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          error = new Error("EPERM, operation not permitted '/Some/dir/and-a-file.js'")
+          error.code = 'EPERM'
           error.path = '/Some/dir/and-a-file.js'
           throw error
 

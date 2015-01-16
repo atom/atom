@@ -456,6 +456,8 @@ class Workspace extends Model
           atom.notifications.addWarning("#{error.message} Large file support is being tracked at [atom/atom#307](https://github.com/atom/atom/issues/307).")
         when 'EACCES'
           atom.notifications.addWarning("Permission denied '#{error.path}'")
+        when 'EPERM'
+          atom.notifications.addWarning("Unable to open '#{error.path}'", detail: error.message)
         else
           throw error
       return Q()
@@ -625,6 +627,8 @@ class Workspace extends Model
         atom.notifications.addWarning("Unable to save file: #{error.message}")
       else if error.code is 'EACCES' and error.path?
         atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
+      else if error.code is 'EPERM' and error.path?
+        atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
       else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
         fileName = errorMatch[1]
         atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
