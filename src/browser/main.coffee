@@ -52,7 +52,10 @@ start = ->
 
     cwd = args.executedFrom?.toString() or process.cwd()
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      path.resolve(cwd, pathToOpen.toString())
+      if cwd
+        path.resolve(cwd, pathToOpen.toString())
+      else
+        path.resolve(pathToOpen.toString())
 
     setupCoffeeScript()
     if args.devMode
