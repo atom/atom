@@ -456,9 +456,7 @@ class Workspace extends Model
           atom.notifications.addWarning("#{error.message} Large file support is being tracked at [atom/atom#307](https://github.com/atom/atom/issues/307).")
         when 'EACCES'
           atom.notifications.addWarning("Permission denied '#{error.path}'")
-        when 'EPERM'
-          atom.notifications.addWarning("Unable to open '#{error.path}'", detail: error.message)
-        when 'EBUSY'
+        when 'EPERM', 'EBUSY'
           atom.notifications.addWarning("Unable to open '#{error.path}'", detail: error.message)
         else
           throw error
