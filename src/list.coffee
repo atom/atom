@@ -72,7 +72,7 @@ class List extends Command
       if options.argv.themes
         packages.push(manifest) if manifest.theme
       else if options.argv.packages
-        packages.push(manifest) if not manifest.theme
+        packages.push(manifest) unless manifest.theme
       else
         packages.push(manifest)
 
