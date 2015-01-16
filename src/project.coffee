@@ -70,7 +70,7 @@ class Project extends Model
       # Check that buffer's file path is accessible
       if bufferState.filePath
         try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r+'))
+          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
 
@@ -226,7 +226,7 @@ class Project extends Model
 
     if filePath?
       try
-        fs.closeSync(fs.openSync(filePath, 'r+'))
+        fs.closeSync(fs.openSync(filePath, 'r'))
       catch error
         # allow ENOENT errors to create an editor for paths that dont exist
         throw error unless error.code is 'ENOENT'
