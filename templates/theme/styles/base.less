@@ -1,6 +1,6 @@
 @import "syntax-variables";
 
-:host {
+atom-text-editor, :host {
   background-color: @syntax-background-color;
   color: @syntax-text-color;
 
@@ -51,11 +51,13 @@
   }
 }
 
+atom-text-editor .search-results .marker .region,
 :host .search-results .marker .region {
   background-color: transparent;
   border: 1px solid @syntax-result-marker-color;
 }
 
+atom-text-editor .search-results .marker.current-result .region,
 :host .search-results .marker.current-result .region {
   border: 1px solid @syntax-result-marker-color-selected;
 }
