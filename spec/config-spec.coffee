@@ -226,14 +226,44 @@ describe "Config", ->
       advanceClock(500)
       expect(atom.config.save.callCount).toBe 1
 
-    describe "when a 'source' and no 'scopeSelector' is given", ->
-      it "removes all scoped settings with the given source", ->
-        atom.config.set("foo.bar.baz", 1, scopeSelector: ".a", source: "source-a")
-        atom.config.set("foo.bar.quux", 2, scopeSelector: ".b", source: "source-a")
-        expect(atom.config.get("foo.bar", scope: [".a.b"])).toEqual(baz: 1, quux: 2)
+    describe "when no 'scopeSelector' is given", ->
+      describe "when a 'source' but no key-path is given", ->
+        it "removes all scoped settings with the given source", ->
+          atom.config.set("foo.bar.baz", 1, scopeSelector: ".a", source: "source-a")
+          atom.config.set("foo.bar.quux", 2, scopeSelector: ".b", source: "source-a")
+          expect(atom.config.get("foo.bar", scope: [".a.b"])).toEqual(baz: 1, quux: 2)
 
-        atom.config.unset(null, source: "source-a")
-        expect(atom.config.get("foo.bar", scope: [".a"])).toEqual(baz: 0, ok: 0)
+          atom.config.unset(null, source: "source-a")
+          expect(atom.config.get("foo.bar", scope: [".a"])).toEqual(baz: 0, ok: 0)
+
+      describe "when a 'source' and a key-path is given", ->
+        it "removes all scoped settings with the given source and key-path", ->
+          atom.config.set("foo.bar.baz", 1)
+          atom.config.set("foo.bar.baz", 2, scopeSelector: ".a", source: "source-a")
+          atom.config.set("foo.bar.baz", 3, scopeSelector: ".a.b", source: "source-b")
+          expect(atom.config.get("foo.bar.baz", scope: [".a.b"])).toEqual(3)
+
+          atom.config.unset("foo.bar.baz", source: "source-b")
+          expect(atom.config.get("foo.bar.baz", scope: [".a.b"])).toEqual(2)
+          expect(atom.config.get("foo.bar.baz")).toEqual(1)
+
+      describe "when no 'source' is given", ->
+        it "removes all scoped and unscoped properties for that key-path", ->
+          atom.config.setDefaults("foo.bar", baz: 100)
+
+          atom.config.set("foo.bar", { baz: 1, ok: 2 }, scopeSelector: ".a")
+          atom.config.set("foo.bar", { baz: 11, ok: 12 }, scopeSelector: ".b")
+          atom.config.set("foo.bar", { baz: 21, ok: 22 })
+
+          atom.config.unset("foo.bar.baz")
+
+          expect(atom.config.get("foo.bar.baz", scope: [".a"])).toBe 100
+          expect(atom.config.get("foo.bar.baz", scope: [".b"])).toBe 100
+          expect(atom.config.get("foo.bar.baz")).toBe 100
+
+          expect(atom.config.get("foo.bar.ok", scope: [".a"])).toBe 2
+          expect(atom.config.get("foo.bar.ok", scope: [".b"])).toBe 12
+          expect(atom.config.get("foo.bar.ok")).toBe 22
 
     describe "when a 'scopeSelector' is given", ->
       it "restores the global default when no scoped default set", ->

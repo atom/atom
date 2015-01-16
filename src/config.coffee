@@ -640,8 +640,9 @@ class Config
         @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
         @emitChangeEvent()
     else
-      @scopedSettingsStore.removePropertiesForSource(source)
-      if keyPath?
+      for scopeSelector of @scopedSettingsStore.propertiesForSource(source)
+        @unset(keyPath, {scopeSelector, source})
+      if keyPath? and source is @getUserConfigPath()
         @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
 
   # Extended: Get an {Array} of all of the `source` {String}s with which
