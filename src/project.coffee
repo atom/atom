@@ -68,6 +68,7 @@ class Project extends Model
   deserializeParams: (params) ->
     params.buffers = _.compact params.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
+      return if fs.isDirectorySync(bufferState.filePath)
       if bufferState.filePath
         try
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
