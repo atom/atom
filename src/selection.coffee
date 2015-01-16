@@ -595,10 +595,8 @@ class Selection extends Model
     @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  # Public: Increases the indentation level of
-  #
-
-  # * `indentIncrease` The beginning indent level.
+  # Private: Increase the indentation level of the given text by given number
+  # of levels. Leaves the first line unchanged.
   adjustIndent: (text, indentIncrease) ->
     lines = text.split('\n')
     for line, i in lines when i > 0
