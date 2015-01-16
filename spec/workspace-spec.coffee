@@ -334,6 +334,25 @@ describe "Workspace", ->
             expect(notification.getMessage()).toContain 'Unable to open'
             expect(notification.getMessage()).toContain 'file1'
 
+      describe "when the the file is already open in windows", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            error = new Error("EBUSY, resource busy or locked '#{path}'")
+            error.path = path
+            error.code = 'EBUSY'
+            throw error
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Unable to open'
+            expect(notification.getMessage()).toContain 'file1'
+
       describe "when there is an unhandled error", ->
         beforeEach ->
           spyOn(fs, 'openSync').andCallFake (path) ->
@@ -974,10 +993,20 @@ describe "Workspace", ->
           error.path = '/Some/dir/and-a-file.js'
           throw error
 
+      it "emits a warning notification when the file is already open by another app", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          error = new Error("EBUSY, resource busy or locked '/Some/dir/and-a-file.js'")
+          error.code = 'EBUSY'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
         atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
         atom.workspace.saveActivePaneItem()
         expect(addedSpy).toHaveBeenCalled()
-        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+        notificaiton = addedSpy.mostRecentCall.args[0]
+        expect(notificaiton.getType()).toBe 'warning'
+        expect(notificaiton.getMessage()).toContain 'Unable to save'
 
       it "emits a warning notification when the file cannot be saved", ->
         spyOn(Pane::, 'saveActiveItem').andCallFake ->
