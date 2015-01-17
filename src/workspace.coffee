@@ -500,7 +500,7 @@ class Workspace extends Model
   # ## Examples
   #
   # ```coffee
-  # atom.project.addOpener (uri) ->
+  # atom.workspace.addOpener (uri) ->
   #   if path.extname(uri) is '.toml'
   #     return new TomlEditor(uri)
   # ```
