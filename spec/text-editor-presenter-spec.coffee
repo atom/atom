@@ -79,6 +79,23 @@ describe "TextEditorPresenter", ->
 
         # rows beyond the end of the content are not rendered
 
+      it "uses the computed scrollWidth as the length of each line", ->
+        line0 = editor.tokenizedLineForScreenRow(0)
+        line1 = editor.tokenizedLineForScreenRow(1)
+        line2 = editor.tokenizedLineForScreenRow(2)
+
+        maxLineLength = editor.getMaxScreenLineLength()
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength
+        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength
+        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 10 * maxLineLength + 20, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 20
+        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 20
+        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 20
+
     describe "when ::scrollTop changes", ->
       it "updates the lines that are visible on screen", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
@@ -224,3 +241,41 @@ describe "TextEditorPresenter", ->
           tokens: line3.tokens
           top: 10 * 3
         }
+
+    describe "when the ::clientWidth changes", ->
+      it "updates the width of the lines if it changes the ::scrollWidth", ->
+        line0 = editor.tokenizedLineForScreenRow(0)
+        line1 = editor.tokenizedLineForScreenRow(1)
+        line2 = editor.tokenizedLineForScreenRow(2)
+
+        maxLineLength = editor.getMaxScreenLineLength()
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength
+        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength
+        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength
+
+        presenter.setClientWidth(10 * maxLineLength + 20)
+
+        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 20
+        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 20
+        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 20
+
+    describe "when the ::baseCharacterWidth changes", ->
+      it "updates the width of the lines if it changes the ::scrollWidth", ->
+        line0 = editor.tokenizedLineForScreenRow(0)
+        line1 = editor.tokenizedLineForScreenRow(1)
+        line2 = editor.tokenizedLineForScreenRow(2)
+
+        maxLineLength = editor.getMaxScreenLineLength()
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength
+        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength
+        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength
+
+        presenter.setBaseCharacterWidth(15)
+
+        expect(presenter.state.lines[line0.id].width).toBe 15 * maxLineLength
+        expect(presenter.state.lines[line1.id].width).toBe 15 * maxLineLength
+        expect(presenter.state.lines[line2.id].width).toBe 15 * maxLineLength

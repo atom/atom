@@ -2,7 +2,7 @@
 
 module.exports =
 class TextEditorPresenter
-  constructor: ({@model, @clientHeight, @scrollTop, @lineHeight, @lineOverdrawMargin}) ->
+  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin}) ->
     @disposables = new CompositeDisposable
     @state = {}
     @subscribeToModel()
@@ -41,12 +41,14 @@ class TextEditorPresenter
     lineState = @state.lines[line.id]
     lineState.screenRow = row
     lineState.top = row * @lineHeight
+    lineState.width = @getScrollWidth()
 
   buildLineState: (row, line) ->
     @state.lines[line.id] =
       screenRow: row
       tokens: line.tokens
       top: row * @lineHeight
+      width: @getScrollWidth()
 
   getStartRow: ->
     startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
@@ -56,11 +58,20 @@ class TextEditorPresenter
     endRow = @getStartRow() + Math.ceil(@clientHeight / @lineHeight) + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
 
+  getScrollWidth: ->
+    Math.max(@model.getMaxScreenLineLength() * @baseCharacterWidth, @clientWidth)
+
   setScrollTop: (@scrollTop) ->
     @updateLinesState()
 
   setClientHeight: (@clientHeight) ->
     @updateLinesState()
 
+  setClientWidth: (@clientWidth) ->
+    @updateLinesState()
+
   setLineHeight: (@lineHeight) ->
+    @updateLinesState()
+
+  setBaseCharacterWidth: (@baseCharacterWidth) ->
     @updateLinesState()
