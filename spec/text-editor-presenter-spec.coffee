@@ -93,6 +93,11 @@ describe "TextEditorPresenter", ->
         expect(presenter.state.lines[editor.tokenizedLineForScreenRow(9).id]).toBeDefined()
         expect(presenter.state.lines[editor.tokenizedLineForScreenRow(10).id]).toBeUndefined()
 
+      it "reports all lines as visible if no external ::clientHeight is assigned", ->
+        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id]).toBeDefined()
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(12).id]).toBeDefined()
+
       it "uses the computed scrollWidth as the length of each line", ->
         line0 = editor.tokenizedLineForScreenRow(0)
         line1 = editor.tokenizedLineForScreenRow(1)

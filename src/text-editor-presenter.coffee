@@ -58,7 +58,7 @@ class TextEditorPresenter
 
   getEndRow: ->
     startRow = @getStartRow()
-    visibleLinesCount = Math.ceil(@clientHeight / @lineHeight) + 1
+    visibleLinesCount = Math.ceil(@getClientHeight() / @lineHeight) + 1
     overdrawMargin = @lineOverdrawMargin + Math.min(@lineOverdrawMargin, startRow)
     endRow = startRow + visibleLinesCount + overdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
@@ -73,6 +73,9 @@ class TextEditorPresenter
 
   setClientHeight: (@clientHeight) ->
     @updateLinesState()
+
+  getClientHeight: ->
+    @clientHeight ? @model.getScreenLineCount() * @lineHeight
 
   setClientWidth: (@clientWidth) ->
     @updateLinesState()
