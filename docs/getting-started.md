@@ -34,7 +34,7 @@ files. If you are using Git you can use `cmd-shift-b` to search the list of
 files modified and untracked in your project's repository.
 
 You can also use the tree view to navigate to a file. To open and focus the
-the tree view, press `ctrl-0`. The tree view can be toggled open and closed with
+tree view, press `ctrl-0`. The tree view can be toggled open and closed with
 `cmd-\`.
 
 #### Adding, Moving, Deleting Files
