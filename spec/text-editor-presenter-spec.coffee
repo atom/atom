@@ -86,6 +86,13 @@ describe "TextEditorPresenter", ->
 
         # rows beyond the end of the content are not rendered
 
+      it "contains the lines that are visible on screen, plus and minus the overdraw margin", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 1)
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(3).id]).toBeUndefined()
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(4).id]).toBeDefined()
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(9).id]).toBeDefined()
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(10).id]).toBeUndefined()
+
       it "uses the computed scrollWidth as the length of each line", ->
         line0 = editor.tokenizedLineForScreenRow(0)
         line1 = editor.tokenizedLineForScreenRow(1)
