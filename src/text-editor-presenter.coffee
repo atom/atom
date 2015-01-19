@@ -1,8 +1,18 @@
+{CompositeDisposable} = require 'event-kit'
+
 module.exports =
 class TextEditorPresenter
   constructor: ({@model, @clientHeight, @scrollTop, @lineHeight, @lineOverdrawMargin}) ->
+    @disposables = new CompositeDisposable
     @state = {}
+    @subscribeToModel()
     @buildLinesState()
+
+  destroy: ->
+    @disposables.dispose()
+
+  subscribeToModel: ->
+    @disposables.add @model.onDidChange(@updateLinesState.bind(this))
 
   buildLinesState: ->
     @state.lines = {}

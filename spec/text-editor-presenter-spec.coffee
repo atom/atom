@@ -197,3 +197,30 @@ describe "TextEditorPresenter", ->
         }
 
         expect(presenter.state.lines[line5.id]).toBeUndefined()
+
+    describe "when the editor's content changes", ->
+      it "updates the lines state accordingly", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 0)
+
+        buffer.insert([2, 0], "hello\nworld\n")
+
+        line1 = editor.tokenizedLineForScreenRow(1)
+        expectValues presenter.state.lines[line1.id], {
+          screenRow: 1
+          tokens: line1.tokens
+          top: 10 * 1
+        }
+
+        line2 = editor.tokenizedLineForScreenRow(2)
+        expectValues presenter.state.lines[line2.id], {
+          screenRow: 2
+          tokens: line2.tokens
+          top: 10 * 2
+        }
+
+        line3 = editor.tokenizedLineForScreenRow(3)
+        expectValues presenter.state.lines[line3.id], {
+          screenRow: 3
+          tokens: line3.tokens
+          top: 10 * 3
+        }
