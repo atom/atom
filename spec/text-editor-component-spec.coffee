@@ -135,7 +135,7 @@ describe "TextEditorComponent", ->
       expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
       expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
 
-    it "updates the top position of lines when the font family changes", ->
+    xit "updates the top position of lines when the font family changes", ->
       # Can't find a font that changes the line height, but we think one might exist
       linesComponent = component.refs.lines
       spyOn(linesComponent, 'measureLineHeightAndDefaultCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
