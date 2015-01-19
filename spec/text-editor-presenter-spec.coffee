@@ -168,7 +168,7 @@ describe "TextEditorPresenter", ->
 
     describe "when ::clientHeight changes", ->
       it "updates the lines that are visible on screen", ->
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 15, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
 
         line5 = editor.tokenizedLineForScreenRow(5)
         expect(presenter.state.lines[line5.id]).toBeUndefined()
