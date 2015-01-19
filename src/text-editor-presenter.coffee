@@ -51,3 +51,6 @@ class TextEditorPresenter
 
   setClientHeight: (@clientHeight) ->
     @updateLinesState()
+
+  setLineHeight: (@lineHeight) ->
+    @updateLinesState()
