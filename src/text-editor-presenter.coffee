@@ -48,3 +48,6 @@ class TextEditorPresenter
 
   setScrollTop: (@scrollTop) ->
     @updateLinesState()
+
+  setClientHeight: (@clientHeight) ->
+    @updateLinesState()

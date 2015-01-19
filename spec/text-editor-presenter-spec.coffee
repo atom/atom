@@ -114,3 +114,46 @@ describe "TextEditorPresenter", ->
           tokens: line4.tokens
           top: 10 * 4
         }
+
+    describe "when ::clientHeight changes", ->
+      it "updates the lines that are visible on screen", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 25, lineHeight: 10, lineOverdrawMargin: 1)
+
+        line5 = editor.tokenizedLineForScreenRow(5)
+        expect(presenter.state.lines[line5.id]).toBeUndefined()
+
+        presenter.setClientHeight(35)
+
+        line1 = editor.tokenizedLineForScreenRow(1)
+        expectValues presenter.state.lines[line1.id], {
+          screenRow: 1
+          tokens: line1.tokens
+          top: 10 * 1
+        }
+
+        line2 = editor.tokenizedLineForScreenRow(2)
+        expectValues presenter.state.lines[line2.id], {
+          screenRow: 2
+          tokens: line2.tokens
+          top: 10 * 2
+        }
+
+        line3 = editor.tokenizedLineForScreenRow(3)
+        expectValues presenter.state.lines[line3.id], {
+          screenRow: 3
+          tokens: line3.tokens
+          top: 10 * 3
+        }
+
+        line4 = editor.tokenizedLineForScreenRow(4)
+        expectValues presenter.state.lines[line4.id], {
+          screenRow: 4
+          tokens: line4.tokens
+          top: 10 * 4
+        }
+
+        expectValues presenter.state.lines[line4.id], {
+          screenRow: 4
+          tokens: line4.tokens
+          top: 10 * 4
+        }
