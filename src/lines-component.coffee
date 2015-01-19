@@ -71,33 +71,15 @@ LinesComponent = React.createClass
     else
       @overlayManager = new OverlayManager(@getDOMNode())
 
-  shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
-      'overlayDecorations', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'visible',
-      'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
-      'placeholderText', 'performedInitialMeasurement', 'backgroundColor', 'cursorPixelRects'
-    )
-
-    {renderedRowRange, pendingChanges} = newProps
-    return false unless renderedRowRange?
-
-    [renderedStartRow, renderedEndRow] = renderedRowRange
-    for change in pendingChanges
-      if change.screenDelta is 0
-        return true unless change.end < renderedStartRow or renderedEndRow <= change.start
-      else
-        return true unless renderedEndRow <= change.start
-
-    false
-
   componentDidUpdate: (prevProps) ->
     {visible, scrollingVertically, performedInitialMeasurement} = @props
     return unless performedInitialMeasurement
 
-    @clearScreenRowCaches() unless prevProps.lineHeightInPixels is @props.lineHeightInPixels
-    @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide')
-    @updateLines(@props.lineWidth isnt prevProps.lineWidth)
+    unless isEqualForProperties(prevProps, @props, 'showIndentGuide')
+      @removeLineNodes()
+
+    @updateLineNodes(@props.lineWidth isnt prevProps.lineWidth)
+
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
     @overlayManager?.render(@props)
@@ -106,87 +88,80 @@ LinesComponent = React.createClass
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
 
-  updateLines: (updateWidth) ->
-    {tokenizedLines, renderedRowRange, showIndentGuide, selectionChanged, lineDecorations} = @props
-    [startRow] = renderedRowRange
+  removeLineNodes: ->
+    @removeLineNode(id) for id of @oldState
 
-    @removeLineNodes(tokenizedLines)
-    @appendOrUpdateVisibleLineNodes(tokenizedLines, startRow, updateWidth)
+  removeLineNode: (id) ->
+    @lineNodesByLineId[id].remove()
+    delete @lineNodesByLineId[id]
+    delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
+    delete @screenRowsByLineId[id]
+    delete @oldState[id]
 
-  removeLineNodes: (visibleLines=[]) ->
-    {mouseWheelScreenRow} = @props
-    visibleLineIds = new Set
-    visibleLineIds.add(line.id.toString()) for line in visibleLines
-    node = @getDOMNode()
-    for lineId, lineNode of @lineNodesByLineId when not visibleLineIds.has(lineId)
-      screenRow = @screenRowsByLineId[lineId]
-      if not screenRow? or screenRow isnt mouseWheelScreenRow
-        delete @lineNodesByLineId[lineId]
-        delete @lineIdsByScreenRow[screenRow] if @lineIdsByScreenRow[screenRow] is lineId
-        delete @screenRowsByLineId[lineId]
-        delete @renderedDecorationsByLineId[lineId]
-        node.removeChild(lineNode)
+  updateLineNodes: ->
+    {presenter, lineDecorations, mouseWheelScreenRow} = @props
+    @newState = presenter?.state.lines
 
-  appendOrUpdateVisibleLineNodes: (visibleLines, startRow, updateWidth) ->
-    {lineDecorations} = @props
+    return unless @newState?
+    @oldState ?= {}
+    @lineNodesByLineId ?= {}
 
-    newLines = null
+    for id of @oldState
+      unless @newState.hasOwnProperty(id) or mouseWheelScreenRow is @screenRowsByLineId[id]
+        @removeLineNode(id)
+
+    newLineIds = null
     newLinesHTML = null
 
-    for line, index in visibleLines
-      screenRow = startRow + index
-
-      if @hasLineNode(line.id)
-        @updateLineNode(line, screenRow, updateWidth)
+    for id, lineState of @newState
+      if @oldState.hasOwnProperty(id)
+        @updateLineNode(id)
       else
-        newLines ?= []
+        newLineIds ?= []
         newLinesHTML ?= ""
-        newLines.push(line)
-        newLinesHTML += @buildLineHTML(line, screenRow)
-        @screenRowsByLineId[line.id] = screenRow
-        @lineIdsByScreenRow[screenRow] = line.id
+        newLineIds.push(id)
+        newLinesHTML += @buildLineHTML(id)
+        @screenRowsByLineId[id] = lineState.screenRow
+        @lineIdsByScreenRow[lineState.screenRow] = id
+      @oldState[id] = _.clone(lineState)
 
-      @renderedDecorationsByLineId[line.id] = lineDecorations[screenRow]
+      @renderedDecorationsByLineId[id] = lineDecorations[lineState.screenRow]
 
-    return unless newLines?
+    return unless newLineIds?
 
     WrapperDiv.innerHTML = newLinesHTML
     newLineNodes = toArray(WrapperDiv.children)
     node = @getDOMNode()
-    for line, i in newLines
+    for id, i in newLineIds
       lineNode = newLineNodes[i]
-      @lineNodesByLineId[line.id] = lineNode
+      @lineNodesByLineId[id] = lineNode
       node.appendChild(lineNode)
 
-  hasLineNode: (lineId) ->
-    @lineNodesByLineId.hasOwnProperty(lineId)
-
-  buildLineHTML: (line, screenRow) ->
-    {showIndentGuide, lineHeightInPixels, lineDecorations, lineWidth} = @props
-    {tokens, text, lineEnding, fold, isSoftWrapped, indentLevel} = line
+  buildLineHTML: (id) ->
+    {presenter, showIndentGuide, lineHeightInPixels, lineDecorations} = @props
+    {screenRow, tokens, text, top, width, lineEnding, fold, isSoftWrapped, indentLevel} = @newState[id]
 
     classes = ''
     if decorations = lineDecorations[screenRow]
-      for id, decoration of decorations
+      for decorationId, decoration of decorations
         if Decoration.isType(decoration, 'line')
           classes += decoration.class + ' '
     classes += 'line'
 
-    top = screenRow * lineHeightInPixels
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{lineWidth}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
-      lineHTML += @buildEmptyLineInnerHTML(line)
+      lineHTML += @buildEmptyLineInnerHTML(id)
     else
-      lineHTML += @buildLineInnerHTML(line)
+      lineHTML += @buildLineInnerHTML(id)
 
     lineHTML += '<span class="fold-marker"></span>' if fold
     lineHTML += "</div>"
     lineHTML
 
-  buildEmptyLineInnerHTML: (line) ->
+  buildEmptyLineInnerHTML: (id) ->
     {showIndentGuide} = @props
-    {indentLevel, tabLength, endOfLineInvisibles} = line
+    {indentLevel, tabLength, endOfLineInvisibles} = @newState[id]
 
     if showIndentGuide and indentLevel > 0
       invisibleIndex = 0
@@ -201,15 +176,15 @@ LinesComponent = React.createClass
         lineHTML += "</span>"
 
       while invisibleIndex < endOfLineInvisibles?.length
-        lineHTML += "<span class='invisible-character'>#{line.endOfLineInvisibles[invisibleIndex++]}</span>"
+        lineHTML += "<span class='invisible-character'>#{endOfLineInvisibles[invisibleIndex++]}</span>"
 
       lineHTML
     else
-      @buildEndOfLineHTML(line) or '&nbsp;'
+      @buildEndOfLineHTML(id) or '&nbsp;'
 
-  buildLineInnerHTML: (line) ->
+  buildLineInnerHTML: (id) ->
     {editor, showIndentGuide} = @props
-    {tokens, text} = line
+    {tokens, text} = @newState[id]
     innerHTML = ""
 
     scopeStack = []
@@ -221,11 +196,11 @@ LinesComponent = React.createClass
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += @buildEndOfLineHTML(line)
+    innerHTML += @buildEndOfLineHTML(id)
     innerHTML
 
-  buildEndOfLineHTML: (line) ->
-    {endOfLineInvisibles} = line
+  buildEndOfLineHTML: (id) ->
+    {endOfLineInvisibles} = @newState[id]
 
     html = ''
     if endOfLineInvisibles?
@@ -258,30 +233,32 @@ LinesComponent = React.createClass
     scopeStack.push(scope)
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-  updateLineNode: (line, screenRow, updateWidth) ->
-    {lineHeightInPixels, lineDecorations, lineWidth} = @props
-    lineNode = @lineNodesByLineId[line.id]
+  updateLineNode: (id) ->
+
+    {lineHeightInPixels, lineDecorations} = @props
+    {screenRow, top, width} = @newState[id]
+
+
+    lineNode = @lineNodesByLineId[id]
 
     decorations = lineDecorations[screenRow]
-    previousDecorations = @renderedDecorationsByLineId[line.id]
+    previousDecorations = @renderedDecorationsByLineId[id]
 
     if previousDecorations?
-      for id, decoration of previousDecorations
+      for decorationId, decoration of previousDecorations
         if Decoration.isType(decoration, 'line') and not @hasDecoration(decorations, decoration)
           lineNode.classList.remove(decoration.class)
 
     if decorations?
-      for id, decoration of decorations
+      for decorationId, decoration of decorations
         if Decoration.isType(decoration, 'line') and not @hasDecoration(previousDecorations, decoration)
           lineNode.classList.add(decoration.class)
 
-    lineNode.style.width = lineWidth + 'px' if updateWidth
-
-    unless @screenRowsByLineId[line.id] is screenRow
-      lineNode.style.top = screenRow * lineHeightInPixels + 'px'
-      lineNode.dataset.screenRow = screenRow
-      @screenRowsByLineId[line.id] = screenRow
-      @lineIdsByScreenRow[screenRow] = line.id
+    lineNode.style.width = width + 'px'
+    lineNode.style.top = top + 'px'
+    lineNode.dataset.screenRow = screenRow
+    @screenRowsByLineId[id] = screenRow
+    @lineIdsByScreenRow[screenRow] = id
 
   hasDecoration: (decorations, decoration) ->
     decorations? and decorations[decoration.id] is decoration
@@ -314,10 +291,10 @@ LinesComponent = React.createClass
     node = @getDOMNode()
 
     editor.batchCharacterMeasurement =>
-      for tokenizedLine in tokenizedLines
+      for id, lineState in @newState
         unless @measuredLines.has(tokenizedLine)
-          lineNode = @lineNodesByLineId[tokenizedLine.id]
-          @measureCharactersInLine(tokenizedLine, lineNode)
+          lineNode = @lineNodesByLineId[id]
+          @measureCharactersInLine(lineState, lineNode)
       return
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->

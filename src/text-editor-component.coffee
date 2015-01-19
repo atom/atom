@@ -720,6 +720,7 @@ TextEditorComponent = React.createClass
 
   onScrollTopChanged: ->
     @scrollingVertically = true
+    @presenter?.setScrollTop(@props.editor.getScrollTop())
     @requestUpdate()
     @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 200)
     @onStoppedScrollingAfterDelay()
