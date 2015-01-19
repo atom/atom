@@ -296,8 +296,10 @@ LinesComponent = React.createClass
     charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
     node.removeChild(DummyLineNode)
 
-    {editor} = @props
+    {editor, presenter} = @props
+    presenter?.setLineHeight(lineHeightInPixels)
     editor.setLineHeightInPixels(lineHeightInPixels)
+    presenter?.setBaseCharacterWidth(charWidth)
     editor.setDefaultCharWidth(charWidth)
 
   remeasureCharacterWidths: ->

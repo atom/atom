@@ -8,6 +8,7 @@ grim = require 'grim'
 {CompositeDisposable} = require 'event-kit'
 ipc = require 'ipc'
 
+TextEditorPresenter = require './text-editor-presenter'
 GutterComponent = require './gutter-component'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
@@ -118,7 +119,7 @@ TextEditorComponent = React.createClass
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
-          cursorBlinkPeriod, cursorBlinkResumeDelay, useShadowDOM
+          cursorBlinkPeriod, cursorBlinkResumeDelay, useShadowDOM, @presenter
         }
 
         ScrollbarComponent
@@ -224,6 +225,17 @@ TextEditorComponent = React.createClass
     @props.editor.setVisible(true)
     @performedInitialMeasurement = true
     @updatesPaused = false
+
+    {editor, lineOverdrawMargin}  = @props
+    @presenter = new TextEditorPresenter
+      model: editor
+      clientHeight: editor.getHeight()
+      clientWidth: editor.getWidth()
+      scrollTop: editor.getScrollTop()
+      lineHeight: editor.getLineHeightInPixels()
+      baseCharacterWidth: editor.getDefaultCharWidth()
+      lineOverdrawMargin: lineOverdrawMargin
+
     @forceUpdate() if @canUpdate()
 
   requestUpdate: ->
@@ -505,6 +517,7 @@ TextEditorComponent = React.createClass
       @requestAnimationFrame =>
         pendingScrollTop = @pendingScrollTop
         @pendingScrollTop = null
+        @presenter?.setScrollTop(pendingScrollTop)
         @props.editor.setScrollTop(pendingScrollTop)
 
   onHorizontalScroll: (scrollLeft) ->
@@ -845,15 +858,20 @@ TextEditorComponent = React.createClass
         @forceUpdate() if not @updatesPaused and @canUpdate()
 
       clientHeight =  scrollViewNode.clientHeight
-      editor.setHeight(clientHeight) if clientHeight > 0
+      if clientHeight > 0
+        @presenter?.setClientHeight(clientHeight)
+        editor.setHeight(clientHeight)
     else
+      @presenter?.setClientHeight(null)
       editor.setHeight(null)
       @autoHeight = true
 
     clientWidth = scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
     clientWidth -= paddingLeft
-    editor.setWidth(clientWidth) if clientWidth > 0
+    if clientWidth > 0
+      @presenter?.setClientWidth(clientWidth)
+      editor.setWidth(clientWidth)
 
   sampleFontStyling: ->
     oldFontSize = @fontSize
