@@ -46,6 +46,7 @@ class TextEditorPresenter
   buildLineState: (row, line) ->
     @state.lines[line.id] =
       screenRow: row
+      text: line.text
       tokens: line.tokens
       top: row * @lineHeight
       width: @getScrollWidth()

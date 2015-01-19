@@ -26,6 +26,7 @@ describe "TextEditorPresenter", ->
         line0 = editor.tokenizedLineForScreenRow(0)
         expectValues presenter.state.lines[line0.id], {
           screenRow: 0
+          text: line0.text
           tokens: line0.tokens
           top: 10 * 0
         }
@@ -33,6 +34,7 @@ describe "TextEditorPresenter", ->
         line1 = editor.tokenizedLineForScreenRow(1)
         expectValues presenter.state.lines[line1.id], {
           screenRow: 1
+          text: line1.text
           tokens: line1.tokens
           top: 10 * 1
         }
@@ -40,6 +42,7 @@ describe "TextEditorPresenter", ->
         line2 = editor.tokenizedLineForScreenRow(2)
         expectValues presenter.state.lines[line2.id], {
           screenRow: 2
+          text: line2.text
           tokens: line2.tokens
           top: 10 * 2
         }
@@ -48,6 +51,7 @@ describe "TextEditorPresenter", ->
         line3 = editor.tokenizedLineForScreenRow(3)
         expectValues presenter.state.lines[line3.id], {
           screenRow: 3
+          text: line3.text
           tokens: line3.tokens
           top: 10 * 3
         }
@@ -59,6 +63,7 @@ describe "TextEditorPresenter", ->
         line10 = editor.tokenizedLineForScreenRow(10)
         expectValues presenter.state.lines[line10.id], {
           screenRow: 10
+          text: line10.text
           tokens: line10.tokens
           top: 10 * 10
         }
@@ -66,6 +71,7 @@ describe "TextEditorPresenter", ->
         line11 = editor.tokenizedLineForScreenRow(11)
         expectValues presenter.state.lines[line11.id], {
           screenRow: 11
+          text: line11.text
           tokens: line11.tokens
           top: 10 * 11
         }
@@ -73,6 +79,7 @@ describe "TextEditorPresenter", ->
         line12 = editor.tokenizedLineForScreenRow(12)
         expectValues presenter.state.lines[line12.id], {
           screenRow: 12
+          text: line12.text
           tokens: line12.tokens
           top: 10 * 12
         }
@@ -107,6 +114,7 @@ describe "TextEditorPresenter", ->
         line1 = editor.tokenizedLineForScreenRow(1)
         expectValues presenter.state.lines[line1.id], {
           screenRow: 1
+          text: line1.text
           tokens: line1.tokens
           top: 10 * 1
         }
@@ -114,6 +122,7 @@ describe "TextEditorPresenter", ->
         line2 = editor.tokenizedLineForScreenRow(2)
         expectValues presenter.state.lines[line2.id], {
           screenRow: 2
+          text: line2.text
           tokens: line2.tokens
           top: 10 * 2
         }
@@ -121,6 +130,7 @@ describe "TextEditorPresenter", ->
         line3 = editor.tokenizedLineForScreenRow(3)
         expectValues presenter.state.lines[line3.id], {
           screenRow: 3
+          text: line3.text
           tokens: line3.tokens
           top: 10 * 3
         }
@@ -128,6 +138,7 @@ describe "TextEditorPresenter", ->
         line4 = editor.tokenizedLineForScreenRow(4)
         expectValues presenter.state.lines[line4.id], {
           screenRow: 4
+          text: line4.text
           tokens: line4.tokens
           top: 10 * 4
         }
@@ -144,6 +155,7 @@ describe "TextEditorPresenter", ->
         line1 = editor.tokenizedLineForScreenRow(1)
         expectValues presenter.state.lines[line1.id], {
           screenRow: 1
+          text: line1.text
           tokens: line1.tokens
           top: 10 * 1
         }
@@ -151,6 +163,7 @@ describe "TextEditorPresenter", ->
         line2 = editor.tokenizedLineForScreenRow(2)
         expectValues presenter.state.lines[line2.id], {
           screenRow: 2
+          text: line2.text
           tokens: line2.tokens
           top: 10 * 2
         }
@@ -158,6 +171,7 @@ describe "TextEditorPresenter", ->
         line3 = editor.tokenizedLineForScreenRow(3)
         expectValues presenter.state.lines[line3.id], {
           screenRow: 3
+          text: line3.text
           tokens: line3.tokens
           top: 10 * 3
         }
@@ -165,12 +179,14 @@ describe "TextEditorPresenter", ->
         line4 = editor.tokenizedLineForScreenRow(4)
         expectValues presenter.state.lines[line4.id], {
           screenRow: 4
+          text: line4.text
           tokens: line4.tokens
           top: 10 * 4
         }
 
         expectValues presenter.state.lines[line4.id], {
           screenRow: 4
+          text: line4.text
           tokens: line4.tokens
           top: 10 * 4
         }
@@ -197,18 +213,21 @@ describe "TextEditorPresenter", ->
 
         expectValues presenter.state.lines[line2.id], {
           screenRow: 2
+          text: line2.text
           tokens: line2.tokens
           top: 5 * 2
         }
 
         expectValues presenter.state.lines[line3.id], {
           screenRow: 3
+          text: line3.text
           tokens: line3.tokens
           top: 5 * 3
         }
 
         expectValues presenter.state.lines[line4.id], {
           screenRow: 4
+          text: line4.text
           tokens: line4.tokens
           top: 5 * 4
         }
@@ -224,6 +243,7 @@ describe "TextEditorPresenter", ->
         line1 = editor.tokenizedLineForScreenRow(1)
         expectValues presenter.state.lines[line1.id], {
           screenRow: 1
+          text: line1.text
           tokens: line1.tokens
           top: 10 * 1
         }
@@ -231,6 +251,7 @@ describe "TextEditorPresenter", ->
         line2 = editor.tokenizedLineForScreenRow(2)
         expectValues presenter.state.lines[line2.id], {
           screenRow: 2
+          text: line2.text
           tokens: line2.tokens
           top: 10 * 2
         }
@@ -238,6 +259,7 @@ describe "TextEditorPresenter", ->
         line3 = editor.tokenizedLineForScreenRow(3)
         expectValues presenter.state.lines[line3.id], {
           screenRow: 3
+          text: line3.text
           tokens: line3.tokens
           top: 10 * 3
         }
