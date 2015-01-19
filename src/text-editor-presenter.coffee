@@ -20,8 +20,8 @@ class TextEditorPresenter
 
   updateLinesState: ->
     visibleLineIds = {}
-    endRow = @getEndRow()
     startRow = @getStartRow()
+    endRow = @getEndRow()
 
     row = startRow
     while row < endRow
