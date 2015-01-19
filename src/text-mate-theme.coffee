@@ -64,66 +64,75 @@ class TextMateTheme
 
   buildGlobalSettingsRulesets: (settings) ->
     @rulesets.push
-      selector: '.editor'
+      selector: 'atom-text-editor, :host'
       properties:
         'background-color': '@syntax-background-color'
         'color': '@syntax-text-color'
 
     @rulesets.push
-      selector: '.editor .gutter'
+      selector: 'atom-text-editor .gutter, :host .gutter'
       properties:
         'background-color': '@syntax-gutter-background-color'
         'color': '@syntax-gutter-text-color'
 
     @rulesets.push
-      selector: '.editor .gutter .line-number.cursor-line'
+      selector: 'atom-text-editor .gutter .line-number.cursor-line,
+                 :host .gutter .line-number.cursor-line'
       properties:
         'background-color': '@syntax-gutter-background-color-selected'
         'color': '@syntax-gutter-text-color-selected'
 
     @rulesets.push
-      selector: '.editor .gutter .line-number.cursor-line-no-selection'
+      selector: 'atom-text-editor .gutter .line-number.cursor-line-no-selection,
+                 :host .gutter .line-number.cursor-line-no-selection'
       properties:
         'color': '@syntax-gutter-text-color-selected'
 
     @rulesets.push
-      selector: '.editor .wrap-guide'
+      selector: 'atom-text-editor .wrap-guide, :host .wrap-guide'
       properties:
         'color': '@syntax-wrap-guide-color'
 
     @rulesets.push
-      selector: '.editor .indent-guide'
+      selector: 'atom-text-editor .indent-guide, :host .indent-guide'
       properties:
         'color': '@syntax-indent-guide-color'
 
     @rulesets.push
-      selector: '.editor .invisible-character'
+      selector: 'atom-text-editor .invisible-character, :host .invisible-character'
       properties:
         'color': '@syntax-invisible-character-color'
 
     @rulesets.push
-      selector: '.editor .search-results .marker .region'
+      selector: 'atom-text-editor .search-results .marker .region,
+                 :host .search-results .marker .region'
       properties:
         'background-color': 'transparent'
         'border': '@syntax-result-marker-color'
 
     @rulesets.push
-      selector: '.editor .search-results .marker.current-result .region'
+      selector: 'atom-text-editor .search-results .marker.current-result .region,
+                 :host .search-results .marker.current-result .region'
       properties:
         'border': '@syntax-result-marker-color-selected'
 
     @rulesets.push
-      selector: '.editor.is-focused .cursor'
+      selector: 'atom-text-editor.is-focused .cursor,
+                 :host.is-focused .cursor'
       properties:
         'border-color': '@syntax-cursor-color'
 
     @rulesets.push
-      selector: '.editor.is-focused .selection .region'
+      selector: 'atom-text-editor.is-focused .selection .region,
+                 :host.is-focused .selection .region'
       properties:
         'background-color': '@syntax-selection-color'
 
     @rulesets.push
-      selector: '.editor.is-focused .line-number.cursor-line-no-selection, .editor.is-focused .line.cursor-line'
+      selector: 'atom-text-editor.is-focused .line-number.cursor-line-no-selection,
+                 atom-text-editor.is-focused .line.cursor-line,
+                 :host.is-focused .line-number.cursor-line-no-selection,
+                 :host.is-focused .line.cursor-line'
       properties:
         'background-color': @translateColor(settings.lineHighlight)
 
