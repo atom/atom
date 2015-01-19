@@ -13,6 +13,7 @@ class TextEditorPresenter
 
   subscribeToModel: ->
     @disposables.add @model.onDidChange(@updateLinesState.bind(this))
+    @disposables.add @model.onDidChangeSoftWrapped(@updateLinesState.bind(this))
 
   buildLinesState: ->
     @state.lines = {}
@@ -63,7 +64,9 @@ class TextEditorPresenter
     Math.min(@model.getScreenLineCount(), endRow)
 
   getScrollWidth: ->
-    Math.max(@model.getMaxScreenLineLength() * @baseCharacterWidth, @clientWidth)
+    contentWidth = @model.getMaxScreenLineLength() * @baseCharacterWidth
+    contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+    Math.max(contentWidth, @clientWidth)
 
   setScrollTop: (@scrollTop) ->
     @updateLinesState()
