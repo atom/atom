@@ -50,6 +50,9 @@ class TextEditorPresenter
       text: line.text
       tokens: line.tokens
       endOfLineInvisibles: line.endOfLineInvisibles
+      indentLevel: line.indentLevel
+      tabLength: line.tabLength
+      fold: line.fold
       top: row * @getLineHeight()
       width: @getScrollWidth()
 
