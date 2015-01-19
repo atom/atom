@@ -41,7 +41,7 @@ class TextEditorPresenter
   updateLineState: (row, line) ->
     lineState = @state.lines[line.id]
     lineState.screenRow = row
-    lineState.top = row * @lineHeight
+    lineState.top = row * @getLineHeight()
     lineState.width = @getScrollWidth()
 
   buildLineState: (row, line) ->
@@ -49,39 +49,47 @@ class TextEditorPresenter
       screenRow: row
       text: line.text
       tokens: line.tokens
-      top: row * @lineHeight
+      top: row * @getLineHeight()
       width: @getScrollWidth()
 
   getStartRow: ->
-    startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
+    startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin
     Math.max(0, startRow)
 
   getEndRow: ->
     startRow = @getStartRow()
-    visibleLinesCount = Math.ceil(@getClientHeight() / @lineHeight) + 1
+    visibleLinesCount = Math.ceil(@getClientHeight() / @getLineHeight()) + 1
     overdrawMargin = @lineOverdrawMargin + Math.min(@lineOverdrawMargin, startRow)
     endRow = startRow + visibleLinesCount + overdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
 
   getScrollWidth: ->
-    contentWidth = @model.getMaxScreenLineLength() * @baseCharacterWidth
+    contentWidth = @model.getMaxScreenLineLength() * @getBaseCharacterWidth()
     contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    Math.max(contentWidth, @clientWidth)
+    Math.max(contentWidth, @getClientWidth())
 
   setScrollTop: (@scrollTop) ->
     @updateLinesState()
+
+  getScrollTop: -> @scrollTop
 
   setClientHeight: (@clientHeight) ->
     @updateLinesState()
 
   getClientHeight: ->
-    @clientHeight ? @model.getScreenLineCount() * @lineHeight
+    @clientHeight ? @model.getScreenLineCount() * @getLineHeight()
 
   setClientWidth: (@clientWidth) ->
     @updateLinesState()
 
+  getClientWidth: -> @clientWidth
+
   setLineHeight: (@lineHeight) ->
     @updateLinesState()
 
+  getLineHeight: -> @lineHeight
+
   setBaseCharacterWidth: (@baseCharacterWidth) ->
     @updateLinesState()
+
+  getBaseCharacterWidth: -> @baseCharacterWidth
