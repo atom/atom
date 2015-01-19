@@ -49,6 +49,7 @@ class TextEditorPresenter
       screenRow: row
       text: line.text
       tokens: line.tokens
+      endOfLineInvisibles: line.endOfLineInvisibles
       top: row * @getLineHeight()
       width: @getScrollWidth()
 

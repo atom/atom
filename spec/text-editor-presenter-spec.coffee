@@ -115,6 +115,17 @@ describe "TextEditorPresenter", ->
         expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 20
         expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 20
 
+      it "includes the endOfLineInvisibles in the line state", ->
+        editor.setText("hello\nworld\r\n")
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toBeNull()
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toBeNull()
+
+        atom.config.set('editor.showInvisibles', true)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
+        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
+
     describe "when ::scrollTop changes", ->
       it "updates the lines that are visible on screen", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
