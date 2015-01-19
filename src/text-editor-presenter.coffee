@@ -56,7 +56,7 @@ class TextEditorPresenter
     Math.max(0, startRow)
 
   getEndRow: ->
-    endRow = @getStartRow() + Math.ceil(@clientHeight / @lineHeight) + @lineOverdrawMargin
+    endRow = @getStartRow() + Math.ceil(@clientHeight / @lineHeight) + 1 + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
 
   getScrollWidth: ->

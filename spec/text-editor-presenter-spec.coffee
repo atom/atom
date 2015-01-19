@@ -145,7 +145,7 @@ describe "TextEditorPresenter", ->
 
     describe "when ::clientHeight changes", ->
       it "updates the lines that are visible on screen", ->
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 25, lineHeight: 10, lineOverdrawMargin: 1)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
 
         line5 = editor.tokenizedLineForScreenRow(5)
         expect(presenter.state.lines[line5.id]).toBeUndefined()
@@ -200,10 +200,11 @@ describe "TextEditorPresenter", ->
         line3 = editor.tokenizedLineForScreenRow(3)
         line4 = editor.tokenizedLineForScreenRow(4)
         line5 = editor.tokenizedLineForScreenRow(5)
+        line6 = editor.tokenizedLineForScreenRow(6)
 
         expect(presenter.state.lines[line1.id]).toBeDefined()
         expect(presenter.state.lines[line2.id]).toBeDefined()
-        expect(presenter.state.lines[line3.id]).toBeUndefined()
+        expect(presenter.state.lines[line3.id]).toBeDefined()
         expect(presenter.state.lines[line4.id]).toBeUndefined()
         expect(presenter.state.lines[line5.id]).toBeUndefined()
 
@@ -232,7 +233,14 @@ describe "TextEditorPresenter", ->
           top: 5 * 4
         }
 
-        expect(presenter.state.lines[line5.id]).toBeUndefined()
+        expectValues presenter.state.lines[line5.id], {
+          screenRow: 5
+          text: line5.text
+          tokens: line5.tokens
+          top: 5 * 5
+        }
+
+        expect(presenter.state.lines[line6.id]).toBeUndefined()
 
     describe "when the editor's content changes", ->
       it "updates the lines state accordingly", ->
