@@ -6,19 +6,16 @@ Syntax themes are specifically intended to style only text editor content, so th
 
 When theme style sheets are loaded into the text editor's shadow DOM, selectors intended to target the editor from the *outside* no longer make sense. Styles targeting the `.editor` and `.editor-colors` classes instead need to target the `:host` pseudo-element, which matches against the containing `atom-text-editor` node. Check out the [Shadow DOM 201][host-pseudo-element] article for more information about the `:host` pseudo-element.
 
-Here's an example from Atom's light syntax theme. Note that the previous selectors intended to target the editor from the outside have been retained to allow the theme to keep working during the transition phase when it is possible to disable the shadow DOM.
+Here's an example from Atom's light syntax theme. Note that the `atom-text-editor` selector intended to target the editor from the outside has been retained to allow the theme to keep working during the transition phase when it is possible to disable the shadow DOM.
 
 ```css
-.editor-colors, :host { /* :host added */
+atom-text-editor, :host { /* :host added */
   background-color: @syntax-background-color;
   color: @syntax-text-color;
-}
 
-.editor, :host { /* :host added */
   .invisible-character {
     color: @syntax-invisible-character-color;
   }
-
   /* more nested selectors... */
 }
 ```
