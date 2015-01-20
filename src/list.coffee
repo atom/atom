@@ -27,6 +27,7 @@ class List extends Command
 
       Usage: apm list
              apm list --themes
+             apm list --packages
              apm list --installed
              apm list --installed --bare > my-packages.txt
              apm list --json
@@ -36,8 +37,9 @@ class List extends Command
     options.alias('b', 'bare').boolean('bare').describe('bare', 'Print packages one per line with no formatting')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('i', 'installed').boolean('installed').describe('installed', 'Only list installed packages/themes')
-    options.alias('j', 'json').boolean('json').describe('json',  'Output all packages as a JSON object')
+    options.alias('j', 'json').boolean('json').describe('json', 'Output all packages as a JSON object')
     options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
+    options.alias('p', 'packages').boolean('packages').describe('packages', 'Only list packages')
 
   isPackageDisabled: (name) ->
     @disabledPackages.indexOf(name) isnt -1
@@ -69,6 +71,8 @@ class List extends Command
       manifest.name = child
       if options.argv.themes
         packages.push(manifest) if manifest.theme
+      else if options.argv.packages
+        packages.push(manifest) unless manifest.theme
       else
         packages.push(manifest)
 
