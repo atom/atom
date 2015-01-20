@@ -18,13 +18,63 @@ describe "TextEditorPresenter", ->
     for key, value of expected
       expect(actual[key]).toBe value
 
-  describe "lines", ->
+  describe "::state.content", ->
+    describe "on initialization", ->
+      it "assigns .scrollWidth based on the clientWidth and the width of the longest line", ->
+        maxLineLength = editor.getMaxScreenLineLength()
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 10 * maxLineLength + 20, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20
+
+    describe "when the ::clientWidth changes", ->
+      it "updates .scrollWidth", ->
+        maxLineLength = editor.getMaxScreenLineLength()
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+
+        expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
+        presenter.setClientWidth(10 * maxLineLength + 20)
+        expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20
+
+    describe "when the ::baseCharacterWidth changes", ->
+      it "updates the width of the lines if it changes the ::scrollWidth", ->
+        maxLineLength = editor.getMaxScreenLineLength()
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+
+        expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
+        presenter.setBaseCharacterWidth(15)
+        expect(presenter.state.content.scrollWidth).toBe 15 * maxLineLength + 1
+
+    describe "when the scoped character widths change", ->
+      beforeEach ->
+        waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+      it "updates the width of the lines if the ::scrollWidth changes", ->
+        maxLineLength = editor.getMaxScreenLineLength()
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+
+        expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
+        presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
+        expect(presenter.state.content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+
+    describe "when ::softWrapped changes on the editor", ->
+      it "only accounts for the cursor in .scrollWidth if ::softWrapped is false", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+        editor.setSoftWrapped(true)
+        expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
+        editor.setSoftWrapped(false)
+        expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
+  describe "::state.content.lines", ->
     describe "on initialization", ->
       it "contains the lines that are visible on screen, plus the overdraw margin", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
 
         line0 = editor.tokenizedLineForScreenRow(0)
-        expectValues presenter.state.lines[line0.id], {
+        expectValues presenter.state.content.lines[line0.id], {
           screenRow: 0
           text: line0.text
           tokens: line0.tokens
@@ -32,7 +82,7 @@ describe "TextEditorPresenter", ->
         }
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.lines[line1.id], {
+        expectValues presenter.state.content.lines[line1.id], {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -40,7 +90,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.lines[line2.id], {
+        expectValues presenter.state.content.lines[line2.id], {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -49,7 +99,7 @@ describe "TextEditorPresenter", ->
 
         # this row is rendered due to the overdraw margin
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.lines[line3.id], {
+        expectValues presenter.state.content.lines[line3.id], {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
@@ -61,7 +111,7 @@ describe "TextEditorPresenter", ->
 
         # this row is rendered due to the overdraw margin
         line10 = editor.tokenizedLineForScreenRow(10)
-        expectValues presenter.state.lines[line10.id], {
+        expectValues presenter.state.content.lines[line10.id], {
           screenRow: 10
           text: line10.text
           tokens: line10.tokens
@@ -69,7 +119,7 @@ describe "TextEditorPresenter", ->
         }
 
         line11 = editor.tokenizedLineForScreenRow(11)
-        expectValues presenter.state.lines[line11.id], {
+        expectValues presenter.state.content.lines[line11.id], {
           screenRow: 11
           text: line11.text
           tokens: line11.tokens
@@ -77,7 +127,7 @@ describe "TextEditorPresenter", ->
         }
 
         line12 = editor.tokenizedLineForScreenRow(12)
-        expectValues presenter.state.lines[line12.id], {
+        expectValues presenter.state.content.lines[line12.id], {
           screenRow: 12
           text: line12.text
           tokens: line12.tokens
@@ -88,43 +138,26 @@ describe "TextEditorPresenter", ->
 
       it "contains the lines that are visible on screen, plus and minus the overdraw margin", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 1)
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(3).id]).toBeUndefined()
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(4).id]).toBeDefined()
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(9).id]).toBeDefined()
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(10).id]).toBeUndefined()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(3).id]).toBeUndefined()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(4).id]).toBeDefined()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(9).id]).toBeDefined()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(10).id]).toBeUndefined()
 
       it "reports all lines as visible if no external ::clientHeight is assigned", ->
         presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id]).toBeDefined()
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(12).id]).toBeDefined()
-
-      it "uses the computed scrollWidth as the length of each line", ->
-        line0 = editor.tokenizedLineForScreenRow(0)
-        line1 = editor.tokenizedLineForScreenRow(1)
-        line2 = editor.tokenizedLineForScreenRow(2)
-
-        maxLineLength = editor.getMaxScreenLineLength()
-
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 1
-
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 10 * maxLineLength + 20, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 20
-        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 20
-        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 20
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id]).toBeDefined()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(12).id]).toBeDefined()
 
       it "includes the endOfLineInvisibles in the line state", ->
         editor.setText("hello\nworld\r\n")
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toBeNull()
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toBeNull()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toBeNull()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toBeNull()
 
         atom.config.set('editor.showInvisibles', true)
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
 
     describe "when ::scrollTop changes", ->
       it "updates the lines that are visible on screen", ->
@@ -132,10 +165,10 @@ describe "TextEditorPresenter", ->
         presenter.setScrollTop(25)
 
         line0 = editor.tokenizedLineForScreenRow(0)
-        expect(presenter.state.lines[line0.id]).toBeUndefined()
+        expect(presenter.state.content.lines[line0.id]).toBeUndefined()
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.lines[line1.id], {
+        expectValues presenter.state.content.lines[line1.id], {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -143,7 +176,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.lines[line2.id], {
+        expectValues presenter.state.content.lines[line2.id], {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -151,7 +184,7 @@ describe "TextEditorPresenter", ->
         }
 
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.lines[line3.id], {
+        expectValues presenter.state.content.lines[line3.id], {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
@@ -159,7 +192,7 @@ describe "TextEditorPresenter", ->
         }
 
         line4 = editor.tokenizedLineForScreenRow(4)
-        expectValues presenter.state.lines[line4.id], {
+        expectValues presenter.state.content.lines[line4.id], {
           screenRow: 4
           text: line4.text
           tokens: line4.tokens
@@ -171,12 +204,12 @@ describe "TextEditorPresenter", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 15, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
 
         line5 = editor.tokenizedLineForScreenRow(5)
-        expect(presenter.state.lines[line5.id]).toBeUndefined()
+        expect(presenter.state.content.lines[line5.id]).toBeUndefined()
 
         presenter.setClientHeight(35)
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.lines[line1.id], {
+        expectValues presenter.state.content.lines[line1.id], {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -184,7 +217,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.lines[line2.id], {
+        expectValues presenter.state.content.lines[line2.id], {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -192,7 +225,7 @@ describe "TextEditorPresenter", ->
         }
 
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.lines[line3.id], {
+        expectValues presenter.state.content.lines[line3.id], {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
@@ -200,14 +233,14 @@ describe "TextEditorPresenter", ->
         }
 
         line4 = editor.tokenizedLineForScreenRow(4)
-        expectValues presenter.state.lines[line4.id], {
+        expectValues presenter.state.content.lines[line4.id], {
           screenRow: 4
           text: line4.text
           tokens: line4.tokens
           top: 10 * 4
         }
 
-        expectValues presenter.state.lines[line4.id], {
+        expectValues presenter.state.content.lines[line4.id], {
           screenRow: 4
           text: line4.text
           tokens: line4.tokens
@@ -225,105 +258,45 @@ describe "TextEditorPresenter", ->
         line5 = editor.tokenizedLineForScreenRow(5)
         line6 = editor.tokenizedLineForScreenRow(6)
 
-        expect(presenter.state.lines[line1.id]).toBeDefined()
-        expect(presenter.state.lines[line2.id]).toBeDefined()
-        expect(presenter.state.lines[line3.id]).toBeDefined()
-        expect(presenter.state.lines[line4.id]).toBeUndefined()
-        expect(presenter.state.lines[line5.id]).toBeUndefined()
+        expect(presenter.state.content.lines[line1.id]).toBeDefined()
+        expect(presenter.state.content.lines[line2.id]).toBeDefined()
+        expect(presenter.state.content.lines[line3.id]).toBeDefined()
+        expect(presenter.state.content.lines[line4.id]).toBeUndefined()
+        expect(presenter.state.content.lines[line5.id]).toBeUndefined()
 
         presenter.setLineHeight(5)
 
-        expect(presenter.state.lines[line1.id]).toBeUndefined()
+        expect(presenter.state.content.lines[line1.id]).toBeUndefined()
 
-        expectValues presenter.state.lines[line2.id], {
+        expectValues presenter.state.content.lines[line2.id], {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
           top: 5 * 2
         }
 
-        expectValues presenter.state.lines[line3.id], {
+        expectValues presenter.state.content.lines[line3.id], {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
           top: 5 * 3
         }
 
-        expectValues presenter.state.lines[line4.id], {
+        expectValues presenter.state.content.lines[line4.id], {
           screenRow: 4
           text: line4.text
           tokens: line4.tokens
           top: 5 * 4
         }
 
-        expectValues presenter.state.lines[line5.id], {
+        expectValues presenter.state.content.lines[line5.id], {
           screenRow: 5
           text: line5.text
           tokens: line5.tokens
           top: 5 * 5
         }
 
-        expect(presenter.state.lines[line6.id]).toBeUndefined()
-
-    describe "when the ::clientWidth changes", ->
-      it "updates the width of the lines if it changes the ::scrollWidth", ->
-        line0 = editor.tokenizedLineForScreenRow(0)
-        line1 = editor.tokenizedLineForScreenRow(1)
-        line2 = editor.tokenizedLineForScreenRow(2)
-
-        maxLineLength = editor.getMaxScreenLineLength()
-
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 1
-
-        presenter.setClientWidth(10 * maxLineLength + 20)
-
-        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 20
-        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 20
-        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 20
-
-    describe "when the scoped character widths change", ->
-      beforeEach ->
-        waitsForPromise -> atom.packages.activatePackage('language-javascript')
-
-      it "updates the width of the lines if the ::scrollWidth changes", ->
-        line0 = editor.tokenizedLineForScreenRow(0)
-        line1 = editor.tokenizedLineForScreenRow(1)
-        line2 = editor.tokenizedLineForScreenRow(2)
-
-        maxLineLength = editor.getMaxScreenLineLength()
-
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 1
-
-        presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
-
-        expect(presenter.state.lines[line0.id].width).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
-        expect(presenter.state.lines[line1.id].width).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1
-        expect(presenter.state.lines[line2.id].width).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1
-
-    describe "when the ::baseCharacterWidth changes", ->
-      it "updates the width of the lines if it changes the ::scrollWidth", ->
-        line0 = editor.tokenizedLineForScreenRow(0)
-        line1 = editor.tokenizedLineForScreenRow(1)
-        line2 = editor.tokenizedLineForScreenRow(2)
-
-        maxLineLength = editor.getMaxScreenLineLength()
-
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 1
-        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 1
-
-        presenter.setBaseCharacterWidth(15)
-
-        expect(presenter.state.lines[line0.id].width).toBe 15 * maxLineLength + 1
-        expect(presenter.state.lines[line1.id].width).toBe 15 * maxLineLength + 1
-        expect(presenter.state.lines[line2.id].width).toBe 15 * maxLineLength + 1
+        expect(presenter.state.content.lines[line6.id]).toBeUndefined()
 
     describe "when the editor's content changes", ->
       it "updates the lines state accordingly", ->
@@ -332,7 +305,7 @@ describe "TextEditorPresenter", ->
         buffer.insert([2, 0], "hello\nworld\n")
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.lines[line1.id], {
+        expectValues presenter.state.content.lines[line1.id], {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -340,7 +313,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.lines[line2.id], {
+        expectValues presenter.state.content.lines[line2.id], {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -348,18 +321,9 @@ describe "TextEditorPresenter", ->
         }
 
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.lines[line3.id], {
+        expectValues presenter.state.content.lines[line3.id], {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
           top: 10 * 3
         }
-
-    describe "when ::softWrapped changes on the editor", ->
-      it "only accounts for the cursor width if ::softWrapped is false", ->
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id].width).toBe 10 * editor.getMaxScreenLineLength() + 1
-        editor.setSoftWrapped(true)
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id].width).toBe 10 * editor.getMaxScreenLineLength()
-        editor.setSoftWrapped(false)
-        expect(presenter.state.lines[editor.tokenizedLineForScreenRow(0).id].width).toBe 10 * editor.getMaxScreenLineLength() + 1

@@ -5,10 +5,9 @@ module.exports =
 class TextEditorPresenter
   constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin}) ->
     @disposables = new CompositeDisposable
-    @state = {}
     @charWidthsByScope = {}
     @subscribeToModel()
-    @buildLinesState()
+    @buildState()
 
   destroy: ->
     @disposables.dispose()
@@ -16,12 +15,23 @@ class TextEditorPresenter
   subscribeToModel: ->
     @disposables.add @model.onDidChange(@updateLinesState.bind(this))
     @disposables.add @model.onDidChangeSoftWrapped =>
-      @computeScrollWidth()
+      @updateContentState()
       @updateLinesState()
 
+  buildState: ->
+    @state = {}
+    @buildContentState()
+    @buildLinesState()
+
+  buildContentState: ->
+    @state.content = {scrollWidth: @computeScrollWidth()}
+
   buildLinesState: ->
-    @state.lines = {}
+    @state.content.lines = {}
     @updateLinesState()
+
+  updateContentState: ->
+    @state.content.scrollWidth = @computeScrollWidth()
 
   updateLinesState: ->
     visibleLineIds = {}
@@ -32,24 +42,23 @@ class TextEditorPresenter
     while row < endRow
       line = @model.tokenizedLineForScreenRow(row)
       visibleLineIds[line.id] = true
-      if @state.lines.hasOwnProperty(line.id)
+      if @state.content.lines.hasOwnProperty(line.id)
         @updateLineState(row, line)
       else
         @buildLineState(row, line)
       row++
 
-    for id, line of @state.lines
+    for id, line of @state.content.lines
       unless visibleLineIds.hasOwnProperty(id)
-        delete @state.lines[id]
+        delete @state.content.lines[id]
 
   updateLineState: (row, line) ->
-    lineState = @state.lines[line.id]
+    lineState = @state.content.lines[line.id]
     lineState.screenRow = row
     lineState.top = row * @getLineHeight()
-    lineState.width = @getScrollWidth()
 
   buildLineState: (row, line) ->
-    @state.lines[line.id] =
+    @state.content.lines[line.id] =
       screenRow: row
       text: line.text
       tokens: line.tokens
@@ -58,7 +67,6 @@ class TextEditorPresenter
       tabLength: line.tabLength
       fold: line.fold
       top: row * @getLineHeight()
-      width: @getScrollWidth()
 
   getStartRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin
@@ -73,9 +81,7 @@ class TextEditorPresenter
   computeScrollWidth: ->
     contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
     contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    @scrollWidth = Math.max(contentWidth, @getClientWidth())
-
-  getScrollWidth: -> @scrollWidth ? @computeScrollWidth()
+    Math.max(contentWidth, @getClientWidth())
 
   setScrollTop: (@scrollTop) ->
     @updateLinesState()
@@ -89,7 +95,7 @@ class TextEditorPresenter
     @clientHeight ? @model.getScreenLineCount() * @getLineHeight()
 
   setClientWidth: (@clientWidth) ->
-    @computeScrollWidth()
+    @updateContentState()
     @updateLinesState()
 
   getClientWidth: -> @clientWidth
@@ -100,7 +106,7 @@ class TextEditorPresenter
   getLineHeight: -> @lineHeight
 
   setBaseCharacterWidth: (@baseCharacterWidth) ->
-    @computeScrollWidth()
+    @updateContentState()
     @updateLinesState()
 
   getBaseCharacterWidth: -> @baseCharacterWidth
@@ -129,7 +135,7 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @computeScrollWidth()
+    @updateContentState()
     @updateLinesState()
 
   clearScopedCharWidths: ->
