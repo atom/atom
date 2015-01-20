@@ -145,10 +145,9 @@ module.exports = (grunt) ->
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
 
-    if process.platform is 'win32'
-      cp path.join('apm', 'node_modules', 'atom-package-manager'), path.join(appDir, 'apm'), filter: filterNodeModule
-    else
-      cp 'apm', path.join(appDir, 'apm'), filter: filterNodeModule
+    cp path.join('apm', 'node_modules', 'atom-package-manager'), path.join(appDir, 'apm'), filter: filterNodeModule
+    if process.platform isnt 'win32'
+      fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(appDir, 'apm', 'node_modules', '.bin', 'apm'))
 
     if process.platform is 'darwin'
       grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
