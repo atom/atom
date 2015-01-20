@@ -52,7 +52,7 @@ LinesComponent = React.createClass
       "translate(#{-scrollLeft}px, #{-scrollTop}px)"
 
   componentWillMount: ->
-    @measuredLines = new WeakSet
+    @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
@@ -291,8 +291,8 @@ LinesComponent = React.createClass
     node = @getDOMNode()
 
     editor.batchCharacterMeasurement =>
-      for id, lineState in @newState
-        unless @measuredLines.has(tokenizedLine)
+      for id, lineState of @oldState
+        unless @measuredLines.has(id)
           lineNode = @lineNodesByLineId[id]
           @measureCharactersInLine(lineState, lineNode)
       return
@@ -337,11 +337,13 @@ LinesComponent = React.createClass
           rangeForMeasurement.setEnd(textNode, i + charLength)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
           editor.setScopedCharWidth(scopes, char, charWidth)
+          @props.presenter.setScopedCharWidth(scopes, char, charWidth)
 
         charIndex += charLength
 
-    @measuredLines.add(tokenizedLine)
+    @measuredLines.add(tokenizedLine.id)
 
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
+    @props.presenter.clearScopedCharWidths()

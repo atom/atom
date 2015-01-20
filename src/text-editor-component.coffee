@@ -227,7 +227,7 @@ TextEditorComponent = React.createClass
     @updatesPaused = false
 
     {editor, lineOverdrawMargin}  = @props
-    @presenter = new TextEditorPresenter
+    @presenter ?= new TextEditorPresenter
       model: editor
       clientHeight: editor.getHeight()
       clientWidth: editor.getWidth()
