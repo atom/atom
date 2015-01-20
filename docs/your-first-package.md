@@ -86,19 +86,19 @@ run the `ascii-art:convert` command it will output 'Hello, World!'
 ## Add a Key Binding
 
 Now let's add a key binding to trigger the `ascii-art:convert` command. Open
-_keymaps/ascii-art.cson_ and add a key binding linking `ctrl-alt-a` to the
+_keymaps/ascii-art.cson_ and add a key binding linking `ctrl-i` to the
 `ascii-art:convert` command. You can delete the pre-existing key binding since
 you don't need it anymore. When finished, the file will have this:
 
 ```coffeescript
 '.workspace':
-  'ctrl-alt-a': 'ascii-art:convert'
+  'ctrl-i': 'ascii-art:convert'
 ```
 
 Notice `.workspace` on the first line. Just like CSS, keymap selectors *scope* key
 bindings so they only apply to specific elements. In this case, our binding is
 only active for elements matching the `.workspace` selector. If the Tree View has
-focus, pressing `ctrl-alt-a` won't trigger the `ascii-art:convert` command. But
+focus, pressing `ctrl-i` won't trigger the `ascii-art:convert` command. But
 if the editor has focus, the `ascii-art:convert` method *will* be triggered.
 More information on key bindings can be found in the
 [keymaps](advanced/keymaps.html) documentation.
@@ -142,7 +142,7 @@ convert: ->
       selection.insertText("\n#{asciiArt}\n")
 ```
 
-Select some text in an editor window and hit `ctrl-alt-a`. :tada: You're now an
+Select some text in an editor window and hit `ctrl-i`. :tada: You're now an
 ASCII art professional!
 
 ## Further reading
