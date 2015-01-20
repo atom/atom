@@ -118,21 +118,21 @@ class TextMateTheme
 
     @rulesets.push
       selector: 'atom-text-editor.is-focused .cursor,
-                 :host.is-focused .cursor'
+                 :host(.is-focused) .cursor'
       properties:
         'border-color': '@syntax-cursor-color'
 
     @rulesets.push
       selector: 'atom-text-editor.is-focused .selection .region,
-                 :host.is-focused .selection .region'
+                 :host(.is-focused) .selection .region'
       properties:
         'background-color': '@syntax-selection-color'
 
     @rulesets.push
       selector: 'atom-text-editor.is-focused .line-number.cursor-line-no-selection,
                  atom-text-editor.is-focused .line.cursor-line,
-                 :host.is-focused .line-number.cursor-line-no-selection,
-                 :host.is-focused .line.cursor-line'
+                 :host(.is-focused) .line-number.cursor-line-no-selection,
+                 :host(.is-focused) .line.cursor-line'
       properties:
         'background-color': @translateColor(settings.lineHighlight)
 
