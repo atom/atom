@@ -99,6 +99,14 @@ class List extends Command
       _atomPackages ?= {}
       packages = (metadata for packageName, {metadata} of _atomPackages)
 
+      packages = packages.filter (metadata) ->
+        if options.argv.themes
+          metadata.theme
+        else if options.argv.packages
+          not metadata.theme
+        else
+          true
+
       unless options.argv.bare or options.argv.json
         if options.argv.themes
           console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
