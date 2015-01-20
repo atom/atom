@@ -720,6 +720,8 @@ class TextEditor extends Model
   # {Delegates to: DisplayBuffer.getMaxLineLength}
   getMaxScreenLineLength: -> @displayBuffer.getMaxLineLength()
 
+  getLongestScreenRow: -> @displayBuffer.getLongestScreenRow()
+
   # Returns the range for the given buffer row.
   #
   # * `row` A row {Number}.

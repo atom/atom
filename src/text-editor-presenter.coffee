@@ -1,10 +1,12 @@
 {CompositeDisposable} = require 'event-kit'
+{Point} = require 'text-buffer'
 
 module.exports =
 class TextEditorPresenter
   constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin}) ->
     @disposables = new CompositeDisposable
     @state = {}
+    @charWidthsByScope = {}
     @subscribeToModel()
     @buildLinesState()
 
@@ -13,7 +15,9 @@ class TextEditorPresenter
 
   subscribeToModel: ->
     @disposables.add @model.onDidChange(@updateLinesState.bind(this))
-    @disposables.add @model.onDidChangeSoftWrapped(@updateLinesState.bind(this))
+    @disposables.add @model.onDidChangeSoftWrapped =>
+      @computeScrollWidth()
+      @updateLinesState()
 
   buildLinesState: ->
     @state.lines = {}
@@ -66,10 +70,12 @@ class TextEditorPresenter
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
 
-  getScrollWidth: ->
-    contentWidth = @model.getMaxScreenLineLength() * @getBaseCharacterWidth()
+  computeScrollWidth: ->
+    contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
     contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    Math.max(contentWidth, @getClientWidth())
+    @scrollWidth = Math.max(contentWidth, @getClientWidth())
+
+  getScrollWidth: -> @scrollWidth ? @computeScrollWidth()
 
   setScrollTop: (@scrollTop) ->
     @updateLinesState()
@@ -83,6 +89,7 @@ class TextEditorPresenter
     @clientHeight ? @model.getScreenLineCount() * @getLineHeight()
 
   setClientWidth: (@clientWidth) ->
+    @computeScrollWidth()
     @updateLinesState()
 
   getClientWidth: -> @clientWidth
@@ -93,6 +100,68 @@ class TextEditorPresenter
   getLineHeight: -> @lineHeight
 
   setBaseCharacterWidth: (@baseCharacterWidth) ->
+    @computeScrollWidth()
     @updateLinesState()
 
   getBaseCharacterWidth: -> @baseCharacterWidth
+
+  getScopedCharWidth: (scopeNames, char) ->
+    @getScopedCharWidths(scopeNames)[char]
+
+  getScopedCharWidths: (scopeNames) ->
+    scope = @charWidthsByScope
+    for scopeName in scopeNames
+      scope[scopeName] ?= {}
+      scope = scope[scopeName]
+    scope.charWidths ?= {}
+    scope.charWidths
+
+  batchCharacterMeasurement: (fn) ->
+    oldChangeCount = @scopedCharacterWidthsChangeCount
+    @batchingCharacterMeasurement = true
+    fn()
+    @batchingCharacterMeasurement = false
+    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
+
+  setScopedCharWidth: (scopeNames, char, width) ->
+    @getScopedCharWidths(scopeNames)[char] = width
+    @scopedCharacterWidthsChangeCount++
+    @characterWidthsChanged() unless @batchingCharacterMeasurement
+
+  characterWidthsChanged: ->
+    @computeScrollWidth()
+    @updateLinesState()
+
+  clearScopedCharWidths: ->
+    @charWidthsByScope = {}
+
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @model.clipScreenPosition(screenPosition) if clip
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+    baseCharacterWidth = @baseCharacterWidth
+
+    top = targetRow * @lineHeightInPixels
+    left = 0
+    column = 0
+    for token in @model.tokenizedLineForScreenRow(targetRow).tokens
+      charWidths = @getScopedCharWidths(token.scopes)
+
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = token.value[valueIndex]
+          charLength = 1
+          valueIndex++
+
+        return {top, left} if column is targetColumn
+
+        left += charWidths[char] ? baseCharacterWidth unless char is '\0'
+        column += charLength
+    {top, left}

@@ -284,6 +284,28 @@ describe "TextEditorPresenter", ->
         expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 20
         expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 20
 
+    describe "when the scoped character widths change", ->
+      beforeEach ->
+        waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+      it "updates the width of the lines if the ::scrollWidth changes", ->
+        line0 = editor.tokenizedLineForScreenRow(0)
+        line1 = editor.tokenizedLineForScreenRow(1)
+        line2 = editor.tokenizedLineForScreenRow(2)
+
+        maxLineLength = editor.getMaxScreenLineLength()
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.lines[line0.id].width).toBe 10 * maxLineLength + 1
+        expect(presenter.state.lines[line1.id].width).toBe 10 * maxLineLength + 1
+        expect(presenter.state.lines[line2.id].width).toBe 10 * maxLineLength + 1
+
+        presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
+
+        expect(presenter.state.lines[line0.id].width).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+        expect(presenter.state.lines[line1.id].width).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1
+        expect(presenter.state.lines[line2.id].width).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1
+
     describe "when the ::baseCharacterWidth changes", ->
       it "updates the width of the lines if it changes the ::scrollWidth", ->
         line0 = editor.tokenizedLineForScreenRow(0)
