@@ -36,23 +36,4 @@ module.exports = (grunt) ->
         'react-atom-fork': metadata.dependencies['react-atom-fork']
       }
 
-    validExtensions = ['.js', '.coffee', '.json', '.node']
-
-    extensions = {}
-    onFile = (filePath) ->
-      filePath = path.relative(appDir, filePath)
-      segments = filePath.split(path.sep)
-      return if segments.length > 1 and not (segments[0] in ['exports', 'node_modules', 'src', 'static', 'vendor'])
-
-      extension = path.extname(filePath)
-      if extension in validExtensions
-        extensions[extension] ?= []
-        extensions[extension].push(filePath)
-
-    onDirectory = -> true
-
-    files = fs.traverseTreeSync(appDir, onFile, onDirectory)
-
-    metadata._atomModuleCache.extensions = extensions
-
-    grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata, null, 2))
+    grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))

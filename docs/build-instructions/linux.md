@@ -19,14 +19,14 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
 
-### Fedora
+### Fedora / CentOS / RHEL
 
-* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel`
+* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 * Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
 
 ### Arch
 
-* `sudo pacman -S base-devel git nodejs libgnome-keyring`
+* `sudo pacman -S base-devel git nodejs libgnome-keyring python2`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ## Instructions
@@ -43,7 +43,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
 2. Checkout the latest Atom release:
 
   ```sh
-  git fetch
+  git fetch -p
   git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
   ```
 
@@ -61,13 +61,19 @@ If you have problems with permissions don't forget to prefix with `sudo`
   sudo script/grunt install
   ```
 
-5. *Optionally*, you may generate a `.deb` package at `$TMPDIR/atom-build`:
+  To use the newly installed Atom, quit and restart all running Atom instances.
+
+5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currenty, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb
   ```
 
-Use the newly installed Atom by fully quitting Atom and then reopening.
+  To create an `.rpm` package run
+
+  ```sh
+  script/grunt mkrpm
+  ```
 
 ## Advanced Options
 
@@ -85,7 +91,7 @@ script/build --build-dir /build/atom/here
 
 ## Troubleshooting
 
-### Exception: "TypeError: Unable to watch path"
+### TypeError: Unable to watch path
 
 If you get following error with a big traceback right after Atom starts:
 
@@ -114,6 +120,22 @@ If you get this notice when attempting to `script/build`, you either do not
 have Node.js installed, or node isn't identified as Node.js on your machine.
 If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
+
+### AttributeError: 'module' object has no attribute 'script_main'
+
+If you get following error with a big traceback while building Atom:
+
+  ```
+  sys.exit(gyp.script_main()) AttributeError: 'module' object has no attribute 'script_main' gyp ERR!
+  ```
+
+you need to uninstall the system version of gyp.
+
+On Fedora you would do the following:
+
+  ```sh
+  sudo yum remove gyp
+  ```
 
 #### You can also use Alternatives
 

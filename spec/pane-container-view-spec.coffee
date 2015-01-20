@@ -19,7 +19,7 @@ describe "PaneContainerView", ->
       save: -> @saved = true
       isEqual: (other) -> @name is other?.name
 
-    container = atom.workspace.getView(atom.workspace.paneContainer).__spacePenView
+    container = atom.views.getView(atom.workspace.paneContainer).__spacePenView
     pane1 = container.getRoot()
     pane1.activateItem(new TestView('1'))
     pane2 = pane1.splitRight(new TestView('2'))
@@ -73,7 +73,7 @@ describe "PaneContainerView", ->
 
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
-      newContainer = atom.workspace.getView(container.model.testSerialization()).__spacePenView
+      newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
       expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)')).toExist()
       expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(2)')).toExist()
       expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(3)')).toExist()
@@ -89,14 +89,14 @@ describe "PaneContainerView", ->
 
       describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
         it "leaves the empty panes intact", ->
-          newContainer = atom.workspace.getView(container.model.testSerialization()).__spacePenView
+          newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
           expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)')).toExist()
           expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').length).toBe 2
 
       describe "if the 'core.destroyEmptyPanes' config option is true", ->
         it "removes empty panes on deserialization", ->
           atom.config.set('core.destroyEmptyPanes', true)
-          newContainer = atom.workspace.getView(container.model.testSerialization()).__spacePenView
+          newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
           expect(newContainer.find('atom-pane-axis.horizontal, atom-pane-axis.vertical')).not.toExist()
           expect(newContainer.find('> :contains(1)')).toExist()
 
@@ -109,7 +109,7 @@ describe "PaneContainerView", ->
       item2b = new TestView('2b')
       item3a = new TestView('3a')
 
-      container = atom.workspace.getView(new PaneContainer).__spacePenView
+      container = atom.views.getView(new PaneContainer).__spacePenView
       pane1 = container.getRoot()
       pane1.activateItem(item1a)
       container.attachToDom()
@@ -259,7 +259,7 @@ describe "PaneContainerView", ->
       # |7|8|9|
       # -------
 
-      container = atom.workspace.getView(new PaneContainer).__spacePenView
+      container = atom.views.getView(new PaneContainer).__spacePenView
       pane1 = container.getRoot()
       pane1.activateItem(new TestView('1'))
       pane4 = pane1.splitDown(new TestView('4'))

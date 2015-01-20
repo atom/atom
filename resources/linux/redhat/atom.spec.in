@@ -4,9 +4,6 @@ Release:        0.1%{?dist}
 Summary:        Atom is a hackable text editor for the 21st century
 License:        MIT
 URL:            https://atom.io/
-BuildConflicts: gyp
-BuildRequires:  make, gcc, gcc-c++, glibc-devel, git-core, libgnome-keyring-devel
-Requires:       libgnome-keyring
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 
 %description

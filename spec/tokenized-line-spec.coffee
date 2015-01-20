@@ -28,7 +28,7 @@ describe "TokenizedLine", ->
             ensureValidScopeTree(child, scopeDescriptor.concat([scopeTree.scope]))
         else
           expect(scopeTree).toBe tokens[tokenIndex++]
-          expect(scopeDescriptor).toEqual scopeTree.scopeDescriptor
+          expect(scopeDescriptor).toEqual scopeTree.scopes
 
       waitsForPromise ->
         atom.project.open('coffee.coffee').then (o) -> editor = o

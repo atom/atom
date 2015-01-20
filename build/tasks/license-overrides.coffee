@@ -60,3 +60,18 @@ module.exports =
         ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
         IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       """
+
+  'jschardet@1.1.0':
+    license: 'LGPL'
+    source: 'README.md in the repository'
+    sourceText: """
+      JsChardet
+      =========
+
+      Port of python's chardet (http://chardet.feedparser.org/).
+
+      License
+      -------
+
+      LGPL
+    """

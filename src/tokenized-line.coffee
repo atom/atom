@@ -194,9 +194,9 @@ class TokenizedLine
 
   isComment: ->
     for token in @tokens
-      continue if token.scopeDescriptor.length is 1
+      continue if token.scopes.length is 1
       continue if token.isOnlyWhitespace()
-      for scope in token.scopeDescriptor
+      for scope in token.scopes
         return true if _.contains(scope.split('.'), 'comment')
       break
     false
@@ -226,7 +226,7 @@ class TokenizedLine
 
     scopeStack = []
     for token in @tokens
-      @updateScopeStack(scopeStack, token.scopeDescriptor)
+      @updateScopeStack(scopeStack, token.scopes)
       _.last(scopeStack).children.push(token)
 
     @scopeTree = scopeStack[0]

@@ -36,7 +36,7 @@
 ## Why do I have to use GitHub for Windows?
 
 You don't. You can use your existing Git! GitHub for Windows's Git Shell is just
-easier to set up. 
+easier to set up.
 
 If you _prefer_ using your existing Git installation, make sure git's cmd directory is in your PATH env variable (e.g. `C:\Program Files (x86)\Git\cmd`) before you open your powershell or command window.
 Note that you may have to open your command window as administrator. For powershell that doesn't seem to always be the case, though.
@@ -67,11 +67,11 @@ If none of this works, do install Github for Windows and use its Git shell. Make
     * https://code.google.com/p/gyp/issues/detail?id=393
 
 * `script/build` stops at installing runas with 'Failed at the runas@0.5.4 install script.'
-  
+
   See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 2010 (Platform Toolset = 'v100') cannot be found.`
-   
+
   * If you're building atom with Visual Studio 2013 try executing the following
     command in your Git shell and then re-run `script/build`:
 

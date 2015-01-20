@@ -7,6 +7,7 @@ React = require 'react-atom-fork'
 Decoration = require './decoration'
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
+OverlayManager = require './overlay-manager'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -20,7 +21,7 @@ LinesComponent = React.createClass
     {performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
 
     if performedInitialMeasurement
-      {editor, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
+      {editor, overlayDecorations, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       {scrollTop, scrollLeft, cursorPixelRects, mini} = @props
       style =
@@ -57,10 +58,23 @@ LinesComponent = React.createClass
     @lineIdsByScreenRow = {}
     @renderedDecorationsByLineId = {}
 
+  componentDidMount: ->
+    if @props.useShadowDOM
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', '.overlayer')
+      @getDOMNode().appendChild(insertionPoint)
+
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', 'atom-overlay')
+      @overlayManager = new OverlayManager(@props.hostElement)
+      @getDOMNode().appendChild(insertionPoint)
+    else
+      @overlayManager = new OverlayManager(@getDOMNode())
+
   shouldComponentUpdate: (newProps) ->
     return true unless isEqualForProperties(newProps, @props,
       'renderedRowRange', 'lineDecorations', 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth',
-      'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'visible',
+      'overlayDecorations', 'scrollTop', 'scrollLeft', 'showIndentGuide', 'scrollingVertically', 'visible',
       'scrollViewHeight', 'mouseWheelScreenRow', 'scopedCharacterWidthsChangeCount', 'lineWidth', 'useHardwareAcceleration',
       'placeholderText', 'performedInitialMeasurement', 'backgroundColor', 'cursorPixelRects'
     )
@@ -85,6 +99,8 @@ LinesComponent = React.createClass
     @removeLineNodes() unless isEqualForProperties(prevProps, @props, 'showIndentGuide')
     @updateLines(@props.lineWidth isnt prevProps.lineWidth)
     @measureCharactersInNewLines() if visible and not scrollingVertically
+
+    @overlayManager?.render(@props)
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
@@ -200,7 +216,7 @@ LinesComponent = React.createClass
     firstTrailingWhitespacePosition = text.search(/\s*$/)
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopeDescriptor)
+      innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = not mini and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
@@ -308,10 +324,20 @@ LinesComponent = React.createClass
     iterator = null
     charIndex = 0
 
-    for {value, scopeDescriptor}, tokenIndex in tokenizedLine.tokens
-      charWidths = editor.getScopedCharWidths(scopeDescriptor)
+    for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
+      charWidths = editor.getScopedCharWidths(scopes)
 
-      for char in value
+      valueIndex = 0
+      while valueIndex < value.length
+        if hasPairedCharacter
+          char = value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         continue if char is '\0'
 
         unless charWidths[char]?
@@ -329,11 +355,11 @@ LinesComponent = React.createClass
 
           i = charIndex - textNodeIndex
           rangeForMeasurement.setStart(textNode, i)
-          rangeForMeasurement.setEnd(textNode, i + 1)
+          rangeForMeasurement.setEnd(textNode, i + charLength)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
-          editor.setScopedCharWidth(scopeDescriptor, char, charWidth)
+          editor.setScopedCharWidth(scopes, char, charWidth)
 
-        charIndex++
+        charIndex += charLength
 
     @measuredLines.add(tokenizedLine)
 

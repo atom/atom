@@ -8,8 +8,11 @@ WorkspaceView = null
 
 module.exports =
 class WorkspaceElement extends HTMLElement
+  globalTextEditorStyleSheet: null
+
   createdCallback: ->
     @subscriptions = new CompositeDisposable
+    @initializeGlobalTextEditorStyleSheet()
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
@@ -20,7 +23,12 @@ class WorkspaceElement extends HTMLElement
     @focus()
 
   detachedCallback: ->
+    @subscriptions.dispose()
     @model.destroy()
+
+  initializeGlobalTextEditorStyleSheet: ->
+    atom.styles.addStyleSheet('atom-text-editor {}', sourcePath: 'global-text-editor-styles')
+    @globalTextEditorStyleSheet = document.head.querySelector('style[source-path="global-text-editor-styles"]').sheet
 
   initializeContent: ->
     @classList.add 'workspace'
@@ -46,9 +54,9 @@ class WorkspaceElement extends HTMLElement
           @classList.add("scrollbars-visible-when-scrolling")
 
   observeTextEditorFontConfig: ->
-    @subscriptions.add atom.config.observe 'editor.fontSize', @setTextEditorFontSize
-    @subscriptions.add atom.config.observe 'editor.fontFamily', @setTextEditorFontFamily
-    @subscriptions.add atom.config.observe 'editor.lineHeight', @setTextEditorLineHeight
+    @subscriptions.add atom.config.observe 'editor.fontSize', @setTextEditorFontSize.bind(this)
+    @subscriptions.add atom.config.observe 'editor.fontFamily', @setTextEditorFontFamily.bind(this)
+    @subscriptions.add atom.config.observe 'editor.lineHeight', @setTextEditorLineHeight.bind(this)
 
   createSpacePenShim: ->
     WorkspaceView ?= require './workspace-view'
@@ -57,30 +65,43 @@ class WorkspaceElement extends HTMLElement
   getModel: -> @model
 
   setModel: (@model) ->
-    @paneContainer = @model.getView(@model.paneContainer)
+    @paneContainer = atom.views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
-
     @addEventListener 'focus', @handleFocus.bind(this)
-    handleWindowFocus = @handleWindowFocus.bind(this)
-    window.addEventListener 'focus', handleWindowFocus
-    @subscriptions.add(new Disposable -> window.removeEventListener 'focus', handleWindowFocus)
+
+    @panelContainers =
+      top: @model.panelContainers.top.getView()
+      left: @model.panelContainers.left.getView()
+      right: @model.panelContainers.right.getView()
+      bottom: @model.panelContainers.bottom.getView()
+      modal: @model.panelContainers.modal.getView()
+
+    @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
+    @horizontalAxis.appendChild(@panelContainers.right)
+
+    @verticalAxis.insertBefore(@panelContainers.top, @paneContainer)
+    @verticalAxis.appendChild(@panelContainers.bottom)
+
+    @appendChild(@panelContainers.modal)
 
     @__spacePenView.setModel(@model)
 
   setTextEditorFontSize: (fontSize) ->
-    atom.themes.updateGlobalEditorStyle('font-size', fontSize + 'px')
+    @updateGlobalEditorStyle('font-size', fontSize + 'px')
 
   setTextEditorFontFamily: (fontFamily) ->
-    atom.themes.updateGlobalEditorStyle('font-family', fontFamily)
+    @updateGlobalEditorStyle('font-family', fontFamily)
 
   setTextEditorLineHeight: (lineHeight) ->
-    atom.themes.updateGlobalEditorStyle('line-height', lineHeight)
+    @updateGlobalEditorStyle('line-height', lineHeight)
+
+  updateGlobalEditorStyle: (property, value) ->
+    editorRule = @globalTextEditorStyleSheet.cssRules[0]
+    editorRule.style[property] = value
+    atom.themes.emitter.emit 'did-update-stylesheet', @globalTextEditorStyleSheet
 
   handleFocus: (event) ->
     @model.getActivePane().activate()
-
-  handleWindowFocus: (event) ->
-    @handleFocus(event) if document.activeElement is document.body
 
   focusPaneViewAbove: -> @paneContainer.focusPaneViewAbove()
 

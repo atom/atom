@@ -10,6 +10,10 @@ Grim = require 'grim'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
+Panel = require './panel'
+PanelElement = require './panel-element'
+PanelContainer = require './panel-container'
+PanelContainerElement = require './panel-container-element'
 ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
 
@@ -41,16 +45,23 @@ class Workspace extends Model
     @emitter = new Emitter
     @openers = []
 
-    @viewRegistry ?= new ViewRegistry
-    @paneContainer ?= new PaneContainer({@viewRegistry})
+    viewRegistry = atom.views
+    @paneContainer ?= new PaneContainer({viewRegistry})
     @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
+
+    @panelContainers =
+      top: new PanelContainer({viewRegistry, location: 'top'})
+      left: new PanelContainer({viewRegistry, location: 'left'})
+      right: new PanelContainer({viewRegistry, location: 'right'})
+      bottom: new PanelContainer({viewRegistry, location: 'bottom'})
+      modal: new PanelContainer({viewRegistry, location: 'modal'})
 
     @subscribeToActiveItem()
 
     @addOpener (filePath) =>
       switch filePath
         when 'atom://.atom/stylesheet'
-          @open(atom.themes.getUserStylesheetPath())
+          @open(atom.styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
           @open(atom.keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
@@ -58,17 +69,24 @@ class Workspace extends Model
         when 'atom://.atom/init-script'
           @open(atom.getUserInitScriptPath())
 
-    @addViewProvider
+    atom.views.addViewProvider
       modelConstructor: Workspace
       viewConstructor: WorkspaceElement
+
+    atom.views.addViewProvider
+      modelConstructor: PanelContainer
+      viewConstructor: PanelContainerElement
+
+    atom.views.addViewProvider
+      modelConstructor: Panel
+      viewConstructor: PanelElement
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     for packageName in params.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
-    params.viewRegistry = new ViewRegistry
-    params.paneContainer.viewRegistry = params.viewRegistry
+    params.paneContainer.viewRegistry = atom.views
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -297,7 +315,7 @@ class Workspace extends Model
       when 'editor-created'
         deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
       when 'uri-opened'
-        deprecate("Use Workspace::onDidAddPaneItem instead.")
+        deprecate("Use Workspace::onDidOpen or Workspace::onDidAddPaneItem instead. https://atom.io/docs/api/latest/Workspace#instance-onDidOpen")
       else
         deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
 
@@ -534,13 +552,21 @@ class Workspace extends Model
   activatePreviousPane: ->
     @paneContainer.activatePreviousPane()
 
-  # Extended: Get the first pane {Pane} with an item for the given URI.
+  # Extended: Get the first {Pane} with an item for the given URI.
   #
   # * `uri` {String} uri
   #
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForUri: (uri) ->
     @paneContainer.paneForUri(uri)
+
+  # Extended: Get the {Pane} containing the given item.
+  #
+  # * `item` Item the returned pane contains.
+  #
+  # Returns a {Pane} or `undefined` if no pane exists for the given item.
+  paneForItem: (item) ->
+    @paneContainer.paneForItem(item)
 
   # Destroy (close) the active pane.
   destroyActivePane: ->
@@ -578,84 +604,89 @@ class Workspace extends Model
     @paneContainer.destroy()
     @activeItemSubscriptions?.dispose()
 
+
   ###
-  Section: View Management
+  Section: Panels
   ###
 
-  # Essential: Get the view associated with an object in the workspace.
+  # Essential: Adds a panel item to the bottom of the editor window.
   #
-  # If you're just *using* the workspace, you shouldn't need to access the view
-  # layer, but view layer access may be necessary if you want to perform DOM
-  # manipulation that isn't supported via the model API.
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
   #
-  # ## Examples
-  #
-  # ### Getting An Editor View
-  # ```coffee
-  # textEditor = atom.workspace.getActiveTextEditor()
-  # textEditorView = atom.workspace.getView(textEditor)
-  # ```
-  #
-  # ### Getting A Pane View
-  # ```coffee
-  # pane = atom.workspace.getActivePane()
-  # paneView = atom.workspace.getView(pane)
-  # ```
-  #
-  # ### Getting The Workspace View
-  #
-  # ```coffee
-  # workspaceView = atom.workspace.getView(atom.workspace)
-  # ```
-  #
-  # * `object` The object for which you want to retrieve a view. This can be a
-  #   pane item, a pane, or the workspace itself.
-  #
-  # Returns a DOM element.
-  getView: (object) ->
-    @viewRegistry.getView(object)
+  # Returns a {Panel}
+  addBottomPanel: (options) ->
+    @addPanel('bottom', options)
 
-  # Essential: Add a provider that will be used to construct views in the
-  # workspace's view layer based on model objects in its model layer.
+  # Essential: Adds a panel item to the left of the editor window.
   #
-  # If you're adding your own kind of pane item, a good strategy for all but the
-  # simplest items is to separate the model and the view. The model handles
-  # application logic and is the primary point of API interaction. The view
-  # just handles presentation.
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
   #
-  # Use view providers to inform the workspace how your model objects should be
-  # presented in the DOM. A view provider must always return a DOM node, which
-  # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
-  # an ideal tool for implementing views in Atom.
+  # Returns a {Panel}
+  addLeftPanel: (options) ->
+    @addPanel('left', options)
+
+  # Essential: Adds a panel item to the right of the editor window.
   #
-  # ## Example
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
   #
-  # Text editors are divided into a model and a view layer, so when you interact
-  # with methods like `atom.workspace.getActiveTextEditor()` you're only going
-  # to get the model object. We display text editors on screen by teaching the
-  # workspace what view constructor it should use to represent them:
+  # Returns a {Panel}
+  addRightPanel: (options) ->
+    @addPanel('right', options)
+
+  # Essential: Adds a panel item to the top of the editor window above the tabs.
   #
-  # ```coffee
-  # atom.workspace.addViewProvider
-  #   modelConstructor: TextEditor
-  #   viewConstructor: TextEditorElement
-  # ```
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
   #
-  # * `providerSpec` {Object} containing the following keys:
-  #   * `modelConstructor` Constructor {Function} for your model.
-  #   * `viewConstructor` (Optional) Constructor {Function} for your view. It
-  #     should be a subclass of `HTMLElement` (that is, your view should be a
-  #     DOM node) and   have a `::setModel()` method which will be called
-  #     immediately after construction. If you don't supply this property, you
-  #     must supply the `createView` property with a function that never returns
-  #     `undefined`.
-  #   * `createView` (Optional) Factory {Function} that must return a subclass
-  #     of `HTMLElement` or `undefined`. If this property is not present or the
-  #     function returns `undefined`, the view provider will fall back to the
-  #     `viewConstructor` property. If you don't provide this property, you must
-  #     provider a `viewConstructor` property.
+  # Returns a {Panel}
+  addTopPanel: (options) ->
+    @addPanel('top', options)
+
+  # Essential: Adds a panel item as a modal dialog.
   #
-  # Returns a {Disposable} on which `.dispose()` can be called to remove the
-  # added provider.
-  addViewProvider: (providerSpec) ->
-    @viewRegistry.addViewProvider(providerSpec)
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addModalPanel: (options={}) ->
+    # TODO: remove these default classes. They are to supoprt existing themes.
+    options.className ?= 'overlay from-top'
+    @addPanel('modal', options)
+
+  addPanel: (location, options) ->
+    options ?= {}
+    options.viewRegistry = atom.views
+    @panelContainers[location].addPanel(new Panel(options))

@@ -698,16 +698,34 @@ describe "TextEditorComponent", ->
       expect(cursorRect.left).toBe rangeRect.left
       expect(cursorRect.width).toBe rangeRect.width
 
+    it "accounts for the width of paired characters when positioning cursors", ->
+      atom.config.set('editor.fontFamily', 'sans-serif')
+      editor.setText('he\u0301y') # e with an accent mark
+      editor.setCursorBufferPosition([0, 3])
+      nextAnimationFrame()
+
+      cursor = componentNode.querySelector('.cursor')
+      cursorRect = cursor.getBoundingClientRect()
+
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').firstChild
+      range = document.createRange()
+      range.setStart(cursorLocationTextNode, 3)
+      range.setEnd(cursorLocationTextNode, 4)
+      rangeRect = range.getBoundingClientRect()
+
+      expect(cursorRect.left).toBe rangeRect.left
+      expect(cursorRect.width).toBe rangeRect.width
+
     it "positions cursors correctly after character widths are changed via a stylesheet change", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
       nextAnimationFrame()
 
-      atom.themes.applyStylesheet 'test', """
+      atom.styles.addStyleSheet """
         .function.js {
           font-weight: bold;
         }
-      """
+      """, context: 'atom-text-editor'
       nextAnimationFrame() # update based on new measurements
 
       cursor = componentNode.querySelector('.cursor')
@@ -1113,6 +1131,13 @@ describe "TextEditorComponent", ->
       regions = componentNode.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
 
+    it "renders classes on the regions directly if 'deprecatedRegionClass' option is defined", ->
+      decoration = editor.decorateMarker(marker, type: 'highlight', class: 'test-highlight', deprecatedRegionClass: 'test-highlight-region')
+      nextAnimationFrame()
+
+      regions = componentNode.querySelectorAll('.test-highlight .region.test-highlight-region')
+      expect(regions.length).toBe 2
+
     describe "when flashing a decoration via Decoration::flash()", ->
       highlightNode = null
       beforeEach ->
@@ -1178,6 +1203,221 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.test-highlight')).toBeFalsy()
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
 
+  describe "overlay decoration rendering", ->
+    [item] = []
+    beforeEach ->
+      item = document.createElement('div')
+      item.classList.add 'overlay-test'
+
+    describe "when the marker is empty", ->
+      it "renders an overlay decoration when added and removes the overlay when the decoration is destroyed", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
+        expect(overlay).toBe item
+
+        decoration.destroy()
+        nextAnimationFrame()
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
+        expect(overlay).toBe null
+
+      it "renders in the correct position on initial display and when the marker moves", ->
+        editor.setCursorBufferPosition([2, 5])
+
+        marker = editor.getLastCursor().getMarker()
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([2, 5])
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+        editor.moveRight()
+        editor.moveRight()
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([2, 7])
+
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+    describe "when the marker is not empty", ->
+      it "renders at the head of the marker", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([2, 10])
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+      it "renders at the head of the marker when the marker is reversed", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never', reversed: true)
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([2, 5])
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+    describe "positioning the overlay when near the edge of the editor", ->
+      [itemWidth, itemHeight] = []
+      beforeEach ->
+        itemWidth = 4 * editor.getDefaultCharWidth()
+        itemHeight = 4 * editor.getLineHeightInPixels()
+
+        gutterWidth = componentNode.querySelector('.gutter').offsetWidth
+        windowWidth = gutterWidth + 30 * editor.getDefaultCharWidth()
+        windowHeight = 9 * editor.getLineHeightInPixels()
+
+        item.style.width = itemWidth + 'px'
+        item.style.height = itemHeight + 'px'
+
+        wrapperNode.style.width = windowWidth + 'px'
+        wrapperNode.style.height = windowHeight + 'px'
+
+        component.measureHeightAndWidth()
+        nextAnimationFrame()
+
+      it "flips horizontally when near the right edge", ->
+        marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([0, 26])
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+        editor.insertText('a')
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([0, 27])
+
+        expect(overlay.style.left).toBe position.left - itemWidth + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+      it "flips vertically when near the bottom edge", ->
+        marker = editor.displayBuffer.markBufferRange([[4, 0], [4, 0]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([4, 0])
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+        editor.insertNewline()
+        nextAnimationFrame()
+
+        position = editor.pixelPositionForBufferPosition([5, 0])
+
+        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.top).toBe position.top - itemHeight + 'px'
+
+      describe "when the editor is very small", ->
+        beforeEach ->
+          gutterWidth = componentNode.querySelector('.gutter').offsetWidth
+          windowWidth = gutterWidth + 6 * editor.getDefaultCharWidth()
+          windowHeight = 6 * editor.getLineHeightInPixels()
+
+          wrapperNode.style.width = windowWidth + 'px'
+          wrapperNode.style.height = windowHeight + 'px'
+
+          component.measureHeightAndWidth()
+          nextAnimationFrame()
+
+        it "does not flip horizontally and force the overlay to have a negative left", ->
+          marker = editor.displayBuffer.markBufferRange([[0, 2], [0, 2]], invalidate: 'never')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([0, 2])
+
+          overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          editor.insertText('a')
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([0, 3])
+
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+        it "does not flip vertically and force the overlay to have a negative top", ->
+          marker = editor.displayBuffer.markBufferRange([[1, 0], [1, 0]], invalidate: 'never')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([1, 0])
+
+          overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          editor.insertNewline()
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([2, 0])
+
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+
+      describe "when editor scroll position is not 0", ->
+        it "flips horizontally when near the right edge", ->
+          editor.setScrollLeft(2 * editor.getDefaultCharWidth())
+          marker = editor.displayBuffer.markBufferRange([[0, 28], [0, 28]], invalidate: 'never')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([0, 28])
+
+          overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          editor.insertText('a')
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([0, 29])
+
+          expect(overlay.style.left).toBe position.left - itemWidth + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+        it "flips vertically when near the bottom edge", ->
+          editor.setScrollTop(2 * editor.getLineHeightInPixels())
+          marker = editor.displayBuffer.markBufferRange([[6, 0], [6, 0]], invalidate: 'never')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([6, 0])
+
+          overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          editor.insertNewline()
+          nextAnimationFrame()
+
+          position = editor.pixelPositionForBufferPosition([7, 0])
+
+          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.top).toBe position.top - itemHeight + 'px'
+
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
       editor.setVerticalScrollMargin(0)
@@ -1229,6 +1469,22 @@ describe "TextEditorComponent", ->
 
     beforeEach ->
       linesNode = componentNode.querySelector('.lines')
+
+    describe "when the mouse is single-clicked below the last line", ->
+      it "moves the cursor to the end of file buffer position", ->
+        editor.setText('foo')
+        editor.setCursorBufferPosition([0, 0])
+        height = 4.5 * lineHeightInPixels
+        wrapperNode.style.height = height + 'px'
+        wrapperNode.style.width = 10 * charWidth + 'px'
+        component.measureHeightAndWidth()
+        nextAnimationFrame()
+
+        coordinates = clientCoordinatesForScreenPosition([0, 2])
+        coordinates.clientY = height * 2
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
+        nextAnimationFrame()
+        expect(editor.getCursorScreenPosition()).toEqual [0, 3]
 
     describe "when a non-folded line is single-clicked", ->
       describe "when no modifier keys are held down", ->
@@ -1503,8 +1759,9 @@ describe "TextEditorComponent", ->
 
     it "transfers focus to the hidden input", ->
       expect(document.activeElement).toBe document.body
-      componentNode.focus()
-      expect(document.activeElement).toBe inputNode
+      wrapperNode.focus()
+      expect(document.activeElement).toBe wrapperNode
+      expect(wrapperNode.shadowRoot.activeElement).toBe inputNode
 
     it "adds the 'is-focused' class to the editor when the hidden input is focused", ->
       expect(document.activeElement).toBe document.body
@@ -1633,12 +1890,13 @@ describe "TextEditorComponent", ->
       component.measureHeightAndWidth()
       nextAnimationFrame()
 
-      atom.themes.applyStylesheet "test", """
+      atom.styles.addStyleSheet """
         ::-webkit-scrollbar {
           width: 8px;
           height: 8px;
         }
-      """
+      """, context: 'atom-text-editor'
+
       nextAnimationFrame()
 
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')
@@ -1887,6 +2145,31 @@ describe "TextEditorComponent", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       expect(nextAnimationFrame).toBe noAnimationFrame
       expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
+
+    it "groups events that occur close together in time into single undo entries", ->
+      currentTime = 0
+      spyOn(Date, 'now').andCallFake -> currentTime
+
+      atom.config.set('editor.undoGroupingInterval', 100)
+
+      editor.setText("")
+      componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
+
+      currentTime += 99
+      componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
+
+      currentTime += 99
+      componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
+
+      currentTime += 100
+      componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
+      expect(editor.getText()).toBe "xy\nxy\nxy"
+
+      componentNode.dispatchEvent(new CustomEvent('core:undo', bubbles: true, cancelable: true))
+      expect(editor.getText()).toBe "xy\nxy"
+
+      componentNode.dispatchEvent(new CustomEvent('core:undo', bubbles: true, cancelable: true))
+      expect(editor.getText()).toBe ""
 
     describe "when IME composition is used to insert international characters", ->
       inputNode = null
@@ -2252,6 +2535,12 @@ describe "TextEditorComponent", ->
       editor.setGrammar(atom.syntax.nullGrammar)
       expect(wrapperNode.dataset.grammar).toBe 'text plain null-grammar'
 
+  describe "encoding data attributes", ->
+    it "adds and updates the encoding data attribute based on the current encoding", ->
+      expect(wrapperNode.dataset.encoding).toBe 'utf8'
+      editor.setEncoding('utf16le')
+      expect(wrapperNode.dataset.encoding).toBe 'utf16le'
+
   describe "detaching and reattaching the editor (regression)", ->
     it "does not throw an exception", ->
       wrapperView.detach()
@@ -2394,6 +2683,28 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].textContent).toBe '  '
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
+
+  describe "middle mouse paste on Linux", ->
+    it "pastes the previously selected text", ->
+      spyOn(require('ipc'), 'send').andCallFake (eventName, selectedText) ->
+        if eventName is 'write-text-to-selection-clipboard'
+          require('clipboard').writeText(selectedText, 'selection')
+
+      atom.clipboard.write('')
+      component.listenForMiddleMousePaste()
+
+      editor.setCursorBufferPosition([10, 0])
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', which: 2))
+
+      expect(atom.clipboard.read()).toBe ''
+      expect(editor.lineTextForBufferRow(10)).toBe ''
+
+      editor.setSelectedBufferRange([[1, 6], [1, 10]])
+      editor.setCursorBufferPosition([10, 0])
+      componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', which: 2))
+
+      expect(atom.clipboard.read()).toBe 'sort'
+      expect(editor.lineTextForBufferRow(10)).toBe 'sort'
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)

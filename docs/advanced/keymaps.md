@@ -16,7 +16,7 @@ keystrokes pass through `atom-text-editor` elements:
   'ctrl-shift-e': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
 
-'atom-text-editor:not(.mini)'
+'atom-text-editor:not([mini])'
   'cmd-alt-[': 'editor:fold-current-row'
   'cmd-alt-]': 'editor:unfold-current-row'
 ```
@@ -27,8 +27,8 @@ patterns* to *commands*. When an element with the `atom-text-editor` class is fo
 `editor:delete-to-beginning-of-line` is emitted on the `atom-text-editor` element.
 
 The second selector group also targets editors, but only if they don't have the
-`.mini` class. In this example, the commands for code folding don't really make
-sense on mini-editors, so the selector restricts them to regular editors.
+`mini` attribute. In this example, the commands for code folding don't really
+make sense on mini-editors, so the selector restricts them to regular editors.
 
 ### Keystroke Patterns
 

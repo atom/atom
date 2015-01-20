@@ -4,6 +4,8 @@
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
+NonWhitespaceRegExp = /\S/
+
 # Extended: Represents a selection in the {TextEditor}.
 module.exports =
 class Selection extends Model
@@ -322,7 +324,7 @@ class Selection extends Model
   # * `row` The line {Number} to select (default: the row of the cursor).
   selectLine: (row=@cursor.getBufferPosition().row) ->
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(@getBufferRange().union(range))
+    @setBufferRange(@getBufferRange().union(range), autoscroll: true)
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()
@@ -348,6 +350,7 @@ class Selection extends Model
   #   * `autoIndentNewline` if `true`, indent newline appropriately.
   #   * `autoDecreaseIndent` if `true`, decreases indent level appropriately
   #     (for example, when a closing bracket is inserted).
+  #   * `normalizeLineEndings` (optional) {Boolean} (default: true)
   #   * `undo` if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
@@ -359,7 +362,7 @@ class Selection extends Model
     if options.indentBasis? and not options.autoIndent
       text = @normalizeIndents(text, options.indentBasis)
 
-    newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo'))
+    newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo', 'normalizeLineEndings'))
 
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
@@ -367,13 +370,16 @@ class Selection extends Model
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
     if options.autoIndent
-      @editor.autoIndentBufferRow(row) for row in newBufferRange.getRows()
+      precedingText = @editor.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
+      unless NonWhitespaceRegExp.test(precedingText)
+        @editor.autoIndentBufferRow(newBufferRange.getRows()[0])
+      @editor.autoIndentBufferRow(row) for row, i in newBufferRange.getRows() when i > 0
     else if options.autoIndentNewline and text == '\n'
       currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
-      @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true)
+      @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
       if @editor.indentationForBufferRow(newBufferRange.end.row) < currentIndentation
         @editor.setIndentationForBufferRow(newBufferRange.end.row, currentIndentation)
-    else if options.autoDecreaseIndent and /\S/.test text
+    else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
     newBufferRange
@@ -461,7 +467,8 @@ class Selection extends Model
         end--
       @editor.buffer.deleteRows(start, end)
 
-  # Public: Joins the current line with the one below it.
+  # Public: Joins the current line with the one below it. Lines will
+  # be separated by a single space.
   #
   # If there selection spans more than one line, all the lines are joined together.
   joinLines: ->
@@ -475,14 +482,32 @@ class Selection extends Model
     for row in [0...rowCount]
       @cursor.setBufferPosition([selectedRange.start.row])
       @cursor.moveToEndOfLine()
-      nextRow = selectedRange.start.row + 1
-      if nextRow <= @editor.buffer.getLastRow() and @editor.buffer.lineLengthForRow(nextRow) > 0
-        @insertText(' ')
-        @cursor.moveToEndOfLine()
+
+      # Remove trailing whitespace from the current line
+      scanRange = @cursor.getCurrentLineBufferRange()
+      trailingWhitespaceRange = null
+      @editor.scanInBufferRange /[ \t]+$/, scanRange, ({range}) ->
+        trailingWhitespaceRange = range
+      if trailingWhitespaceRange?
+        @setBufferRange(trailingWhitespaceRange)
+        @deleteSelectedText()
+
+      currentRow = selectedRange.start.row
+      nextRow = currentRow + 1
+      insertSpace = nextRow <= @editor.buffer.getLastRow() and
+                    @editor.buffer.lineLengthForRow(nextRow) > 0 and
+                    @editor.buffer.lineLengthForRow(currentRow) > 0
+      @insertText(' ') if insertSpace
+
+      @cursor.moveToEndOfLine()
+
+      # Remove leading whitespace from the line below
       @modifySelection =>
         @cursor.moveRight()
         @cursor.moveToFirstCharacterOfLine()
       @deleteSelectedText()
+
+      @cursor.moveLeft() if insertSpace
 
     if joinMarker?
       newSelectedRange = joinMarker.getBufferRange()
@@ -521,8 +546,9 @@ class Selection extends Model
   # Public: Copies the selection to the clipboard and then deletes it.
   #
   # * `maintainClipboard` {Boolean} (default: false) See {::copy}
-  cut: (maintainClipboard=false) ->
-    @copy(maintainClipboard)
+  # * `fullLine` {Boolean} (default: false) See {::copy}
+  cut: (maintainClipboard=false, fullLine=false) ->
+    @copy(maintainClipboard, fullLine)
     @delete()
 
   # Public: Copies the current selection to the clipboard.
@@ -531,22 +557,33 @@ class Selection extends Model
   #   is created to store each content copied to the clipboard. The clipboard
   #   `text` still contains the concatenation of the clipboard with the
   #   current selection. (default: false)
-  copy: (maintainClipboard=false) ->
+  # * `fullLine` {Boolean} if `true`, the copied text will always be pasted
+  #   at the beginning of the line containing the cursor, regardless of the
+  #   cursor's horizontal position. (default: false)
+  copy: (maintainClipboard=false, fullLine=false) ->
     return if @isEmpty()
-    text = @editor.buffer.getTextInRange(@getBufferRange())
+    selectionText = @editor.buffer.getTextInRange(@getBufferRange())
+    selectionIndentation = @editor.indentationForBufferRow(@getBufferRange().start.row)
+
     if maintainClipboard
       {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
-
-      if metadata?.selections?
-        metadata.selections.push(text)
-      else
-        metadata = { selections: [clipboardText, text] }
-
-      text = "" + (clipboardText) + "\n" + text
+      metadata ?= {}
+      unless metadata.selections?
+        metadata.selections = [{
+          text: clipboardText,
+          indentBasis: metadata.indentBasis,
+        }]
+      metadata.selections.push({
+        text: selectionText,
+        indentBasis: selectionIndentation,
+        fullLine: fullLine
+      })
+      atom.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
-      metadata = { indentBasis: @editor.indentationForBufferRow(@getBufferRange().start.row) }
-
-    atom.clipboard.write(text, metadata)
+      atom.clipboard.write(selectionText, {
+        indentBasis: selectionIndentation,
+        fullLine: fullLine
+      })
 
   # Public: Creates a fold containing the current selection.
   fold: ->

@@ -1,41 +1,64 @@
-isHighSurrogate = (string, index) ->
-  0xD800 <= string.charCodeAt(index) <= 0xDBFF
+isHighSurrogate = (charCode) ->
+  0xD800 <= charCode <= 0xDBFF
 
-isLowSurrogate = (string, index) ->
-  0xDC00 <= string.charCodeAt(index) <= 0xDFFF
+isLowSurrogate = (charCode) ->
+  0xDC00 <= charCode <= 0xDFFF
 
-isVariationSelector = (string, index) ->
-  0xFE00 <= string.charCodeAt(index) <= 0xFE0F
+isVariationSelector = (charCode) ->
+  0xFE00 <= charCode <= 0xFE0F
 
-# Is the character at the given index the start of a high/low surrogate pair?
+isCombiningCharacter = (charCode) ->
+  0x0300 <= charCode <= 0x036F or
+  0x1AB0 <= charCode <= 0x1AFF or
+  0x1DC0 <= charCode <= 0x1DFF or
+  0x20D0 <= charCode <= 0x20FF or
+  0xFE20 <= charCode <= 0xFE2F
+
+# Are the given character codes a high/low surrogate pair?
 #
-# * `string` The {String} to check for a surrogate pair.
-# * `index`  The {Number} index to look for a surrogate pair at.
-#
-# Return a {Boolean}.
-isSurrogatePair = (string, index=0) ->
-  isHighSurrogate(string, index) and isLowSurrogate(string, index + 1)
-
-# Is the character at the given index the start of a variation sequence?
-#
-# * `string` The {String} to check for a variation sequence.
-# * `index`  The {Number} index to look for a variation sequence at.
+# * `charCodeA` The first character code {Number}.
+# * `charCode2` The second character code {Number}.
 #
 # Return a {Boolean}.
-isVariationSequence = (string, index=0) ->
-  not isVariationSelector(string, index) and isVariationSelector(string, index + 1)
+isSurrogatePair = (charCodeA, charCodeB) ->
+  isHighSurrogate(charCodeA) and isLowSurrogate(charCodeB)
+
+# Are the given character codes a variation sequence?
+#
+# * `charCodeA` The first character code {Number}.
+# * `charCode2` The second character code {Number}.
+#
+# Return a {Boolean}.
+isVariationSequence = (charCodeA, charCodeB) ->
+  not isVariationSelector(charCodeA) and isVariationSelector(charCodeB)
+
+# Are the given character codes a combined character pair?
+#
+# * `charCodeA` The first character code {Number}.
+# * `charCode2` The second character code {Number}.
+#
+# Return a {Boolean}.
+isCombinedCharacter = (charCodeA, charCodeB) ->
+  not isCombiningCharacter(charCodeA) and isCombiningCharacter(charCodeB)
 
 # Is the character at the given index the start of high/low surrogate pair
-# or a variation sequence?
+# a variation sequence, or a combined character?
 #
-# * `string` The {String} to check for a surrogate pair or variation sequence.
-# * `index`  The {Number} index to look for a surrogate pair at.
+# * `string` The {String} to check for a surrogate pair, variation sequence,
+#            or combined character.
+# * `index`  The {Number} index to look for a surrogate pair, variation
+#            sequence, or combined character.
 #
 # Return a {Boolean}.
 isPairedCharacter = (string, index=0) ->
-  isSurrogatePair(string, index) or isVariationSequence(string, index)
+  charCodeA = string.charCodeAt(index)
+  charCodeB = string.charCodeAt(index + 1)
+  isSurrogatePair(charCodeA, charCodeB) or
+  isVariationSequence(charCodeA, charCodeB) or
+  isCombinedCharacter(charCodeA, charCodeB)
 
-# Does the given string contain at least surrogate pair or variation sequence?
+# Does the given string contain at least surrogate pair, variation sequence,
+# or combined character?
 #
 # * `string` The {String} to check for the presence of paired characters.
 #

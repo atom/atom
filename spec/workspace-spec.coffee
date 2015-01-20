@@ -456,3 +456,48 @@ describe "Workspace", ->
 
       expect(item2.isModified()).toBe false
       expect(atom.setDocumentEdited).toHaveBeenCalledWith(false)
+
+  describe "adding panels", ->
+    class TestPanel
+      constructior: ->
+
+    describe '::addLeftPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.left.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addLeftPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addRightPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.right.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addRightPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addTopPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.top.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addTopPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addBottomPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.bottom.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addBottomPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+    describe '::addModalPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        atom.workspace.panelContainers.modal.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        panel = atom.workspace.addModalPanel(item: new TestPanel())
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+        expect(panel.getClassName()).toBe 'overlay from-top' # the default

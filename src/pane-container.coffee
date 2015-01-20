@@ -40,6 +40,8 @@ class PaneContainer extends Model
     @registerViewProviders()
 
     @setRoot(params?.root ? new Pane)
+    @setActivePane(@getPanes()[0]) unless @getActivePane()
+
     @destroyEmptyPanes() if params?.destroyEmptyPanes
 
     @monitorActivePaneItem()
@@ -137,6 +139,9 @@ class PaneContainer extends Model
 
   setActivePane: (activePane) ->
     if activePane isnt @activePane
+      unless activePane in @getPanes()
+        throw new Error("Setting active pane that is not present in pane container")
+
       @activePane = activePane
       @emitter.emit 'did-change-active-pane', @activePane
     @activePane
@@ -146,6 +151,9 @@ class PaneContainer extends Model
 
   paneForUri: (uri) ->
     find @getPanes(), (pane) -> pane.itemForUri(uri)?
+
+  paneForItem: (item) ->
+    @getPanes().find (pane) -> item in pane.getItems()
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()

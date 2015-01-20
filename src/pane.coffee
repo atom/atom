@@ -63,8 +63,9 @@ class Pane extends Model
   getContainer: -> @container
 
   setContainer: (container) ->
-    container.didAddPane({pane: this}) unless container is @container
-    @container = container
+    unless container is @container
+      @container = container
+      container.didAddPane({pane: this})
 
   ###
   Section: Event Subscription
@@ -288,6 +289,18 @@ class Pane extends Model
     else
       @activateItemAtIndex(@items.length - 1)
 
+  # Public: Move the active tab to the right.
+  moveItemRight: ->
+    index = @getActiveItemIndex()
+    rightItemIndex = index + 1
+    @moveItem(@getActiveItem(), rightItemIndex) unless rightItemIndex > @items.length - 1
+
+  # Public: Move the active tab to the left
+  moveItemLeft: ->
+    index = @getActiveItemIndex()
+    leftItemIndex = index - 1
+    @moveItem(@getActiveItem(), leftItemIndex) unless leftItemIndex < 0
+
   # Public: Get the index of the active item.
   #
   # Returns a {Number}.
@@ -501,6 +514,8 @@ class Pane extends Model
 
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
+    throw new Error("Pane has been destroyed") if @isDestroyed()
+
     @container?.setActivePane(this)
     @emit 'activated'
     @emitter.emit 'did-activate'
@@ -605,3 +620,11 @@ class Pane extends Model
         rightmostSibling
     else
       @splitRight()
+
+  close: ->
+    @destroy() if @confirmClose()
+
+  confirmClose: ->
+    for item in @getItems()
+      return false unless @promptToSaveItem(item)
+    true

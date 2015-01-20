@@ -2,11 +2,18 @@ window.onload = function() {
   try {
     var startTime = Date.now();
 
+    var path = require('path');
+
     // Skip "?loadSettings=".
     var loadSettings = JSON.parse(decodeURIComponent(location.search.substr(14)));
 
+    // Normalize to make sure drive letter case is consistent on Windows
+    process.resourcesPath = path.normalize(process.resourcesPath);
+
+    var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
+
     // Require before the module cache in dev mode
-    if (loadSettings.devMode) {
+    if (devMode) {
       require('coffee-script').register();
     }
 
@@ -25,7 +32,7 @@ window.onload = function() {
 
     require('vm-compatibility-layer');
 
-    if (!loadSettings.devMode) {
+    if (!devMode) {
       require('coffee-script').register();
     }
 

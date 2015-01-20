@@ -32,7 +32,7 @@ module.exports = (grunt) ->
       binDir = path.join(installDir, 'bin')
       shareDir = path.join(installDir, 'share', 'atom')
 
-      iconName = path.join(shareDir,'resources','app','resources','atom.png')
+      iconName = path.join(shareDir,'resources', 'app', 'resources', 'atom.png')
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')

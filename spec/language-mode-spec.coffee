@@ -96,12 +96,13 @@ describe "LanguageMode", ->
         buffer.setText("//this is a single line comment")
         expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
 
-    describe "suggestedIndentForBufferRow", ->
-      it "returns the suggested indentation based on auto-indent/outdent rules", ->
+    describe ".suggestedIndentForBufferRow", ->
+      it "bases indentation off of the previous non-blank line", ->
         expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
         expect(languageMode.suggestedIndentForBufferRow(1)).toBe 1
         expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2
         expect(languageMode.suggestedIndentForBufferRow(9)).toBe 1
+        expect(languageMode.suggestedIndentForBufferRow(11)).toBe 1
 
     describe "rowRangeForParagraphAtBufferRow", ->
       describe "with code and comments", ->

@@ -25,6 +25,8 @@ propose changes to this document in a pull request.
   full stack trace and include it in the issue.
 * On Mac, check Console.app for stack traces to include if reporting a crash.
 * Perform a cursory search to see if a similar issue has already been submitted.
+* Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
+  to make yourself recognizable and so we can all get to know each other better.
 
 ### Package Repositories
 
@@ -99,30 +101,23 @@ For more information on how to work with Atom's official packages, see
 
 ## Documentation Styleguide
 
-* Use [TomDoc](http://tomdoc.org).
+* Use [AtomDoc](https://github.com/atom/atomdoc).
 * Use [Markdown](https://daringfireball.net/projects/markdown).
 * Reference methods and classes in markdown with the custom `{}` notation:
     * Reference classes with `{ClassName}`
     * Reference instance methods with `{ClassName::methodName}`
     * Reference class methods with `{ClassName.methodName}`
-    * Delegate to comments elsewhere with `{Delegates to: ClassName.methodName}`
-      style notation.
 
 ### Example
 
 ```coffee
 # Public: Disable the package with the given name.
 #
-# This method emits multiple events:
-#
-# * `package-will-be-disabled` - before the package is disabled.
-# * `package-disabled`         - after the package is disabled.
-#
-# name     - The {String} name of the package to disable.
-# options  - The {Object} with disable options (default: {}):
-#   :trackTime - `true` to track the amount of time disabling took.
-#   :ignoreErrors - `true` to catch and ignore errors thrown.
-# callback - The {Function} to call after the package has been disabled.
+# * `name`    The {String} name of the package to disable.
+# * `options` (optional) The {Object} with disable options (default: {}):
+#   * `trackTime`     A {Boolean}, `true` to track the amount of time taken.
+#   * `ignoreErrors`  A {Boolean}, `true` to catch and ignore errors thrown.
+# * `callback` The {Function} to call after the package has been disabled.
 #
 # Returns `undefined`.
 disablePackage: (name, options, callback) ->

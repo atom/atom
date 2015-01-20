@@ -119,7 +119,7 @@ class PaneView extends View
       deprecate 'Please return a Disposable object from your ::onDidChangeTitle method!' unless disposable?.dispose?
       @activeItemDisposables.add(disposable) if disposable?.dispose?
     else if item.on?
-      deprecate '::on methods for items are no longer supported. If you would like your item to support title change behavior, please implement a ::onDidChangeTitle() method.'
+      deprecate 'If you would like your pane item to support title change behavior, please implement a ::onDidChangeTitle() method. ::on methods for items are no longer supported. If not, ignore this message.'
       disposable = item.on('title-changed', @activeItemTitleChanged)
       @activeItemDisposables.add(disposable) if disposable?.dispose?
 
@@ -128,15 +128,9 @@ class PaneView extends View
       deprecate 'Please return a Disposable object from your ::onDidChangeModified method!' unless disposable?.dispose?
       @activeItemDisposables.add(disposable) if disposable?.dispose?
     else if item.on?
-      deprecate '::on methods for items are no longer supported. If you would like your item to support modified behavior, please implement a ::onDidChangeModified() method.'
+      deprecate 'If you would like your pane item to support modified behavior, please implement a ::onDidChangeModified() method. If not, ignore this message. ::on methods for items are no longer supported.'
       item.on('modified-status-changed', @activeItemModifiedChanged)
       @activeItemDisposables.add(disposable) if disposable?.dispose?
-
-    view = @model.getView(item).__spacePenView
-    otherView.hide() for otherView in @itemViews.children().not(view).views()
-    @itemViews.append(view) unless view.parent().is(@itemViews)
-    view.show() if @attached
-    view.focus() if @hasFocus()
 
     @trigger 'pane:active-item-changed', [item]
 

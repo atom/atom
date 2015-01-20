@@ -20,9 +20,9 @@ module.exports = (gruntObject) ->
   {cp} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'publish-build', 'Publish the built app', ->
-    return if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH isnt 'master'
-    tasks = ['upload-assets']
-    tasks.unshift('build-docs', 'prepare-docs') if process.platform is 'darwin'
+    tasks = []
+    tasks.push('build-docs', 'prepare-docs') if process.platform is 'darwin'
+    tasks.push('upload-assets') if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master'
     grunt.task.run(tasks)
 
   grunt.registerTask 'prepare-docs', 'Move api.json to atom-api.json', ->
@@ -31,7 +31,16 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
-    done = @async()
+    doneCallback = @async()
+    startTime = Date.now()
+    done = (args...) ->
+      elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
+      grunt.log.ok("Upload time: #{elapsedTime}s")
+      doneCallback(args...)
+
+    unless token
+      return done(new Error('ATOM_ACCESS_TOKEN environment variable not set'))
+
     buildDir = grunt.config.get('atom.buildDir')
     assets = getAssets()
 
@@ -45,6 +54,11 @@ module.exports = (gruntObject) ->
           uploadAssets(release, buildDir, assets, done)
 
 getAssets = ->
+  {cp} = require('./task-helpers')(grunt)
+
+  {version} = grunt.file.readJSON('package.json')
+  buildDir = grunt.config.get('atom.buildDir')
+
   switch process.platform
     when 'darwin'
       [
@@ -53,20 +67,31 @@ getAssets = ->
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
-      [
-        {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
-      ]
+      assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
+      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{version}-full.nupkg"]
+        cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
+        assets.push({assetName: squirrelAsset, sourcePath: assetName})
+      assets
     when 'linux'
-      buildDir = grunt.config.get('atom.buildDir')
       if process.arch is 'ia32'
         arch = 'i386'
       else
         arch = 'amd64'
-      {version} = grunt.file.readJSON('package.json')
+
+      # Check for a Debian build
       sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
       assetName = "atom-#{arch}.deb"
 
-      {cp} = require('./task-helpers')(grunt)
+      # Check for a Fedora build
+      unless fs.isFileSync(sourcePath)
+        rpmName = fs.readdirSync("#{buildDir}/rpm")[0]
+        sourcePath = "#{buildDir}/rpm/#{rpmName}"
+        if process.arch is 'ia32'
+          arch = 'i386'
+        else
+          arch = 'x86_64'
+        assetName = "atom.#{arch}.rpm"
+
       cp sourcePath, path.join(buildDir, assetName)
 
       [
@@ -102,10 +127,22 @@ getAtomDraftRelease = (callback) ->
       logError('Fetching atom/atom releases failed', error, releases)
       callback(error)
     else
-      for release in releases when release.draft
-        callback(null, release)
-        return
-      callback(new Error('No draft release in atom/atom repo'))
+      [firstDraft] = releases.filter ({draft}) -> draft
+      if firstDraft?
+        options =
+          uri: firstDraft.assets_url
+          method: 'GET'
+          headers: defaultHeaders
+          json: true
+        request options, (error, response, assets=[]) ->
+          if error? or response.statusCode isnt 200
+            logError('Fetching draft release assets failed', error, assets)
+            callback(error ? new Error(response.statusCode))
+          else
+            firstDraft.assets = assets
+            callback(null, firstDraft)
+      else
+        callback(new Error('No draft release in atom/atom repo'))
 
 deleteRelease = (release) ->
   options =

@@ -650,11 +650,21 @@ class DisplayBuffer extends Model
     left = 0
     column = 0
     for token in @tokenizedLineForScreenRow(targetRow).tokens
-      charWidths = @getScopedCharWidths(token.scopeDescriptor)
-      for char in token.value
+      charWidths = @getScopedCharWidths(token.scopes)
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = token.value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         return {top, left} if column is targetColumn
         left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column++
+        column += charLength
     {top, left}
 
   screenPositionForPixelPosition: (pixelPosition) ->
@@ -662,18 +672,29 @@ class DisplayBuffer extends Model
     targetLeft = pixelPosition.left
     defaultCharWidth = @defaultCharWidth
     row = Math.floor(targetTop / @getLineHeightInPixels())
+    targetLeft = Infinity if row > @getLastRow()
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)
 
     left = 0
     column = 0
     for token in @tokenizedLineForScreenRow(row).tokens
-      charWidths = @getScopedCharWidths(token.scopeDescriptor)
-      for char in token.value
+      charWidths = @getScopedCharWidths(token.scopes)
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = token.value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         charWidth = charWidths[char] ? defaultCharWidth
         break if targetLeft <= left + (charWidth / 2)
         left += charWidth
-        column++
+        column += charLength
 
     new Point(row, column)
 
@@ -714,6 +735,8 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
+    throw new Error("This TextEditor has been destroyed") if @isDestroyed()
+
     { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
@@ -756,7 +779,7 @@ class DisplayBuffer extends Model
   #
   # bufferPosition - A {Point} in the {TextBuffer}
   #
-  # Returns an {Array} of {String}s.
+  # Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 
@@ -1051,9 +1074,10 @@ class DisplayBuffer extends Model
       marker.notifyObservers(textChanged: false)
 
   destroyed: ->
-    marker.unsubscribe() for marker in @getMarkers()
-    @tokenizedBuffer.destroy()
+    marker.unsubscribe() for id, marker of @markers
+    @scopedConfigSubscriptions.dispose()
     @unsubscribe()
+    @tokenizedBuffer.destroy()
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]

@@ -6,7 +6,7 @@ Delegator = require 'delegato'
 {Model} = require 'theorist'
 EmitterMixin = require('emissary').Emitter
 {CompositeDisposable, Emitter} = require 'event-kit'
-{Point, Range} = require 'text-buffer'
+{Point, Range} = TextBuffer = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
@@ -84,6 +84,7 @@ class TextEditor extends Model
     @cursors = []
     @selections = []
 
+    buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
@@ -134,9 +135,11 @@ class TextEditor extends Model
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed"
       @emitter.emit 'did-change-path', @getPath()
+    @subscribe @buffer.onDidChangeEncoding =>
+      @emitter.emit 'did-change-encoding', @getEncoding()
     @subscribe @buffer.onDidDestroy => @destroy()
 
-    # TODO: remove these thwne we remove the deprecations. They are old events.
+    # TODO: remove these when we remove the deprecations. They are old events.
     @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
     @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
     @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
@@ -173,6 +176,7 @@ class TextEditor extends Model
 
   destroyed: ->
     @unsubscribe()
+    @scopedConfigSubscriptions.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
     @displayBuffer.destroy()
@@ -259,6 +263,14 @@ class TextEditor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSoftWrapped: (callback) ->
     @displayBuffer.onDidChangeSoftWrapped(callback)
+
+  # Extended: Calls your `callback` when the buffer's encoding has changed.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeEncoding: (callback) ->
+    @emitter.on 'did-change-encoding', callback
 
   # Extended: Calls your `callback` when the grammar that interprets and
   # colorizes the text has been changed. Immediately calls your callback with
@@ -487,7 +499,7 @@ class TextEditor extends Model
       when 'decoration-updated'
         deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `TextEditor::decorateMarker()`")
       when 'decoration-changed'
-        deprecate("Use Marker::onDidChange instead. eg. `editor::decorateMarker(...).getMarker().onDidChange()`")
+        deprecate("Use Marker::onDidChange instead. e.g. `editor::decorateMarker(...).getMarker().onDidChange()`")
 
       when 'screen-lines-changed'
         deprecate("Use TextEditor::onDidChange instead")
@@ -567,6 +579,16 @@ class TextEditor extends Model
 
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
+
+  # Extended: Returns the {String} character set encoding of this editor's text
+  # buffer.
+  getEncoding: -> @buffer.getEncoding()
+
+  # Extended: Set the character set encoding to use in this editor's text
+  # buffer.
+  #
+  # * `encoding` The {String} character set encoding name such as 'utf8'
+  setEncoding: (encoding) -> @buffer.setEncoding(encoding)
 
   # Essential: Returns {Boolean} `true` if this editor has been modified.
   isModified: -> @buffer.isModified()
@@ -717,9 +739,12 @@ class TextEditor extends Model
   #
   # * `range` A {Range} or range-compatible {Array}.
   # * `text` A {String}
+  # * `options` (optional) {Object}
+  #   * `normalizeLineEndings` (optional) {Boolean} (default: true)
+  #   * `undo` (optional) {String} 'skip' will skip the undo system
   #
   # Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange: (range, text, normalizeLineEndings) -> @getBuffer().setTextInRange(range, text, normalizeLineEndings)
+  setTextInBufferRange: (range, text, options) -> @getBuffer().setTextInRange(range, text, options)
 
   # Essential: For each selection, replace the selected text with the given text.
   #
@@ -752,7 +777,7 @@ class TextEditor extends Model
     @insertText('\n')
 
   # Essential: For each selection, if the selection is empty, delete the character
-  # preceding the cursor. Otherwise delete the selected text.
+  # following the cursor. Otherwise delete the selected text.
   delete: ->
     @mutateSelectedText (selection) -> selection.delete()
 
@@ -1073,8 +1098,10 @@ class TextEditor extends Model
   # abort the transaction, call {::abortTransaction} to terminate the function's
   # execution and revert any changes performed up to the abortion.
   #
+  # * `groupingInterval` (optional) This is the sames as the `groupingInterval`
+  #    parameter in {::beginTransaction}
   # * `fn` A {Function} to call inside the transaction.
-  transact: (fn) -> @buffer.transact(fn)
+  transact: (groupingInterval, fn) -> @buffer.transact(groupingInterval, fn)
 
   # Extended: Start an open-ended transaction.
   #
@@ -1082,7 +1109,12 @@ class TextEditor extends Model
   # transaction. If you nest calls to transactions, only the outermost
   # transaction is considered. You must match every begin with a matching
   # commit, but a single call to abort will cancel all nested transactions.
-  beginTransaction: -> @buffer.beginTransaction()
+  #
+  # * `groupingInterval` (optional) The {Number} of milliseconds for which this
+  #   transaction should be considered 'groupable' after it begins. If a transaction
+  #   with a positive `groupingInterval` is committed while the previous transaction is
+  #   still 'groupable', the two transactions are merged with respect to undo and redo.
+  beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
 
   # Extended: Commit an open-ended transaction started with {::beginTransaction}
   # and push it to the undo stack.
@@ -1216,7 +1248,7 @@ class TextEditor extends Model
   # ## Arguments
   #
   # * `marker` A {Marker} you want this decoration to follow.
-  # * `decorationParams` An {Object} representing the decoration eg. `{type: 'gutter', class: 'linter-error'}`
+  # * `decorationParams` An {Object} representing the decoration e.g. `{type: 'gutter', class: 'linter-error'}`
   #   * `type` There are a few supported decoration types: `gutter`, `line`, and `highlight`
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, or highlight.
@@ -2212,6 +2244,10 @@ class TextEditor extends Model
   # Returns a {Boolean} or undefined if no non-comment lines had leading
   # whitespace.
   usesSoftTabs: ->
+    # FIXME Remove once this can be specified as a scoped setting in the
+    # language-make package
+    return false if @getGrammar().scopeName is 'source.makefile'
+
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
@@ -2370,8 +2406,8 @@ class TextEditor extends Model
   Section: Managing Syntax Scopes
   ###
 
-  # Essential: Returns the scope descriptor that includes the language. eg.
-  # `['.source.ruby']`, or `['.source.coffee']`. You can use this with
+  # Essential: Returns a {ScopeDescriptor} that includes this editor's language.
+  # e.g. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   # {Config::get} to get language specific config values.
   getRootScopeDescriptor: ->
     @displayBuffer.getRootScopeDescriptor()
@@ -2385,11 +2421,12 @@ class TextEditor extends Model
   #
   # * `bufferPosition` A {Point} or {Array} of [row, column].
   #
-  # Returns an {Array} of {String}s.
-  scopeDescriptorForBufferPosition: (bufferPosition) -> @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
+  # Returns a {ScopeDescriptor}.
+  scopeDescriptorForBufferPosition: (bufferPosition) ->
+    @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
   scopesForBufferPosition: (bufferPosition) ->
-    deprecate 'Use ::scopeDescriptorForBufferPosition instead'
-    @scopeDescriptorForBufferPosition(bufferPosition)
+    deprecate 'Use ::scopeDescriptorForBufferPosition instead. The return value has changed! It now returns a `ScopeDescriptor`'
+    @scopeDescriptorForBufferPosition(bufferPosition).getScopesArray()
 
   # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
@@ -2397,28 +2434,31 @@ class TextEditor extends Model
   # For example, if you wanted to find the string surrounding the cursor, you
   # could call `editor.bufferRangeForScopeAtCursor(".string.quoted")`.
   #
+  # * `scopeSelector` {String} selector. e.g. `'.source.ruby'`
+  #
   # Returns a {Range}.
-  bufferRangeForScopeAtCursor: (selector) ->
-    @displayBuffer.bufferRangeForScopeAtPosition(selector, @getCursorBufferPosition())
+  bufferRangeForScopeAtCursor: (scopeSelector) ->
+    @displayBuffer.bufferRangeForScopeAtPosition(scopeSelector, @getCursorBufferPosition())
 
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
-      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopeDescriptor
+      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopes
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
       @commentScopeSelector.matches(scopeDescriptor)
 
   logCursorScope: ->
-    console.log @getLastCursor().getScopeDescriptor()
+    scopeDescriptor = @getLastCursor().getScopeDescriptor()
+    console.log scopeDescriptor.scopes, scopeDescriptor
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
 
   scopesAtCursor: ->
-    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
-    @getLastCursor().getScopeDescriptor()
+    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
+    @getLastCursor().getScopeDescriptor().getScopesArray()
   getCursorScopes: ->
-    deprecate 'Use editor.getLastCursor().scopesAtCursor() instead'
+    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
     @scopesAtCursor()
 
   ###
@@ -2429,14 +2469,24 @@ class TextEditor extends Model
   copySelectedText: ->
     maintainClipboard = false
     for selection in @getSelections()
-      selection.copy(maintainClipboard)
+      if selection.isEmpty()
+        previousRange = selection.getBufferRange()
+        selection.selectLine()
+        selection.copy(maintainClipboard, true)
+        selection.setBufferRange(previousRange)
+      else
+        selection.copy(maintainClipboard, false)
       maintainClipboard = true
 
   # Essential: For each selection, cut the selected text.
   cutSelectedText: ->
     maintainClipboard = false
     @mutateSelectedText (selection) ->
-      selection.cut(maintainClipboard)
+      if selection.isEmpty()
+        selection.selectLine()
+        selection.cut(maintainClipboard, true)
+      else
+        selection.cut(maintainClipboard, false)
       maintainClipboard = true
 
   # Essential: For each selection, replace the selected text with the contents of
@@ -2448,22 +2498,32 @@ class TextEditor extends Model
   #
   # * `options` (optional) See {Selection::insertText}.
   pasteText: (options={}) ->
-    {text, metadata} = atom.clipboard.readWithMetadata()
+    {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
+    metadata ?= {}
+    options.autoIndent = @shouldAutoIndentOnPaste()
 
-    containsNewlines = text.indexOf('\n') isnt -1
+    @mutateSelectedText (selection, index) =>
+      if metadata.selections?.length is @getSelections().length
+        {text, indentBasis, fullLine} = metadata.selections[index]
+      else
+        {indentBasis, fullLine} = metadata
+        text = clipboardText
 
-    if metadata?.selections? and metadata.selections.length is @getSelections().length
-      @mutateSelectedText (selection, index) ->
-        text = metadata.selections[index]
+      delete options.indentBasis
+      {cursor} = selection
+      if indentBasis?
+        containsNewlines = text.indexOf('\n') isnt -1
+        if containsNewlines or !cursor.hasPrecedingCharactersOnLine()
+          options.indentBasis ?= indentBasis
+
+      if fullLine and selection.isEmpty()
+        oldPosition = selection.getBufferRange().start
+        selection.setBufferRange([[oldPosition.row, 0], [oldPosition.row, 0]])
         selection.insertText(text, options)
-
-      return
-
-    else if atom.config.get(@getLastCursor().getScopeDescriptor(), "editor.normalizeIndentOnPaste") and metadata?.indentBasis?
-      if !@getLastCursor().hasPrecedingCharactersOnLine() or containsNewlines
-        options.indentBasis ?= metadata.indentBasis
-
-    @insertText(text, options)
+        newPosition = oldPosition.translate([1, 0])
+        selection.setBufferRange([newPosition, newPosition])
+      else
+        selection.insertText(text, options)
 
   # Public: For each selection, if the selection is empty, cut all characters
   # of the containing line following the cursor. Otherwise cut the selected
@@ -2678,6 +2738,9 @@ class TextEditor extends Model
 
   shouldAutoIndent: ->
     atom.config.get(@getRootScopeDescriptor(), "editor.autoIndent")
+
+  shouldAutoIndentOnPaste: ->
+    atom.config.get(@getRootScopeDescriptor(), "editor.autoIndentOnPaste")
 
   shouldShowInvisibles: ->
     not @mini and atom.config.get(@getRootScopeDescriptor(), 'editor.showInvisibles')

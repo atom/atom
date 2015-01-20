@@ -6,7 +6,7 @@ EmitterMixin = require('emissary').Emitter
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
-{deprecate} = require 'grim'
+Grim = require 'grim'
 
 Package = require './package'
 
@@ -19,69 +19,104 @@ class ThemeManager
 
   constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
     @emitter = new Emitter
+    @styleSheetDisposablesBySourcePath = {}
     @lessCache = null
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
+    @sheetsByStyleElement = new WeakMap
+
+    stylesElement = document.head.querySelector('atom-styles')
+    stylesElement.onDidAddStyleElement @styleElementAdded.bind(this)
+    stylesElement.onDidRemoveStyleElement @styleElementRemoved.bind(this)
+    stylesElement.onDidUpdateStyleElement @styleElementUpdated.bind(this)
+
+  styleElementAdded: (styleElement) ->
+    {sheet} = styleElement
+    @sheetsByStyleElement.set(styleElement, sheet)
+    @emit 'stylesheet-added', sheet
+    @emitter.emit 'did-add-stylesheet', sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  styleElementRemoved: (styleElement) ->
+    sheet = @sheetsByStyleElement.get(styleElement)
+    @emit 'stylesheet-removed', sheet
+    @emitter.emit 'did-remove-stylesheet', sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
+
+  styleElementUpdated: ({sheet}) ->
+    @emit 'stylesheet-removed', sheet
+    @emitter.emit 'did-remove-stylesheet', sheet
+    @emit 'stylesheet-added', sheet
+    @emitter.emit 'did-add-stylesheet', sheet
+    @emit 'stylesheets-changed'
+    @emitter.emit 'did-change-stylesheets'
 
   ###
   Section: Event Subscription
   ###
 
-  # Essential: Invoke `callback` when all styles have been reloaded.
+  # Essential: Invoke `callback` when style sheet changes associated with
+  # updating the list of active themes have completed.
   #
   # * `callback` {Function}
   onDidReloadAll: (callback) ->
     @emitter.on 'did-reload-all', callback
 
-  # Essential: Invoke `callback` when a stylesheet has been added to the dom.
+  # Deprecated: Invoke `callback` when a stylesheet has been added to the dom.
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddStylesheet: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidAddStyleElement instead")
     @emitter.on 'did-add-stylesheet', callback
 
-  # Essential: Invoke `callback` when a stylesheet has been removed from the dom.
+  # Deprecated: Invoke `callback` when a stylesheet has been removed from the dom.
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveStylesheet: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidRemoveStyleElement instead")
     @emitter.on 'did-remove-stylesheet', callback
 
-  # Essential: Invoke `callback` when a stylesheet has been updated.
+  # Deprecated: Invoke `callback` when a stylesheet has been updated.
   #
   # * `callback` {Function}
   #   * `stylesheet` {StyleSheet} the style node
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidUpdateStylesheet: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidUpdateStyleElement instead")
     @emitter.on 'did-update-stylesheet', callback
 
-  # Essential: Invoke `callback` when any stylesheet has been updated, added, or removed.
+  # Deprecated: Invoke `callback` when any stylesheet has been updated, added, or removed.
   #
   # * `callback` {Function}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStylesheets: (callback) ->
+    Grim.deprecate("Use atom.styles.onDidAdd/RemoveStyleElement instead")
     @emitter.on 'did-change-stylesheets', callback
 
   on: (eventName) ->
     switch eventName
       when 'reloaded'
-        deprecate 'Use ThemeManager::onDidReloadAll instead'
+        Grim.deprecate 'Use ThemeManager::onDidReloadAll instead'
       when 'stylesheet-added'
-        deprecate 'Use ThemeManager::onDidAddStylesheet instead'
+        Grim.deprecate 'Use ThemeManager::onDidAddStylesheet instead'
       when 'stylesheet-removed'
-        deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
+        Grim.deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
       when 'stylesheet-updated'
-        deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
+        Grim.deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
       when 'stylesheets-changed'
-        deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
+        Grim.deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
       else
-        deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
+        Grim.deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
 
   ###
@@ -129,11 +164,14 @@ class ThemeManager
     themeNames = atom.config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
     themeNames = themeNames.filter (themeName) ->
-      themeName and typeof themeName is 'string'
+      if themeName and typeof themeName is 'string'
+        return true if atom.packages.resolvePackagePath(themeName)
+        console.warn("Enabled theme '#{themeName}' is not installed.")
+      false
 
-    # Use a built-in syntax and UI theme when in safe mode since themes
-    # installed to ~/.atom/packages will not be loaded.
-    if @safeMode
+    # Use a built-in syntax and UI theme any time the configured themes are not
+    # available.
+    if themeNames.length < 2
       builtInThemeNames = [
         'atom-dark-syntax'
         'atom-dark-ui'
@@ -164,18 +202,15 @@ class ThemeManager
     atom.config.set('core.themes', enabledThemeNames)
 
   ###
-  Section: Managing Stylesheets
+  Section: Private
   ###
 
-  # Public: Returns the {String} path to the user's stylesheet under ~/.atom
+  # Returns the {String} path to the user's stylesheet under ~/.atom
   getUserStylesheetPath: ->
-    stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
-    if fs.isFileSync(stylesheetPath)
-      stylesheetPath
-    else
-      path.join(@configDirPath, 'styles.less')
+    Grim.deprecate("Call atom.styles.getUserStyleSheetPath() instead")
+    atom.styles.getUserStyleSheetPath()
 
-  # Public: Resolve and apply the stylesheet specified by the path.
+  # Resolve and apply the stylesheet specified by the path.
   #
   # This supports both CSS and Less stylsheets.
   #
@@ -188,7 +223,6 @@ class ThemeManager
     if fullPath = @resolveStylesheet(stylesheetPath)
       content = @loadStylesheet(fullPath)
       @applyStylesheet(fullPath, content, type)
-      new Disposable => @removeStylesheet(fullPath)
     else
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
@@ -199,18 +233,17 @@ class ThemeManager
 
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
-    userStylesheetPath = @getUserStylesheetPath()
+    userStylesheetPath = atom.styles.getUserStyleSheetPath()
     return unless fs.isFileSync(userStylesheetPath)
 
     @userStylesheetPath = userStylesheetPath
     @userStylesheetFile = new File(userStylesheetPath)
-    @userStylesheetFile.on 'contents-changed moved removed', =>
-      @loadUserStylesheet()
+    @userStylesheetFile.on 'contents-changed moved removed', => @loadUserStylesheet()
     userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
     @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
   loadBaseStylesheets: ->
-    @requireStylesheet('bootstrap/less/bootstrap')
+    @requireStylesheet('../static/bootstrap')
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
@@ -219,7 +252,7 @@ class ThemeManager
       @requireStylesheet(nativeStylesheetPath)
 
   stylesheetElementForId: (id) ->
-    document.head.querySelector("""style[id="#{id}"]""")
+    document.head.querySelector("atom-styles style[source-path=\"#{id}\"]")
 
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
@@ -256,44 +289,10 @@ class ThemeManager
       """
 
   removeStylesheet: (stylesheetPath) ->
-    fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
-    element = @stylesheetElementForId(@stringToId(fullPath))
-    if element?
-      {sheet} = element
-      element.remove()
-      @emit 'stylesheet-removed', sheet
-      @emitter.emit 'did-remove-stylesheet', sheet
-      @emit 'stylesheets-changed'
-      @emitter.emit 'did-change-stylesheets'
+    @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
 
   applyStylesheet: (path, text, type='bundled') ->
-    styleId = @stringToId(path)
-    styleElement = @stylesheetElementForId(styleId)
-
-    if styleElement?
-      @emit 'stylesheet-removed', styleElement.sheet
-      @emitter.emit 'did-remove-stylesheet', styleElement.sheet
-      styleElement.textContent = text
-    else
-      styleElement = document.createElement('style')
-      styleElement.setAttribute('class', type)
-      styleElement.setAttribute('id', styleId)
-      styleElement.textContent = text
-
-      elementToInsertBefore = _.last(document.head.querySelectorAll("style.#{type}"))?.nextElementSibling
-      if elementToInsertBefore?
-        document.head.insertBefore(styleElement, elementToInsertBefore)
-      else
-        document.head.appendChild(styleElement)
-
-    @emit 'stylesheet-added', styleElement.sheet
-    @emitter.emit 'did-add-stylesheet', styleElement.sheet
-    @emit 'stylesheets-changed'
-    @emitter.emit 'did-change-stylesheets'
-
-  ###
-  Section: Private
-  ###
+    @styleSheetDisposablesBySourcePath[path] = atom.styles.addStyleSheet(text, sourcePath: path, group: type)
 
   stringToId: (string) ->
     string.replace(/\\/g, '/')
@@ -358,17 +357,3 @@ class ThemeManager
           themePaths.push(path.join(themePath, Package.stylesheetsDir))
 
     themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
-
-  updateGlobalEditorStyle: (property, value) ->
-    unless styleNode = @stylesheetElementForId('global-editor-styles')
-      @applyStylesheet('global-editor-styles', 'atom-text-editor {}')
-      styleNode = @stylesheetElementForId('global-editor-styles')
-
-    {sheet} = styleNode
-    editorRule = sheet.cssRules[0]
-    editorRule.style[property] = value
-
-    @emit 'stylesheet-updated', sheet
-    @emitter.emit 'did-update-stylesheet', sheet
-    @emit 'stylesheets-changed'
-    @emitter.emit 'did-change-stylesheets'

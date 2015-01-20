@@ -29,6 +29,7 @@ atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 atom.keymaps.loadBundledKeymaps()
 keyBindingsToRestore = atom.keymaps.getKeyBindings()
 commandsToRestore = atom.commands.getSnapshot()
+styleElementsToRestore = atom.styles.getSnapshot()
 
 window.addEventListener 'core:close', -> window.close()
 window.addEventListener 'beforeunload', ->
@@ -44,8 +45,7 @@ Object.defineProperty document, 'title',
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
-if process.platform is 'win32' and process.env.JANKY_SHA1
-  # Use longer timeout on Windows CI
+if process.env.JANKY_SHA1 and process.platform is 'win32'
   jasmine.getEnv().defaultTimeoutInterval = 60000
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
@@ -74,6 +74,7 @@ beforeEach ->
   atom.workspace = new Workspace()
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
+  atom.styles.restoreSnapshot(styleElementsToRestore)
 
   window.resetTimeouts()
   atom.packages.packageStates = {}
@@ -105,6 +106,7 @@ beforeEach ->
   config.set "editor.autoIndent", false
   config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
+  config.set "editor.useShadowDOM", true
   config.load.reset()
   config.save.reset()
 
@@ -189,6 +191,10 @@ jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].hasOwnProperty('originalValue')
   object[methodName] = object[methodName].originalValue
 
+jasmine.attachToDOM = (element) ->
+  jasmineContent = document.querySelector('#jasmine-content')
+  jasmineContent.appendChild(element) unless jasmineContent.contains(element)
+
 addCustomMatchers = (spec) ->
   spec.addMatchers
     toBeInstanceOf: (expected) ->
@@ -218,13 +224,13 @@ addCustomMatchers = (spec) ->
       @message = -> return "Expected element '" + @actual + "' or its descendants" + notText + " to have focus."
       element = @actual
       element = element.get(0) if element.jquery
-      element.webkitMatchesSelector(":focus") or element.querySelector(":focus")
+      element is document.activeElement or element.contains(document.activeElement)
 
     toShow: ->
       notText = if @isNot then " not" else ""
       element = @actual
       element = element.get(0) if element.jquery
-      @message = -> return "Expected element '#{element}' or its descendants #{notText} to show."
+      @message = -> return "Expected element '#{element}' or its descendants#{notText} to show."
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
 window.keyIdentifierForKey = (key) ->
@@ -337,12 +343,8 @@ window.setEditorWidthInChars = (editorView, widthInChars, charWidth=editorView.c
   $(window).trigger 'resize' # update width of editor view's on-screen lines
 
 window.setEditorHeightInLines = (editorView, heightInLines, lineHeight=editorView.lineHeight) ->
-  if editorView.hasClass('react')
-    editorView.height(editorView.getEditor().getLineHeightInPixels() * heightInLines)
-    editorView.component?.measureHeightAndWidth()
-  else
-    editorView.height(lineHeight * heightInLines + editorView.renderedLines.position().top)
-    $(window).trigger 'resize' # update editor view's on-screen lines
+  editorView.height(editorView.getEditor().getLineHeightInPixels() * heightInLines)
+  editorView.component?.measureHeightAndWidth()
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)

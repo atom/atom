@@ -28,7 +28,7 @@ class WindowEventHandler
 
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
-    @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
+    @subscribeToCommand $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
       unless atom.project?.getPath()
         if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
           atom.project?.setPath(pathToOpen)
@@ -60,6 +60,10 @@ class WindowEventHandler
       atom.reload()
 
     @subscribeToCommand $(window), 'window:toggle-dev-tools', -> atom.toggleDevTools()
+
+    if process.platform in ['win32', 'linux']
+      @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
+        atom.config.set('core.autoHideMenuBar', !atom.config.get('core.autoHideMenuBar'))
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 

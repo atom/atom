@@ -146,6 +146,24 @@ describe "Pane", ->
       pane.activateNextItem()
       expect(pane.getActiveItem()).toBe item1
 
+  describe "::moveItemRight() and ::moveItemLeft()", ->
+    it "moves the active item to the right and left, without looping around at either end", ->
+      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      [item1, item2, item3] = pane.getItems()
+
+      pane.activateItemAtIndex(0)
+      expect(pane.getActiveItem()).toBe item1
+      pane.moveItemLeft()
+      expect(pane.getItems()).toEqual [item1, item2, item3]
+      pane.moveItemRight()
+      expect(pane.getItems()).toEqual [item2, item1, item3]
+      pane.moveItemLeft()
+      expect(pane.getItems()).toEqual [item1, item2, item3]
+      pane.activateItemAtIndex(2)
+      expect(pane.getActiveItem()).toBe item3
+      pane.moveItemRight()
+      expect(pane.getItems()).toEqual [item1, item2, item3]
+
   describe "::activateItemAtIndex(index)", ->
     it "activates the item at the given index", ->
       pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
@@ -564,6 +582,37 @@ describe "Pane", ->
       pane2 = pane1.splitRight()
       expect(pane1.isActive()).toBe false
       expect(pane2.isActive()).toBe true
+
+  describe "::close()", ->
+    it "prompts to save unsaved items before destroying the pane", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+
+      item1.shouldPromptToSave = -> true
+      item1.getUri = -> "/test/path"
+      item1.save = jasmine.createSpy("save")
+
+      spyOn(atom, 'confirm').andReturn(0)
+      pane.close()
+
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(item1.save).toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe true
+
+    it "does not destroy the pane if cancel is called", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+
+      item1.shouldPromptToSave = -> true
+      item1.getUri = -> "/test/path"
+      item1.save = jasmine.createSpy("save")
+
+      spyOn(atom, 'confirm').andReturn(1)
+      pane.close()
+
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(item1.save).not.toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe false
 
   describe "::destroy()", ->
     [container, pane1, pane2] = []

@@ -13,6 +13,11 @@ $ = null # Defer require in case this is in the window-less browser process
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
+try
+  packagesCache = require('../package.json')?._atomPackages ? {}
+catch error
+  packagesCache = {}
+
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
@@ -21,19 +26,31 @@ class Package
 
   @stylesheetsDir: 'stylesheets'
 
+  @isBundledPackagePath: (packagePath) ->
+    if atom.packages.devMode
+      return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
+
+    @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
-    if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
-      try
-        metadata = CSON.readFileSync(metadataPath)
-      catch error
-        throw error unless ignoreErrors
+    packageName = path.basename(packagePath)
+    if @isBundledPackagePath(packagePath)
+      metadata = packagesCache[packageName]?.metadata
+    unless metadata?
+      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
+        try
+          metadata = CSON.readFileSync(metadataPath)
+        catch error
+          throw error unless ignoreErrors
     metadata ?= {}
-    metadata.name = path.basename(packagePath)
+    metadata.name = packageName
     metadata
 
   keymaps: null
   menus: null
   stylesheets: null
+  stylesheetDisposables: null
   grammars: null
   scopedProperties: null
   mainModulePath: null
@@ -47,6 +64,7 @@ class Package
   constructor: (@path, @metadata) ->
     @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
+    @bundledPackage = Package.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
     ModuleCache.add(@path, @metadata)
     @reset()
@@ -158,16 +176,24 @@ class Package
   activateStylesheets: ->
     return if @stylesheetsActivated
 
-    type = @getStylesheetType()
-    for [stylesheetPath, content] in @stylesheets
-      atom.themes.applyStylesheet(stylesheetPath, content, type)
+    group = @getStylesheetType()
+    @stylesheetDisposables = new CompositeDisposable
+    for [sourcePath, source] in @stylesheets
+      if match = path.basename(sourcePath).match(/[^.]*\.([^.]*)\./)
+        context = match[1]
+      else if @metadata.theme is 'syntax'
+        context = 'atom-text-editor'
+      else
+        context = undefined
+
+      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, group, context}))
     @stylesheetsActivated = true
 
   activateResources: ->
     @activationDisposables = new CompositeDisposable
     @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
-    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus
-    @activationDisposables.add(atom.menu.add(map.menu)) for [menuPath, map] in @menus when map.menu
+    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus when map['context-menu']?
+    @activationDisposables.add(atom.menu.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
@@ -177,10 +203,16 @@ class Package
     @scopedPropertiesActivated = true
 
   loadKeymaps: ->
-    @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
+    else
+      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
 
   loadMenus: ->
-    @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
+    else
+      @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
@@ -297,7 +329,7 @@ class Package
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
     scopedProperties.deactivate() for scopedProperties in @scopedProperties
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    @stylesheetDisposables?.dispose()
     @activationDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
@@ -306,27 +338,38 @@ class Package
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
-    @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
-
-  reloadStylesheet: (stylesheetPath, content) ->
-    atom.themes.applyStylesheet(stylesheetPath, content, @getStylesheetType())
+    @stylesheetDisposables.dispose()
+    @stylesheetDisposables = new CompositeDisposable
+    @stylesheetsActivated = false
+    @activateStylesheets()
 
   requireMainModule: ->
     return @mainModule if @mainModule?
-    return unless @isCompatible()
+    unless @isCompatible()
+      console.warn """
+        Failed to require the main module of '#{@name}' because it requires an incompatible native module.
+        Run `apm rebuild` in the package directory to resolve.
+      """
+      return
     mainModulePath = @getMainModulePath()
     @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
-    mainModulePath =
-      if @metadata.main
-        path.join(@path, @metadata.main)
+
+    if @bundledPackage and packagesCache[@name]?
+      if packagesCache[@name].main
+        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{packagesCache[@name].main}"
       else
-        path.join(@path, 'index')
-    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+        @mainModulePath = null
+    else
+      mainModulePath =
+        if @metadata.main
+          path.join(@path, @metadata.main)
+        else
+          path.join(@path, 'index')
+      @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
   hasActivationCommands: ->
     for selector, commands of @getActivationCommands()

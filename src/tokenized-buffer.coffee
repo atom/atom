@@ -6,6 +6,7 @@ EmitterMixin = require('emissary').Emitter
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
+ScopeDescriptor = require './scope-descriptor'
 Grim = require 'grim'
 
 module.exports =
@@ -28,7 +29,7 @@ class TokenizedBuffer extends Model
     @subscribe atom.syntax.onDidAddGrammar(@grammarAddedOrUpdated)
     @subscribe atom.syntax.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
-    @subscribe @buffer.onDidChange (e) => @handleBufferChange(e)
+    @subscribe @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
     @reloadGrammar()
@@ -79,7 +80,7 @@ class TokenizedBuffer extends Model
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
-    @rootScopeDescriptor = [@grammar.scopeName]
+    @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
     @subscribe @grammar.onDidUpdate => @retokenizeLines()
 
@@ -105,7 +106,7 @@ class TokenizedBuffer extends Model
   hasTokenForSelector: (selector) ->
     for {tokens} in @tokenizedLines
       for token in tokens
-        return true if selector.matches(token.scopeDescriptor)
+        return true if selector.matches(token.scopes)
     false
 
   retokenizeLines: ->
@@ -124,7 +125,10 @@ class TokenizedBuffer extends Model
   getTabLength: ->
     @tabLength ? @configSettings.tabLength
 
-  setTabLength: (@tabLength) ->
+  setTabLength: (tabLength) ->
+    return if tabLength is @tabLength
+
+    @tabLength = tabLength
     @retokenizeLines()
 
   setInvisibles: (invisibles) ->
@@ -247,7 +251,7 @@ class TokenizedBuffer extends Model
 
   buildPlaceholderTokenizedLineForRow: (row) ->
     line = @buffer.lineForRow(row)
-    tokens = [new Token(value: line, scopeDescriptor: [@grammar.scopeName])]
+    tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
@@ -303,7 +307,7 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    @tokenForPosition(position).scopeDescriptor
+    new ScopeDescriptor(scopes: @tokenForPosition(position).scopes)
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)

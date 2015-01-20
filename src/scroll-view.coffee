@@ -1,6 +1,6 @@
 {View} = require './space-pen-extensions'
 
-# Extended: Represents a view that scrolls.
+# Deprecated: Represents a view that scrolls.
 #
 # Handles several core events to update scroll position:
 #

@@ -13,7 +13,7 @@ describe "WorkspaceView", ->
     atom.project.setPaths([atom.project.resolve('dir')])
     pathToOpen = atom.project.resolve('a')
     atom.workspace = new Workspace
-    atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
+    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
     atom.workspaceView.enableKeymap()
     atom.workspaceView.focus()
 
@@ -29,7 +29,7 @@ describe "WorkspaceView", ->
       atom.workspaceView.remove()
       atom.project = atom.deserializers.deserialize(projectState)
       atom.workspace = Workspace.deserialize(workspaceState)
-      atom.workspaceView = atom.workspace.getView(atom.workspace).__spacePenView
+      atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
       atom.workspaceView.attachToDom()
 
     describe "when the serialized WorkspaceView has an unsaved buffer", ->
@@ -270,3 +270,22 @@ describe "WorkspaceView", ->
       atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorNode).lineHeight).toBe atom.config.get('editor.lineHeight')
       expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight
+
+  describe 'panel containers', ->
+    workspaceElement = null
+    beforeEach ->
+      workspaceElement = atom.views.getView(atom.workspace)
+
+    it 'inserts panel container elements in the correct places in the DOM', ->
+      leftContainer = workspaceElement.querySelector('atom-panel-container.left')
+      rightContainer = workspaceElement.querySelector('atom-panel-container.right')
+      expect(leftContainer.nextSibling).toBe workspaceElement.verticalAxis
+      expect(rightContainer.previousSibling).toBe workspaceElement.verticalAxis
+
+      topContainer = workspaceElement.querySelector('atom-panel-container.top')
+      bottomContainer = workspaceElement.querySelector('atom-panel-container.bottom')
+      expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
+      expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
+
+      modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
+      expect(modalContainer.parentNode).toBe workspaceElement

@@ -56,6 +56,11 @@ describe "DisplayBuffer", ->
       buffer.delete([[8, 0], [10, 0]])
       expect(displayBuffer.getScrollTop()).toBe 60
 
+    it "updates the display buffer prior to invoking change handlers registered on the buffer", ->
+      buffer.onDidChange -> expect(displayBuffer2.tokenizedLineForScreenRow(0).text).toBe "testing"
+      displayBuffer2 = new DisplayBuffer({buffer, tabLength})
+      buffer.setText("testing")
+
   describe "soft wrapping", ->
     beforeEach ->
       displayBuffer.setSoftWrapped(true)

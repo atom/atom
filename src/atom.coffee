@@ -14,6 +14,7 @@ fs = require 'fs-plus'
 
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
+StylesElement = require './styles-element'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -29,7 +30,10 @@ class Atom extends Model
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
-    @deserialize(@loadState(mode)) ? new this({mode, @version})
+    startTime = Date.now()
+    atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
+    atom.deserializeTimings.atom = Date.now() -  startTime
+    atom
 
   # Deserializes the Atom environment from a state object
   @deserialize: (state) ->
@@ -103,7 +107,7 @@ class Atom extends Model
   Section: Properties
   ###
 
-  # Experimental: A {CommandRegistry} instance
+  # Public: A {CommandRegistry} instance
   commands: null
 
   # Public: A {Config} instance
@@ -133,8 +137,14 @@ class Atom extends Model
   # Public: A {ThemeManager} instance
   themes: null
 
+  # Public: A {StyleManager} instance
+  styles: null
+
   # Public: A {DeserializerManager} instance
   deserializers: null
+
+  # Public: A {ViewRegistry} instance
+  views: null
 
   # Public: A {Workspace} instance
   workspace: null
@@ -152,6 +162,7 @@ class Atom extends Model
     {@mode} = @state
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
+    @deserializeTimings = {}
 
   # Sets up the basic services that should be available in all modes
   # (both spec and application).
@@ -165,10 +176,21 @@ class Atom extends Model
       require('grim').deprecate = ->
 
     window.onerror = =>
-      @openDevTools()
-      @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
       @lastUncaughtError = Array::slice.call(arguments)
+      [message, url, line, column, originalError] = @lastUncaughtError
+      eventObject = {message, url, line, column, originalError}
+
+      openDevTools = true
+      eventObject.preventDefault = -> openDevTools = false
+
+      @emitter.emit 'will-throw-error', eventObject
+
+      if openDevTools
+        @openDevTools()
+        @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
+
       @emit 'uncaught-error', arguments...
+      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @unsubscribe()
     @setBodyPlatformClass()
@@ -177,11 +199,13 @@ class Atom extends Model
 
     Config = require './config'
     KeymapManager = require './keymap-extensions'
+    ViewRegistry = require './view-registry'
     CommandRegistry = require './command-registry'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     Syntax = require './syntax'
     ThemeManager = require './theme-manager'
+    StyleManager = require './style-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
@@ -196,11 +220,17 @@ class Atom extends Model
     # Make react.js faster
     process.env.NODE_ENV ?= 'production' unless devMode
 
+    # Set Atom's home so packages don't have to guess it
+    process.env.ATOM_HOME = configDirPath
+
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
     @commands = new CommandRegistry
+    @views = new ViewRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
+    @styles = new StyleManager
+    document.head.appendChild(new StylesElement)
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
@@ -230,6 +260,36 @@ class Atom extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidBeep: (callback) ->
     @emitter.on 'did-beep', callback
+
+  # Extended: Invoke the given callback when there is an unhandled error, but
+  # before the devtools pop open
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
+  #     * `preventDefault` {Function} call this to avoid popping up the dev tools.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onWillThrowError: (callback) ->
+    @emitter.on 'will-throw-error', callback
+
+  # Extended: Invoke the given callback whenever there is an unhandled error.
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidThrowError: (callback) ->
+    @emitter.on 'did-throw-error', callback
 
   ###
   Section: Atom Details
@@ -477,7 +537,11 @@ class Atom extends Model
     @packages.activate()
     @keymaps.loadUserKeymap()
     @requireUserInitScript() unless safeMode
+
     @menu.update()
+    @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
+      @setAutoHideMenuBar(newValue)
+    @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
     maximize = dimensions?.maximized and process.platform isnt 'darwin'
     @displayWindow({maximize})
@@ -586,7 +650,7 @@ class Atom extends Model
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-    @workspaceView = @workspace.getView(@workspace).__spacePenView
+    @workspaceView = @views.getView(@workspace).__spacePenView
     @deserializeTimings.workspace = Date.now() - startTime
 
     @keymaps.defaultTarget = @workspaceView[0]
@@ -597,7 +661,6 @@ class Atom extends Model
     delete @state.packageStates
 
   deserializeEditorWindow: ->
-    @deserializeTimings = {}
     @deserializePackageStates()
     @deserializeProject()
     @deserializeWorkspaceView()
@@ -698,3 +761,7 @@ class Atom extends Model
 
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
+
+  setAutoHideMenuBar: (autoHide) ->
+    ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
+    ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)

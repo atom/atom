@@ -70,7 +70,7 @@ class AtomApplication
 
     @autoUpdateManager = new AutoUpdateManager(@version)
     @applicationMenu = new ApplicationMenu(@version)
-    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath)
+    @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
@@ -97,7 +97,7 @@ class AtomApplication
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
     @windows.push window
-    @applicationMenu?.enableWindowSpecificItems(true)
+    @applicationMenu?.addWindow(window.browserWindow)
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
@@ -155,7 +155,13 @@ class AtomApplication
       atomWindow?.browserWindow.inspectElement(x, y)
 
     @on 'application:open-documentation', -> require('shell').openExternal('https://atom.io/docs/latest/?app')
+    @on 'application:open-discussions', -> require('shell').openExternal('https://discuss.atom.io')
+    @on 'application:open-roadmap', -> require('shell').openExternal('https://atom.io/roadmap?app')
+    @on 'application:open-faq', -> require('shell').openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
+    @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/issues/new')
+    @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
+
     @on 'application:install-update', -> @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
@@ -215,7 +221,8 @@ class AtomApplication
         @promptForPath({window})
 
     ipc.on 'update-application-menu', (event, template, keystrokesByCommand) =>
-      @applicationMenu.update(template, keystrokesByCommand)
+      win = BrowserWindow.fromWebContents(event.sender)
+      @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, specDirectory) =>
       @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
@@ -230,6 +237,11 @@ class AtomApplication
     ipc.on 'call-window-method', (event, method, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
+
+    clipboard = null
+    ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
+      clipboard ?= require 'clipboard'
+      clipboard.writeText(selectedText, 'selection')
 
   # Public: Executes the given command.
   #

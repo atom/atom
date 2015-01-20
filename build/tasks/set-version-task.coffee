@@ -32,7 +32,7 @@ module.exports = (grunt) ->
       packageJsonPath = path.join(appDir, 'package.json')
       packageJson = require(packageJsonPath)
       packageJson.version = version
-      packageJsonString = JSON.stringify(packageJson, null, 2)
+      packageJsonString = JSON.stringify(packageJson)
       fs.writeFileSync(packageJsonPath, packageJsonString)
 
       if process.platform is 'darwin'

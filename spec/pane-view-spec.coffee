@@ -24,7 +24,7 @@ describe "PaneView", ->
 
   beforeEach ->
     deserializerDisposable = atom.deserializers.add(TestView)
-    container = atom.workspace.getView(new PaneContainer).__spacePenView
+    container = atom.views.getView(new PaneContainer).__spacePenView
     containerModel = container.model
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
@@ -144,12 +144,15 @@ describe "PaneView", ->
 
   describe "when an item is moved to another pane", ->
     it "detaches the item's view rather than removing it", ->
+      container.attachToDom()
+      expect(view1.is(':visible')).toBe true
       paneModel2 = paneModel.splitRight()
       view1.data('preservative', 1234)
       paneModel.moveItemToPane(view1, paneModel2, 1)
       expect(view1.data('preservative')).toBe 1234
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
+      expect(view1.is(':visible')).toBe true
 
   describe "when the title of the active item changes", ->
     describe 'when there is no onDidChangeTitle method', ->
@@ -311,13 +314,13 @@ describe "PaneView", ->
       container.attachToDom()
       pane.focus()
 
-      container2 = atom.workspace.getView(container.model.testSerialization()).__spacePenView
+      container2 = atom.views.getView(container.model.testSerialization()).__spacePenView
       pane2 = container2.getRoot()
       container2.attachToDom()
       expect(pane2).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      container3 = atom.workspace.getView(container.model.testSerialization()).__spacePenView
+      container3 = atom.views.getView(container.model.testSerialization()).__spacePenView
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')

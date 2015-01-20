@@ -29,6 +29,8 @@
   'ctrl-alt-cmd-l': 'window:reload'
   'alt-cmd-i': 'window:toggle-dev-tools'
   'cmd-alt-ctrl-p': 'window:run-package-specs'
+  'ctrl-shift-left': 'pane:move-item-left'
+  'ctrl-shift-right': 'pane:move-item-right'
 
   # Sublime Parity
   'cmd-,': 'application:show-settings'
@@ -110,7 +112,7 @@
   # Apple Specific
   'cmd-backspace': 'editor:delete-to-beginning-of-line'
   'cmd-shift-backspace': 'editor:delete-to-beginning-of-line'
-  'cmd-delete': 'editor:delete-to-beginning-of-line'
+  'cmd-delete': 'editor:delete-to-end-of-line'
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-E': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
@@ -134,7 +136,7 @@
   'cmd-l': 'editor:select-line'
   'ctrl-t': 'editor:transpose'
 
-'atom-workspace atom-text-editor:not(.mini)':
+'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'

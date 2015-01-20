@@ -4,6 +4,9 @@ Atom is a hackable text editor for the 21st century, built on [atom-shell](http:
 
 Visit [atom.io](https://atom.io) to learn more.
 
+Visit [issue #3684](https://github.com/atom/atom/issues/3684) to learn more
+about the Atom 1.0 roadmap.
+
 ## Installing
 
 ### Mac OS X
@@ -31,6 +34,17 @@ Currently only a 64-bit version is available.
 
 1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
+3. Launch Atom using the installed `atom` command.
+
+The Linux version does not currently automatically update so you will need to
+repeat these steps to upgrade to future releases.
+
+### Red Hat Linux (Fedora, CentOS, Red Hat)
+
+Currently only a 64-bit version is available.
+
+1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to
