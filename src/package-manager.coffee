@@ -128,9 +128,10 @@ class PackageManager
   #
   # Return a {String} file path to apm.
   getApmPath: ->
-    commandName = 'apm'
-    commandName += '.cmd' if process.platform is 'win32'
-    @apmPath ?= path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', commandName)
+    if process.platform is 'win32'
+      @apmPath ?= path.resolve(__dirname, '..', 'apm', 'bin', 'apm.cmd')
+    else
+      @apmPath ?= path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
 
   # Public: Get the paths being used to look for packages.
   #
