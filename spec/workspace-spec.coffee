@@ -1008,6 +1008,21 @@ describe "Workspace", ->
         expect(notificaiton.getType()).toBe 'warning'
         expect(notificaiton.getMessage()).toContain 'Unable to save'
 
+      it "emits a warning notification when the file system is read-only", ->
+        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+          error = new Error("EROFS, read-only file system '/Some/dir/and-a-file.js'")
+          error.code = 'EROFS'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+
+        notification = addedSpy.mostRecentCall.args[0]
+        expect(notification.getType()).toBe 'warning'
+        expect(notification.getMessage()).toContain 'Unable to save'
+
       it "emits a warning notification when the file cannot be saved", ->
         spyOn(Pane::, 'saveActiveItem').andCallFake ->
           throw new Error("no one knows")

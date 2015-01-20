@@ -631,6 +631,8 @@ class Workspace extends Model
         atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
       else if error.code is 'EBUSY' and error.path?
         atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
+      else if error.code is 'EROFS' and error.path?
+        atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
       else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
         fileName = errorMatch[1]
         atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
