@@ -60,7 +60,7 @@
     "semver": "2.2.1",
     "serializable": "^1",
     "service-hub": "^0.2.0",
-    "space-pen": "3.8.2",
+    "space-pen": "^5.1",
     "stacktrace-parser": "0.1.1",
     "temp": "0.7.0",
     "text-buffer": "^3.10.0",

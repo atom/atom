@@ -611,7 +611,7 @@ class Atom extends Model
     @project?.destroy()
     @project = null
 
-    @windowEventHandler?.unsubscribe()
+    @windowEventHandler?.destroy()
 
   ###
   Section: Messaging the User
