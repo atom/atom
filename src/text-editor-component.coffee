@@ -48,7 +48,7 @@ TextEditorComponent = React.createClass
   remeasureCharacterWidthsWhenShown: false
 
   render: ->
-    {focused, showIndentGuide, showLineNumbers, visible} = @state
+    {focused, showLineNumbers, visible} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
@@ -115,7 +115,7 @@ TextEditorComponent = React.createClass
           ref: 'lines',
           editor, lineHeightInPixels, defaultCharWidth, tokenizedLines,
           lineDecorations, highlightDecorations, overlayDecorations, hostElement,
-          showIndentGuide, renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
+          renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
           @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
           visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
           placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
@@ -470,7 +470,7 @@ TextEditorComponent = React.createClass
 
     scopeDescriptor = editor.getRootScopeDescriptor()
 
-    subscriptions.add atom.config.observe 'editor.showIndentGuide', scope: scopeDescriptor, @setShowIndentGuide
+    subscriptions.add atom.config.observe 'editor.showIndentGuide', scope: scopeDescriptor, @requestUpdate
     subscriptions.add atom.config.observe 'editor.showLineNumbers', scope: scopeDescriptor, @updateGutterVisible
     subscriptions.add atom.config.observe 'editor.scrollSensitivity', scope: scopeDescriptor, @setScrollSensitivity
 
@@ -1014,7 +1014,7 @@ TextEditorComponent = React.createClass
     @sampleFontStyling()
 
   setShowIndentGuide: (showIndentGuide) ->
-    @setState({showIndentGuide})
+    atom.config.set("editor.showIndentGuide", showIndentGuide)
 
   setMini: ->
     @updateGutterVisible()

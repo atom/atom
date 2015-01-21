@@ -75,14 +75,16 @@ LinesComponent = React.createClass
     {visible, scrollingVertically, performedInitialMeasurement} = @props
     return unless performedInitialMeasurement
 
-    unless isEqualForProperties(prevProps, @props, 'showIndentGuide')
-      @removeLineNodes()
+    @removeLineNodes() unless @oldState?.indentGuidesVisible is @newState?.indentGuidesVisible
 
     @updateLineNodes(@props.lineWidth isnt prevProps.lineWidth)
 
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
     @overlayManager?.render(@props)
+
+    @oldState.indentGuidesVisible = @newState.indentGuidesVisible
+    @oldState.scrollWidth = @newState.scrollWidth
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
@@ -126,8 +128,6 @@ LinesComponent = React.createClass
 
       @renderedDecorationsByLineId[id] = lineDecorations[lineState.screenRow]
 
-    @oldState.scrollWidth = @newState.scrollWidth
-
     return unless newLineIds?
 
     WrapperDiv.innerHTML = newLinesHTML
@@ -139,7 +139,7 @@ LinesComponent = React.createClass
       node.appendChild(lineNode)
 
   buildLineHTML: (id) ->
-    {presenter, showIndentGuide, lineDecorations} = @props
+    {presenter, lineDecorations} = @props
     {scrollWidth} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel} = @newState.lines[id]
 
@@ -162,10 +162,10 @@ LinesComponent = React.createClass
     lineHTML
 
   buildEmptyLineInnerHTML: (id) ->
-    {showIndentGuide} = @props
+    {indentGuidesVisible} = @newState
     {indentLevel, tabLength, endOfLineInvisibles} = @newState.lines[id]
 
-    if showIndentGuide and indentLevel > 0
+    if indentGuidesVisible and indentLevel > 0
       invisibleIndex = 0
       lineHTML = ''
       for i in [0...indentLevel]
@@ -185,7 +185,8 @@ LinesComponent = React.createClass
       @buildEndOfLineHTML(id) or '&nbsp;'
 
   buildLineInnerHTML: (id) ->
-    {editor, showIndentGuide} = @props
+    {editor} = @props
+    {indentGuidesVisible} = @newState
     {tokens, text} = @newState.lines[id]
     innerHTML = ""
 
@@ -194,7 +195,7 @@ LinesComponent = React.createClass
     lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
     for token in tokens
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = not editor.isMini() and showIndentGuide and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
+      hasIndentGuide = not editor.isMini() and indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0

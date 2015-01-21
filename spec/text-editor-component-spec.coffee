@@ -301,7 +301,9 @@ describe "TextEditorComponent", ->
         expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
-        component.setShowIndentGuide(true)
+        atom.config.set "editor.showIndentGuide", true
+        nextAnimationFrame()
+
         editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", normalizeLineEndings: false)
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>'
@@ -334,7 +336,8 @@ describe "TextEditorComponent", ->
 
     describe "when indent guides are enabled", ->
       beforeEach ->
-        component.setShowIndentGuide(true)
+        atom.config.set "editor.showIndentGuide", true
+        nextAnimationFrame()
 
       it "adds an 'indent-guide' class to spans comprising the leading whitespace", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -410,7 +413,7 @@ describe "TextEditorComponent", ->
 
     describe "when indent guides are disabled", ->
       beforeEach ->
-        component.setShowIndentGuide(false)
+        expect(atom.config.get("editor.showIndentGuide")).toBe false
 
       it "does not render indent guides on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
@@ -2698,6 +2701,7 @@ describe "TextEditorComponent", ->
       beforeEach ->
         atom.config.set 'editor.showIndentGuide', true, scopeSelector: '.source.js'
         atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.coffee'
+        nextAnimationFrame()
 
       it "has an 'indent-guide' class when scoped editor.showIndentGuide is true, but not when scoped editor.showIndentGuide is false", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -2706,6 +2710,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
         editor.setGrammar(coffeeEditor.getGrammar())
+        nextAnimationFrame()
 
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
@@ -2719,6 +2724,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
         atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.js'
+        nextAnimationFrame()
 
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
