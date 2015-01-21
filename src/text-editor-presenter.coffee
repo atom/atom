@@ -18,9 +18,10 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeSoftWrapped =>
       @updateContentState()
       @updateLinesState()
+    @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
 
   observeConfig: ->
-    @disposables.add atom.config.onDidChange 'editor.showIndentGuide', @updateContentState.bind(this)
+    @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
 
   buildState: ->
     @state = {}
@@ -30,7 +31,7 @@ class TextEditorPresenter
   buildContentState: ->
     @state.content =
       scrollWidth: @computeScrollWidth()
-      indentGuidesVisible: atom.config.get('editor.showIndentGuide')
+      indentGuidesVisible: atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
 
   buildLinesState: ->
     @state.content.lines = {}
@@ -38,7 +39,7 @@ class TextEditorPresenter
 
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
-    @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide')
+    @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
 
   updateLinesState: ->
     visibleLineIds = {}

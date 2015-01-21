@@ -87,6 +87,22 @@ describe "TextEditorPresenter", ->
         atom.config.set('editor.showIndentGuide', false)
         expect(presenter.state.content.indentGuidesVisible).toBe false
 
+    describe "when the editor's grammar changes", ->
+      it "updates .indentGuidesVisible based on the grammar's root scope", ->
+        atom.config.set('editor.showIndentGuide', true, scopeSelector: ".source.js")
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.content.indentGuidesVisible).toBe false
+
+        waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+        runs ->
+          editor.setGrammar(atom.grammars.selectGrammar('.js'))
+          expect(presenter.state.content.indentGuidesVisible).toBe true
+
+          editor.setGrammar(atom.grammars.selectGrammar('.txt'))
+          expect(presenter.state.content.indentGuidesVisible).toBe false
+
   describe "::state.content.lines", ->
     describe "on initialization", ->
       it "contains the lines that are visible on screen, plus the overdraw margin", ->
