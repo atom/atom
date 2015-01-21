@@ -139,7 +139,7 @@ LinesComponent = React.createClass
       node.appendChild(lineNode)
 
   buildLineHTML: (id) ->
-    {presenter, showIndentGuide, lineHeightInPixels, lineDecorations} = @props
+    {presenter, showIndentGuide, lineDecorations} = @props
     {scrollWidth} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel} = @newState.lines[id]
 
@@ -236,7 +236,7 @@ LinesComponent = React.createClass
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
-    {lineHeightInPixels, lineDecorations} = @props
+    {lineDecorations} = @props
     {scrollWidth} = @newState
     {screenRow, top} = @newState.lines[id]
 
