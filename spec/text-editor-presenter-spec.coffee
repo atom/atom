@@ -23,24 +23,24 @@ describe "TextEditorPresenter", ->
       it "assigns .scrollWidth based on the clientWidth and the width of the longest line", ->
         maxLineLength = editor.getMaxScreenLineLength()
 
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
         expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
 
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 10 * maxLineLength + 20, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
         expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20
 
       it "assigns .indentGuidesVisible based on the editor.showIndentGuide config setting", ->
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor)
         expect(presenter.state.content.indentGuidesVisible).toBe false
 
         atom.config.set('editor.showIndentGuide', true)
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor)
         expect(presenter.state.content.indentGuidesVisible).toBe true
 
     describe "when the ::clientWidth changes", ->
       it "updates .scrollWidth", ->
         maxLineLength = editor.getMaxScreenLineLength()
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
 
         expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
         presenter.setClientWidth(10 * maxLineLength + 20)
@@ -49,7 +49,7 @@ describe "TextEditorPresenter", ->
     describe "when the ::baseCharacterWidth changes", ->
       it "updates the width of the lines if it changes the ::scrollWidth", ->
         maxLineLength = editor.getMaxScreenLineLength()
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
 
         expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
         presenter.setBaseCharacterWidth(15)
@@ -61,7 +61,7 @@ describe "TextEditorPresenter", ->
 
       it "updates the width of the lines if the ::scrollWidth changes", ->
         maxLineLength = editor.getMaxScreenLineLength()
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
 
         expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
         presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
@@ -69,7 +69,7 @@ describe "TextEditorPresenter", ->
 
     describe "when ::softWrapped changes on the editor", ->
       it "only accounts for the cursor in .scrollWidth if ::softWrapped is false", ->
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, scrollWidth: 70, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
         expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
         editor.setSoftWrapped(true)
         expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
@@ -78,7 +78,7 @@ describe "TextEditorPresenter", ->
 
     describe "when the editor.showIndentGuide config setting changes", ->
       it "updates .indentGuidesVisible", ->
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor)
         expect(presenter.state.content.indentGuidesVisible).toBe false
 
         atom.config.set('editor.showIndentGuide', true)
@@ -91,7 +91,7 @@ describe "TextEditorPresenter", ->
       it "updates .indentGuidesVisible based on the grammar's root scope", ->
         atom.config.set('editor.showIndentGuide', true, scopeSelector: ".source.js")
 
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor)
         expect(presenter.state.content.indentGuidesVisible).toBe false
 
         waitsForPromise -> atom.packages.activatePackage('language-javascript')
@@ -181,12 +181,12 @@ describe "TextEditorPresenter", ->
 
       it "includes the .endOfLineInvisibles in the line state if the editor.showInvisibles config option is true", ->
         editor.setText("hello\nworld\r\n")
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
         expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toBeNull()
         expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toBeNull()
 
         atom.config.set('editor.showInvisibles', true)
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
         expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
         expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
 
@@ -194,7 +194,7 @@ describe "TextEditorPresenter", ->
         editor.decorateMarker(editor.markBufferRange([[4, 0], [6, 0]]), type: 'line', class: 'a')
         editor.decorateMarker(editor.markBufferRange([[5, 0], [5, 0]]), type: 'line', class: 'b')
 
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
 
         expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
         expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
