@@ -29,6 +29,14 @@ describe "TextEditorPresenter", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 10 * maxLineLength + 20, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
         expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20
 
+      it "assigns .indentGuidesVisible based on the editor.showIndentGuide config setting", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.content.indentGuidesVisible).toBe false
+
+        atom.config.set('editor.showIndentGuide', true)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.content.indentGuidesVisible).toBe true
+
     describe "when the ::clientWidth changes", ->
       it "updates .scrollWidth", ->
         maxLineLength = editor.getMaxScreenLineLength()
@@ -67,6 +75,17 @@ describe "TextEditorPresenter", ->
         expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
         editor.setSoftWrapped(false)
         expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
+    describe "when the editor.showIndentGuide config setting changes", ->
+      it "updates .indentGuidesVisible", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+        expect(presenter.state.content.indentGuidesVisible).toBe false
+
+        atom.config.set('editor.showIndentGuide', true)
+        expect(presenter.state.content.indentGuidesVisible).toBe true
+
+        atom.config.set('editor.showIndentGuide', false)
+        expect(presenter.state.content.indentGuidesVisible).toBe false
 
   describe "::state.content.lines", ->
     describe "on initialization", ->

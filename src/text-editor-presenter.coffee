@@ -6,17 +6,21 @@ class TextEditorPresenter
   constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin}) ->
     @disposables = new CompositeDisposable
     @charWidthsByScope = {}
-    @subscribeToModel()
+    @observeModel()
+    @observeConfig()
     @buildState()
 
   destroy: ->
     @disposables.dispose()
 
-  subscribeToModel: ->
+  observeModel: ->
     @disposables.add @model.onDidChange(@updateLinesState.bind(this))
     @disposables.add @model.onDidChangeSoftWrapped =>
       @updateContentState()
       @updateLinesState()
+
+  observeConfig: ->
+    @disposables.add atom.config.onDidChange 'editor.showIndentGuide', @updateContentState.bind(this)
 
   buildState: ->
     @state = {}
@@ -24,7 +28,9 @@ class TextEditorPresenter
     @buildLinesState()
 
   buildContentState: ->
-    @state.content = {scrollWidth: @computeScrollWidth()}
+    @state.content =
+      scrollWidth: @computeScrollWidth()
+      indentGuidesVisible: atom.config.get('editor.showIndentGuide')
 
   buildLinesState: ->
     @state.content.lines = {}
@@ -32,6 +38,7 @@ class TextEditorPresenter
 
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
+    @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide')
 
   updateLinesState: ->
     visibleLineIds = {}
