@@ -35,6 +35,10 @@ module.exports =
 
       MIT/X11
     """
+  'cheerio@0.15.0':
+    repository: "https://github.com/cheeriojs/cheerio"
+    license: 'MIT'
+    source: 'https://github.com/cheeriojs/cheerio/blob/master/package.json'
   'specificity@0.1.3':
     repository: 'https://github.com/keeganstreet/specificity'
     license: 'MIT'
