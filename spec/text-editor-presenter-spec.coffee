@@ -355,5 +355,10 @@ describe "TextEditorPresenter", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
         marker = editor.markBufferRange([[0, 0], [0, 0]])
         decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
+        expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
 
+        editor.setMini(false)
+        expect(lineStateForScreenRow(presenter, 0).decorationClasses).toEqual ['cursor-line', 'a']
+
+        editor.setMini(true)
         expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()

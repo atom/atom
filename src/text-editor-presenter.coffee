@@ -18,6 +18,7 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
+    @disposables.add @model.onDidChangeMini(@updateLinesState.bind(this))
     @observeDecoration(decoration) for decoration in @model.getLineDecorations()
 
   observeConfig: ->
