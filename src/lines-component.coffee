@@ -103,7 +103,7 @@ LinesComponent = React.createClass
     delete @oldState.lines[id]
 
   updateLineNodes: ->
-    {presenter, lineDecorations, mouseWheelScreenRow} = @props
+    {presenter, mouseWheelScreenRow} = @props
 
     for id of @oldState.lines
       unless @newState.lines.hasOwnProperty(id) or mouseWheelScreenRow is @screenRowsByLineId[id]
@@ -124,8 +124,6 @@ LinesComponent = React.createClass
         @lineIdsByScreenRow[lineState.screenRow] = id
       @oldState.lines[id] = _.clone(lineState)
 
-      @renderedDecorationsByLineId[id] = lineDecorations[lineState.screenRow]
-
     return unless newLineIds?
 
     WrapperDiv.innerHTML = newLinesHTML
@@ -137,7 +135,7 @@ LinesComponent = React.createClass
       node.appendChild(lineNode)
 
   buildLineHTML: (id) ->
-    {presenter, lineDecorations} = @props
+    {presenter} = @props
     {scrollWidth} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newState.lines[id]
 
@@ -234,10 +232,8 @@ LinesComponent = React.createClass
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
-    {lineDecorations} = @props
     {scrollWidth} = @newState
     {screenRow, top} = @newState.lines[id]
-
 
     lineNode = @lineNodesByLineId[id]
 
@@ -283,8 +279,7 @@ LinesComponent = React.createClass
     @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
-    {editor, tokenizedLines, renderedRowRange} = @props
-    [visibleStartRow] = renderedRowRange
+    {editor} = @props
     node = @getDOMNode()
 
     editor.batchCharacterMeasurement =>
