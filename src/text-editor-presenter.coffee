@@ -14,7 +14,7 @@ class TextEditorPresenter
     @disposables.dispose()
 
   observeModel: ->
-    @disposables.add @model.onDidChange(@updateLinesState.bind(this))
+    @disposables.add @model.onDidChange(@updateState.bind(this))
     @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
@@ -30,9 +30,8 @@ class TextEditorPresenter
     @buildLinesState()
 
   buildContentState: ->
-    @state.content =
-      scrollWidth: @computeScrollWidth()
-      indentGuidesVisible: atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
+    @state.content = {}
+    @updateContentState()
 
   buildLinesState: ->
     @state.content.lines = {}
@@ -44,6 +43,7 @@ class TextEditorPresenter
 
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
+    @state.content.scrollHeight = @computeScrollHeight()
     @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
 
   updateLinesState: ->
@@ -98,6 +98,9 @@ class TextEditorPresenter
     contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
     Math.max(contentWidth, @getClientWidth())
 
+  computeScrollHeight: ->
+    @getLineHeight() * @model.getScreenLineCount()
+
   lineDecorationClassesForRow: (row) ->
     return null if @model.isMini()
 
@@ -136,6 +139,7 @@ class TextEditorPresenter
   getClientWidth: -> @clientWidth
 
   setLineHeight: (@lineHeight) ->
+    @updateContentState()
     @updateLinesState()
 
   getLineHeight: -> @lineHeight

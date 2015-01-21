@@ -67,6 +67,21 @@ describe "TextEditorPresenter", ->
           editor.setSoftWrapped(false)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
+      describe ".scrollHeight", ->
+        it "is initialized based on the lineHeight and the number of lines", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+          expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+        it "updates when the ::lineHeight changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter.setLineHeight(20)
+          expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 20
+
+        it "updates when the line count changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+          editor.getBuffer().append("\n\n\n")
+          expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
+
       describe ".indentGuidesVisible", ->
         it "is initialized based on the editor.showIndentGuide config setting", ->
           presenter = new TextEditorPresenter(model: editor)
