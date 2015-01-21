@@ -104,12 +104,15 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.indentGuidesVisible).toBe false
 
   describe "::state.content.lines", ->
+    lineStateForScreenRow = (presenter, screenRow) ->
+      presenter.state.content.lines[presenter.model.tokenizedLineForScreenRow(screenRow).id]
+
     describe "on initialization", ->
       it "contains the lines that are visible on screen, plus the overdraw margin", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
 
         line0 = editor.tokenizedLineForScreenRow(0)
-        expectValues presenter.state.content.lines[line0.id], {
+        expectValues lineStateForScreenRow(presenter, 0), {
           screenRow: 0
           text: line0.text
           tokens: line0.tokens
@@ -117,7 +120,7 @@ describe "TextEditorPresenter", ->
         }
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.content.lines[line1.id], {
+        expectValues lineStateForScreenRow(presenter, 1), {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -125,7 +128,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.content.lines[line2.id], {
+        expectValues lineStateForScreenRow(presenter, 2), {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -134,7 +137,7 @@ describe "TextEditorPresenter", ->
 
         # this row is rendered due to the overdraw margin
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.content.lines[line3.id], {
+        expectValues lineStateForScreenRow(presenter, 3), {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
@@ -146,7 +149,7 @@ describe "TextEditorPresenter", ->
 
         # this row is rendered due to the overdraw margin
         line10 = editor.tokenizedLineForScreenRow(10)
-        expectValues presenter.state.content.lines[line10.id], {
+        expectValues lineStateForScreenRow(presenter, 10), {
           screenRow: 10
           text: line10.text
           tokens: line10.tokens
@@ -154,7 +157,7 @@ describe "TextEditorPresenter", ->
         }
 
         line11 = editor.tokenizedLineForScreenRow(11)
-        expectValues presenter.state.content.lines[line11.id], {
+        expectValues lineStateForScreenRow(presenter, 11), {
           screenRow: 11
           text: line11.text
           tokens: line11.tokens
@@ -162,7 +165,7 @@ describe "TextEditorPresenter", ->
         }
 
         line12 = editor.tokenizedLineForScreenRow(12)
-        expectValues presenter.state.content.lines[line12.id], {
+        expectValues lineStateForScreenRow(presenter, 12), {
           screenRow: 12
           text: line12.text
           tokens: line12.tokens
@@ -173,26 +176,26 @@ describe "TextEditorPresenter", ->
 
       it "contains the lines that are visible on screen, plus and minus the overdraw margin", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 1)
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(3).id]).toBeUndefined()
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(4).id]).toBeDefined()
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(9).id]).toBeDefined()
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(10).id]).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 3)).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
+        expect(lineStateForScreenRow(presenter, 9)).toBeDefined()
+        expect(lineStateForScreenRow(presenter, 10)).toBeUndefined()
 
       it "reports all lines as visible if no external ::clientHeight is assigned", ->
         presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id]).toBeDefined()
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(12).id]).toBeDefined()
+        expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
+        expect(lineStateForScreenRow(presenter, 12)).toBeDefined()
 
       it "includes the .endOfLineInvisibles in the line state if the editor.showInvisibles config option is true", ->
         editor.setText("hello\nworld\r\n")
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toBeNull()
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toBeNull()
+        expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toBeNull()
+        expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toBeNull()
 
         atom.config.set('editor.showInvisibles', true)
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
+        expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
+        expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
 
       it "includes .decorationClasses in the line state", ->
         editor.decorateMarker(editor.markBufferRange([[4, 0], [6, 0]]), type: 'line', class: 'a')
@@ -200,11 +203,11 @@ describe "TextEditorPresenter", ->
 
         presenter = new TextEditorPresenter(model: editor, clientHeight: 130, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
 
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(3).id].decorationClasses).toBeNull()
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(4).id].decorationClasses).toEqual ['a']
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(5).id].decorationClasses).toEqual ['a', 'b']
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(6).id].decorationClasses).toEqual ['a']
-        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(7).id].decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+        expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
     describe "when ::scrollTop changes", ->
       it "updates the lines that are visible on screen", ->
@@ -212,10 +215,10 @@ describe "TextEditorPresenter", ->
         presenter.setScrollTop(25)
 
         line0 = editor.tokenizedLineForScreenRow(0)
-        expect(presenter.state.content.lines[line0.id]).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.content.lines[line1.id], {
+        expectValues lineStateForScreenRow(presenter, 1), {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -223,7 +226,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.content.lines[line2.id], {
+        expectValues lineStateForScreenRow(presenter, 2), {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -231,7 +234,7 @@ describe "TextEditorPresenter", ->
         }
 
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.content.lines[line3.id], {
+        expectValues lineStateForScreenRow(presenter, 3), {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
@@ -239,7 +242,7 @@ describe "TextEditorPresenter", ->
         }
 
         line4 = editor.tokenizedLineForScreenRow(4)
-        expectValues presenter.state.content.lines[line4.id], {
+        expectValues lineStateForScreenRow(presenter, 4), {
           screenRow: 4
           text: line4.text
           tokens: line4.tokens
@@ -251,12 +254,12 @@ describe "TextEditorPresenter", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 15, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
 
         line5 = editor.tokenizedLineForScreenRow(5)
-        expect(presenter.state.content.lines[line5.id]).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
 
         presenter.setClientHeight(35)
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.content.lines[line1.id], {
+        expectValues lineStateForScreenRow(presenter, 1), {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -264,7 +267,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.content.lines[line2.id], {
+        expectValues lineStateForScreenRow(presenter, 2), {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -272,7 +275,7 @@ describe "TextEditorPresenter", ->
         }
 
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.content.lines[line3.id], {
+        expectValues lineStateForScreenRow(presenter, 3), {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
@@ -280,18 +283,19 @@ describe "TextEditorPresenter", ->
         }
 
         line4 = editor.tokenizedLineForScreenRow(4)
-        expectValues presenter.state.content.lines[line4.id], {
+        expectValues lineStateForScreenRow(presenter, 4), {
           screenRow: 4
           text: line4.text
           tokens: line4.tokens
           top: 10 * 4
         }
 
-        expectValues presenter.state.content.lines[line4.id], {
-          screenRow: 4
-          text: line4.text
-          tokens: line4.tokens
-          top: 10 * 4
+        line5 = editor.tokenizedLineForScreenRow(5)
+        expectValues lineStateForScreenRow(presenter, 5), {
+          screenRow: 5
+          text: line5.text
+          tokens: line5.tokens
+          top: 10 * 5
         }
 
     describe "when ::lineHeight changes", ->
@@ -305,45 +309,45 @@ describe "TextEditorPresenter", ->
         line5 = editor.tokenizedLineForScreenRow(5)
         line6 = editor.tokenizedLineForScreenRow(6)
 
-        expect(presenter.state.content.lines[line1.id]).toBeDefined()
-        expect(presenter.state.content.lines[line2.id]).toBeDefined()
-        expect(presenter.state.content.lines[line3.id]).toBeDefined()
-        expect(presenter.state.content.lines[line4.id]).toBeUndefined()
-        expect(presenter.state.content.lines[line5.id]).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 1)).toBeDefined()
+        expect(lineStateForScreenRow(presenter, 2)).toBeDefined()
+        expect(lineStateForScreenRow(presenter, 3)).toBeDefined()
+        expect(lineStateForScreenRow(presenter, 4)).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
 
         presenter.setLineHeight(5)
 
-        expect(presenter.state.content.lines[line1.id]).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 1)).toBeUndefined()
 
-        expectValues presenter.state.content.lines[line2.id], {
+        expectValues lineStateForScreenRow(presenter, 2), {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
           top: 5 * 2
         }
 
-        expectValues presenter.state.content.lines[line3.id], {
+        expectValues lineStateForScreenRow(presenter, 3), {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
           top: 5 * 3
         }
 
-        expectValues presenter.state.content.lines[line4.id], {
+        expectValues lineStateForScreenRow(presenter, 4), {
           screenRow: 4
           text: line4.text
           tokens: line4.tokens
           top: 5 * 4
         }
 
-        expectValues presenter.state.content.lines[line5.id], {
+        expectValues lineStateForScreenRow(presenter, 5), {
           screenRow: 5
           text: line5.text
           tokens: line5.tokens
           top: 5 * 5
         }
 
-        expect(presenter.state.content.lines[line6.id]).toBeUndefined()
+        expect(lineStateForScreenRow(presenter, 6)).toBeUndefined()
 
     describe "when the editor's content changes", ->
       it "updates the lines state accordingly", ->
@@ -352,7 +356,7 @@ describe "TextEditorPresenter", ->
         buffer.insert([2, 0], "hello\nworld\n")
 
         line1 = editor.tokenizedLineForScreenRow(1)
-        expectValues presenter.state.content.lines[line1.id], {
+        expectValues lineStateForScreenRow(presenter, 1), {
           screenRow: 1
           text: line1.text
           tokens: line1.tokens
@@ -360,7 +364,7 @@ describe "TextEditorPresenter", ->
         }
 
         line2 = editor.tokenizedLineForScreenRow(2)
-        expectValues presenter.state.content.lines[line2.id], {
+        expectValues lineStateForScreenRow(presenter, 2), {
           screenRow: 2
           text: line2.text
           tokens: line2.tokens
@@ -368,7 +372,7 @@ describe "TextEditorPresenter", ->
         }
 
         line3 = editor.tokenizedLineForScreenRow(3)
-        expectValues presenter.state.content.lines[line3.id], {
+        expectValues lineStateForScreenRow(presenter, 3), {
           screenRow: 3
           text: line3.text
           tokens: line3.tokens
