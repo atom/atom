@@ -108,9 +108,11 @@ class TextEditorPresenter
           continue if properties.onlyNonEmpty
         else
           continue if properties.onlyEmpty
+          continue if row is range.end.row and range.end.column is 0
 
         decorationClasses ?= []
         decorationClasses.push(properties.class)
+
     decorationClasses
 
   setScrollTop: (@scrollTop) ->

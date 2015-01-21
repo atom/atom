@@ -190,18 +190,6 @@ describe "TextEditorPresenter", ->
         expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
         expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
 
-      it "includes .decorationClasses in the line state", ->
-        editor.decorateMarker(editor.markBufferRange([[4, 0], [6, 0]]), type: 'line', class: 'a')
-        editor.decorateMarker(editor.markBufferRange([[5, 0], [5, 0]]), type: 'line', class: 'b')
-
-        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
-
-        expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
-        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
-        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
-        expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
-
     describe "when ::scrollTop changes", ->
       it "updates the lines that are visible on screen", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
@@ -273,12 +261,12 @@ describe "TextEditorPresenter", ->
           tokens: line3.tokens
         }
 
-    describe "when line decorations are added, updated, or destroyed", ->
-      it "updates the .decorationClasses of the relevant lines", ->
-        marker1 = editor.markBufferRange([[4, 0], [6, 0]], invalidate: 'touch')
+    describe ".decorationClasses in line state", ->
+      it "adds decoration classes to the relevant line state objects, both initially and when decorations change", ->
+        marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
         decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
         presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
-        marker2 = editor.markBufferRange([[4, 0], [6, 0]], invalidate: 'touch')
+        marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
         decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
 
         expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
@@ -300,7 +288,7 @@ describe "TextEditorPresenter", ->
         expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
         expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-        marker1.setBufferRange([[2, 0], [4, 0]])
+        marker1.setBufferRange([[2, 0], [4, 2]])
         expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
         expect(lineStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
         expect(lineStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
@@ -351,4 +339,13 @@ describe "TextEditorPresenter", ->
 
         marker.clearTail()
 
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+      it "does not decorate the last line of a non-empty line decoration range if it ends at column 0", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+        marker = editor.markBufferRange([[4, 0], [6, 0]])
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
+
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
         expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
