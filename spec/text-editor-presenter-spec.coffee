@@ -330,7 +330,7 @@ describe "TextEditorPresenter", ->
 
       it "honors the 'onlyNonEmpty' option on line decorations", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
-        marker = editor.markBufferRange([[4, 0], [6, 1]])
+        marker = editor.markBufferRange([[4, 0], [6, 2]])
         decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyNonEmpty: true)
 
         expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
