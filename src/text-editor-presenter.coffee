@@ -66,6 +66,12 @@ class TextEditorPresenter
     lineState.top = row * @getLineHeight()
 
   buildLineState: (row, line) ->
+    decorationClasses = null
+    for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
+      for decoration in decorations when decoration.isType('line')
+        decorationClasses ?= []
+        decorationClasses.push(decoration.getProperties().class)
+
     @state.content.lines[line.id] =
       screenRow: row
       text: line.text
@@ -75,6 +81,7 @@ class TextEditorPresenter
       tabLength: line.tabLength
       fold: line.fold
       top: row * @getLineHeight()
+      decorationClasses: decorationClasses
 
   getStartRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin

@@ -183,7 +183,7 @@ describe "TextEditorPresenter", ->
         expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id]).toBeDefined()
         expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(12).id]).toBeDefined()
 
-      it "includes the endOfLineInvisibles in the line state", ->
+      it "includes the .endOfLineInvisibles in the line state if the editor.showInvisibles config option is true", ->
         editor.setText("hello\nworld\r\n")
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
         expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toBeNull()
@@ -193,6 +193,18 @@ describe "TextEditorPresenter", ->
         presenter = new TextEditorPresenter(model: editor, clientHeight: 25, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
         expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(0).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
         expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(1).id].endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
+
+      it "includes .decorationClasses in the line state", ->
+        editor.decorateMarker(editor.markBufferRange([[4, 0], [6, 0]]), type: 'line', class: 'a')
+        editor.decorateMarker(editor.markBufferRange([[5, 0], [5, 0]]), type: 'line', class: 'b')
+
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, clientWidth: 50, scrollTop: 0, baseCharacterWidth: 10, lineHeight: 10, lineOverdrawMargin: 0)
+
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(3).id].decorationClasses).toBeNull()
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(4).id].decorationClasses).toEqual ['a']
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(5).id].decorationClasses).toEqual ['a', 'b']
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(6).id].decorationClasses).toEqual ['a']
+        expect(presenter.state.content.lines[editor.tokenizedLineForScreenRow(7).id].decorationClasses).toBeNull()
 
     describe "when ::scrollTop changes", ->
       it "updates the lines that are visible on screen", ->
