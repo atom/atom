@@ -15,10 +15,10 @@ class TextEditorPresenter
 
   observeModel: ->
     @disposables.add @model.onDidChange(@updateLinesState.bind(this))
-    @disposables.add @model.onDidChangeSoftWrapped =>
-      @updateContentState()
-      @updateLinesState()
+    @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
+    @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
+    @observeDecoration(decoration) for decoration in @model.getLineDecorations()
 
   observeConfig: ->
     @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
@@ -35,6 +35,10 @@ class TextEditorPresenter
 
   buildLinesState: ->
     @state.content.lines = {}
+    @updateLinesState()
+
+  updateState: ->
+    @updateContentState()
     @updateLinesState()
 
   updateContentState: ->
@@ -64,14 +68,9 @@ class TextEditorPresenter
     lineState = @state.content.lines[line.id]
     lineState.screenRow = row
     lineState.top = row * @getLineHeight()
+    lineState.decorationClasses = @lineDecorationClassesForRow(row)
 
   buildLineState: (row, line) ->
-    decorationClasses = null
-    for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
-      for decoration in decorations when decoration.isType('line')
-        decorationClasses ?= []
-        decorationClasses.push(decoration.getProperties().class)
-
     @state.content.lines[line.id] =
       screenRow: row
       text: line.text
@@ -81,7 +80,7 @@ class TextEditorPresenter
       tabLength: line.tabLength
       fold: line.fold
       top: row * @getLineHeight()
-      decorationClasses: decorationClasses
+      decorationClasses: @lineDecorationClassesForRow(row)
 
   getStartRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin
@@ -97,6 +96,14 @@ class TextEditorPresenter
     contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
     contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
     Math.max(contentWidth, @getClientWidth())
+
+  lineDecorationClassesForRow: (row) ->
+    decorationClasses = null
+    for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
+      for decoration in decorations when decoration.isType('line')
+        decorationClasses ?= []
+        decorationClasses.push(decoration.getProperties().class)
+    decorationClasses
 
   setScrollTop: (@scrollTop) ->
     @updateLinesState()
@@ -186,3 +193,18 @@ class TextEditorPresenter
         left += charWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
     {top, left}
+
+  observeDecoration: (decoration) ->
+    markerChangeDisposable = decoration.getMarker().onDidChange(@updateLinesState.bind(this))
+    destroyDisposable = decoration.onDidDestroy =>
+      @disposables.remove(markerChangeDisposable)
+      @disposables.remove(destroyDisposable)
+      @updateLinesState()
+
+    @disposables.add(markerChangeDisposable)
+    @disposables.add(destroyDisposable)
+
+  didAddDecoration: (decoration) ->
+    if decoration.isType('line')
+      @observeDecoration(decoration)
+      @updateLinesState()

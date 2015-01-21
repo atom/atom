@@ -272,3 +272,55 @@ describe "TextEditorPresenter", ->
           text: line3.text
           tokens: line3.tokens
         }
+
+    describe "when line decorations are added, updated, or destroyed", ->
+      it "updates the .decorationClasses of the relevant lines", ->
+        marker1 = editor.markBufferRange([[4, 0], [6, 0]], invalidate: 'touch')
+        decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+        marker2 = editor.markBufferRange([[4, 0], [6, 0]], invalidate: 'touch')
+        decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
+
+        expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+        editor.getBuffer().insert([5, 0], 'x')
+        expect(marker1.isValid()).toBe false
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+        editor.undo()
+        expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+        marker1.setBufferRange([[2, 0], [4, 0]])
+        expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
+        expect(lineStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+        expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+        decoration1.destroy()
+        expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['b']
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+        expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+        marker2.destroy()
+        expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()

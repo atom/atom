@@ -4,7 +4,6 @@ React = require 'react-atom-fork'
 {debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
-Decoration = require './decoration'
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
 OverlayManager = require './overlay-manager'
@@ -140,13 +139,12 @@ LinesComponent = React.createClass
   buildLineHTML: (id) ->
     {presenter, lineDecorations} = @props
     {scrollWidth} = @newState
-    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel} = @newState.lines[id]
+    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newState.lines[id]
 
     classes = ''
-    if decorations = lineDecorations[screenRow]
-      for decorationId, decoration of decorations
-        if Decoration.isType(decoration, 'line')
-          classes += decoration.class + ' '
+    if decorationClasses?
+      for decorationClass in decorationClasses
+        classes += decorationClass + ' '
     classes += 'line'
 
     lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{scrollWidth}px;\" data-screen-row=\"#{screenRow}\">"
@@ -243,27 +241,24 @@ LinesComponent = React.createClass
 
     lineNode = @lineNodesByLineId[id]
 
-    decorations = lineDecorations[screenRow]
-    previousDecorations = @renderedDecorationsByLineId[id]
+    newDecorationClasses = @newState.lines[id].decorationClasses
+    oldDecorationClasses = @oldState.lines[id].decorationClasses
 
-    if previousDecorations?
-      for decorationId, decoration of previousDecorations
-        if Decoration.isType(decoration, 'line') and not @hasDecoration(decorations, decoration)
-          lineNode.classList.remove(decoration.class)
+    if oldDecorationClasses?
+      for decorationClass in oldDecorationClasses
+        unless newDecorationClasses? and decorationClass in newDecorationClasses
+          lineNode.classList.remove(decorationClass)
 
-    if decorations?
-      for decorationId, decoration of decorations
-        if Decoration.isType(decoration, 'line') and not @hasDecoration(previousDecorations, decoration)
-          lineNode.classList.add(decoration.class)
+    if newDecorationClasses?
+      for decorationClass in newDecorationClasses
+        unless oldDecorationClasses? and decorationClass in oldDecorationClasses
+          lineNode.classList.add(decorationClass)
 
     lineNode.style.width = scrollWidth + 'px'
     lineNode.style.top = top + 'px'
     lineNode.dataset.screenRow = screenRow
     @screenRowsByLineId[id] = screenRow
     @lineIdsByScreenRow[screenRow] = id
-
-  hasDecoration: (decorations, decoration) ->
-    decorations? and decorations[decoration.id] is decoration
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
