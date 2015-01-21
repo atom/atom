@@ -324,3 +324,31 @@ describe "TextEditorPresenter", ->
         expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
         expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
         expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+      it "honors the 'onlyEmpty' option on line decorations", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+        marker = editor.markBufferRange([[4, 0], [6, 1]])
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyEmpty: true)
+
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+        marker.clearTail()
+
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+
+      it "honors the 'onlyNonEmpty' option on line decorations", ->
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+        marker = editor.markBufferRange([[4, 0], [6, 1]])
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyNonEmpty: true)
+
+        expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
+        expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+
+        marker.clearTail()
+
+        expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()

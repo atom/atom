@@ -101,8 +101,16 @@ class TextEditorPresenter
     decorationClasses = null
     for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
       for decoration in decorations when decoration.isType('line')
+        properties = decoration.getProperties()
+        range = decoration.getMarker().getScreenRange()
+
+        if range.isEmpty()
+          continue if properties.onlyNonEmpty
+        else
+          continue if properties.onlyEmpty
+
         decorationClasses ?= []
-        decorationClasses.push(decoration.getProperties().class)
+        decorationClasses.push(properties.class)
     decorationClasses
 
   setScrollTop: (@scrollTop) ->
