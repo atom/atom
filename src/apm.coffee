@@ -36,7 +36,7 @@ module.exports =
       when 'linux'
         process.nextTick -> callback('/usr/local/share/atom/resources/app')
       when 'win32'
-        process.nextTick =>
+        process.nextTick ->
           programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app')
           callback(programFilesPath)
 
