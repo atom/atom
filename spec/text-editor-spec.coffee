@@ -2649,12 +2649,20 @@ describe "TextEditor", ->
             atom.config.set("editor.autoIndentOnPaste", true)
 
           describe "when only whitespace precedes the cursor", ->
-            it "auto-indents the lines spanned by the pasted text", ->
-              atom.clipboard.write("console.log(x);\nconsole.log(y);\n")
-              editor.setCursorBufferPosition([5, 2])
+            it "auto-indents the lines spanned by the pasted text, based on the first pasted line", ->
+              expect(editor.indentationForBufferRow(5)).toBe(3)
+
+              atom.clipboard.write("a(x);\n  b(x);\n    c(x);\n", indentBasis: 0)
+              editor.setCursorBufferPosition([5, 0])
               editor.pasteText()
-              expect(editor.lineTextForBufferRow(5)).toBe("      console.log(x);")
-              expect(editor.lineTextForBufferRow(6)).toBe("      console.log(y);")
+
+              # Adjust the indentation of the pasted block
+              expect(editor.indentationForBufferRow(5)).toBe(3)
+              expect(editor.indentationForBufferRow(6)).toBe(4)
+              expect(editor.indentationForBufferRow(7)).toBe(5)
+
+              # Preserve the indentation of the next row
+              expect(editor.indentationForBufferRow(8)).toBe(3)
 
           describe "when non-whitespace characters precede the cursor", ->
             it "does not auto-indent the first line being pasted", ->
@@ -2751,9 +2759,9 @@ describe "TextEditor", ->
               editor.setSelectedBufferRange([[1, 2], [1, Infinity]])
               editor.pasteText()
               expect(editor.lineTextForBufferRow(1)).toBe("  if (items.length <= 1) return items;")
-              expect(editor.lineTextForBufferRow(2)).toBe("  ")
+              expect(editor.lineTextForBufferRow(2)).toBe("")
               expect(editor.lineTextForBufferRow(3)).toBe("    if (items.length <= 1) return items;")
-              expect(editor.getCursorBufferPosition()).toEqual([2, 2])
+              expect(editor.getCursorBufferPosition()).toEqual([2, 0])
 
           describe "when there is no selection", ->
             it "pastes the line above the cursor and retains the cursor's column", ->
