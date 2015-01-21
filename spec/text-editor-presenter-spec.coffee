@@ -349,3 +349,11 @@ describe "TextEditorPresenter", ->
         expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
         expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
         expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+      it "does not apply line decorations to mini editors", ->
+        editor.setMini(true)
+        presenter = new TextEditorPresenter(model: editor, clientHeight: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+        marker = editor.markBufferRange([[0, 0], [0, 0]])
+        decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
+
+        expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()

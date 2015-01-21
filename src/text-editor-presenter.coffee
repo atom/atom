@@ -98,6 +98,8 @@ class TextEditorPresenter
     Math.max(contentWidth, @getClientWidth())
 
   lineDecorationClassesForRow: (row) ->
+    return null if @model.isMini()
+
     decorationClasses = null
     for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
       for decoration in decorations when decoration.isType('line')
