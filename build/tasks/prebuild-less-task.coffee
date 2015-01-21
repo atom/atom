@@ -42,10 +42,18 @@ module.exports = (grunt) ->
         resourcePath: path.resolve('.')
         importPaths: importPaths
 
+      cssForFile = (file) ->
+        baseVarImports = """
+        @import "variables/ui-variables";
+        @import "variables/syntax-variables";
+        """
+        less = fs.readFileSync(file, 'utf8')
+        lessCache.cssForFile(file, [baseVarImports, less].join('\n'))
+
       for file in @filesSrc
         grunt.verbose.writeln("File #{file.cyan} created in cache.")
-        lessCache.readFileSync(file)
+        cssForFile(file)
 
       for file in themeMains
         grunt.verbose.writeln("File #{file.cyan} created in cache.")
-        lessCache.readFileSync(file)
+        cssForFile(file)
