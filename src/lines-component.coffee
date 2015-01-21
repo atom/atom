@@ -21,7 +21,12 @@ LinesComponent = React.createClass
     {performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
 
     if performedInitialMeasurement
-      {editor, overlayDecorations, highlightDecorations, scrollHeight, scrollWidth, placeholderText, backgroundColor} = @props
+      {editor, presenter, overlayDecorations, highlightDecorations, scrollHeight, placeholderText, backgroundColor} = @props
+
+      @newState = presenter.state.content
+      @oldState ?= {lines: {}}
+
+      {scrollWidth} = @newState
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
       {scrollTop, scrollLeft, cursorPixelRects} = @props
       style =
@@ -100,10 +105,6 @@ LinesComponent = React.createClass
 
   updateLineNodes: ->
     {presenter, lineDecorations, mouseWheelScreenRow} = @props
-    return unless @newState = presenter?.state.content
-
-    @oldState ?= {lines: {}}
-    @lineNodesByLineId ?= {}
 
     for id of @oldState.lines
       unless @newState.lines.hasOwnProperty(id) or mouseWheelScreenRow is @screenRowsByLineId[id]
