@@ -16,45 +16,29 @@ module.exports =
 
   getResourcePath: (callback) ->
     if process.env.ATOM_RESOURCE_PATH
-      process.nextTick -> callback(process.env.ATOM_RESOURCE_PATH)
-    else
-      apmFolder = path.resolve(__dirname, '..', '..', '..')
-      appFolder = path.dirname(apmFolder)
-      if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
-        process.nextTick -> callback(appFolder)
-      else
-        switch process.platform
-          when 'darwin'
-            child_process.exec 'mdfind "kMDItemCFBundleIdentifier == \'com.github.atom\'"', (error, stdout='', stderr) ->
-              appLocation = stdout.split('\n')[0] ? '/Applications/Atom.app'
-              callback("#{appLocation}/Contents/Resources/app")
-          when 'linux'
-            process.nextTick -> callback('/usr/local/share/atom/resources/app')
-          when 'win32'
-            process.nextTick =>
-              programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app')
+      return process.nextTick -> callback(process.env.ATOM_RESOURCE_PATH)
 
-              # Scan for latest chocolatey install version when not in program files
-              unless fs.isDirectorySync(programFilesPath)
-                if process.env.CHOCOLATEYINSTALL
-                  chocolateyLibPath = path.join(process.env.CHOCOLATEYINSTALL, 'lib')
+    apmFolder = path.resolve(__dirname, '..')
+    appFolder = path.dirname(apmFolder)
+    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
+      return process.nextTick -> callback(appFolder)
 
-                if process.env.ALLUSERSPROFILE and not fs.isDirectorySync(chocolateyLibPath)
-                  chocolateyLibPath = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'lib')
+    apmFolder = path.resolve(__dirname, '..', '..', '..')
+    appFolder = path.dirname(apmFolder)
+    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
+      return process.nextTick -> callback(appFolder)
 
-                latestVersion = null
-                for child in fs.list(chocolateyLibPath)
-                  if child.indexOf('Atom.') is 0
-                    version = child.substring(5)
-                    if semver.valid(version)
-                      latestVersion ?= version
-                      latestVersion = version if semver.gt(version, latestVersion)
-
-                if latestVersion
-                  appLocation = path.join(chocolateyLibPath, "Atom.#{version}", 'tools', 'Atom', 'resources', 'app')
-                  return callback(appLocation) if fs.isDirectorySync(appLocation)
-
-              callback(programFilesPath)
+    switch process.platform
+      when 'darwin'
+        child_process.exec 'mdfind "kMDItemCFBundleIdentifier == \'com.github.atom\'"', (error, stdout='', stderr) ->
+          appLocation = stdout.split('\n')[0] ? '/Applications/Atom.app'
+          callback("#{appLocation}/Contents/Resources/app")
+      when 'linux'
+        process.nextTick -> callback('/usr/local/share/atom/resources/app')
+      when 'win32'
+        process.nextTick =>
+          programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app')
+          callback(programFilesPath)
 
   getReposDirectory: ->
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
