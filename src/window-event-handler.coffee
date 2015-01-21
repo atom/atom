@@ -1,18 +1,16 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-{Disposable} = require 'event-kit'
+{CompositeDisposable, Disposable} = require 'event-kit'
 ipc = require 'ipc'
 shell = require 'shell'
-{Subscriber} = require 'emissary'
 fs = require 'fs-plus'
 
 # Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
-  Subscriber.includeInto(this)
-
   constructor: ->
+    @disposables = new CompositeDisposable()
     @reloadRequested = false
 
     @subscribe ipc, 'message', (message, detail) ->
@@ -85,13 +83,15 @@ class WindowEventHandler
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
 
     document.addEventListener 'keydown', @onKeydown
+    @disposables.add new Disposable =>
+      document.removeEventListener('keydown', @onKeydown)
 
     document.addEventListener 'drop', @onDrop
-    @subscribe new Disposable =>
+    @disposables.add new Disposable =>
       document.removeEventListener('drop', @onDrop)
 
     document.addEventListener 'dragover', @onDragOver
-    @subscribe new Disposable =>
+    @disposables.add new Disposable =>
       document.removeEventListener('dragover', @onDragOver)
 
     @subscribe $(document), 'click', 'a', @openLink
@@ -193,3 +193,16 @@ class WindowEventHandler
       previousElement.focus()
     else if highestElement?
       highestElement.focus()
+
+  subscribe: (emitter, args...) ->
+    emitter.on(args...)
+    @disposables.add new Disposable ->
+      emitter.off?(args...)
+      emitter.removeListener?(args...)
+
+  subscribeToCommand: (emitter, args..., callback) ->
+    @subscribe(emitter, args..., callback)
+    @disposables.add(atom.commands.add(emitter[0], callback))
+
+  destroy: ->
+    @disposables.dispose()
