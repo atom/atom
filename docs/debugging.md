@@ -100,6 +100,21 @@ When an error is thrown in Atom, the developer tools are automatically shown wit
 
 If you can reproduce the error, use this approach to get the full stack trace. The stack trace might point to a problem in your [Init script][init script or stylesheet] or a specific package you installed, which you can then disable and report an issue on its GitHub repository.
 
+## Check that you have a build toolchain installed
+
+If you are having issues installing a package using `apm install`, this could be
+because the package has dependencies on libraries that contain native code
+and so you will need to have a C++ compiler and Python installed to be able to
+install it.
+
+You can run `apm install --check` to see if [apm][apm] can build native code on
+your machine.
+
+Check out the pre-requisites in the [build instructions][build-instructions] for
+your platform for more details.
+
+[apm]: https://github.com/atom/apm
+[build-instructions]: https://github.com/atom/atom/tree/master/docs/build-instructions
 [submitting issues]: https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues
 [building atom]: https://github.com/atom/atom#building
 [atom releases]: https://github.com/atom/atom/releases
