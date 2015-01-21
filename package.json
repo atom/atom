@@ -116,7 +116,7 @@
     "update-package-dependencies": "0.7.0",
     "welcome": "0.21.0",
     "whitespace": "0.28.0",
-    "wrap-guide": "0.30.0",
+    "wrap-guide": "0.31.0",
     "language-c": "0.37.0",
     "language-clojure": "0.10.0",
     "language-coffee-script": "0.39.0",
