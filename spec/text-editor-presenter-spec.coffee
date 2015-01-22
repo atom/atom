@@ -82,6 +82,20 @@ describe "TextEditorPresenter", ->
           editor.getBuffer().append("\n\n\n")
           expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
 
+      describe ".scrollTop", ->
+        it "tracks the value of ::scrollTop", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 1)
+          expect(presenter.state.content.scrollTop).toBe 10
+          presenter.setScrollTop(50)
+          expect(presenter.state.content.scrollTop).toBe 50
+
+      describe ".scrollLeft", ->
+        it "tracks the value of ::scrollLeft", ->
+          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, lineOverdrawMargin: 1)
+          expect(presenter.state.content.scrollLeft).toBe 10
+          presenter.setScrollLeft(50)
+          expect(presenter.state.content.scrollLeft).toBe 50
+
       describe ".indentGuidesVisible", ->
         it "is initialized based on the editor.showIndentGuide config setting", ->
           presenter = new TextEditorPresenter(model: editor)

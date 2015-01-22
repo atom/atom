@@ -3,7 +3,7 @@
 
 module.exports =
 class TextEditorPresenter
-  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin}) ->
+  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin}) ->
     @disposables = new CompositeDisposable
     @charWidthsByScope = {}
     @observeModel()
@@ -44,6 +44,8 @@ class TextEditorPresenter
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
     @state.content.scrollHeight = @computeScrollHeight()
+    @state.content.scrollTop = @getScrollTop()
+    @state.content.scrollLeft = @getScrollLeft()
     @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
 
   updateLinesState: ->
@@ -122,9 +124,15 @@ class TextEditorPresenter
     decorationClasses
 
   setScrollTop: (@scrollTop) ->
+    @updateContentState()
     @updateLinesState()
 
   getScrollTop: -> @scrollTop
+
+  setScrollLeft: (@scrollLeft) ->
+    @updateContentState()
+
+  getScrollLeft: -> @scrollLeft
 
   setClientHeight: (@clientHeight) ->
     @updateLinesState()
