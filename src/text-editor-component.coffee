@@ -232,6 +232,7 @@ TextEditorComponent = React.createClass
       clientHeight: editor.getHeight()
       clientWidth: editor.getWidth()
       scrollTop: editor.getScrollTop()
+      scrollLeft: editor.getScrollLeft()
       lineHeight: editor.getLineHeightInPixels()
       baseCharacterWidth: editor.getDefaultCharWidth()
       lineOverdrawMargin: lineOverdrawMargin
@@ -393,7 +394,7 @@ TextEditorComponent = React.createClass
     @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)
     @subscribe editor.onDidChangePlaceholderText(@onPlaceholderTextChanged)
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
-    @subscribe editor.$scrollLeft.changes, @requestUpdate
+    @subscribe editor.$scrollLeft.changes, @onScrollLeftChanged
     @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
     @subscribe editor.$horizontalScrollbarHeight.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
@@ -530,6 +531,7 @@ TextEditorComponent = React.createClass
     unless animationFramePending
       @requestAnimationFrame =>
         @props.editor.setScrollLeft(@pendingScrollLeft)
+        @presenter?.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
 
   onMouseWheel: (event) ->
@@ -724,6 +726,10 @@ TextEditorComponent = React.createClass
     @requestUpdate()
     @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 200)
     @onStoppedScrollingAfterDelay()
+
+  onScrollLeftChanged: ->
+    @presenter?.setScrollLeft(@props.editor.getScrollLeft())
+    @requestUpdate()
 
   onStoppedScrolling: ->
     return unless @isMounted()

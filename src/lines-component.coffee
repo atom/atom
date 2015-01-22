@@ -27,7 +27,7 @@ LinesComponent = React.createClass
 
       {scrollWidth, scrollHeight} = @newState
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
-      {scrollTop, scrollLeft, cursorPixelRects} = @props
+      {cursorPixelRects} = @props
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
@@ -48,7 +48,8 @@ LinesComponent = React.createClass
       }
 
   getTransform: ->
-    {scrollTop, scrollLeft, useHardwareAcceleration} = @props
+    {scrollTop, scrollLeft} = @newState
+    {useHardwareAcceleration} = @props
 
     if useHardwareAcceleration
       "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
