@@ -334,7 +334,8 @@ class ThemeManager
   activateThemes: ->
     deferred = Q.defer()
 
-    updateThemes = =>
+    # atom.config.observe runs the callback once, then on subsequent changes.
+    atom.config.observe 'core.themes', =>
       @deactivateThemes()
 
       @refreshLessCache() # Update cache for packages in core.themes config
@@ -355,12 +356,6 @@ class ThemeManager
         @emit 'reloaded'
         @emitter.emit 'did-change-active-themes'
         deferred.resolve()
-
-    # atom.config.observe runs the callback once, then on subsequent changes.
-    atom.config.observe('core.themes', updateThemes)
-    atom.config.onDidChange('core.themeColor', updateThemes)
-    atom.config.onDidChange('core.themeContrast', updateThemes)
-    atom.config.onDidChange('core.themeSaturation', updateThemes)
 
     deferred.promise
 
