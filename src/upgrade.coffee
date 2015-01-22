@@ -57,12 +57,14 @@ class Upgrade extends Command
   loadInstalledAtomVersion: (options, callback) ->
     if options.argv.compatible
       process.nextTick =>
-        @installedAtomVersion = options.argv.compatible if semver.valid(options.argv.compatible)
+        version = @normalizeVersion(options.argv.compatible)
+        @installedAtomVersion = version if semver.valid(version)
         callback()
     else
       config.getResourcePath (resourcePath) =>
         try
           {version} = require(path.join(resourcePath, 'package.json')) ? {}
+          version = @normalizeVersion(version)
           @installedAtomVersion = version if semver.valid(version)
         callback()
 

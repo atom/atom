@@ -61,3 +61,10 @@ class Command
     else
       @logFailure()
       callback("#{stdout}\n#{stderr}".trim())
+
+  normalizeVersion: (version) ->
+    if typeof version is 'string'
+      # Remove commit SHA suffix
+      version.replace(/-.*$/, '')
+    else
+      version

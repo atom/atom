@@ -141,6 +141,20 @@ describe 'apm install', ->
             expect(JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'))).version).toBe "1.0.0"
             expect(callback.mostRecentCall.args[0]).toBeNull()
 
+        it "ignores the commit SHA suffix in the version", ->
+          CSON.writeFileSync(path.join(resourcePath, 'package.json'), version: '1.5.0-deadbeef')
+          packageDirectory = path.join(atomHome, 'packages', 'test-module')
+
+          callback = jasmine.createSpy('callback')
+          apm.run(['install', 'multi-module'], callback)
+
+          waitsFor 'waiting for install to complete', 600000, ->
+            callback.callCount is 1
+
+          runs ->
+            expect(JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'))).version).toBe "1.0.0"
+            expect(callback.mostRecentCall.args[0]).toBeNull()
+
         it 'logs an error when no compatible versions are available', ->
           CSON.writeFileSync(path.join(resourcePath, 'package.json'), version: '0.9.0')
           packageDirectory = path.join(atomHome, 'packages', 'test-module')

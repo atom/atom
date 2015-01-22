@@ -464,6 +464,7 @@ class Install extends Command
     @getResourcePath (resourcePath) =>
       try
         {version} = require(path.join(resourcePath, 'package.json')) ? {}
+        version = @normalizeVersion(version)
         @installedAtomVersion = version if semver.valid(version)
       callback()
 

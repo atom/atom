@@ -7,7 +7,7 @@ wrench = require 'wrench'
 apm = require '../lib/apm-cli'
 
 describe "apm upgrade", ->
-  [atomHome, packagesDir, server] = []
+  [atomApp, atomHome, packagesDir, server] = []
 
   beforeEach ->
     spyOnToken()
@@ -130,3 +130,17 @@ describe "apm upgrade", ->
     runs ->
       expect(console.error).toHaveBeenCalled()
       expect(console.error.argsForCall[0][0]).toContain 'Could not determine current Atom version installed'
+
+  it "ignores the commit SHA suffix in the version", ->
+    fs.writeFileSync(path.join(atomApp, 'package.json'), JSON.stringify(version: '0.10.0-deadbeef'))
+    fs.writeFileSync(path.join(packagesDir, 'multi-module', 'package.json'), JSON.stringify({name: 'multi-module', version: '0.1.0', repository: 'https://github.com/a/b'}))
+
+    callback = jasmine.createSpy('callback')
+    apm.run(['upgrade', '--list', '--no-color'], callback)
+
+    waitsFor 'waiting for upgrade to complete', 600000, ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[1][0]).toContain 'multi-module 0.1.0 -> 0.3.0'
