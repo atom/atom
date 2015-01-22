@@ -1106,6 +1106,14 @@ describe "Config", ->
         expect(atom.config.get('foo.bar.str', scope: ['.source.js'])).toBe 'omg'
         expect(atom.config.get('foo.bar.str', scope: ['.source.coffee'])).toBe 'ok'
 
+      it "validates any values set before the schema was set", ->
+        atom.config.set('foo.bar.anInt', 'integer')
+        schema =
+          type: 'integer'
+          default: 12
+        atom.config.setSchema('foo.bar.anInt', schema)
+        expect(atom.config.get("foo.bar.anInt")).toBe 12
+
       describe 'when the value has an "integer" type', ->
         beforeEach ->
           schema =

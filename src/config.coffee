@@ -800,7 +800,8 @@ class Config
 
     if keyPath
       value = @get(keyPath)
-      @set(keyPath, value) unless value is undefined
+      unless value is undefined
+        @unset(keyPath) unless @set(keyPath, value)
 
     return
 
