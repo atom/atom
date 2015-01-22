@@ -49,6 +49,7 @@ class Install extends Command
     options.boolean('check').describe('check', 'Check that native build tools are installed')
     options.boolean('verbose').default('verbose', false).describe('verbose', 'Show verbose debug information')
     options.string('packages-file').describe('packages-file', 'A text file containing the packages to install')
+    options.boolean('production').describe('production', 'Do not install dev depedencies')
 
   installNode: (callback) =>
     installNodeArgs = ['install']
@@ -107,6 +108,7 @@ class Install extends Command
     installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
+    installArgs.push('--production') if options.argv.production
 
     if vsArgs = @getVisualStudioFlags()
       installArgs.push(vsArgs)
@@ -168,6 +170,7 @@ class Install extends Command
     installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
+    installArgs.push('--production') if options.argv.production
 
     if vsArgs = @getVisualStudioFlags()
       installArgs.push(vsArgs)
