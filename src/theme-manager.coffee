@@ -197,7 +197,7 @@ class ThemeManager
       ]
       themeNames = _.intersection(themeNames, builtInThemeNames)
       if themeNames.length is 0
-        themeNames = atom.config.get('core.themes', {excludeSources: [atom.config.getUserConfigPath()]})
+        themeNames = ['atom-dark-ui', 'atom-dark-syntax']
       else if themeNames.length is 1
         if _.endsWith(themeNames[0], '-ui')
           themeNames.unshift('atom-dark-syntax')
