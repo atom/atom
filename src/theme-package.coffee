@@ -29,7 +29,6 @@ class ThemePackage extends Package
 
     @activationDeferred = Q.defer()
     @measure 'activateTime', =>
-      @loadStylesheets()
       @watchThemeConfig()
       @activateNow()
 

@@ -310,7 +310,8 @@ class ThemeManager
 
       for name, value of variables
         value = value?.toRGBAString?() ? value
-        less += "\n@#{name}: #{value};"
+        if typeof value is 'string' or typeof value is 'number'
+          less += "\n@#{name}: #{value};"
 
       @lessCache.cssForFile(lessStylesheetPath, less)
     catch error
