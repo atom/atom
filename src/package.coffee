@@ -238,7 +238,7 @@ class Package
 
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
-      variables = atom.config.get(@name) if @isTheme()
+      variables = @getStylesheetVariables()
       stylesheet = atom.themes.loadStylesheet(stylesheetPath, {variables, importFallbackVariables: true})
       [stylesheetPath, stylesheet]
 
@@ -259,6 +259,15 @@ class Package
       [indexStylesheet]
     else
       fs.listSync(stylesheetDirPath, ['css', 'less'])
+
+  getStylesheetVariables: ->
+    return unless @isTheme()
+
+    variables = {}
+    for key, value in atom.config.get(@name)
+      value = value?.toRGBAString?() ? value
+      variables[key] = value if typeof value in ['number', 'string']
+    variables
 
   loadGrammarsSync: ->
     return if @grammarsLoaded
