@@ -385,3 +385,132 @@ describe "TextEditorPresenter", ->
 
               editor.setMini(true)
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+
+      describe ".cursors", ->
+        stateForCursor = (presenter, cursorIndex) ->
+          presenter.state.content.cursors[presenter.model.getCursors()[cursorIndex].id]
+
+        it "contains pixelRects for empty selections that are visible on screen", ->
+          editor.setSelectedBufferRanges([
+            [[1, 2], [1, 2]],
+            [[2, 4], [2, 4]],
+            [[3, 4], [3, 5]]
+            [[5, 12], [5, 12]],
+            [[8, 4], [8, 4]]
+          ])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expect(stateForCursor(presenter, 0)).toBeUndefined()
+          expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toBeUndefined()
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 4)).toBeUndefined()
+
+        it "updates when ::scrollTop changes", ->
+          editor.setSelectedBufferRanges([
+            [[1, 2], [1, 2]],
+            [[2, 4], [2, 4]],
+            [[3, 4], [3, 5]]
+            [[5, 12], [5, 12]],
+            [[8, 4], [8, 4]]
+          ])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          presenter.setScrollTop(5 * 10)
+          expect(stateForCursor(presenter, 0)).toBeUndefined()
+          expect(stateForCursor(presenter, 1)).toBeUndefined()
+          expect(stateForCursor(presenter, 2)).toBeUndefined()
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10, left: 4 * 10, width: 10, height: 10}
+
+        it "updates when ::clientHeight changes", ->
+          editor.setSelectedBufferRanges([
+            [[1, 2], [1, 2]],
+            [[2, 4], [2, 4]],
+            [[3, 4], [3, 5]]
+            [[5, 12], [5, 12]],
+            [[8, 4], [8, 4]]
+          ])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          presenter.setClientHeight(30)
+          expect(stateForCursor(presenter, 0)).toBeUndefined()
+          expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toBeUndefined()
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 4)).toBeUndefined()
+
+        it "updates when ::lineHeight changes", ->
+          editor.setSelectedBufferRanges([
+            [[1, 2], [1, 2]],
+            [[2, 4], [2, 4]],
+            [[3, 4], [3, 5]]
+            [[5, 12], [5, 12]],
+            [[8, 4], [8, 4]]
+          ])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          presenter.setLineHeight(5)
+          expect(stateForCursor(presenter, 0)).toBeUndefined()
+          expect(stateForCursor(presenter, 1)).toBeUndefined()
+          expect(stateForCursor(presenter, 2)).toBeUndefined()
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 5, left: 12 * 10, width: 10, height: 5}
+          expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 5, left: 4 * 10, width: 10, height: 5}
+
+        it "updates when ::baseCharacterWidth changes", ->
+          editor.setCursorBufferPosition([2, 4])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          presenter.setBaseCharacterWidth(20)
+          expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 20, width: 20, height: 10}
+
+        it "updates when scoped character widths change", ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            editor.setCursorBufferPosition([1, 4])
+            presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+            presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
+
+            presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
+
+        it "updates when cursors are added, moved, hidden, shown, or destroyed", ->
+          editor.setSelectedBufferRanges([
+            [[1, 2], [1, 2]],
+            [[3, 4], [3, 5]]
+          ])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          # moving into view
+          expect(stateForCursor(presenter, 0)).toBeUndefined()
+          editor.getCursors()[0].setBufferPosition([2, 4])
+          expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
+
+          # showing
+          editor.getSelections()[1].clear()
+          expect(stateForCursor(presenter, 1)).toEqual {top: 3 * 10, left: 5 * 10, width: 10, height: 10}
+
+          # hiding
+          editor.getSelections()[1].setBufferRange([[3, 4], [3, 5]])
+          expect(stateForCursor(presenter, 1)).toBeUndefined()
+
+          # moving out of view
+          editor.getCursors()[0].setBufferPosition([10, 4])
+          expect(stateForCursor(presenter, 0)).toBeUndefined()
+
+          # adding
+          editor.addCursorAtBufferPosition([4, 4])
+          expect(stateForCursor(presenter, 2)).toEqual {top: 4 * 10, left: 4 * 10, width: 10, height: 10}
+
+          # moving added cursor
+          editor.getCursors()[2].setBufferPosition([4, 6])
+          expect(stateForCursor(presenter, 2)).toEqual {top: 4 * 10, left: 6 * 10, width: 10, height: 10}
+
+          # destroying
+          destroyedCursor = editor.getCursors()[2]
+          destroyedCursor.destroy()
+          expect(presenter.state.content.cursors[destroyedCursor.id]).toBeUndefined()

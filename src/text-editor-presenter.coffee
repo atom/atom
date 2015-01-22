@@ -17,9 +17,11 @@ class TextEditorPresenter
     @disposables.add @model.onDidChange(@updateState.bind(this))
     @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
-    @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidChangeMini(@updateLinesState.bind(this))
+    @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
+    @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @observeDecoration(decoration) for decoration in @model.getLineDecorations()
+    @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
     @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
@@ -28,6 +30,7 @@ class TextEditorPresenter
     @state = {}
     @buildContentState()
     @buildLinesState()
+    @buildCursorsState()
 
   buildContentState: ->
     @state.content = {}
@@ -36,6 +39,10 @@ class TextEditorPresenter
   buildLinesState: ->
     @state.content.lines = {}
     @updateLinesState()
+
+  buildCursorsState: ->
+    @state.content.cursors = {}
+    @updateCursorsState()
 
   updateState: ->
     @updateContentState()
@@ -85,6 +92,19 @@ class TextEditorPresenter
       top: row * @getLineHeight()
       decorationClasses: @lineDecorationClassesForRow(row)
 
+  updateCursorsState: ->
+    startRow = @getStartRow()
+    endRow = @getEndRow()
+    visibleCursors = {}
+
+    for cursor in @model.getCursors()
+      if cursor.isVisible() and startRow <= cursor.getScreenRow() < endRow
+        @state.content.cursors[cursor.id] = @pixelRectForScreenRange(cursor.getScreenRange())
+        visibleCursors[cursor.id] = true
+
+    for id of @state.content.cursors
+      delete @state.content.cursors[id] unless visibleCursors.hasOwnProperty(id)
+
   getStartRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin
     Math.max(0, startRow)
@@ -126,6 +146,7 @@ class TextEditorPresenter
   setScrollTop: (@scrollTop) ->
     @updateContentState()
     @updateLinesState()
+    @updateCursorsState()
 
   getScrollTop: -> @scrollTop
 
@@ -136,6 +157,7 @@ class TextEditorPresenter
 
   setClientHeight: (@clientHeight) ->
     @updateLinesState()
+    @updateCursorsState()
 
   getClientHeight: ->
     @clientHeight ? @model.getScreenLineCount() * @getLineHeight()
@@ -149,12 +171,14 @@ class TextEditorPresenter
   setLineHeight: (@lineHeight) ->
     @updateContentState()
     @updateLinesState()
+    @updateCursorsState()
 
   getLineHeight: -> @lineHeight
 
   setBaseCharacterWidth: (@baseCharacterWidth) ->
     @updateContentState()
     @updateLinesState()
+    @updateCursorsState()
 
   getBaseCharacterWidth: -> @baseCharacterWidth
 
@@ -184,6 +208,7 @@ class TextEditorPresenter
   characterWidthsChanged: ->
     @updateContentState()
     @updateLinesState()
+    @updateCursorsState()
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
@@ -194,9 +219,9 @@ class TextEditorPresenter
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
-    baseCharacterWidth = @baseCharacterWidth
+    baseCharacterWidth = @getBaseCharacterWidth()
 
-    top = targetRow * @lineHeightInPixels
+    top = targetRow * @getLineHeight()
     left = 0
     column = 0
     for token in @model.tokenizedLineForScreenRow(targetRow).tokens
@@ -219,17 +244,47 @@ class TextEditorPresenter
         column += charLength
     {top, left}
 
+  pixelRectForScreenRange: (screenRange) ->
+    if screenRange.end.row > screenRange.start.row
+      top = @pixelPositionForScreenPosition(screenRange.start).top
+      left = 0
+      height = (screenRange.end.row - screenRange.start.row + 1) * @getLineHeight()
+      width = @getScrollWidth()
+    else
+      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
+      height = @getLineHeight()
+      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
+
+    {top, left, width, height}
+
   observeDecoration: (decoration) ->
-    markerChangeDisposable = decoration.getMarker().onDidChange(@updateLinesState.bind(this))
-    destroyDisposable = decoration.onDidDestroy =>
-      @disposables.remove(markerChangeDisposable)
-      @disposables.remove(destroyDisposable)
+    markerDidChangeDisposable = decoration.getMarker().onDidChange(@updateLinesState.bind(this))
+    didDestroyDisposable = decoration.onDidDestroy =>
+      @disposables.remove(markerDidChangeDisposable)
+      @disposables.remove(didDestroyDisposable)
       @updateLinesState()
 
-    @disposables.add(markerChangeDisposable)
-    @disposables.add(destroyDisposable)
+    @disposables.add(markerDidChangeDisposable)
+    @disposables.add(didDestroyDisposable)
 
   didAddDecoration: (decoration) ->
     if decoration.isType('line')
       @observeDecoration(decoration)
       @updateLinesState()
+
+  observeCursor: (cursor) ->
+    didChangePositionDisposable = cursor.onDidChangePosition(@updateCursorsState.bind(this))
+    didChangeVisibilityDisposable = cursor.onDidChangeVisibility(@updateCursorsState.bind(this))
+    didDestroyDisposable = cursor.onDidDestroy =>
+      @disposables.remove(didChangePositionDisposable)
+      @disposables.remove(didChangeVisibilityDisposable)
+      @disposables.remove(didDestroyDisposable)
+      @updateCursorsState()
+
+    @disposables.add(didChangePositionDisposable)
+    @disposables.add(didChangeVisibilityDisposable)
+    @disposables.add(didDestroyDisposable)
+
+  didAddCursor: (cursor) ->
+    @observeCursor(cursor)
+    @updateCursorsState()
