@@ -308,7 +308,6 @@ class ThemeManager
           #{less}
         """
       less += "\n@#{name}: #{value};" for name, value of variables
-
       @lessCache.cssForFile(lessStylesheetPath, less)
     catch error
       if error.line?
