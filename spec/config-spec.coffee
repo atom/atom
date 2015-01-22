@@ -1393,6 +1393,14 @@ describe "Config", ->
           atom.config.set('foo.bar.aColor', false)
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 255, blue: 255, alpha: 1}
 
+        it "returns a clone of the Color when returned in a parent object", ->
+          color1 = atom.config.get('foo.bar').aColor
+          color2 = atom.config.get('foo.bar').aColor
+          expect(color1.toRGBAString()).toBe 'rgba(255, 255, 255, 1)'
+          expect(color2.toRGBAString()).toBe 'rgba(255, 255, 255, 1)'
+          expect(color1).not.toBe color2
+          expect(color1).toEqual color2
+
       describe 'when the `enum` key is used', ->
         beforeEach ->
           schema =

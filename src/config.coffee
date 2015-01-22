@@ -903,13 +903,13 @@ class Config
       if value instanceof Color
         value = value.clone()
       else
-        value = _.deepClone(value)
+        value = @deepClone(value)
         _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
       if defaultValue instanceof Color
         value = defaultValue.clone()
       else
-        value = _.deepClone(defaultValue)
+        value = @deepClone(defaultValue)
 
     value
 
@@ -958,6 +958,16 @@ class Config
         @setRawDefault(keyPath, defaults)
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+
+  deepClone: (object) ->
+    if object instanceof Color
+      object.clone()
+    else if _.isArray(object)
+      object.map (value) => @deepClone(value)
+    else if isPlainObject(object)
+      _.mapObject object, (key, value) => [key, @deepClone(value)]
+    else
+      object
 
   # `schema` will look something like this
   #
