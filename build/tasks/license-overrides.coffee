@@ -39,10 +39,6 @@ module.exports =
     repository: "https://github.com/cheeriojs/cheerio"
     license: 'MIT'
     source: 'https://github.com/cheeriojs/cheerio/blob/master/package.json'
-  'emoji-images@0.0.2':
-    repository: "https://github.com/HenrikJoreteg/emoji-images"
-    license: 'MIT'
-    source: 'https://github.com/HenrikJoreteg/emoji-images/blob/master/readme.md'
   'specificity@0.1.3':
     repository: 'https://github.com/keeganstreet/specificity'
     license: 'MIT'
