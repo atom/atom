@@ -35,6 +35,7 @@ class List extends Command
       List all the installed packages and also the packages bundled with Atom.
     """
     options.alias('b', 'bare').boolean('bare').describe('bare', 'Print packages one per line with no formatting')
+    options.alias('d', 'dev').boolean('dev').default('dev', true).describe('dev', 'Include dev packages')
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('i', 'installed').boolean('installed').describe('installed', 'Only list installed packages/themes')
     options.alias('j', 'json').boolean('json').describe('json', 'Output all packages as a JSON object')
@@ -85,6 +86,8 @@ class List extends Command
     callback?(null, userPackages)
 
   listDevPackages: (options, callback) ->
+    return callback?(null, []) unless options.argv.dev
+
     devPackages = @listPackages(@devPackagesDirectory, options)
     if devPackages.length > 0
       unless options.argv.bare or options.argv.json
