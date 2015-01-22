@@ -21,13 +21,12 @@ LinesComponent = React.createClass
 
     if performedInitialMeasurement
       {editor, presenter, overlayDecorations, highlightDecorations, placeholderText, backgroundColor} = @props
+      {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount, cursorPixelRects} = @props
 
-      @newState = presenter.state.content
       @oldState ?= {lines: {}}
-
+      @newState = presenter.state.content
       {scrollWidth, scrollHeight} = @newState
-      {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount} = @props
-      {cursorPixelRects} = @props
+
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
         width: scrollWidth
