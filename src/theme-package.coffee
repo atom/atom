@@ -21,12 +21,20 @@ class ThemePackage extends Package
         console.warn "Failed to load theme named '#{@name}'", error.stack ? error
     this
 
+  watchThemeConfig: ->
+    @configDisposable = atom.config.onDidChange @name, => @reloadStylesheets()
+
   activate: ->
     return @activationDeferred.promise if @activationDeferred?
 
     @activationDeferred = Q.defer()
     @measure 'activateTime', =>
       @loadStylesheets()
+      @watchThemeConfig()
       @activateNow()
 
     @activationDeferred.promise
+
+  deactivate: ->
+    @configDisposable?.dispose()
+    super

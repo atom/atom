@@ -266,7 +266,7 @@ class ThemeManager
       """
       atom.notifications.addError(message, dismissable: true)
 
-    userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
+    userStylesheetContents = @loadStylesheet(userStylesheetPath, importFallbackVariables: true)
     @userStyleSheetDisposable = atom.styles.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
 
   loadBaseStylesheets: ->
@@ -287,39 +287,32 @@ class ThemeManager
     else
       fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
 
-  loadStylesheet: (stylesheetPath, importFallbackVariables) ->
+  loadStylesheet: (stylesheetPath, options) ->
     if path.extname(stylesheetPath) is '.less'
-      @loadLessStylesheet(stylesheetPath, importFallbackVariables)
+      @loadLessStylesheet(stylesheetPath, options)
     else
       fs.readFileSync(stylesheetPath, 'utf8')
 
-  loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
+  loadLessStylesheet: (lessStylesheetPath, {variables, importFallbackVariables}={}) ->
     unless @lessCache?
       LessCompileCache = require './less-compile-cache'
       @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
 
     try
+      less = fs.readFileSync(lessStylesheetPath, 'utf8')
       if importFallbackVariables
         less = """
           @import "variables/ui-variables";
           @import "variables/syntax-variables";
 
-          #{fs.readFileSync(lessStylesheetPath, 'utf8')}
-
+          #{less}
         """
 
-        if themeColor = atom.config.get('core.themeColor')
-          less += "@theme-color: #{themeColor};\n"
+      for name, value of variables
+        value = value?.toRGBAString?() ? value
+        less += "\n@#{name}: #{value};"
 
-        if themeContrast = atom.config.get('core.themeContrast')
-          less += "@theme-adjust-contrast: #{themeContrast};\n"
-
-        if themeSaturation = atom.config.get('core.themeSaturation')
-          less += "@theme-adjust-saturation: #{themeSaturation};\n"
-
-        @lessCache.cssForFile(lessStylesheetPath, less)
-      else
-        @lessCache.read(lessStylesheetPath)
+      @lessCache.cssForFile(lessStylesheetPath, less)
     catch error
       if error.line?
         message = "Error compiling Less stylesheet: `#{lessStylesheetPath}`"

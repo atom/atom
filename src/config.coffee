@@ -798,6 +798,12 @@ class Config
     @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
     @setScopedDefaultsFromSchema(keyPath, schema)
 
+    if keyPath
+      value = @get(keyPath)
+      @set(keyPath, value) unless value is undefined
+
+    return
+
   load: ->
     @initializeConfigDirectory()
     @loadUserConfig()

@@ -185,6 +185,7 @@ class Package
     @stylesheetDisposables = new CompositeDisposable
 
     priority = @getStyleSheetPriority()
+    @loadStylesheets()
     for [sourcePath, source] in @stylesheets
       if match = path.basename(sourcePath).match(/[^.]*\.([^.]*)\./)
         context = match[1]
@@ -236,8 +237,10 @@ class Package
       fs.listSync(menusDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
-    @stylesheets = @getStylesheetPaths().map (stylesheetPath) ->
-      [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
+    @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
+      variables = atom.config.get(@name) if @isTheme()
+      stylesheet = atom.themes.loadStylesheet(stylesheetPath, {variables, importFallbackVariables: true})
+      [stylesheetPath, stylesheet]
 
   getStylesheetsPath: ->
     if fs.isDirectorySync(path.join(@path, 'stylesheets'))
