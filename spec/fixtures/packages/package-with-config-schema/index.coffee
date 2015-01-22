@@ -9,5 +9,3 @@ module.exports =
         two:
           type: 'integer'
           default: 2
-
-  activate: -> # no-op
