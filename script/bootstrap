@@ -48,9 +48,9 @@ function bootstrap() {
   var dedupeNpmCommand = npmPath + npmFlags + 'dedupe';
 
   if (process.argv.indexOf('--no-quiet') === -1) {
-    buildInstallCommand  += ' --quiet';
-    apmInstallCommand    += ' --quiet';
-    moduleInstallCommand += ' --quiet';
+    buildInstallCommand  += ' --loglevel error';
+    apmInstallCommand    += ' --loglevel error';
+    moduleInstallCommand += ' --loglevel error';
     dedupeApmCommand     += ' --quiet';
     dedupeNpmCommand     += ' --quiet';
     buildInstallOptions.ignoreStdout = true;
