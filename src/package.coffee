@@ -264,7 +264,7 @@ class Package
     return unless @isTheme()
 
     variables = {}
-    for key, value in atom.config.get(@name)
+    for key, value of atom.config.get(@name)
       value = value?.toRGBAString?() ? value
       variables[key] = value if typeof value in ['number', 'string']
     variables
