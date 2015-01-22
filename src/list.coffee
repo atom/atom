@@ -39,6 +39,7 @@ class List extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('i', 'installed').boolean('installed').describe('installed', 'Only list installed packages/themes')
     options.alias('j', 'json').boolean('json').describe('json', 'Output all packages as a JSON object')
+    options.alias('l', 'links').boolean('links').default('links', true).describe('links', 'Include linked packages')
     options.alias('t', 'themes').boolean('themes').describe('themes', 'Only list themes')
     options.alias('p', 'packages').boolean('packages').describe('packages', 'Only list packages')
 
@@ -63,6 +64,8 @@ class List extends Command
     packages = []
     for child in fs.list(directoryPath)
       continue unless fs.isDirectorySync(path.join(directoryPath, child))
+      unless options.argv.links
+        continue if fs.isSymbolicLinkSync(path.join(directoryPath, child))
 
       manifest = null
       if manifestPath = CSON.resolve(path.join(directoryPath, child, 'package'))
