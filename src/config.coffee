@@ -900,16 +900,10 @@ class Config
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
-      if value instanceof Color
-        value = value.clone()
-      else
-        value = @deepClone(value)
-        _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+      value = @deepClone(value)
+      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
-      if defaultValue instanceof Color
-        value = defaultValue.clone()
-      else
-        value = @deepClone(defaultValue)
+      value = @deepClone(defaultValue)
 
     value
 
@@ -1174,7 +1168,7 @@ Config.addSchemaEnforcers
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} is not one of #{JSON.stringify(possibleValues)}")
 
 isPlainObject = (value) ->
-  _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value)
+  _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value) and not (value instanceof Color)
 
 splitKeyPath = (keyPath) ->
   return [] unless keyPath?
