@@ -362,7 +362,7 @@ class Selection extends Model
     precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
     startLevel = @editor.indentLevelForLine(precedingText)
 
-    if options.indentBasis? and not options.autoIndent
+    if options.indentBasis?
       text = @adjustIndent(text, startLevel - options.indentBasis)
 
     newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo', 'normalizeLineEndings'))
@@ -375,8 +375,16 @@ class Selection extends Model
     if options.autoIndent
       precedingText = @editor.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
       unless NonWhitespaceRegExp.test(precedingText)
-        @editor.autoIndentBufferRow(newBufferRange.getRows()[0])
-      @editor.autoIndentBufferRow(row) for row, i in newBufferRange.getRows() when i > 0
+        rowsToIndent = newBufferRange.getRows()
+        firstRow = rowsToIndent.shift()
+        rowsToIndent.pop() if text.endsWith("\n")
+        suggestedIndent = @editor.suggestedIndentForBufferRow(firstRow)
+        actualIndent = @editor.indentationForBufferRow(firstRow)
+        @editor.setIndentationForBufferRow(firstRow, suggestedIndent)
+        indentChange = suggestedIndent - actualIndent
+        for row in rowsToIndent
+          newIndent = @editor.indentationForBufferRow(row) + indentChange
+          @editor.setIndentationForBufferRow(row, newIndent)
     else if options.autoIndentNewline and text == '\n'
       currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
       @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
@@ -595,14 +603,12 @@ class Selection extends Model
     @editor.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
-  # Public: Increases the indentation level of
-  #
-
-  # * `indentIncrease` The beginning indent level.
+  # Private: Increase the indentation level of the given text by given number
+  # of levels. Leaves the first line unchanged.
   adjustIndent: (text, indentIncrease) ->
     lines = text.split('\n')
     for line, i in lines when i > 0
-      if indentIncrease == 0
+      if indentIncrease == 0 or line is ''
         continue
       else if indentIncrease > 0
         lines[i] = @editor.buildIndentString(indentIncrease) + line
