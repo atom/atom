@@ -35,8 +35,9 @@ module.exports = (grunt) ->
       when 'win32'
         path.join(contentsDir, 'atom.exe')
 
-  runPackageSpecs = (callback) ->
-    failedPackages = []
+  runSinglePackageSpecs = (packageName, callback) ->
+    modulesDirectory = path.resolve('node_modules')
+    packagePath = path.join(modulesDirectory, packageName)
     rootDir = grunt.config.get('atom.shellAppDir')
     resourcePath = process.cwd()
     appPath = getAppPath()
@@ -44,31 +45,36 @@ module.exports = (grunt) ->
     # Ensure application is executable on Linux
     fs.chmodSync(appPath, '755') if process.platform is 'linux'
 
-    packageSpecQueue = async.queue (packagePath, callback) ->
-      if process.platform in ['darwin', 'linux']
-        options =
-          cmd: appPath
-          args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
-          opts:
-            cwd: packagePath
-            env: _.extend({}, process.env, ATOM_PATH: rootDir)
-      else if process.platform is 'win32'
-        options =
-          cmd: process.env.comspec
-          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log"]
-          opts:
-            cwd: packagePath
-            env: _.extend({}, process.env, ATOM_PATH: rootDir)
+    if process.platform in ['darwin', 'linux']
+      options =
+        cmd: appPath
+        args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
+        opts:
+          cwd: packagePath
+          env: _.extend({}, process.env, ATOM_PATH: rootDir)
+    else if process.platform is 'win32'
+      options =
+        cmd: process.env.comspec
+        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log"]
+        opts:
+          cwd: packagePath
+          env: _.extend({}, process.env, ATOM_PATH: rootDir)
 
-      grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
-      spawn options, (error, results, code) ->
-        if process.platform is 'win32'
-          if error
-            process.stderr.write(fs.readFileSync(path.join(packagePath, 'ci.log')))
-          fs.unlinkSync(path.join(packagePath, 'ci.log'))
+    grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
+    spawn options, (error, results, code) ->
+      if process.platform is 'win32'
+        if error
+          process.stderr.write(fs.readFileSync(path.join(packagePath, 'ci.log')))
+        fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
+      logDeprecations("#{path.basename(packagePath)} Specs", results)
+      callback(error)
+
+  runPackageSpecs = (callback) ->
+    failedPackages = []
+    packageSpecQueue = async.queue (packageName, callback) ->
+      runSinglePackageSpecs packageName, (error) ->
         failedPackages.push path.basename(packagePath) if error
-        logDeprecations("#{path.basename(packagePath)} Specs", results)
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -76,7 +82,7 @@ module.exports = (grunt) ->
       packagePath = path.join(modulesDirectory, packageDirectory)
       continue unless grunt.file.isDir(path.join(packagePath, 'spec'))
       continue unless isAtomPackage(packagePath)
-      packageSpecQueue.push(packagePath)
+      packageSpecQueue.push(packageDirectory)
 
     packageSpecQueue.concurrency = concurrency - 1
     packageSpecQueue.drain = -> callback(null, failedPackages)
@@ -106,27 +112,37 @@ module.exports = (grunt) ->
 
       callback(null, error)
 
-  grunt.registerTask 'run-specs', 'Run the specs', ->
+  grunt.registerTask 'run-specs', 'Run the specs', (packageName) ->
     done = @async()
     startTime = Date.now()
 
-    # TODO: This should really be parallel on both platforms, however our
-    # fixtures step on each others toes currently.
-    if process.platform in ['darwin', 'linux']
-      method = async.parallel
-    else if process.platform is 'win32'
-      method = async.series
+    if packageName?
+      runSinglePackageSpecs packageName, (error) ->
+        elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
+        grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
+        grunt.log.error("[Error]".red + " #{packageName} spec(s) failed") if error?
+        if process.platform is 'win32' and process.env.JANKY_SHA1
+          done()
+        else
+          done(!error?)
+    else
+      # TODO: This should really be parallel on both platforms, however our
+      # fixtures step on each others toes currently.
+      if process.platform in ['darwin', 'linux']
+        method = async.parallel
+      else if process.platform is 'win32'
+        method = async.series
 
-    method [runCoreSpecs, runPackageSpecs], (error, results) ->
-      [coreSpecFailed, failedPackages] = results
-      elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
-      grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
-      failures = failedPackages
-      failures.push "atom core" if coreSpecFailed
+      method [runCoreSpecs, runPackageSpecs], (error, results) ->
+        [coreSpecFailed, failedPackages] = results
+        elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
+        grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
+        failures = failedPackages
+        failures.push "atom core" if coreSpecFailed
 
-      grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
+        grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
-      if process.platform is 'win32' and process.env.JANKY_SHA1
-        done()
-      else
-        done(!coreSpecFailed and failedPackages.length == 0)
+        if process.platform is 'win32' and process.env.JANKY_SHA1
+          done()
+        else
+          done(!coreSpecFailed and failedPackages.length == 0)
