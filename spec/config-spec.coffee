@@ -38,6 +38,10 @@ describe "Config", ->
       atom.config.setDefaults("bar", baz: 7)
       expect(atom.config.get("bar.baz")).toEqual {a: 3}
 
+      atom.config.set("merge.foo", 4)
+      atom.config.setDefaults("merge", foo: 2, bar: 1)
+      expect(atom.config.get("merge")).toEqual {foo:4, bar:1}
+
     describe "when a 'sources' option is specified", ->
       it "only retrieves values from the specified sources", ->
         atom.config.set("x.y", 1, scopeSelector: ".foo", source: "a")
