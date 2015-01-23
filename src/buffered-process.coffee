@@ -28,22 +28,23 @@ class BufferedProcess
   # * `options` An {Object} with the following keys:
   #   * `command` The {String} command to execute.
   #   * `args` The {Array} of arguments to pass to the command (optional).
-  #   * `options` The options {Object} to pass to Node's `ChildProcess.spawn`
-  #               method (optional).
-  #   * `stdout` The callback {Function} that receives a single argument which
-  #              contains the standard output from the command. The callback is
-  #              called as data is received but it's buffered to ensure only
-  #              complete lines are passed until the source stream closes. After
-  #              the source stream has closed all remaining data is sent in a
-  #              final call (optional).
-  #   * `stderr` The callback {Function} that receives a single argument which
-  #              contains the standard error output from the command. The
-  #              callback is called as data is received but it's buffered to
-  #              ensure only complete lines are passed until the source stream
-  #              closes. After the source stream has closed all remaining data
-  #              is sent in a final call (optional).
-  #   * `exit` The callback {Function} which receives a single argument
-  #            containing the exit status (optional).
+  #   * `options` {Object} (optional) The options {Object} to pass to Node's
+  #     `ChildProcess.spawn` method.
+  #   * `stdout` {Function} (optional) The callback that receives a single
+  #     argument which contains the standard output from the command. The
+  #     callback is called as data is received but it's buffered to ensure only
+  #     complete lines are passed until the source stream closes. After the
+  #     source stream has closed all remaining data is sent in a final call.
+  #     * `data` {String}
+  #   * `stderr` {Function} (optional) The callback that receives a single
+  #     argument which contains the standard error output from the command. The
+  #     callback is called as data is received but it's buffered to ensure only
+  #     complete lines are passed until the source stream closes. After the
+  #     source stream has closed all remaining data is sent in a final call.
+  #     * `data` {String}
+  #   * `exit` {Function} (optional) The callback which receives a single
+  #     argument containing the exit status.
+  #     * `code` {Number}
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     @emitter = new Emitter
     options ?= {}
