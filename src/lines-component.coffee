@@ -17,7 +17,7 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    {performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    {presenter, performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
 
     if performedInitialMeasurement
       {editor, presenter, overlayDecorations, highlightDecorations, placeholderText, backgroundColor} = @props
@@ -37,8 +37,7 @@ LinesComponent = React.createClass
       div className: 'placeholder-text', placeholderText if placeholderText?
 
       CursorsComponent {
-        cursorPixelRects, cursorBlinkPeriod, cursorBlinkResumeDelay, lineHeightInPixels,
-        defaultCharWidth, scopedCharacterWidthsChangeCount, performedInitialMeasurement
+        presenter, cursorBlinkPeriod, cursorBlinkResumeDelay, defaultCharWidth
       }
 
       HighlightsComponent {
