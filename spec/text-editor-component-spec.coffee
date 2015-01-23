@@ -776,18 +776,23 @@ describe "TextEditorComponent", ->
       cursorsNode = componentNode.querySelector('.cursors')
 
       expect(cursorsNode.classList.contains('blink-off')).toBe false
+
       advanceClock(component.props.cursorBlinkPeriod / 2)
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
       advanceClock(component.props.cursorBlinkPeriod / 2)
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       # Stop blinking after moving the cursor
       editor.moveRight()
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       advanceClock(component.props.cursorBlinkResumeDelay)
       advanceClock(component.props.cursorBlinkPeriod / 2)
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
     it "does not render cursors that are associated with non-empty selections", ->

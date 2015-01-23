@@ -226,16 +226,22 @@ TextEditorComponent = React.createClass
     @performedInitialMeasurement = true
     @updatesPaused = false
 
-    {editor, lineOverdrawMargin}  = @props
-    @presenter ?= new TextEditorPresenter
-      model: editor
-      clientHeight: editor.getHeight()
-      clientWidth: editor.getWidth()
-      scrollTop: editor.getScrollTop()
-      scrollLeft: editor.getScrollLeft()
-      lineHeight: editor.getLineHeightInPixels()
-      baseCharacterWidth: editor.getDefaultCharWidth()
-      lineOverdrawMargin: lineOverdrawMargin
+    {editor, lineOverdrawMargin, cursorBlinkPeriod, cursorBlinkResumeDelay}  = @props
+
+
+    unless @presenter?
+      @presenter = new TextEditorPresenter
+        model: editor
+        clientHeight: editor.getHeight()
+        clientWidth: editor.getWidth()
+        scrollTop: editor.getScrollTop()
+        scrollLeft: editor.getScrollLeft()
+        lineHeight: editor.getLineHeightInPixels()
+        baseCharacterWidth: editor.getDefaultCharWidth()
+        lineOverdrawMargin: lineOverdrawMargin
+        cursorBlinkPeriod: cursorBlinkPeriod
+        cursorBlinkResumeDelay: cursorBlinkResumeDelay
+      @presenter.onDidUpdateState(@requestUpdate)
 
     @forceUpdate() if @canUpdate()
 
