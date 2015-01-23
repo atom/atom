@@ -1,4 +1,4 @@
-{CompositeDisposable} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point} = require 'text-buffer'
 _ = require 'underscore-plus'
 
@@ -9,6 +9,7 @@ class TextEditorPresenter
 
   constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @cursorBlinkPeriod, @cursorBlinkResumeDelay}) ->
     @disposables = new CompositeDisposable
+    @emitter = new Emitter
     @charWidthsByScope = {}
     @observeModel()
     @observeConfig()
@@ -17,6 +18,9 @@ class TextEditorPresenter
 
   destroy: ->
     @disposables.dispose()
+
+  onDidUpdateState: (callback) ->
+    @emitter.on 'did-update-state', callback
 
   observeModel: ->
     @disposables.add @model.onDidChange(@updateState.bind(this))
@@ -60,6 +64,7 @@ class TextEditorPresenter
     @state.content.scrollTop = @getScrollTop()
     @state.content.scrollLeft = @getScrollLeft()
     @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
+    @emitter.emit 'did-update-state'
 
   updateLinesState: ->
     visibleLineIds = {}
@@ -79,6 +84,8 @@ class TextEditorPresenter
     for id, line of @state.content.lines
       unless visibleLineIds.hasOwnProperty(id)
         delete @state.content.lines[id]
+
+    @emitter.emit 'did-update-state'
 
   updateLineState: (row, line) ->
     lineState = @state.content.lines[line.id]
@@ -112,6 +119,8 @@ class TextEditorPresenter
 
     for id of @state.content.cursors
       delete @state.content.cursors[id] unless visibleCursors.hasOwnProperty(id)
+
+    @emitter.emit 'did-update-state'
 
   getStartRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin
@@ -314,9 +323,11 @@ class TextEditorPresenter
 
   toggleCursorBlink: ->
     @state.content.blinkCursorsOff = not @state.content.blinkCursorsOff
+    @emitter.emit 'did-update-state'
 
   pauseCursorBlinking: ->
     @state.content.blinkCursorsOff = false
     @stopBlinkingCursors()
     @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
     @startBlinkingCursorsAfterDelay()
+    @emitter.emit 'did-update-state'

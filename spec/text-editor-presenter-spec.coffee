@@ -22,6 +22,14 @@ describe "TextEditorPresenter", ->
     for key, value of expected
       expect(actual[key]).toBe value
 
+  expectStateUpdate = (presenter, fn) ->
+    updatedState = false
+    disposable = presenter.onDidUpdateState ->
+      updatedState = true
+      disposable.dispose()
+    fn()
+    expect(updatedState).toBe true
+
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::state", ->
@@ -41,7 +49,7 @@ describe "TextEditorPresenter", ->
           presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
-          presenter.setClientWidth(10 * maxLineLength + 20)
+          expectStateUpdate presenter, -> presenter.setClientWidth(10 * maxLineLength + 20)
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20
 
         it "updates when the ::baseCharacterWidth changes", ->
@@ -49,7 +57,7 @@ describe "TextEditorPresenter", ->
           presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
-          presenter.setBaseCharacterWidth(15)
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
           expect(presenter.state.content.scrollWidth).toBe 15 * maxLineLength + 1
 
         it "updates when the scoped character widths change", ->
@@ -60,15 +68,15 @@ describe "TextEditorPresenter", ->
             presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
-            presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
             expect(presenter.state.content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = new TextEditorPresenter(model: editor, clientWidth: 50, baseCharacterWidth: 10)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
-          editor.setSoftWrapped(true)
+          expectStateUpdate presenter, -> editor.setSoftWrapped(true)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
-          editor.setSoftWrapped(false)
+          expectStateUpdate presenter, -> editor.setSoftWrapped(false)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollHeight", ->
@@ -78,26 +86,26 @@ describe "TextEditorPresenter", ->
 
         it "updates when the ::lineHeight changes", ->
           presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-          presenter.setLineHeight(20)
+          expectStateUpdate presenter, -> presenter.setLineHeight(20)
           expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 20
 
         it "updates when the line count changes", ->
           presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-          editor.getBuffer().append("\n\n\n")
+          expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
           expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
           presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 1)
           expect(presenter.state.content.scrollTop).toBe 10
-          presenter.setScrollTop(50)
+          expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.state.content.scrollTop).toBe 50
 
       describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
           presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, lineOverdrawMargin: 1)
           expect(presenter.state.content.scrollLeft).toBe 10
-          presenter.setScrollLeft(50)
+          expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.state.content.scrollLeft).toBe 50
 
       describe ".indentGuidesVisible", ->
@@ -113,10 +121,10 @@ describe "TextEditorPresenter", ->
           presenter = new TextEditorPresenter(model: editor)
           expect(presenter.state.content.indentGuidesVisible).toBe false
 
-          atom.config.set('editor.showIndentGuide', true)
+          expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', true)
           expect(presenter.state.content.indentGuidesVisible).toBe true
 
-          atom.config.set('editor.showIndentGuide', false)
+          expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', false)
           expect(presenter.state.content.indentGuidesVisible).toBe false
 
         it "updates when the editor's grammar changes", ->
@@ -125,13 +133,16 @@ describe "TextEditorPresenter", ->
           presenter = new TextEditorPresenter(model: editor)
           expect(presenter.state.content.indentGuidesVisible).toBe false
 
+          stateUpdated = false
+          presenter.onDidUpdateState -> stateUpdated = true
+
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
           runs ->
-            editor.setGrammar(atom.grammars.selectGrammar('.js'))
+            expect(stateUpdated).toBe true
             expect(presenter.state.content.indentGuidesVisible).toBe true
 
-            editor.setGrammar(atom.grammars.selectGrammar('.txt'))
+            expectStateUpdate presenter, -> editor.setGrammar(atom.grammars.selectGrammar('.txt'))
             expect(presenter.state.content.indentGuidesVisible).toBe false
 
       describe ".lines", ->
@@ -216,7 +227,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
 
-          presenter.setScrollTop(25)
+          expectStateUpdate presenter, -> presenter.setScrollTop(25)
 
           expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
           expect(lineStateForScreenRow(presenter, 1)).toBeDefined()
@@ -231,7 +242,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
 
-          presenter.setClientHeight(35)
+          expectStateUpdate presenter, -> presenter.setClientHeight(35)
 
           expect(lineStateForScreenRow(presenter, 5)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 6)).toBeDefined()
@@ -245,7 +256,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 2)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 4)).toBeUndefined()
 
-          presenter.setLineHeight(5)
+          expectStateUpdate presenter, -> presenter.setLineHeight(5)
 
           expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
           expect(lineStateForScreenRow(presenter, 1)).toBeUndefined()
@@ -256,7 +267,7 @@ describe "TextEditorPresenter", ->
         it "updates when the editor's content changes", ->
           presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 0)
 
-          buffer.insert([2, 0], "hello\nworld\n")
+          expectStateUpdate presenter, -> buffer.insert([2, 0], "hello\nworld\n")
 
           line1 = editor.tokenizedLineForScreenRow(1)
           expectValues lineStateForScreenRow(presenter, 1), {
@@ -302,20 +313,20 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
               expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              editor.getBuffer().insert([5, 0], 'x')
+              expectStateUpdate presenter, -> editor.getBuffer().insert([5, 0], 'x')
               expect(marker1.isValid()).toBe false
               expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-              editor.undo()
+              expectStateUpdate presenter, -> editor.undo()
               expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
               expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              marker1.setBufferRange([[2, 0], [4, 2]])
+              expectStateUpdate presenter, -> marker1.setBufferRange([[2, 0], [4, 2]])
               expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
               expect(lineStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
@@ -324,7 +335,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
               expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              decoration1.destroy()
+              expectStateUpdate presenter, -> decoration1.destroy()
               expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['b']
@@ -332,7 +343,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
               expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              marker2.destroy()
+              expectStateUpdate presenter, -> marker2.destroy()
               expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
@@ -349,7 +360,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-              marker.clearTail()
+              expectStateUpdate presenter, -> marker.clearTail()
 
               expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
@@ -364,7 +375,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
-              marker.clearTail()
+              expectStateUpdate presenter, -> marker.clearTail()
 
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
@@ -384,10 +395,10 @@ describe "TextEditorPresenter", ->
               decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
 
-              editor.setMini(false)
+              expectStateUpdate presenter, -> editor.setMini(false)
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toEqual ['cursor-line', 'a']
 
-              editor.setMini(true)
+              expectStateUpdate presenter, -> editor.setMini(true)
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
 
       describe ".cursors", ->
@@ -420,7 +431,7 @@ describe "TextEditorPresenter", ->
           ])
           presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
 
-          presenter.setScrollTop(5 * 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(5 * 10)
           expect(stateForCursor(presenter, 0)).toBeUndefined()
           expect(stateForCursor(presenter, 1)).toBeUndefined()
           expect(stateForCursor(presenter, 2)).toBeUndefined()
@@ -437,7 +448,7 @@ describe "TextEditorPresenter", ->
           ])
           presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
 
-          presenter.setClientHeight(30)
+          expectStateUpdate presenter, -> presenter.setClientHeight(30)
           expect(stateForCursor(presenter, 0)).toBeUndefined()
           expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 2)).toBeUndefined()
@@ -454,7 +465,7 @@ describe "TextEditorPresenter", ->
           ])
           presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
 
-          presenter.setLineHeight(5)
+          expectStateUpdate presenter, -> presenter.setLineHeight(5)
           expect(stateForCursor(presenter, 0)).toBeUndefined()
           expect(stateForCursor(presenter, 1)).toBeUndefined()
           expect(stateForCursor(presenter, 2)).toBeUndefined()
@@ -465,7 +476,7 @@ describe "TextEditorPresenter", ->
           editor.setCursorBufferPosition([2, 4])
           presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
 
-          presenter.setBaseCharacterWidth(20)
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
           expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 20, width: 20, height: 10}
 
         it "updates when scoped character widths change", ->
@@ -476,10 +487,10 @@ describe "TextEditorPresenter", ->
             editor.setCursorBufferPosition([1, 4])
             presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
 
-            presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'v', 20)
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
 
-            presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'r', 20)
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
         it "updates when cursors are added, moved, hidden, shown, or destroyed", ->
@@ -495,28 +506,28 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
 
           # showing
-          editor.getSelections()[1].clear()
+          expectStateUpdate presenter, -> editor.getSelections()[1].clear()
           expect(stateForCursor(presenter, 1)).toEqual {top: 3 * 10, left: 5 * 10, width: 10, height: 10}
 
           # hiding
-          editor.getSelections()[1].setBufferRange([[3, 4], [3, 5]])
+          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 5]])
           expect(stateForCursor(presenter, 1)).toBeUndefined()
 
           # moving out of view
-          editor.getCursors()[0].setBufferPosition([10, 4])
+          expectStateUpdate presenter, -> editor.getCursors()[0].setBufferPosition([10, 4])
           expect(stateForCursor(presenter, 0)).toBeUndefined()
 
           # adding
-          editor.addCursorAtBufferPosition([4, 4])
+          expectStateUpdate presenter, -> editor.addCursorAtBufferPosition([4, 4])
           expect(stateForCursor(presenter, 2)).toEqual {top: 4 * 10, left: 4 * 10, width: 10, height: 10}
 
           # moving added cursor
-          editor.getCursors()[2].setBufferPosition([4, 6])
+          expectStateUpdate presenter, -> editor.getCursors()[2].setBufferPosition([4, 6])
           expect(stateForCursor(presenter, 2)).toEqual {top: 4 * 10, left: 6 * 10, width: 10, height: 10}
 
           # destroying
           destroyedCursor = editor.getCursors()[2]
-          destroyedCursor.destroy()
+          expectStateUpdate presenter, -> destroyedCursor.destroy()
           expect(presenter.state.content.cursors[destroyedCursor.id]).toBeUndefined()
 
         it "makes cursors as wide as the ::baseCharacterWidth if they're at the end of a line", ->
@@ -531,11 +542,11 @@ describe "TextEditorPresenter", ->
             presenter = new TextEditorPresenter({model: editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
 
             expect(presenter.state.content.blinkCursorsOff).toBe false
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
             expect(presenter.state.content.blinkCursorsOff).toBe true
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
             expect(presenter.state.content.blinkCursorsOff).toBe false
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
             expect(presenter.state.content.blinkCursorsOff).toBe true
 
           it "stops alternating for ::cursorBlinkResumeDelay when a cursor moves or a cursor is added", ->
@@ -544,23 +555,26 @@ describe "TextEditorPresenter", ->
             presenter = new TextEditorPresenter({model: editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
 
             expect(presenter.state.content.blinkCursorsOff).toBe false
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
             expect(presenter.state.content.blinkCursorsOff).toBe true
 
-            editor.moveRight()
+            expectStateUpdate presenter, -> editor.moveRight()
             expect(presenter.state.content.blinkCursorsOff).toBe false
 
-            advanceClock(cursorBlinkResumeDelay)
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, ->
+              advanceClock(cursorBlinkResumeDelay)
+              advanceClock(cursorBlinkPeriod / 2)
+
             expect(presenter.state.content.blinkCursorsOff).toBe true
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
             expect(presenter.state.content.blinkCursorsOff).toBe false
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
             expect(presenter.state.content.blinkCursorsOff).toBe true
 
-            editor.addCursorAtBufferPosition([1, 0])
+            expectStateUpdate presenter, -> editor.addCursorAtBufferPosition([1, 0])
             expect(presenter.state.content.blinkCursorsOff).toBe false
 
-            advanceClock(cursorBlinkResumeDelay)
-            advanceClock(cursorBlinkPeriod / 2)
+            expectStateUpdate presenter, ->
+              advanceClock(cursorBlinkResumeDelay)
+              advanceClock(cursorBlinkPeriod / 2)
             expect(presenter.state.content.blinkCursorsOff).toBe true
