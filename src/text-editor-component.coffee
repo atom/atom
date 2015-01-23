@@ -224,7 +224,7 @@ TextEditorComponent = React.createClass
     @props.editor.setVisible(true)
     @performedInitialMeasurement = true
     @updatesPaused = false
-    @forceUpdate() if @updateRequestedWhilePaused and @canUpdate()
+    @forceUpdate() if @canUpdate()
 
   requestUpdate: ->
     return unless @canUpdate()
