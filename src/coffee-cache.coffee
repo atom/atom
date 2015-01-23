@@ -26,7 +26,7 @@ getCachedJavaScript = (cachePath) ->
   if fs.isFileSync(cachePath)
     try
       cachedJavaScript = fs.readFileSync(cachePath, 'utf8')
-      stats.misses++
+      stats.hits++
       return cachedJavaScript
   return
 
