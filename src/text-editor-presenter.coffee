@@ -1,14 +1,19 @@
 {CompositeDisposable} = require 'event-kit'
 {Point} = require 'text-buffer'
+_ = require 'underscore-plus'
 
 module.exports =
 class TextEditorPresenter
-  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin}) ->
+  toggleCursorBlinkHandle: null
+  startBlinkingCursorsAfterDelay: null
+
+  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @cursorBlinkPeriod, @cursorBlinkResumeDelay}) ->
     @disposables = new CompositeDisposable
     @charWidthsByScope = {}
     @observeModel()
     @observeConfig()
     @buildState()
+    @startBlinkingCursors()
 
   destroy: ->
     @disposables.dispose()
@@ -41,6 +46,7 @@ class TextEditorPresenter
     @updateLinesState()
 
   buildCursorsState: ->
+    @state.content.blinkCursorsOff = false
     @state.content.cursors = {}
     @updateCursorsState()
 
@@ -144,6 +150,10 @@ class TextEditorPresenter
         decorationClasses.push(properties.class)
 
     decorationClasses
+
+  getCursorBlinkPeriod: -> @cursorBlinkPeriod
+
+  getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
   setScrollTop: (@scrollTop) ->
     @updateContentState()
@@ -275,8 +285,12 @@ class TextEditorPresenter
       @updateLinesState()
 
   observeCursor: (cursor) ->
-    didChangePositionDisposable = cursor.onDidChangePosition(@updateCursorsState.bind(this))
+    didChangePositionDisposable = cursor.onDidChangePosition =>
+      @pauseCursorBlinking()
+      @updateCursorsState()
+
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility(@updateCursorsState.bind(this))
+
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
@@ -289,4 +303,20 @@ class TextEditorPresenter
 
   didAddCursor: (cursor) ->
     @observeCursor(cursor)
+    @pauseCursorBlinking()
     @updateCursorsState()
+
+  startBlinkingCursors: ->
+    @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
+
+  stopBlinkingCursors: ->
+    clearInterval(@toggleCursorBlinkHandle)
+
+  toggleCursorBlink: ->
+    @state.content.blinkCursorsOff = not @state.content.blinkCursorsOff
+
+  pauseCursorBlinking: ->
+    @state.content.blinkCursorsOff = false
+    @stopBlinkingCursors()
+    @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
+    @startBlinkingCursorsAfterDelay()

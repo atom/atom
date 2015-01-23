@@ -6,6 +6,10 @@ describe "TextEditorPresenter", ->
   [buffer, editor] = []
 
   beforeEach ->
+    # These *should* be mocked in the spec helper, but changing that now would break packages :-(
+    spyOn(window, "setInterval").andCallFake window.fakeSetInterval
+    spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
+
     buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
     editor = new TextEditor({buffer})
     waitsForPromise -> buffer.load()
@@ -519,3 +523,44 @@ describe "TextEditorPresenter", ->
           editor.setCursorBufferPosition([1, Infinity])
           presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
           expect(stateForCursor(presenter, 0).width).toBe 10
+
+        describe ".blinkOff", ->
+          it "alternates between true and false twice per ::cursorBlinkPeriod", ->
+            cursorBlinkPeriod = 100
+            cursorBlinkResumeDelay = 200
+            presenter = new TextEditorPresenter({model: editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
+
+            expect(presenter.state.content.blinkCursorsOff).toBe false
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe true
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe false
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe true
+
+          it "stops alternating for ::cursorBlinkResumeDelay when a cursor moves or a cursor is added", ->
+            cursorBlinkPeriod = 100
+            cursorBlinkResumeDelay = 200
+            presenter = new TextEditorPresenter({model: editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
+
+            expect(presenter.state.content.blinkCursorsOff).toBe false
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe true
+
+            editor.moveRight()
+            expect(presenter.state.content.blinkCursorsOff).toBe false
+
+            advanceClock(cursorBlinkResumeDelay)
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe true
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe false
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe true
+
+            editor.addCursorAtBufferPosition([1, 0])
+            expect(presenter.state.content.blinkCursorsOff).toBe false
+
+            advanceClock(cursorBlinkResumeDelay)
+            advanceClock(cursorBlinkPeriod / 2)
+            expect(presenter.state.content.blinkCursorsOff).toBe true
