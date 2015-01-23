@@ -39,7 +39,7 @@
     "jasmine-json": "~0.0",
     "jasmine-tagged": "^1.1.2",
     "jquery": "^2.1.1",
-    "less-cache": "0.19.0",
+    "less-cache": "0.20.0",
     "marked": "^0.3",
     "mixto": "^1",
     "mkdirp": "0.3.5",
