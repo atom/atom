@@ -29,34 +29,25 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeMini(@updateLinesState.bind(this))
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
-    @observeDecoration(decoration) for decoration in @model.getLineDecorations()
+    @observeLineDecoration(decoration) for decoration in @model.getLineDecorations()
+    @observeHighlightDecoration(decoration) for decoration in @model.getHighlightDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
     @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
 
   buildState: ->
-    @state = {}
-    @buildContentState()
-    @buildLinesState()
-    @buildCursorsState()
-
-  buildContentState: ->
-    @state.content = {}
-    @updateContentState()
-
-  buildLinesState: ->
-    @state.content.lines = {}
-    @updateLinesState()
-
-  buildCursorsState: ->
-    @state.content.blinkCursorsOff = false
-    @state.content.cursors = {}
-    @updateCursorsState()
+    @state =
+      content:
+        lines: {}
+        blinkCursorsOff: false
+    @updateState()
 
   updateState: ->
     @updateContentState()
     @updateLinesState()
+    @updateCursorsState()
+    @updateHighlightsState()
 
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
@@ -108,19 +99,78 @@ class TextEditorPresenter
   updateCursorsState: ->
     startRow = @getStartRow()
     endRow = @getEndRow()
-    visibleCursors = {}
+    @state.content.cursors = {}
 
     for cursor in @model.getCursors()
       if cursor.isVisible() and startRow <= cursor.getScreenRow() < endRow
         pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
         pixelRect.width = @getBaseCharacterWidth() if pixelRect.width is 0
         @state.content.cursors[cursor.id] = pixelRect
-        visibleCursors[cursor.id] = true
-
-    for id of @state.content.cursors
-      delete @state.content.cursors[id] unless visibleCursors.hasOwnProperty(id)
 
     @emitter.emit 'did-update-state'
+
+  updateHighlightsState: ->
+    startRow = @getStartRow()
+    endRow = @getEndRow()
+    @state.content.highlights = {}
+
+    for decoration in @model.getHighlightDecorations()
+      screenRange = decoration.getMarker().getScreenRange()
+      if screenRange.intersectsRowRange(startRow, endRow - 1)
+        if screenRange.start.row < startRow
+          screenRange.start.row = startRow
+          screenRange.start.column = 0
+        if screenRange.end.row >= endRow
+          screenRange.end.row = endRow
+          screenRange.end.column = 0
+        continue if screenRange.isEmpty()
+        @state.content.highlights[decoration.id] =
+          class: decoration.getProperties().class
+          regions: @buildHighlightRegions(screenRange)
+
+  buildHighlightRegions: (screenRange) ->
+    lineHeightInPixels = @getLineHeight()
+    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, true)
+    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, true)
+    spannedRows = screenRange.end.row - screenRange.start.row + 1
+
+    if spannedRows is 1
+      [
+        top: startPixelPosition.top
+        height: lineHeightInPixels
+        left: startPixelPosition.left
+        width: endPixelPosition.left - startPixelPosition.left
+      ]
+    else
+      regions = []
+
+      # First row, extending from selection start to the right side of screen
+      regions.push(
+        top: startPixelPosition.top
+        left: startPixelPosition.left
+        height: lineHeightInPixels
+        right: 0
+      )
+
+      # Middle rows, extending from left side to right side of screen
+      if spannedRows > 2
+        regions.push(
+          top: startPixelPosition.top + lineHeightInPixels
+          height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
+          left: 0
+          right: 0
+        )
+
+      # Last row, extending from left side of screen to selection end
+      if screenRange.end.column > 0
+        regions.push(
+          top: endPixelPosition.top
+          height: lineHeightInPixels
+          left: 0
+          width: endPixelPosition.left
+        )
+
+      regions
 
   getStartRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin
@@ -168,6 +218,7 @@ class TextEditorPresenter
     @updateContentState()
     @updateLinesState()
     @updateCursorsState()
+    @updateHighlightsState()
 
   getScrollTop: -> @scrollTop
 
@@ -179,6 +230,7 @@ class TextEditorPresenter
   setClientHeight: (@clientHeight) ->
     @updateLinesState()
     @updateCursorsState()
+    @updateHighlightsState()
 
   getClientHeight: ->
     @clientHeight ? @model.getScreenLineCount() * @getLineHeight()
@@ -193,13 +245,12 @@ class TextEditorPresenter
     @updateContentState()
     @updateLinesState()
     @updateCursorsState()
+    @updateHighlightsState()
 
   getLineHeight: -> @lineHeight
 
   setBaseCharacterWidth: (@baseCharacterWidth) ->
-    @updateContentState()
-    @updateLinesState()
-    @updateCursorsState()
+    @characterWidthsChanged()
 
   getBaseCharacterWidth: -> @baseCharacterWidth
 
@@ -230,6 +281,7 @@ class TextEditorPresenter
     @updateContentState()
     @updateLinesState()
     @updateCursorsState()
+    @updateHighlightsState()
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
@@ -278,7 +330,7 @@ class TextEditorPresenter
 
     {top, left, width, height}
 
-  observeDecoration: (decoration) ->
+  observeLineDecoration: (decoration) ->
     markerDidChangeDisposable = decoration.getMarker().onDidChange(@updateLinesState.bind(this))
     didDestroyDisposable = decoration.onDidDestroy =>
       @disposables.remove(markerDidChangeDisposable)
@@ -288,10 +340,23 @@ class TextEditorPresenter
     @disposables.add(markerDidChangeDisposable)
     @disposables.add(didDestroyDisposable)
 
+  observeHighlightDecoration: (decoration) ->
+    markerDidChangeDisposable = decoration.getMarker().onDidChange(@updateHighlightsState.bind(this))
+    didDestroyDisposable = decoration.onDidDestroy =>
+      @disposables.remove(markerDidChangeDisposable)
+      @disposables.remove(didDestroyDisposable)
+      @updateHighlightsState()
+
+    @disposables.add(markerDidChangeDisposable)
+    @disposables.add(didDestroyDisposable)
+
   didAddDecoration: (decoration) ->
     if decoration.isType('line')
-      @observeDecoration(decoration)
+      @observeLineDecoration(decoration)
       @updateLinesState()
+    else if decoration.isType('highlight')
+      @observeHighlightDecoration(decoration)
+      @updateHighlightsState()
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>

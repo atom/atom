@@ -20,7 +20,7 @@ describe "TextEditorPresenter", ->
 
   expectValues = (actual, expected) ->
     for key, value of expected
-      expect(actual[key]).toBe value
+      expect(actual[key]).toEqual value
 
   expectStateUpdate = (presenter, fn) ->
     updatedState = false
@@ -578,3 +578,228 @@ describe "TextEditorPresenter", ->
             advanceClock(cursorBlinkResumeDelay)
             advanceClock(cursorBlinkPeriod / 2)
           expect(presenter.state.content.blinkCursorsOff).toBe true
+
+      describe ".highlights", ->
+        stateForHighlight = (presenter, decoration) ->
+          presenter.state.content.highlights[decoration.id]
+
+        stateForSelection = (presenter, selectionIndex) ->
+          selection = presenter.model.getSelections()[selectionIndex]
+          stateForHighlight(presenter, selection.decoration)
+
+        it "contains states for highlights that are visible on screen", ->
+          # off-screen above
+          marker1 = editor.markBufferRange([[0, 0], [1, 0]])
+          highlight1 = editor.decorateMarker(marker1, type: 'highlight', class: 'a')
+
+          # partially off-screen above, 1 of 2 regions on screen
+          marker2 = editor.markBufferRange([[1, 6], [2, 6]])
+          highlight2 = editor.decorateMarker(marker2, type: 'highlight', class: 'b')
+
+          # partially off-screen above, 2 of 3 regions on screen
+          marker3 = editor.markBufferRange([[0, 6], [3, 6]])
+          highlight3 = editor.decorateMarker(marker3, type: 'highlight', class: 'c')
+
+          # on-screen
+          marker4 = editor.markBufferRange([[2, 6], [4, 6]])
+          highlight4 = editor.decorateMarker(marker4, type: 'highlight', class: 'd')
+
+          # partially off-screen below, 2 of 3 regions on screen
+          marker5 = editor.markBufferRange([[3, 6], [6, 6]])
+          highlight5 = editor.decorateMarker(marker5, type: 'highlight', class: 'e')
+
+          # partially off-screen below, 1 of 3 regions on screen
+          marker6 = editor.markBufferRange([[5, 6], [7, 6]])
+          highlight6 = editor.decorateMarker(marker6, type: 'highlight', class: 'f')
+
+          # off-screen below
+          marker7 = editor.markBufferRange([[6, 6], [7, 6]])
+          highlight7 = editor.decorateMarker(marker7, type: 'highlight', class: 'g')
+
+          # on-screen, empty
+          marker8 = editor.markBufferRange([[2, 2], [2, 2]])
+          highlight8 = editor.decorateMarker(marker8, type: 'highlight', class: 'h')
+
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expect(stateForHighlight(presenter, highlight1)).toBeUndefined()
+
+          expectValues stateForHighlight(presenter, highlight2), {
+            class: 'b'
+            regions: [
+              {top: 2 * 10, left: 0 * 10, width: 6 * 10, height: 1 * 10}
+            ]
+          }
+
+          expectValues stateForHighlight(presenter, highlight3), {
+            class: 'c'
+            regions: [
+              {top: 2 * 10, left: 0 * 10, right: 0, height: 1 * 10}
+              {top: 3 * 10, left: 0 * 10, width: 6 * 10, height: 1 * 10}
+            ]
+          }
+
+          expectValues stateForHighlight(presenter, highlight4), {
+            class: 'd'
+            regions: [
+              {top: 2 * 10, left: 6 * 10, right: 0, height: 1 * 10}
+              {top: 3 * 10, left: 0, right: 0, height: 1 * 10}
+              {top: 4 * 10, left: 0, width: 6 * 10, height: 1 * 10}
+            ]
+          }
+
+          expectValues stateForHighlight(presenter, highlight5), {
+            class: 'e'
+            regions: [
+              {top: 3 * 10, left: 6 * 10, right: 0, height: 1 * 10}
+              {top: 4 * 10, left: 0 * 10, right: 0, height: 2 * 10}
+            ]
+          }
+
+          expectValues stateForHighlight(presenter, highlight6), {
+            class: 'f'
+            regions: [
+              {top: 5 * 10, left: 6 * 10, right: 0, height: 1 * 10}
+            ]
+          }
+
+          expect(stateForHighlight(presenter, highlight7)).toBeUndefined()
+          expect(stateForHighlight(presenter, highlight8)).toBeUndefined()
+
+        it "updates when ::scrollTop changes", ->
+          editor.setSelectedBufferRanges([
+            [[6, 2], [6, 4]],
+          ])
+
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expect(stateForSelection(presenter, 0)).toBeUndefined()
+          expectStateUpdate presenter, -> presenter.setScrollTop(5 * 10)
+          expect(stateForSelection(presenter, 0)).toBeDefined()
+          expectStateUpdate presenter, -> presenter.setScrollTop(2 * 10)
+          expect(stateForSelection(presenter, 0)).toBeUndefined()
+
+        it "updates when ::clientHeight changes", ->
+          editor.setSelectedBufferRanges([
+            [[6, 2], [6, 4]],
+          ])
+
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expect(stateForSelection(presenter, 0)).toBeUndefined()
+          expectStateUpdate presenter, -> presenter.setClientHeight(60)
+          expect(stateForSelection(presenter, 0)).toBeDefined()
+          expectStateUpdate presenter, -> presenter.setClientHeight(20)
+          expect(stateForSelection(presenter, 0)).toBeUndefined()
+
+        it "updates when ::lineHeight changes", ->
+          editor.setSelectedBufferRanges([
+            [[2, 2], [2, 4]],
+            [[3, 4], [3, 6]],
+          ])
+
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expectValues stateForSelection(presenter, 0), {
+            regions: [
+              {top: 2 * 10, left: 2 * 10, width: 2 * 10, height: 10}
+            ]
+          }
+          expect(stateForSelection(presenter, 1)).toBeUndefined()
+
+          expectStateUpdate presenter, -> presenter.setLineHeight(5)
+
+          expectValues stateForSelection(presenter, 0), {
+            regions: [
+              {top: 2 * 5, left: 2 * 10, width: 2 * 10, height: 5}
+            ]
+          }
+
+          expectValues stateForSelection(presenter, 1), {
+            regions: [
+              {top: 3 * 5, left: 4 * 10, width: 2 * 10, height: 5}
+            ]
+          }
+
+        it "updates when ::baseCharacterWidth changes", ->
+          editor.setSelectedBufferRanges([
+            [[2, 2], [2, 4]],
+          ])
+
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expectValues stateForSelection(presenter, 0), {
+            regions: [{top: 2 * 10, left: 2 * 10, width: 2 * 10, height: 10}]
+          }
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
+          expectValues stateForSelection(presenter, 0), {
+            regions: [{top: 2 * 10, left: 2 * 20, width: 2 * 20, height: 10}]
+          }
+
+        it "updates when scoped character widths change", ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            editor.setSelectedBufferRanges([
+              [[2, 4], [2, 6]],
+            ])
+
+            presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+            expectValues stateForSelection(presenter, 0), {
+              regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
+            }
+            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'keyword.control.js'], 'i', 20)
+            expectValues stateForSelection(presenter, 0), {
+              regions: [{top: 2 * 10, left: 4 * 10, width: 20 + 10, height: 10}]
+            }
+
+        it "updates when highlight decorations are added, moved, hidden, shown, or destroyed", ->
+          editor.setSelectedBufferRanges([
+            [[1, 2], [1, 4]],
+            [[3, 4], [3, 6]]
+          ])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expectValues stateForSelection(presenter, 0), {
+            regions: [{top: 1 * 10, left: 2 * 10, width: 2 * 10, height: 10}]
+          }
+          expect(stateForSelection(presenter, 1)).toBeUndefined()
+
+          # moving into view
+          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]])
+          expectValues stateForSelection(presenter, 1), {
+            regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
+          }
+
+          # becoming empty
+          expectStateUpdate presenter, -> editor.getSelections()[1].clear()
+          expect(stateForSelection(presenter, 1)).toBeUndefined()
+
+          # becoming non-empty
+          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]])
+          expectValues stateForSelection(presenter, 1), {
+            regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
+          }
+
+          # moving out of view
+          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]])
+          expect(stateForSelection(presenter, 1)).toBeUndefined()
+
+          # adding
+          expectStateUpdate presenter, -> editor.addSelectionForBufferRange([[1, 4], [1, 6]])
+          expectValues stateForSelection(presenter, 2), {
+            regions: [{top: 1 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
+          }
+
+          # moving added selection
+          expectStateUpdate presenter, -> editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]])
+          expectValues stateForSelection(presenter, 2), {
+            regions: [{top: 1 * 10, left: 4 * 10, width: 4 * 10, height: 10}]
+          }
+
+          # destroying
+          destroyedSelection = editor.getSelections()[2]
+          expectStateUpdate presenter, -> destroyedSelection.destroy()
+          expect(stateForHighlight(presenter, destroyedSelection.decoration)).toBeUndefined()
