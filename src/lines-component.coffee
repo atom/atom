@@ -36,7 +36,7 @@ LinesComponent = React.createClass
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
 
-      CursorsComponent {presenter, cursorBlinkPeriod, cursorBlinkResumeDelay}
+      CursorsComponent {presenter}
 
       HighlightsComponent {
         editor, highlightDecorations, lineHeightInPixels, defaultCharWidth,
