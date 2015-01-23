@@ -213,6 +213,11 @@ jasmine.snapshotDeprecations = ->
 jasmine.restoreDeprecationsSnapshot = ->
   Grim.deprecations = deprecationsSnapshot
 
+jasmine.useRealClock = ->
+  jasmine.unspy(window, 'setTimeout')
+  jasmine.unspy(window, 'clearTimeout')
+  jasmine.unspy(_._, 'now')
+
 addCustomMatchers = (spec) ->
   spec.addMatchers
     toBeInstanceOf: (expected) ->
