@@ -12,6 +12,3 @@ CursorComponent = React.createClass
     WebkitTransform = "translate(#{left}px, #{top}px)"
 
     div className: 'cursor', style: {height, width, WebkitTransform}
-
-  shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'pixelRect', 'defaultCharWidth')
