@@ -99,7 +99,9 @@ class TextEditorPresenter
 
     for cursor in @model.getCursors()
       if cursor.isVisible() and startRow <= cursor.getScreenRow() < endRow
-        @state.content.cursors[cursor.id] = @pixelRectForScreenRange(cursor.getScreenRange())
+        pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
+        pixelRect.width = @getBaseCharacterWidth() if pixelRect.width is 0
+        @state.content.cursors[cursor.id] = pixelRect
         visibleCursors[cursor.id] = true
 
     for id of @state.content.cursors

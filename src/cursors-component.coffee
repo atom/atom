@@ -21,7 +21,7 @@ CursorsComponent = React.createClass
     div {className},
       if presenter?
         for key, pixelRect of presenter.state.content.cursors
-          CursorComponent({key, pixelRect, defaultCharWidth})
+          CursorComponent({key, pixelRect})
 
   getInitialState: ->
     blinkOff: false

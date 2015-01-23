@@ -514,3 +514,8 @@ describe "TextEditorPresenter", ->
           destroyedCursor = editor.getCursors()[2]
           destroyedCursor.destroy()
           expect(presenter.state.content.cursors[destroyedCursor.id]).toBeUndefined()
+
+        it "makes cursors as wide as the ::baseCharacterWidth if they're at the end of a line", ->
+          editor.setCursorBufferPosition([1, Infinity])
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          expect(stateForCursor(presenter, 0).width).toBe 10

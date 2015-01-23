@@ -7,9 +7,8 @@ CursorComponent = React.createClass
   displayName: 'CursorComponent'
 
   render: ->
-    {pixelRect, defaultCharWidth} = @props
+    {pixelRect} = @props
     {top, left, height, width} = pixelRect
-    width = defaultCharWidth if width is 0
     WebkitTransform = "translate(#{left}px, #{top}px)"
 
     div className: 'cursor', style: {height, width, WebkitTransform}
