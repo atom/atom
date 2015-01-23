@@ -1108,11 +1108,12 @@ describe "Config", ->
 
       it "validates any values set before the schema was set", ->
         atom.config.set('foo.bar.anInt', 'integer')
-        schema =
-          type: 'integer'
-          default: 12
-        atom.config.setSchema('foo.bar.anInt', schema)
+        atom.config.setSchema('foo.bar.anInt', {type: 'integer', default: 12})
         expect(atom.config.get("foo.bar.anInt")).toBe 12
+
+        atom.config.set('foo.bar.aString', 'foo')
+        atom.config.setSchema('foo.bar.aString', {type: 'string', default: 'bar'})
+        expect(atom.config.get("foo.bar.aString")).toBe 'foo'
 
       describe 'when the value has an "integer" type', ->
         beforeEach ->

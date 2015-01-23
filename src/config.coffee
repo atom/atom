@@ -801,7 +801,10 @@ class Config
     if keyPath
       value = @get(keyPath)
       unless value is undefined
-        @unset(keyPath) unless @set(keyPath, value)
+        try
+          @makeValueConformToSchema(keyPath, value)
+        catch error
+          @unset(keyPath)
 
     return
 
