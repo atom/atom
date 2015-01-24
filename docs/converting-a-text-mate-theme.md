@@ -6,7 +6,7 @@ theme.
 ### Differences
 
 TextMate themes use [plist][plist] files while Atom themes use [CSS][CSS] or
-[LESS][LESS] to style the UI and syntax in the editor.
+[Less][Less] to style the UI and syntax in the editor.
 
 The utility that converts the theme first parses the theme's plist file and
 then creates comparable CSS rules and properties that will style Atom similarly.
@@ -62,7 +62,7 @@ __Syntax Theme__ dropdown menu to enable your new theme.
 
 [atomio]: https://atom.io
 [CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets
-[LESS]: http://lesscss.org
+[Less]: http://lesscss.org
 [plist]: http://en.wikipedia.org/wiki/Property_list
 [TextMate]: http://macromates.com
 [TextMateThemes]: http://wiki.macromates.com/Themes/UserSubmittedThemes

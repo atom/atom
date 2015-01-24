@@ -174,12 +174,12 @@ atom-text-editor.is-focused .cursor {
 }
 ```
 
-Unfamiliar with LESS? Read more about it [here][LESS].
+Unfamiliar with Less? Read more about it [here][Less].
 
 This file can also be named _styles.css_ and contain CSS.
 
 [creating-a-package]: creating-a-package.md
 [create-theme]: creating-a-theme.md
-[LESS]: http://www.lesscss.org
+[Less]: http://www.lesscss.org
 [CSON]: https://github.com/atom/season
 [CoffeeScript]: http://coffeescript.org/
