@@ -110,9 +110,11 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateHighlightsState: ->
+    @state.content.highlights ?= {}
+
     startRow = @getStartRow()
     endRow = @getEndRow()
-    @state.content.highlights = {}
+    visibleHighlights = {}
 
     for decoration in @model.getHighlightDecorations()
       continue unless decoration.getMarker().isValid()
@@ -125,13 +127,23 @@ class TextEditorPresenter
           screenRange.end.row = endRow
           screenRange.end.column = 0
         continue if screenRange.isEmpty()
-        @state.content.highlights[decoration.id] =
-          class: decoration.getProperties().class
-          deprecatedRegionClass: decoration.getProperties().deprecatedRegionClass
-          regions: @buildHighlightRegions(screenRange)
+
+        visibleHighlights[decoration.id] = true
+
+        @state.content.highlights[decoration.id] ?= {
           flashCount: 0
           flashDuration: null
           flashClass: null
+        }
+        highlightState = @state.content.highlights[decoration.id]
+        highlightState.class = decoration.getProperties().class
+        highlightState.deprecatedRegionClass = decoration.getProperties().deprecatedRegionClass
+        highlightState.regions = @buildHighlightRegions(screenRange)
+
+    for id of @state.content.highlights
+      unless visibleHighlights.hasOwnProperty(id)
+        delete @state.content.highlights[id]
+
     @emitter.emit 'did-update-state'
 
   buildHighlightRegions: (screenRange) ->
@@ -356,11 +368,11 @@ class TextEditorPresenter
 
   highlightDidFlash: (decoration) ->
     flash = decoration.consumeNextFlash()
-    decorationState = @state.content.highlights[decoration.id]
-    decorationState.flashCount++
-    decorationState.flashClass = flash.class
-    decorationState.flashDuration = flash.duration
-    @emitter.emit "did-update-state"
+    if decorationState = @state.content.highlights[decoration.id]
+      decorationState.flashCount++
+      decorationState.flashClass = flash.class
+      decorationState.flashDuration = flash.duration
+      @emitter.emit "did-update-state"
 
   didAddDecoration: (decoration) ->
     if decoration.isType('line')

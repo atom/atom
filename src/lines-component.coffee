@@ -37,11 +37,7 @@ LinesComponent = React.createClass
       div className: 'placeholder-text', placeholderText if placeholderText?
 
       CursorsComponent {presenter}
-
-      HighlightsComponent {
-        editor, highlightDecorations, lineHeightInPixels, defaultCharWidth,
-        scopedCharacterWidthsChangeCount, performedInitialMeasurement, presenter
-      }
+      HighlightsComponent {presenter, performedInitialMeasurement}
 
   getTransform: ->
     {scrollTop, scrollLeft} = @newState

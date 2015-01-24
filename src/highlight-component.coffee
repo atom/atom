@@ -5,11 +5,11 @@ React = require 'react-atom-fork'
 module.exports =
 HighlightComponent = React.createClass
   displayName: 'HighlightComponent'
-  lastFlashCount: 0
-  lastFlashClass: null
+  currentFlashCount: 0
+  currentFlashClass: null
 
   render: ->
-    {editor, state} = @props
+    {state} = @props
 
     className = 'highlight'
     className += " #{state.class}" if state.class?
@@ -20,30 +20,31 @@ HighlightComponent = React.createClass
         regionClassName += " #{state.deprecatedRegionClass}" if state.deprecatedRegionClass?
         div className: regionClassName, key: i, style: region
 
-  componentDidUpdate: ->
-    if @props.state.flashCount > @lastFlashCount
-      @startFlashAnimation()
-      @lastFlashCount = @props.state.flashCount
-      @lastFlashClass = @props.state.flashClass
-
   componentDidMount: ->
-    {key} = @props
-    presenter.onDidFlashHighlight @startFlashAnimation.bind(this)
+    @flashIfRequested()
 
-  componentWillUnmount: ->
-    @decorationDisposable?.dispose()
-    @decorationDisposable = null
+  componentDidUpdate: ->
+    @flashIfRequested()
 
-  startFlashAnimation: ->
-    node = @getDOMNode()
+  flashIfRequested: ->
+    if @props.state.flashCount > @currentFlashCount
+      @currentFlashCount = @props.state.flashCount
 
-    if @lastFlashClass?
-      clearTimeout(@flashTimeoutId)
-      node.classList.remove(@lastFlashClass)
-      @lastFlashClass = null
+      node = @getDOMNode()
+      {flashClass, flashDuration} = @props.state
 
-    requestAnimationFrame =>
-      flashClass = @props.state.flashClass
-      node.classList.add(flashClass)
-      removeFlashClass = -> node.classList.remove(flashClass)
-      @flashTimeoutId = setTimeout(removeFlashClass, flash.duration)
+      addFlashClass = =>
+        node.classList.add(flashClass)
+        @currentFlashClass = flashClass
+        @flashTimeoutId = setTimeout(removeFlashClass, flashDuration)
+
+      removeFlashClass = =>
+        node.classList.remove(@currentFlashClass)
+        @currentFlashClass = null
+        clearTimeout(@flashTimeoutId)
+
+      if @currentFlashClass?
+        removeFlashClass()
+        requestAnimationFrame(addFlashClass)
+      else
+        addFlashClass()

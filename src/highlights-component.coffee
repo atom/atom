@@ -15,7 +15,7 @@ HighlightsComponent = React.createClass
     {editor, presenter} = @props
     highlightComponents = []
     for key, state of presenter.state.content.highlights
-      highlightComponents.push(HighlightComponent({editor, key, state}))
+      highlightComponents.push(HighlightComponent({key, state}))
     highlightComponents
 
   componentDidMount: ->
@@ -23,6 +23,3 @@ HighlightsComponent = React.createClass
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.underlayer')
       @getDOMNode().appendChild(insertionPoint)
-
-  shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'highlightDecorations', 'lineHeightInPixels', 'defaultCharWidth', 'scopedCharacterWidthsChangeCount')

@@ -923,7 +923,6 @@ describe "TextEditorComponent", ->
     it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
       nextAnimationFrame()
-      nextAnimationFrame() # flash starts on its own frame
       selectionNode = componentNode.querySelector('.selection')
       expect(selectionNode.classList.contains('flash')).toBe true
 
@@ -1183,6 +1182,8 @@ describe "TextEditorComponent", ->
           advanceClock(2)
 
           decoration.flash('flash-class', 10)
+          nextAnimationFrame()
+
           # Removed for 1 frame to force CSS transition to restart
           expect(highlightNode.classList.contains('flash-class')).toBe false
 
