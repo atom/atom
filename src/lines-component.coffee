@@ -40,7 +40,7 @@ LinesComponent = React.createClass
 
       HighlightsComponent {
         editor, highlightDecorations, lineHeightInPixels, defaultCharWidth,
-        scopedCharacterWidthsChangeCount, performedInitialMeasurement
+        scopedCharacterWidthsChangeCount, performedInitialMeasurement, presenter
       }
 
   getTransform: ->

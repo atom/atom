@@ -1104,7 +1104,7 @@ describe "TextEditorComponent", ->
       # Nothing when outside the rendered row range
       expect(regions.length).toBe 0
 
-      verticalScrollbarNode.scrollTop = 3.5 * lineHeightInPixels
+      verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 

@@ -666,6 +666,16 @@ describe "TextEditorPresenter", ->
           expect(stateForHighlight(presenter, highlight7)).toBeUndefined()
           expect(stateForHighlight(presenter, highlight8)).toBeUndefined()
 
+        it "does not include highlights for invalid markers", ->
+          marker = editor.markBufferRange([[2, 2], [2, 4]], invalidate: 'touch')
+          highlight = editor.decorateMarker(marker, type: 'highlight', class: 'h')
+
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expect(stateForHighlight(presenter, highlight)).toBeDefined()
+          expectStateUpdate presenter, -> editor.getBuffer().insert([2, 2], "stuff")
+          expect(stateForHighlight(presenter, highlight)).toBeUndefined()
+
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
             [[6, 2], [6, 4]],
@@ -803,3 +813,34 @@ describe "TextEditorPresenter", ->
           destroyedSelection = editor.getSelections()[2]
           expectStateUpdate presenter, -> destroyedSelection.destroy()
           expect(stateForHighlight(presenter, destroyedSelection.decoration)).toBeUndefined()
+
+        it "updates when highlight decorations' properties are updated", ->
+          marker = editor.markBufferRange([[2, 2], [2, 4]])
+          highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
+
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expectValues stateForHighlight(presenter, highlight), {class: 'a'}
+          expectStateUpdate presenter, -> highlight.setProperties(class: 'b', type: 'highlight')
+          expectValues stateForHighlight(presenter, highlight), {class: 'b'}
+
+        it "increments the .flashCount and sets the .flashClass and .flashDuration when the highlight model flashes", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          marker = editor.markBufferRange([[2, 2], [2, 4]])
+          highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
+          expectStateUpdate presenter, -> highlight.flash('b', 500)
+
+          expectValues stateForHighlight(presenter, highlight), {
+            flashClass: 'b'
+            flashDuration: 500
+            flashCount: 1
+          }
+
+          expectStateUpdate presenter, -> highlight.flash('c', 600)
+
+          expectValues stateForHighlight(presenter, highlight), {
+            flashClass: 'c'
+            flashDuration: 600
+            flashCount: 2
+          }

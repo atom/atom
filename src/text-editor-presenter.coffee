@@ -115,6 +115,7 @@ class TextEditorPresenter
     @state.content.highlights = {}
 
     for decoration in @model.getHighlightDecorations()
+      continue unless decoration.getMarker().isValid()
       screenRange = decoration.getMarker().getScreenRange()
       if screenRange.intersectsRowRange(startRow, endRow - 1)
         if screenRange.start.row < startRow
@@ -126,7 +127,12 @@ class TextEditorPresenter
         continue if screenRange.isEmpty()
         @state.content.highlights[decoration.id] =
           class: decoration.getProperties().class
+          deprecatedRegionClass: decoration.getProperties().deprecatedRegionClass
           regions: @buildHighlightRegions(screenRange)
+          flashCount: 0
+          flashDuration: null
+          flashClass: null
+    @emitter.emit 'did-update-state'
 
   buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @getLineHeight()
@@ -331,24 +337,30 @@ class TextEditorPresenter
     {top, left, width, height}
 
   observeLineDecoration: (decoration) ->
-    markerDidChangeDisposable = decoration.getMarker().onDidChange(@updateLinesState.bind(this))
-    didDestroyDisposable = decoration.onDidDestroy =>
-      @disposables.remove(markerDidChangeDisposable)
-      @disposables.remove(didDestroyDisposable)
+    decorationDisposables = new CompositeDisposable
+    decorationDisposables.add decoration.getMarker().onDidChange(@updateLinesState.bind(this))
+    decorationDisposables.add decoration.onDidDestroy =>
+      @disposables.remove(decorationDisposables)
       @updateLinesState()
-
-    @disposables.add(markerDidChangeDisposable)
-    @disposables.add(didDestroyDisposable)
+    @disposables.add(decorationDisposables)
 
   observeHighlightDecoration: (decoration) ->
-    markerDidChangeDisposable = decoration.getMarker().onDidChange(@updateHighlightsState.bind(this))
-    didDestroyDisposable = decoration.onDidDestroy =>
-      @disposables.remove(markerDidChangeDisposable)
-      @disposables.remove(didDestroyDisposable)
+    decorationDisposables = new CompositeDisposable
+    decorationDisposables.add decoration.getMarker().onDidChange(@updateHighlightsState.bind(this))
+    decorationDisposables.add decoration.onDidChangeProperties(@updateHighlightsState.bind(this))
+    decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
+    decorationDisposables.add decoration.onDidDestroy =>
+      @disposables.remove(decorationDisposables)
       @updateHighlightsState()
+    @disposables.add(decorationDisposables)
 
-    @disposables.add(markerDidChangeDisposable)
-    @disposables.add(didDestroyDisposable)
+  highlightDidFlash: (decoration) ->
+    flash = decoration.consumeNextFlash()
+    decorationState = @state.content.highlights[decoration.id]
+    decorationState.flashCount++
+    decorationState.flashClass = flash.class
+    decorationState.flashDuration = flash.duration
+    @emitter.emit "did-update-state"
 
   didAddDecoration: (decoration) ->
     if decoration.isType('line')
