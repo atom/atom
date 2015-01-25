@@ -1,7 +1,7 @@
 # Creating a Theme
 
-Atom's interface is rendered using HTML, and it's styled via [LESS] which is a
-superset of CSS. Don't worry if you haven't heard of LESS before; it's just like
+Atom's interface is rendered using HTML, and it's styled via [Less] which is a
+superset of CSS. Don't worry if you haven't heard of Less before; it's just like
 CSS, but with a few handy extensions.
 
 Atom supports two types of themes: _UI_ and _syntax_.  UI themes style
@@ -17,7 +17,7 @@ section on the left hand side.
 Themes are pretty straightforward but it's still helpful to be familiar with
 a few things before starting:
 
-* LESS is a superset of CSS, but it has some really handy features like
+* Less is a superset of CSS, but it has some really handy features like
   variables. If you aren't familiar with its syntax, take a few minutes
   to [familiarize yourself][less-tutorial].
 * You may also want to review the concept of a _[package.json]_, too. This file
@@ -131,7 +131,7 @@ _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
 ![styleguide-img]
 
 [atomio]: http://atom.io/packages
-[LESS]: http://lesscss.org/
+[Less]: http://lesscss.org/
 [git]: http://git-scm.com/
 [atom]: https://atom.io/
 [package.json]: ./creating-a-package.html#package-json

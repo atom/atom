@@ -45,7 +45,7 @@ the editor to see it in action!
 
 [atomio]: https://atom.io
 [CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets
-[LESS]: http://lesscss.org
+[Less]: http://lesscss.org
 [plist]: http://en.wikipedia.org/wiki/Property_list
 [R]: http://en.wikipedia.org/wiki/R_(programming_language)
 [TextMate]: http://macromates.com
