@@ -8,7 +8,7 @@ process.chdir(path.dirname(__dirname));
 var homeDir = process.platform == 'win32' ? process.env.USERPROFILE : process.env.HOME;
 
 // Temp fix for #5214
-if (process.platform == 'win32') {
+if (process.platform == 'linux') {
   try {
     require('fs-plus').removeSync(path.resolve(__dirname, '..', 'node_modules'))
   } catch (error) {
