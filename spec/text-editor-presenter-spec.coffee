@@ -1047,3 +1047,34 @@ describe "TextEditorPresenter", ->
 
           expectStateUpdate presenter, -> editor.setMini(true)
           expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+
+      describe ".foldable", ->
+        it "marks line numbers at the start of a foldable region as foldable", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          expect(lineNumberStateForScreenRow(presenter, 0).foldable).toBe true
+          expect(lineNumberStateForScreenRow(presenter, 1).foldable).toBe true
+          expect(lineNumberStateForScreenRow(presenter, 2).foldable).toBe false
+          expect(lineNumberStateForScreenRow(presenter, 3).foldable).toBe false
+          expect(lineNumberStateForScreenRow(presenter, 4).foldable).toBe true
+          expect(lineNumberStateForScreenRow(presenter, 5).foldable).toBe false
+
+        it "updates the foldable class on the correct line numbers when the foldable positions change", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          editor.getBuffer().insert([0, 0], '\n')
+          expect(lineNumberStateForScreenRow(presenter, 0).foldable).toBe false
+          expect(lineNumberStateForScreenRow(presenter, 1).foldable).toBe true
+          expect(lineNumberStateForScreenRow(presenter, 2).foldable).toBe true
+          expect(lineNumberStateForScreenRow(presenter, 3).foldable).toBe false
+          expect(lineNumberStateForScreenRow(presenter, 4).foldable).toBe false
+          expect(lineNumberStateForScreenRow(presenter, 5).foldable).toBe true
+          expect(lineNumberStateForScreenRow(presenter, 6).foldable).toBe false
+
+        it "updates the foldable class on a line number that becomes foldable", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe false
+
+          editor.getBuffer().insert([11, 44], '\n    fold me')
+          expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe true
+
+          editor.undo()
+          expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe false

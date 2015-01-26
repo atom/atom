@@ -164,8 +164,9 @@ class TextEditorPresenter
         softWrapped = false
         lastBufferRow = bufferRow
       decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+      foldable = @model.isFoldableAtScreenRow(screenRow)
 
-      {bufferRow, softWrapped, top, decorationClasses}
+      {bufferRow, softWrapped, top, decorationClasses, foldable}
 
     @emitter.emit 'did-update-state'
 
