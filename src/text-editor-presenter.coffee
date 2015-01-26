@@ -48,6 +48,7 @@ class TextEditorPresenter
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
+    @updateLineNumbersState()
 
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
@@ -146,6 +147,20 @@ class TextEditorPresenter
 
     @emitter.emit 'did-update-state'
 
+  updateLineNumbersState: ->
+    lastBufferRow = null
+    startRow = @getStartRow()
+    endRow = @getEndRow()
+
+    @state.lineNumbers = @model.bufferRowsForScreenRows(startRow, endRow - 1).map (bufferRow, i) =>
+      top = (startRow + i) * @getLineHeight()
+      if bufferRow is lastBufferRow
+        softWrapped = true
+      else
+        softWrapped = false
+        lastBufferRow = bufferRow
+      {bufferRow, softWrapped, top}
+
   buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @getLineHeight()
     startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, true)
@@ -237,6 +252,7 @@ class TextEditorPresenter
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
+    @updateLineNumbersState()
 
   getScrollTop: -> @scrollTop
 
@@ -249,6 +265,7 @@ class TextEditorPresenter
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
+    @updateLineNumbersState()
 
   getClientHeight: ->
     @clientHeight ? @model.getScreenLineCount() * @getLineHeight()
@@ -264,6 +281,7 @@ class TextEditorPresenter
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
+    @updateLineNumbersState()
 
   getLineHeight: -> @lineHeight
 
