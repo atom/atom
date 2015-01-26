@@ -1351,14 +1351,19 @@ class TextEditor extends Model
   getLineDecorations: (propertyFilter) ->
     @displayBuffer.getLineDecorations(propertyFilter)
 
+  # Soft-deprecated (forgot to deprecated this pre 1.0)
+  getGutterDecorations: (propertyFilter) ->
+    deprecate("Use ::getLineNumberDecorations instead")
+    @getLineNumberDecorations(propertyFilter)
+
   # Extended: Get all decorations of type 'line-number'.
   #
   # * `propertyFilter` (optional) An {Object} containing key value pairs that
   #   the returned decorations' properties must match.
   #
   # Returns an {Array} of {Decoration}s.
-  getGutterDecorations: (propertyFilter) ->
-    @displayBuffer.getGutterDecorations(propertyFilter)
+  getLineNumberDecorations: (propertyFilter) ->
+    @displayBuffer.getLineNumberDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'highlight'.
   #

@@ -897,7 +897,7 @@ class DisplayBuffer extends Model
   getLineDecorations: (propertyFilter) ->
     @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line')
 
-  getGutterDecorations: (propertyFilter) ->
+  getLineNumberDecorations: (propertyFilter) ->
     @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line-number')
 
   getHighlightDecorations: (propertyFilter) ->
