@@ -9,6 +9,7 @@ EmitterMixin = require('emissary').Emitter
 Q = require 'q'
 {deprecate} = require 'grim'
 
+Color = require './color'
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
@@ -265,7 +266,10 @@ class Package
 
     variables = {}
     for key, value of atom.config.get(@name)
+      if typeof value is 'object' and not (value instanceof Color)
+        value = Color.parse(value)
       value = value?.toRGBAString?() ? value
+      continue if value?.length is 0
       variables[key] = value if typeof value in ['number', 'string']
     variables
 
