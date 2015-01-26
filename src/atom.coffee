@@ -3,7 +3,6 @@ ipc = require 'ipc'
 os = require 'os'
 path = require 'path'
 remote = require 'remote'
-screen = require 'screen'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
@@ -547,6 +546,7 @@ class Atom extends Model
     if @isValidDimensions(dimensions)
       dimensions
     else
+      screen = remote.require 'screen'
       {width, height} = screen.getPrimaryDisplay().workAreaSize
       {x: 0, y: 0, width: Math.min(1024, width), height}
 

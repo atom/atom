@@ -10,7 +10,6 @@ module.exports =
 class AtomWindow
   _.extend @prototype, EventEmitter.prototype
 
-  @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
   @includeShellLoadTime: true
 
   browserWindow: null
@@ -26,7 +25,6 @@ class AtomWindow
     @browserWindow = new BrowserWindow
       show: false
       title: 'Atom'
-      icon: @constructor.iconPath
       'web-preferences':
         'direct-write': false
         'subpixel-font-scaling': false
