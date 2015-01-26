@@ -44,6 +44,7 @@ class TextEditorPresenter
       content:
         lines: {}
         blinkCursorsOff: false
+      gutter: {}
     @updateState()
 
   updateState: ->
@@ -158,7 +159,7 @@ class TextEditorPresenter
     startRow = @getStartRow()
     endRow = @getEndRow()
 
-    @state.lineNumbers = @model.bufferRowsForScreenRows(startRow, endRow - 1).map (bufferRow, i) =>
+    @state.gutter.lineNumbers = @model.bufferRowsForScreenRows(startRow, endRow - 1).map (bufferRow, i) =>
       screenRow = startRow + i
       top = screenRow * @getLineHeight()
       if bufferRow is lastBufferRow
