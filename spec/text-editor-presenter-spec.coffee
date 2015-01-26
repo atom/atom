@@ -945,3 +945,105 @@ describe "TextEditorPresenter", ->
         expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 4}
         expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 7}
         expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+
+      describe ".decorationClasses", ->
+        it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
+          marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+          decoration1 = editor.decorateMarker(marker1, type: 'line-number', class: 'a')
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+          decoration2 = editor.decorateMarker(marker2, type: 'line-number', class: 'b')
+
+          expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
+          expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+          expectStateUpdate presenter, -> editor.getBuffer().insert([5, 0], 'x')
+          expect(marker1.isValid()).toBe false
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+          expectStateUpdate presenter, -> editor.undo()
+          expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
+          expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+          expectStateUpdate presenter, -> marker1.setBufferRange([[2, 0], [4, 2]])
+          expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
+          expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+          expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+          expectStateUpdate presenter, -> decoration1.destroy()
+          expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['b']
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+          expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+          expectStateUpdate presenter, -> marker2.destroy()
+          expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+
+        it "honors the 'onlyEmpty' option on line decorations", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          marker = editor.markBufferRange([[4, 0], [6, 1]])
+          decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyEmpty: true)
+
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+          expectStateUpdate presenter, -> marker.clearTail()
+
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+
+        it "honors the 'onlyNonEmpty' option on line decorations", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          marker = editor.markBufferRange([[4, 0], [6, 2]])
+          decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyNonEmpty: true)
+
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+
+          expectStateUpdate presenter, -> marker.clearTail()
+
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+        it "does not decorate the last line of a non-empty line decoration range if it ends at column 0", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          marker = editor.markBufferRange([[4, 0], [6, 0]])
+          decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
+
+          expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
+          expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
+          expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+        it "does not apply line decorations to mini editors", ->
+          editor.setMini(true)
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          marker = editor.markBufferRange([[0, 0], [0, 0]])
+          decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
+          expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+
+          expectStateUpdate presenter, -> editor.setMini(false)
+          expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toEqual ['cursor-line', 'cursor-line-no-selection', 'a']
+
+          expectStateUpdate presenter, -> editor.setMini(true)
+          expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()

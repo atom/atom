@@ -26,10 +26,13 @@ class TextEditorPresenter
     @disposables.add @model.onDidChange(@updateState.bind(this))
     @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
-    @disposables.add @model.onDidChangeMini(@updateLinesState.bind(this))
+    @disposables.add @model.onDidChangeMini =>
+      @updateLinesState()
+      @updateLineNumbersState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @observeLineDecoration(decoration) for decoration in @model.getLineDecorations()
+    @observeLineNumberDecoration(decoration) for decoration in @model.getLineNumberDecorations()
     @observeHighlightDecoration(decoration) for decoration in @model.getHighlightDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
 
@@ -153,13 +156,18 @@ class TextEditorPresenter
     endRow = @getEndRow()
 
     @state.lineNumbers = @model.bufferRowsForScreenRows(startRow, endRow - 1).map (bufferRow, i) =>
-      top = (startRow + i) * @getLineHeight()
+      screenRow = startRow + i
+      top = screenRow * @getLineHeight()
       if bufferRow is lastBufferRow
         softWrapped = true
       else
         softWrapped = false
         lastBufferRow = bufferRow
-      {bufferRow, softWrapped, top}
+      decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+
+      {bufferRow, softWrapped, top, decorationClasses}
+
+    @emitter.emit 'did-update-state'
 
   buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @getLineHeight()
@@ -229,6 +237,26 @@ class TextEditorPresenter
     decorationClasses = null
     for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
       for decoration in decorations when decoration.isType('line')
+        properties = decoration.getProperties()
+        range = decoration.getMarker().getScreenRange()
+
+        if range.isEmpty()
+          continue if properties.onlyNonEmpty
+        else
+          continue if properties.onlyEmpty
+          continue if row is range.end.row and range.end.column is 0
+
+        decorationClasses ?= []
+        decorationClasses.push(properties.class)
+
+    decorationClasses
+
+  lineNumberDecorationClassesForRow: (row) ->
+    return null if @model.isMini()
+
+    decorationClasses = null
+    for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
+      for decoration in decorations when decoration.isType('line-number')
         properties = decoration.getProperties()
         range = decoration.getMarker().getScreenRange()
 
@@ -374,6 +402,14 @@ class TextEditorPresenter
       @updateLinesState()
     @disposables.add(decorationDisposables)
 
+  observeLineNumberDecoration: (decoration) ->
+    decorationDisposables = new CompositeDisposable
+    decorationDisposables.add decoration.getMarker().onDidChange(@updateLineNumbersState.bind(this))
+    decorationDisposables.add decoration.onDidDestroy =>
+      @disposables.remove(decorationDisposables)
+      @updateLineNumbersState()
+    @disposables.add(decorationDisposables)
+
   observeHighlightDecoration: (decoration) ->
     decorationDisposables = new CompositeDisposable
     decorationDisposables.add decoration.getMarker().onDidChange(@updateHighlightsState.bind(this))
@@ -396,6 +432,9 @@ class TextEditorPresenter
     if decoration.isType('line')
       @observeLineDecoration(decoration)
       @updateLinesState()
+    if decoration.isType('line-number')
+      @observeLineNumberDecoration(decoration)
+      @updateLineNumbersState()
     else if decoration.isType('highlight')
       @observeHighlightDecoration(decoration)
       @updateHighlightsState()
