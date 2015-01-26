@@ -51,6 +51,11 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
         expect(presenter.state.scrollHeight).toBe editor.getScreenLineCount() * 10
 
+      it "updates when ::clientHeight changes", ->
+        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+        expectStateUpdate presenter, -> presenter.setClientHeight(500)
+        expect(presenter.state.scrollHeight).toBe 500
+
     describe ".scrollTop", ->
       it "tracks the value of ::scrollTop", ->
         presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10)

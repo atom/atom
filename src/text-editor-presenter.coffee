@@ -295,6 +295,7 @@ class TextEditorPresenter
   getScrollLeft: -> @scrollLeft
 
   setClientHeight: (@clientHeight) ->
+    @updateVerticalScrollState()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
