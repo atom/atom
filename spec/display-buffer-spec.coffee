@@ -638,8 +638,11 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.outermostFoldsInBufferRowRange(3, 18)).toEqual [fold1, fold3, fold5]
         expect(displayBuffer.outermostFoldsInBufferRowRange(5, 16)).toEqual [fold3]
 
-  describe "::clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
+  describe "::clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, clip: 'closest')", ->
     beforeEach ->
+      tabLength = 4
+
+      displayBuffer.setTabLength(tabLength)
       displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
 
@@ -698,19 +701,28 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([3, 58], wrapAtSoftNewlines: true)).toEqual [4, 4]
         expect(displayBuffer.clipScreenPosition([3, 1000], wrapAtSoftNewlines: true)).toEqual [4, 4]
 
-    describe "when skipAtomicTokens is false (the default)", ->
-      it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
+    describe "when clip is 'closest' (the default)", ->
+      it "clips screen positions in the middle of atomic tab characters to the closest edge of the character", ->
         buffer.insert([0, 0], '\t')
         expect(displayBuffer.clipScreenPosition([0, 0])).toEqual [0, 0]
         expect(displayBuffer.clipScreenPosition([0, 1])).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, 2])).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, tabLength-1])).toEqual [0, tabLength]
         expect(displayBuffer.clipScreenPosition([0, tabLength])).toEqual [0, tabLength]
 
-    describe "when skipAtomicTokens is true", ->
+    describe "when clip is 'backward'", ->
+      it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
+        buffer.insert([0, 0], '\t')
+        expect(displayBuffer.clipScreenPosition([0, 0], clip: 'backward')).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, tabLength-1], clip: 'backward')).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, tabLength], clip: 'backward')).toEqual [0, tabLength]
+
+    describe "when clip is 'forward'", ->
       it "clips screen positions in the middle of atomic tab characters to the end of the character", ->
         buffer.insert([0, 0], '\t')
-        expect(displayBuffer.clipScreenPosition([0, 0], skipAtomicTokens: true)).toEqual [0, 0]
-        expect(displayBuffer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabLength]
-        expect(displayBuffer.clipScreenPosition([0, tabLength], skipAtomicTokens: true)).toEqual [0, tabLength]
+        expect(displayBuffer.clipScreenPosition([0, 0], clip: 'forward')).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, 1], clip: 'forward')).toEqual [0, tabLength]
+        expect(displayBuffer.clipScreenPosition([0, tabLength], clip: 'forward')).toEqual [0, tabLength]
 
   describe "::screenPositionForBufferPosition(bufferPosition, options)", ->
     it "clips the specified buffer position", ->

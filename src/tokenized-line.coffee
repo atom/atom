@@ -41,10 +41,20 @@ class TokenizedLine
   copy: ->
     new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})
 
+  # This clips a given screen column to a valid column that's within the line
+  # and not in the middle of any atomic tokens.
+  #
+  # column - A {Number} representing the column to clip
+  # options - A hash with the key clip. Valid values for this key:
+  #           'closest' (default): clip to the closest edge of an atomic token.
+  #           'forward': clip to the forward edge.
+  #           'backward': clip to the backward edge.
+  #
+  # Returns a {Number} representing the clipped column.
   clipScreenColumn: (column, options={}) ->
     return 0 if @tokens.length == 0
 
-    { skipAtomicTokens } = options
+    { clip } = options
     column = Math.min(column, @getMaxScreenColumn())
 
     tokenStartColumn = 0
@@ -55,10 +65,15 @@ class TokenizedLine
     if @isColumnInsideSoftWrapIndentation(tokenStartColumn)
       @softWrapIndentationDelta
     else if token.isAtomic and tokenStartColumn < column
-      if skipAtomicTokens
+      if clip == 'forward'
         tokenStartColumn + token.screenDelta
-      else
+      else if clip == 'backward'
         tokenStartColumn
+      else #'closest'
+        if column > tokenStartColumn + (token.screenDelta / 2)
+          tokenStartColumn + token.screenDelta
+        else
+          tokenStartColumn
     else
       column
 
