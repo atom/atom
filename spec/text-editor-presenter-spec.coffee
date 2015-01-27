@@ -63,6 +63,20 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> presenter.setScrollTop(50)
         expect(presenter.state.scrollTop).toBe 50
 
+    describe ".scrollingVertically", ->
+      it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
+        presenter = new TextEditorPresenter(model: editor, scrollTop: 10, stoppedScrollingDelay: 200)
+        expect(presenter.state.scrollingVertically).toBe false
+        expectStateUpdate presenter, -> presenter.setScrollTop(0)
+        expect(presenter.state.scrollingVertically).toBe true
+        advanceClock(100)
+        expect(presenter.state.scrollingVertically).toBe true
+        presenter.setScrollTop(10)
+        advanceClock(100)
+        expect(presenter.state.scrollingVertically).toBe true
+        expectStateUpdate presenter, -> advanceClock(100)
+        expect(presenter.state.scrollingVertically).toBe false
+
     describe ".content", ->
       describe ".scrollWidth", ->
         it "is initialized as the max of the clientWidth and the width of the longest line", ->

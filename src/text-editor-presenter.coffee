@@ -6,8 +6,13 @@ module.exports =
 class TextEditorPresenter
   toggleCursorBlinkHandle: null
   startBlinkingCursorsAfterDelay: null
+  stoppedScrollingTimeoutId: null
 
-  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @cursorBlinkPeriod, @cursorBlinkResumeDelay, @backgroundColor}) ->
+  constructor: (params) ->
+    {@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft} = params
+    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
+
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @charWidthsByScope = {}
@@ -43,6 +48,7 @@ class TextEditorPresenter
 
   buildState: ->
     @state =
+      scrollingVertically: false
       content:
         blinkCursorsOff: false
         lines: {}
@@ -321,11 +327,24 @@ class TextEditorPresenter
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
   setScrollTop: (@scrollTop) ->
+    @didStartScrolling()
     @updateVerticalScrollState()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
     @updateLineNumbersState()
+
+  didStartScrolling: ->
+    if @stoppedScrollingTimeoutId?
+      clearTimeout(@stoppedScrollingTimeoutId)
+      @stoppedScrollingTimeoutId = null
+    @stoppedScrollingTimeoutId = setTimeout(@didStopScrolling.bind(this), @stoppedScrollingDelay)
+    @state.scrollingVertically = true
+    @emitter.emit 'did-update-state'
+
+  didStopScrolling: ->
+    @state.scrollingVertically = false
+    @emitter.emit 'did-update-state'
 
   getScrollTop: -> @scrollTop
 
