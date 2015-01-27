@@ -1041,9 +1041,9 @@ class Config
         settings = withoutEmptyObjects(@makeValueConformToSchema(null, settings))
         validatedSettings[scopeSelector] = settings
       catch e
-        ;
+        validatedSettings[scopeSelector] = null
 
-      @scopedSettingsStore.addProperties(source, validatedSettings, {priority}) if validatedSettings[scopeSelector]
+      @scopedSettingsStore.addProperties(source, validatedSettings, {priority}) if validatedSettings[scopeSelector]?
 
     @emitChangeEvent()
 
