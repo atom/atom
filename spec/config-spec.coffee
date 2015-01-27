@@ -1106,6 +1106,44 @@ describe "Config", ->
         expect(atom.config.get('foo.bar.str', scope: ['.source.js'])).toBe 'omg'
         expect(atom.config.get('foo.bar.str', scope: ['.source.coffee'])).toBe 'ok'
 
+      describe 'when a schema is added after config values have been set', ->
+        schema = null
+        beforeEach ->
+          schema =
+            type: 'object'
+            properties:
+              int:
+                type: 'integer'
+                default: 2
+
+        it 'the values set respect the new schema', ->
+          expect(atom.config.set('foo.bar.int', 'nope')).toBe true
+          expect(atom.config.set('foo.bar.int', 'notanint', scopeSelector: '.source.js')).toBe true
+          expect(atom.config.set('foo.bar.int', 23, scopeSelector: '.source.coffee')).toBe true
+          expect(atom.config.get('foo.bar.int')).toBe 'nope'
+          expect(atom.config.get('foo.bar.int', scope: ['.source.js'])).toBe 'notanint'
+          expect(atom.config.get('foo.bar.int', scope: ['.source.coffee'])).toBe 23
+
+          atom.config.setSchema('foo.bar', schema)
+
+          expect(atom.config.get('foo.bar.int')).toBe 2
+          expect(atom.config.get('foo.bar.int', scope: ['.source.js'])).toBe 2
+          expect(atom.config.get('foo.bar.int', scope: ['.source.coffee'])).toBe 23
+
+        it 'doesnt mess it up', ->
+          expect(atom.config.set('foo.bar.int', 10)).toBe true
+          expect(atom.config.set('foo.bar.int', 15, scopeSelector: '.source.js')).toBe true
+          expect(atom.config.set('foo.bar.int', 23, scopeSelector: '.source.coffee')).toBe true
+          expect(atom.config.get('foo.bar.int')).toBe 10
+          expect(atom.config.get('foo.bar.int', scope: ['.source.js'])).toBe 15
+          expect(atom.config.get('foo.bar.int', scope: ['.source.coffee'])).toBe 23
+
+          atom.config.setSchema('foo.bar', schema)
+
+          expect(atom.config.get('foo.bar.int')).toBe 10
+          expect(atom.config.get('foo.bar.int', scope: ['.source.js'])).toBe 15
+          expect(atom.config.get('foo.bar.int', scope: ['.source.coffee'])).toBe 23
+
       describe 'when the value has an "integer" type', ->
         beforeEach ->
           schema =
