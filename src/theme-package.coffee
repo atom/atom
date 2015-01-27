@@ -23,7 +23,7 @@ class ThemePackage extends Package
 
   watchThemeConfig: ->
     @configDisposable = atom.config.onDidChange @name, =>
-      atom.themes.reloadThemes()
+      atom.themes.reloadStylesheets()
 
   activate: ->
     return @activationDeferred.promise if @activationDeferred?
