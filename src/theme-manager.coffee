@@ -333,7 +333,7 @@ class ThemeManager
 
     # atom.config.observe runs the callback once, then on subsequent changes.
     atom.config.observe 'core.themes', =>
-      @reloadThemes -> deferred.resolve()
+      @reloadStylesheets -> deferred.resolve()
 
     deferred.promise
 
@@ -347,7 +347,7 @@ class ThemeManager
     for pack in @packageManager.getActivePackages()
       pack.reloadStylesheets() if pack.getType() isnt 'theme'
 
-  reloadThemes: (callback) ->
+  reloadStylesheets: (callback) ->
     @deactivateThemes()
 
     @refreshLessCache() # Update cache for packages in core.themes config
