@@ -1,5 +1,6 @@
 {$, $$} = require '../src/space-pen-extensions'
 Package = require '../src/package'
+{Disposable} = require 'atom'
 
 describe "PackageManager", ->
   workspaceElement = null
@@ -444,6 +445,82 @@ describe "PackageManager", ->
 
         runs ->
           expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
+
+    describe "service registration", ->
+      it "registers the package's service providers", ->
+        service1V3 = null
+        atom.services.consume "service-1", "^0.3", (service) ->
+          service1V3 = service
+          new Disposable -> service1V3 = 'deactivated'
+
+        service1V4 = null
+        atom.services.consume "service-1", "^0.4", (service) ->
+          service1V4 = service
+          new Disposable -> service1V4 = 'deactivated'
+
+        service2V5 = null
+        atom.services.consume "service-2", "^0.5", (service) ->
+          service2V5 = service
+          new Disposable -> service2V5 = 'deactivated'
+
+        # Incompatible
+        service2V6 = null
+        atom.services.consume "service-2", "^0.6", (service) ->
+          service2V6 = service
+          new Disposable -> service2V6 = 'deactivated'
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-service-provisions")
+
+        runs ->
+          expect(service1V3).toBe 'first-service-v3'
+          expect(service1V4).toBe 'first-service-v4'
+          expect(service2V5).toBe 'second-service'
+          expect(service2V6).toBeNull()
+
+          atom.packages.deactivatePackage("package-with-service-provisions")
+
+          expect(service1V3).toBe 'deactivated'
+          expect(service1V4).toBe 'deactivated'
+          expect(service2V5).toBe 'deactivated'
+          expect(service2V6).toBeNull()
+
+      it "registers the package's service dependencies", ->
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-service-dependencies")
+
+        runs ->
+          service1V3Spy = jasmine.createSpy('service1V3')
+          service1V4Spy = jasmine.createSpy('service1V4')
+          service2V5Spy = jasmine.createSpy('service2V5')
+          service2V6Spy = jasmine.createSpy('service2V6')
+
+          atom.services.provide "service-1", "0.3.1", service1V3Spy
+          atom.services.provide "service-1", "0.4.1", service1V4Spy
+          atom.services.provide "service-2", "0.5.1", service2V5Spy
+          atom.services.provide "service-2", "0.6.1", service2V5Spy # incompatible
+
+          expect(service1V3Spy).toHaveBeenCalledWith('first-service-v3-used')
+          expect(service1V4Spy).toHaveBeenCalledWith('first-service-v4-used')
+          expect(service2V5Spy).toHaveBeenCalledWith('second-service-used')
+          expect(service2V6Spy).not.toHaveBeenCalled()
+
+          atom.packages.deactivatePackage("package-with-service-dependencies")
+
+          service1V3Spy.reset()
+          service1V4Spy.reset()
+          service2V5Spy.reset()
+          service2V6Spy.reset()
+
+          atom.services.provide "service-1", "0.3.1", service1V3Spy
+          atom.services.provide "service-1", "0.4.1", service1V4Spy
+          atom.services.provide "service-2", "0.5.1", service2V5Spy
+          atom.services.provide "service-2", "0.6.1", service2V5Spy # incompatible
+
+          expect(service1V3Spy).not.toHaveBeenCalled()
+          expect(service1V4Spy).not.toHaveBeenCalled()
+          expect(service2V5Spy).not.toHaveBeenCalled()
+          expect(service2V6Spy).not.toHaveBeenCalled()
 
   describe "::deactivatePackage(id)", ->
     afterEach ->
