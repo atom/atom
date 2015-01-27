@@ -1135,8 +1135,16 @@ describe "Config", ->
               int:
                 type: 'integer'
                 default: 2
+              bar:
+                type: 'string'
+                default: 'def'
 
-        it 'the values set respect the new schema', ->
+        it "the values set respect the new schema", ->
+          expect(atom.config.set('foo.bar.bar', 'globalBar')).toBe true
+          expect(atom.config.set('foo.bar.bar', 'scopedBar', scopeSelector: '.source.js')).toBe true
+          expect(atom.config.get('foo.bar.bar')).toBe 'globalBar'
+          expect(atom.config.get('foo.bar.bar', scope: ['.source.js'])).toBe 'scopedBar'
+
           expect(atom.config.set('foo.bar.int', 'nope')).toBe true
           expect(atom.config.set('foo.bar.int', 'notanint', scopeSelector: '.source.js')).toBe true
           expect(atom.config.set('foo.bar.int', 23, scopeSelector: '.source.coffee')).toBe true
@@ -1146,11 +1154,14 @@ describe "Config", ->
 
           atom.config.setSchema('foo.bar', schema)
 
+          expect(atom.config.get('foo.bar.bar')).toBe 'globalBar'
+          expect(atom.config.get('foo.bar.bar', scope: ['.source.js'])).toBe 'scopedBar'
+
           expect(atom.config.get('foo.bar.int')).toBe 2
           expect(atom.config.get('foo.bar.int', scope: ['.source.js'])).toBe 2
           expect(atom.config.get('foo.bar.int', scope: ['.source.coffee'])).toBe 23
 
-        it 'doesnt mess it up', ->
+        it "sets all values that adhere to the schema", ->
           expect(atom.config.set('foo.bar.int', 10)).toBe true
           expect(atom.config.set('foo.bar.int', 15, scopeSelector: '.source.js')).toBe true
           expect(atom.config.set('foo.bar.int', 23, scopeSelector: '.source.coffee')).toBe true
