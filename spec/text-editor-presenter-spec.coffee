@@ -1030,7 +1030,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
             expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-          it "honors the 'onlyEmpty' option on line decorations", ->
+          it "honors the 'onlyEmpty' option on line-number decorations", ->
             presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
             marker = editor.markBufferRange([[4, 0], [6, 1]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyEmpty: true)
@@ -1045,7 +1045,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
-          it "honors the 'onlyNonEmpty' option on line decorations", ->
+          it "honors the 'onlyNonEmpty' option on line-number decorations", ->
             presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
             marker = editor.markBufferRange([[4, 0], [6, 2]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyNonEmpty: true)
@@ -1058,7 +1058,7 @@ describe "TextEditorPresenter", ->
 
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-          it "does not decorate the last line of a non-empty line decoration range if it ends at column 0", ->
+          it "does not decorate the last line of a non-empty line-number decoration range if it ends at column 0", ->
             presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
             marker = editor.markBufferRange([[4, 0], [6, 0]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
@@ -1067,7 +1067,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-          it "does not apply line decorations to mini editors", ->
+          it "does not apply line-number decorations to mini editors", ->
             editor.setMini(true)
             presenter = new TextEditorPresenter(model: editor, clientHeight: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
             marker = editor.markBufferRange([[0, 0], [0, 0]])
@@ -1080,7 +1080,7 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> editor.setMini(true)
             expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
 
-          it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
+          it "only applies line-number decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
             editor.setText("a line that wraps, ok")
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(16)
