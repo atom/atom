@@ -20,18 +20,18 @@ LinesComponent = React.createClass
     {presenter} = @props
 
     if presenter?
-      {editor, presenter, placeholderText, backgroundColor} = @props
+      {editor, presenter, placeholderText} = @props
 
       @oldState ?= {content: {lines: {}}}
       @newState = presenter.state
       {scrollHeight} = @newState
-      {scrollWidth} = @newState.content
+      {scrollWidth, backgroundColor} = @newState.content
 
       style =
         height: scrollHeight
         width: scrollWidth
         WebkitTransform: @getTransform()
-        backgroundColor: if editor.isMini() then null else backgroundColor
+        backgroundColor: backgroundColor
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?

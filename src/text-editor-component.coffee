@@ -203,7 +203,6 @@ TextEditorComponent = React.createClass
 
     {editor, lineOverdrawMargin, cursorBlinkPeriod, cursorBlinkResumeDelay}  = @props
 
-
     unless @presenter?
       @presenter = new TextEditorPresenter
         model: editor
@@ -216,6 +215,7 @@ TextEditorComponent = React.createClass
         lineOverdrawMargin: lineOverdrawMargin
         cursorBlinkPeriod: cursorBlinkPeriod
         cursorBlinkResumeDelay: cursorBlinkResumeDelay
+        backgroundColor: @backgroundColor
       @presenter.onDidUpdateState(@requestUpdate)
 
     @forceUpdate() if @canUpdate()
@@ -784,12 +784,11 @@ TextEditorComponent = React.createClass
 
   sampleBackgroundColors: (suppressUpdate) ->
     {hostElement} = @props
-    {showLineNumbers} = @state
     {backgroundColor} = getComputedStyle(hostElement)
 
     if backgroundColor isnt @backgroundColor
       @backgroundColor = backgroundColor
-      @requestUpdate() unless suppressUpdate
+      @presenter?.setBackgroundColor(backgroundColor)
 
     if @refs.gutter?
       gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
