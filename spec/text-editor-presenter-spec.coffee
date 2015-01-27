@@ -167,6 +167,16 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> editor.setGrammar(atom.grammars.selectGrammar('.txt'))
             expect(presenter.state.content.indentGuidesVisible).toBe false
 
+        it "is always false when the editor is mini", ->
+          atom.config.set('editor.showIndentGuide', true)
+          editor.setMini(true)
+          presenter = new TextEditorPresenter(model: editor)
+          expect(presenter.state.content.indentGuidesVisible).toBe false
+          editor.setMini(false)
+          expect(presenter.state.content.indentGuidesVisible).toBe true
+          editor.setMini(true)
+          expect(presenter.state.content.indentGuidesVisible).toBe false
+
       describe ".backgroundColor", ->
         it "is assigned to ::backgroundColor unless the editor is mini", ->
           presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')

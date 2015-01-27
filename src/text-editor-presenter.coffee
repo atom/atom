@@ -74,7 +74,7 @@ class TextEditorPresenter
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
     @state.content.scrollLeft = @getScrollLeft()
-    @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
+    @state.content.indentGuidesVisible = not @model.isMini() and atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
     @state.content.backgroundColor = if @model.isMini() then null else @getBackgroundColor()
     @emitter.emit 'did-update-state'
 
