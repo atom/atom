@@ -387,6 +387,15 @@ describe "TextEditorPresenter", ->
 
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
+            it "honors the 'onlyHead' option on line decorations", ->
+              presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              marker = editor.markBufferRange([[4, 0], [6, 2]])
+              decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyHead: true)
+
+              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+
             it "does not decorate the last line of a non-empty line decoration range if it ends at column 0", ->
               presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
               marker = editor.markBufferRange([[4, 0], [6, 0]])
@@ -1057,6 +1066,15 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> marker.clearTail()
 
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+
+          it "honors the 'onlyHead' option on line-number decorations", ->
+            presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            marker = editor.markBufferRange([[4, 0], [6, 2]])
+            decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyHead: true)
+
+            expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+            expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+            expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
           it "does not decorate the last line of a non-empty line-number decoration range if it ends at column 0", ->
             presenter = new TextEditorPresenter(model: editor, clientHeight: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)

@@ -251,6 +251,7 @@ class TextEditorPresenter
         properties = decoration.getProperties()
         range = decoration.getMarker().getScreenRange()
 
+        continue if properties.onlyHead and decoration.getMarker().getHeadScreenPosition().row isnt row
         continue unless range.intersectsRow(row)
         if range.isEmpty()
           continue if properties.onlyNonEmpty
@@ -272,6 +273,7 @@ class TextEditorPresenter
         properties = decoration.getProperties()
         range = decoration.getMarker().getScreenRange()
 
+        continue if properties.onlyHead and decoration.getMarker().getHeadScreenPosition().row isnt row
         continue unless range.intersectsRow(row)
         if range.isEmpty()
           continue if properties.onlyNonEmpty
