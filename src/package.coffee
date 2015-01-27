@@ -155,7 +155,6 @@ class Package
   activateNow: ->
     try
       @activateConfig()
-      @activateStylesheets()
       if @requireMainModule()
         @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
@@ -369,8 +368,6 @@ class Package
     @settingsActivated = false
 
   reloadStylesheets: ->
-    oldSheets = _.clone(@stylesheets)
-    @loadStylesheets()
     @stylesheetDisposables?.dispose()
     @stylesheetDisposables = new CompositeDisposable
     @stylesheetsActivated = false

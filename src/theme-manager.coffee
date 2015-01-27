@@ -305,7 +305,6 @@ class ThemeManager
 
           #{less}
         """
-      less += "\n@#{name}: #{value};" for name, value of variables
       @lessCache.cssForFile(lessStylesheetPath, less)
     catch error
       if error.line?
@@ -344,6 +343,10 @@ class ThemeManager
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
 
+  reloadPackageStylesheets: ->
+    for pack in @packageManager.getActivePackages()
+      pack.reloadStylesheets() if pack.getType() isnt 'theme'
+
   reloadThemes: (callback) ->
     @deactivateThemes()
 
@@ -369,6 +372,10 @@ class ThemeManager
       @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
       @loadUserStylesheet()
       @reloadBaseStylesheets()
+      if @packageManager.initialPackageActivationComplete
+        @reloadPackageStylesheets()
+      else
+        @packageManager.onDidActivateInitialPackages => @reloadPackageStylesheets()
       @initialLoadComplete = true
       @emit 'reloaded'
       @emitter.emit 'did-change-active-themes'

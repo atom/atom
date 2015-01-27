@@ -279,8 +279,6 @@ class Atom extends Model
       deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
       @grammars
 
-    @subscribe @packages.onDidActivateInitialPackages => @watchThemes()
-
     Project = require './project'
     TextBuffer = require 'text-buffer'
     @deserializers.add(TextBuffer)
@@ -580,7 +578,10 @@ class Atom extends Model
 
     @watchProjectPath()
 
-    @packages.activate()
+    @packages.activate().then =>
+      maximize = dimensions?.maximized and process.platform isnt 'darwin'
+      @displayWindow({maximize})
+
     @keymaps.loadUserKeymap()
     @requireUserInitScript() unless safeMode
 
@@ -588,9 +589,6 @@ class Atom extends Model
     @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
-
-    maximize = dimensions?.maximized and process.platform isnt 'darwin'
-    @displayWindow({maximize})
 
   unloadEditorWindow: ->
     return if not @project

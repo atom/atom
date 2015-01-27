@@ -376,6 +376,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     Q.all(promises).then =>
+      @initialPackageActivationComplete = true
       @emit 'activated'
       @emitter.emit 'did-activate-initial-packages'
 
