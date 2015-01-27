@@ -718,13 +718,6 @@ class Atom extends Model
   loadThemes: ->
     @themes.load()
 
-  watchThemes: ->
-    @themes.onDidChangeActiveThemes =>
-      # Only reload stylesheets from non-theme packages
-      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
-        pack.reloadStylesheets?()
-      null
-
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     onProjectPathChanged = =>
