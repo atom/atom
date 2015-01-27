@@ -9,6 +9,7 @@ EmitterMixin = require('emissary').Emitter
 Q = require 'q'
 {deprecate} = require 'grim'
 
+Color = require './color'
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
@@ -123,7 +124,6 @@ class Package
       try
         @loadKeymaps()
         @loadMenus()
-        @loadStylesheets()
         @settingsPromise = @loadSettings()
         @requireMainModule() unless @hasActivationCommands()
 
@@ -155,9 +155,8 @@ class Package
   activateNow: ->
     try
       @activateConfig()
-      @activateStylesheets()
       if @requireMainModule()
-        @mainModule.activate(atom.packages.getPackageState(@name) ? {})
+        @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
@@ -185,6 +184,7 @@ class Package
     @stylesheetDisposables = new CompositeDisposable
 
     priority = @getStyleSheetPriority()
+    @loadStylesheets()
     for [sourcePath, source] in @stylesheets
       if match = path.basename(sourcePath).match(/[^.]*\.([^.]*)\./)
         context = match[1]
@@ -236,8 +236,9 @@ class Package
       fs.listSync(menusDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
-    @stylesheets = @getStylesheetPaths().map (stylesheetPath) ->
-      [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
+    @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
+      stylesheet = atom.themes.loadStylesheet(stylesheetPath, {importFallbackVariables: true})
+      [stylesheetPath, stylesheet]
 
   getStylesheetsPath: ->
     if fs.isDirectorySync(path.join(@path, 'stylesheets'))
@@ -256,6 +257,21 @@ class Package
       [indexStylesheet]
     else
       fs.listSync(stylesheetDirPath, ['css', 'less'])
+
+  getStylesheetFooter: ->
+    return unless @isTheme()
+
+    footer = ''
+    for key, value of atom.config.get(@name)
+      if typeof value is 'object' and not (value instanceof Color)
+        value = Color.parse(value)
+      value = value?.toRGBAString?() ? value
+      switch typeof value
+        when 'string'
+          footer += "\n@#{key}: #{value};" if value
+        when 'number'
+          footer += "\n@#{key}: #{value};" if isFinite(value)
+    footer
 
   loadGrammarsSync: ->
     return if @grammarsLoaded
@@ -352,8 +368,6 @@ class Package
     @settingsActivated = false
 
   reloadStylesheets: ->
-    oldSheets = _.clone(@stylesheets)
-    @loadStylesheets()
     @stylesheetDisposables?.dispose()
     @stylesheetDisposables = new CompositeDisposable
     @stylesheetsActivated = false

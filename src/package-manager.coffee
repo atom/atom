@@ -154,7 +154,7 @@ class PackageManager
   #
   # Return a {String} folder path or undefined if it could not be resolved.
   resolvePackagePath: (name) ->
-    return name if fs.isDirectorySync(name)
+    return fs.absolute(name) if fs.isDirectorySync(name)
 
     packagePath = fs.resolve(@packageDirPaths..., name)
     return packagePath if fs.isDirectorySync(packagePath)
@@ -376,6 +376,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     Q.all(promises).then =>
+      @initialPackageActivationComplete = true
       @emit 'activated'
       @emitter.emit 'did-activate-initial-packages'
 

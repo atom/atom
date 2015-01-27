@@ -197,7 +197,7 @@ class ThemeManager
       ]
       themeNames = _.intersection(themeNames, builtInThemeNames)
       if themeNames.length is 0
-        themeNames = ['atom-dark-syntax', 'atom-dark-ui']
+        themeNames = ['atom-dark-ui', 'atom-dark-syntax']
       else if themeNames.length is 1
         if _.endsWith(themeNames[0], '-ui')
           themeNames.unshift('atom-dark-syntax')
@@ -266,7 +266,7 @@ class ThemeManager
       """
       atom.notifications.addError(message, dismissable: true)
 
-    userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
+    userStylesheetContents = @loadStylesheet(userStylesheetPath, importFallbackVariables: true)
     @userStyleSheetDisposable = atom.styles.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
 
   loadBaseStylesheets: ->
@@ -287,16 +287,14 @@ class ThemeManager
     else
       fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
 
-  loadStylesheet: (stylesheetPath, importFallbackVariables) ->
+  loadStylesheet: (stylesheetPath, options) ->
     if path.extname(stylesheetPath) is '.less'
-      @loadLessStylesheet(stylesheetPath, importFallbackVariables)
+      @loadLessStylesheet(stylesheetPath, options)
     else
       fs.readFileSync(stylesheetPath, 'utf8')
 
-  loadLessStylesheet: (lessStylesheetPath, importFallbackVariables=false) ->
-    unless @lessCache?
-      LessCompileCache = require './less-compile-cache'
-      @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
+  loadLessStylesheet: (lessStylesheetPath, {variables, importFallbackVariables}={}) ->
+    @createLessCache()
 
     try
       if importFallbackVariables
@@ -335,26 +333,7 @@ class ThemeManager
 
     # atom.config.observe runs the callback once, then on subsequent changes.
     atom.config.observe 'core.themes', =>
-      @deactivateThemes()
-
-      @refreshLessCache() # Update cache for packages in core.themes config
-
-      promises = []
-      for themeName in @getEnabledThemeNames()
-        if @packageManager.resolvePackagePath(themeName)
-          promises.push(@packageManager.activatePackage(themeName))
-        else
-          console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
-
-      Q.all(promises).then =>
-        @addActiveThemeClasses()
-        @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-        @loadUserStylesheet()
-        @reloadBaseStylesheets()
-        @initialLoadComplete = true
-        @emit 'reloaded'
-        @emitter.emit 'did-change-active-themes'
-        deferred.resolve()
+      @reloadStylesheets -> deferred.resolve()
 
     deferred.promise
 
@@ -363,6 +342,44 @@ class ThemeManager
     @unwatchUserStylesheet()
     @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
     null
+
+  reloadPackageStylesheets: ->
+    for pack in @packageManager.getActivePackages()
+      pack.reloadStylesheets() if pack.getType() isnt 'theme'
+
+  reloadStylesheets: (callback) ->
+    @deactivateThemes()
+
+    @refreshLessCache() # Update cache for packages in core.themes config
+    @lessCache?.clearFooters()
+
+    loadedThemes = []
+    for themeName in @getEnabledThemeNames()
+      unless @packageManager.resolvePackagePath(themeName)
+        console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
+        continue
+
+      if theme = @packageManager.loadPackage(themeName)
+        @setFooterForTheme(theme)
+        loadedThemes.push(theme)
+
+    promises = []
+    for theme in loadedThemes
+      promises.push(@packageManager.activatePackage(theme.name))
+
+    Q.all(promises).then =>
+      @addActiveThemeClasses()
+      @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+      @loadUserStylesheet()
+      @reloadBaseStylesheets()
+      if @packageManager.initialPackageActivationComplete
+        @reloadPackageStylesheets()
+      else
+        @packageManager.onDidActivateInitialPackages => @reloadPackageStylesheets()
+      @initialLoadComplete = true
+      @emit 'reloaded'
+      @emitter.emit 'did-change-active-themes'
+      callback?()
 
   isInitialLoadComplete: -> @initialLoadComplete
 
@@ -378,8 +395,31 @@ class ThemeManager
       workspaceElement.classList.remove("theme-#{pack.name}")
     return
 
+  createLessCache: ->
+    unless @lessCache?
+      LessCompileCache = require './less-compile-cache'
+      @lessCache = new LessCompileCache({@resourcePath, importPaths: @getImportPaths()})
+    @lessCache
+
   refreshLessCache: ->
     @lessCache?.setImportPaths(@getImportPaths())
+
+  setFooterForTheme: (theme) ->
+    footer = theme.getStylesheetFooter()
+    return unless footer
+
+    stylesheetPaths = []
+    try
+      stylesheetPaths = theme.getStylesheetPaths()
+
+    try
+      stylesPath = path.join(theme.path, 'styles')
+      stylesheetPaths = stylesheetPaths.concat(fs.listSync(stylesPath, ['less']))
+
+    for stylesheetPath in stylesheetPaths
+      @createLessCache().setFooter(stylesheetPath, footer)
+
+    return
 
   getImportPaths: ->
     activeThemes = @getActiveThemes()
