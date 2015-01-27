@@ -7,7 +7,7 @@ class TextEditorPresenter
   toggleCursorBlinkHandle: null
   startBlinkingCursorsAfterDelay: null
 
-  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @cursorBlinkPeriod, @cursorBlinkResumeDelay}) ->
+  constructor: ({@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft, @lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @cursorBlinkPeriod, @cursorBlinkResumeDelay, @backgroundColor}) ->
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @charWidthsByScope = {}
@@ -27,6 +27,7 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
+      @updateContentState()
       @updateLinesState()
       @updateLineNumbersState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
@@ -68,6 +69,7 @@ class TextEditorPresenter
     @state.content.scrollWidth = @computeScrollWidth()
     @state.content.scrollLeft = @getScrollLeft()
     @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
+    @state.content.backgroundColor = if @model.isMini() then null else @getBackgroundColor()
     @emitter.emit 'did-update-state'
 
   updateLinesState: ->
@@ -347,6 +349,11 @@ class TextEditorPresenter
     @updateLinesState()
 
   getClientWidth: -> @clientWidth
+
+  setBackgroundColor: (@backgroundColor) ->
+    @updateContentState()
+
+  getBackgroundColor: -> @backgroundColor
 
   setLineHeight: (@lineHeight) ->
     @updateVerticalScrollState()

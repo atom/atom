@@ -153,6 +153,26 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> editor.setGrammar(atom.grammars.selectGrammar('.txt'))
             expect(presenter.state.content.indentGuidesVisible).toBe false
 
+      describe ".backgroundColor", ->
+        it "is assigned to ::backgroundColor unless the editor is mini", ->
+          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          expect(presenter.state.content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
+          editor.setMini(true)
+          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          expect(presenter.state.content.backgroundColor).toBeNull()
+
+        it "updates when ::backgroundColor changes", ->
+          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          expect(presenter.state.content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
+          expectStateUpdate presenter, -> presenter.setBackgroundColor('rgba(0, 0, 255, 0)')
+          expect(presenter.state.content.backgroundColor).toBe 'rgba(0, 0, 255, 0)'
+
+        it "updates when ::mini changes", ->
+          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          expect(presenter.state.content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
+          expectStateUpdate presenter, -> editor.setMini(true)
+          expect(presenter.state.content.backgroundColor).toBeNull()
+
       describe ".lines", ->
         lineStateForScreenRow = (presenter, screenRow) ->
           presenter.state.content.lines[presenter.model.tokenizedLineForScreenRow(screenRow).id]
