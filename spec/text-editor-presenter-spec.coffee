@@ -197,6 +197,18 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.setMini(true)
           expect(presenter.state.content.backgroundColor).toBeNull()
 
+      describe ".placeholderText", ->
+        it "is present when the editor has no text", ->
+          editor.setPlaceholderText("the-placeholder-text")
+          presenter = new TextEditorPresenter(model: editor)
+          expect(presenter.state.content.placeholderText).toBeNull()
+
+          expectStateUpdate presenter, -> editor.setText("")
+          expect(presenter.state.content.placeholderText).toBe "the-placeholder-text"
+
+          expectStateUpdate presenter, -> editor.setPlaceholderText("new-placeholder-text")
+          expect(presenter.state.content.placeholderText).toBe "new-placeholder-text"
+
       describe ".lines", ->
         lineStateForScreenRow = (presenter, screenRow) ->
           presenter.state.content.lines[presenter.model.tokenizedLineForScreenRow(screenRow).id]

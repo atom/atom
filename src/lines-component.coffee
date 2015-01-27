@@ -20,12 +20,12 @@ LinesComponent = React.createClass
     {presenter} = @props
 
     if presenter?
-      {editor, presenter, placeholderText} = @props
+      {editor, presenter} = @props
 
       @oldState ?= {content: {lines: {}}}
       @newState = presenter.state
       {scrollHeight} = @newState
-      {scrollWidth, backgroundColor} = @newState.content
+      {scrollWidth, backgroundColor, placeholderText} = @newState.content
 
       style =
         height: scrollHeight

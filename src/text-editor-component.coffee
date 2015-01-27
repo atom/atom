@@ -58,7 +58,6 @@ TextEditorComponent = React.createClass
     if @performedInitialMeasurement
       [renderedStartRow, renderedEndRow] = @getRenderedRowRange()
 
-      placeholderText = editor.getPlaceholderText() if editor.isEmpty()
       visible = @isVisible()
 
       {scrollHeight, scrollTop} = @presenter.state
@@ -99,7 +98,7 @@ TextEditorComponent = React.createClass
 
         LinesComponent {
           ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM,
-          mouseWheelScreenRow, visible, placeholderText, @backgroundColor
+          mouseWheelScreenRow, visible, @backgroundColor
         }
 
         ScrollbarComponent
@@ -282,7 +281,6 @@ TextEditorComponent = React.createClass
     @subscribe editor.observeDecorations(@onDecorationAdded)
     @subscribe editor.onDidRemoveDecoration(@onDecorationRemoved)
     @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)
-    @subscribe editor.onDidChangePlaceholderText(@onPlaceholderTextChanged)
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @onScrollLeftChanged
     @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
@@ -646,9 +644,6 @@ TextEditorComponent = React.createClass
     @requestUpdate()
 
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
-    @requestUpdate()
-
-  onPlaceholderTextChanged: ->
     @requestUpdate()
 
   handleDragUntilMouseUp: (event, dragHandler) ->

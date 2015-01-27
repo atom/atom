@@ -31,6 +31,7 @@ class TextEditorPresenter
     @disposables.add @model.onDidChange(@updateState.bind(this))
     @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
+    @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
       @updateContentState()
       @updateLinesState()
@@ -76,6 +77,7 @@ class TextEditorPresenter
     @state.content.scrollLeft = @getScrollLeft()
     @state.content.indentGuidesVisible = not @model.isMini() and atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
     @state.content.backgroundColor = if @model.isMini() then null else @getBackgroundColor()
+    @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
     @emitter.emit 'did-update-state'
 
   updateLinesState: ->
