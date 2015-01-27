@@ -409,6 +409,21 @@ describe "TextEditorPresenter", ->
               expectStateUpdate presenter, -> editor.setMini(true)
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
 
+            it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
+              editor.setText("a line that wraps, ok")
+              editor.setSoftWrapped(true)
+              editor.setEditorWidthInChars(16)
+              marker = editor.markBufferRange([[0, 0], [0, 2]])
+              editor.decorateMarker(marker, type: 'line', class: 'a')
+              presenter = new TextEditorPresenter(model: editor, clientHeight: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+
+              expect(lineStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
+              expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+
+              marker.setBufferRange([[0, 0], [0, Infinity]])
+              expect(lineStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
+              expect(lineStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
+
       describe ".cursors", ->
         stateForCursor = (presenter, cursorIndex) ->
           presenter.state.content.cursors[presenter.model.getCursors()[cursorIndex].id]
@@ -1064,6 +1079,21 @@ describe "TextEditorPresenter", ->
 
             expectStateUpdate presenter, -> editor.setMini(true)
             expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+
+          it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
+            editor.setText("a line that wraps, ok")
+            editor.setSoftWrapped(true)
+            editor.setEditorWidthInChars(16)
+            marker = editor.markBufferRange([[0, 0], [0, 2]])
+            editor.decorateMarker(marker, type: 'line-number', class: 'a')
+            presenter = new TextEditorPresenter(model: editor, clientHeight: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+
+            expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
+            expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+
+            marker.setBufferRange([[0, 0], [0, Infinity]])
+            expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
+            expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
 
         describe ".foldable", ->
           it "marks line numbers at the start of a foldable region as foldable", ->
