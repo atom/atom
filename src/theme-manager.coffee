@@ -297,15 +297,15 @@ class ThemeManager
     @createLessCache()
 
     try
-      less = fs.readFileSync(lessStylesheetPath, 'utf8')
       if importFallbackVariables
-        less = """
-          @import "variables/ui-variables";
-          @import "variables/syntax-variables";
-
-          #{less}
+        baseVarImports = """
+        @import "variables/ui-variables";
+        @import "variables/syntax-variables";
         """
-      @lessCache.cssForFile(lessStylesheetPath, less)
+        less = fs.readFileSync(lessStylesheetPath, 'utf8')
+        @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
+      else
+        @lessCache.read(lessStylesheetPath)
     catch error
       if error.line?
         message = "Error compiling Less stylesheet: `#{lessStylesheetPath}`"
