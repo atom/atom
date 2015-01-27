@@ -699,6 +699,26 @@ describe "Config", ->
           expect(atom.config.get("foo.bar")).toBe 'baz'
           expect(atom.config.get("foo.bar", scope: ['.source.ruby'])).toBe 'more-specific'
 
+      describe "when the config file does not conform to the schema", ->
+        beforeEach ->
+          fs.writeFileSync atom.config.configFilePath, """
+            '*':
+              foo:
+                bar: 'omg'
+                int: 'baz'
+            '.source.ruby':
+              foo:
+                bar: 'scoped'
+                int: 'nope'
+          """
+
+        it "validates and does not load the incorrect values", ->
+          atom.config.loadUserConfig()
+          expect(atom.config.get("foo.int")).toBe 12
+          expect(atom.config.get("foo.bar")).toBe 'omg'
+          expect(atom.config.get("foo.int", scope: ['.source.ruby'])).toBe 12
+          expect(atom.config.get("foo.bar", scope: ['.source.ruby'])).toBe 'scoped'
+
       describe "when the config file contains valid cson", ->
         beforeEach ->
           fs.writeFileSync(atom.config.configFilePath, "foo: bar: 'baz'")

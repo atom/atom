@@ -1032,8 +1032,19 @@ class Config
 
   resetUserScopedSettings: (newScopedSettings) ->
     source = @getUserConfigPath()
+    priority = @priorityForSource(source)
     @scopedSettingsStore.removePropertiesForSource(source)
-    @scopedSettingsStore.addProperties(source, newScopedSettings, priority: @priorityForSource(source))
+
+    for scopeSelector, settings of newScopedSettings
+      validatedSettings = {}
+      try
+        settings = withoutEmptyObjects(@makeValueConformToSchema(null, settings))
+        validatedSettings[scopeSelector] = settings
+      catch e
+        ;
+
+      @scopedSettingsStore.addProperties(source, validatedSettings, {priority}) if validatedSettings[scopeSelector]
+
     @emitChangeEvent()
 
   addScopedSettings: (source, selector, value, options) ->
