@@ -286,7 +286,6 @@ class Marker
   # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setHeadScreenPosition: (screenPosition, properties) ->
-    screenPosition = @displayBuffer.clipScreenPosition(screenPosition, properties)
     @setHeadBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, properties))
 
   # Extended: Retrieves the buffer position of the marker's tail.
@@ -313,7 +312,6 @@ class Marker
   # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setTailScreenPosition: (screenPosition, options) ->
-    screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
     @setTailBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, options))
 
   # Extended: Returns a {Boolean} indicating whether the marker has a tail.
