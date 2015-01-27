@@ -20,7 +20,7 @@ LinesComponent = React.createClass
     {presenter} = @props
 
     if presenter?
-      {editor, presenter, overlayDecorations, placeholderText, backgroundColor} = @props
+      {editor, presenter, placeholderText, backgroundColor} = @props
 
       @oldState ?= {content: {lines: {}}}
       @newState = presenter.state
