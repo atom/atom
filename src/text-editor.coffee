@@ -717,6 +717,8 @@ class TextEditor extends Model
   # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
+  screenRowForBufferRow: (row) -> @displayBuffer.screenRowForBufferRow(row)
+
   # {Delegates to: DisplayBuffer.getMaxLineLength}
   getMaxScreenLineLength: -> @displayBuffer.getMaxLineLength()
 

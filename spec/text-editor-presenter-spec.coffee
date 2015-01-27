@@ -856,7 +856,15 @@ describe "TextEditorPresenter", ->
     describe ".gutter", ->
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
-          presenter.state.gutter.lineNumbers[screenRow - presenter.getStartRow()]
+          editor = presenter.model
+          bufferRow = editor.bufferRowForScreenRow(screenRow)
+          wrapCount = screenRow - editor.screenRowForBufferRow(bufferRow)
+          if wrapCount > 0
+            key = bufferRow + '-' + wrapCount
+          else
+            key = bufferRow
+
+          presenter.state.gutter.lineNumbers[key]
 
         it "contains states for line numbers that are visible on screen, plus and minus the overdraw margin", ->
           editor.foldBufferRow(4)
@@ -865,12 +873,12 @@ describe "TextEditorPresenter", ->
           presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 30, lineHeight: 10, lineOverdrawMargin: 1)
 
           expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-          expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2, softWrapped: false, top: 2 * 10}
-          expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3, softWrapped: false, top: 3 * 10}
-          expectValues lineNumberStateForScreenRow(presenter, 4), {bufferRow: 3, softWrapped: true, top: 4 * 10}
-          expectValues lineNumberStateForScreenRow(presenter, 5), {bufferRow: 4, softWrapped: false, top: 5 * 10}
-          expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 7, softWrapped: false, top: 6 * 10}
-          expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8, softWrapped: false, top: 7 * 10}
+          expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false, top: 2 * 10}
+          expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false, top: 3 * 10}
+          expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true, top: 4 * 10}
+          expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false, top: 5 * 10}
+          expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false, top: 6 * 10}
+          expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 8, softWrapped: false, top: 7 * 10}
           expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
         it "includes states for all line numbers if no external client height is assigned", ->

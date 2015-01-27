@@ -155,22 +155,28 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateLineNumbersState: ->
-    lastBufferRow = null
+    @state.gutter.lineNumbers = {}
     startRow = @getStartRow()
     endRow = @getEndRow()
+    lastBufferRow = null
+    wrapCount = 0
 
-    @state.gutter.lineNumbers = @model.bufferRowsForScreenRows(startRow, endRow - 1).map (bufferRow, i) =>
+    for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
       screenRow = startRow + i
       top = screenRow * @getLineHeight()
       if bufferRow is lastBufferRow
+        wrapCount++
         softWrapped = true
+        key = bufferRow + '-' + wrapCount
       else
+        wrapCount = 0
         softWrapped = false
         lastBufferRow = bufferRow
+        key = bufferRow
       decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
       foldable = @model.isFoldableAtScreenRow(screenRow)
 
-      {bufferRow, softWrapped, top, decorationClasses, foldable}
+      @state.gutter.lineNumbers[key] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
 
     @emitter.emit 'did-update-state'
 
