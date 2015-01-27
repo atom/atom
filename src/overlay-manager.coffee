@@ -4,7 +4,8 @@ class OverlayManager
     @overlays = {}
 
   render: (props) ->
-    {editor, overlayDecorations, lineHeightInPixels} = props
+    {presenter, editor, overlayDecorations} = props
+    lineHeight = presenter.getLineHeight()
 
     existingDecorations = null
     for markerId, {headPixelPosition, tailPixelPosition, decorations} of overlayDecorations
@@ -12,7 +13,7 @@ class OverlayManager
         pixelPosition =
           if decoration.position is 'tail' then tailPixelPosition else headPixelPosition
 
-        @renderOverlay(editor, decoration, pixelPosition, lineHeightInPixels)
+        @renderOverlay(editor, decoration, pixelPosition, lineHeight)
 
         existingDecorations ?= {}
         existingDecorations[decoration.id] = true
@@ -24,7 +25,7 @@ class OverlayManager
 
     return
 
-  renderOverlay: (editor, decoration, pixelPosition, lineHeightInPixels) ->
+  renderOverlay: (editor, decoration, pixelPosition, lineHeight) ->
     item = atom.views.getView(decoration.item)
     unless overlay = @overlays[decoration.id]
       overlay = @overlays[decoration.id] = document.createElement('atom-overlay')
@@ -38,9 +39,9 @@ class OverlayManager
     if left + itemWidth - editor.getScrollLeft() > editor.getWidth() and left - itemWidth >= editor.getScrollLeft()
       left -= itemWidth
 
-    top = pixelPosition.top + lineHeightInPixels
-    if top + itemHeight - editor.getScrollTop() > editor.getHeight() and top - itemHeight - lineHeightInPixels >= editor.getScrollTop()
-      top -= itemHeight + lineHeightInPixels
+    top = pixelPosition.top + lineHeight
+    if top + itemHeight - editor.getScrollTop() > editor.getHeight() and top - itemHeight - lineHeight >= editor.getScrollTop()
+      top -= itemHeight + lineHeight
 
     overlay.style.top = top + 'px'
     overlay.style.left = left + 'px'

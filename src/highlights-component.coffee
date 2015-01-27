@@ -9,10 +9,10 @@ HighlightsComponent = React.createClass
 
   render: ->
     div className: 'highlights',
-      @renderHighlights() if @props.performedInitialMeasurement
+      @renderHighlights() if @props.presenter?
 
   renderHighlights: ->
-    {editor, presenter} = @props
+    {presenter} = @props
     highlightComponents = []
     for key, state of presenter.state.content.highlights
       highlightComponents.push(HighlightComponent({key, state}))

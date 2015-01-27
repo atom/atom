@@ -17,11 +17,10 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    {presenter, performedInitialMeasurement, cursorBlinkPeriod, cursorBlinkResumeDelay} = @props
+    {presenter} = @props
 
-    if performedInitialMeasurement
-      {editor, presenter, overlayDecorations, highlightDecorations, placeholderText, backgroundColor} = @props
-      {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount, cursorPixelRects} = @props
+    if presenter?
+      {editor, presenter, overlayDecorations, placeholderText, backgroundColor} = @props
 
       @oldState ?= {content: {lines: {}}}
       @newState = presenter.state
@@ -29,7 +28,7 @@ LinesComponent = React.createClass
       {scrollWidth} = @newState.content
 
       style =
-        height: Math.max(scrollHeight, scrollViewHeight)
+        height: scrollHeight
         width: scrollWidth
         WebkitTransform: @getTransform()
         backgroundColor: if editor.isMini() then null else backgroundColor
@@ -38,7 +37,7 @@ LinesComponent = React.createClass
       div className: 'placeholder-text', placeholderText if placeholderText?
 
       CursorsComponent {presenter}
-      HighlightsComponent {presenter, performedInitialMeasurement}
+      HighlightsComponent {presenter}
 
   getTransform: ->
     {scrollTop} = @newState
@@ -70,9 +69,9 @@ LinesComponent = React.createClass
     else
       @overlayManager = new OverlayManager(@getDOMNode())
 
-  componentDidUpdate: (prevProps) ->
-    {visible, scrollingVertically, performedInitialMeasurement} = @props
-    return unless performedInitialMeasurement
+  componentDidUpdate: ->
+    {visible, scrollingVertically, presenter} = @props
+    return unless presenter?
 
     @removeLineNodes() unless @oldState?.content.indentGuidesVisible is @newState?.content.indentGuidesVisible
     @updateLineNodes()
@@ -268,7 +267,7 @@ LinesComponent = React.createClass
     editor.setDefaultCharWidth(charWidth)
 
   remeasureCharacterWidths: ->
-    return unless @props.performedInitialMeasurement
+    return unless @props.presenter?
 
     @clearScopedCharWidths()
     @measureCharactersInNewLines()

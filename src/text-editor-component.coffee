@@ -113,14 +113,9 @@ TextEditorComponent = React.createClass
           style: hiddenInputStyle
 
         LinesComponent {
-          ref: 'lines',
-          editor, lineHeightInPixels, defaultCharWidth, tokenizedLines,
-          lineDecorations, highlightDecorations, overlayDecorations, hostElement,
-          renderedRowRange, @pendingChanges, scrollTop, scrollLeft,
-          @scrollingVertically, scrollHeight, scrollWidth, mouseWheelScreenRow,
-          visible, scrollViewHeight, @scopedCharacterWidthsChangeCount, lineWidth, @useHardwareAcceleration,
-          placeholderText, @performedInitialMeasurement, @backgroundColor, cursorPixelRects,
-          cursorBlinkPeriod, cursorBlinkResumeDelay, useShadowDOM, @presenter
+          ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM,
+          @scrollingVertically, mouseWheelScreenRow, visible, placeholderText, @backgroundColor,
+          overlayDecorations
         }
 
         ScrollbarComponent
