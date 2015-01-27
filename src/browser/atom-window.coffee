@@ -26,7 +26,7 @@ class AtomWindow
       show: false
       title: 'Atom'
       'web-preferences':
-        'direct-write': false
+        'direct-write': true
         'subpixel-font-scaling': false
     global.atomApplication.addWindow(this)
 
