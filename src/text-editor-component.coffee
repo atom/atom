@@ -47,7 +47,7 @@ TextEditorComponent = React.createClass
   remeasureCharacterWidthsWhenShown: false
 
   render: ->
-    {focused, showLineNumbers, visible} = @state
+    {focused, showLineNumbers} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
     maxLineNumberDigits = editor.getLineCount().toString().length
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
