@@ -1007,6 +1007,15 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
           expect(presenter.state.gutter.backgroundColor).toBe "rgba(255, 0, 0, 0)"
 
+      describe ".maxLineNumberDigits", ->
+        it "is set to the number of digits used by the greatest line number", ->
+          presenter = new TextEditorPresenter(model: editor)
+          expect(editor.getLastBufferRow()).toBe 12
+          expect(presenter.state.gutter.maxLineNumberDigits).toBe 2
+
+          editor.setText("1\n2\n3")
+          expect(presenter.state.gutter.maxLineNumberDigits).toBe 1
+
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
           editor = presenter.model

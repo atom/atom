@@ -190,6 +190,7 @@ class TextEditorPresenter
     @emitter.emit "did-update-state"
 
   updateGutterState: ->
+    @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
     @state.gutter.backgroundColor = if @getGutterBackgroundColor() isnt "rgba(0, 0, 0, 0)"
       @getGutterBackgroundColor()
     else
