@@ -124,7 +124,6 @@ class Package
       try
         @loadKeymaps()
         @loadMenus()
-        @loadStylesheets()
         @settingsPromise = @loadSettings()
         @requireMainModule() unless @hasActivationCommands()
 
@@ -239,8 +238,7 @@ class Package
 
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
-      variables = @getStylesheetVariables()
-      stylesheet = atom.themes.loadStylesheet(stylesheetPath, {variables, importFallbackVariables: true})
+      stylesheet = atom.themes.loadStylesheet(stylesheetPath, {importFallbackVariables: true})
       [stylesheetPath, stylesheet]
 
   getStylesheetsPath: ->
@@ -261,17 +259,20 @@ class Package
     else
       fs.listSync(stylesheetDirPath, ['css', 'less'])
 
-  getStylesheetVariables: ->
+  getStylesheetFooter: ->
     return unless @isTheme()
 
-    variables = {}
+    footer = ''
     for key, value of atom.config.get(@name)
       if typeof value is 'object' and not (value instanceof Color)
         value = Color.parse(value)
       value = value?.toRGBAString?() ? value
-      continue if value?.length is 0
-      variables[key] = value if typeof value in ['number', 'string']
-    variables
+      switch typeof value
+        when 'string'
+          footer += "\n@#{key}: #{value};" if value
+        when 'number'
+          footer += "\n@#{key}: #{value};" if isFinite(value)
+    footer
 
   loadGrammarsSync: ->
     return if @grammarsLoaded

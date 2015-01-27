@@ -30,6 +30,10 @@ class LessCompileCache
   setImportPaths: (importPaths=[]) ->
     @cache.setImportPaths(importPaths.concat(@lessSearchPaths))
 
+  clearFooters: -> @cache.clearFooters()
+
+  setFooter: (filePath, footer) -> @cache.setFooter(filePath, footer)
+
   read: (stylesheetPath) ->
     @cache.readFileSync(stylesheetPath)
 
