@@ -16,19 +16,20 @@ GutterComponent = React.createClass
   measuredWidth: null
 
   render: ->
-    {scrollHeight, scrollViewHeight, backgroundColor, gutterBackgroundColor} = @props
+    {presenter, backgroundColor, gutterBackgroundColor} = @props
 
     if gutterBackgroundColor isnt 'rbga(0, 0, 0, 0)'
       backgroundColor = gutterBackgroundColor
 
     div className: 'gutter',
       div className: 'line-numbers', ref: 'lineNumbers', style:
-        height: Math.max(scrollHeight, scrollViewHeight)
-        WebkitTransform: @getTransform()
+        height: presenter?.state.scrollHeight
+        WebkitTransform: @getTransform() if presenter?
         backgroundColor: backgroundColor
 
   getTransform: ->
-    {scrollTop, useHardwareAcceleration} = @props
+    {presenter, useHardwareAcceleration} = @props
+    {scrollTop} = presenter.state
 
     if useHardwareAcceleration
       "translate3d(0px, #{-scrollTop}px, 0px)"
@@ -43,31 +44,14 @@ GutterComponent = React.createClass
 
   componentDidMount: ->
     @appendDummyLineNumber()
-    @updateLineNumbers() if @props.performedInitialMeasurement
+    @updateLineNumbers() if @props.presenter?
 
     node = @getDOMNode()
     node.addEventListener 'click', @onClick
     node.addEventListener 'mousedown', @onMouseDown
 
-  # Only update the gutter if the visible row range has changed or if a
-  # non-zero-delta change to the screen lines has occurred within the current
-  # visible row range.
-  shouldComponentUpdate: (newProps) ->
-    return true unless isEqualForProperties(newProps, @props,
-      'renderedRowRange', 'scrollTop', 'lineHeightInPixels', 'mouseWheelScreenRow', 'lineDecorations',
-      'scrollViewHeight', 'useHardwareAcceleration', 'backgroundColor', 'gutterBackgroundColor'
-    )
-
-    {renderedRowRange, pendingChanges, lineDecorations} = newProps
-    return false unless renderedRowRange?
-
-    for change in pendingChanges when Math.abs(change.screenDelta) > 0 or Math.abs(change.bufferDelta) > 0
-      return true unless change.end <= renderedRowRange.start or renderedRowRange.end <= change.start
-
-    false
-
   componentDidUpdate: (oldProps) ->
-    return unless @props.performedInitialMeasurement
+    return unless @props.presenter?
 
     unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits')
       @updateDummyLineNumber()

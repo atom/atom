@@ -100,6 +100,7 @@ TextEditorComponent = React.createClass
       if @gutterVisible
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown, lineDecorations,
+          @presenter,
           defaultCharWidth, editor, renderedRowRange, maxLineNumberDigits, scrollViewHeight,
           scrollTop, scrollHeight, lineHeightInPixels, @pendingChanges, mouseWheelScreenRow,
           @useHardwareAcceleration, @performedInitialMeasurement, @backgroundColor, @gutterBackgroundColor
