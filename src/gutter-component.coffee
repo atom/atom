@@ -17,16 +17,13 @@ GutterComponent = React.createClass
   measuredWidth: null
 
   render: ->
-    {presenter, backgroundColor, gutterBackgroundColor} = @props
-
-    if gutterBackgroundColor isnt 'rbga(0, 0, 0, 0)'
-      backgroundColor = gutterBackgroundColor
+    {presenter} = @props
 
     div className: 'gutter',
       div className: 'line-numbers', ref: 'lineNumbers', style:
         height: presenter?.state.scrollHeight
         WebkitTransform: @getTransform() if presenter?
-        backgroundColor: backgroundColor
+        backgroundColor: presenter?.state.gutter.backgroundColor
 
   getTransform: ->
     {presenter, useHardwareAcceleration} = @props

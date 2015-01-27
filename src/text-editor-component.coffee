@@ -87,7 +87,7 @@ TextEditorComponent = React.createClass
           ref: 'gutter', onMouseDown: @onGutterMouseDown,
           @presenter,
           maxLineNumberDigits, mouseWheelScreenRow, editor
-          @useHardwareAcceleration, @performedInitialMeasurement, @backgroundColor, @gutterBackgroundColor
+          @useHardwareAcceleration
         }
 
       div ref: 'scrollView', className: 'scroll-view',
@@ -215,6 +215,7 @@ TextEditorComponent = React.createClass
         cursorBlinkResumeDelay: cursorBlinkResumeDelay
         stoppedScrollingDelay: 200
         backgroundColor: @backgroundColor
+        gutterBackgroundColor: @gutterBackgroundColor
       @presenter.onDidUpdateState(@requestUpdate)
 
     @forceUpdate() if @canUpdate()
@@ -787,6 +788,7 @@ TextEditorComponent = React.createClass
       gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
       if gutterBackgroundColor isnt @gutterBackgroundColor
         @gutterBackgroundColor = gutterBackgroundColor
+        @presenter?.setGutterBackgroundColor(gutterBackgroundColor)
         @requestUpdate() unless suppressUpdate
 
   measureLineHeightAndDefaultCharWidth: ->

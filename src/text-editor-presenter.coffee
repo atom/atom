@@ -10,7 +10,7 @@ class TextEditorPresenter
 
   constructor: (params) ->
     {@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft} = params
-    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor} = params
+    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
 
     @disposables = new CompositeDisposable
@@ -66,6 +66,7 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateHighlightsState()
     @updateOverlaysState()
+    @updateGutterState()
     @updateLineNumbersState()
 
   updateVerticalScrollState: ->
@@ -186,6 +187,13 @@ class TextEditorPresenter
     for id of @state.content.overlays
       delete @state.content.overlays[id] unless visibleDecorationIds[id]
 
+    @emitter.emit "did-update-state"
+
+  updateGutterState: ->
+    @state.gutter.backgroundColor = if @getGutterBackgroundColor() isnt "rgba(0, 0, 0, 0)"
+      @getGutterBackgroundColor()
+    else
+      @getBackgroundColor()
     @emitter.emit "did-update-state"
 
   updateLineNumbersState: ->
@@ -375,6 +383,11 @@ class TextEditorPresenter
     @updateContentState()
 
   getBackgroundColor: -> @backgroundColor
+
+  setGutterBackgroundColor: (@gutterBackgroundColor) ->
+    @updateGutterState()
+
+  getGutterBackgroundColor: -> @gutterBackgroundColor
 
   setLineHeight: (@lineHeight) ->
     @updateVerticalScrollState()

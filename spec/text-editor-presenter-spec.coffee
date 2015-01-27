@@ -996,6 +996,17 @@ describe "TextEditorPresenter", ->
           }
 
     describe ".gutter", ->
+      describe ".backgroundColor", ->
+        it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
+          presenter = new TextEditorPresenter(model: editor, backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
+          expect(presenter.state.gutter.backgroundColor).toBe "rgba(0, 255, 0, 0)"
+
+          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 255, 0)")
+          expect(presenter.state.gutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+
+          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
+          expect(presenter.state.gutter.backgroundColor).toBe "rgba(255, 0, 0, 0)"
+
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
           editor = presenter.model
