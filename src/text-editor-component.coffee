@@ -33,7 +33,6 @@ TextEditorComponent = React.createClass
   updateRequestedWhilePaused: false
   cursorMoved: false
   selectionChanged: false
-  scrollingVertically: false
   mouseWheelScreenRow: null
   mouseWheelScreenRowClearDelay: 150
   scrollSensitivity: 0.4
@@ -100,7 +99,7 @@ TextEditorComponent = React.createClass
 
         LinesComponent {
           ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM,
-          @scrollingVertically, mouseWheelScreenRow, visible, placeholderText, @backgroundColor
+          mouseWheelScreenRow, visible, placeholderText, @backgroundColor
         }
 
         ScrollbarComponent
@@ -215,6 +214,7 @@ TextEditorComponent = React.createClass
         lineOverdrawMargin: lineOverdrawMargin
         cursorBlinkPeriod: cursorBlinkPeriod
         cursorBlinkResumeDelay: cursorBlinkResumeDelay
+        stoppedScrollingDelay: 200
         backgroundColor: @backgroundColor
       @presenter.onDidUpdateState(@requestUpdate)
 
@@ -610,7 +610,6 @@ TextEditorComponent = React.createClass
       @requestUpdate()
 
   onScrollTopChanged: ->
-    @scrollingVertically = true
     @presenter?.setScrollTop(@props.editor.getScrollTop())
     @requestUpdate()
     @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 200)
@@ -623,7 +622,6 @@ TextEditorComponent = React.createClass
   onStoppedScrolling: ->
     return unless @isMounted()
 
-    @scrollingVertically = false
     @mouseWheelScreenRow = null
     @requestUpdate()
 

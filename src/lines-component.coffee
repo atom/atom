@@ -70,12 +70,12 @@ LinesComponent = React.createClass
       @overlayManager = new OverlayManager(@getDOMNode())
 
   componentDidUpdate: ->
-    {visible, scrollingVertically, presenter} = @props
+    {visible, presenter} = @props
     return unless presenter?
 
     @removeLineNodes() unless @oldState?.content.indentGuidesVisible is @newState?.content.indentGuidesVisible
     @updateLineNodes()
-    @measureCharactersInNewLines() if visible and not scrollingVertically
+    @measureCharactersInNewLines() if visible and not presenter.state.scrollingVertically
 
     @overlayManager?.render(@props)
 
