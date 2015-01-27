@@ -47,16 +47,19 @@ class TextEditorPresenter
     @updateState()
 
   updateState: ->
+    @updateVerticalScrollState()
     @updateContentState()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
     @updateLineNumbersState()
 
+  updateVerticalScrollState: ->
+    @state.scrollHeight = @computeScrollHeight()
+    @state.scrollTop = @getScrollTop()
+
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
-    @state.content.scrollHeight = @computeScrollHeight()
-    @state.content.scrollTop = @getScrollTop()
     @state.content.scrollLeft = @getScrollLeft()
     @state.content.indentGuidesVisible = atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
     @emitter.emit 'did-update-state'
@@ -230,7 +233,7 @@ class TextEditorPresenter
     Math.max(contentWidth, @getClientWidth())
 
   computeScrollHeight: ->
-    @getLineHeight() * @model.getScreenLineCount()
+    Math.max(@getLineHeight() * @model.getScreenLineCount(), @getClientHeight())
 
   lineDecorationClassesForRow: (row) ->
     return null if @model.isMini()
@@ -277,7 +280,7 @@ class TextEditorPresenter
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
   setScrollTop: (@scrollTop) ->
-    @updateContentState()
+    @updateVerticalScrollState()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
@@ -306,7 +309,7 @@ class TextEditorPresenter
   getClientWidth: -> @clientWidth
 
   setLineHeight: (@lineHeight) ->
-    @updateContentState()
+    @updateVerticalScrollState()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()

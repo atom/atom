@@ -23,9 +23,10 @@ LinesComponent = React.createClass
       {editor, presenter, overlayDecorations, highlightDecorations, placeholderText, backgroundColor} = @props
       {lineHeightInPixels, defaultCharWidth, scrollViewHeight, scopedCharacterWidthsChangeCount, cursorPixelRects} = @props
 
-      @oldState ?= {lines: {}}
-      @newState = presenter.state.content
-      {scrollWidth, scrollHeight} = @newState
+      @oldState ?= {content: {lines: {}}}
+      @newState = presenter.state
+      {scrollHeight} = @newState
+      {scrollWidth} = @newState.content
 
       style =
         height: Math.max(scrollHeight, scrollViewHeight)
@@ -40,7 +41,8 @@ LinesComponent = React.createClass
       HighlightsComponent {presenter, performedInitialMeasurement}
 
   getTransform: ->
-    {scrollTop, scrollLeft} = @newState
+    {scrollTop} = @newState
+    {scrollLeft} = @newState.content
     {useHardwareAcceleration} = @props
 
     if useHardwareAcceleration
@@ -72,41 +74,41 @@ LinesComponent = React.createClass
     {visible, scrollingVertically, performedInitialMeasurement} = @props
     return unless performedInitialMeasurement
 
-    @removeLineNodes() unless @oldState?.indentGuidesVisible is @newState?.indentGuidesVisible
+    @removeLineNodes() unless @oldState?.content.indentGuidesVisible is @newState?.content.indentGuidesVisible
     @updateLineNodes()
     @measureCharactersInNewLines() if visible and not scrollingVertically
 
     @overlayManager?.render(@props)
 
-    @oldState.indentGuidesVisible = @newState.indentGuidesVisible
-    @oldState.scrollWidth = @newState.scrollWidth
+    @oldState.content.indentGuidesVisible = @newState.content.indentGuidesVisible
+    @oldState.content.scrollWidth = @newState.content.scrollWidth
 
   clearScreenRowCaches: ->
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
 
   removeLineNodes: ->
-    @removeLineNode(id) for id of @oldState.lines
+    @removeLineNode(id) for id of @oldState.content.lines
 
   removeLineNode: (id) ->
     @lineNodesByLineId[id].remove()
     delete @lineNodesByLineId[id]
     delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
     delete @screenRowsByLineId[id]
-    delete @oldState.lines[id]
+    delete @oldState.content.lines[id]
 
   updateLineNodes: ->
     {presenter, mouseWheelScreenRow} = @props
 
-    for id of @oldState.lines
-      unless @newState.lines.hasOwnProperty(id) or mouseWheelScreenRow is @screenRowsByLineId[id]
+    for id of @oldState.content.lines
+      unless @newState.content.lines.hasOwnProperty(id) or mouseWheelScreenRow is @screenRowsByLineId[id]
         @removeLineNode(id)
 
     newLineIds = null
     newLinesHTML = null
 
-    for id, lineState of @newState.lines
-      if @oldState.lines.hasOwnProperty(id)
+    for id, lineState of @newState.content.lines
+      if @oldState.content.lines.hasOwnProperty(id)
         @updateLineNode(id)
       else
         newLineIds ?= []
@@ -115,7 +117,7 @@ LinesComponent = React.createClass
         newLinesHTML += @buildLineHTML(id)
         @screenRowsByLineId[id] = lineState.screenRow
         @lineIdsByScreenRow[lineState.screenRow] = id
-      @oldState.lines[id] = _.clone(lineState)
+      @oldState.content.lines[id] = _.clone(lineState)
 
     return unless newLineIds?
 
@@ -129,8 +131,8 @@ LinesComponent = React.createClass
 
   buildLineHTML: (id) ->
     {presenter} = @props
-    {scrollWidth} = @newState
-    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newState.lines[id]
+    {scrollWidth} = @newState.content
+    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newState.content.lines[id]
 
     classes = ''
     if decorationClasses?
@@ -150,8 +152,8 @@ LinesComponent = React.createClass
     lineHTML
 
   buildEmptyLineInnerHTML: (id) ->
-    {indentGuidesVisible} = @newState
-    {indentLevel, tabLength, endOfLineInvisibles} = @newState.lines[id]
+    {indentGuidesVisible} = @newState.content
+    {indentLevel, tabLength, endOfLineInvisibles} = @newState.content.lines[id]
 
     if indentGuidesVisible and indentLevel > 0
       invisibleIndex = 0
@@ -174,8 +176,8 @@ LinesComponent = React.createClass
 
   buildLineInnerHTML: (id) ->
     {editor} = @props
-    {indentGuidesVisible} = @newState
-    {tokens, text} = @newState.lines[id]
+    {indentGuidesVisible} = @newState.content
+    {tokens, text} = @newState.content.lines[id]
     innerHTML = ""
 
     scopeStack = []
@@ -191,7 +193,7 @@ LinesComponent = React.createClass
     innerHTML
 
   buildEndOfLineHTML: (id) ->
-    {endOfLineInvisibles} = @newState.lines[id]
+    {endOfLineInvisibles} = @newState.content.lines[id]
 
     html = ''
     if endOfLineInvisibles?
@@ -225,13 +227,13 @@ LinesComponent = React.createClass
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
-    {scrollWidth} = @newState
-    {screenRow, top} = @newState.lines[id]
+    {scrollWidth} = @newState.content
+    {screenRow, top} = @newState.content.lines[id]
 
     lineNode = @lineNodesByLineId[id]
 
-    newDecorationClasses = @newState.lines[id].decorationClasses
-    oldDecorationClasses = @oldState.lines[id].decorationClasses
+    newDecorationClasses = @newState.content.lines[id].decorationClasses
+    oldDecorationClasses = @oldState.content.lines[id].decorationClasses
 
     if oldDecorationClasses?
       for decorationClass in oldDecorationClasses
@@ -276,7 +278,7 @@ LinesComponent = React.createClass
     node = @getDOMNode()
 
     editor.batchCharacterMeasurement =>
-      for id, lineState of @oldState.lines
+      for id, lineState of @oldState.content.lines
         unless @measuredLines.has(id)
           lineNode = @lineNodesByLineId[id]
           @measureCharactersInLine(lineState, lineNode)
