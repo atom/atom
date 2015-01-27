@@ -719,6 +719,14 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.screenPositionForBufferPosition([100000, 0])).toEqual [12, 2]
       expect(displayBuffer.screenPositionForBufferPosition([100000, 100000])).toEqual [12, 2]
 
+    it "clips to the (left or right) edge of an atomic token without simply rounding up", ->
+      tabLength = 4
+      displayBuffer.setTabLength(tabLength)
+
+      buffer.insert([0, 0], '\t')
+      expect(displayBuffer.screenPositionForBufferPosition([0, 0])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, tabLength]
+
   describe "position translation in the presence of hard tabs", ->
     it "correctly translates positions on either side of a tab", ->
       buffer.setText('\t')

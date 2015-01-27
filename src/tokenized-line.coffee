@@ -67,7 +67,7 @@ class TokenizedLine
     screenColumn = 0
     currentBufferColumn = 0
     for token in @tokens
-      break if currentBufferColumn > bufferColumn
+      break if currentBufferColumn + token.bufferDelta > bufferColumn
       screenColumn += token.screenDelta
       currentBufferColumn += token.bufferDelta
     @clipScreenColumn(screenColumn + (bufferColumn - currentBufferColumn))
