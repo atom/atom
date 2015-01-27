@@ -1,7 +1,8 @@
 _ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
-{isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
+_ = require 'underscore-plus'
+{isEqual, isEqualForProperties, multiplyString, toArray} = _
 Decoration = require './decoration'
 SubscriberMixin = require './subscriber-mixin'
 
@@ -38,9 +39,6 @@ GutterComponent = React.createClass
 
   componentWillMount: ->
     @lineNumberNodesById = {}
-    @lineNumberIdsByScreenRow = {}
-    @screenRowsByLineNumberId = {}
-    @renderedDecorationsByLineNumberId = {}
 
   componentDidMount: ->
     @appendDummyLineNumber()
@@ -55,20 +53,17 @@ GutterComponent = React.createClass
 
     unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits')
       @updateDummyLineNumber()
-      @removeLineNumberNodes()
+      node.remove() for id, node of @lineNumberNodesById
+      @oldState = {lineNumbers: {}}
+      @lineNumberNodesById = {}
 
-    @clearScreenRowCaches() unless oldProps.lineHeightInPixels is @props.lineHeightInPixels
     @updateLineNumbers()
-
-  clearScreenRowCaches: ->
-    @lineNumberIdsByScreenRow = {}
-    @screenRowsByLineNumberId = {}
 
   # This dummy line number element holds the gutter to the appropriate width,
   # since the real line numbers are absolutely positioned for performance reasons.
   appendDummyLineNumber: ->
     {maxLineNumberDigits} = @props
-    WrapperDiv.innerHTML = @buildLineNumberHTML(-1, false, maxLineNumberDigits)
+    WrapperDiv.innerHTML = @buildLineNumberHTML({bufferRow: -1})
     @dummyLineNumberNode = WrapperDiv.children[0]
     @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
 
@@ -76,84 +71,49 @@ GutterComponent = React.createClass
     @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false, @props.maxLineNumberDigits)
 
   updateLineNumbers: ->
-    lineNumberIdsToPreserve = @appendOrUpdateVisibleLineNumberNodes()
-    @removeLineNumberNodes(lineNumberIdsToPreserve)
-
-  appendOrUpdateVisibleLineNumberNodes: ->
-    {editor, renderedRowRange, scrollTop, maxLineNumberDigits, lineDecorations} = @props
-    [startRow, endRow] = renderedRowRange
-
+    {presenter, mouseWheelScreenRow} = @props
+    @oldState ?= {lineNumbers: {}}
+    newState = presenter.state.gutter
     newLineNumberIds = null
     newLineNumbersHTML = null
-    visibleLineNumberIds = new Set
 
-    wrapCount = 0
-    for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
-      screenRow = startRow + index
-
-      if bufferRow is lastBufferRow
-        id = "#{bufferRow}-#{wrapCount++}"
-      else
-        id = bufferRow.toString()
-        lastBufferRow = bufferRow
-        wrapCount = 0
-
-      visibleLineNumberIds.add(id)
-
-      if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0)
+    for id, lineNumberState of newState.lineNumbers
+      if @oldState.lineNumbers.hasOwnProperty(id)
+        @updateLineNumberNode(id, lineNumberState)
       else
         newLineNumberIds ?= []
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow)
-        @screenRowsByLineNumberId[id] = screenRow
-        @lineNumberIdsByScreenRow[screenRow] = id
-
-      @renderedDecorationsByLineNumberId[id] = lineDecorations[screenRow]
+        newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
+        @oldState.lineNumbers[id] = _.clone(lineNumberState)
 
     if newLineNumberIds?
       WrapperDiv.innerHTML = newLineNumbersHTML
       newLineNumberNodes = toArray(WrapperDiv.children)
 
       node = @refs.lineNumbers.getDOMNode()
-      for lineNumberId, i in newLineNumberIds
+      for id, i in newLineNumberIds
         lineNumberNode = newLineNumberNodes[i]
-        @lineNumberNodesById[lineNumberId] = lineNumberNode
+        @lineNumberNodesById[id] = lineNumberNode
         node.appendChild(lineNumberNode)
 
-    visibleLineNumberIds
+    for id, lineNumberState of @oldState.lineNumbers
+      unless newState.lineNumbers.hasOwnProperty(id) or lineNumberState.screenRow is mouseWheelScreenRow
+        @lineNumberNodesById[id].remove()
+        delete @lineNumberNodesById[id]
+        delete @oldState.lineNumbers[id]
 
-  removeLineNumberNodes: (lineNumberIdsToPreserve) ->
-    {mouseWheelScreenRow} = @props
-    node = @refs.lineNumbers.getDOMNode()
-    for lineNumberId, lineNumberNode of @lineNumberNodesById when not lineNumberIdsToPreserve?.has(lineNumberId)
-      screenRow = @screenRowsByLineNumberId[lineNumberId]
-      if not screenRow? or screenRow isnt mouseWheelScreenRow
-        delete @lineNumberNodesById[lineNumberId]
-        delete @lineNumberIdsByScreenRow[screenRow] if @lineNumberIdsByScreenRow[screenRow] is lineNumberId
-        delete @screenRowsByLineNumberId[lineNumberId]
-        delete @renderedDecorationsByLineNumberId[lineNumberId]
-        node.removeChild(lineNumberNode)
-
-  buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, screenRow) ->
-    {editor, lineHeightInPixels, lineDecorations} = @props
+  buildLineNumberHTML: (lineNumberState) ->
+    {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
+    {maxLineNumberDigits} = @props
     if screenRow?
-      style = "position: absolute; top: #{screenRow * lineHeightInPixels}px;"
+      style = "position: absolute; top: #{top}px;"
     else
       style = "visibility: hidden;"
+    className = @buildLineNumberClassName(lineNumberState)
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
 
-    classes = ''
-    if lineDecorations? and decorations = lineDecorations[screenRow]
-      for id, decoration of decorations
-        if Decoration.isType(decoration, 'line-number')
-          classes += decoration.class + ' '
-
-    classes += "foldable " if bufferRow >= 0 and editor.isFoldableAtBufferRow(bufferRow)
-    classes += "line-number line-number-#{bufferRow}"
-
-    "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped
@@ -165,46 +125,34 @@ GutterComponent = React.createClass
     iconHTML = '<div class="icon-right"></div>'
     padding + lineNumber + iconHTML
 
-  updateLineNumberNode: (lineNumberId, bufferRow, screenRow, softWrapped) ->
-    {editor, lineDecorations} = @props
+  updateLineNumberNode: (lineNumberId, newLineNumberState) ->
+    oldLineNumberState = @oldState.lineNumbers[lineNumberId]
     node = @lineNumberNodesById[lineNumberId]
 
-    if editor.isFoldableAtBufferRow(bufferRow)
-      node.classList.add('foldable')
-    else
-      node.classList.remove('foldable')
+    unless oldLineNumberState.foldable is newLineNumberState.foldable and _.isEqual(oldLineNumberState.decorationClasses, newLineNumberState.decorationClasses)
+      node.className = @buildLineNumberClassName(newLineNumberState)
+      oldLineNumberState.foldable = newLineNumberState.foldable
+      oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
 
-    decorations = lineDecorations[screenRow]
-    previousDecorations = @renderedDecorationsByLineNumberId[lineNumberId]
+    unless oldLineNumberState.top is newLineNumberState.top
+      node.style.top = newLineNumberState.top + 'px'
+      node.dataset.screenRow = newLineNumberState.screenRow
+      oldLineNumberState.top = newLineNumberState.top
+      oldLineNumberState.screenRow = newLineNumberState.screenRow
 
-    if previousDecorations?
-      for id, decoration of previousDecorations
-        if Decoration.isType(decoration, 'line-number') and not @hasDecoration(decorations, decoration)
-          node.classList.remove(decoration.class)
-
-    if decorations?
-      for id, decoration of decorations
-        if Decoration.isType(decoration, 'line-number') and not @hasDecoration(previousDecorations, decoration)
-          node.classList.add(decoration.class)
-
-    unless @screenRowsByLineNumberId[lineNumberId] is screenRow
-      {lineHeightInPixels} = @props
-      node.style.top = screenRow * lineHeightInPixels + 'px'
-      node.dataset.screenRow = screenRow
-      @screenRowsByLineNumberId[lineNumberId] = screenRow
-      @lineNumberIdsByScreenRow[screenRow] = lineNumberId
-
-  hasDecoration: (decorations, decoration) ->
-    decorations? and decorations[decoration.id] is decoration
-
-  hasLineNumberNode: (lineNumberId) ->
-    @lineNumberNodesById.hasOwnProperty(lineNumberId)
+  buildLineNumberClassName: ({bufferRow, foldable, decorationClasses}) ->
+    className = "line-number line-number-#{bufferRow}"
+    className += " " + decorationClasses.join(' ') if decorationClasses?
+    className += " foldable" if foldable
+    className
 
   lineNumberNodeForScreenRow: (screenRow) ->
-    @lineNumberNodesById[@lineNumberIdsByScreenRow[screenRow]]
+    for id, lineNumberState of @oldState.lineNumbers
+      if lineNumberState.screenRow is screenRow
+        return @lineNumberNodesById[id]
+    null
 
   onMouseDown: (event) ->
-    {editor} = @props
     {target} = event
     lineNumber = target.parentNode
 
