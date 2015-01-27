@@ -1135,15 +1135,15 @@ describe "Config", ->
               int:
                 type: 'integer'
                 default: 2
-              bar:
+              str:
                 type: 'string'
                 default: 'def'
 
         it "the values set respect the new schema", ->
-          expect(atom.config.set('foo.bar.bar', 'globalBar')).toBe true
-          expect(atom.config.set('foo.bar.bar', 'scopedBar', scopeSelector: '.source.js')).toBe true
-          expect(atom.config.get('foo.bar.bar')).toBe 'globalBar'
-          expect(atom.config.get('foo.bar.bar', scope: ['.source.js'])).toBe 'scopedBar'
+          expect(atom.config.set('foo.bar.str', 'global')).toBe true
+          expect(atom.config.set('foo.bar.str', 'scoped', scopeSelector: '.source.js')).toBe true
+          expect(atom.config.get('foo.bar.str')).toBe 'global'
+          expect(atom.config.get('foo.bar.str', scope: ['.source.js'])).toBe 'scoped'
 
           expect(atom.config.set('foo.bar.int', 'nope')).toBe true
           expect(atom.config.set('foo.bar.int', 'notanint', scopeSelector: '.source.js')).toBe true
@@ -1154,8 +1154,8 @@ describe "Config", ->
 
           atom.config.setSchema('foo.bar', schema)
 
-          expect(atom.config.get('foo.bar.bar')).toBe 'globalBar'
-          expect(atom.config.get('foo.bar.bar', scope: ['.source.js'])).toBe 'scopedBar'
+          expect(atom.config.get('foo.bar.str')).toBe 'global'
+          expect(atom.config.get('foo.bar.str', scope: ['.source.js'])).toBe 'scoped'
 
           expect(atom.config.get('foo.bar.int')).toBe 2
           expect(atom.config.get('foo.bar.int', scope: ['.source.js'])).toBe 2
