@@ -17,6 +17,7 @@ Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
 Workspace = require '../src/workspace'
+ServiceHub = require '../src/service-hub'
 TextEditor = require '../src/text-editor'
 TextEditorView = require '../src/text-editor-view'
 TextEditorElement = require '../src/text-editor-element'
@@ -77,6 +78,7 @@ beforeEach ->
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
+  atom.services = new ServiceHub
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
