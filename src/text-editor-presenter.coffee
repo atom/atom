@@ -34,6 +34,7 @@ class TextEditorPresenter
     @observeLineDecoration(decoration) for decoration in @model.getLineDecorations()
     @observeLineNumberDecoration(decoration) for decoration in @model.getLineNumberDecorations()
     @observeHighlightDecoration(decoration) for decoration in @model.getHighlightDecorations()
+    @observeOverlayDecoration(decoration) for decoration in @model.getOverlayDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
@@ -42,9 +43,12 @@ class TextEditorPresenter
   buildState: ->
     @state =
       content:
-        lines: {}
         blinkCursorsOff: false
-      gutter: {}
+        lines: {}
+        highlights: {}
+        overlays: {}
+      gutter:
+        lineNumbers: {}
     @updateState()
 
   updateState: ->
@@ -53,6 +57,7 @@ class TextEditorPresenter
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
+    @updateOverlaysState()
     @updateLineNumbersState()
 
   updateVerticalScrollState: ->
@@ -118,8 +123,6 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateHighlightsState: ->
-    @state.content.highlights ?= {}
-
     startRow = @getStartRow()
     endRow = @getEndRow()
     visibleHighlights = {}
@@ -154,12 +157,33 @@ class TextEditorPresenter
 
     @emitter.emit 'did-update-state'
 
+  updateOverlaysState: ->
+    visibleDecorationIds = {}
+
+    for decoration in @model.getOverlayDecorations()
+      continue unless decoration.getMarker().isValid()
+
+      {item, position} = decoration.getProperties()
+      if position is 'tail'
+        screenPosition = decoration.getMarker().getTailScreenPosition()
+      else
+        screenPosition = decoration.getMarker().getHeadScreenPosition()
+
+      @state.content.overlays[decoration.id] ?= {item}
+      @state.content.overlays[decoration.id].pixelPosition = @pixelPositionForScreenPosition(screenPosition)
+      visibleDecorationIds[decoration.id] = true
+
+    for id of @state.content.overlays
+      delete @state.content.overlays[id] unless visibleDecorationIds[id]
+
+    @emitter.emit "did-update-state"
+
   updateLineNumbersState: ->
-    @state.gutter.lineNumbers = {}
     startRow = @getStartRow()
     endRow = @getEndRow()
     lastBufferRow = null
     wrapCount = 0
+    visibleLineNumberIds = {}
 
     for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
       screenRow = startRow + i
@@ -167,16 +191,20 @@ class TextEditorPresenter
       if bufferRow is lastBufferRow
         wrapCount++
         softWrapped = true
-        key = bufferRow + '-' + wrapCount
+        id = bufferRow + '-' + wrapCount
       else
         wrapCount = 0
         softWrapped = false
         lastBufferRow = bufferRow
-        key = bufferRow
+        id = bufferRow
       decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
       foldable = @model.isFoldableAtScreenRow(screenRow)
 
-      @state.gutter.lineNumbers[key] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+      @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+      visibleLineNumberIds[id] = true
+
+    for id of @state.gutter.lineNumbers
+      delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
     @emitter.emit 'did-update-state'
 
@@ -444,6 +472,15 @@ class TextEditorPresenter
       decorationState.flashDuration = flash.duration
       @emitter.emit "did-update-state"
 
+  observeOverlayDecoration: (decoration) ->
+    decorationDisposables = new CompositeDisposable
+    decorationDisposables.add decoration.getMarker().onDidChange(@updateOverlaysState.bind(this))
+    decorationDisposables.add decoration.onDidChangeProperties(@updateOverlaysState.bind(this))
+    decorationDisposables.add decoration.onDidDestroy =>
+      @disposables.remove(decorationDisposables)
+      @updateOverlaysState()
+    @disposables.add(decorationDisposables)
+
   didAddDecoration: (decoration) ->
     if decoration.isType('line')
       @observeLineDecoration(decoration)
@@ -454,6 +491,9 @@ class TextEditorPresenter
     else if decoration.isType('highlight')
       @observeHighlightDecoration(decoration)
       @updateHighlightsState()
+    else if decoration.isType('overlay')
+      @observeOverlayDecoration(decoration)
+      @updateOverlaysState()
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>

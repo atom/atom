@@ -877,6 +877,68 @@ describe "TextEditorPresenter", ->
             flashCount: 2
           }
 
+      describe ".overlays", ->
+        stateForOverlay = (presenter, decoration) ->
+          presenter.state.content.overlays[decoration.id]
+
+        it "contains state for overlay decorations both initially and when their markers move", ->
+          item = {}
+          marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          # Initial state
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 2 * 10, left: 13 * 10}
+          }
+
+          # Change range
+          expectStateUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]])
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 4 * 10, left: 6 * 10}
+          }
+
+          # Valid -> invalid
+          expectStateUpdate presenter, -> editor.getBuffer().insert([2, 14], 'x')
+          expect(stateForOverlay(presenter, decoration)).toBeUndefined()
+
+          # Invalid -> valid
+          expectStateUpdate presenter, -> editor.undo()
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 4 * 10, left: 6 * 10}
+          }
+
+          # Reverse direction
+          expectStateUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]], reversed: true)
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 2 * 10, left: 13 * 10}
+          }
+
+          # Destroy
+          decoration.destroy()
+          expect(stateForOverlay(presenter, decoration)).toBeUndefined()
+
+          # Add
+          decoration2 = editor.decorateMarker(marker, {type: 'overlay', item})
+          expectValues stateForOverlay(presenter, decoration2), {
+            item: item
+            pixelPosition: {top: 2 * 10, left: 13 * 10}
+          }
+
+        it "honors the 'position' option on overlay decorations", ->
+          item = {}
+          marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 2 * 10, left: 13 * 10}
+          }
+
     describe ".gutter", ->
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
