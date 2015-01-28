@@ -46,7 +46,7 @@
     "nslog": "^2.0.0",
     "oniguruma": "^4.0.0",
     "optimist": "0.4.0",
-    "pathwatcher": "^3.0.0",
+    "pathwatcher": "^3.1.0",
     "property-accessors": "^1",
     "q": "^1.0.1",
     "random-words": "0.0.1",
