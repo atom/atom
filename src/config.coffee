@@ -797,7 +797,7 @@ class Config
     _.extend rootSchema, schema
     @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
     @setScopedDefaultsFromSchema(keyPath, schema)
-    @resetForSchemaChange()
+    @resetSettingsForSchemaChange()
 
   load: ->
     @initializeConfigDirectory()
@@ -999,23 +999,28 @@ class Config
       defaults[key] = @extractDefaultsFromSchema(value) for key, value of properties
       defaults
 
-  makeValueConformToSchema: (keyPath, value) ->
-    value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
-    value
+  makeValueConformToSchema: (keyPath, value, options) ->
+    if options?.suppressException
+      try
+        @makeValueConformToSchema(keyPath, value)
+      catch e
+        undefined
+    else
+      value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
+      value
 
   # When the schema is changed / added, there may be values set in the config
   # that do not conform to the config. This will reset make them conform.
-  resetForSchemaChange: (source=@getUserConfigPath()) ->
-    settings = @settings
-    @settings = null
-    @set(null, settings, {save: false})
-
-    priority = @priorityForSource(source)
-    selectorsAndSettings = @scopedSettingsStore.propertiesForSource(source)
-    @scopedSettingsStore.removePropertiesForSource(source)
-    for scopeSelector, settings of selectorsAndSettings
-      @set(null, settings, {scopeSelector, source, priority, save: false}) if settings?
-    return
+  resetSettingsForSchemaChange: (source=@getUserConfigPath()) ->
+    @transact =>
+      @settings = @makeValueConformToSchema(null, @settings, suppressException: true)
+      priority = @priorityForSource(source)
+      selectorsAndSettings = @scopedSettingsStore.propertiesForSource(source)
+      @scopedSettingsStore.removePropertiesForSource(source)
+      for scopeSelector, settings of selectorsAndSettings
+        settings = @makeValueConformToSchema(null, settings, suppressException: true)
+        @setRawScopedValue(null, settings, source, scopeSelector)
+      return
 
   ###
   Section: Private Scoped Settings
@@ -1036,13 +1041,9 @@ class Config
     @scopedSettingsStore.removePropertiesForSource(source)
 
     for scopeSelector, settings of newScopedSettings
+      settings = @makeValueConformToSchema(null, settings, suppressException: true)
       validatedSettings = {}
-      try
-        settings = withoutEmptyObjects(@makeValueConformToSchema(null, settings))
-        validatedSettings[scopeSelector] = settings
-      catch e
-        validatedSettings[scopeSelector] = null
-
+      validatedSettings[scopeSelector] = withoutEmptyObjects(settings)
       @scopedSettingsStore.addProperties(source, validatedSettings, {priority}) if validatedSettings[scopeSelector]?
 
     @emitChangeEvent()
