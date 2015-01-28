@@ -1,3 +1,11 @@
+function registerRuntimeTranspilers() {
+  // This sets require.extensions['.coffee'].
+  require('coffee-script').register();
+
+  // This redefines require.extensions['.js'].
+  require('../src/esnext').register();
+}
+
 window.onload = function() {
   try {
     var startTime = Date.now();
@@ -22,7 +30,7 @@ window.onload = function() {
 
     // Require before the module cache in dev mode
     if (devMode) {
-      require('coffee-script').register();
+      registerRuntimeTranspilers();
     }
 
     ModuleCache = require('../src/module-cache');
@@ -41,7 +49,7 @@ window.onload = function() {
     require('vm-compatibility-layer');
 
     if (!devMode) {
-      require('coffee-script').register();
+      registerRuntimeTranspilers();
     }
 
     require('../src/coffee-cache').register();
