@@ -167,11 +167,11 @@ class Install extends Command
           @logFailure()
 
         error = "#{stdout}\n#{stderr}"
-        error = @getGitErrorMessage() if error.indexOf('code ENOGIT') isnt -1
+        error = @getGitErrorMessage(pack) if error.indexOf('code ENOGIT') isnt -1
 
         callback(output)
 
-  getGitErrorMessage: ->
+  getGitErrorMessage: (pack) ->
     message = """
       Failed to install #{pack.name} because Git was not found.
 
