@@ -1010,7 +1010,7 @@ class Config
       value
 
   # When the schema is changed / added, there may be values set in the config
-  # that do not conform to the config. This will reset make them conform.
+  # that do not conform to the schema. This will reset make them conform.
   resetSettingsForSchemaChange: (source=@getUserConfigPath()) ->
     @transact =>
       @settings = @makeValueConformToSchema(null, @settings, suppressException: true)
