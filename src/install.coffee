@@ -173,7 +173,7 @@ class Install extends Command
 
             The #{pack.name} package has module dependencies that cannot be installed without Git.
 
-            You need install Git and make it available on your PATH environment variable in order to install this package.
+            You need install Git and make it available on your path environment variable in order to install this package.
           """
           switch process.platform
             when 'win32'
@@ -186,6 +186,11 @@ class Install extends Command
 
                 You can install Git from your OS package manager.
               """
+
+          output += """
+
+            Run apm -v after installing Git to see what version has been detected.
+          """
 
         callback(output)
 
