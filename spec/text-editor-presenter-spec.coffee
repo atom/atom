@@ -1258,6 +1258,28 @@ describe "TextEditorPresenter", ->
           expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 7}
           expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
+        it "does not remove out-of-view line numbers corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+
+          expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 4)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 5)).toBeUndefined()
+
+          presenter.setMouseWheelScreenRow(0)
+          expectStateUpdate presenter, -> presenter.setScrollTop(35)
+
+          expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 7)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+
+          expectStateUpdate presenter, -> advanceClock(200)
+
+          expect(lineNumberStateForScreenRow(presenter, 0)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 7)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+
         describe ".decorationClasses", ->
           it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
             marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')

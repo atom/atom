@@ -233,6 +233,13 @@ class TextEditorPresenter
       @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
       visibleLineNumberIds[id] = true
 
+    if @getMouseWheelScreenRow()? and not startRow <= @getMouseWheelScreenRow() < endRow
+      screenRow = @getMouseWheelScreenRow()
+      top = screenRow * @getLineHeight()
+      bufferRow = @model.bufferRowForScreenRow(screenRow)
+      @state.gutter.lineNumbers[id] = {screenRow, bufferRow, top}
+      visibleLineNumberIds[bufferRow] = true
+
     for id of @state.gutter.lineNumbers
       delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
@@ -372,6 +379,7 @@ class TextEditorPresenter
     if @getMouseWheelScreenRow()?
       @mouseWheelScreenRow = null
       @updateLinesState()
+      @updateLineNumbersState()
     else
       @emitter.emit 'did-update-state'
 
