@@ -168,10 +168,11 @@ class Install extends Command
 
         output = "#{stdout}\n#{stderr}"
         if output.indexOf('code ENOGIT') isnt -1
-          output = """"
+          output = """
             Failed to install #{pack.name} because Git was not found.
 
             The #{pack.name} package has module dependencies that require Git to be installed.
+
             You need install Git and make it available on your PATH environment variable in order
             to install this package.
           """
@@ -179,8 +180,7 @@ class Install extends Command
             when 'win32'
               output += """
 
-                You can install Git by downloading and installing GitHub for Windows.
-                https://windows.github.com
+                You can install Git by downloading and installing GitHub for Windows: https://windows.github.com
               """
             when 'linux'
               output += """
