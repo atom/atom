@@ -1,4 +1,5 @@
 {spawn} = require 'child_process'
+path = require 'path'
 _ = require 'underscore-plus'
 npm = require 'npm'
 config = require './apm'
