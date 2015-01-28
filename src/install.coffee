@@ -171,7 +171,7 @@ class Install extends Command
           output = """
             Failed to install #{pack.name} because Git was not found.
 
-            The #{pack.name} package has module dependencies that require Git to be installed.
+            The #{pack.name} package has module dependencies that cannot be installed without Git.
 
             You need install Git and make it available on your PATH environment variable in order to install this package.
           """
