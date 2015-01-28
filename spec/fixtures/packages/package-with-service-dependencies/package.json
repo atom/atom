@@ -4,13 +4,13 @@
   "serviceDependencies": {
     "service-1": {
       "versions": {
-        "0.3.1": "handleFirstServiceV3",
-        "0.4.1": "handleFirstServiceV4"
+        ">=0.2 <= 0.3.6": "handleFirstServiceV3",
+        "^0.4.1": "handleFirstServiceV4"
       }
     },
     "service-2": {
       "versions": {
-        "0.5.1": "handleSecondService"
+        "0.5.1 || 0.5.2": "handleSecondService"
       }
     }
   }
