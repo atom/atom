@@ -1,3 +1,4 @@
+{find} = require 'underscore-plus'
 Grim = require 'grim'
 {Disposable} = require 'event-kit'
 
@@ -148,4 +149,4 @@ class ViewRegistry
       throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
 
   findProvider: (object) ->
-    @providers.find ({modelConstructor}) -> object instanceof modelConstructor
+    find @providers, ({modelConstructor}) -> object instanceof modelConstructor

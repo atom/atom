@@ -32,7 +32,7 @@ class LanguageMode
 
     return unless commentStartEntry?
 
-    commentEndEntry = atom.config.getAll('editor.commentEnd', {scope}).find (entry) ->
+    commentEndEntry = _.find atom.config.getAll('editor.commentEnd', {scope}), (entry) ->
       entry.scopeSelector is commentStartEntry.scopeSelector
     commentStartString = commentStartEntry?.value
     commentEndString = commentEndEntry?.value
