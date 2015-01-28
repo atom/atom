@@ -7,6 +7,7 @@ optimist = require 'optimist'
 config = require './apm'
 Command = require './command'
 Install = require './install'
+git = require './git'
 Link = require './link'
 request = require './request'
 
@@ -55,9 +56,10 @@ class Develop extends Command
 
   cloneRepository: (repoUrl, packageDirectory, options) ->
     config.getSetting 'git', (command) =>
-      command ?= "git"
+      command ?= 'git'
       args = ['clone', '--recursive', repoUrl, packageDirectory]
       process.stdout.write "Cloning #{repoUrl} "
+      git.addGitToEnv(process.env)
       @spawn command, args, (code, stderr='', stdout='') =>
         if code is 0
           @logSuccess()

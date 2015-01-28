@@ -43,6 +43,7 @@ addGitBashToEnv = (env) ->
     env.Path = "#{cmdPath}#{path.delimiter}#{binPath}"
 
 exports.addGitToEnv = (env) ->
+  return if process.platform isnt 'win32'
   addPortableGitToEnv(env)
   addGitBashToEnv(env)
 
@@ -52,7 +53,7 @@ exports.getGitVersion = (callback) ->
     globalconfig: config.getGlobalConfigPath()
   npm.load npmOptions, ->
     git = npm.config.get('git') ? 'git'
-    exports.addGitToEnv(process.env) if process.platform is 'win32'
+    exports.addGitToEnv(process.env)
     spawned = spawn(git, ['--version'])
     outputChunks = []
     spawned.stderr.on 'data', (chunk) -> outputChunks.push(chunk)
