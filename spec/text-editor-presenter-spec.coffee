@@ -77,40 +77,40 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> advanceClock(100)
         expect(presenter.state.scrollingVertically).toBe false
 
-    describe ".mousewheelScreenRow", ->
-      it "reflects the most recently assigned ::mousewheelScreenRow while .scrollingVertically is true", ->
+    describe ".mouseWheelScreenRow", ->
+      it "reflects the most recently assigned ::mouseWheelScreenRow while .scrollingVertically is true", ->
         presenter = new TextEditorPresenter(model: editor, scrollTop: 10, stoppedScrollingDelay: 200)
-        presenter.setMousewheelScreenRow(3)
+        presenter.setMouseWheelScreenRow(3)
         expect(presenter.state.scrollingVertically).toBe false
-        expect(presenter.state.mousewheelScreenRow).toBeNull()
+        expect(presenter.state.mouseWheelScreenRow).toBeNull()
 
         expectStateUpdate presenter, -> presenter.setScrollTop(0)
         expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mousewheelScreenRow).toBe 3
+        expect(presenter.state.mouseWheelScreenRow).toBe 3
 
-        presenter.setMousewheelScreenRow(5)
+        presenter.setMouseWheelScreenRow(5)
         expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mousewheelScreenRow).toBe 5
+        expect(presenter.state.mouseWheelScreenRow).toBe 5
 
         advanceClock(100)
         expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mousewheelScreenRow).toBe 5
+        expect(presenter.state.mouseWheelScreenRow).toBe 5
 
         # should wait 200ms after the last scroll to clear
         presenter.setScrollTop(10)
 
         advanceClock(100) # so not yet...
         expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mousewheelScreenRow).toBe 5
+        expect(presenter.state.mouseWheelScreenRow).toBe 5
 
         expectStateUpdate presenter, -> advanceClock(100) # clear now
         expect(presenter.state.scrollingVertically).toBe false
-        expect(presenter.state.mousewheelScreenRow).toBeNull()
+        expect(presenter.state.mouseWheelScreenRow).toBeNull()
 
         # should be cleared even when we scroll again
         expectStateUpdate presenter, -> presenter.setScrollTop(20)
         expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mousewheelScreenRow).toBeNull()
+        expect(presenter.state.mouseWheelScreenRow).toBeNull()
 
     describe ".content", ->
       describe ".scrollWidth", ->
