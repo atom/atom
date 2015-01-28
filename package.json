@@ -63,7 +63,7 @@
     "space-pen": "3.8.2",
     "stacktrace-parser": "0.1.1",
     "temp": "0.7.0",
-    "text-buffer": "^3.10.1",
+    "text-buffer": "^3.11.0",
     "theorist": "^1.0.2",
     "underscore-plus": "^1.6.6",
     "vm-compatibility-layer": "0.1.0"
