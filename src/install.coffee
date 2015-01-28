@@ -166,33 +166,38 @@ class Install extends Command
           fs.removeSync(installDirectory)
           @logFailure()
 
-        output = "#{stdout}\n#{stderr}"
-        if output.indexOf('code ENOGIT') isnt -1
-          output = """
-            Failed to install #{pack.name} because Git was not found.
-
-            The #{pack.name} package has module dependencies that cannot be installed without Git.
-
-            You need install Git and make it available on your path environment variable in order to install this package.
-          """
-          switch process.platform
-            when 'win32'
-              output += """
-
-                You can install Git by downloading and installing GitHub for Windows: https://windows.github.com
-              """
-            when 'linux'
-              output += """
-
-                You can install Git from your OS package manager.
-              """
-
-          output += """
-
-            Run apm -v after installing Git to see what version has been detected.
-          """
+        error = "#{stdout}\n#{stderr}"
+        error = @getGitErrorMessage() if error.indexOf('code ENOGIT') isnt -1
 
         callback(output)
+
+  getGitErrorMessage: ->
+    message = """
+      Failed to install #{pack.name} because Git was not found.
+
+      The #{pack.name} package has module dependencies that cannot be installed without Git.
+
+      You need install Git and make it available on your path environment variable in order to install this package.
+    """
+
+    switch process.platform
+      when 'win32'
+        message += """
+
+          You can install Git by downloading and installing GitHub for Windows: https://windows.github.com
+        """
+      when 'linux'
+        message += """
+
+          You can install Git from your OS package manager.
+        """
+
+    message += """
+
+      Run apm -v after installing Git to see what version has been detected.
+    """
+
+    message
 
   getVisualStudioFlags: ->
     if vsVersion = config.getInstalledVisualStudioFlag()
