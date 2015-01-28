@@ -28,6 +28,7 @@ class AtomWindow
       'web-preferences':
         'direct-write': false
         'subpixel-font-scaling': false
+      'dark-theme': true
     global.atomApplication.addWindow(this)
 
     @handleEvents()
