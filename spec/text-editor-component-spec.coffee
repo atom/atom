@@ -2068,7 +2068,7 @@ describe "TextEditorComponent", ->
         componentNode.dispatchEvent(wheelEvent)
         nextAnimationFrame()
 
-        expect(component.mouseWheelScreenRow).toBe null
+        expect(component.presenter.getMouseWheelScreenRow()).toBe null
 
       it "clears the mouseWheelScreenRow after a delay even if the event does not cause scrolling", ->
         expect(editor.getScrollTop()).toBe 0
@@ -2077,13 +2077,12 @@ describe "TextEditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 10)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        expect(nextAnimationFrame).toBe noAnimationFrame
 
         expect(editor.getScrollTop()).toBe 0
 
-        expect(component.mouseWheelScreenRow).toBe 0
-        advanceClock(component.mouseWheelScreenRowClearDelay)
-        expect(component.mouseWheelScreenRow).toBe null
+        expect(component.presenter.getMouseWheelScreenRow()).toBe 0
+        advanceClock(component.presenter.stoppedScrollingDelay)
+        expect(component.presenter.getMouseWheelScreenRow()).toBe null
 
       it "does not preserve the line if it is on screen", ->
         expect(componentNode.querySelectorAll('.line-number').length).toBe 14 # dummy line
@@ -2094,9 +2093,8 @@ describe "TextEditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 100) # goes nowhere, we're already at scrollTop 0
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        expect(nextAnimationFrame).toBe noAnimationFrame
 
-        expect(component.mouseWheelScreenRow).toBe 0
+        expect(component.presenter.getMouseWheelScreenRow()).toBe 0
         editor.insertText("hello")
         expect(componentNode.querySelectorAll('.line-number').length).toBe 14 # dummy line
         expect(componentNode.querySelectorAll('.line').length).toBe 13

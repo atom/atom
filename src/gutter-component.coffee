@@ -69,7 +69,7 @@ GutterComponent = React.createClass
     @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false)
 
   updateLineNumbers: ->
-    {presenter, mouseWheelScreenRow} = @props
+    {presenter} = @props
     @oldState ?= {lineNumbers: {}}
     newState = presenter.state.gutter
     newLineNumberIds = null
@@ -96,7 +96,7 @@ GutterComponent = React.createClass
         node.appendChild(lineNumberNode)
 
     for id, lineNumberState of @oldState.lineNumbers
-      unless newState.lineNumbers.hasOwnProperty(id) or lineNumberState.screenRow is mouseWheelScreenRow
+      unless newState.lineNumbers.hasOwnProperty(id)
         @lineNumberNodesById[id].remove()
         delete @lineNumberNodesById[id]
         delete @oldState.lineNumbers[id]

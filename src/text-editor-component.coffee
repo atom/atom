@@ -31,8 +31,6 @@ TextEditorComponent = React.createClass
   updateRequestedWhilePaused: false
   cursorMoved: false
   selectionChanged: false
-  mouseWheelScreenRow: null
-  mouseWheelScreenRowClearDelay: 150
   scrollSensitivity: 0.4
   heightAndWidthMeasurementRequested: false
   inputEnabled: true
@@ -66,8 +64,6 @@ TextEditorComponent = React.createClass
       horizontallyScrollable = editor.horizontallyScrollable()
       hiddenInputStyle = @getHiddenInputPosition()
       hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
-      if @mouseWheelScreenRow? and not (renderedStartRow <= @mouseWheelScreenRow < renderedEndRow)
-        mouseWheelScreenRow = @mouseWheelScreenRow
 
       style.height = scrollHeight if @autoHeight
 
@@ -82,7 +78,7 @@ TextEditorComponent = React.createClass
       if @gutterVisible
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown,
-          @presenter, editor, mouseWheelScreenRow, @useHardwareAcceleration
+          @presenter, editor, @useHardwareAcceleration
         }
 
       div ref: 'scrollView', className: 'scroll-view',
@@ -92,8 +88,7 @@ TextEditorComponent = React.createClass
           style: hiddenInputStyle
 
         LinesComponent {
-          ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM,
-          mouseWheelScreenRow, visible
+           ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM, visible
         }
 
         ScrollbarComponent
@@ -433,9 +428,7 @@ TextEditorComponent = React.createClass
       event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
     else
       # Scrolling vertically
-      @mouseWheelScreenRow = @screenRowForNode(event.target)
-      @clearMouseWheelScreenRowAfterDelay ?= debounce(@clearMouseWheelScreenRow, @mouseWheelScreenRowClearDelay)
-      @clearMouseWheelScreenRowAfterDelay()
+      @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = editor.getScrollTop()
       editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
       event.preventDefault() unless previousScrollTop is editor.getScrollTop()
@@ -845,13 +838,6 @@ TextEditorComponent = React.createClass
     verticalNode.style.display = originalVerticalDisplayValue
     horizontalNode.style.display = originalHorizontalDisplayValue
     cornerNode.style.display = originalCornerDisplayValue
-
-  clearMouseWheelScreenRow: ->
-    if @mouseWheelScreenRow?
-      @mouseWheelScreenRow = null
-      @requestUpdate()
-
-  clearMouseWheelScreenRowAfterDelay: null # created lazily
 
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @props.editor.consolidateSelections()

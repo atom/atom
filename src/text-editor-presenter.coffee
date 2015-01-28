@@ -7,6 +7,7 @@ class TextEditorPresenter
   toggleCursorBlinkHandle: null
   startBlinkingCursorsAfterDelay: null
   stoppedScrollingTimeoutId: null
+  mouseWheelScreenRow: null
 
   constructor: (params) ->
     {@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft} = params

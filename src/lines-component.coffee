@@ -92,10 +92,10 @@ LinesComponent = React.createClass
     delete @oldState.content.lines[id]
 
   updateLineNodes: ->
-    {presenter, mouseWheelScreenRow} = @props
+    {presenter} = @props
 
     for id of @oldState.content.lines
-      unless @newState.content.lines.hasOwnProperty(id) or mouseWheelScreenRow is @screenRowsByLineId[id]
+      unless @newState.content.lines.hasOwnProperty(id)
         @removeLineNode(id)
 
     newLineIds = null
