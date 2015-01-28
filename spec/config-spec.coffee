@@ -1145,6 +1145,11 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.str')).toBe 'global'
           expect(atom.config.get('foo.bar.str', scope: ['.source.js'])).toBe 'scoped'
 
+          expect(atom.config.set('foo.bar.noschema', 'nsGlobal')).toBe true
+          expect(atom.config.set('foo.bar.noschema', 'nsScoped', scopeSelector: '.source.js')).toBe true
+          expect(atom.config.get('foo.bar.noschema')).toBe 'nsGlobal'
+          expect(atom.config.get('foo.bar.noschema', scope: ['.source.js'])).toBe 'nsScoped'
+
           expect(atom.config.set('foo.bar.int', 'nope')).toBe true
           expect(atom.config.set('foo.bar.int', 'notanint', scopeSelector: '.source.js')).toBe true
           expect(atom.config.set('foo.bar.int', 23, scopeSelector: '.source.coffee')).toBe true
@@ -1156,6 +1161,8 @@ describe "Config", ->
 
           expect(atom.config.get('foo.bar.str')).toBe 'global'
           expect(atom.config.get('foo.bar.str', scope: ['.source.js'])).toBe 'scoped'
+          expect(atom.config.get('foo.bar.noschema')).toBe 'nsGlobal'
+          expect(atom.config.get('foo.bar.noschema', scope: ['.source.js'])).toBe 'nsScoped'
 
           expect(atom.config.get('foo.bar.int')).toBe 2
           expect(atom.config.get('foo.bar.int', scope: ['.source.js'])).toBe 2

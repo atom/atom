@@ -1144,12 +1144,17 @@ Config.addSchemaEnforcers
       return value unless schema.properties?
 
       newValue = {}
-      for prop, childSchema of schema.properties
-        continue unless value.hasOwnProperty(prop)
-        try
-          newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", value[prop], childSchema)
-        catch error
-          console.warn "Error setting item in object: #{error.message}"
+      for prop, propValue of value
+        childSchema = schema.properties[prop]
+        if childSchema?
+          try
+            newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", propValue, childSchema)
+          catch error
+            console.warn "Error setting item in object: #{error.message}"
+        else
+          # Just pass through un-schema'd values
+          newValue[prop] = propValue
+
       newValue
 
   'array':
