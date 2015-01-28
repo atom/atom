@@ -92,6 +92,8 @@ class Install extends Command
     else
       env.Path = localModuleBins
 
+    addGitToEnv(env)
+
   addNodeBinToEnv: (env) ->
     nodeBinFolder = path.resolve(__dirname, '..', 'bin')
     pathKey = if config.isWin32() then 'Path' else 'PATH'
@@ -110,6 +112,26 @@ class Install extends Command
     if httpsProxy
       env.HTTPS_PROXY ?= httpsProxy
       env.https_proxy ?= httpsProxy
+
+  addGitToEnv: (env) ->
+    localAppData = env.LocalAppData
+    return unless localAppData
+
+    try
+      children = fs.listSync(path.join(localAppData, 'GitHub'))
+    catch error
+      return
+
+    for child in children when child.indexOf('PortableGit_') is 0
+      cmdPath = path.join(localAppData, 'GitHub', child, 'cmd')
+      binPath = path.join(localAppData, 'GitHub', child, 'bin')
+      if env.Path
+        env.Path += "#{path.delimiter}#{cmdPath}#{path.delimiter}#{binPath}"
+      else
+        env.Path = "#{cmdPath}#{path.delimiter}#{binPath}"
+      break
+
+    return
 
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
