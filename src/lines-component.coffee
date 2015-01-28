@@ -17,25 +17,21 @@ LinesComponent = React.createClass
   displayName: 'LinesComponent'
 
   render: ->
-    {presenter} = @props
+    {editor, presenter} = @props
+    @oldState ?= {content: {lines: {}}}
+    @newState = presenter.state
 
-    if presenter?
-      {editor, presenter} = @props
+    {scrollHeight} = @newState
+    {scrollWidth, backgroundColor, placeholderText} = @newState.content
 
-      @oldState ?= {content: {lines: {}}}
-      @newState = presenter.state
-      {scrollHeight} = @newState
-      {scrollWidth, backgroundColor, placeholderText} = @newState.content
-
-      style =
-        height: scrollHeight
-        width: scrollWidth
-        WebkitTransform: @getTransform()
-        backgroundColor: backgroundColor
+    style =
+      height: scrollHeight
+      width: scrollWidth
+      WebkitTransform: @getTransform()
+      backgroundColor: backgroundColor
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
-
       CursorsComponent {presenter}
       HighlightsComponent {presenter}
 
@@ -71,7 +67,6 @@ LinesComponent = React.createClass
 
   componentDidUpdate: ->
     {visible, presenter} = @props
-    return unless presenter?
 
     @removeLineNodes() unless @oldState?.content.indentGuidesVisible is @newState?.content.indentGuidesVisible
     @updateLineNodes()
@@ -261,13 +256,13 @@ LinesComponent = React.createClass
     node.removeChild(DummyLineNode)
 
     {editor, presenter} = @props
-    presenter?.setLineHeight(lineHeightInPixels)
+    presenter.setLineHeight(lineHeightInPixels)
     editor.setLineHeightInPixels(lineHeightInPixels)
-    presenter?.setBaseCharacterWidth(charWidth)
+    presenter.setBaseCharacterWidth(charWidth)
     editor.setDefaultCharWidth(charWidth)
 
   remeasureCharacterWidths: ->
-    return unless @props.presenter?
+    return unless @props.presenter.hasRequiredMeasurements()
 
     @clearScopedCharWidths()
     @measureCharactersInNewLines()

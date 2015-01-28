@@ -12,9 +12,9 @@ CursorsComponent = React.createClass
     {presenter} = @props
 
     className = 'cursors'
-    className += ' blink-off' if presenter?.state.content.blinkCursorsOff
+    className += ' blink-off' if presenter.state.content.blinkCursorsOff
 
     div {className},
-      if presenter?
+      if presenter.hasRequiredMeasurements()
         for key, pixelRect of presenter.state.content.cursors
           CursorComponent({key, pixelRect})

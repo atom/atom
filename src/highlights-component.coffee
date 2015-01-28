@@ -9,7 +9,7 @@ HighlightsComponent = React.createClass
 
   render: ->
     div className: 'highlights',
-      @renderHighlights() if @props.presenter?
+      @renderHighlights()
 
   renderHighlights: ->
     {presenter} = @props

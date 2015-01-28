@@ -147,6 +147,19 @@ TextEditorComponent = React.createClass
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
+    {editor, lineOverdrawMargin, cursorBlinkPeriod, cursorBlinkResumeDelay}  = @props
+
+    @presenter = new TextEditorPresenter
+      model: editor
+      scrollTop: editor.getScrollTop()
+      scrollLeft: editor.getScrollLeft()
+      lineOverdrawMargin: lineOverdrawMargin
+      cursorBlinkPeriod: cursorBlinkPeriod
+      cursorBlinkResumeDelay: cursorBlinkResumeDelay
+      stoppedScrollingDelay: 200
+    @presenter.onDidUpdateState(@requestUpdate)
+
+
   componentDidMount: ->
     {editor, stylesElement} = @props
 
@@ -198,26 +211,6 @@ TextEditorComponent = React.createClass
     @props.editor.setVisible(true)
     @performedInitialMeasurement = true
     @updatesPaused = false
-
-    {editor, lineOverdrawMargin, cursorBlinkPeriod, cursorBlinkResumeDelay}  = @props
-
-    unless @presenter?
-      @presenter = new TextEditorPresenter
-        model: editor
-        clientHeight: editor.getHeight()
-        clientWidth: editor.getWidth()
-        scrollTop: editor.getScrollTop()
-        scrollLeft: editor.getScrollLeft()
-        lineHeight: editor.getLineHeightInPixels()
-        baseCharacterWidth: editor.getDefaultCharWidth()
-        lineOverdrawMargin: lineOverdrawMargin
-        cursorBlinkPeriod: cursorBlinkPeriod
-        cursorBlinkResumeDelay: cursorBlinkResumeDelay
-        stoppedScrollingDelay: 200
-        backgroundColor: @backgroundColor
-        gutterBackgroundColor: @gutterBackgroundColor
-      @presenter.onDidUpdateState(@requestUpdate)
-
     @forceUpdate() if @canUpdate()
 
   requestUpdate: ->
@@ -407,7 +400,7 @@ TextEditorComponent = React.createClass
       @requestAnimationFrame =>
         pendingScrollTop = @pendingScrollTop
         @pendingScrollTop = null
-        @presenter?.setScrollTop(pendingScrollTop)
+        @presenter.setScrollTop(pendingScrollTop)
         @props.editor.setScrollTop(pendingScrollTop)
 
   onHorizontalScroll: (scrollLeft) ->
@@ -420,7 +413,7 @@ TextEditorComponent = React.createClass
     unless animationFramePending
       @requestAnimationFrame =>
         @props.editor.setScrollLeft(@pendingScrollLeft)
-        @presenter?.setScrollLeft(@pendingScrollLeft)
+        @presenter.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
 
   onMouseWheel: (event) ->
@@ -609,13 +602,13 @@ TextEditorComponent = React.createClass
       @requestUpdate()
 
   onScrollTopChanged: ->
-    @presenter?.setScrollTop(@props.editor.getScrollTop())
+    @presenter.setScrollTop(@props.editor.getScrollTop())
     @requestUpdate()
     @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 200)
     @onStoppedScrollingAfterDelay()
 
   onScrollLeftChanged: ->
-    @presenter?.setScrollLeft(@props.editor.getScrollLeft())
+    @presenter.setScrollLeft(@props.editor.getScrollLeft())
     @requestUpdate()
 
   onStoppedScrolling: ->
@@ -749,10 +742,10 @@ TextEditorComponent = React.createClass
 
       clientHeight =  scrollViewNode.clientHeight
       if clientHeight > 0
-        @presenter?.setClientHeight(clientHeight)
+        @presenter.setClientHeight(clientHeight)
         editor.setHeight(clientHeight)
     else
-      @presenter?.setClientHeight(null)
+      @presenter.setClientHeight(null)
       editor.setHeight(null)
       @autoHeight = true
 
@@ -760,7 +753,7 @@ TextEditorComponent = React.createClass
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
     clientWidth -= paddingLeft
     if clientWidth > 0
-      @presenter?.setClientWidth(clientWidth)
+      @presenter.setClientWidth(clientWidth)
       editor.setWidth(clientWidth)
 
   sampleFontStyling: ->
@@ -782,13 +775,13 @@ TextEditorComponent = React.createClass
 
     if backgroundColor isnt @backgroundColor
       @backgroundColor = backgroundColor
-      @presenter?.setBackgroundColor(backgroundColor)
+      @presenter.setBackgroundColor(backgroundColor)
 
     if @refs.gutter?
       gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
       if gutterBackgroundColor isnt @gutterBackgroundColor
         @gutterBackgroundColor = gutterBackgroundColor
-        @presenter?.setGutterBackgroundColor(gutterBackgroundColor)
+        @presenter.setGutterBackgroundColor(gutterBackgroundColor)
         @requestUpdate() unless suppressUpdate
 
   measureLineHeightAndDefaultCharWidth: ->

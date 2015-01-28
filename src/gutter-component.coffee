@@ -21,9 +21,9 @@ GutterComponent = React.createClass
 
     div className: 'gutter',
       div className: 'line-numbers', ref: 'lineNumbers', style:
-        height: presenter?.state.scrollHeight
-        WebkitTransform: @getTransform() if presenter?
-        backgroundColor: presenter?.state.gutter.backgroundColor
+        height: presenter.state.scrollHeight
+        WebkitTransform: @getTransform() if presenter.hasRequiredMeasurements()
+        backgroundColor: presenter.state.gutter.backgroundColor
 
   getTransform: ->
     {presenter, useHardwareAcceleration} = @props
@@ -39,15 +39,13 @@ GutterComponent = React.createClass
 
   componentDidMount: ->
     @appendDummyLineNumber()
-    @updateLineNumbers() if @props.presenter?
+    @updateLineNumbers()
 
     node = @getDOMNode()
     node.addEventListener 'click', @onClick
     node.addEventListener 'mousedown', @onMouseDown
 
   componentDidUpdate: (oldProps) ->
-    return unless @props.presenter?
-
     unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits')
       @updateDummyLineNumber()
       node.remove() for id, node of @lineNumberNodesById
