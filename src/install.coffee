@@ -184,7 +184,7 @@ class Install extends Command
       when 'win32'
         message += """
 
-          You can install Git by downloading and installing GitHub for Windows: https://windows.github.com
+          You can install Git by downloading, installing, and launching GitHub for Windows: https://windows.github.com
 
         """
       when 'linux'
