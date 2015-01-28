@@ -10,7 +10,7 @@ addPortableGitToEnv = (env) ->
   return unless localAppData
 
   try
-    children = fs.listSync(path.join(localAppData, 'GitHub'))
+    children = fs.readdirSync(path.join(localAppData, 'GitHub'))
   catch error
     return
 
