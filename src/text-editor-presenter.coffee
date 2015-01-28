@@ -431,6 +431,7 @@ class TextEditorPresenter
   getLineHeight: -> @lineHeight
 
   setMouseWheelScreenRow: (@mouseWheelScreenRow) ->
+    @didStartScrolling()
 
   getMouseWheelScreenRow: -> @mouseWheelScreenRow
 

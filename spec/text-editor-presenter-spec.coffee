@@ -383,8 +383,15 @@ describe "TextEditorPresenter", ->
 
           expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
           expect(lineStateForScreenRow(presenter, 1)).toBeUndefined()
+          expect(lineStateForScreenRow(presenter, 2)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 7)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 8)).toBeUndefined()
+
+          # should clear ::mouseWheelScreenRow after stoppedScrollingDelay elapses even if we don't scroll first
+          presenter.setMouseWheelScreenRow(2)
+          advanceClock(200)
+          expectStateUpdate presenter, -> presenter.setScrollTop(45)
+          expect(lineStateForScreenRow(presenter, 2)).toBeUndefined()
 
         it "does not preserve on-screen lines even if they correspond to ::mouseWheelScreenRow", ->
           presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
