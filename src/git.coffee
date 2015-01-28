@@ -6,7 +6,7 @@ config = require './apm'
 fs = require './fs'
 
 addPortableGitToEnv = (env) ->
-  localAppData = env.LocalAppData
+  localAppData = env.LOCALAPPDATA
   return unless localAppData
 
   try
