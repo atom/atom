@@ -114,6 +114,10 @@ class Install extends Command
       env.https_proxy ?= httpsProxy
 
   addGitToEnv: (env) ->
+    @addPortableGitToEnv(env)
+    @addGitBashToEnv(env)
+
+  addPortableGitToEnv: ->
     localAppData = env.LocalAppData
     return unless localAppData
 
@@ -132,6 +136,23 @@ class Install extends Command
       break
 
     return
+
+  addGitBashToEnv: (env) ->
+    if process.env.ProgramFiles
+      gitPath = path.join(process.env.ProgramFiles, 'Git')
+
+    unless fs.isDirectorySync(gitPath)
+      if process.env['ProgramFiles(x86)']
+        gitPath = path.join(process.env['ProgramFiles(x86)'], 'Git')
+
+    return unless fs.isDirectorySync(gitPath)
+
+    cmdPath = path.join(gitPath, 'cmd')
+    binPath = path.join(gitPath, 'bin')
+    if env.Path
+      env.Path += "#{path.delimiter}#{cmdPath}#{path.delimiter}#{binPath}"
+    else
+      env.Path = "#{cmdPath}#{path.delimiter}#{binPath}"
 
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
