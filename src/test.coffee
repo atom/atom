@@ -25,49 +25,26 @@ class Test extends Command
 
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
-  getChocolateyAtomPath: ->
-    if process.env.CHOCOLATEYINSTALL
-      atomCommand = path.join(process.env.CHOCOLATEYINSTALL, 'bin', 'atom.exe')
-      return atomCommand if fs.existsSync(atomCommand)
-
-    if process.env.ALLUSERSPROFILE
-      atomCommand = path.join(process.env.ALLUSERSPROFILE, 'chocolatey', 'bin', 'atom.exe')
-      return atomCommand if fs.existsSync(atomCommand)
-
-    null
-
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
     {env} = process
 
-    if options.argv.path
-      atomCommand = options.argv.path
-    else if process.platform is 'win32'
-      atomCommand = @getChocolateyAtomPath()
-    atomCommand = 'atom' unless fs.existsSync(atomCommand)
+    atomCommand = options.argv.path if options.argv.path
+    unless fs.existsSync(atomCommand)
+      atomCommand = 'atom'
+      atomCommand += '.cmd' if process.platform is 'win32'
 
     packagePath = process.cwd()
     testArgs = ['--dev', '--test', "--spec-directory=#{path.join(packagePath, 'spec')}"]
 
     if process.platform is 'win32'
-      testArgs.unshift('--shimgen-waitforexit')
       logFile = temp.openSync(suffix: '.log', prefix: "#{path.basename(packagePath)}-")
       fs.closeSync(logFile.fd)
       logFilePath = logFile.path
-
-      # Quote all arguments and escapes inner quotes
       testArgs.push("--log-file=#{logFilePath}")
-      cmdArgs = testArgs.map (arg) -> "\"#{arg.replace(/"/g, '\\"')}\""
-      cmdArgs.unshift("\"#{atomCommand}\"")
-      cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
 
-      cmdOptions =
-        env: env
-        windowsVerbatimArguments: true
-      cmd = process.env.comspec or 'cmd.exe'
-
-      @spawn cmd, cmdArgs, cmdOptions, (code) ->
+      @spawn atomCommand, testArgs, (code) ->
         try
           loggedOutput = fs.readFileSync(logFilePath, 'utf8')
           process.stdout.write("#{loggedOutput}\n") if loggedOutput
@@ -75,6 +52,8 @@ class Test extends Command
         if code is 0
           process.stdout.write 'Tests passed\n'.green
           callback()
+        else if code?.message
+          callback("Error spawning Atom: #{code.message}")
         else
           callback('Tests failed')
     else
@@ -82,5 +61,7 @@ class Test extends Command
         if code is 0
           process.stdout.write 'Tests passed\n'.green
           callback()
+        else if code?.message
+          callback("Error spawning Atom: #{code.message}")
         else
           callback('Tests failed')
