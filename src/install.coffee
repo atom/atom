@@ -168,8 +168,7 @@ class Install extends Command
 
         error = "#{stdout}\n#{stderr}"
         error = @getGitErrorMessage(pack) if error.indexOf('code ENOGIT') isnt -1
-
-        callback(output)
+        callback(error)
 
   getGitErrorMessage: (pack) ->
     message = """
