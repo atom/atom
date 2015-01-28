@@ -43,7 +43,7 @@
     "marked": "^0.3",
     "mixto": "^1",
     "mkdirp": "0.3.5",
-    "nslog": "^1.0.1",
+    "nslog": "^1.1.0",
     "oniguruma": "^3.1.0",
     "optimist": "0.4.0",
     "pathwatcher": "^2.7.0",
