@@ -9,6 +9,7 @@ wordwrap = require 'wordwrap'
 
 config = require './apm'
 fs = require './fs'
+git = require './git'
 
 setupTempDirectory = ->
   temp = require 'temp'
@@ -83,7 +84,7 @@ printVersions = (args, callback) ->
   nodeVersion = process.versions.node ? ''
 
   getPythonVersion (pythonVersion) ->
-    getGitVersion (gitVersion) ->
+    git.getGitVersion (gitVersion) ->
       if args.json
         versions =
           apm: apmVersion
@@ -134,23 +135,6 @@ getPythonVersion = (callback) ->
     spawned.on 'close', (code) ->
       if code is 0
         [name, version] = Buffer.concat(outputChunks).toString().split(' ')
-        version = version?.trim()
-      callback(version)
-
-getGitVersion = (callback) ->
-  npmOptions =
-    userconfig: config.getUserConfigPath()
-    globalconfig: config.getGlobalConfigPath()
-  npm.load npmOptions, ->
-    git = npm.config.get('git') ? 'git'
-    spawned = spawn(git, ['--version'])
-    outputChunks = []
-    spawned.stderr.on 'data', (chunk) -> outputChunks.push(chunk)
-    spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
-    spawned.on 'error', ->
-    spawned.on 'close', (code) ->
-      if code is 0
-        [gitName, versionName, version] = Buffer.concat(outputChunks).toString().split(' ')
         version = version?.trim()
       callback(version)
 

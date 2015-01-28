@@ -10,6 +10,7 @@ temp = require 'temp'
 config = require './apm'
 Command = require './command'
 fs = require './fs'
+git = require './git'
 RebuildModuleCache = require './rebuild-module-cache'
 request = require './request'
 
@@ -92,6 +93,8 @@ class Install extends Command
     else
       env.Path = localModuleBins
 
+    git.addGitToEnv(env)
+
   addNodeBinToEnv: (env) ->
     nodeBinFolder = path.resolve(__dirname, '..', 'bin')
     pathKey = if config.isWin32() then 'Path' else 'PATH'
@@ -163,7 +166,40 @@ class Install extends Command
           fs.removeSync(installDirectory)
           @logFailure()
 
-        callback("#{stdout}\n#{stderr}")
+        error = "#{stdout}\n#{stderr}"
+        error = @getGitErrorMessage(pack) if error.indexOf('code ENOGIT') isnt -1
+        callback(error)
+
+  getGitErrorMessage: (pack) ->
+    message = """
+      Failed to install #{pack.name} because Git was not found.
+
+      The #{pack.name} package has module dependencies that cannot be installed without Git.
+
+      You need to install Git and add it to your path environment variable in order to install this package.
+
+    """
+
+    switch process.platform
+      when 'win32'
+        message += """
+
+          You can install Git by downloading, installing, and launching GitHub for Windows: https://windows.github.com
+
+        """
+      when 'linux'
+        message += """
+
+          You can install Git from your OS package manager.
+
+        """
+
+    message += """
+
+      Run apm -v after installing Git to see what version has been detected.
+    """
+
+    message
 
   getVisualStudioFlags: ->
     if vsVersion = config.getInstalledVisualStudioFlag()
