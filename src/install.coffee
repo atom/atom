@@ -117,7 +117,7 @@ class Install extends Command
     @addPortableGitToEnv(env)
     @addGitBashToEnv(env)
 
-  addPortableGitToEnv: ->
+  addPortableGitToEnv: (env) ->
     localAppData = env.LocalAppData
     return unless localAppData
 
