@@ -9,14 +9,16 @@ addPortableGitToEnv = (env) ->
   localAppData = env.LOCALAPPDATA
   return unless localAppData
 
+  githubPath = path.join(localAppData, 'GitHub')
+
   try
-    children = fs.readdirSync(path.join(localAppData, 'GitHub'))
+    children = fs.readdirSync(githubPath)
   catch error
     return
 
   for child in children when child.indexOf('PortableGit_') is 0
-    cmdPath = path.join(localAppData, 'GitHub', child, 'cmd')
-    binPath = path.join(localAppData, 'GitHub', child, 'bin')
+    cmdPath = path.join(githubPath, child, 'cmd')
+    binPath = path.join(githubPath, child, 'bin')
     if env.Path
       env.Path += "#{path.delimiter}#{cmdPath}#{path.delimiter}#{binPath}"
     else
