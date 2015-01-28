@@ -77,6 +77,41 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> advanceClock(100)
         expect(presenter.state.scrollingVertically).toBe false
 
+    describe ".mousewheelScreenRow", ->
+      it "reflects the most recently assigned ::mousewheelScreenRow while .scrollingVertically is true", ->
+        presenter = new TextEditorPresenter(model: editor, scrollTop: 10, stoppedScrollingDelay: 200)
+        presenter.setMousewheelScreenRow(3)
+        expect(presenter.state.scrollingVertically).toBe false
+        expect(presenter.state.mousewheelScreenRow).toBeNull()
+
+        expectStateUpdate presenter, -> presenter.setScrollTop(0)
+        expect(presenter.state.scrollingVertically).toBe true
+        expect(presenter.state.mousewheelScreenRow).toBe 3
+
+        presenter.setMousewheelScreenRow(5)
+        expect(presenter.state.scrollingVertically).toBe true
+        expect(presenter.state.mousewheelScreenRow).toBe 5
+
+        advanceClock(100)
+        expect(presenter.state.scrollingVertically).toBe true
+        expect(presenter.state.mousewheelScreenRow).toBe 5
+
+        # should wait 200ms after the last scroll to clear
+        presenter.setScrollTop(10)
+
+        advanceClock(100) # so not yet...
+        expect(presenter.state.scrollingVertically).toBe true
+        expect(presenter.state.mousewheelScreenRow).toBe 5
+
+        expectStateUpdate presenter, -> advanceClock(100) # clear now
+        expect(presenter.state.scrollingVertically).toBe false
+        expect(presenter.state.mousewheelScreenRow).toBeNull()
+
+        # should be cleared even when we scroll again
+        expectStateUpdate presenter, -> presenter.setScrollTop(20)
+        expect(presenter.state.scrollingVertically).toBe true
+        expect(presenter.state.mousewheelScreenRow).toBeNull()
+
     describe ".content", ->
       describe ".scrollWidth", ->
         it "is initialized as the max of the clientWidth and the width of the longest line", ->
