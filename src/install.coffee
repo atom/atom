@@ -185,7 +185,29 @@ class Install extends Command
           fs.removeSync(installDirectory)
           @logFailure()
 
-        callback("#{stdout}\n#{stderr}")
+        output = "#{stdout}\n#{stderr}"
+        if output.indexOf('code ENOGIT') isnt -1
+          output = """"
+            Failed to install #{pack.name} because Git was not found.
+
+            The #{pack.name} package has module dependencies that require Git to be installed.
+            You need install Git and make it available on your PATH environment variable in order
+            to install this package.
+          """
+          switch process.platform
+            when 'win32'
+              output += """
+
+                You can install Git by downloading and installing GitHub for Windows.
+                https://windows.github.com
+              """
+            when 'linux'
+              output += """
+
+                You can install Git from your distributions's package manager.
+              """
+
+        callback(output)
 
   getVisualStudioFlags: ->
     if vsVersion = config.getInstalledVisualStudioFlag()
