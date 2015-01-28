@@ -1,7 +1,7 @@
 {
   "name": "atom-package-manager",
   "description": "Atom package manager",
-  "version": "0.126.0",
+  "version": "0.128.0",
   "licenses": [
     {
       "type": "MIT",
@@ -31,7 +31,7 @@
     "temp": "~0.7.0",
     "wrench": "~1.5.1",
     "ncp": "~0.5.1",
-    "npm": "2.1.18",
+    "npm": "2.3",
     "season": ">=5.0.5 <6.0",
     "colors": "~0.6.1",
     "wordwrap": "0.0.2",
