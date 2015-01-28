@@ -1139,7 +1139,7 @@ describe "Config", ->
                 type: 'string'
                 default: 'def'
 
-        it "the values set respect the new schema", ->
+        it "respects the new schema when values are set", ->
           expect(atom.config.set('foo.bar.str', 'global')).toBe true
           expect(atom.config.set('foo.bar.str', 'scoped', scopeSelector: '.source.js')).toBe true
           expect(atom.config.get('foo.bar.str')).toBe 'global'
