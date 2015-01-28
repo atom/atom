@@ -23,8 +23,6 @@ TextEditorComponent = React.createClass
 
   visible: false
   autoHeight: false
-  backgroundColor: null
-  gutterBackgroundColor: null
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -98,7 +96,7 @@ TextEditorComponent = React.createClass
 
         LinesComponent {
           ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM,
-          mouseWheelScreenRow, visible, @backgroundColor
+          mouseWheelScreenRow, visible
         }
 
         ScrollbarComponent
@@ -773,16 +771,11 @@ TextEditorComponent = React.createClass
     {hostElement} = @props
     {backgroundColor} = getComputedStyle(hostElement)
 
-    if backgroundColor isnt @backgroundColor
-      @backgroundColor = backgroundColor
-      @presenter.setBackgroundColor(backgroundColor)
+    @presenter.setBackgroundColor(backgroundColor)
 
     if @refs.gutter?
       gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
-      if gutterBackgroundColor isnt @gutterBackgroundColor
-        @gutterBackgroundColor = gutterBackgroundColor
-        @presenter.setGutterBackgroundColor(gutterBackgroundColor)
-        @requestUpdate() unless suppressUpdate
+      @presenter.setGutterBackgroundColor(gutterBackgroundColor)
 
   measureLineHeightAndDefaultCharWidth: ->
     if @isVisible()

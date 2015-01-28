@@ -389,13 +389,17 @@ class TextEditorPresenter
 
   getClientWidth: -> @clientWidth
 
-  setBackgroundColor: (@backgroundColor) ->
-    @updateContentState()
+  setBackgroundColor: (backgroundColor) ->
+    if backgroundColor isnt @backgroundColor
+      @backgroundColor = backgroundColor
+      @updateContentState()
 
   getBackgroundColor: -> @backgroundColor
 
-  setGutterBackgroundColor: (@gutterBackgroundColor) ->
-    @updateGutterState()
+  setGutterBackgroundColor: (gutterBackgroundColor) ->
+    if gutterBackgroundColor isnt @gutterBackgroundColor
+      @gutterBackgroundColor = gutterBackgroundColor
+      @updateGutterState()
 
   getGutterBackgroundColor: -> @gutterBackgroundColor
 
