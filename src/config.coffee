@@ -602,7 +602,7 @@ class Config
         return false
 
     if scopeSelector?
-      @setRawScopedValue(source, scopeSelector, keyPath, value)
+      @setRawScopedValue(keyPath, value, source, scopeSelector)
     else
       @setRawValue(keyPath, value)
 
@@ -1057,7 +1057,7 @@ class Config
       disposable.dispose()
       @emitChangeEvent()
 
-  setRawScopedValue: (source, selector, keyPath, value) ->
+  setRawScopedValue: (keyPath, value, source, selector, options) ->
     if keyPath?
       newValue = {}
       _.setValueForKeyPath(newValue, keyPath, value)
