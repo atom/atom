@@ -10,6 +10,7 @@ module.exports =
 class AtomWindow
   _.extend @prototype, EventEmitter.prototype
 
+  @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
   @includeShellLoadTime: true
 
   browserWindow: null
@@ -22,12 +23,18 @@ class AtomWindow
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
 
-    @browserWindow = new BrowserWindow
+    options =
       show: false
       title: 'Atom'
       'web-preferences':
         'direct-write': false
         'subpixel-font-scaling': false
+    # Don't set icon on Windows so the exe's ico will be used as window and
+    # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
+    if process.platform is 'linux'
+      options.icon = @constructor.iconPath
+
+    @browserWindow = new BrowserWindow options
     global.atomApplication.addWindow(this)
 
     @handleEvents()
