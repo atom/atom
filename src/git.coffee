@@ -52,9 +52,8 @@ exports.getGitVersion = (callback) ->
     globalconfig: config.getGlobalConfigPath()
   npm.load npmOptions, ->
     git = npm.config.get('git') ? 'git'
-    env = _.extend({}, process.env)
-    exports.addGitToEnv(env) if process.platform is 'win32'
-    spawned = spawn(git, ['--version'], {env})
+    exports.addGitToEnv(process.env) if process.platform is 'win32'
+    spawned = spawn(git, ['--version'])
     outputChunks = []
     spawned.stderr.on 'data', (chunk) -> outputChunks.push(chunk)
     spawned.stdout.on 'data', (chunk) -> outputChunks.push(chunk)
