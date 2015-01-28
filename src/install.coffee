@@ -176,7 +176,7 @@ class Install extends Command
 
       The #{pack.name} package has module dependencies that cannot be installed without Git.
 
-      You need install Git and make it available on your path environment variable in order to install this package.
+      You need to install Git and add it to your path environment variable in order to install this package.
 
     """
 
