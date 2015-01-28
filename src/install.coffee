@@ -177,6 +177,7 @@ class Install extends Command
       The #{pack.name} package has module dependencies that cannot be installed without Git.
 
       You need install Git and make it available on your path environment variable in order to install this package.
+
     """
 
     switch process.platform
@@ -184,11 +185,13 @@ class Install extends Command
         message += """
 
           You can install Git by downloading and installing GitHub for Windows: https://windows.github.com
+
         """
       when 'linux'
         message += """
 
           You can install Git from your OS package manager.
+
         """
 
     message += """
