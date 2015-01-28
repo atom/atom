@@ -121,9 +121,11 @@ class TextEditorPresenter
       decorationClasses: @lineDecorationClassesForRow(row)
 
   updateCursorsState: ->
+    @state.content.cursors = {}
+    return unless @hasRequiredMeasurements()
+
     startRow = @getStartRow()
     endRow = @getEndRow()
-    @state.content.cursors = {}
 
     for cursor in @model.getCursors()
       if cursor.isVisible() and startRow <= cursor.getScreenRow() < endRow
@@ -134,6 +136,8 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateHighlightsState: ->
+    return unless @hasRequiredMeasurements()
+
     startRow = @getStartRow()
     endRow = @getEndRow()
     visibleHighlights = {}
@@ -169,6 +173,8 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateOverlaysState: ->
+    return unless @hasRequiredMeasurements()
+
     visibleDecorationIds = {}
 
     for decoration in @model.getOverlayDecorations()
@@ -337,6 +343,9 @@ class TextEditorPresenter
 
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
+  hasRequiredMeasurements: ->
+    @getLineHeight()? and @getBaseCharacterWidth()? and @getClientHeight()? and @getScrollTop()?
+
   setScrollTop: (@scrollTop) ->
     @didStartScrolling()
     @updateVerticalScrollState()
@@ -396,6 +405,7 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateHighlightsState()
     @updateLineNumbersState()
+    @updateOverlaysState()
 
   getLineHeight: -> @lineHeight
 
@@ -432,6 +442,7 @@ class TextEditorPresenter
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
+    @updateOverlaysState()
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}

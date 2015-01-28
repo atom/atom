@@ -284,6 +284,19 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 12)).toBeDefined()
 
+        it "is empty until all of the required measurements are assigned", ->
+          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 1, baseCharacterWidth: 10)
+          expect(presenter.state.content.lines).toEqual({})
+
+          presenter.setClientHeight(25)
+          expect(presenter.state.content.lines).toEqual({})
+
+          presenter.setLineHeight(10)
+          expect(presenter.state.content.lines).toEqual({})
+
+          presenter.setScrollTop(0)
+          expect(presenter.state.content.lines).not.toEqual({})
+
         it "updates when ::scrollTop changes", ->
           presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
 
@@ -508,6 +521,22 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 2)).toBeUndefined()
           expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 4)).toBeUndefined()
+
+        it "is empty until all of the required measurements are assigned", ->
+          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 1)
+          expect(presenter.state.content.cursors).toEqual({})
+
+          presenter.setClientHeight(25)
+          expect(presenter.state.content.cursors).toEqual({})
+
+          presenter.setLineHeight(10)
+          expect(presenter.state.content.cursors).toEqual({})
+
+          presenter.setScrollTop(0)
+          expect(presenter.state.content.cursors).toEqual({})
+
+          presenter.setBaseCharacterWidth(8)
+          expect(presenter.state.content.cursors).not.toEqual({})
 
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
@@ -754,6 +783,26 @@ describe "TextEditorPresenter", ->
           expect(stateForHighlight(presenter, highlight7)).toBeUndefined()
           expect(stateForHighlight(presenter, highlight8)).toBeUndefined()
 
+        it "is empty until all of the required measurements are assigned", ->
+          editor.setSelectedBufferRanges([
+            [[0, 2], [2, 4]],
+          ])
+
+          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 1)
+          expect(presenter.state.content.highlights).toEqual({})
+
+          presenter.setClientHeight(25)
+          expect(presenter.state.content.highlights).toEqual({})
+
+          presenter.setLineHeight(10)
+          expect(presenter.state.content.highlights).toEqual({})
+
+          presenter.setScrollTop(0)
+          expect(presenter.state.content.highlights).toEqual({})
+
+          presenter.setBaseCharacterWidth(8)
+          expect(presenter.state.content.highlights).not.toEqual({})
+
         it "does not include highlights for invalid markers", ->
           marker = editor.markBufferRange([[2, 2], [2, 4]], invalidate: 'touch')
           highlight = editor.decorateMarker(marker, type: 'highlight', class: 'h')
@@ -985,6 +1034,42 @@ describe "TextEditorPresenter", ->
             pixelPosition: {top: 2 * 10, left: 13 * 10}
           }
 
+        it "updates when ::baseCharacterWidth changes", ->
+          item = {}
+          marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 2 * 10, left: 13 * 10}
+          }
+
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(5)
+
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 2 * 10, left: 13 * 5}
+          }
+
+        it "updates when ::lineHeight changes", ->
+          item = {}
+          marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 2 * 10, left: 13 * 10}
+          }
+
+          expectStateUpdate presenter, -> presenter.setLineHeight(5)
+
+          expectValues stateForOverlay(presenter, decoration), {
+            item: item
+            pixelPosition: {top: 2 * 5, left: 13 * 10}
+          }
+
         it "honors the 'position' option on overlay decorations", ->
           item = {}
           marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
@@ -994,6 +1079,20 @@ describe "TextEditorPresenter", ->
             item: item
             pixelPosition: {top: 2 * 10, left: 13 * 10}
           }
+
+        it "is empty until all of the required measurements are assigned", ->
+          item = {}
+          marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
+          decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
+
+          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 0, scrollTop: 0, scrollHeight: 50)
+          expect(presenter.state.content.overlays).toEqual({})
+
+          presenter.setBaseCharacterWidth(10)
+          expect(presenter.state.content.overlays).toEqual({})
+
+          presenter.setLineHeight(10)
+          expect(presenter.state.content.overlays).not.toEqual({})
 
     describe ".gutter", ->
       describe ".backgroundColor", ->
