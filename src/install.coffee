@@ -63,25 +63,24 @@ class Install extends Command
 
     fs.makeTreeSync(@atomDirectory)
 
-    config.loadNpm (error, npm) =>
-      # node-gyp doesn't currently have an option for this so just set the
-      # environment variable to bypass strict SSL
-      # https://github.com/TooTallNate/node-gyp/issues/448
-      useStrictSsl = npm.config.get('strict-ssl') ? true
-      env.NODE_TLS_REJECT_UNAUTHORIZED = 0 unless useStrictSsl
+    # node-gyp doesn't currently have an option for this so just set the
+    # environment variable to bypass strict SSL
+    # https://github.com/TooTallNate/node-gyp/issues/448
+    useStrictSsl = @npm.config.get('strict-ssl') ? true
+    env.NODE_TLS_REJECT_UNAUTHORIZED = 0 unless useStrictSsl
 
-      # Pass through configured proxy to node-gyp
-      proxy = npm.config.get('https-proxy') or npm.config.get('proxy')
-      installNodeArgs.push("--proxy=#{proxy}") if proxy
+    # Pass through configured proxy to node-gyp
+    proxy = @npm.config.get('https-proxy') or @npm.config.get('proxy')
+    installNodeArgs.push("--proxy=#{proxy}") if proxy
 
-      opts = {env, cwd: @atomDirectory}
-      opts.streaming = true if @verbose
+    opts = {env, cwd: @atomDirectory}
+    opts.streaming = true if @verbose
 
-      @fork @atomNodeGypPath, installNodeArgs, opts, (code, stderr='', stdout='') ->
-        if code is 0
-          callback()
-        else
-          callback("#{stdout}\n#{stderr}")
+    @fork @atomNodeGypPath, installNodeArgs, opts, (code, stderr='', stdout='') ->
+      if code is 0
+        callback()
+      else
+        callback("#{stdout}\n#{stderr}")
 
   updateWindowsEnv: (env) ->
     env.USERPROFILE = env.HOME
@@ -101,6 +100,17 @@ class Install extends Command
     else
       env[pathKey]= nodeBinFolder
 
+  addProxyToEnv: (env) ->
+    httpProxy = @npm.config.get('proxy')
+    if httpProxy
+      env.HTTP_PROXY ?= httpProxy
+      env.http_proxy ?= httpProxy
+
+    httpsProxy = @npm.config.get('https-proxy')
+    if httpsProxy
+      env.HTTPS_PROXY ?= httpsProxy
+      env.https_proxy ?= httpsProxy
+
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
@@ -116,6 +126,7 @@ class Install extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     @updateWindowsEnv(env) if config.isWin32()
     @addNodeBinToEnv(env)
+    @addProxyToEnv(env)
     installOptions = {env}
     installOptions.streaming = true if @verbose
 
@@ -178,6 +189,7 @@ class Install extends Command
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     @updateWindowsEnv(env) if config.isWin32()
     @addNodeBinToEnv(env)
+    @addProxyToEnv(env)
     installOptions = {env}
     installOptions.cwd = options.cwd if options.cwd
     installOptions.streaming = true if @verbose
@@ -391,6 +403,7 @@ class Install extends Command
       env = _.extend({}, process.env, HOME: @atomNodeDirectory)
       @updateWindowsEnv(env) if config.isWin32()
       @addNodeBinToEnv(env)
+      @addProxyToEnv(env)
       buildOptions = {env}
       buildOptions.streaming = true if @verbose
 
@@ -511,6 +524,7 @@ class Install extends Command
       packageNames.push('.') if packageNames.length is 0
 
     commands = []
+    commands.push (callback) => config.loadNpm (error, @npm) => callback()
     commands.push (callback) => @loadInstalledAtomVersion(callback)
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
