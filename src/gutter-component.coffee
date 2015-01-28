@@ -13,6 +13,7 @@ GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
 
+  maxLineNumberDigits: null
   dummyLineNumberNode: null
   measuredWidth: null
 
@@ -38,6 +39,7 @@ GutterComponent = React.createClass
     @lineNumberNodesById = {}
 
   componentDidMount: ->
+    {@maxLineNumberDigits} = @props.presenter.state.gutter
     @appendDummyLineNumber()
     @updateLineNumbers()
 
@@ -46,7 +48,9 @@ GutterComponent = React.createClass
     node.addEventListener 'mousedown', @onMouseDown
 
   componentDidUpdate: (oldProps) ->
-    unless isEqualForProperties(oldProps, @props, 'maxLineNumberDigits')
+    {maxLineNumberDigits} = @props.presenter.state.gutter
+    unless maxLineNumberDigits is @maxLineNumberDigits
+      @maxLineNumberDigits = maxLineNumberDigits
       @updateDummyLineNumber()
       node.remove() for id, node of @lineNumberNodesById
       @oldState = {lineNumbers: {}}
@@ -57,13 +61,12 @@ GutterComponent = React.createClass
   # This dummy line number element holds the gutter to the appropriate width,
   # since the real line numbers are absolutely positioned for performance reasons.
   appendDummyLineNumber: ->
-    {maxLineNumberDigits} = @props
     WrapperDiv.innerHTML = @buildLineNumberHTML({bufferRow: -1})
     @dummyLineNumberNode = WrapperDiv.children[0]
     @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
 
   updateDummyLineNumber: ->
-    @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false, @props.maxLineNumberDigits)
+    @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false)
 
   updateLineNumbers: ->
     {presenter, mouseWheelScreenRow} = @props
@@ -100,17 +103,18 @@ GutterComponent = React.createClass
 
   buildLineNumberHTML: (lineNumberState) ->
     {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
-    {maxLineNumberDigits} = @props
     if screenRow?
       style = "position: absolute; top: #{top}px;"
     else
       style = "visibility: hidden;"
     className = @buildLineNumberClassName(lineNumberState)
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
+    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
 
     "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
-  buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
+  buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
+    {maxLineNumberDigits} = @props.presenter.state.gutter
+
     if softWrapped
       lineNumber = "•"
     else

@@ -47,7 +47,6 @@ TextEditorComponent = React.createClass
   render: ->
     {focused, showLineNumbers} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
-    maxLineNumberDigits = editor.getLineCount().toString().length
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
 
@@ -83,9 +82,7 @@ TextEditorComponent = React.createClass
       if @gutterVisible
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown,
-          @presenter,
-          maxLineNumberDigits, mouseWheelScreenRow, editor
-          @useHardwareAcceleration
+          @presenter, editor, mouseWheelScreenRow, @useHardwareAcceleration
         }
 
       div ref: 'scrollView', className: 'scroll-view',
