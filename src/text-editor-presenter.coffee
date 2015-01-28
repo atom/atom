@@ -50,7 +50,6 @@ class TextEditorPresenter
   buildState: ->
     @state =
       scrollingVertically: false
-      mouseWheelScreenRow: null
       content:
         blinkCursorsOff: false
         lines: {}
@@ -96,6 +95,11 @@ class TextEditorPresenter
       else
         @buildLineState(row, line)
       row++
+
+    if @getMouseWheelScreenRow()? and not startRow <= @getMouseWheelScreenRow() < endRow
+      preservedLine = @model.tokenizedLineForScreenRow(@getMouseWheelScreenRow())
+      visibleLineIds[preservedLine.id] = true
+      @updateLineState(@getMouseWheelScreenRow(), preservedLine)
 
     for id, line of @state.content.lines
       unless visibleLineIds.hasOwnProperty(id)
@@ -361,14 +365,15 @@ class TextEditorPresenter
       @stoppedScrollingTimeoutId = null
     @stoppedScrollingTimeoutId = setTimeout(@didStopScrolling.bind(this), @stoppedScrollingDelay)
     @state.scrollingVertically = true
-    @state.mouseWheelScreenRow = @getMouseWheelScreenRow()
     @emitter.emit 'did-update-state'
 
   didStopScrolling: ->
     @state.scrollingVertically = false
-    @state.mouseWheelScreenRow = null
-    @mouseWheelScreenRow = null
-    @emitter.emit 'did-update-state'
+    if @getMouseWheelScreenRow()?
+      @mouseWheelScreenRow = null
+      @updateLinesState()
+    else
+      @emitter.emit 'did-update-state'
 
   getScrollTop: -> @scrollTop
 
@@ -418,7 +423,6 @@ class TextEditorPresenter
   getLineHeight: -> @lineHeight
 
   setMouseWheelScreenRow: (@mouseWheelScreenRow) ->
-    @state.mouseWheelScreenRow = @mouseWheelScreenRow if @state.scrollingVertically
 
   getMouseWheelScreenRow: -> @mouseWheelScreenRow
 

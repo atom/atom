@@ -77,41 +77,6 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> advanceClock(100)
         expect(presenter.state.scrollingVertically).toBe false
 
-    describe ".mouseWheelScreenRow", ->
-      it "reflects the most recently assigned ::mouseWheelScreenRow while .scrollingVertically is true", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 10, stoppedScrollingDelay: 200)
-        presenter.setMouseWheelScreenRow(3)
-        expect(presenter.state.scrollingVertically).toBe false
-        expect(presenter.state.mouseWheelScreenRow).toBeNull()
-
-        expectStateUpdate presenter, -> presenter.setScrollTop(0)
-        expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mouseWheelScreenRow).toBe 3
-
-        presenter.setMouseWheelScreenRow(5)
-        expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mouseWheelScreenRow).toBe 5
-
-        advanceClock(100)
-        expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mouseWheelScreenRow).toBe 5
-
-        # should wait 200ms after the last scroll to clear
-        presenter.setScrollTop(10)
-
-        advanceClock(100) # so not yet...
-        expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mouseWheelScreenRow).toBe 5
-
-        expectStateUpdate presenter, -> advanceClock(100) # clear now
-        expect(presenter.state.scrollingVertically).toBe false
-        expect(presenter.state.mouseWheelScreenRow).toBeNull()
-
-        # should be cleared even when we scroll again
-        expectStateUpdate presenter, -> presenter.setScrollTop(20)
-        expect(presenter.state.scrollingVertically).toBe true
-        expect(presenter.state.mouseWheelScreenRow).toBeNull()
-
     describe ".content", ->
       describe ".scrollWidth", ->
         it "is initialized as the max of the clientWidth and the width of the longest line", ->
@@ -398,6 +363,40 @@ describe "TextEditorPresenter", ->
             text: line3.text
             tokens: line3.tokens
           }
+
+        it "does not remove out-of-view lines corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+
+          expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
+          expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
+          expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
+
+          presenter.setMouseWheelScreenRow(0)
+          expectStateUpdate presenter, -> presenter.setScrollTop(35)
+
+          expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
+          expect(lineStateForScreenRow(presenter, 1)).toBeUndefined()
+          expect(lineStateForScreenRow(presenter, 7)).toBeDefined()
+          expect(lineStateForScreenRow(presenter, 8)).toBeUndefined()
+
+          expectStateUpdate presenter, -> advanceClock(200)
+
+          expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
+          expect(lineStateForScreenRow(presenter, 1)).toBeUndefined()
+          expect(lineStateForScreenRow(presenter, 7)).toBeDefined()
+          expect(lineStateForScreenRow(presenter, 8)).toBeUndefined()
+
+        it "does not preserve on-screen lines even if they correspond to ::mouseWheelScreenRow", ->
+          presenter = new TextEditorPresenter(model: editor, clientHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+          oldLine3 = editor.tokenizedLineForScreenRow(6)
+
+          presenter.setMouseWheelScreenRow(3)
+
+          expectStateUpdate presenter, -> editor.getBuffer().insert([3, Infinity], 'xyz')
+          newLine3 = editor.tokenizedLineForScreenRow(3)
+
+          expect(presenter.state.content.lines[oldLine3.id]).toBeUndefined()
+          expect(presenter.state.content.lines[newLine3.id]).toBeDefined()
 
         describe "[lineId]", -> # line state objects
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
