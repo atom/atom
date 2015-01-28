@@ -138,12 +138,12 @@ class Install extends Command
     return
 
   addGitBashToEnv: (env) ->
-    if process.env.ProgramFiles
-      gitPath = path.join(process.env.ProgramFiles, 'Git')
+    if env.ProgramFiles
+      gitPath = path.join(env.ProgramFiles, 'Git')
 
     unless fs.isDirectorySync(gitPath)
-      if process.env['ProgramFiles(x86)']
-        gitPath = path.join(process.env['ProgramFiles(x86)'], 'Git')
+      if env['ProgramFiles(x86)']
+        gitPath = path.join(env['ProgramFiles(x86)'], 'Git')
 
     return unless fs.isDirectorySync(gitPath)
 
