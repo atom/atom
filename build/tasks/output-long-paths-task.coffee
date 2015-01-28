@@ -10,7 +10,7 @@ module.exports = (grunt) ->
         fullPath = path.join(relativePath, fileName)
       else
         fullPath = fileName
-      longPaths.push(fullPath) if fullPath.length >= 200
+      longPaths.push(fullPath) if fullPath.length >= 175
 
     longPaths.sort (longPath1, longPath2) -> longPath2.length - longPath1.length
 
