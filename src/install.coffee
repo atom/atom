@@ -92,7 +92,7 @@ class Install extends Command
     else
       env.Path = localModuleBins
 
-    addGitToEnv(env)
+    @addGitToEnv(env)
 
   addNodeBinToEnv: (env) ->
     nodeBinFolder = path.resolve(__dirname, '..', 'bin')
