@@ -20,7 +20,7 @@
   "atomShellVersion": "0.21.0",
   "dependencies": {
     "async": "0.2.6",
-    "atom-keymap": "^3.0.0",
+    "atom-keymap": "^3.1.0",
     "bootstrap": "git+https://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.4.0",
     "coffee-script": "1.8.0",
@@ -33,7 +33,7 @@
     "fs-plus": "^2.3.2",
     "fstream": "0.1.24",
     "fuzzaldrin": "^2.1",
-    "git-utils": "^3.0",
+    "git-utils": "^3.0.0",
     "grim": "1.1.0",
     "guid": "0.0.10",
     "jasmine-json": "~0.0",
