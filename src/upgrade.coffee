@@ -16,7 +16,7 @@ tree = require './tree'
 
 module.exports =
 class Upgrade extends Command
-  @commandNames: ['upgrade', 'outdated']
+  @commandNames: ['upgrade', 'outdated', 'update']
 
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
