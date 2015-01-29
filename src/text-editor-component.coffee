@@ -51,8 +51,6 @@ TextEditorComponent = React.createClass
     @performedInitialMeasurement = false if editor.isDestroyed()
 
     if @performedInitialMeasurement
-      [renderedStartRow, renderedEndRow] = @getRenderedRowRange()
-
       visible = @isVisible()
 
       {scrollHeight, scrollTop} = @presenter.state
@@ -233,13 +231,6 @@ TextEditorComponent = React.createClass
 
   getTopmostDOMNode: ->
     @props.hostElement
-
-  getRenderedRowRange: ->
-    {editor, lineOverdrawMargin} = @props
-    [visibleStartRow, visibleEndRow] = editor.getVisibleRowRange()
-    renderedStartRow = Math.max(0, visibleStartRow - lineOverdrawMargin)
-    renderedEndRow = Math.min(editor.getScreenLineCount(), visibleEndRow + lineOverdrawMargin)
-    [renderedStartRow, renderedEndRow]
 
   getHiddenInputPosition: ->
     {editor} = @props

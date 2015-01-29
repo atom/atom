@@ -1103,7 +1103,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       # Should not be rendering range containing the marker
-      expect(component.getRenderedRowRange()[1]).toBeLessThan 9
+      expect(component.presenter.getEndRow()).toBeLessThan 9
 
       regions = componentNode.querySelectorAll('.some-highlight .region')
 
