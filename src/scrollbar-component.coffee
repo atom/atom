@@ -11,29 +11,29 @@ ScrollbarComponent = React.createClass
 
     switch orientation
       when 'vertical'
-        state = presenter.state.verticalScrollbar
+        @newState = presenter.state.verticalScrollbar
       when 'horizontal'
-        state = presenter.state.horizontalScrollbar
+        @newState = presenter.state.horizontalScrollbar
 
     style = {}
 
-    style.display = 'none' unless state.visible
+    style.display = 'none' unless @newState.visible
     style.transform = 'translateZ(0)' if useHardwareAcceleration # See atom/atom#3559
     switch orientation
       when 'vertical'
-        style.width = state.width
-        style.bottom = state.bottom
+        style.width = @newState.width
+        style.bottom = @newState.bottom
       when 'horizontal'
         style.left = 0
-        style.right = state.right
-        style.height = state.height
+        style.right = @newState.right
+        style.height = @newState.height
 
     div {className, style},
       switch orientation
         when 'vertical'
-          div className: 'scrollbar-content', style: {height: presenter.state.scrollHeight}
+          div className: 'scrollbar-content', style: {height: @newState.scrollHeight}
         when 'horizontal'
-          div className: 'scrollbar-content', style: {width: presenter.state.content.scrollWidth}
+          div className: 'scrollbar-content', style: {width: @newState.scrollWidth}
 
   componentDidMount: ->
     {orientation} = @props
@@ -47,14 +47,14 @@ ScrollbarComponent = React.createClass
     @getDOMNode().removeEventListener 'scroll', @onScroll
 
   componentDidUpdate: ->
-    {orientation, presenter} = @props
+    {orientation} = @props
     node = @getDOMNode()
 
     switch orientation
       when 'vertical'
-        node.scrollTop = presenter.state.scrollTop
+        node.scrollTop = @newState.scrollTop
       when 'horizontal'
-        node.scrollLeft = presenter.state.content.scrollLeft
+        node.scrollLeft = @newState.scrollLeft
 
   onScroll: ->
     {orientation, onScroll} = @props

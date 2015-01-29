@@ -33,50 +33,6 @@ describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::state", ->
-    describe ".scrollHeight", ->
-      it "is initialized based on the lineHeight, the number of lines, and the height", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
-        expect(presenter.state.scrollHeight).toBe editor.getScreenLineCount() * 10
-
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, height: 500)
-        expect(presenter.state.scrollHeight).toBe 500
-
-      it "updates when the ::lineHeight changes", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
-        expectStateUpdate presenter, -> presenter.setLineHeight(20)
-        expect(presenter.state.scrollHeight).toBe editor.getScreenLineCount() * 20
-
-      it "updates when the line count changes", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
-        expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
-        expect(presenter.state.scrollHeight).toBe editor.getScreenLineCount() * 10
-
-      it "updates when ::height changes", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
-        expectStateUpdate presenter, -> presenter.setHeight(500)
-        expect(presenter.state.scrollHeight).toBe 500
-
-    describe ".scrollTop", ->
-      it "tracks the value of ::scrollTop", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10)
-        expect(presenter.state.scrollTop).toBe 10
-        expectStateUpdate presenter, -> presenter.setScrollTop(50)
-        expect(presenter.state.scrollTop).toBe 50
-
-    describe ".scrollingVertically", ->
-      it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 10, stoppedScrollingDelay: 200)
-        expect(presenter.state.scrollingVertically).toBe false
-        expectStateUpdate presenter, -> presenter.setScrollTop(0)
-        expect(presenter.state.scrollingVertically).toBe true
-        advanceClock(100)
-        expect(presenter.state.scrollingVertically).toBe true
-        presenter.setScrollTop(10)
-        advanceClock(100)
-        expect(presenter.state.scrollingVertically).toBe true
-        expectStateUpdate presenter, -> advanceClock(100)
-        expect(presenter.state.scrollingVertically).toBe false
-
     describe ".horizontalScrollbar", ->
       describe ".visible", ->
         it "is true if the scrollWidth exceeds the computed client width", ->
@@ -126,6 +82,58 @@ describe "TextEditorPresenter", ->
           expect(state.horizontalScrollbar.right).toBe 0
           presenter.setHeight((editor.getLineCount() * 10) - 1)
           expect(state.horizontalScrollbar.right).toBe 10
+
+      describe ".scrollWidth", ->
+        it "is initialized as the max of the ::contentFrameWidth and the width of the longest line", ->
+          maxLineLength = editor.getMaxScreenLineLength()
+
+          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+
+          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
+
+        it "updates when the ::contentFrameWidth changes", ->
+          maxLineLength = editor.getMaxScreenLineLength()
+          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+          expectStateUpdate presenter, -> presenter.setContentFrameWidth(10 * maxLineLength + 20)
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
+
+        it "updates when the ::baseCharacterWidth changes", ->
+          maxLineLength = editor.getMaxScreenLineLength()
+          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 15 * maxLineLength + 1
+
+        it "updates when the scoped character widths change", ->
+          waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            maxLineLength = editor.getMaxScreenLineLength()
+            presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+
+            expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
+            expect(presenter.state.horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+
+        it "updates when ::softWrapped changes on the editor", ->
+          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expectStateUpdate presenter, -> editor.setSoftWrapped(true)
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
+          expectStateUpdate presenter, -> editor.setSoftWrapped(false)
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
+      describe ".scrollLeft", ->
+        it "tracks the value of ::scrollLeft", ->
+          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, lineOverdrawMargin: 1)
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollLeft(50)
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 50
 
     describe ".verticalScrollbar", ->
       describe ".visible", ->
@@ -177,7 +185,74 @@ describe "TextEditorPresenter", ->
           presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10)
           expect(state.verticalScrollbar.bottom).toBe 10
 
+      describe ".scrollHeight", ->
+        it "is initialized based on the lineHeight, the number of lines, and the height", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expect(presenter.state.verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, height: 500)
+          expect(presenter.state.verticalScrollbar.scrollHeight).toBe 500
+
+        it "updates when the ::lineHeight changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> presenter.setLineHeight(20)
+          expect(presenter.state.verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 20
+
+        it "updates when the line count changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
+          expect(presenter.state.verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+        it "updates when ::height changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> presenter.setHeight(500)
+          expect(presenter.state.verticalScrollbar.scrollHeight).toBe 500
+
+      describe ".scrollTop", ->
+        it "tracks the value of ::scrollTop", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10)
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollTop(50)
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe 50
+
     describe ".content", ->
+      describe ".scrollingVertically", ->
+        it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, stoppedScrollingDelay: 200)
+          expect(presenter.state.content.scrollingVertically).toBe false
+          expectStateUpdate presenter, -> presenter.setScrollTop(0)
+          expect(presenter.state.content.scrollingVertically).toBe true
+          advanceClock(100)
+          expect(presenter.state.content.scrollingVertically).toBe true
+          presenter.setScrollTop(10)
+          advanceClock(100)
+          expect(presenter.state.content.scrollingVertically).toBe true
+          expectStateUpdate presenter, -> advanceClock(100)
+          expect(presenter.state.content.scrollingVertically).toBe false
+
+      describe ".scrollHeight", ->
+        it "is initialized based on the lineHeight, the number of lines, and the height", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, height: 500)
+          expect(presenter.state.content.scrollHeight).toBe 500
+
+        it "updates when the ::lineHeight changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> presenter.setLineHeight(20)
+          expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 20
+
+        it "updates when the line count changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
+          expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+        it "updates when ::height changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> presenter.setHeight(500)
+          expect(presenter.state.content.scrollHeight).toBe 500
+
       describe ".scrollWidth", ->
         it "is initialized as the max of the ::contentFrameWidth and the width of the longest line", ->
           maxLineLength = editor.getMaxScreenLineLength()
@@ -222,6 +297,13 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
           expectStateUpdate presenter, -> editor.setSoftWrapped(false)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
+      describe ".scrollTop", ->
+        it "tracks the value of ::scrollTop", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10)
+          expect(presenter.state.content.scrollTop).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollTop(50)
+          expect(presenter.state.content.scrollTop).toBe 50
 
       describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
@@ -1236,6 +1318,36 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.overlays).not.toEqual({})
 
     describe ".gutter", ->
+      describe ".scrollHeight", ->
+        it "is initialized based on the lineHeight, the number of lines, and the height", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expect(presenter.state.gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, height: 500)
+          expect(presenter.state.gutter.scrollHeight).toBe 500
+
+        it "updates when the ::lineHeight changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> presenter.setLineHeight(20)
+          expect(presenter.state.gutter.scrollHeight).toBe editor.getScreenLineCount() * 20
+
+        it "updates when the line count changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
+          expect(presenter.state.gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+        it "updates when ::height changes", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          expectStateUpdate presenter, -> presenter.setHeight(500)
+          expect(presenter.state.gutter.scrollHeight).toBe 500
+
+      describe ".scrollTop", ->
+        it "tracks the value of ::scrollTop", ->
+          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10)
+          expect(presenter.state.gutter.scrollTop).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollTop(50)
+          expect(presenter.state.gutter.scrollTop).toBe 50
+
       describe ".backgroundColor", ->
         it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
           presenter = new TextEditorPresenter(model: editor, backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")

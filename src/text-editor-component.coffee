@@ -34,7 +34,6 @@ TextEditorComponent = React.createClass
   scrollSensitivity: 0.4
   heightAndWidthMeasurementRequested: false
   inputEnabled: true
-  scopedCharacterWidthsChangeCount: null
   domPollingInterval: 100
   domPollingIntervalId: null
   domPollingPaused: false
@@ -56,7 +55,7 @@ TextEditorComponent = React.createClass
       hiddenInputStyle = @getHiddenInputPosition()
       hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
 
-      style.height = @presenter.state.scrollHeight if @autoHeight
+      style.height = @presenter.state.content.scrollHeight if @autoHeight
 
     if useShadowDOM
       className = 'editor-contents--private'
@@ -233,7 +232,6 @@ TextEditorComponent = React.createClass
     @subscribe editor.observeGrammar(@onGrammarChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
     @subscribe editor.observeSelections(@onSelectionAdded)
-    @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @onScrollLeftChanged
     @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
@@ -577,9 +575,6 @@ TextEditorComponent = React.createClass
 
   onCursorMoved: ->
     @cursorMoved = true
-    @requestUpdate()
-
-  onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
     @requestUpdate()
 
   handleDragUntilMouseUp: (event, dragHandler) ->

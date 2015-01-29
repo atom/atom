@@ -51,10 +51,10 @@ class TextEditorPresenter
 
   buildState: ->
     @state =
-      scrollingVertically: false
       horizontalScrollbar: {}
       verticalScrollbar: {}
       content:
+        scrollingVertically: false
         blinkCursorsOff: false
         lines: {}
         highlights: {}
@@ -65,6 +65,7 @@ class TextEditorPresenter
 
   updateState: ->
     @updateVerticalScrollState()
+    @updateHorizontalScrollState()
     @updateScrollbarsState()
     @updateContentState()
     @updateLinesState()
@@ -75,8 +76,28 @@ class TextEditorPresenter
     @updateLineNumbersState()
 
   updateVerticalScrollState: ->
-    @state.scrollHeight = @computeScrollHeight()
-    @state.scrollTop = @getScrollTop()
+    scrollHeight = @computeScrollHeight()
+    @state.content.scrollHeight = scrollHeight
+    @state.gutter.scrollHeight = scrollHeight
+    @state.verticalScrollbar.scrollHeight = scrollHeight
+
+    scrollTop = @getScrollTop()
+    @state.content.scrollTop = scrollTop
+    @state.gutter.scrollTop = scrollTop
+    @state.verticalScrollbar.scrollTop = scrollTop
+
+    @emitter.emit 'did-update-state'
+
+  updateHorizontalScrollState: ->
+    scrollWidth = @computeScrollWidth()
+    @state.content.scrollWidth = scrollWidth
+    @state.horizontalScrollbar.scrollWidth = scrollWidth
+
+    scrollLeft = @getScrollLeft()
+    @state.content.scrollLeft = @getScrollLeft()
+    @state.horizontalScrollbar.scrollLeft = @getScrollLeft()
+
+    @emitter.emit 'did-update-state'
 
   updateScrollbarsState: ->
     contentWidth = @computeContentWidth()
@@ -406,11 +427,11 @@ class TextEditorPresenter
       clearTimeout(@stoppedScrollingTimeoutId)
       @stoppedScrollingTimeoutId = null
     @stoppedScrollingTimeoutId = setTimeout(@didStopScrolling.bind(this), @stoppedScrollingDelay)
-    @state.scrollingVertically = true
+    @state.content.scrollingVertically = true
     @emitter.emit 'did-update-state'
 
   didStopScrolling: ->
-    @state.scrollingVertically = false
+    @state.content.scrollingVertically = false
     if @getMouseWheelScreenRow()?
       @mouseWheelScreenRow = null
       @updateLinesState()
@@ -421,7 +442,7 @@ class TextEditorPresenter
   getScrollTop: -> @scrollTop
 
   setScrollLeft: (@scrollLeft) ->
-    @updateContentState()
+    @updateHorizontalScrollState()
 
   getScrollLeft: -> @scrollLeft
 
@@ -447,6 +468,7 @@ class TextEditorPresenter
     @height ? @model.getScreenLineCount() * @getLineHeight()
 
   setContentFrameWidth: (@contentFrameWidth) ->
+    @updateHorizontalScrollState()
     @updateScrollbarsState()
     @updateContentState()
     @updateLinesState()
@@ -511,6 +533,7 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
+    @updateHorizontalScrollState()
     @updateContentState()
     @updateLinesState()
     @updateCursorsState()

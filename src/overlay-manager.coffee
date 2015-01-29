@@ -27,8 +27,7 @@ class OverlayManager
     itemHeight = item.offsetHeight
 
 
-    {scrollTop} = presenter.state
-    {scrollLeft} = presenter.state.content
+    {scrollTop, scrollLeft} = presenter.state.content
 
     left = pixelPosition.left
     if left + itemWidth - scrollLeft > presenter.getContentFrameWidth() and left - itemWidth >= scrollLeft

@@ -19,16 +19,20 @@ GutterComponent = React.createClass
 
   render: ->
     {presenter} = @props
+    @newState = presenter.state.gutter
+    @oldState ?= {lineNumbers: {}}
+
+    {scrollHeight, backgroundColor} = @newState
 
     div className: 'gutter',
       div className: 'line-numbers', ref: 'lineNumbers', style:
-        height: presenter.state.scrollHeight
+        height: scrollHeight
         WebkitTransform: @getTransform() if presenter.hasRequiredMeasurements()
-        backgroundColor: presenter.state.gutter.backgroundColor
+        backgroundColor: backgroundColor
 
   getTransform: ->
-    {presenter, useHardwareAcceleration} = @props
-    {scrollTop} = presenter.state
+    {useHardwareAcceleration} = @props
+    {scrollTop} = @newState
 
     if useHardwareAcceleration
       "translate3d(0px, #{-scrollTop}px, 0px)"
@@ -39,7 +43,7 @@ GutterComponent = React.createClass
     @lineNumberNodesById = {}
 
   componentDidMount: ->
-    {@maxLineNumberDigits} = @props.presenter.state.gutter
+    {@maxLineNumberDigits} = @newState
     @appendDummyLineNumber()
     @updateLineNumbers()
 
@@ -48,7 +52,7 @@ GutterComponent = React.createClass
     node.addEventListener 'mousedown', @onMouseDown
 
   componentDidUpdate: (oldProps) ->
-    {maxLineNumberDigits} = @props.presenter.state.gutter
+    {maxLineNumberDigits} = @newState
     unless maxLineNumberDigits is @maxLineNumberDigits
       @maxLineNumberDigits = maxLineNumberDigits
       @updateDummyLineNumber()
@@ -69,13 +73,10 @@ GutterComponent = React.createClass
     @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false)
 
   updateLineNumbers: ->
-    {presenter} = @props
-    @oldState ?= {lineNumbers: {}}
-    newState = presenter.state.gutter
     newLineNumberIds = null
     newLineNumbersHTML = null
 
-    for id, lineNumberState of newState.lineNumbers
+    for id, lineNumberState of @newState.lineNumbers
       if @oldState.lineNumbers.hasOwnProperty(id)
         @updateLineNumberNode(id, lineNumberState)
       else
@@ -96,7 +97,7 @@ GutterComponent = React.createClass
         node.appendChild(lineNumberNode)
 
     for id, lineNumberState of @oldState.lineNumbers
-      unless newState.lineNumbers.hasOwnProperty(id)
+      unless @newState.lineNumbers.hasOwnProperty(id)
         @lineNumberNodesById[id].remove()
         delete @lineNumberNodesById[id]
         delete @oldState.lineNumbers[id]
@@ -113,7 +114,7 @@ GutterComponent = React.createClass
     "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
-    {maxLineNumberDigits} = @props.presenter.state.gutter
+    {maxLineNumberDigits} = @newState
 
     if softWrapped
       lineNumber = "•"
