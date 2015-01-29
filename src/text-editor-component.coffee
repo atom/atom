@@ -256,7 +256,6 @@ TextEditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor.onDidChange(@onScreenLinesChanged)
     @subscribe editor.onDidChangeGutterVisible(@updateGutterVisible)
     @subscribe editor.onDidChangeMini(@setMini)
     @subscribe editor.observeGrammar(@onGrammarChanged)
@@ -566,10 +565,6 @@ TextEditorComponent = React.createClass
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
-
-  onScreenLinesChanged: (change) ->
-    {editor} = @props
-    @requestUpdate() if editor.intersectsVisibleRowRange(change.start, change.end + 1) # TODO: Use closed-open intervals for change events
 
   onSelectionAdded: (selection) ->
     {editor} = @props
