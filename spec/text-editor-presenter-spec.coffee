@@ -128,6 +128,16 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.setSoftWrapped(false)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
+        it "updates when the longest line changes", ->
+          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
+          expectStateUpdate presenter, -> editor.setCursorBufferPosition([editor.getLongestScreenRow(), 0])
+          expectStateUpdate presenter, -> editor.insertText('xyz')
+
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
       describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
           presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, lineOverdrawMargin: 1)
@@ -296,6 +306,16 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
           expectStateUpdate presenter, -> editor.setSoftWrapped(false)
+          expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
+        it "updates when the longest line changes", ->
+          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+
+          expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
+          expectStateUpdate presenter, -> editor.setCursorBufferPosition([editor.getLongestScreenRow(), 0])
+          expectStateUpdate presenter, -> editor.insertText('xyz')
+
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollTop", ->
