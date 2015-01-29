@@ -142,7 +142,7 @@ loadFile = (module, filePath) ->
 
   module._compile(js, filePath)
 
-register = () ->
+register = ->
   require.extensions['.js'] = loadFile
 
 module.exports =
