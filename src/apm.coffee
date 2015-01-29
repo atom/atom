@@ -44,7 +44,7 @@ module.exports =
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
 
   getNodeUrl: ->
-    process.env.ATOM_NODE_URL ? 'https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist'
+    process.env.ATOM_NODE_URL ? 'https://atom.io/download/atom-shell'
 
   getAtomPackagesUrl: ->
     process.env.ATOM_PACKAGES_URL ? "#{@getAtomApiUrl()}/packages"
@@ -53,7 +53,7 @@ module.exports =
     process.env.ATOM_API_URL ? 'https://atom.io/api'
 
   getNodeVersion: ->
-    process.env.ATOM_NODE_VERSION ? '0.20.0'
+    process.env.ATOM_NODE_VERSION ? '0.21.0'
 
   getNodeArch: ->
     switch process.platform
