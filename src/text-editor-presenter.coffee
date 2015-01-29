@@ -10,7 +10,7 @@ class TextEditorPresenter
   mouseWheelScreenRow: null
 
   constructor: (params) ->
-    {@model, @height, @contentFrameWidth, @scrollTop, @scrollLeft} = params
+    {@model, @autoHeight, @height, @contentFrameWidth, @scrollTop, @scrollLeft} = params
     {@horizontalScrollbarHeight, @verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
@@ -64,6 +64,7 @@ class TextEditorPresenter
     @updateState()
 
   updateState: ->
+    @updateHeightState()
     @updateVerticalScrollState()
     @updateHorizontalScrollState()
     @updateScrollbarsState()
@@ -74,6 +75,14 @@ class TextEditorPresenter
     @updateOverlaysState()
     @updateGutterState()
     @updateLineNumbersState()
+
+  updateHeightState: ->
+    if @hasAutoHeight()
+      @state.height = @computeContentHeight()
+    else
+      @state.height = null
+
+    @emitter.emit 'did-update-state'
 
   updateVerticalScrollState: ->
     scrollHeight = @computeScrollHeight()
@@ -456,6 +465,11 @@ class TextEditorPresenter
 
   getVerticalScrollbarWidth: -> @verticalScrollbarWidth
 
+  setAutoHeight: (@autoHeight) ->
+    @updateHeightState()
+
+  hasAutoHeight: -> @autoHeight
+
   setHeight: (@height) ->
     @updateVerticalScrollState()
     @updateScrollbarsState()
@@ -465,7 +479,7 @@ class TextEditorPresenter
     @updateLineNumbersState()
 
   getHeight: ->
-    @height ? @model.getScreenLineCount() * @getLineHeight()
+    @height ? @computeContentHeight()
 
   setContentFrameWidth: (@contentFrameWidth) ->
     @updateHorizontalScrollState()
@@ -490,6 +504,7 @@ class TextEditorPresenter
   getGutterBackgroundColor: -> @gutterBackgroundColor
 
   setLineHeight: (@lineHeight) ->
+    @updateHeightState()
     @updateVerticalScrollState()
     @updateLinesState()
     @updateCursorsState()

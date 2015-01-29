@@ -55,7 +55,7 @@ TextEditorComponent = React.createClass
       hiddenInputStyle = @getHiddenInputPosition()
       hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
 
-      style.height = @presenter.state.content.scrollHeight if @autoHeight
+      style.height = @presenter.state.height if @presenter.state.height?
 
     if useShadowDOM
       className = 'editor-contents--private'
@@ -675,6 +675,7 @@ TextEditorComponent = React.createClass
     if position is 'absolute' or height
       if @autoHeight
         @autoHeight = false
+        @presenter.setAutoHeight(false)
         @forceUpdate() if not @updatesPaused and @canUpdate()
 
       clientHeight =  scrollViewNode.clientHeight
@@ -682,6 +683,7 @@ TextEditorComponent = React.createClass
         @presenter.setHeight(clientHeight)
         editor.setHeight(clientHeight)
     else
+      @presenter.setAutoHeight(true)
       @presenter.setHeight(null)
       editor.setHeight(null)
       @autoHeight = true

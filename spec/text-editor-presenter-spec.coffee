@@ -1655,3 +1655,20 @@ describe "TextEditorPresenter", ->
 
             editor.undo()
             expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe false
+
+    describe ".height", ->
+      it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
+        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, autoHeight: true)
+        expect(presenter.state.height).toBe editor.getScreenLineCount() * 10
+
+        expectStateUpdate presenter, -> presenter.setAutoHeight(false)
+        expect(presenter.state.height).toBe null
+
+        expectStateUpdate presenter, -> presenter.setAutoHeight(true)
+        expect(presenter.state.height).toBe editor.getScreenLineCount() * 10
+
+        expectStateUpdate presenter, -> presenter.setLineHeight(20)
+        expect(presenter.state.height).toBe editor.getScreenLineCount() * 20
+
+        expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
+        expect(presenter.state.height).toBe editor.getScreenLineCount() * 20
