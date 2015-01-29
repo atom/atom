@@ -143,7 +143,10 @@ loadFile = (module, filePath) ->
   module._compile(js, filePath)
 
 register = ->
-  require.extensions['.js'] = loadFile
+  Object.defineProperty(require.extensions, '.js', {
+    writable: false
+    value: loadFile
+  })
 
 module.exports =
   register: register
