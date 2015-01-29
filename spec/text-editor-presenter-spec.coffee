@@ -77,6 +77,21 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> advanceClock(100)
         expect(presenter.state.scrollingVertically).toBe false
 
+    describe ".scrollbars", ->
+      describe ".horizontalHeight", ->
+        it "tracks the value of ::horizontalScrollbarHeight", ->
+          presenter = new TextEditorPresenter(model: editor, horizontalScrollbarHeight: 10)
+          expect(presenter.state.scrollbars.horizontalHeight).toBe 10
+          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(20)
+          expect(presenter.state.scrollbars.horizontalHeight).toBe 20
+
+      describe ".verticalWidth", ->
+        it "is assigned based on ::verticalScrollbarWidth", ->
+          presenter = new TextEditorPresenter(model: editor, verticalScrollbarWidth: 10)
+          expect(presenter.state.scrollbars.verticalWidth).toBe 10
+          expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(20)
+          expect(presenter.state.scrollbars.verticalWidth).toBe 20
+
     describe ".content", ->
       describe ".scrollWidth", ->
         it "is initialized as the max of the clientWidth and the width of the longest line", ->

@@ -11,6 +11,7 @@ class TextEditorPresenter
 
   constructor: (params) ->
     {@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft} = params
+    {@horizontalScrollbarHeight, @verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
 
@@ -51,6 +52,7 @@ class TextEditorPresenter
   buildState: ->
     @state =
       scrollingVertically: false
+      scrollbars: {}
       content:
         blinkCursorsOff: false
         lines: {}
@@ -62,6 +64,7 @@ class TextEditorPresenter
 
   updateState: ->
     @updateVerticalScrollState()
+    @updateScrollbarsState()
     @updateContentState()
     @updateLinesState()
     @updateCursorsState()
@@ -73,6 +76,11 @@ class TextEditorPresenter
   updateVerticalScrollState: ->
     @state.scrollHeight = @computeScrollHeight()
     @state.scrollTop = @getScrollTop()
+
+  updateScrollbarsState: ->
+    @state.scrollbars.horizontalHeight = @getHorizontalScrollbarHeight()
+    @state.scrollbars.verticalWidth = @getVerticalScrollbarWidth()
+    @emitter.emit 'did-update-state'
 
   updateContentState: ->
     @state.content.scrollWidth = @computeScrollWidth()
@@ -390,6 +398,16 @@ class TextEditorPresenter
     @updateContentState()
 
   getScrollLeft: -> @scrollLeft
+
+  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) ->
+    @updateScrollbarsState()
+
+  getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
+
+  setVerticalScrollbarWidth: (@verticalScrollbarWidth) ->
+    @updateScrollbarsState()
+
+  getVerticalScrollbarWidth: -> @verticalScrollbarWidth
 
   setClientHeight: (@clientHeight) ->
     @updateVerticalScrollState()
