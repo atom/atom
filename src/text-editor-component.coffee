@@ -79,7 +79,7 @@ TextEditorComponent = React.createClass
           style: hiddenInputStyle
 
         LinesComponent {
-           ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM, visible
+          ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM, visible
         }
 
         ScrollbarComponent
