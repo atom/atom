@@ -52,7 +52,8 @@ class TextEditorPresenter
   buildState: ->
     @state =
       scrollingVertically: false
-      scrollbars: {}
+      horizontalScrollbar: {}
+      verticalScrollbar: {}
       content:
         blinkCursorsOff: false
         lines: {}
@@ -78,8 +79,24 @@ class TextEditorPresenter
     @state.scrollTop = @getScrollTop()
 
   updateScrollbarsState: ->
-    @state.scrollbars.horizontalHeight = @getHorizontalScrollbarHeight()
-    @state.scrollbars.verticalWidth = @getVerticalScrollbarWidth()
+    @state.horizontalScrollbar.height = @getHorizontalScrollbarHeight()
+    @state.verticalScrollbar.width = @getVerticalScrollbarWidth()
+
+    contentWidth = @computeContentWidth()
+    contentHeight = @computeContentHeight()
+    clientWidthWithoutVerticalScrollbar = @getContentFrameWidth()
+    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @getVerticalScrollbarWidth()
+    clientHeightWithoutHorizontalScrollbar = @getHeight()
+    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @getHorizontalScrollbarHeight()
+
+    @state.horizontalScrollbar.visible =
+      contentWidth > clientWidthWithoutVerticalScrollbar or
+        contentWidth > clientWidthWithVerticalScrollbar and contentHeight > clientHeightWithoutHorizontalScrollbar
+
+    @state.verticalScrollbar.visible =
+      contentHeight > clientHeightWithoutHorizontalScrollbar or
+        contentHeight > clientHeightWithHorizontalScrollbar and contentWidth > clientWidthWithoutVerticalScrollbar
+
     @emitter.emit 'did-update-state'
 
   updateContentState: ->
@@ -309,12 +326,18 @@ class TextEditorPresenter
     Math.min(@model.getScreenLineCount(), endRow)
 
   computeScrollWidth: ->
-    contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-    contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    Math.max(contentWidth, @getContentFrameWidth())
+    Math.max(@computeContentWidth(), @getContentFrameWidth())
 
   computeScrollHeight: ->
-    Math.max(@getLineHeight() * @model.getScreenLineCount(), @getHeight())
+    Math.max(@computeContentHeight(), @getHeight())
+
+  computeContentWidth: ->
+    contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+    contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+    contentWidth
+
+  computeContentHeight: ->
+    @getLineHeight() * @model.getScreenLineCount()
 
   lineDecorationClassesForRow: (row) ->
     return null if @model.isMini()
@@ -411,6 +434,7 @@ class TextEditorPresenter
 
   setHeight: (@height) ->
     @updateVerticalScrollState()
+    @updateScrollbarsState()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
@@ -420,6 +444,7 @@ class TextEditorPresenter
     @height ? @model.getScreenLineCount() * @getLineHeight()
 
   setContentFrameWidth: (@contentFrameWidth) ->
+    @updateScrollbarsState()
     @updateContentState()
     @updateLinesState()
 

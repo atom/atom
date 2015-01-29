@@ -77,20 +77,73 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> advanceClock(100)
         expect(presenter.state.scrollingVertically).toBe false
 
-    describe ".scrollbars", ->
-      describe ".horizontalHeight", ->
+    describe ".horizontalScrollbar", ->
+      describe ".visible", ->
+        it "is true if the scrollWidth exceeds the computed client width", ->
+          presenter = new TextEditorPresenter
+            model: editor
+            height: editor.getLineCount() * 10
+            contentFrameWidth: editor.getMaxScreenLineLength() * 10 + 1
+            baseCharacterWidth: 10
+            lineHeight: 10
+            horizontalScrollbarHeight: 10
+            verticalScrollbarWidth: 10
+          {state} = presenter
+
+          expect(state.horizontalScrollbar.visible).toBe false
+
+          # ::contentFrameWidth itself is smaller than scrollWidth
+          presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10)
+          expect(state.horizontalScrollbar.visible).toBe true
+
+          # restore...
+          presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10 + 1)
+          expect(state.horizontalScrollbar.visible).toBe false
+
+          # visible vertical scrollbar makes the clientWidth smaller than the scrollWidth
+          presenter.setHeight((editor.getLineCount() * 10) - 1)
+          expect(state.horizontalScrollbar.visible).toBe true
+
+      describe ".height", ->
         it "tracks the value of ::horizontalScrollbarHeight", ->
           presenter = new TextEditorPresenter(model: editor, horizontalScrollbarHeight: 10)
-          expect(presenter.state.scrollbars.horizontalHeight).toBe 10
+          expect(presenter.state.horizontalScrollbar.height).toBe 10
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(20)
-          expect(presenter.state.scrollbars.horizontalHeight).toBe 20
+          expect(presenter.state.horizontalScrollbar.height).toBe 20
 
-      describe ".verticalWidth", ->
+    describe ".verticalScrollbar", ->
+      describe ".visible", ->
+        it "is true if the scrollHeight exceeds the computed client height", ->
+          presenter = new TextEditorPresenter
+            model: editor
+            height: editor.getLineCount() * 10
+            contentFrameWidth: editor.getMaxScreenLineLength() * 10 + 1
+            baseCharacterWidth: 10
+            lineHeight: 10
+            horizontalScrollbarHeight: 10
+            verticalScrollbarWidth: 10
+          {state} = presenter
+
+          expect(state.verticalScrollbar.visible).toBe false
+
+          # ::height itself is smaller than scrollWidth
+          presenter.setHeight(editor.getLineCount() * 10 - 1)
+          expect(state.verticalScrollbar.visible).toBe true
+
+          # restore...
+          presenter.setHeight(editor.getLineCount() * 10)
+          expect(state.verticalScrollbar.visible).toBe false
+
+          # visible horizontal scrollbar makes the clientHeight smaller than the scrollHeight
+          presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10)
+          expect(state.verticalScrollbar.visible).toBe true
+
+      describe ".width", ->
         it "is assigned based on ::verticalScrollbarWidth", ->
           presenter = new TextEditorPresenter(model: editor, verticalScrollbarWidth: 10)
-          expect(presenter.state.scrollbars.verticalWidth).toBe 10
+          expect(presenter.state.verticalScrollbar.width).toBe 10
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(20)
-          expect(presenter.state.scrollbars.verticalWidth).toBe 20
+          expect(presenter.state.verticalScrollbar.width).toBe 20
 
     describe ".content", ->
       describe ".scrollWidth", ->
