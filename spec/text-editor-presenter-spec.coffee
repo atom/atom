@@ -111,6 +111,22 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(20)
           expect(presenter.state.horizontalScrollbar.height).toBe 20
 
+      describe ".right", ->
+        it "is ::verticalScrollbarWidth if the vertical scrollbar is visible and 0 otherwise", ->
+          presenter = new TextEditorPresenter
+            model: editor
+            height: editor.getLineCount() * 10 + 50
+            contentFrameWidth: editor.getMaxScreenLineLength() * 10
+            baseCharacterWidth: 10
+            lineHeight: 10
+            horizontalScrollbarHeight: 10
+            verticalScrollbarWidth: 10
+          {state} = presenter
+
+          expect(state.horizontalScrollbar.right).toBe 0
+          presenter.setHeight((editor.getLineCount() * 10) - 1)
+          expect(state.horizontalScrollbar.right).toBe 10
+
     describe ".verticalScrollbar", ->
       describe ".visible", ->
         it "is true if the scrollHeight exceeds the computed client height", ->
@@ -144,6 +160,22 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.verticalScrollbar.width).toBe 10
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(20)
           expect(presenter.state.verticalScrollbar.width).toBe 20
+
+      describe ".bottom", ->
+        it "is ::horizontalScrollbarHeight if the horizontal scrollbar is visible and 0 otherwise", ->
+          presenter = new TextEditorPresenter
+            model: editor
+            height: editor.getLineCount() * 10 - 1
+            contentFrameWidth: editor.getMaxScreenLineLength() * 10 + 50
+            baseCharacterWidth: 10
+            lineHeight: 10
+            horizontalScrollbarHeight: 10
+            verticalScrollbarWidth: 10
+          {state} = presenter
+
+          expect(state.verticalScrollbar.bottom).toBe 0
+          presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10)
+          expect(state.verticalScrollbar.bottom).toBe 10
 
     describe ".content", ->
       describe ".scrollWidth", ->

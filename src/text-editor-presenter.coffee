@@ -79,23 +79,26 @@ class TextEditorPresenter
     @state.scrollTop = @getScrollTop()
 
   updateScrollbarsState: ->
-    @state.horizontalScrollbar.height = @getHorizontalScrollbarHeight()
-    @state.verticalScrollbar.width = @getVerticalScrollbarWidth()
-
     contentWidth = @computeContentWidth()
     contentHeight = @computeContentHeight()
     clientWidthWithoutVerticalScrollbar = @getContentFrameWidth()
     clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @getVerticalScrollbarWidth()
     clientHeightWithoutHorizontalScrollbar = @getHeight()
     clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @getHorizontalScrollbarHeight()
-
-    @state.horizontalScrollbar.visible =
+    horizontalScrollbarVisible =
       contentWidth > clientWidthWithoutVerticalScrollbar or
         contentWidth > clientWidthWithVerticalScrollbar and contentHeight > clientHeightWithoutHorizontalScrollbar
-
-    @state.verticalScrollbar.visible =
+    verticalScrollbarVisible =
       contentHeight > clientHeightWithoutHorizontalScrollbar or
         contentHeight > clientHeightWithHorizontalScrollbar and contentWidth > clientWidthWithoutVerticalScrollbar
+
+    @state.horizontalScrollbar.visible = horizontalScrollbarVisible
+    @state.horizontalScrollbar.height = @getHorizontalScrollbarHeight()
+    @state.horizontalScrollbar.right = if verticalScrollbarVisible then @getVerticalScrollbarWidth() else 0
+
+    @state.verticalScrollbar.visible = verticalScrollbarVisible
+    @state.verticalScrollbar.width = @getVerticalScrollbarWidth()
+    @state.verticalScrollbar.bottom = if horizontalScrollbarVisible then @getHorizontalScrollbarHeight() else 0
 
     @emitter.emit 'did-update-state'
 
