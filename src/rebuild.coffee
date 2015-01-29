@@ -29,10 +29,12 @@ class Rebuild extends Command
   showHelp: (argv) -> @parseOptions(argv).showHelp()
 
   run: ({callback}) ->
-    new Install().installNode (error) =>
-      if error?
-        callback(error)
-      else
+    config.loadNpm (error, npm) =>
+      install = new Install()
+      install.npm = npm
+      install.installNode (error) =>
+        return callback(error) if error?
+
         process.stdout.write 'Rebuilding modules '
 
         rebuildArgs = ['rebuild']
