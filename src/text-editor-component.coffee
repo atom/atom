@@ -53,17 +53,10 @@ TextEditorComponent = React.createClass
     if @performedInitialMeasurement
       visible = @isVisible()
 
-      {scrollHeight, scrollTop} = @presenter.state
-      {scrollWidth, scrollLeft} = @presenter.state.content
-
-      horizontalScrollbarHeight = editor.getHorizontalScrollbarHeight()
-      verticalScrollbarWidth = editor.getVerticalScrollbarWidth()
-      verticallyScrollable = editor.verticallyScrollable()
-      horizontallyScrollable = editor.horizontallyScrollable()
       hiddenInputStyle = @getHiddenInputPosition()
       hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
 
-      style.height = scrollHeight if @autoHeight
+      style.height = @presenter.state.scrollHeight if @autoHeight
 
     if useShadowDOM
       className = 'editor-contents--private'
@@ -93,35 +86,23 @@ TextEditorComponent = React.createClass
           ref: 'horizontalScrollbar'
           className: 'horizontal-scrollbar'
           orientation: 'horizontal'
+          presenter: @presenter
           onScroll: @onHorizontalScroll
-          scrollLeft: scrollLeft
-          scrollWidth: scrollWidth
-          visible: horizontallyScrollable
-          scrollableInOppositeDirection: verticallyScrollable
-          verticalScrollbarWidth: verticalScrollbarWidth
-          horizontalScrollbarHeight: horizontalScrollbarHeight
           useHardwareAcceleration: @useHardwareAcceleration
 
       ScrollbarComponent
         ref: 'verticalScrollbar'
         className: 'vertical-scrollbar'
         orientation: 'vertical'
+        presenter: @presenter
         onScroll: @onVerticalScroll
-        scrollTop: scrollTop
-        scrollHeight: scrollHeight
-        visible: verticallyScrollable
-        scrollableInOppositeDirection: horizontallyScrollable
-        verticalScrollbarWidth: verticalScrollbarWidth
-        horizontalScrollbarHeight: horizontalScrollbarHeight
         useHardwareAcceleration: @useHardwareAcceleration
 
       # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent
         ref: 'scrollbarCorner'
-        visible: horizontallyScrollable and verticallyScrollable
+        presenter: @presenter
         measuringScrollbars: @measuringScrollbars
-        height: horizontalScrollbarHeight
-        width: verticalScrollbarWidth
 
   getInitialState: -> {}
 
@@ -780,7 +761,9 @@ TextEditorComponent = React.createClass
     height = (cornerNode.offsetHeight - cornerNode.clientHeight) or 15
 
     editor.setVerticalScrollbarWidth(width)
+    @presenter.setVerticalScrollbarWidth(width)
     editor.setHorizontalScrollbarHeight(height)
+    @presenter.setHorizontalScrollbarHeight(height)
 
     cornerNode.style.display = originalDisplayValue
 

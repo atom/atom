@@ -7,28 +7,33 @@ ScrollbarComponent = React.createClass
   displayName: 'ScrollbarComponent'
 
   render: ->
-    {orientation, className, scrollHeight, scrollWidth, visible} = @props
-    {scrollableInOppositeDirection, horizontalScrollbarHeight, verticalScrollbarWidth} = @props
-    {useHardwareAcceleration} = @props
+    {presenter, orientation, className, useHardwareAcceleration} = @props
+
+    switch orientation
+      when 'vertical'
+        state = presenter.state.verticalScrollbar
+      when 'horizontal'
+        state = presenter.state.horizontalScrollbar
 
     style = {}
-    style.display = 'none' unless visible
+
+    style.display = 'none' unless state.visible
     style.transform = 'translateZ(0)' if useHardwareAcceleration # See atom/atom#3559
     switch orientation
       when 'vertical'
-        style.width = verticalScrollbarWidth
-        style.bottom = horizontalScrollbarHeight if scrollableInOppositeDirection
+        style.width = state.width
+        style.bottom = state.bottom
       when 'horizontal'
         style.left = 0
-        style.right = verticalScrollbarWidth if scrollableInOppositeDirection
-        style.height = horizontalScrollbarHeight
+        style.right = state.right
+        style.height = state.height
 
     div {className, style},
       switch orientation
         when 'vertical'
-          div className: 'scrollbar-content', style: {height: scrollHeight}
+          div className: 'scrollbar-content', style: {height: presenter.state.scrollHeight}
         when 'horizontal'
-          div className: 'scrollbar-content', style: {width: scrollWidth}
+          div className: 'scrollbar-content', style: {width: presenter.state.content.scrollWidth}
 
   componentDidMount: ->
     {orientation} = @props
@@ -41,26 +46,15 @@ ScrollbarComponent = React.createClass
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'scroll', @onScroll
 
-  shouldComponentUpdate: (newProps) ->
-    return true if newProps.visible isnt @props.visible
-
-    switch @props.orientation
-      when 'vertical'
-        not isEqualForProperties(newProps, @props, 'scrollHeight', 'scrollTop', 'scrollableInOppositeDirection', 'verticalScrollbarWidth')
-      when 'horizontal'
-        not isEqualForProperties(newProps, @props, 'scrollWidth', 'scrollLeft', 'scrollableInOppositeDirection', 'horizontalScrollbarHeight')
-
   componentDidUpdate: ->
-    {orientation, scrollTop, scrollLeft} = @props
+    {orientation, presenter} = @props
     node = @getDOMNode()
 
     switch orientation
       when 'vertical'
-        node.scrollTop = scrollTop
-        @props.scrollTop = node.scrollTop # Ensure scrollTop reflects actual DOM without triggering another update
+        node.scrollTop = presenter.state.scrollTop
       when 'horizontal'
-        node.scrollLeft = scrollLeft
-        @props.scrollLeft = node.scrollLeft # Ensure scrollLeft reflects actual DOM without triggering another update
+        node.scrollLeft = presenter.state.content.scrollLeft
 
   onScroll: ->
     {orientation, onScroll} = @props
@@ -69,9 +63,7 @@ ScrollbarComponent = React.createClass
     switch orientation
       when 'vertical'
         scrollTop = node.scrollTop
-        @props.scrollTop = scrollTop # Ensure scrollTop reflects actual DOM without triggering another update
         onScroll(scrollTop)
       when 'horizontal'
         scrollLeft = node.scrollLeft
-        @props.scrollLeft = scrollLeft # Ensure scrollLeft reflects actual DOM without triggering another update
         onScroll(scrollLeft)

@@ -1968,14 +1968,14 @@ describe "TextEditorComponent", ->
     it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')
 
-      expect(verticalScrollbarNode.style.bottom).toBe ''
-      expect(horizontalScrollbarNode.style.right).toBe ''
+      expect(verticalScrollbarNode.style.bottom).toBe '0px'
+      expect(horizontalScrollbarNode.style.right).toBe '0px'
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
       component.measureHeightAndWidth()
       nextAnimationFrame()
-      expect(verticalScrollbarNode.style.bottom).toBe ''
+      expect(verticalScrollbarNode.style.bottom).toBe '0px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
@@ -1990,7 +1990,7 @@ describe "TextEditorComponent", ->
       component.measureHeightAndWidth()
       nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
-      expect(horizontalScrollbarNode.style.right).toBe ''
+      expect(horizontalScrollbarNode.style.right).toBe '0px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
     it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
