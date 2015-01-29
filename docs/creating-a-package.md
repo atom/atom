@@ -406,7 +406,7 @@ all the other available commands.
 [status-bar]: https://github.com/atom/status-bar
 [cs-syntax]: https://github.com/atom/language-coffee-script
 [npm]: http://en.wikipedia.org/wiki/Npm_(software)
-[npm-keys]: https://npmjs.org/doc/json.html
+[npm-keys]: https://docs.npmjs.com/files/package.json
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [wrap-guide]: https://github.com/atom/wrap-guide/
 [keymaps]: advanced/keymaps.md
