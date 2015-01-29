@@ -3,7 +3,7 @@ function registerRuntimeTranspilers() {
   require('coffee-script').register();
 
   // This redefines require.extensions['.js'].
-  require('../src/esnext').register();
+  require('../src/6to5').register();
 }
 
 window.onload = function() {

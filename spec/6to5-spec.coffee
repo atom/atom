@@ -1,4 +1,4 @@
-{create6to5VersionAndOptionsDigest} = require '../src/esnext'
+{create6to5VersionAndOptionsDigest} = require '../src/6to5'
 crypto = require 'crypto'
 
 describe "::create6to5VersionAndOptionsDigest", ->
