@@ -31,11 +31,11 @@ class OverlayManager
     {scrollLeft} = presenter.state.content
 
     left = pixelPosition.left
-    if left + itemWidth - scrollLeft > presenter.getClientWidth() and left - itemWidth >= scrollLeft
+    if left + itemWidth - scrollLeft > presenter.getContentFrameWidth() and left - itemWidth >= scrollLeft
       left -= itemWidth
 
     top = pixelPosition.top + presenter.getLineHeight()
-    if top + itemHeight - scrollTop > presenter.getClientHeight() and top - itemHeight - presenter.getLineHeight() >= scrollTop
+    if top + itemHeight - scrollTop > presenter.getHeight() and top - itemHeight - presenter.getLineHeight() >= scrollTop
       top -= itemHeight + presenter.getLineHeight()
 
     overlayNode.style.top = top + 'px'

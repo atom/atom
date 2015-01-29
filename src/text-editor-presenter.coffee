@@ -10,7 +10,7 @@ class TextEditorPresenter
   mouseWheelScreenRow: null
 
   constructor: (params) ->
-    {@model, @clientHeight, @clientWidth, @scrollTop, @scrollLeft} = params
+    {@model, @height, @contentFrameWidth, @scrollTop, @scrollLeft} = params
     {@horizontalScrollbarHeight, @verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
@@ -304,17 +304,17 @@ class TextEditorPresenter
 
   getEndRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight())
-    visibleLinesCount = Math.ceil(@getClientHeight() / @getLineHeight()) + 1
+    visibleLinesCount = Math.ceil(@getHeight() / @getLineHeight()) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
 
   computeScrollWidth: ->
     contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
     contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    Math.max(contentWidth, @getClientWidth())
+    Math.max(contentWidth, @getContentFrameWidth())
 
   computeScrollHeight: ->
-    Math.max(@getLineHeight() * @model.getScreenLineCount(), @getClientHeight())
+    Math.max(@getLineHeight() * @model.getScreenLineCount(), @getHeight())
 
   lineDecorationClassesForRow: (row) ->
     return null if @model.isMini()
@@ -365,7 +365,7 @@ class TextEditorPresenter
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
   hasRequiredMeasurements: ->
-    @getLineHeight()? and @getBaseCharacterWidth()? and @getClientHeight()? and @getScrollTop()?
+    @getLineHeight()? and @getBaseCharacterWidth()? and @getHeight()? and @getScrollTop()?
 
   setScrollTop: (@scrollTop) ->
     @didStartScrolling()
@@ -409,21 +409,21 @@ class TextEditorPresenter
 
   getVerticalScrollbarWidth: -> @verticalScrollbarWidth
 
-  setClientHeight: (@clientHeight) ->
+  setHeight: (@height) ->
     @updateVerticalScrollState()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
     @updateLineNumbersState()
 
-  getClientHeight: ->
-    @clientHeight ? @model.getScreenLineCount() * @getLineHeight()
+  getHeight: ->
+    @height ? @model.getScreenLineCount() * @getLineHeight()
 
-  setClientWidth: (@clientWidth) ->
+  setContentFrameWidth: (@contentFrameWidth) ->
     @updateContentState()
     @updateLinesState()
 
-  getClientWidth: -> @clientWidth
+  getContentFrameWidth: -> @contentFrameWidth
 
   setBackgroundColor: (backgroundColor) ->
     if backgroundColor isnt @backgroundColor

@@ -716,10 +716,10 @@ TextEditorComponent = React.createClass
 
       clientHeight =  scrollViewNode.clientHeight
       if clientHeight > 0
-        @presenter.setClientHeight(clientHeight)
+        @presenter.setHeight(clientHeight)
         editor.setHeight(clientHeight)
     else
-      @presenter.setClientHeight(null)
+      @presenter.setHeight(null)
       editor.setHeight(null)
       @autoHeight = true
 
@@ -727,7 +727,7 @@ TextEditorComponent = React.createClass
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
     clientWidth -= paddingLeft
     if clientWidth > 0
-      @presenter.setClientWidth(clientWidth)
+      @presenter.setContentFrameWidth(clientWidth)
       editor.setWidth(clientWidth)
 
   sampleFontStyling: ->
