@@ -233,8 +233,6 @@ TextEditorComponent = React.createClass
     @subscribe editor.observeGrammar(@onGrammarChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
     @subscribe editor.observeSelections(@onSelectionAdded)
-    @subscribe editor.observeDecorations(@onDecorationAdded)
-    @subscribe editor.onDidRemoveDecoration(@onDecorationRemoved)
     @subscribe editor.onDidChangeCharacterWidths(@onCharacterWidthsChanged)
     @subscribe editor.$scrollTop.changes, @onScrollTopChanged
     @subscribe editor.$scrollLeft.changes, @onScrollLeftChanged
@@ -579,17 +577,6 @@ TextEditorComponent = React.createClass
 
   onCursorMoved: ->
     @cursorMoved = true
-    @requestUpdate()
-
-  onDecorationAdded: (decoration) ->
-    @subscribe decoration.onDidChangeProperties(@onDecorationChanged)
-    @subscribe decoration.getMarker().onDidChange(@onDecorationChanged)
-    @requestUpdate()
-
-  onDecorationChanged: ->
-    @requestUpdate()
-
-  onDecorationRemoved: ->
     @requestUpdate()
 
   onCharacterWidthsChanged: (@scopedCharacterWidthsChangeCount) ->
