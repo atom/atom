@@ -429,13 +429,15 @@ class TextEditorPresenter
   hasRequiredMeasurements: ->
     @getLineHeight()? and @getBaseCharacterWidth()? and @getHeight()? and @getScrollTop()?
 
-  setScrollTop: (@scrollTop) ->
-    @didStartScrolling()
-    @updateVerticalScrollState()
-    @updateLinesState()
-    @updateCursorsState()
-    @updateHighlightsState()
-    @updateLineNumbersState()
+  setScrollTop: (scrollTop) ->
+    unless @scrollTop is scrollTop
+      @scrollTop = scrollTop
+      @didStartScrolling()
+      @updateVerticalScrollState()
+      @updateLinesState()
+      @updateCursorsState()
+      @updateHighlightsState()
+      @updateLineNumbersState()
 
   didStartScrolling: ->
     if @stoppedScrollingTimeoutId?
@@ -456,77 +458,95 @@ class TextEditorPresenter
 
   getScrollTop: -> @scrollTop
 
-  setScrollLeft: (@scrollLeft) ->
-    @updateHorizontalScrollState()
+  setScrollLeft: (scrollLeft) ->
+    unless @scrollLeft is scrollLeft
+      @scrollLeft = scrollLeft
+      @updateHorizontalScrollState()
 
   getScrollLeft: -> @scrollLeft
 
-  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) ->
-    @updateScrollbarsState()
+  setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
+    unless @horizontalScrollbarHeight is horizontalScrollbarHeight
+      @horizontalScrollbarHeight = horizontalScrollbarHeight
+      @updateScrollbarsState()
 
   getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
 
-  setVerticalScrollbarWidth: (@verticalScrollbarWidth) ->
-    @updateScrollbarsState()
+  setVerticalScrollbarWidth: (verticalScrollbarWidth) ->
+    unless @verticalScrollbarWidth is verticalScrollbarWidth
+      @verticalScrollbarWidth = verticalScrollbarWidth
+      @updateScrollbarsState()
 
   getVerticalScrollbarWidth: -> @verticalScrollbarWidth
 
-  setAutoHeight: (@autoHeight) ->
-    @updateHeightState()
+  setAutoHeight: (autoHeight) ->
+    unless @autoHeight is autoHeight
+      @autoHeight = autoHeight
+      @updateHeightState()
 
   hasAutoHeight: -> @autoHeight
 
-  setHeight: (@height) ->
-    @updateVerticalScrollState()
-    @updateScrollbarsState()
-    @updateLinesState()
-    @updateCursorsState()
-    @updateHighlightsState()
-    @updateLineNumbersState()
+  setHeight: (height) ->
+    unless @height is height
+      @height = height
+      @updateVerticalScrollState()
+      @updateScrollbarsState()
+      @updateLinesState()
+      @updateCursorsState()
+      @updateHighlightsState()
+      @updateLineNumbersState()
 
   getHeight: ->
     @height ? @computeContentHeight()
 
-  setContentFrameWidth: (@contentFrameWidth) ->
-    @updateHorizontalScrollState()
-    @updateScrollbarsState()
-    @updateContentState()
-    @updateLinesState()
+  setContentFrameWidth: (contentFrameWidth) ->
+    unless @contentFrameWidth is contentFrameWidth
+      @contentFrameWidth = contentFrameWidth
+      @updateHorizontalScrollState()
+      @updateScrollbarsState()
+      @updateContentState()
+      @updateLinesState()
 
   getContentFrameWidth: -> @contentFrameWidth
 
   setBackgroundColor: (backgroundColor) ->
-    if backgroundColor isnt @backgroundColor
+    unless @backgroundColor is backgroundColor
       @backgroundColor = backgroundColor
       @updateContentState()
 
   getBackgroundColor: -> @backgroundColor
 
   setGutterBackgroundColor: (gutterBackgroundColor) ->
-    if gutterBackgroundColor isnt @gutterBackgroundColor
+    unless @gutterBackgroundColor is gutterBackgroundColor
       @gutterBackgroundColor = gutterBackgroundColor
       @updateGutterState()
 
   getGutterBackgroundColor: -> @gutterBackgroundColor
 
-  setLineHeight: (@lineHeight) ->
-    @updateHeightState()
-    @updateVerticalScrollState()
-    @updateLinesState()
-    @updateCursorsState()
-    @updateHighlightsState()
-    @updateLineNumbersState()
-    @updateOverlaysState()
+  setLineHeight: (lineHeight) ->
+    unless @lineHeight is lineHeight
+      @lineHeight = lineHeight
+      @updateHeightState()
+      @updateVerticalScrollState()
+      @updateLinesState()
+      @updateCursorsState()
+      @updateHighlightsState()
+      @updateLineNumbersState()
+      @updateOverlaysState()
 
   getLineHeight: -> @lineHeight
 
-  setMouseWheelScreenRow: (@mouseWheelScreenRow) ->
-    @didStartScrolling()
+  setMouseWheelScreenRow: (mouseWheelScreenRow) ->
+    unless @mouseWheelScreenRow is mouseWheelScreenRow
+      @mouseWheelScreenRow = mouseWheelScreenRow
+      @didStartScrolling()
 
   getMouseWheelScreenRow: -> @mouseWheelScreenRow
 
-  setBaseCharacterWidth: (@baseCharacterWidth) ->
-    @characterWidthsChanged()
+  setBaseCharacterWidth: (baseCharacterWidth) ->
+    unless @baseCharacterWidth is baseCharacterWidth
+      @baseCharacterWidth = baseCharacterWidth
+      @characterWidthsChanged()
 
   getBaseCharacterWidth: -> @baseCharacterWidth
 
