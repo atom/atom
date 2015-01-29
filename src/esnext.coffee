@@ -34,7 +34,7 @@ defaultOptions =
 
   # Includes support for es7 features listed at:
   # http://6to5.org/docs/usage/transformers/#es7-experimental-.
-  experimental: true,
+  experimental: true
 
   optional: [
     # Target a version of the regenerator runtime that
@@ -108,8 +108,7 @@ getCachedJavaScript = (cachePath) ->
 
 # Returns the 6to5 options that should be used to transpile filePath.
 createOptions = (filePath) ->
-  options =
-    'filename': filePath
+  options = filename: filePath
   for key, value of defaultOptions
     options[key] = value
   options
@@ -119,7 +118,7 @@ createOptions = (filePath) ->
 # either generated on the fly or pulled from cache.
 loadFile = (module, filePath) ->
   sourceCode = fs.readFileSync(filePath, 'utf8')
-  if not (sourceCode.startsWith('"use 6to5"') or sourceCode.startsWith("'use 6to5'"))
+  unless sourceCode.startsWith('"use 6to5"') or sourceCode.startsWith("'use 6to5'")
     module._compile(sourceCode, filePath)
     return
 
@@ -143,7 +142,7 @@ loadFile = (module, filePath) ->
 
   module._compile(js, filePath)
 
-register = (appVersion) ->
+register = () ->
   require.extensions['.js'] = loadFile
 
 module.exports =

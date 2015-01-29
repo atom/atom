@@ -1,14 +1,14 @@
 {create6to5VersionAndOptionsDigest} = require '../src/esnext'
 crypto = require 'crypto'
 
-describe "esnext", ->
+describe "::create6to5VersionAndOptionsDigest", ->
 
-  it "::create6to5VersionAndOptionsDigest", ->
+  it "returns a digest for the library version and specified options", ->
     defaultOptions =
       'blacklist': [
         'useStrict'
       ]
-      'experimental': true,
+      'experimental': true
       'optional': [
         'asyncToGenerator'
       ]
