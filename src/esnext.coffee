@@ -6,7 +6,7 @@ Inspired by https://github.com/atom/atom/blob/6b963a562f8d495fbebe6abdbafbc7caf7
 
 crypto = require 'crypto'
 fs = require 'fs-plus'
-path = require 'path';
+path = require 'path'
 to5 = require '6to5-core'
 
 stats =
@@ -16,27 +16,27 @@ stats =
 defaultOptions =
   # The Chrome dev tools will show the original version of the file
   # when the source map is inlined.
-  'sourceMap': 'inline'
+  sourceMap: 'inline'
 
   # Because Atom is currently packaged with a fork of React v0.11,
   # it makes sense to use the --react-compat option so the React
   # JSX transformer produces pre-v0.12 code.
-  'reactCompat': true
+  reactCompat: true
 
   # Blacklisted features do not get transpiled. Features that are
   # natively supported in the target environment should be listed
   # here. Because Atom uses a bleeding edge version of Node/io.js,
   # I think this can include es6.arrowFunctions, es6.classes, and
   # possibly others, but I want to be conservative.
-  'blacklist': [
+  blacklist: [
     'useStrict'
   ]
 
   # Includes support for es7 features listed at:
   # http://6to5.org/docs/usage/transformers/#es7-experimental-.
-  'experimental': true,
+  experimental: true,
 
-  'optional': [
+  optional: [
     # Target a version of the regenerator runtime that
     # supports yield so the transpiled code is cleaner/smaller.
     'asyncToGenerator'
@@ -55,7 +55,7 @@ updateDigestForJsonValue = (shasum, value) ->
     shasum.update('"', 'utf8')
     shasum.update(value, 'utf8')
     shasum.update('"', 'utf8')
-  else if typeof value is 'boolean' or typeof value is 'number'
+  else if typeof value in ['boolean', 'number']
     shasum.update(value.toString(), 'utf8')
   else if typeof value is null
     shasum.update('null', 'utf8')
@@ -66,10 +66,8 @@ updateDigestForJsonValue = (shasum, value) ->
       shasum.update(',', 'utf8')
     shasum.update(']', 'utf8')
   else
-    # Must be an object: be sure to sort the keys.
-    keys = []
-    for key of value
-      keys.push(key)
+    # value must be an object: be sure to sort the keys.
+    keys = Object.keys value
     keys.sort()
 
     shasum.update('{', 'utf8')
@@ -88,7 +86,7 @@ create6to5VersionAndOptionsDigest = (version, options) ->
   shasum.update(version, 'utf8')
   shasum.update('\0', 'utf8')
   updateDigestForJsonValue(shasum, options)
-  return shasum.digest('hex')
+  shasum.digest('hex')
 
 cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
 jsCacheDir = path.join(
@@ -98,7 +96,7 @@ jsCacheDir = path.join(
 
 getCachePath = (sourceCode) ->
   digest = crypto.createHash('sha1').update(sourceCode, 'utf8').digest('hex')
-  return path.join(jsCacheDir, "#{digest}.js")
+  path.join(jsCacheDir, "#{digest}.js")
 
 getCachedJavaScript = (cachePath) ->
   if fs.isFileSync(cachePath)
@@ -106,7 +104,7 @@ getCachedJavaScript = (cachePath) ->
       cachedJavaScript = fs.readFileSync(cachePath, 'utf8')
       stats.hits++
       return cachedJavaScript
-  return null
+  null
 
 # Returns the 6to5 options that should be used to transpile filePath.
 createOptions = (filePath) ->
@@ -114,7 +112,7 @@ createOptions = (filePath) ->
     'filename': filePath
   for key, value of defaultOptions
     options[key] = value
-  return options
+  options
 
 # Function that obeys the contract of an entry in the require.extensions map.
 # Returns the transpiled version of the JavaScript code at filePath, which is
