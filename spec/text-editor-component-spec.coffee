@@ -656,7 +656,7 @@ describe "TextEditorComponent", ->
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
   describe "cursor rendering", ->
-    it "renders the currently visible cursors, translated relative to the scroll position", ->
+    it "renders the currently visible cursors", ->
       cursor1 = editor.getLastCursor()
       cursor1.setScreenPosition([0, 5])
 
@@ -693,9 +693,16 @@ describe "TextEditorComponent", ->
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
       expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
 
+      wrapperView.on 'cursor:moved', cursorMovedListener = jasmine.createSpy('cursorMovedListener')
+      cursor3.setScreenPosition([4, 11], autoscroll: false)
+      nextAnimationFrame()
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorMovedListener).toHaveBeenCalled()
+
       cursor3.destroy()
       nextAnimationFrame()
       cursorNodes = componentNode.querySelectorAll('.cursor')
+
       expect(cursorNodes.length).toBe 1
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
 
