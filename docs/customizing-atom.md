@@ -169,7 +169,7 @@ For example, to change the color of the cursor, you could add the following
 rule to your _~/.atom/styles.less_ file:
 
 ```less
-atom-text-editor.is-focused .cursor {
+atom-text-editor::shadow .cursor {
   border-color: pink;
 }
 ```
