@@ -51,13 +51,14 @@ updateDigestForJsonValue = (shasum, value) ->
   # * Strings are not escaped.
   # * No effort is made to avoid trailing commas.
   # These shortcuts should not affect the correctness of this function.
-  if typeof value is 'string'
+  type = typeof value
+  if type is 'string'
     shasum.update('"', 'utf8')
     shasum.update(value, 'utf8')
     shasum.update('"', 'utf8')
-  else if typeof value in ['boolean', 'number']
+  else if type in ['boolean', 'number']
     shasum.update(value.toString(), 'utf8')
-  else if typeof value is null
+  else if value is null
     shasum.update('null', 'utf8')
   else if Array.isArray value
     shasum.update('[', 'utf8')
