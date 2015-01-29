@@ -148,8 +148,8 @@ class TextEditorPresenter
 
   updateLinesState: ->
     visibleLineIds = {}
-    startRow = @getStartRow()
-    endRow = @getEndRow()
+    startRow = @computeStartRow()
+    endRow = @computeEndRow()
 
     row = startRow
     while row < endRow
@@ -194,8 +194,8 @@ class TextEditorPresenter
     @state.content.cursors = {}
     return unless @hasRequiredMeasurements()
 
-    startRow = @getStartRow()
-    endRow = @getEndRow()
+    startRow = @computeStartRow()
+    endRow = @computeEndRow()
 
     for cursor in @model.getCursors()
       if cursor.isVisible() and startRow <= cursor.getScreenRow() < endRow
@@ -208,8 +208,8 @@ class TextEditorPresenter
   updateHighlightsState: ->
     return unless @hasRequiredMeasurements()
 
-    startRow = @getStartRow()
-    endRow = @getEndRow()
+    startRow = @computeStartRow()
+    endRow = @computeEndRow()
     visibleHighlights = {}
 
     for decoration in @model.getHighlightDecorations()
@@ -274,8 +274,8 @@ class TextEditorPresenter
     @emitter.emit "did-update-state"
 
   updateLineNumbersState: ->
-    startRow = @getStartRow()
-    endRow = @getEndRow()
+    startRow = @computeStartRow()
+    endRow = @computeEndRow()
     lastBufferRow = null
     wrapCount = 0
     visibleLineNumberIds = {}
@@ -354,11 +354,11 @@ class TextEditorPresenter
 
       regions
 
-  getStartRow: ->
+  computeStartRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight()) - @lineOverdrawMargin
     Math.max(0, startRow)
 
-  getEndRow: ->
+  computeEndRow: ->
     startRow = Math.floor(@getScrollTop() / @getLineHeight())
     visibleLinesCount = Math.ceil(@getHeight() / @getLineHeight()) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
