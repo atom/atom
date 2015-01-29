@@ -30,7 +30,14 @@ class TextEditorPresenter
     @emitter.on 'did-update-state', callback
 
   observeModel: ->
-    @disposables.add @model.onDidChange(@updateState.bind(this))
+    @disposables.add @model.onDidChange =>
+      @updateHeightState()
+      @updateVerticalScrollState()
+      @updateHorizontalScrollState()
+      @updateContentState()
+      @updateLinesState()
+      @updateGutterState()
+      @updateLineNumbersState()
     @disposables.add @model.onDidChangeSoftWrapped(@updateState.bind(this))
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
