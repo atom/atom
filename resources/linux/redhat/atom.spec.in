@@ -5,6 +5,7 @@ Summary:        Atom is a hackable text editor for the 21st century
 License:        MIT
 URL:            https://atom.io/
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
+Prefix:         /usr/local
 
 %description
 <%= description %>
@@ -13,7 +14,7 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 mkdir -p %{buildroot}/usr/local/share/atom
 cp -r /tmp/atom-build/Atom/* %{buildroot}/usr/local/share/atom
 mkdir -p %{buildroot}/usr/local/bin/
-ln -sf /usr/local/share/atom/resources/app/apm/node_modules/.bin/apm %{buildroot}/usr/local/bin/apm
+ln -sf ../share/atom/resources/app/apm/node_modules/.bin/apm %{buildroot}/usr/local/bin/apm
 cp atom.sh %{buildroot}/usr/local/bin/atom
 chmod 755 atom.sh
 mkdir -p %{buildroot}/usr/local/share/applications/
