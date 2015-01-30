@@ -1,38 +1,41 @@
+_ = require 'underscore-plus'
+randomWords = require 'random-words'
 TextBuffer = require 'text-buffer'
+{Point, Range} = TextBuffer
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 
 describe "TextEditorPresenter", ->
-  [buffer, editor] = []
-
-  beforeEach ->
-    # These *should* be mocked in the spec helper, but changing that now would break packages :-(
-    spyOn(window, "setInterval").andCallFake window.fakeSetInterval
-    spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
-
-    buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
-    editor = new TextEditor({buffer})
-    waitsForPromise -> buffer.load()
-
-  afterEach ->
-    editor.destroy()
-    buffer.destroy()
-
-  expectValues = (actual, expected) ->
-    for key, value of expected
-      expect(actual[key]).toEqual value
-
-  expectStateUpdate = (presenter, fn) ->
-    updatedState = false
-    disposable = presenter.onDidUpdateState ->
-      updatedState = true
-      disposable.dispose()
-    fn()
-    expect(updatedState).toBe true
-
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::state", ->
+    [buffer, editor] = []
+
+    beforeEach ->
+      # These *should* be mocked in the spec helper, but changing that now would break packages :-(
+      spyOn(window, "setInterval").andCallFake window.fakeSetInterval
+      spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
+
+      buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
+      editor = new TextEditor({buffer})
+      waitsForPromise -> buffer.load()
+
+    afterEach ->
+      editor.destroy()
+      buffer.destroy()
+
+    expectValues = (actual, expected) ->
+      for key, value of expected
+        expect(actual[key]).toEqual value
+
+    expectStateUpdate = (presenter, fn) ->
+      updatedState = false
+      disposable = presenter.onDidUpdateState ->
+        updatedState = true
+        disposable.dispose()
+      fn()
+      expect(updatedState).toBe true
+
     describe ".horizontalScrollbar", ->
       describe ".visible", ->
         it "is true if the scrollWidth exceeds the computed client width", ->
@@ -1692,3 +1695,204 @@ describe "TextEditorPresenter", ->
 
         expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
         expect(presenter.state.height).toBe editor.getScreenLineCount() * 20
+
+  describe "when the model and view measurements are mutated randomly", ->
+    [editor, buffer, presenter, presenterParams] = []
+
+    it "correctly maintains the presenter state", ->
+      _.times 10, ->
+        waits(0)
+
+        runs ->
+          buffer = new TextBuffer
+          editor = new TextEditor({buffer})
+          editor.setEditorWidthInChars(80)
+
+          presenterParams =
+            model: editor
+            height: 50
+            contentFrameWidth: 300
+            scrollTop: 0
+            scrollLeft: 0
+            lineHeight: 10
+            baseCharacterWidth: 10
+            lineOverdrawMargin: 1
+
+          presenter = new TextEditorPresenter(presenterParams)
+          referencePresenter = new TextEditorPresenter(presenterParams)
+          expect(presenter.state).toEqual referencePresenter.state
+
+          _.times 30, ->
+            actions = []
+            performRandomAction (action) -> actions.push(action)
+            actualState = presenter.state
+            expectedState = new TextEditorPresenter(presenterParams).state
+            delete actualState.content.scrollingVertically
+            delete expectedState.content.scrollingVertically
+
+            unless _.isEqual(actualState, expectedState)
+              console.log "Prestenter states differ >>>>>>>>>>>>>>>>"
+              console.log "Actual:", actualState
+              console.log "Expected:", expectedState
+              console.log "Uncomment code below this line to see a JSON diff"
+              # {diff} = require 'json-diff' # !!! Run `npm install json-diff` in your `atom/` repository
+              # console.log "Difference:", diff(actualState, expectedState)
+              console.log ""
+              console.log "Actions:"
+              console.log action for action in actions
+              console.log ""
+              console.log "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+              throw new Error("Unexpected presenter state after random mutation. Check console output for details.")
+
+          buffer.destroy()
+
+    performRandomAction = (log) ->
+      getRandomElement([
+        changeScrollLeft
+        changeScrollTop
+        toggleSoftWrap
+        insertText
+        changeCursors
+        changeSelections
+        changeLineDecorations
+      ])(log)
+
+    changeScrollTop = (log) ->
+      scrollHeight = presenterParams.lineHeight * editor.getScreenLineCount()
+      newScrollTop = Math.max(0, _.random(0, scrollHeight - presenterParams.height))
+      log "Changing scrollTop: #{newScrollTop}"
+      presenterParams.scrollTop = newScrollTop
+      presenter.setScrollTop(newScrollTop)
+
+    changeScrollLeft = (log) ->
+      scrollWidth = presenter.computeScrollWidth()
+      newScrollLeft = Math.max(0, _.random(0, scrollWidth - presenterParams.contentFrameWidth))
+      log "Changing scrollLeft: #{newScrollLeft}"
+      presenterParams.scrollLeft = newScrollLeft
+      presenter.setScrollLeft(newScrollLeft)
+
+    changeHeight = (log) ->
+      scrollHeight = presenterParams.lineHeight * editor.getScreenLineCount()
+      newHeight = _.random(30, scrollHeight * 1.5)
+      log "Chaning height: #{newHeight}"
+      presenterParams.height = newHeight
+      presenter.setHeight(newHeight)
+
+    changeContentFrameWidth = (log) ->
+      scrollWidth = presenter.computeScrollWidth()
+      newContentFrameWidth = _.random(100, scrollWidth * 1.5)
+      log "Chaning contentFrameWidth: #{newContentFrameWidth}"
+      presenterParams.contentFrameWidth = newContentFrameWidth
+      presenter.setContentFrameWidth(newContentFrameWidth)
+
+    toggleSoftWrap = (log) ->
+      softWrapped = not editor.isSoftWrapped()
+      log "Changing softWrapped: #{softWrapped}"
+      editor.setSoftWrapped(softWrapped)
+
+    insertText = (log) ->
+      range = buildRandomRange()
+      text = buildRandomText()
+      log "Inserting text in range #{range}: #{text}"
+      editor.setTextInBufferRange(range, text)
+
+    changeCursors = (log) ->
+      actions = [addCursor, moveCursor]
+      actions.push(destroyCursor) if editor.getCursors().length > 1
+      getRandomElement(actions)(log)
+
+    addCursor = (log) ->
+      position = buildRandomPoint()
+      log "Adding cursor at #{position}"
+      editor.addCursorAtBufferPosition(position)
+
+    moveCursor = (log) ->
+      position = buildRandomPoint()
+      cursor = getRandomElement(editor.getCursors())
+      log "Moving cursor from #{cursor.getBufferPosition()} to #{position}"
+      cursor.selection.clear()
+      cursor.setBufferPosition(position)
+
+    destroyCursor = (log) ->
+      cursor = getRandomElement(editor.getCursors())
+      log "Destroying cursor at #{cursor.getBufferPosition()}"
+      cursor.destroy()
+
+    changeSelections = (log) ->
+      actions = [addSelection, changeSelection]
+      actions.push(destroySelection) if editor.getSelections().length > 1
+      getRandomElement(actions)(log)
+
+    addSelection = (log) ->
+      range = buildRandomRange()
+      log "Adding selection at #{range}"
+      editor.addSelectionForBufferRange(range)
+
+    changeSelection = (log) ->
+      range = buildRandomRange()
+      selection = getRandomElement(editor.getSelections())
+      log "Changing selection from #{selection.getBufferRange()} to #{range}"
+      selection.setBufferRange(range)
+
+    destroySelection = (log) ->
+      selection = getRandomElement(editor.getSelections())
+      log "Destroying selection at #{selection.getBufferRange()}"
+      selection.destroy()
+
+    changeLineDecorations = (log) ->
+      actions = [addLineDecoration]
+      actions.push(changeLineDecoration, destroyLineDecoration) if editor.getLineDecorations().length > 0
+      getRandomElement(actions)(log)
+
+    addLineDecoration = (log) ->
+      range = buildRandomRange()
+      options = {
+        type: getRandomElement(['line', 'line-number'])
+        class: randomWords(exactly: 1)[0]
+      }
+      if Math.random() > .2
+        options.onlyEmpty = true
+      else if Math.random() > .2
+        options.onlyNonEmpty = true
+      else if Math.random() > .2
+        options.onlyHead = true
+
+      log "Adding line decoration at #{range}: #{JSON.stringify(options)}"
+
+      marker = editor.markBufferRange(range)
+      editor.decorateMarker(marker, options)
+
+    changeLineDecoration = (log) ->
+      decoration = getRandomElement(editor.getLineDecorations())
+      marker = decoration.getMarker()
+      range = buildRandomRange()
+      log "Changing line decoration (#{JSON.stringify(decoration.getProperties())}) from #{marker.getBufferRange()} to #{range}"
+      marker.setBufferRange(range)
+
+    destroyLineDecoration = (log) ->
+      decoration = getRandomElement(editor.getLineDecorations())
+      marker = decoration.getMarker()
+      log "Destroying line decoration (#{JSON.stringify(decoration.getProperties())}) at #{marker.getBufferRange()}"
+      decoration.destroy()
+
+    buildRandomPoint = ->
+      row = _.random(0, buffer.getLastRow())
+      column = _.random(0, buffer.lineForRow(row).length)
+      new Point(row, column)
+
+    buildRandomRange = ->
+      new Range(buildRandomPoint(), buildRandomPoint())
+
+    buildRandomText = ->
+      text = []
+
+      _.times _.random(20, 60), ->
+        if Math.random() < .2
+          text += '\n'
+        else
+          text += " " if /\w$/.test(text)
+          text += randomWords(exactly: 1)
+      text
+
+    getRandomElement = (array) ->
+      array[Math.floor(Math.random() * array.length)]
