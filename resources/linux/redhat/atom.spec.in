@@ -5,6 +5,7 @@ Summary:        Atom is a hackable text editor for the 21st century
 License:        MIT
 URL:            https://atom.io/
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
+Prefix:         /usr/local
 
 %description
 <%= description %>
