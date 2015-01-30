@@ -34,6 +34,7 @@ class TextEditorPresenter
       @updateHeightState()
       @updateVerticalScrollState()
       @updateHorizontalScrollState()
+      @updateScrollbarsState()
       @updateContentState()
       @updateLinesState()
       @updateGutterState()
