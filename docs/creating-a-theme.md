@@ -136,7 +136,7 @@ _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
 [atom]: https://atom.io/
 [package.json]: ./creating-a-package.html#package-json
 [less-tutorial]: https://speakerdeck.com/danmatthews/less-css
-[devtools-tutorial]: https://developers.google.com/chrome-developer-tools/docs/elements
+[devtools-tutorial]: https://developer.chrome.com/devtools/docs/dom-and-styles
 [ui-variables]: ./theme-variables.html
 [livereload]: https://github.com/atom/dev-live-reload
 [styleguide]: https://github.com/atom/styleguide
