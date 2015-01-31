@@ -25,7 +25,7 @@ a few things before starting:
 * Your theme's _package.json_ must contain a `"theme"` key with a value
   of `"ui"` or `"syntax"` for Atom to recognize and load it as a theme.
 * You can find existing themes to install or fork on
-  [atom.io](https://atom.io/themes).
+  [atom.io][atomio-themes].
 
 ## Creating a Syntax Theme
 
@@ -131,7 +131,7 @@ _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
 
 ![styleguide-img]
 
-[atomio]: http://atom.io/packages
+[atomio-themes]: https://atom.io/themes
 [Less]: http://lesscss.org/
 [git]: http://git-scm.com/
 [atom]: https://atom.io/
