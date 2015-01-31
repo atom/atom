@@ -24,7 +24,8 @@ a few things before starting:
   is used to help distribute your theme to Atom users.
 * Your theme's _package.json_ must contain a `"theme"` key with a value
   of `"ui"` or `"syntax"` for Atom to recognize and load it as a theme.
-* You can find existing themes to install or fork on [atom.io](atomio).
+* You can find existing themes to install or fork on
+  [atom.io](https://atom.io/themes).
 
 ## Creating a Syntax Theme
 
