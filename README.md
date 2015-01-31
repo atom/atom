@@ -9,7 +9,7 @@ about the Atom 1.0 roadmap.
 
 ## Installing
 
-### Mac OS X
+### OS X
 
 Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
 
