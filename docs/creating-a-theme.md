@@ -9,8 +9,8 @@ elements such as the tree view, the tabs, drop-down lists, and the status bar.
 Syntax themes style the code inside the editor.
 
 Themes can be installed and changed from the settings view which you can open
-by selecting the _Atom > Preferences..._ menu and navigating to the _Themes_
-section on the left hand side.
+by selecting the _Atom > Preferences..._ menu and navigating to the _Install_
+section and the _Themes_ section on the left hand side.
 
 ## Getting Started
 
