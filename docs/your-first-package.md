@@ -1,7 +1,7 @@
 # Create Your First Package
 
 This tutorial will guide you though creating a simple command that replaces the
-selected text with [ascii art](http://en.wikipedia.org/wiki/ASCII_art). When you
+selected text with [ascii art](https://en.wikipedia.org/wiki/ASCII_art). When you
 run our new command with the word "cool" selected, it will be replaced with:
 
 ```

@@ -61,8 +61,8 @@ __Syntax Theme__ dropdown menu to enable your new theme.
   on publishing the theme you just created to [atom.io][atomio].
 
 [atomio]: https://atom.io
-[CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets
+[CSS]: https://en.wikipedia.org/wiki/Cascading_Style_Sheets
 [Less]: http://lesscss.org
-[plist]: http://en.wikipedia.org/wiki/Property_list
+[plist]: https://en.wikipedia.org/wiki/Property_list
 [TextMate]: http://macromates.com
 [TextMateThemes]: http://wiki.macromates.com/Themes/UserSubmittedThemes
