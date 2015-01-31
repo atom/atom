@@ -44,9 +44,9 @@ the editor to see it in action!
   on publishing the package you just created to [atom.io][atomio].
 
 [atomio]: https://atom.io
-[CSS]: http://en.wikipedia.org/wiki/Cascading_Style_Sheets
+[CSS]: https://en.wikipedia.org/wiki/Cascading_Style_Sheets
 [Less]: http://lesscss.org
-[plist]: http://en.wikipedia.org/wiki/Property_list
-[R]: http://en.wikipedia.org/wiki/R_(programming_language)
+[plist]: https://en.wikipedia.org/wiki/Property_list
+[R]: https://en.wikipedia.org/wiki/R_(programming_language)
 [TextMate]: http://macromates.com
 [TextMateOrg]: https://github.com/textmate
