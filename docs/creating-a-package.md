@@ -98,9 +98,9 @@ module's `activate` method so you can restore your view to where the user left
 off.
 
 - `deactivate()`: This **optional** method is called when the window is shutting
-down. If your package is watching any files or holding external resources in any
-other way, release them here. If you're just subscribing to things on window,
-you don't need to worry because that's getting torn down anyway.
+down, or when your package is being updated or disabled. If your package is
+watching any files, holding external resources, providing commands or subscribing
+to events release them here.
 
 ### Simple Package Code
 
