@@ -83,7 +83,7 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # ## Config Schemas
 #
-# We use [json schema](json-schema.org) which allows you to define your value's
+# We use [json schema](http://json-schema.org) which allows you to define your value's
 # default, the type it should be, etc. A simple example:
 #
 # ```coffee
