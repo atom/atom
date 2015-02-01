@@ -12,16 +12,24 @@ Prefix:         /usr
 
 %install
 mkdir -p %{buildroot}/usr/share/atom
-cp -r /tmp/atom-build/Atom/* %{buildroot}/usr/share/atom
+cp -r Atom/* %{buildroot}/usr/share/atom
 mkdir -p %{buildroot}/usr/bin/
 ln -sf ../share/atom/resources/app/apm/node_modules/.bin/apm %{buildroot}/usr/bin/apm
 cp atom.sh %{buildroot}/usr/bin/atom
-chmod 755 atom.sh
+chmod 755 %{buildroot}/usr/bin/atom
 mkdir -p %{buildroot}/usr/share/applications/
-mv atom.desktop %{buildroot}/usr/share/applications/
+cp atom.desktop %{buildroot}/usr/share/applications/
+
+# use imagemagick to create icons in sizes that most desktop environments like
+for i in 512x512 256x256 64x64 48x48 32x32 24x24 22x22 16x16
+do
+    mkdir -p %{buildroot}/usr/share/icons/hicolor/${i}/apps
+    convert Atom/resources/app/resources/atom.png -resize ${i} %{buildroot}/usr/share/icons/hicolor/${i}/apps/atom.png
+done
 
 %files
 /usr/bin/atom
 /usr/bin/apm
 /usr/share/atom/
 /usr/share/applications/atom.desktop
+/usr/share/icons/hicolor/
