@@ -51,7 +51,7 @@ in the _menus_ directory are added alphabetically.
 - `snippets` (**Optional**): an Array of Strings identifying the order of the
 snippets your package needs to load. If not specified, snippets in the
 _snippets_ directory are added alphabetically.
-- `activationEvents` (**Optional**): an Array of Strings identifying events that
+- `activationCommands` (**Optional**): an Array of Strings identifying commands that
 trigger your package's activation. You can delay the loading of your package
 until one of these events is triggered.
 - `providedServices` (**Optional**): an Object describing the services that your
