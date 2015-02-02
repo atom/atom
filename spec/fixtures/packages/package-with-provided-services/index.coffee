@@ -3,11 +3,11 @@ module.exports =
 
   deactivate: ->
 
-  firstServiceV3: ->
+  provideFirstServiceV3: ->
     'first-service-v3'
 
-  firstServiceV4: ->
+  provideFirstServiceV4: ->
     'first-service-v4'
 
-  secondService: ->
+  provideSecondService: ->
     'second-service'

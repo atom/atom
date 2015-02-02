@@ -447,80 +447,45 @@ describe "PackageManager", ->
           expect(atom.config.get 'editor.increaseIndentPattern', scope: ['.source.omg']).toBe '^a'
 
     describe "service registration", ->
-      it "registers the package's service providers", ->
-        service1V3 = null
-        atom.packages.serviceHub.consume "service-1", "^0.3", (service) ->
-          service1V3 = service
-          new Disposable -> service1V3 = 'deactivated'
+      it "registers the package's provided and consumed services", ->
+        consumerModule = require "./fixtures/packages/package-with-consumed-services"
+        firstServiceV3Disposed = false
+        firstServiceV4Disposed = false
+        secondServiceDisposed = false
+        spyOn(consumerModule, 'consumeFirstServiceV3').andReturn(new Disposable -> firstServiceV3Disposed = true)
+        spyOn(consumerModule, 'consumeFirstServiceV4').andReturn(new Disposable -> firstServiceV4Disposed = true)
+        spyOn(consumerModule, 'consumeSecondService').andReturn(new Disposable -> secondServiceDisposed = true)
 
-        service1V4 = null
-        atom.packages.serviceHub.consume "service-1", "^0.4", (service) ->
-          service1V4 = service
-          new Disposable -> service1V4 = 'deactivated'
-
-        service2V5 = null
-        atom.packages.serviceHub.consume "service-2", "^0.5", (service) ->
-          service2V5 = service
-          new Disposable -> service2V5 = 'deactivated'
-
-        # Incompatible
-        service2V6 = null
-        atom.packages.serviceHub.consume "service-2", "^0.6", (service) ->
-          service2V6 = service
-          new Disposable -> service2V6 = 'deactivated'
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-consumed-services")
 
         waitsForPromise ->
           atom.packages.activatePackage("package-with-provided-services")
 
         runs ->
-          expect(service1V3).toBe 'first-service-v3'
-          expect(service1V4).toBe 'first-service-v4'
-          expect(service2V5).toBe 'second-service'
-          expect(service2V6).toBeNull()
+          expect(consumerModule.consumeFirstServiceV3).toHaveBeenCalledWith('first-service-v3')
+          expect(consumerModule.consumeFirstServiceV4).toHaveBeenCalledWith('first-service-v4')
+          expect(consumerModule.consumeSecondService).toHaveBeenCalledWith('second-service')
+
+          consumerModule.consumeFirstServiceV3.reset()
+          consumerModule.consumeFirstServiceV4.reset()
+          consumerModule.consumeSecondService.reset()
 
           atom.packages.deactivatePackage("package-with-provided-services")
 
-          expect(service1V3).toBe 'deactivated'
-          expect(service1V4).toBe 'deactivated'
-          expect(service2V5).toBe 'deactivated'
-          expect(service2V6).toBeNull()
-
-      it "registers the package's service dependencies", ->
-        waitsForPromise ->
-          atom.packages.activatePackage("package-with-consumed-services")
-
-        runs ->
-          service1V3Spy = jasmine.createSpy('service1V3')
-          service1V4Spy = jasmine.createSpy('service1V4')
-          service2V5Spy = jasmine.createSpy('service2V5')
-          service2V6Spy = jasmine.createSpy('service2V6')
-
-          atom.packages.serviceHub.provide "service-1", "0.3.1", service1V3Spy
-          atom.packages.serviceHub.provide "service-1", "0.4.1", service1V4Spy
-          atom.packages.serviceHub.provide "service-2", "0.5.1", service2V5Spy
-          atom.packages.serviceHub.provide "service-2", "0.6.1", service2V5Spy # incompatible
-
-          expect(service1V3Spy).toHaveBeenCalledWith('first-service-v3-used')
-          expect(service1V4Spy).toHaveBeenCalledWith('first-service-v4-used')
-          expect(service2V5Spy).toHaveBeenCalledWith('second-service-used')
-          expect(service2V6Spy).not.toHaveBeenCalled()
+          expect(firstServiceV3Disposed).toBe true
+          expect(firstServiceV4Disposed).toBe true
+          expect(secondServiceDisposed).toBe true
 
           atom.packages.deactivatePackage("package-with-consumed-services")
 
-          service1V3Spy.reset()
-          service1V4Spy.reset()
-          service2V5Spy.reset()
-          service2V6Spy.reset()
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-provided-services")
 
-          atom.packages.serviceHub.provide "service-1", "0.3.1", service1V3Spy
-          atom.packages.serviceHub.provide "service-1", "0.4.1", service1V4Spy
-          atom.packages.serviceHub.provide "service-2", "0.5.1", service2V5Spy
-          atom.packages.serviceHub.provide "service-2", "0.6.1", service2V5Spy # incompatible
-
-          expect(service1V3Spy).not.toHaveBeenCalled()
-          expect(service1V4Spy).not.toHaveBeenCalled()
-          expect(service2V5Spy).not.toHaveBeenCalled()
-          expect(service2V6Spy).not.toHaveBeenCalled()
+        runs ->
+          expect(consumerModule.consumeFirstServiceV3).not.toHaveBeenCalled()
+          expect(consumerModule.consumeFirstServiceV4).not.toHaveBeenCalled()
+          expect(consumerModule.consumeSecondService).not.toHaveBeenCalled()
 
   describe "::deactivatePackage(id)", ->
     afterEach ->

@@ -3,11 +3,8 @@ module.exports =
 
   deactivate: ->
 
-  handleFirstServiceV3: (service) ->
-    service('first-service-v3-used')
+  consumeFirstServiceV3: ->
 
-  handleFirstServiceV4: (service) ->
-    service('first-service-v4-used')
+  consumeFirstServiceV4: ->
 
-  handleSecondService: (service) ->
-    service('second-service-used')
+  consumeSecondService: ->
