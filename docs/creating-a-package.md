@@ -1,6 +1,6 @@
 # Creating Packages
 
-Packages are at the core of Atom. Nearly everything outside of the main editor
+Packages are at the core of Atom. You can write a package in Javascript or CoffeeScript. Nearly everything outside of the main editor
 is handled by a package. That includes "core" pieces like the [file tree][file-tree],
 [status bar][status-bar], [syntax highlighting][cs-syntax], and more.
 
