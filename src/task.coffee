@@ -83,7 +83,7 @@ class Task
     taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = fork '--eval', [bootstrap], {env, cwd: __dirname}
+    @childProcess = fork '--eval', [bootstrap], {env}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
