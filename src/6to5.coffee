@@ -90,7 +90,7 @@ create6to5VersionAndOptionsDigest = (version, options) ->
   shasum.digest('hex')
 
 cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
-jsCacheDir = path.join(cacheDir, 'js', create6to5VersionAndOptionsDigest(to5.version, defaultOptions))
+jsCacheDir = path.join(cacheDir, 'js', '6to5', create6to5VersionAndOptionsDigest(to5.version, defaultOptions))
 
 getCachePath = (sourceCode) ->
   digest = crypto.createHash('sha1').update(sourceCode, 'utf8').digest('hex')
