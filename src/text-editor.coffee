@@ -12,6 +12,7 @@ Model = require './model'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
+GutterContainer = require './gutter-container'
 
 # Public: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -68,6 +69,7 @@ class TextEditor extends Model
   suppressSelectionMerging: false
   updateBatchDepth: 0
   selectionFlashDuration: 500
+  gutterContainer: null
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -111,6 +113,8 @@ class TextEditor extends Model
     @disposables.add @displayBuffer.onDidChangeScrollLeft (scrollLeft) =>
       @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
+
+    @gutterContainer = new GutterContainer
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -181,6 +185,7 @@ class TextEditor extends Model
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
+    @gutterContainer.destroy()
     @emitter.emit 'did-destroy'
 
   ###
@@ -498,6 +503,15 @@ class TextEditor extends Model
 
   onDidChangeLineNumberGutterVisible: (callback) ->
     @emitter.on 'did-change-line-number-gutter-visible', callback
+
+  # Public: Creates and returns a {Gutter}.
+  # See {GutterContainer::addGutter} for more details.
+  addGutter: (options) ->
+    @gutterContainer.addGutter options
+
+  # Public: Returns the {Array} of all gutters on this editor.
+  getGutters: ->
+    @gutterContainer.getGutters()
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.

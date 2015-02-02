@@ -4242,3 +4242,14 @@ describe "TextEditor", ->
         editor.checkoutHeadRevision()
 
         waitsForPromise -> editor.checkoutHeadRevision()
+
+  describe 'gutters', ->
+    describe '::addGutter', ->
+      it 'can add a gutter', ->
+        expect(editor.getGutters().length).toBe 0
+        options =
+          name: 'test-gutter'
+          priority: 1
+        gutter = editor.addGutter options
+        expect(editor.getGutters().length).toBe 1
+        expect(editor.getGutters()[0]).toBe gutter
