@@ -481,7 +481,8 @@ class Install extends Command
           path.basename(directoryPath) isnt 'node_modules'
 
         onFile = (filePath) ->
-          CoffeeCache.addPathToCache(filePath)
+          try
+            CoffeeCache.addPathToCache(filePath)
 
         fs.traverseTreeSync(packageDirectory, onFile, onDirectory)
       callback(null)
