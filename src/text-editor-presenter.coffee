@@ -47,10 +47,7 @@ class TextEditorPresenter
       @updateLineNumbersState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
-    @observeLineDecoration(decoration) for decoration in @model.getLineDecorations()
-    @observeLineNumberDecoration(decoration) for decoration in @model.getLineNumberDecorations()
-    @observeHighlightDecoration(decoration) for decoration in @model.getHighlightDecorations()
-    @observeOverlayDecoration(decoration) for decoration in @model.getOverlayDecorations()
+    @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
@@ -606,31 +603,36 @@ class TextEditorPresenter
 
     {top, left, width, height}
 
-  observeLineDecoration: (decoration) ->
+  observeDecoration: (decoration) ->
     decorationDisposables = new CompositeDisposable
-    decorationDisposables.add decoration.getMarker().onDidChange(@updateLinesState.bind(this))
+    decorationDisposables.add decoration.getMarker().onDidChange(@decorationMarkerDidChange.bind(this, decoration))
+    if decoration.isType('highlight')
+      decorationDisposables.add decoration.onDidChangeProperties(@updateHighlightsState.bind(this))
+      decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
     decorationDisposables.add decoration.onDidDestroy =>
       @disposables.remove(decorationDisposables)
+      @didDestroyDecoration(decoration)
+    @disposables.add(decorationDisposables)
+
+  decorationMarkerDidChange: (decoration) ->
+    if decoration.isType('line')
       @updateLinesState()
-    @disposables.add(decorationDisposables)
-
-  observeLineNumberDecoration: (decoration) ->
-    decorationDisposables = new CompositeDisposable
-    decorationDisposables.add decoration.getMarker().onDidChange(@updateLineNumbersState.bind(this))
-    decorationDisposables.add decoration.onDidDestroy =>
-      @disposables.remove(decorationDisposables)
+    if decoration.isType('line-number')
       @updateLineNumbersState()
-    @disposables.add(decorationDisposables)
-
-  observeHighlightDecoration: (decoration) ->
-    decorationDisposables = new CompositeDisposable
-    decorationDisposables.add decoration.getMarker().onDidChange(@updateHighlightsState.bind(this))
-    decorationDisposables.add decoration.onDidChangeProperties(@updateHighlightsState.bind(this))
-    decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
-    decorationDisposables.add decoration.onDidDestroy =>
-      @disposables.remove(decorationDisposables)
+    if decoration.isType('highlight')
       @updateHighlightsState()
-    @disposables.add(decorationDisposables)
+    if decoration.isType('overlay')
+      @updateOverlaysState()
+
+  didDestroyDecoration: (decoration) ->
+    if decoration.isType('line')
+      @updateLinesState()
+    if decoration.isType('line-number')
+      @updateLineNumbersState()
+    if decoration.isType('highlight')
+      @updateHighlightsState()
+    if decoration.isType('overlay')
+      @updateOverlaysState()
 
   highlightDidFlash: (decoration) ->
     flash = decoration.consumeNextFlash()
@@ -640,27 +642,16 @@ class TextEditorPresenter
       decorationState.flashDuration = flash.duration
       @emitter.emit "did-update-state"
 
-  observeOverlayDecoration: (decoration) ->
-    decorationDisposables = new CompositeDisposable
-    decorationDisposables.add decoration.getMarker().onDidChange(@updateOverlaysState.bind(this))
-    decorationDisposables.add decoration.onDidChangeProperties(@updateOverlaysState.bind(this))
-    decorationDisposables.add decoration.onDidDestroy =>
-      @disposables.remove(decorationDisposables)
-      @updateOverlaysState()
-    @disposables.add(decorationDisposables)
-
   didAddDecoration: (decoration) ->
+    @observeDecoration(decoration)
+
     if decoration.isType('line')
-      @observeLineDecoration(decoration)
       @updateLinesState()
     if decoration.isType('line-number')
-      @observeLineNumberDecoration(decoration)
       @updateLineNumbersState()
     else if decoration.isType('highlight')
-      @observeHighlightDecoration(decoration)
       @updateHighlightsState()
     else if decoration.isType('overlay')
-      @observeOverlayDecoration(decoration)
       @updateOverlaysState()
 
   observeCursor: (cursor) ->
