@@ -54,6 +54,21 @@ _snippets_ directory are added alphabetically.
 - `activationEvents` (**Optional**): an Array of Strings identifying events that
 trigger your package's activation. You can delay the loading of your package
 until one of these events is triggered.
+- `providedServices` (**Optional**): an Object describing the services that your
+packages provides, which can be used by other packages. The keys of this object
+are the names of the services, and the values are Objects with the following
+keys:
+  - `description` (**Optional**) a String describing the service
+  - `versions` (**Required**) an Object whose keys are Semver version strings,
+  and whose values are names of methods in your package's top-level module
+  that return a value implementing the service.
+- `consumedServices` (**Optional**): an Object describing the services that your
+package uses, which can be provided by other packages. The keys of this object
+are the names of the services, and the values are Objects with the following
+keys:
+  - `versions` (**Required**) an Object whose keys are Semver version ranges
+  and whose values are names of methods in your package's top-level module
+  that are called with values implementing the service.
 
 ## Source Code
 
@@ -351,6 +366,79 @@ to indicate the type your value should be, its default, etc.
 
 See the [Config API Docs](https://atom.io/docs/api/latest/Config) for more
 details specifying your configuration.
+
+## Providing and Consuming Services
+
+Atom packages can interact with each other through versioned APIs called
+*services*. To provide a service, in your `package.json`, specify one or more
+version numbers, each paired with the name of a method on your package's main module:
+
+```json
+{
+  "providedServices": {
+    "my-service": {
+      "description": "Does a useful thing",
+      "versions": {
+        "1.2.3": "provideMyServiceV1",
+        "2.3.4": "provideMyServiceV2",
+      }
+    }
+  }
+}
+```
+
+In your package's main module, implement the methods named above. The methods
+will be called any time a package is activated that consumes the specified
+service, and should return a value that implements the service's API.
+
+
+```coffeescript
+module.exports =
+  activate: -> # ...
+
+  provideMyServiceV1: ->
+    adaptToLegacyAPI(myService)
+
+  provideMyServiceV2: ->
+    myService
+```
+
+Similarly, to consume a service, specify one or more version *ranges*, each paired
+with the name of a method on the package's main module:
+
+```json
+{
+  "consumedServices": {
+    "another-service": {
+      "versions": {
+        "^1.2.3": "consumeAnotherServiceV1",
+        ">=2.3.4 <2.5": "consumeAnotherServiceV2",
+      }
+    }
+  }
+}
+```
+
+These methods will be called any time a package is activated that *provides* the
+specified services. They will receive the service object as an argument. You
+will usually need to perform some kind of cleanup in the event that the package
+implementing the service is deactivated. To do this, return a `Disposable` from
+your service-consuming method:
+
+```coffeescript
+{Disposable} = require 'atom'
+
+module.exports =
+  activate: -> # ...
+
+  consumeAnotherServiceV1: (service) ->
+    useService(adaptServiceFromLegacyAPI(service))
+    new Disposable -> stopUsingService(service)
+
+  consumeAnotherServiceV2: (service) ->
+    useService(service)
+    new Disposable -> stopUsingService(service)
+```
 
 ## Bundle External Resources
 
