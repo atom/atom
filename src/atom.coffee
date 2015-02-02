@@ -42,6 +42,12 @@ class Atom extends Model
       which returns an HTMLElement.
     """
 
+    serviceHubDeprecationMessage = """
+      atom.services is no longer available. To register service providers and
+      consumers, use the `providedServices` and `consumedServices` fields in
+      your package's package.json.
+    """
+
     Object.defineProperty atom, 'workspaceView',
       get: ->
         deprecate(workspaceViewDeprecationMessage)
@@ -49,6 +55,14 @@ class Atom extends Model
       set: (newValue) ->
         deprecate(workspaceViewDeprecationMessage)
         atom.__workspaceView = newValue
+
+    Object.defineProperty atom, 'services',
+      get: ->
+        deprecate(serviceHubDeprecationMessage)
+        atom.packages.serviceHub
+      set: (newValue) ->
+        deprecate(serviceHubDeprecationMessage)
+        atom.packages.serviceHub = newValue
 
     atom
 
