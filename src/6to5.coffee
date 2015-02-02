@@ -117,7 +117,6 @@ transpile = (sourceCode, filePath, cachePath) ->
     js = to5.transform(sourceCode, options).code
     stats.misses++
   catch error
-    console.error('Error compiling %s: %o', filePath, error)
     throw error
 
   try
