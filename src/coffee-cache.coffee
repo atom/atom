@@ -61,15 +61,15 @@ module.exports =
     })
 
   addPathToCache: (filePath) ->
-    extension = path.extname(filePath)
-    if extension is '.coffee'
-      content = fs.readFileSync(filePath, 'utf8')
-      cachePath = getCachePath(coffee)
-      compileCoffeeScript(coffee, filePath, cachePath)
-    else if extension is '.cson'
-      CSON.readFileSync(filePath)
-    else if extension is '.js'
-      require('./6to5').addPathToCache(filePath)
+    switch path.extname(filePath)
+      when '.coffee'
+        content = fs.readFileSync(filePath, 'utf8')
+        cachePath = getCachePath(coffee)
+        compileCoffeeScript(coffee, filePath, cachePath)
+      when '.cson'
+        CSON.readFileSync(filePath)
+      when '.js'
+        require('./6to5').addPathToCache(filePath)
 
   getCacheMisses: -> stats.misses
 
