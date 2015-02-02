@@ -113,11 +113,8 @@ createOptions = (filePath) ->
 
 transpile = (sourceCode, filePath, cachePath) ->
   options = createOptions(filePath)
-  try
-    js = to5.transform(sourceCode, options).code
-    stats.misses++
-  catch error
-    throw error
+  js = to5.transform(sourceCode, options).code
+  stats.misses++
 
   try
     fs.writeFileSync(cachePath, js)
