@@ -449,23 +449,23 @@ describe "PackageManager", ->
     describe "service registration", ->
       it "registers the package's service providers", ->
         service1V3 = null
-        atom.services.consume "service-1", "^0.3", (service) ->
+        atom.packages.serviceHub.consume "service-1", "^0.3", (service) ->
           service1V3 = service
           new Disposable -> service1V3 = 'deactivated'
 
         service1V4 = null
-        atom.services.consume "service-1", "^0.4", (service) ->
+        atom.packages.serviceHub.consume "service-1", "^0.4", (service) ->
           service1V4 = service
           new Disposable -> service1V4 = 'deactivated'
 
         service2V5 = null
-        atom.services.consume "service-2", "^0.5", (service) ->
+        atom.packages.serviceHub.consume "service-2", "^0.5", (service) ->
           service2V5 = service
           new Disposable -> service2V5 = 'deactivated'
 
         # Incompatible
         service2V6 = null
-        atom.services.consume "service-2", "^0.6", (service) ->
+        atom.packages.serviceHub.consume "service-2", "^0.6", (service) ->
           service2V6 = service
           new Disposable -> service2V6 = 'deactivated'
 
@@ -495,10 +495,10 @@ describe "PackageManager", ->
           service2V5Spy = jasmine.createSpy('service2V5')
           service2V6Spy = jasmine.createSpy('service2V6')
 
-          atom.services.provide "service-1", "0.3.1", service1V3Spy
-          atom.services.provide "service-1", "0.4.1", service1V4Spy
-          atom.services.provide "service-2", "0.5.1", service2V5Spy
-          atom.services.provide "service-2", "0.6.1", service2V5Spy # incompatible
+          atom.packages.serviceHub.provide "service-1", "0.3.1", service1V3Spy
+          atom.packages.serviceHub.provide "service-1", "0.4.1", service1V4Spy
+          atom.packages.serviceHub.provide "service-2", "0.5.1", service2V5Spy
+          atom.packages.serviceHub.provide "service-2", "0.6.1", service2V5Spy # incompatible
 
           expect(service1V3Spy).toHaveBeenCalledWith('first-service-v3-used')
           expect(service1V4Spy).toHaveBeenCalledWith('first-service-v4-used')
@@ -512,10 +512,10 @@ describe "PackageManager", ->
           service2V5Spy.reset()
           service2V6Spy.reset()
 
-          atom.services.provide "service-1", "0.3.1", service1V3Spy
-          atom.services.provide "service-1", "0.4.1", service1V4Spy
-          atom.services.provide "service-2", "0.5.1", service2V5Spy
-          atom.services.provide "service-2", "0.6.1", service2V5Spy # incompatible
+          atom.packages.serviceHub.provide "service-1", "0.3.1", service1V3Spy
+          atom.packages.serviceHub.provide "service-1", "0.4.1", service1V4Spy
+          atom.packages.serviceHub.provide "service-2", "0.5.1", service2V5Spy
+          atom.packages.serviceHub.provide "service-2", "0.6.1", service2V5Spy # incompatible
 
           expect(service1V3Spy).not.toHaveBeenCalled()
           expect(service1V4Spy).not.toHaveBeenCalled()

@@ -213,11 +213,11 @@ class Package
   activateServices: ->
     for name, {versions} of @metadata.serviceProvisions
       for version, methodName of versions
-        @activationDisposables.add atom.services.provide(name, version, @mainModule[methodName]())
+        @activationDisposables.add atom.packages.serviceHub.provide(name, version, @mainModule[methodName]())
 
     for name, {versions} of @metadata.serviceDependencies
       for version, methodName of versions
-        @activationDisposables.add atom.services.consume(name, version, @mainModule[methodName].bind(@mainModule))
+        @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
 
   loadKeymaps: ->
     if @bundledPackage and packagesCache[@name]?
