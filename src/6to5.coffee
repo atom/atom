@@ -122,9 +122,6 @@ transpile = (sourceCode, filePath, cachePath) ->
 
   try
     fs.writeFileSync(cachePath, js)
-  catch error
-    console.error('Error writing to cache at %s: %o', cachePath, error)
-    throw error
 
   js
 
