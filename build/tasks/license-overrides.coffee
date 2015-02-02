@@ -79,3 +79,6 @@ module.exports =
 
       LGPL
     """
+  'core-js@0.4.10':
+    license: 'MIT'
+    source: 'http://rock.mit-license.org linked in source files and bower.json says MIT'
