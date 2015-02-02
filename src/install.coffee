@@ -475,14 +475,14 @@ class Install extends Command
 
     @getResourcePath (resourcePath) ->
       try
-        CoffeeCache = require(path.join(resourcePath, 'src', 'coffee-cache'))
+        CompileCache = require(path.join(resourcePath, 'src', 'coffee-cache'))
 
         onDirectory = (directoryPath) ->
           path.basename(directoryPath) isnt 'node_modules'
 
         onFile = (filePath) ->
           try
-            CoffeeCache.addPathToCache(filePath)
+            CompileCache.addPathToCache(filePath)
 
         fs.traverseTreeSync(packageDirectory, onFile, onDirectory)
       callback(null)
