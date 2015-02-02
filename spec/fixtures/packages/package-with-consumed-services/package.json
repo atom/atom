@@ -1,7 +1,7 @@
 {
-  "name": "package-with-service-dependencies",
+  "name": "package-with-consumed-services",
 
-  "serviceDependencies": {
+  "consumedServices": {
     "service-1": {
       "versions": {
         ">=0.2 <= 0.3.6": "handleFirstServiceV3",

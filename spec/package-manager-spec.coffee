@@ -470,7 +470,7 @@ describe "PackageManager", ->
           new Disposable -> service2V6 = 'deactivated'
 
         waitsForPromise ->
-          atom.packages.activatePackage("package-with-service-provisions")
+          atom.packages.activatePackage("package-with-provided-services")
 
         runs ->
           expect(service1V3).toBe 'first-service-v3'
@@ -478,7 +478,7 @@ describe "PackageManager", ->
           expect(service2V5).toBe 'second-service'
           expect(service2V6).toBeNull()
 
-          atom.packages.deactivatePackage("package-with-service-provisions")
+          atom.packages.deactivatePackage("package-with-provided-services")
 
           expect(service1V3).toBe 'deactivated'
           expect(service1V4).toBe 'deactivated'
@@ -487,7 +487,7 @@ describe "PackageManager", ->
 
       it "registers the package's service dependencies", ->
         waitsForPromise ->
-          atom.packages.activatePackage("package-with-service-dependencies")
+          atom.packages.activatePackage("package-with-consumed-services")
 
         runs ->
           service1V3Spy = jasmine.createSpy('service1V3')
@@ -505,7 +505,7 @@ describe "PackageManager", ->
           expect(service2V5Spy).toHaveBeenCalledWith('second-service-used')
           expect(service2V6Spy).not.toHaveBeenCalled()
 
-          atom.packages.deactivatePackage("package-with-service-dependencies")
+          atom.packages.deactivatePackage("package-with-consumed-services")
 
           service1V3Spy.reset()
           service1V4Spy.reset()

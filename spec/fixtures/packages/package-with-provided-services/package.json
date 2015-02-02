@@ -1,7 +1,7 @@
 {
-  "name": "package-with-service-provisions",
+  "name": "package-with-provided-services",
 
-  "serviceProvisions": {
+  "providedServices": {
     "service-1": {
       "description": "The first service",
       "versions": {

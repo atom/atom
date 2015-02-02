@@ -211,11 +211,11 @@ class Package
     @settingsActivated = true
 
   activateServices: ->
-    for name, {versions} of @metadata.serviceProvisions
+    for name, {versions} of @metadata.providedServices
       for version, methodName of versions
         @activationDisposables.add atom.packages.serviceHub.provide(name, version, @mainModule[methodName]())
 
-    for name, {versions} of @metadata.serviceDependencies
+    for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
         @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
 
