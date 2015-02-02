@@ -68,6 +68,8 @@ module.exports =
       compileCoffeeScript(coffee, filePath, cachePath)
     else if extension is '.cson'
       CSON.readFileSync(filePath)
+    else if extension is '.js'
+      require('./6to5').addPathToCache(filePath)
 
   getCacheMisses: -> stats.misses
 
