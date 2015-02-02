@@ -43,6 +43,14 @@ class Gutter
   isVisible: ->
     @visible
 
+  # * `marker` (required) A Marker object.
+  # * `options` (optional) An object with the following fields:
+  #   * `class` (optional)
+  #   * `item` (optional) A model {Object} with a corresponding view registered,
+  #     or an {HTMLElement}.
+  decorateMarker: (marker, options) ->
+    @gutterContainer.addGutterDecoration this, marker, options
+
   # Calls your `callback` when the {Gutter}'s' visibility changes.
   #
   # * `callback` {Function}

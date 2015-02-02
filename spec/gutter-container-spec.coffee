@@ -3,8 +3,10 @@ GutterContainer = require '../src/gutter-container'
 
 describe 'GutterContainer', ->
   gutterContainer = null
+  fakeTextEditor = {}
+
   beforeEach ->
-    gutterContainer = new GutterContainer
+    gutterContainer = new GutterContainer fakeTextEditor
 
   describe 'when initialized', ->
     it 'it has no gutters', ->
@@ -31,7 +33,7 @@ describe 'GutterContainer', ->
     removedGutters = null
 
     beforeEach ->
-      gutterContainer = new GutterContainer
+      gutterContainer = new GutterContainer fakeTextEditor
       removedGutters = []
       gutterContainer.onDidRemoveGutter (gutterName) ->
         removedGutters.push gutterName
@@ -44,6 +46,7 @@ describe 'GutterContainer', ->
       expect(removedGutters).toEqual [gutter.name]
 
     it 'throws an error if the gutter is not within this GutterContainer', ->
-      otherGutterContainer = new GutterContainer
+      fakeOtherTextEditor = {}
+      otherGutterContainer = new GutterContainer fakeOtherTextEditor
       gutter = new Gutter 'gutter-name', otherGutterContainer
       expect(gutterContainer.removeGutter.bind(null, gutter)).toThrow()

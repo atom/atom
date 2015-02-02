@@ -114,7 +114,7 @@ class TextEditor extends Model
       @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
-    @gutterContainer = new GutterContainer
+    @gutterContainer = new GutterContainer this
     @lineNumberGutter = @gutterContainer.addGutter
       name: 'line-number'
       priority: 0

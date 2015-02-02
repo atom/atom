@@ -4277,3 +4277,22 @@ describe "TextEditor", ->
       expect(lineNumberDecoration.getProperties().gutterName).toBe 'line-number'
       expect(customGutterDecoration.getProperties().type).toBe 'gutter'
       expect(customGutterDecoration.getProperties().gutterName).toBe 'custom'
+
+    it 'reflects an added decoration when one of its custom gutters is decorated.', ->
+      gutter = editor.addGutter {'name': 'custom-gutter'}
+      decoration = gutter.decorateMarker marker, {class: 'custom-class'}
+      gutterDecorations = editor.getDecorations
+        type: 'gutter'
+        gutterName: 'custom-gutter'
+        class: 'custom-class'
+      expect(gutterDecorations.length).toBe 1
+      expect(gutterDecorations[0]).toBe decoration
+
+    it 'reflects an added decoration when its line-number gutter is decorated.', ->
+      decoration = editor.gutterWithName('line-number').decorateMarker marker, {class: 'test-class'}
+      gutterDecorations = editor.getDecorations
+        type: 'line-number'
+        gutterName: 'line-number'
+        class: 'test-class'
+      expect(gutterDecorations.length).toBe 1
+      expect(gutterDecorations[0]).toBe decoration

@@ -7,8 +7,11 @@ Gutter = require './gutter'
 module.exports =
 class GutterContainer
   Subscriber.includeInto(this)
-  constructor: ->
+
+  # * `textEditor` The {TextEditor} to which this {GutterContainer} belongs.
+  constructor: (textEditor) ->
     @gutters = []
+    @textEditor = textEditor
     @emitter = new Emitter
 
   destroy: ->
@@ -76,3 +79,12 @@ class GutterContainer
     else
       throw new Error 'The given gutter cannot be removed because it is not ' +
           'within this GutterContainer.'
+
+  # The public interface is Gutter::decorateMarker or TextEditor::decorateMarker.
+  addGutterDecoration: (gutter, marker, options) ->
+    if gutter.name is 'line-number'
+      options.type = 'line-number'
+    else
+      options.type = 'gutter'
+    options.gutterName = gutter.name
+    @textEditor.decorateMarker marker, options
