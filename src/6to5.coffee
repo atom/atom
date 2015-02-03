@@ -96,7 +96,7 @@ getCachePath = (sourceCode) ->
 
   unless jsCacheDir?
     to5Version = require('6to5-core/package.json').version
-    cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
+    cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
     jsCacheDir = path.join(cacheDir, 'js', '6to5', create6to5VersionAndOptionsDigest(to5Version, defaultOptions))
 
   path.join(jsCacheDir, "#{digest}.js")

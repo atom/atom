@@ -5,7 +5,7 @@ CoffeeScript = require 'coffee-script'
 CSON = require 'season'
 fs = require 'fs-plus'
 
-cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
+cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
 
 stats =
   hits: 0
