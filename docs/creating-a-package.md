@@ -100,7 +100,7 @@ off.
 - `deactivate()`: This **optional** method is called when the window is shutting
 down, or when your package is being updated or disabled. If your package is
 watching any files, holding external resources, providing commands or subscribing
-to events release them here.
+to events, release them here.
 
 ### Simple Package Code
 
