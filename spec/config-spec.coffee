@@ -18,7 +18,7 @@ describe "apm config", ->
     delete process.env.npm_config_cache
 
   describe "apm config get", ->
-    it "reads the value from the global config where there is no user config", ->
+    it "reads the value from the global config when there is no user config", ->
       callback = jasmine.createSpy('callback')
       apm.run(['config', 'get', 'cache'], callback)
 
@@ -26,7 +26,7 @@ describe "apm config", ->
         callback.callCount is 1
 
       runs ->
-        expect(process.stdout.write.argsForCall[0][0].trim()).toBe path.join(process.env.ATOM_HOME, '.node-gyp', '.atom', '.apm')
+        expect(process.stdout.write.argsForCall[0][0].trim()).toBe path.join(process.env.ATOM_HOME, '.apm')
 
   describe "apm config set", ->
     it "sets the value in the user config", ->
