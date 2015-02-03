@@ -28,7 +28,6 @@ setupApmRcFile = ->
     fs.writeFileSync(rcPath, "cache = #{cachePath}\n")
 
 setupTempDirectory()
-setupApmRcFile()
 
 commandClasses = [
   require './clean'
@@ -147,6 +146,7 @@ getPythonVersion = (callback) ->
 
 module.exports =
   run: (args, callback) ->
+    setupApmRcFile()
     options = parseOptions(args)
 
     unless options.argv.color
