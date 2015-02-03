@@ -78,7 +78,6 @@ class TextEditorPresenter
     @updateDecorations()
     @updateLinesState()
     @updateCursorsState()
-    @updateHighlightsState()
     @updateOverlaysState()
     @updateGutterState()
     @updateLineNumbersState()
@@ -202,43 +201,6 @@ class TextEditorPresenter
         pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
         pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
         @state.content.cursors[cursor.id] = pixelRect
-
-    @emitter.emit 'did-update-state'
-
-  updateHighlightsState: ->
-    return unless @hasRequiredMeasurements()
-
-    startRow = @computeStartRow()
-    endRow = @computeEndRow()
-    visibleHighlights = {}
-
-    for decoration in @model.getHighlightDecorations()
-      continue unless decoration.getMarker().isValid()
-      screenRange = decoration.getMarker().getScreenRange()
-      if screenRange.intersectsRowRange(startRow, endRow - 1)
-        if screenRange.start.row < startRow
-          screenRange.start.row = startRow
-          screenRange.start.column = 0
-        if screenRange.end.row >= endRow
-          screenRange.end.row = endRow
-          screenRange.end.column = 0
-        continue if screenRange.isEmpty()
-
-        visibleHighlights[decoration.id] = true
-
-        @state.content.highlights[decoration.id] ?= {
-          flashCount: 0
-          flashDuration: null
-          flashClass: null
-        }
-        highlightState = @state.content.highlights[decoration.id]
-        highlightState.class = decoration.getProperties().class
-        highlightState.deprecatedRegionClass = decoration.getProperties().deprecatedRegionClass
-        highlightState.regions = @buildHighlightRegions(screenRange)
-
-    for id of @state.content.highlights
-      unless visibleHighlights.hasOwnProperty(id)
-        delete @state.content.highlights[id]
 
     @emitter.emit 'did-update-state'
 
@@ -411,7 +373,6 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
-      @updateHighlightsState()
       @updateLineNumbersState()
 
   didStartScrolling: ->
@@ -460,7 +421,6 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
-      @updateHighlightsState()
       @updateLineNumbersState()
 
   getHeight: ->
@@ -493,7 +453,6 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
-      @updateHighlightsState()
       @updateLineNumbersState()
       @updateOverlaysState()
 
@@ -536,7 +495,6 @@ class TextEditorPresenter
     @updateDecorations()
     @updateLinesState()
     @updateCursorsState()
-    @updateHighlightsState()
     @updateOverlaysState()
 
   clearScopedCharWidths: ->
@@ -590,7 +548,7 @@ class TextEditorPresenter
     decorationDisposables = new CompositeDisposable
     decorationDisposables.add decoration.getMarker().onDidChange(@decorationMarkerDidChange.bind(this, decoration))
     if decoration.isType('highlight')
-      decorationDisposables.add decoration.onDidChangeProperties(@updateHighlightsState.bind(this))
+      decorationDisposables.add decoration.onDidChangeProperties(@updateDecorations.bind(this))
       decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
     decorationDisposables.add decoration.onDidDestroy =>
       @disposables.remove(decorationDisposables)
@@ -605,7 +563,7 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLineNumbersState()
     if decoration.isType('highlight')
-      @updateHighlightsState()
+      @updateDecorations()
     if decoration.isType('overlay')
       @updateOverlaysState()
 
@@ -617,7 +575,7 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLineNumbersState()
     if decoration.isType('highlight')
-      @updateHighlightsState()
+      @updateDecorations()
     if decoration.isType('overlay')
       @updateOverlaysState()
 
@@ -639,7 +597,7 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLineNumbersState()
     else if decoration.isType('highlight')
-      @updateHighlightsState()
+      @updateDecorations()
     else if decoration.isType('overlay')
       @updateOverlaysState()
 
@@ -650,11 +608,12 @@ class TextEditorPresenter
 
     return if @model.isMini()
 
+    visibleHighlights = {}
     startRow = @computeStartRow()
     endRow = @computeEndRow()
     return unless 0 <= startRow <= endRow <= Infinity
 
-    for markerId, decorations of @model.decorationsForScreenRowRange(startRow, endRow)
+    for markerId, decorations of @model.decorationsForScreenRowRange(startRow, endRow - 1)
       marker = @model.getMarker(markerId)
       continue unless marker.isValid()
 
@@ -662,6 +621,14 @@ class TextEditorPresenter
       for decoration in decorations
         if decoration.isType('line') or decoration.isType('line-number')
           @updateLineDecorationCaches(decoration, range)
+        else if decoration.isType('highlight')
+          visibleHighlights[decoration.id] = @updateHighlightState(decoration, range)
+
+    for id of @state.content.highlights
+      unless visibleHighlights[id]
+        delete @state.content.highlights[id]
+
+    @emitter.emit 'did-update-state'
 
   updateLineDecorationCaches: (decoration, range) ->
     marker = decoration.getMarker()
@@ -684,6 +651,32 @@ class TextEditorPresenter
       if decoration.isType('line-number')
         @lineNumberDecorationsByScreenRow[row] ?= {}
         @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
+
+  updateHighlightState: (decoration, range) ->
+    return unless @hasRequiredMeasurements()
+
+    properties = decoration.getProperties()
+    range = range.copy()
+    startRow = @computeStartRow()
+    endRow = @computeEndRow()
+
+    if range.start.row < startRow
+      range.start.row = startRow
+      range.start.column = 0
+    if range.end.row >= endRow
+      range.end.row = endRow
+      range.end.column = 0
+
+    return if range.isEmpty()
+
+    highlightState = @state.content.highlights[decoration.id] ?= {
+      flashCount: 0
+      flashDuration: null
+      flashClass: null
+    }
+    highlightState.class = properties.class
+    highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
+    highlightState.regions = @buildHighlightRegions(range)
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
