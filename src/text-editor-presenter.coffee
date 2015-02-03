@@ -628,6 +628,8 @@ class TextEditorPresenter
     marker = decoration.getMarker()
     properties = decoration.getProperties()
 
+    return unless marker.isValid()
+
     if range.isEmpty()
       return if properties.onlyNonEmpty
     else
