@@ -67,6 +67,30 @@ given focus context. Commands are "humanized" following a simple algorithm, so a
 command like `editor:fold-current-row` would appear as "Editor: Fold Current
 Row".
 
+### "Composed" Commands
+
+A common question is, "How do I make a single keybinding execute two or more
+commands?" There isn't any direct support for this in Atom, but it can be
+achieved by creating a custom command that performs the multiple actions
+you desire and then creating a keybinding for that command. For example, let's
+say I want to create a "composed" command that performs a Select Line followed
+by Cut. You could add the following to your `init.coffee`:
+
+```coffee
+atom.commands.add 'atom-text-editor', 'custom:cut-line', ->
+  editor = atom.workspace.getActiveTextEditor()
+  editor.selectLinesContainingCursors()
+  editor.cutSelectedText()
+```
+
+Then let's say we want to map this custom command to `alt-ctrl-z`, you could
+add the following to your keymap:
+
+```coffee
+'atom-text-editor':
+  'alt-ctrl-z': 'custom:cut-line'
+```
+
 ### Specificity and Cascade Order
 
 As is the case with CSS applying styles, when multiple bindings match for a
