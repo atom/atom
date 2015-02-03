@@ -72,6 +72,8 @@ class Decoration
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
+  isDestroyed: -> @destroyed
+
   ###
   Section: Event Subscription
   ###
