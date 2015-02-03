@@ -366,7 +366,7 @@ to indicate the type your value should be, its default, etc.
 See the [Config API Docs](https://atom.io/docs/api/latest/Config) for more
 details specifying your configuration.
 
-## Providing and Consuming Services
+## Interacting With Other Packages Via Services
 
 Atom packages can interact with each other through versioned APIs called
 *services*. To provide a service, in your `package.json`, specify one or more
@@ -386,9 +386,9 @@ version numbers, each paired with the name of a method on your package's main mo
 }
 ```
 
-In your package's main module, implement the methods named above. The methods
-will be called any time a package is activated that consumes the specified
-service, and should return a value that implements the service's API.
+In your package's main module, implement the methods named above. These methods
+will be called any time a package is activated that consumes their corresponding
+service. They should return a value that implements the service's API.
 
 
 ```coffeescript
@@ -402,8 +402,8 @@ module.exports =
     myService
 ```
 
-Similarly, to consume a service, specify one or more version *ranges*, each paired
-with the name of a method on the package's main module:
+Similarly, to consume a service, specify one or more [version *ranges*][version-ranges],
+each paired with the name of a method on the package's main module:
 
 ```json
 {
@@ -418,10 +418,10 @@ with the name of a method on the package's main module:
 }
 ```
 
-These methods will be called any time a package is activated that *provides* the
-specified services. They will receive the service object as an argument. You
+These methods will be called any time a package is activated that *provides* their
+corresponding service. They will receive the service object as an argument. You
 will usually need to perform some kind of cleanup in the event that the package
-implementing the service is deactivated. To do this, return a `Disposable` from
+providing the service is deactivated. To do this, return a `Disposable` from
 your service-consuming method:
 
 ```coffeescript
@@ -512,3 +512,4 @@ all the other available commands.
 [convert-bundle]: converting-a-text-mate-bundle.html
 [convert-theme]: converting-a-text-mate-theme.html
 [json-schema]: http://json-schema.org/
+[version-ranges]: https://docs.npmjs.com/misc/semver#ranges
