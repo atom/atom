@@ -120,6 +120,7 @@ parseCommandLine = ->
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
+  options.string('socket-path')
   args = options.argv
 
   if args.help
@@ -140,6 +141,7 @@ parseCommandLine = ->
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
   logFile = args['log-file']
+  socketPath = args['socket-path']
 
   if args['resource-path']
     devMode = true
@@ -164,6 +166,6 @@ parseCommandLine = ->
   # explicitly pass it by command line, see http://git.io/YC8_Ew.
   process.env.PATH = args['path-environment'] if args['path-environment']
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
+  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, socketPath}
 
 start()
