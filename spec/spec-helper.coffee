@@ -2,8 +2,8 @@ require '../src/window'
 atom.initialize()
 atom.restoreWindowDimensions()
 
-require 'jasmine-json'
-require '../vendor/jasmine-jquery'
+# require 'jasmine-json'
+# require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
@@ -49,12 +49,13 @@ Object.defineProperty document, 'title',
   get: -> documentTitle
   set: (title) -> documentTitle = title
 
-jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+beforeEach ->
+  jasmine.env.addCustomEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
-if process.env.JANKY_SHA1 and process.platform is 'win32'
-  jasmine.getEnv().defaultTimeoutInterval = 60000
-else
-  jasmine.getEnv().defaultTimeoutInterval = 5000
+# if process.env.JANKY_SHA1 and process.platform is 'win32'
+#   jasmine.defaultTimeoutInterval = 60000
+# else
+#   jasmine.defaultTimeoutInterval = 5000
 
 specPackageName = null
 specPackagePath = null
@@ -86,9 +87,9 @@ beforeEach ->
   atom.workspaceViewParentSelector = '#jasmine-content'
 
   window.resetTimeouts()
-  spyOn(_._, "now").andCallFake -> window.now
-  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
-  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+  spyOn(_._, "now").and.callFake -> window.now
+  spyOn(window, "setTimeout").and.callFake window.fakeSetTimeout
+  spyOn(window, "clearTimeout").and.callFake window.fakeClearTimeout
 
   atom.packages.packageStates = {}
 
@@ -97,12 +98,12 @@ beforeEach ->
   spyOn(atom, 'saveSync')
   atom.grammars.clearGrammarOverrides()
 
-  spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
+  spy = spyOn(atom.packages, 'resolvePackagePath').and.callFake (packageName) ->
     if specPackageName and packageName is specPackageName
       resolvePackagePath(specPackagePath)
     else
       resolvePackagePath(packageName)
-  resolvePackagePath = _.bind(spy.originalValue, atom.packages)
+  # resolvePackagePath = _.bind(spy.originalValue, atom.packages)
 
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
@@ -121,26 +122,26 @@ beforeEach ->
     "package-with-broken-package-json", "package-with-broken-keymap"]
   config.set "editor.useShadowDOM", true
   advanceClock(1000)
-  window.setTimeout.reset()
-  config.load.reset()
-  config.save.reset()
+  window.setTimeout.calls.reset()
+  config.load.calls.reset()
+  config.save.calls.reset()
 
   # make editor display updates synchronous
   TextEditorElement::setUpdatedSynchronously(true)
 
   spyOn(atom, "setRepresentedFilename")
-  spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
-  spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
+  spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").and.callFake -> @detectResurrection()
+  spyOn(TextEditor.prototype, "shouldPromptToSave").and.returnValue(false)
 
   # make tokenization synchronous
   TokenizedBuffer.prototype.chunkSize = Infinity
-  spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+  spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").and.callFake -> @tokenizeNextChunk()
 
   clipboardContent = 'initial clipboard content'
-  spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text
-  spyOn(clipboard, 'readText').andCallFake -> clipboardContent
+  spyOn(clipboard, 'writeText').and.callFake (text) -> clipboardContent = text
+  spyOn(clipboard, 'readText').and.callFake -> clipboardContent
 
-  addCustomMatchers(this)
+  # addCustomMatchers(jasmine)
 
 afterEach ->
   atom.packages.deactivatePackages()
@@ -164,7 +165,7 @@ afterEach ->
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   atom.grammars.clearObservers()
-  waits(0) # yield to ui thread to make screen update more frequently
+  # waits(0) # yield to ui thread to make screen update more frequently
 
 ensureNoPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()
@@ -193,16 +194,16 @@ ensureNoDeprecatedFunctionsCalled = ->
 
     throw error
 
-emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
-jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
-  if obj.inspect
-    @append obj.inspect()
-  else
-    emitObject.call(this, obj)
+# emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
+# jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
+#   if obj.inspect
+#     @append obj.inspect()
+#   else
+#     emitObject.call(this, obj)
 
 jasmine.unspy = (object, methodName) ->
-  throw new Error("Not a spy") unless object[methodName].hasOwnProperty('originalValue')
-  object[methodName] = object[methodName].originalValue
+  throw new Error("Not a spy") unless object[methodName].hasOwnProperty('calls')
+  object[methodName].and.callThrough()
 
 jasmine.attachToDOM = (element) ->
   jasmineContent = document.querySelector('#jasmine-content')
@@ -221,7 +222,7 @@ jasmine.useRealClock = ->
   jasmine.unspy(_._, 'now')
 
 addCustomMatchers = (spec) ->
-  spec.addMatchers
+  jasmine.addMatchers
     toBeInstanceOf: (expected) ->
       notText = if @isNot then " not" else ""
       this.message = => "Expected #{jasmine.pp(@actual)} to#{notText} be instance of #{expected.name} class"

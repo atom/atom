@@ -11,7 +11,7 @@ requireSpecs = (specDirectory, specType) ->
     setSpecDirectory(specDirectory)
 
 setSpecField = (name, value) ->
-  specs = jasmine.getEnv().currentRunner().specs()
+  specs = jasmine.specFiles
   return if specs.length is 0
   for index in [specs.length-1..0]
     break if specs[index][name]?
