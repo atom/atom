@@ -21,7 +21,14 @@ setupTempDirectory = ->
     fs.makeTreeSync(temp.dir)
   temp.track()
 
+setupApmRcFile = ->
+  rcPath = path.resolve(__dirname, '..', '.apmrc')
+  cachePath = path.join(config.getAtomDirectory(), '.apm')
+  try
+    fs.writeFileSync(rcPath, "cache = #{cachePath}\n")
+
 setupTempDirectory()
+setupApmRcFile()
 
 commandClasses = [
   require './clean'
