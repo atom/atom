@@ -23,6 +23,12 @@ describe "PackageManager", ->
       expect(pack instanceof Package).toBe true
       expect(pack.metadata.name).toBe "package-with-broken-keymap"
 
+    it "returns the package if it has an invalid stylesheet", ->
+      pack = atom.packages.loadPackage("package-with-invalid-styles")
+      expect(pack instanceof Package).toBe true
+      expect(pack.metadata.name).toBe "package-with-invalid-styles"
+      expect(pack.stylesheets.length).toBe 0
+
     it "returns null if the package has an invalid package.json", ->
       spyOn(console, 'warn')
       expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
