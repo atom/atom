@@ -22,7 +22,6 @@ TextEditorComponent = React.createClass
   mixins: [SubscriberMixin]
 
   visible: false
-  autoHeight: false
   pendingScrollTop: null
   pendingScrollLeft: null
   selectOnMouseMove: false
@@ -54,7 +53,6 @@ TextEditorComponent = React.createClass
 
       hiddenInputStyle = @getHiddenInputPosition()
       hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
-
       style.height = @presenter.state.height if @presenter.state.height?
 
     if useShadowDOM
@@ -673,20 +671,15 @@ TextEditorComponent = React.createClass
     {height} = hostElement.style
 
     if position is 'absolute' or height
-      if @autoHeight
-        @autoHeight = false
-        @presenter.setAutoHeight(false)
-        @forceUpdate() if not @updatesPaused and @canUpdate()
-
-      clientHeight =  scrollViewNode.clientHeight
-      if clientHeight > 0
-        @presenter.setHeight(clientHeight)
-        editor.setHeight(clientHeight)
+      @presenter.setAutoHeight(false)
+      height =  hostElement.offsetHeight
+      if height > 0
+        @presenter.setHeight(height)
+        editor.setHeight(height)
     else
       @presenter.setAutoHeight(true)
       @presenter.setHeight(null)
       editor.setHeight(null)
-      @autoHeight = true
 
     clientWidth = scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)

@@ -2522,6 +2522,7 @@ describe "TextEditorComponent", ->
       it "does not assign a height on the component node", ->
         wrapperNode.style.height = '200px'
         component.measureHeightAndWidth()
+        nextAnimationFrame()
         expect(componentNode.style.height).toBe ''
 
     describe "when the wrapper view does not have an explicit height", ->
@@ -2579,6 +2580,7 @@ describe "TextEditorComponent", ->
 
     it "works with the ::setEditorHeightInLines and ::setEditorWidthInChars helpers", ->
       setEditorHeightInLines(wrapperView, 7)
+      nextAnimationFrame()
       expect(componentNode.offsetHeight).toBe lineHeightInPixels * 7
 
       setEditorWidthInChars(wrapperView, 10)
