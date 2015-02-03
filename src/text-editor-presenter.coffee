@@ -660,6 +660,7 @@ class TextEditorPresenter
 
     if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(startRow, endRow - 1)
       delete @state.content.highlights[decoration.id]
+      @emitter.emit 'did-update-state'
       return
 
     if range.start.row < startRow
@@ -671,6 +672,7 @@ class TextEditorPresenter
 
     if range.isEmpty()
       delete @state.content.highlights[decoration.id]
+      @emitter.emit 'did-update-state'
       return
 
     highlightState = @state.content.highlights[decoration.id] ?= {
