@@ -267,11 +267,11 @@ class TextEditorPresenter
       visibleLineNumberIds[id] = true
 
     if @mouseWheelScreenRow?
-      screenRow = @mouseWheelScreenRow
-      top = screenRow * @lineHeight
-      bufferRow = @model.bufferRowForScreenRow(screenRow)
-      @state.gutter.lineNumbers[id] = {screenRow, bufferRow, top}
-      visibleLineNumberIds[bufferRow] = true
+      bufferRow = @model.bufferRowForScreenRow(@mouseWheelScreenRow)
+      wrapCount = @mouseWheelScreenRow - @model.screenRowForBufferRow(bufferRow)
+      id = bufferRow
+      id += '-' + wrapCount if wrapCount > 0
+      visibleLineNumberIds[id] = true
 
     for id of @state.gutter.lineNumbers
       delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
