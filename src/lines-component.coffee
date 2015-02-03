@@ -66,7 +66,7 @@ LinesComponent = React.createClass
   componentDidUpdate: ->
     {visible, presenter} = @props
 
-    @removeLineNodes() unless @oldState?.indentGuidesVisible is @newState?.indentGuidesVisible
+    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
     @measureCharactersInNewLines() if visible and not @newState.scrollingVertically
 
