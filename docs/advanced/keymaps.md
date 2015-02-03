@@ -49,19 +49,17 @@ can be expressed as keystroke patterns separated by spaces.
 Commands are custom DOM events that are triggered when a keystroke matches a
 binding. This allows user interface code to listen for named commands without
 specifying the specific keybinding that triggers it. For example, the following
-code sets up {EditorView} to listen for commands to move the cursor to the first
-character of the current line:
+code creates a command to insert the current date in an editor:
 
 ```coffee
-class EditorView
-  listenForEvents: ->
-    @command 'editor:move-to-first-character-of-line', =>
-      @editor.moveToFirstCharacterOfLine()
+atom.commands.add 'atom-text-editor',
+  'user:insert-date': (event) ->
+    editor = @getModel()
+    editor.insertText(new Date().toLocaleString())
 ```
 
-The `::command` method is basically an enhanced version of jQuery's `::on`
-method that listens for a custom DOM event and adds some metadata to the DOM,
-which is read by the command palette.
+`atom.commands` refers to the global {CommandRegistry} instance where all commands
+are set and consequently picked up by the command palette.
 
 When you are looking to bind new keys, it is often useful to use the command
 palette (`ctrl-shift-p`) to discover what commands are being listened for in a
