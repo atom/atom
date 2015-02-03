@@ -39,6 +39,7 @@
     "guid": "0.0.10",
     "jasmine-json": "~0.0",
     "jasmine-tagged": "^1.1.2",
+    "jasmine": "2.1.1",
     "jquery": "^2.1.1",
     "less-cache": "0.21",
     "marked": "^0.3",
