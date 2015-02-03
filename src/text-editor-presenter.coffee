@@ -605,18 +605,13 @@ class TextEditorPresenter
     @lineNumberDecorationsByScreenRow = {}
     @highlightDecorationsById = {}
 
-    return if @model.isMini()
-
     visibleHighlights = {}
     startRow = @computeStartRow()
     endRow = @computeEndRow()
     return unless 0 <= startRow <= endRow <= Infinity
 
     for markerId, decorations of @model.decorationsForScreenRowRange(startRow, endRow - 1)
-      marker = @model.getMarker(markerId)
-      continue unless marker.isValid()
-
-      range = marker.getScreenRange()
+      range = @model.getMarker(markerId).getScreenRange()
       for decoration in decorations
         if decoration.isType('line') or decoration.isType('line-number')
           @updateLineDecorationCaches(decoration, range)
@@ -660,7 +655,7 @@ class TextEditorPresenter
     marker = decoration.getMarker()
     range = marker.getScreenRange()
 
-    if decoration.isDestroyed() or not marker.isValid() or not range.intersectsRowRange(startRow, endRow - 1)
+    if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(startRow, endRow - 1)
       delete @state.content.highlights[decoration.id]
       return
 
