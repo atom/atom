@@ -1,5 +1,5 @@
 {CompositeDisposable, Emitter} = require 'event-kit'
-{Point} = require 'text-buffer'
+{Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 
 module.exports =
@@ -567,12 +567,10 @@ class TextEditorPresenter
       @updateOverlaysState()
 
   didDestroyDecoration: (decoration) ->
-    if decoration.isType('line')
-      @updateDecorations()
-      @updateLinesState()
-    if decoration.isType('line-number')
-      @updateDecorations()
-      @updateLineNumbersState()
+    if decoration.isType('line') or decoration.isType('line-number')
+      @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
+      @updateLinesState() if decoration.isType('line')
+      @updateLineNumbersState() if decoration.isType('line-number')
     if decoration.isType('highlight')
       @updateHighlightState(decoration)
     if decoration.isType('overlay')
@@ -614,7 +612,7 @@ class TextEditorPresenter
       range = @model.getMarker(markerId).getScreenRange()
       for decoration in decorations
         if decoration.isType('line') or decoration.isType('line-number')
-          @updateLineDecorationCaches(decoration, range)
+          @addToLineDecorationCaches(decoration, range)
         else if decoration.isType('highlight')
           visibleHighlights[decoration.id] = @updateHighlightState(decoration)
 
@@ -624,7 +622,12 @@ class TextEditorPresenter
 
     @emitter.emit 'did-update-state'
 
-  updateLineDecorationCaches: (decoration, range) ->
+  removeFromLineDecorationCaches: (decoration, range) ->
+    for row in [range.start.row..range.end.row] by 1
+      delete @lineDecorationsByScreenRow[row]?[decoration.id]
+      delete @lineNumberDecorationsByScreenRow[row]?[decoration.id]
+
+  addToLineDecorationCaches: (decoration, range) ->
     marker = decoration.getMarker()
     properties = decoration.getProperties()
 
