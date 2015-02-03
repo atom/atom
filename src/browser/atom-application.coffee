@@ -216,6 +216,8 @@ class AtomApplication
     ipc.on 'open', (event, options) =>
       window = @windowForEvent(event)
       if options?
+        if typeof options.pathsToOpen is 'string'
+          options.pathsToOpen = [options.pathsToOpen]
         if options.pathsToOpen?.length > 0
           options.window = window
           @openPaths(options)
