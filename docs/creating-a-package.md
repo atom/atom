@@ -55,7 +55,7 @@ _snippets_ directory are added alphabetically.
 trigger your package's activation. You can delay the loading of your package
 until one of these events is triggered.
 - `providedServices` (**Optional**): an Object describing the services that your
-packages provides, which can be used by other packages. The keys of this object
+package provides, which can be used by other packages. The keys of this object
 are the names of the services, and the values are Objects with the following
 keys:
   - `description` (**Optional**) a String describing the service
