@@ -36,6 +36,7 @@ class TextEditorPresenter
       @updateHorizontalScrollState()
       @updateScrollbarsState()
       @updateContentState()
+      @updateDecorations()
       @updateLinesState()
       @updateGutterState()
       @updateLineNumbersState()
@@ -43,6 +44,7 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
       @updateContentState()
+      @updateDecorations()
       @updateLinesState()
       @updateLineNumbersState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
@@ -73,6 +75,7 @@ class TextEditorPresenter
     @updateHorizontalScrollState()
     @updateScrollbarsState()
     @updateContentState()
+    @updateDecorations()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
@@ -379,44 +382,18 @@ class TextEditorPresenter
     return null if @model.isMini()
 
     decorationClasses = null
-    for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
-      for decoration in decorations when decoration.isType('line')
-        properties = decoration.getProperties()
-        range = decoration.getMarker().getScreenRange()
-
-        continue if properties.onlyHead and decoration.getMarker().getHeadScreenPosition().row isnt row
-        continue unless range.intersectsRow(row)
-        if range.isEmpty()
-          continue if properties.onlyNonEmpty
-        else
-          continue if properties.onlyEmpty
-          continue if row is range.end.row and range.end.column is 0
-
-        decorationClasses ?= []
-        decorationClasses.push(properties.class)
-
+    for id, decoration of @lineDecorationsByScreenRow[row]
+      decorationClasses ?= []
+      decorationClasses.push(decoration.getProperties().class)
     decorationClasses
 
   lineNumberDecorationClassesForRow: (row) ->
     return null if @model.isMini()
 
     decorationClasses = null
-    for markerId, decorations of @model.decorationsForScreenRowRange(row, row) when @model.getMarker(markerId).isValid()
-      for decoration in decorations when decoration.isType('line-number')
-        properties = decoration.getProperties()
-        range = decoration.getMarker().getScreenRange()
-
-        continue if properties.onlyHead and decoration.getMarker().getHeadScreenPosition().row isnt row
-        continue unless range.intersectsRow(row)
-        if range.isEmpty()
-          continue if properties.onlyNonEmpty
-        else
-          continue if properties.onlyEmpty
-          continue if row is range.end.row and range.end.column is 0
-
-        decorationClasses ?= []
-        decorationClasses.push(properties.class)
-
+    for id, decoration of @lineNumberDecorationsByScreenRow[row]
+      decorationClasses ?= []
+      decorationClasses.push(decoration.getProperties().class)
     decorationClasses
 
   getCursorBlinkPeriod: -> @cursorBlinkPeriod
@@ -431,6 +408,7 @@ class TextEditorPresenter
       @scrollTop = scrollTop
       @didStartScrolling()
       @updateVerticalScrollState()
+      @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
       @updateHighlightsState()
@@ -448,6 +426,7 @@ class TextEditorPresenter
     @state.content.scrollingVertically = false
     if @mouseWheelScreenRow?
       @mouseWheelScreenRow = null
+      @updateDecorations()
       @updateLinesState()
       @updateLineNumbersState()
     else
@@ -478,6 +457,7 @@ class TextEditorPresenter
       @height = height
       @updateVerticalScrollState()
       @updateScrollbarsState()
+      @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
       @updateHighlightsState()
@@ -492,6 +472,7 @@ class TextEditorPresenter
       @updateHorizontalScrollState()
       @updateScrollbarsState()
       @updateContentState()
+      @updateDecorations()
       @updateLinesState()
 
   setBackgroundColor: (backgroundColor) ->
@@ -509,6 +490,7 @@ class TextEditorPresenter
       @lineHeight = lineHeight
       @updateHeightState()
       @updateVerticalScrollState()
+      @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
       @updateHighlightsState()
@@ -551,6 +533,7 @@ class TextEditorPresenter
   characterWidthsChanged: ->
     @updateHorizontalScrollState()
     @updateContentState()
+    @updateDecorations()
     @updateLinesState()
     @updateCursorsState()
     @updateHighlightsState()
@@ -616,8 +599,10 @@ class TextEditorPresenter
 
   decorationMarkerDidChange: (decoration) ->
     if decoration.isType('line')
+      @updateDecorations()
       @updateLinesState()
     if decoration.isType('line-number')
+      @updateDecorations()
       @updateLineNumbersState()
     if decoration.isType('highlight')
       @updateHighlightsState()
@@ -626,8 +611,10 @@ class TextEditorPresenter
 
   didDestroyDecoration: (decoration) ->
     if decoration.isType('line')
+      @updateDecorations()
       @updateLinesState()
     if decoration.isType('line-number')
+      @updateDecorations()
       @updateLineNumbersState()
     if decoration.isType('highlight')
       @updateHighlightsState()
@@ -646,13 +633,57 @@ class TextEditorPresenter
     @observeDecoration(decoration)
 
     if decoration.isType('line')
+      @updateDecorations()
       @updateLinesState()
     if decoration.isType('line-number')
+      @updateDecorations()
       @updateLineNumbersState()
     else if decoration.isType('highlight')
       @updateHighlightsState()
     else if decoration.isType('overlay')
       @updateOverlaysState()
+
+  updateDecorations: ->
+    @lineDecorationsByScreenRow = {}
+    @lineNumberDecorationsByScreenRow = {}
+    @highlightDecorationsById = {}
+
+    return if @model.isMini()
+
+    startRow = @computeStartRow()
+    endRow = @computeEndRow()
+    return unless 0 <= startRow <= endRow <= Infinity
+
+    for markerId, decorations of @model.decorationsForScreenRowRange(startRow, endRow)
+      marker = @model.getMarker(markerId)
+      continue unless marker.isValid()
+
+      range = marker.getScreenRange()
+      for decoration in decorations
+        if decoration.isType('line') or decoration.isType('line-number')
+          @updateLineDecorationCaches(decoration, range)
+
+  updateLineDecorationCaches: (decoration, range) ->
+    marker = decoration.getMarker()
+    properties = decoration.getProperties()
+
+    if range.isEmpty()
+      return if properties.onlyNonEmpty
+    else
+      return if properties.onlyEmpty
+      omitLastRow = range.end.column is 0
+
+    for row in [range.start.row..range.end.row] by 1
+      continue if properties.onlyHead and row isnt marker.getHeadScreenPosition().row
+      continue if omitLastRow and row is range.end.row
+
+      if decoration.isType('line')
+        @lineDecorationsByScreenRow[row] ?= {}
+        @lineDecorationsByScreenRow[row][decoration.id] = decoration
+
+      if decoration.isType('line-number')
+        @lineNumberDecorationsByScreenRow[row] ?= {}
+        @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
