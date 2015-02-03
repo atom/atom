@@ -1722,8 +1722,8 @@ describe "TextEditorPresenter", ->
           referencePresenter = new TextEditorPresenter(presenterParams)
           expect(presenter.state).toEqual referencePresenter.state
 
+          actions = []
           _.times 30, ->
-            actions = []
             performRandomAction (action) -> actions.push(action)
             actualState = presenter.state
             expectedState = new TextEditorPresenter(presenterParams).state
