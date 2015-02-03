@@ -555,13 +555,12 @@ class TextEditorPresenter
       @didDestroyDecoration(decoration)
     @disposables.add(decorationDisposables)
 
-  decorationMarkerDidChange: (decoration) ->
-    if decoration.isType('line')
-      @updateDecorations()
-      @updateLinesState()
-    if decoration.isType('line-number')
-      @updateDecorations()
-      @updateLineNumbersState()
+  decorationMarkerDidChange: (decoration, change) ->
+    if decoration.isType('line') or decoration.isType('line-number')
+      @removeFromLineDecorationCaches(decoration, new Range(change.oldTailScreenPosition, change.oldHeadScreenPosition))
+      @addToLineDecorationCaches(decoration, new Range(change.newTailScreenPosition, change.newHeadScreenPosition))
+      @updateLinesState() if decoration.isType('line')
+      @updateLineNumbersState() if decoration.isType('line-number')
     if decoration.isType('highlight')
       @updateHighlightState(decoration)
     if decoration.isType('overlay')
