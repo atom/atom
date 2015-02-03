@@ -62,6 +62,6 @@ class Test extends Command
           process.stdout.write 'Tests passed\n'.green
           callback()
         else if code?.message
-          callback("Error spawning Atom: #{code.message}")
+          callback("Error spawning #{atomCommand}: #{code.message}")
         else
           callback('Tests failed')
