@@ -587,12 +587,10 @@ class TextEditorPresenter
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
 
-    if decoration.isType('line')
-      @updateDecorations()
-      @updateLinesState()
-    if decoration.isType('line-number')
-      @updateDecorations()
-      @updateLineNumbersState()
+    if decoration.isType('line') or decoration.isType('line-number')
+      @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
+      @updateLinesState() if decoration.isType('line')
+      @updateLineNumbersState() if decoration.isType('line-number')
     else if decoration.isType('highlight')
       @updateHighlightState(decoration)
     else if decoration.isType('overlay')
