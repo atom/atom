@@ -68,7 +68,7 @@ LinesComponent = React.createClass
 
     @removeLineNodes() unless @oldState?.indentGuidesVisible is @newState?.indentGuidesVisible
     @updateLineNodes()
-    @measureCharactersInNewLines() if visible and not presenter.state.scrollingVertically
+    @measureCharactersInNewLines() if visible and not @newState.scrollingVertically
 
     @overlayManager?.render(@props)
 
