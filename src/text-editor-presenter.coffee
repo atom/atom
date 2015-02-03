@@ -160,10 +160,9 @@ class TextEditorPresenter
         @buildLineState(row, line)
       row++
 
-    if @mouseWheelScreenRow? and not startRow <= @mouseWheelScreenRow < endRow
+    if @mouseWheelScreenRow?
       preservedLine = @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)
       visibleLineIds[preservedLine.id] = true
-      @updateLineState(@mouseWheelScreenRow, preservedLine)
 
     for id, line of @state.content.lines
       unless visibleLineIds.hasOwnProperty(id)
@@ -260,7 +259,7 @@ class TextEditorPresenter
       @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
       visibleLineNumberIds[id] = true
 
-    if @mouseWheelScreenRow? and not startRow <= @mouseWheelScreenRow < endRow
+    if @mouseWheelScreenRow?
       screenRow = @mouseWheelScreenRow
       top = screenRow * @lineHeight
       bufferRow = @model.bufferRowForScreenRow(screenRow)
