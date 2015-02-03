@@ -551,6 +551,7 @@ class TextEditorPresenter
       decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
     decorationDisposables.add decoration.onDidDestroy =>
       @disposables.remove(decorationDisposables)
+      decorationDisposables.dispose()
       @didDestroyDecoration(decoration)
     @disposables.add(decorationDisposables)
 
