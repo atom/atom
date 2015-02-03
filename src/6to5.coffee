@@ -7,7 +7,7 @@ Inspired by https://github.com/atom/atom/blob/6b963a562f8d495fbebe6abdbafbc7caf7
 crypto = require 'crypto'
 fs = require 'fs-plus'
 path = require 'path'
-to5 = require '6to5-core'
+to5 = null # Defer until used
 
 stats =
   hits: 0
@@ -89,11 +89,16 @@ create6to5VersionAndOptionsDigest = (version, options) ->
   updateDigestForJsonValue(shasum, options)
   shasum.digest('hex')
 
-cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
-jsCacheDir = path.join(cacheDir, 'js', '6to5', create6to5VersionAndOptionsDigest(to5.version, defaultOptions))
+jsCacheDir = null
 
 getCachePath = (sourceCode) ->
   digest = crypto.createHash('sha1').update(sourceCode, 'utf8').digest('hex')
+
+  unless jsCacheDir?
+    to5 ?= require '6to5-core'
+    cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
+    jsCacheDir = path.join(cacheDir, 'js', '6to5', create6to5VersionAndOptionsDigest(to5.version, defaultOptions))
+
   path.join(jsCacheDir, "#{digest}.js")
 
 getCachedJavaScript = (cachePath) ->
@@ -113,6 +118,7 @@ createOptions = (filePath) ->
 
 transpile = (sourceCode, filePath, cachePath) ->
   options = createOptions(filePath)
+  to5 ?= require '6to5-core'
   js = to5.transform(sourceCode, options).code
   stats.misses++
 
