@@ -11,8 +11,8 @@ module.exports =
   getAtomDirectory: ->
     process.env.ATOM_HOME ? path.join(@getHomeDirectory(), '.atom')
 
-  getPackageCacheDirectory: ->
-    path.join(@getAtomDirectory(), '.node-gyp', '.atom', '.apm')
+  getCacheDirectory: ->
+    path.join(@getAtomDirectory(), '.apm')
 
   getResourcePath: (callback) ->
     if process.env.ATOM_RESOURCE_PATH
@@ -113,6 +113,5 @@ module.exports =
 
   setupApmRcFile: ->
     rcPath = path.resolve(__dirname, '..', '.apmrc')
-    cachePath = path.join(@getAtomDirectory(), '.apm')
     try
-      fs.writeFileSync(rcPath, "cache = #{cachePath}\n")
+      fs.writeFileSync(rcPath, "cache = #{@getCacheDirectory()}\n")
