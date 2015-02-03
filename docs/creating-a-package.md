@@ -51,7 +51,7 @@ in the _menus_ directory are added alphabetically.
 - `snippets` (**Optional**): an Array of Strings identifying the order of the
 snippets your package needs to load. If not specified, snippets in the
 _snippets_ directory are added alphabetically.
-- `activationEvents` (**Optional**): an Array of Strings identifying events that
+- `activationCommands` (**Optional**): an Array of Strings identifying commands that
 trigger your package's activation. You can delay the loading of your package
 until one of these events is triggered.
 - `providedServices` (**Optional**): an Object describing the services that your
@@ -98,9 +98,9 @@ module's `activate` method so you can restore your view to where the user left
 off.
 
 - `deactivate()`: This **optional** method is called when the window is shutting
-down. If your package is watching any files or holding external resources in any
-other way, release them here. If you're just subscribing to things on window,
-you don't need to worry because that's getting torn down anyway.
+down, or when your package is being updated or disabled. If your package is
+watching any files, holding external resources, providing commands or subscribing
+to events, release them here.
 
 ### Simple Package Code
 
@@ -127,12 +127,11 @@ module.exports =
   serialize: -> # ...
 ```
 
-Beyond this simple contract, your package has access to Atom's API. Be aware
-that since we are early in development, APIs are subject to change and we have
-not yet established clear boundaries between what is public and what is private.
-Also, please collaborate with us if you need an API that doesn't exist. Our goal
-is to build out Atom's API organically based on the needs of package authors
-like you.
+Beyond this simple contract, your package has access to [Atom's API][api]. Be aware
+that the Atom 1.0 API is mostly frozen. Refer to the API documentation for what
+is public. That said, please collaborate with us if you need an API that doesn't
+exist. Our goal is to build out Atom's API organically based on the needs of
+package authors like you.
 
 ## Style Sheets
 
@@ -490,6 +489,7 @@ registry.
 Run `apm help publish` to see all the available options and `apm help` to see
 all the other available commands.
 
+[api]: https://atom.io/docs/api/latest
 [file-tree]: https://github.com/atom/tree-view
 [status-bar]: https://github.com/atom/status-bar
 [cs-syntax]: https://github.com/atom/language-coffee-script

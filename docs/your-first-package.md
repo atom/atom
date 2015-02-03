@@ -72,12 +72,12 @@ command palette or by pressing `ctrl-alt-cmd-l`.
 
 Now open the command panel and search for the `ascii-art:convert` command. But
 it's not there! To fix this, open _package.json_ and find the property called
-`activationEvents`. Activation Events speed up load time by allowing Atom to
+`activationCommands`. Activation Events speed up load time by allowing Atom to
 delay a package's activation until it's needed. So remove the existing command
-and add `ascii-art:convert` to the `activationEvents` array:
+and add `ascii-art:convert` to the `activationCommands` array:
 
 ```json
-"activationEvents": ["ascii-art:convert"],
+"activationCommands": ["ascii-art:convert"],
 ```
 
 First, reload the window by running the command `window:reload`. Now when you
