@@ -111,7 +111,7 @@ module.exports =
 
     null
 
-  setupApmRcFile = ->
+  setupApmRcFile: ->
     rcPath = path.resolve(__dirname, '..', '.apmrc')
     cachePath = path.join(@getAtomDirectory(), '.apm')
     try
