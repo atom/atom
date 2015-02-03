@@ -95,9 +95,9 @@ getCachePath = (sourceCode) ->
   digest = crypto.createHash('sha1').update(sourceCode, 'utf8').digest('hex')
 
   unless jsCacheDir?
-    to5 ?= require '6to5-core'
+    to5Version = require('6to5-core/package.json').version
     cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
-    jsCacheDir = path.join(cacheDir, 'js', '6to5', create6to5VersionAndOptionsDigest(to5.version, defaultOptions))
+    jsCacheDir = path.join(cacheDir, 'js', '6to5', create6to5VersionAndOptionsDigest(to5Version, defaultOptions))
 
   path.join(jsCacheDir, "#{digest}.js")
 
