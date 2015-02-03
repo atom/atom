@@ -73,6 +73,15 @@ setupCoffeeScript = ->
     js = CoffeeScript.compile(coffee, filename: filePath)
     module._compile(js, filePath)
 
+setupAtomHome = ->
+  return if process.env.ATOM_HOME
+
+  if process.platform is 'win32'
+    home = process.env.USERPROFILE
+  else
+    home = process.env.HOME
+  process.env.ATOM_HOME = path.join(home, '.atom')
+
 parseCommandLine = ->
   version = app.getVersion()
   options = optimist(process.argv[1..])
@@ -149,4 +158,5 @@ parseCommandLine = ->
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
 
+setupAtomHome()
 start()
