@@ -1522,6 +1522,15 @@ describe "TextEditorPresenter", ->
           expect(lineNumberStateForScreenRow(presenter, 7)).toBeDefined()
           expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
+        it "correctly handles the first screen line being soft-wrapped", ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(30)
+          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 0)
+
+          expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 3, softWrapped: true}
+          expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 3, softWrapped: true}
+          expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 4, softWrapped: false}
+
         describe ".decorationClasses", ->
           it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
             marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')

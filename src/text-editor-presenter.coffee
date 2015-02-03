@@ -237,22 +237,29 @@ class TextEditorPresenter
   updateLineNumbersState: ->
     startRow = @computeStartRow()
     endRow = @computeEndRow()
-    lastBufferRow = null
-    wrapCount = 0
     visibleLineNumberIds = {}
 
+    if startRow > 0
+      rowBeforeStartRow = startRow - 1
+      lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
+      wrapCount = rowBeforeStartRow - @model.screenRowForBufferRow(lastBufferRow)
+    else
+      lastBufferRow = null
+      wrapCount = 0
+
     for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
-      screenRow = startRow + i
-      top = screenRow * @lineHeight
       if bufferRow is lastBufferRow
         wrapCount++
-        softWrapped = true
         id = bufferRow + '-' + wrapCount
+        softWrapped = true
       else
-        wrapCount = 0
-        softWrapped = false
-        lastBufferRow = bufferRow
         id = bufferRow
+        wrapCount = 0
+        lastBufferRow = bufferRow
+        softWrapped = false
+
+      screenRow = startRow + i
+      top = screenRow * @lineHeight
       decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
       foldable = @model.isFoldableAtScreenRow(screenRow)
 
