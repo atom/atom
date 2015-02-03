@@ -110,3 +110,9 @@ module.exports =
       return atomCommand if fs.existsSync(atomCommand)
 
     null
+
+  setupApmRcFile = ->
+    rcPath = path.resolve(__dirname, '..', '.apmrc')
+    cachePath = path.join(config.getAtomDirectory(), '.apm')
+    try
+      fs.writeFileSync(rcPath, "cache = #{cachePath}\n")
