@@ -4244,12 +4244,22 @@ describe "TextEditor", ->
         waitsForPromise -> editor.checkoutHeadRevision()
 
   describe 'gutters', ->
+    describe 'the TextEditor constructor', ->
+      it 'creates a line-number gutter', ->
+        expect(editor.getGutters().length).toBe 1
+        lineNumberGutter = editor.gutterWithName('line-number')
+        expect(lineNumberGutter.name).toBe 'line-number'
+        expect(lineNumberGutter.priority).toBe 0
+
     describe '::addGutter', ->
       it 'can add a gutter', ->
-        expect(editor.getGutters().length).toBe 0
+        expect(editor.getGutters().length).toBe 1 # line-number gutter
         options =
           name: 'test-gutter'
           priority: 1
         gutter = editor.addGutter options
-        expect(editor.getGutters().length).toBe 1
-        expect(editor.getGutters()[0]).toBe gutter
+        expect(editor.getGutters().length).toBe 2
+        expect(editor.getGutters()[1]).toBe gutter
+
+      it "does not allow a custom gutter with the 'line-number' name.", ->
+        expect(editor.addGutter.bind(editor, {name: 'line-number'})).toThrow()

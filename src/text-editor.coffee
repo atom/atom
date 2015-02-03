@@ -75,7 +75,7 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @lineNumberGutterVisible}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}) ->
     super
 
     @emitter = new Emitter
@@ -115,6 +115,10 @@ class TextEditor extends Model
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
     @gutterContainer = new GutterContainer
+    @lineNumberGutter = @gutterContainer.addGutter
+      name: 'line-number'
+      priority: 0
+      visible: lineNumberGutterVisible
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -494,12 +498,15 @@ class TextEditor extends Model
     @emitter.on 'did-change-mini', callback
 
   setLineNumberGutterVisible: (lineNumberGutterVisible) ->
-    unless lineNumberGutterVisible is @lineNumberGutterVisible
-      @lineNumberGutterVisible = lineNumberGutterVisible
-      @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutterVisible
-    @lineNumberGutterVisible
+    unless lineNumberGutterVisible is @lineNumberGutter.isVisible()
+      if lineNumberGutterVisible
+        @lineNumberGutter.show()
+      else
+        @lineNumberGutter.hide()
+      @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutter.isVisible()
+    @lineNumberGutter.isVisible()
 
-  isLineNumberGutterVisible: -> @lineNumberGutterVisible ? true
+  isLineNumberGutterVisible: -> @lineNumberGutter.isVisible()
 
   onDidChangeLineNumberGutterVisible: (callback) ->
     @emitter.on 'did-change-line-number-gutter-visible', callback
@@ -512,6 +519,10 @@ class TextEditor extends Model
   # Public: Returns the {Array} of all gutters on this editor.
   getGutters: ->
     @gutterContainer.getGutters()
+
+  # Public: Returns the {Gutter} with the given name, or null if it doesn't exist.
+  gutterWithName: (name) ->
+    @gutterContainer.gutterWithName name
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.
