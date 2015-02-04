@@ -168,10 +168,10 @@ TextEditorComponent = React.createClass
 
   becameVisible: ->
     @updatesPaused = true
+    @measureScrollbars() if @measureScrollbarsWhenShown
     @sampleFontStyling()
     @sampleBackgroundColors()
     @measureHeightAndWidth()
-    @measureScrollbars() if @measureScrollbarsWhenShown
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
     @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @props.editor.setVisible(true)
