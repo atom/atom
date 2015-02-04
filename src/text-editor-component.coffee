@@ -230,12 +230,6 @@ TextEditorComponent = React.createClass
     @subscribe editor.observeGrammar(@onGrammarChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
     @subscribe editor.observeSelections(@onSelectionAdded)
-    @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
-    @subscribe editor.$horizontalScrollbarHeight.changes, @requestUpdate
-    @subscribe editor.$height.changes, @requestUpdate
-    @subscribe editor.$width.changes, @requestUpdate
-    @subscribe editor.$defaultCharWidth.changes, @requestUpdate
-    @subscribe editor.$lineHeightInPixels.changes, @requestUpdate
 
   listenForDOMEvents: ->
     node = @getDOMNode()
