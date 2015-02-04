@@ -98,8 +98,12 @@ parseCommandLine = ->
     opened or a new window if it hasn't.
 
     Environment Variables:
-    ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
-                            Defaults to `~/github/atom`.
+
+      ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
+                              Defaults to `~/github/atom`.
+
+      ATOM_HOME               The root path for all configuration files and folders.
+                              Default to `~/.atom`.
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
