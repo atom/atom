@@ -8,7 +8,7 @@ module.exports =
 class LessCompileCache
   Subscriber.includeInto(this)
 
-  @cacheDir: path.join(require('./coffee-cache').cacheDir, 'less')
+  @cacheDir: path.join(process.env.ATOM_HOME, 'compile-cache', 'less')
 
   constructor: ({resourcePath, importPaths}) ->
     @lessSearchPaths = [
