@@ -12,7 +12,7 @@ SocketPath = path.join(os.tmpdir(), "atom-integration-test.sock")
 ChromeDriverPort = 9515
 
 describe "Starting Atom", ->
-  if spawnSync("type", ["-P", "chromedriver"]).status isnt 0
+  if spawnSync("which", ["chromedriver"]).status isnt 0
     console.log "Skipping integration tests because the `chromedriver` executable was not found."
     return
 
