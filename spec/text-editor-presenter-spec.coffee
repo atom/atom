@@ -1763,54 +1763,68 @@ describe "TextEditorPresenter", ->
         expect(presenter.state.height).toBe editor.getScreenLineCount() * 20
 
   describe "when the model and view measurements are mutated randomly", ->
-    [editor, buffer, presenter, presenterParams] = []
+    [editor, buffer, presenterParams, presenter, statements] = []
 
     it "correctly maintains the presenter state", ->
-      _.times 10, ->
+      _.times 20, ->
         waits(0)
-
         runs ->
-          buffer = new TextBuffer
-          editor = new TextEditor({buffer})
-          editor.setEditorWidthInChars(80)
+          performSetup()
+          _.times 20, ->
+            performRandomAction (statement) -> statements.push(statement)
+            expectValidState()
+          performTeardown()
 
-          presenterParams =
-            model: editor
-            height: 50
-            contentFrameWidth: 300
-            scrollTop: 0
-            scrollLeft: 0
-            lineHeight: 10
-            baseCharacterWidth: 10
-            lineOverdrawMargin: 1
+    xit "works correctly for a particular stream of random actions", ->
+      performSetup()
+      # paste output from failing spec here
+      expectValidState()
+      performTeardown()
 
-          presenter = new TextEditorPresenter(presenterParams)
-          referencePresenter = new TextEditorPresenter(presenterParams)
-          expect(presenter.state).toEqual referencePresenter.state
+    performSetup = ->
+      buffer = new TextBuffer
+      editor = new TextEditor({buffer})
+      editor.setEditorWidthInChars(80)
+      presenterParams =
+        model: editor
+        height: 50
+        contentFrameWidth: 300
+        scrollTop: 0
+        scrollLeft: 0
+        lineHeight: 10
+        baseCharacterWidth: 10
+        lineOverdrawMargin: 1
+        horizontalScrollbarHeight: 5
+        verticalScrollbarWidth: 5
+      presenter = new TextEditorPresenter(presenterParams)
+      statements = []
 
-          actions = []
-          _.times 30, ->
-            performRandomAction (action) -> actions.push(action)
-            actualState = presenter.state
-            expectedState = new TextEditorPresenter(presenterParams).state
-            delete actualState.content.scrollingVertically
-            delete expectedState.content.scrollingVertically
+    performTeardown = ->
+      buffer.destroy()
 
-            unless _.isEqual(actualState, expectedState)
-              console.log "Prestenter states differ >>>>>>>>>>>>>>>>"
-              console.log "Actual:", actualState
-              console.log "Expected:", expectedState
-              console.log "Uncomment code below this line to see a JSON diff"
-              # {diff} = require 'json-diff' # !!! Run `npm install json-diff` in your `atom/` repository
-              # console.log "Difference:", diff(actualState, expectedState)
-              console.log ""
-              console.log "Actions:"
-              console.log action for action in actions
-              console.log ""
-              console.log "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-              throw new Error("Unexpected presenter state after random mutation. Check console output for details.")
+    expectValidState = ->
+      presenterParams.scrollTop = presenter.scrollTop
+      actualState = presenter.state
+      expectedState = new TextEditorPresenter(presenterParams).state
+      delete actualState.content.scrollingVertically
+      delete expectedState.content.scrollingVertically
 
-          buffer.destroy()
+      unless _.isEqual(actualState, expectedState)
+        console.log "Prestenter states differ >>>>>>>>>>>>>>>>"
+        console.log "Actual:", actualState
+        console.log "Expected:", expectedState
+        console.log "Uncomment code below this line to see a JSON diff"
+        # {diff} = require 'json-diff' # !!! Run `npm install json-diff` in your `atom/` repository
+        # console.log "Difference:", diff(actualState, expectedState)
+        if statements.length > 0
+          console.log """
+            =====================================================
+            Paste this code into the disabled spec in this file (and enable it) to repeat this failure:
+
+            #{statements.join('\n')}
+            =====================================================
+          """
+        throw new Error("Unexpected presenter state after random mutation. Check console output for details.")
 
     performRandomAction = (log) ->
       getRandomElement([
@@ -1826,11 +1840,7 @@ describe "TextEditorPresenter", ->
     changeScrollTop = (log) ->
       scrollHeight = presenterParams.lineHeight * editor.getScreenLineCount()
       newScrollTop = Math.max(0, _.random(0, scrollHeight - presenterParams.height))
-      log """
-        presenterParams.scrollTop = #{newScrollTop}
-        presenter.setScrollTop(#{newScrollTop})
-      """
-      presenterParams.scrollTop = newScrollTop
+      log "presenter.setScrollTop(#{newScrollTop})"
       presenter.setScrollTop(newScrollTop)
 
     changeScrollLeft = (log) ->
