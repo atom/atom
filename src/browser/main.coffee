@@ -81,7 +81,7 @@ setupAtomHome = ->
   # in a non-default location. This enables an easy portable version.
   if process.platform is 'win32'
     SquirrelUpdate = require './squirrel-update'
-    if SquirrelUpdate.existsSync()
+    if SquirrelUpdate.existsSync() and process.env.LOCALAPPDATA
       atomPath = path.join(process.env.LOCALAPPDATA, 'atom').toLowerCase()
       if __dirname.toLowerCase().indexOf(atomPath) isnt 0
         rootAtomFolder = path.resolve(process.execPath, '..', '..')
