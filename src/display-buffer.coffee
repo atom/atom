@@ -617,10 +617,10 @@ class DisplayBuffer extends Model
   # bufferRange - The {Range} to convert
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (bufferRange) ->
+  screenRangeForBufferRange: (bufferRange, options) ->
     bufferRange = Range.fromObject(bufferRange)
-    start = @screenPositionForBufferPosition(bufferRange.start)
-    end = @screenPositionForBufferPosition(bufferRange.end)
+    start = @screenPositionForBufferPosition(bufferRange.start, options)
+    end = @screenPositionForBufferPosition(bufferRange.end, options)
     new Range(start, end)
 
   # Given a screen range, this converts it into a buffer position.
