@@ -47,9 +47,8 @@ describe "the `atom` global", ->
         updateAvailableHandler.callCount > 0
 
       runs ->
-        {releaseVersion, releaseNotes} = updateAvailableHandler.mostRecentCall.args[0]
+        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
         expect(releaseVersion).toBe 'version'
-        expect(releaseNotes).toBe 'notes'
 
   describe "loading default config", ->
     it 'loads the default core config', ->

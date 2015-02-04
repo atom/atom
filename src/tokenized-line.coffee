@@ -9,6 +9,7 @@ idCounter = 1
 module.exports =
 class TokenizedLine
   endOfLineInvisibles: null
+  lineIsWhitespaceOnly: false
 
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
@@ -146,7 +147,7 @@ class TokenizedLine
   markLeadingAndTrailingWhitespaceTokens: ->
     firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
     firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
-    lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
+    @lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
     index = 0
     for token in @tokens
       if index < firstNonWhitespaceIndex
@@ -202,12 +203,7 @@ class TokenizedLine
     false
 
   isOnlyWhitespace: ->
-    if @text == ''
-      true
-    else
-      for token in @tokens
-        return false unless token.isOnlyWhitespace()
-      true
+    @lineIsWhitespaceOnly
 
   tokenAtIndex: (index) ->
     @tokens[index]
