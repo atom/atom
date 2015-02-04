@@ -14,7 +14,7 @@ url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
-DEFAULT_SOCKET_PATH =
+DefaultSocketPath =
   if process.platform is 'win32'
     '\\\\.\\pipe\\atom-sock'
   else
@@ -31,7 +31,7 @@ class AtomApplication
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
-    options.socketPath ?= DEFAULT_SOCKET_PATH
+    options.socketPath ?= DefaultSocketPath
 
     createAtomApplication = -> new AtomApplication(options)
 
