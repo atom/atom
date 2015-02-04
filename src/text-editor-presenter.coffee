@@ -487,6 +487,7 @@ class TextEditorPresenter
   setContentFrameWidth: (contentFrameWidth) ->
     unless @contentFrameWidth is contentFrameWidth
       @contentFrameWidth = contentFrameWidth
+      @updateVerticalScrollState()
       @updateHorizontalScrollState()
       @updateScrollbarsState()
       @updateContentState()
