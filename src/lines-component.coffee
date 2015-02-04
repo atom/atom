@@ -169,14 +169,13 @@ LinesComponent = React.createClass
   buildLineInnerHTML: (id) ->
     {editor} = @props
     {indentGuidesVisible} = @newState
-    {tokens, text} = @newState.lines[id]
+    {tokens, text, isOnlyWhitespace} = @newState.lines[id]
     innerHTML = ""
 
     scopeStack = []
-    lineIsWhitespaceOnly = line.isOnlyWhitespace()
     for token in tokens
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
+      hasIndentGuide = indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and isOnlyWhitespace))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
     innerHTML += @popScope(scopeStack) while scopeStack.length > 0

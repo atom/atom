@@ -181,6 +181,7 @@ class TextEditorPresenter
       screenRow: row
       text: line.text
       tokens: line.tokens
+      isOnlyWhitespace: line.isOnlyWhitespace()
       endOfLineInvisibles: line.endOfLineInvisibles
       indentLevel: line.indentLevel
       tabLength: line.tabLength
