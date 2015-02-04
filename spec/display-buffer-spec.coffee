@@ -1208,7 +1208,7 @@ describe "DisplayBuffer", ->
 
         {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
         expect(oldProperties).toEqual decorationProperties
-        expect(newProperties).toEqual type: 'line-number', class: 'two', id: decoration.id
+        expect(newProperties).toEqual type: 'line-number', gutterName: 'line-number', class: 'two', id: decoration.id
 
     describe "::getDecorations(properties)", ->
       it "returns decorations matching the given optional properties", ->
@@ -1367,3 +1367,26 @@ describe "DisplayBuffer", ->
       displayBuffer.setScrollTop(60)
 
       expect(displayBuffer.getVisibleRowRange()).toEqual [0, 13]
+
+  describe "::decorateMarker", ->
+    describe "when decorating gutters", ->
+      [marker] = []
+
+      beforeEach ->
+        marker = displayBuffer.markBufferRange([[1, 0], [1, 0]]);
+
+      it "creates a decoration that is both of 'line-number' and 'gutter' type when called with the 'line-number' type", ->
+        decorationProperties = {type: 'line-number', class: 'one'}
+        decoration = displayBuffer.decorateMarker(marker, decorationProperties)
+        expect(decoration.isType('line-number')).toBe true
+        expect(decoration.isType('gutter')).toBe true
+        expect(decoration.getProperties().gutterName).toBe 'line-number'
+        expect(decoration.getProperties().class).toBe 'one'
+
+      it "creates a decoration that is only of 'gutter' type if called with the 'gutter' type and a 'gutterName'", ->
+        decorationProperties = {type: 'gutter', gutterName:'test-gutter', class: 'one'}
+        decoration = displayBuffer.decorateMarker(marker, decorationProperties)
+        expect(decoration.isType('gutter')).toBe true
+        expect(decoration.isType('line-number')).toBe false
+        expect(decoration.getProperties().gutterName).toBe 'test-gutter'
+        expect(decoration.getProperties().class).toBe 'one'

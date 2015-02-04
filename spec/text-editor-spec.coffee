@@ -4263,3 +4263,17 @@ describe "TextEditor", ->
 
       it "does not allow a custom gutter with the 'line-number' name.", ->
         expect(editor.addGutter.bind(editor, {name: 'line-number'})).toThrow()
+
+  describe '::decorateMarker', ->
+    [marker] = []
+
+    beforeEach ->
+      marker = editor.markBufferRange([[1, 0], [1, 0]])
+
+    it "casts 'gutter' type to 'line-number' unless a gutter name is specified.", ->
+      lineNumberDecoration = editor.decorateMarker(marker, {type: 'gutter'})
+      customGutterDecoration = editor.decorateMarker(marker, {type: 'gutter', gutterName: 'custom'})
+      expect(lineNumberDecoration.getProperties().type).toBe 'line-number'
+      expect(lineNumberDecoration.getProperties().gutterName).toBe 'line-number'
+      expect(customGutterDecoration.getProperties().type).toBe 'gutter'
+      expect(customGutterDecoration.getProperties().gutterName).toBe 'custom'
