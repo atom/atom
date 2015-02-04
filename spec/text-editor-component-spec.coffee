@@ -374,6 +374,22 @@ describe "TextEditorComponent", ->
         expect(line2LeafNodes[2].textContent).toBe '  '
         expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
 
+      it "renders indent guides correctly on lines containing only whitespace when invisibles are enabled", ->
+        atom.config.set 'editor.showInvisibles', true
+        atom.config.set 'editor.invisibles', space: '-', eol: 'x'
+        editor.getBuffer().insert([1, Infinity], '\n      ')
+        nextAnimationFrame()
+
+        line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
+        expect(line2LeafNodes.length).toBe 4
+        expect(line2LeafNodes[0].textContent).toBe '--'
+        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe true
+        expect(line2LeafNodes[1].textContent).toBe '--'
+        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe true
+        expect(line2LeafNodes[2].textContent).toBe '--'
+        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe true
+        expect(line2LeafNodes[3].textContent).toBe 'x'
+
       it "does not render indent guides in trailing whitespace for lines containing non whitespace characters", ->
         editor.getBuffer().setText "  hi  "
         nextAnimationFrame()
