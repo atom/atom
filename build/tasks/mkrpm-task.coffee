@@ -30,9 +30,9 @@ module.exports = (grunt) ->
     rm rpmDir
     mkdir rpmDir
 
-    installDir = '/usr'
+    installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
-    iconName = 'atom'
+    iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
 
     data = {name, version, description, installDir, iconName}
     specFilePath = fillTemplate(path.join('resources', 'linux', 'redhat', 'atom.spec'), data)
