@@ -563,12 +563,27 @@ class TextEditorPresenter
 
   decorationMarkerDidChange: (decoration, change) ->
     if decoration.isType('line') or decoration.isType('line-number')
-      @removeFromLineDecorationCaches(decoration, new Range(change.oldTailScreenPosition, change.oldHeadScreenPosition))
-      @addToLineDecorationCaches(decoration, new Range(change.newTailScreenPosition, change.newHeadScreenPosition))
-      @updateLinesState() if decoration.isType('line')
-      @updateLineNumbersState() if decoration.isType('line-number')
+      intersectsVisibleRowRange = false
+      startRow = @computeStartRow()
+      endRow = @computeEndRow()
+      oldRange = new Range(change.oldTailScreenPosition, change.oldHeadScreenPosition)
+      newRange = new Range(change.newTailScreenPosition, change.newHeadScreenPosition)
+
+      if oldRange.intersectsRowRange(startRow, endRow - 1)
+        @removeFromLineDecorationCaches(decoration, oldRange)
+        intersectsVisibleRowRange = true
+
+      if newRange.intersectsRowRange(startRow, endRow - 1)
+        @addToLineDecorationCaches(decoration, newRange)
+        intersectsVisibleRowRange = true
+
+      if intersectsVisibleRowRange
+        @updateLinesState() if decoration.isType('line')
+        @updateLineNumbersState() if decoration.isType('line-number')
+
     if decoration.isType('highlight')
       @updateHighlightState(decoration)
+
     if decoration.isType('overlay')
       @updateOverlaysState()
 
