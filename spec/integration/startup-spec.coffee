@@ -28,7 +28,7 @@ describe "Starting Atom", ->
   afterEach ->
     waitsForPromise -> driver.quit().thenFinally(-> chromeDriver.kill())
 
-  startAtom = (args=[]) ->
+  startAtom = (args...) ->
     driver = new Builder()
       .usingServer("http://localhost:#{ChromeDriverPort}")
       .withCapabilities(
@@ -50,7 +50,7 @@ describe "Starting Atom", ->
       driver.wait ->
         driver.getTitle().then (title) -> title.indexOf("Atom") >= 0
 
-  startAnotherAtom = (args=[]) ->
+  startAnotherAtom = (args...) ->
     spawnSync(AtomPath, args.concat([
       "--dev",
       "--safe",
@@ -63,7 +63,7 @@ describe "Starting Atom", ->
     beforeEach ->
       tempFilePath = path.join(tempDirPath, "an-existing-file")
       fs.writeFileSync(tempFilePath, "This was already here.")
-      startAtom([path.join(tempDirPath, "new-file")])
+      startAtom(path.join(tempDirPath, "new-file"))
 
     it "opens a new window with an empty text editor", ->
       waitsForPromise ->
@@ -80,7 +80,7 @@ describe "Starting Atom", ->
       # Opening another existing file in the same directory reuses the window,
       # and opens a new tab for the file.
       waitsForPromise ->
-        startAnotherAtom([tempFilePath])
+        startAnotherAtom(tempFilePath)
         driver.wait ->
           driver.executeScript(-> atom.workspace.getActivePane().getItems().length).then (length) ->
             length is 2
@@ -89,14 +89,14 @@ describe "Starting Atom", ->
 
       # Opening a different directory creates a new window.
       waitsForPromise ->
-        startAnotherAtom([temp.mkdirSync("another-empty-dir")])
+        startAnotherAtom(temp.mkdirSync("another-empty-dir"))
         driver.wait ->
           driver.getAllWindowHandles().then (handles) ->
             handles.length is 2
 
   describe "when given the name of a directory that exists", ->
     beforeEach ->
-      startAtom([tempDirPath])
+      startAtom(tempDirPath)
 
     it "opens a new window no text editors open", ->
       waitsForPromise ->
