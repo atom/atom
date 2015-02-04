@@ -4,7 +4,7 @@ path = require "path"
 remote = require "remote"
 temp = require("temp").track()
 {spawn, spawnSync} = require "child_process"
-{Builder, By} = require("selenium-webdriver")
+{Builder, By} = require "../../build/node_modules/selenium-webdriver"
 
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "helpers", "atom-launcher.sh")

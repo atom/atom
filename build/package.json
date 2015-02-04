@@ -31,6 +31,7 @@
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
     "runas": "~1.0.1",
+    "selenium-webdriver": "^2.44.0",
     "tello": "1.0.4",
     "temp": "~0.8.1",
     "underscore-plus": "1.x",
