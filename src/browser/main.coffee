@@ -81,7 +81,10 @@ setupAtomHome = ->
     home = process.env.USERPROFILE
   else
     home = process.env.HOME
-  process.env.ATOM_HOME = path.join(home, '.atom')
+  atomHome = path.join(home, '.atom')
+  try
+    atomHome = fs.realpathSync(atomHome)
+  process.env.ATOM_HOME = atomHome
 
 parseCommandLine = ->
   version = app.getVersion()
