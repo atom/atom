@@ -137,10 +137,11 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateLinesState: ->
+    return unless @hasRequiredMeasurements()
+
     visibleLineIds = {}
     startRow = @computeStartRow()
     endRow = @computeEndRow()
-
     row = startRow
     while row < endRow
       line = @model.tokenizedLineForScreenRow(row)
@@ -345,10 +346,16 @@ class TextEditorPresenter
     @contentFrameWidth - @computeVerticalScrollbarWidth()
 
   computeScrollTop: ->
-    @scrollTop = Math.min(@scrollTop, @computeScrollHeight() - @computeClientHeight())
+    if @hasRequiredMeasurements()
+      @scrollTop = Math.min(@scrollTop, @computeScrollHeight() - @computeClientHeight())
+    else
+      @scrollTop
 
   computeScrollLeft: ->
-    @scrollLeft = Math.min(@scrollLeft, @computeScrollWidth() - @computeClientWidth())
+    if @hasRequiredMeasurements()
+      @scrollLeft = Math.min(@scrollLeft, @computeScrollWidth() - @computeClientWidth())
+    else
+      @scrollLeft
 
   computeHorizontalScrollbarHeight: ->
     contentWidth = @computeContentWidth()
@@ -407,7 +414,7 @@ class TextEditorPresenter
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
   hasRequiredMeasurements: ->
-    @lineHeight? and @baseCharacterWidth? and @getHeight()? and @scrollTop?
+    @lineHeight? and @baseCharacterWidth? and @getHeight()? and @scrollTop? and @contentFrameWidth? and @scrollLeft?
 
   setScrollTop: (scrollTop) ->
     unless @scrollTop is scrollTop
@@ -445,11 +452,13 @@ class TextEditorPresenter
     unless @horizontalScrollbarHeight is horizontalScrollbarHeight
       @horizontalScrollbarHeight = horizontalScrollbarHeight
       @updateScrollbarsState()
+      @updateVerticalScrollState()
 
   setVerticalScrollbarWidth: (verticalScrollbarWidth) ->
     unless @verticalScrollbarWidth is verticalScrollbarWidth
       @verticalScrollbarWidth = verticalScrollbarWidth
       @updateScrollbarsState()
+      @updateHorizontalScrollState()
 
   setAutoHeight: (autoHeight) ->
     unless @autoHeight is autoHeight

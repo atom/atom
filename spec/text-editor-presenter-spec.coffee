@@ -24,6 +24,21 @@ describe "TextEditorPresenter", ->
       editor.destroy()
       buffer.destroy()
 
+    buildPresenter = (params={}) ->
+      _.defaults params,
+        model: editor
+        height: 130
+        contentFrameWidth: 500
+        lineHeight: 10
+        baseCharacterWidth: 10
+        horizontalScrollbarHeight: 10
+        verticalScrollbarWidth: 10
+        scrollTop: 0
+        scrollLeft: 0
+        lineOverdrawMargin: 0
+
+      new TextEditorPresenter(params)
+
     expectValues = (actual, expected) ->
       for key, value of expected
         expect(actual[key]).toEqual value
@@ -39,8 +54,7 @@ describe "TextEditorPresenter", ->
     describe ".horizontalScrollbar", ->
       describe ".visible", ->
         it "is true if the scrollWidth exceeds the computed client width", ->
-          presenter = new TextEditorPresenter
-            model: editor
+          presenter = buildPresenter
             height: editor.getLineCount() * 10
             contentFrameWidth: editor.getMaxScreenLineLength() * 10 + 1
             baseCharacterWidth: 10
@@ -65,15 +79,14 @@ describe "TextEditorPresenter", ->
 
       describe ".height", ->
         it "tracks the value of ::horizontalScrollbarHeight", ->
-          presenter = new TextEditorPresenter(model: editor, horizontalScrollbarHeight: 10)
+          presenter = buildPresenter(horizontalScrollbarHeight: 10)
           expect(presenter.state.horizontalScrollbar.height).toBe 10
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(20)
           expect(presenter.state.horizontalScrollbar.height).toBe 20
 
       describe ".right", ->
         it "is ::verticalScrollbarWidth if the vertical scrollbar is visible and 0 otherwise", ->
-          presenter = new TextEditorPresenter
-            model: editor
+          presenter = buildPresenter
             height: editor.getLineCount() * 10 + 50
             contentFrameWidth: editor.getMaxScreenLineLength() * 10
             baseCharacterWidth: 10
@@ -90,15 +103,15 @@ describe "TextEditorPresenter", ->
         it "is initialized as the max of the ::contentFrameWidth and the width of the longest line", ->
           maxLineLength = editor.getMaxScreenLineLength()
 
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
 
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
 
         it "updates when the ::contentFrameWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(10 * maxLineLength + 20)
@@ -106,7 +119,7 @@ describe "TextEditorPresenter", ->
 
         it "updates when the ::baseCharacterWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
@@ -117,14 +130,14 @@ describe "TextEditorPresenter", ->
 
           runs ->
             maxLineLength = editor.getMaxScreenLineLength()
-            presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+            presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
             expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
             expect(presenter.state.horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
@@ -132,7 +145,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
@@ -143,20 +156,20 @@ describe "TextEditorPresenter", ->
 
       describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
-          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 50
 
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
-          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
 
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
 
-          expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(15)
+          expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
@@ -170,7 +183,7 @@ describe "TextEditorPresenter", ->
     describe ".verticalScrollbar", ->
       describe ".visible", ->
         it "is true if the scrollHeight exceeds the computed client height", ->
-          presenter = new TextEditorPresenter
+          presenter = buildPresenter
             model: editor
             height: editor.getLineCount() * 10
             contentFrameWidth: editor.getMaxScreenLineLength() * 10 + 1
@@ -196,15 +209,14 @@ describe "TextEditorPresenter", ->
 
       describe ".width", ->
         it "is assigned based on ::verticalScrollbarWidth", ->
-          presenter = new TextEditorPresenter(model: editor, verticalScrollbarWidth: 10)
+          presenter = buildPresenter(verticalScrollbarWidth: 10)
           expect(presenter.state.verticalScrollbar.width).toBe 10
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(20)
           expect(presenter.state.verticalScrollbar.width).toBe 20
 
       describe ".bottom", ->
         it "is ::horizontalScrollbarHeight if the horizontal scrollbar is visible and 0 otherwise", ->
-          presenter = new TextEditorPresenter
-            model: editor
+          presenter = buildPresenter
             height: editor.getLineCount() * 10 - 1
             contentFrameWidth: editor.getMaxScreenLineLength() * 10 + 50
             baseCharacterWidth: 10
@@ -219,43 +231,43 @@ describe "TextEditorPresenter", ->
 
       describe ".scrollHeight", ->
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(presenter.state.verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, height: 500)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, height: 500)
           expect(presenter.state.verticalScrollbar.scrollHeight).toBe 500
 
         it "updates when the ::lineHeight changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
           expect(presenter.state.verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 20
 
         it "updates when the line count changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
           expect(presenter.state.verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
         it "updates when ::height changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setHeight(500)
           expect(presenter.state.verticalScrollbar.scrollHeight).toBe 500
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, height: 20)
+          presenter = buildPresenter(scrollTop: 10, height: 20, horizontalScrollbarHeight: 10)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe 50
 
         it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, height: 50, horizontalScrollbarHeight: 10)
+          presenter = buildPresenter(scrollTop: 10, height: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
           expectStateUpdate presenter, -> presenter.setHeight(60)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
-          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(15)
+          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
@@ -269,7 +281,7 @@ describe "TextEditorPresenter", ->
     describe ".content", ->
       describe ".scrollingVertically", ->
         it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(scrollTop: 10, stoppedScrollingDelay: 200)
           expect(presenter.state.content.scrollingVertically).toBe false
           expectStateUpdate presenter, -> presenter.setScrollTop(0)
           expect(presenter.state.content.scrollingVertically).toBe true
@@ -283,24 +295,24 @@ describe "TextEditorPresenter", ->
 
       describe ".scrollHeight", ->
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, height: 500)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, height: 500)
           expect(presenter.state.content.scrollHeight).toBe 500
 
         it "updates when the ::lineHeight changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
           expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 20
 
         it "updates when the line count changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
           expect(presenter.state.content.scrollHeight).toBe editor.getScreenLineCount() * 10
 
         it "updates when ::height changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setHeight(500)
           expect(presenter.state.content.scrollHeight).toBe 500
 
@@ -308,15 +320,15 @@ describe "TextEditorPresenter", ->
         it "is initialized as the max of the ::contentFrameWidth and the width of the longest line", ->
           maxLineLength = editor.getMaxScreenLineLength()
 
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
 
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20
 
         it "updates when the ::contentFrameWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(10 * maxLineLength + 20)
@@ -324,7 +336,7 @@ describe "TextEditorPresenter", ->
 
         it "updates when the ::baseCharacterWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
@@ -335,14 +347,14 @@ describe "TextEditorPresenter", ->
 
           runs ->
             maxLineLength = editor.getMaxScreenLineLength()
-            presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+            presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
             expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
             expect(presenter.state.content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
@@ -350,7 +362,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
-          presenter = new TextEditorPresenter(model: editor, contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
@@ -361,20 +373,20 @@ describe "TextEditorPresenter", ->
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, height: 20)
+          presenter = buildPresenter(scrollTop: 10, lineHeight: 10, height: 20)
           expect(presenter.state.content.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.state.content.scrollTop).toBe 50
 
         it "never exceeds the computed scroll height minus the computed client height", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, height: 50, horizontalScrollbarHeight: 10)
+          presenter = buildPresenter(scrollTop: 10, lineHeight: 10, height: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
           expect(presenter.state.content.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
           expectStateUpdate presenter, -> presenter.setHeight(60)
           expect(presenter.state.content.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
-          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(15)
+          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
           expect(presenter.state.content.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
@@ -386,20 +398,20 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.scrollTop).toBe scrollTopBefore
 
         it "tracks the value of ::scrollLeft", ->
-          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.state.content.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.state.content.scrollLeft).toBe 50
 
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
-          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
           expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
 
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
           expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
 
-          expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(15)
+          expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
           expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
@@ -412,15 +424,15 @@ describe "TextEditorPresenter", ->
 
       describe ".indentGuidesVisible", ->
         it "is initialized based on the editor.showIndentGuide config setting", ->
-          presenter = new TextEditorPresenter(model: editor)
+          presenter = buildPresenter()
           expect(presenter.state.content.indentGuidesVisible).toBe false
 
           atom.config.set('editor.showIndentGuide', true)
-          presenter = new TextEditorPresenter(model: editor)
+          presenter = buildPresenter()
           expect(presenter.state.content.indentGuidesVisible).toBe true
 
         it "updates when the editor.showIndentGuide config setting changes", ->
-          presenter = new TextEditorPresenter(model: editor)
+          presenter = buildPresenter()
           expect(presenter.state.content.indentGuidesVisible).toBe false
 
           expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', true)
@@ -432,7 +444,7 @@ describe "TextEditorPresenter", ->
         it "updates when the editor's grammar changes", ->
           atom.config.set('editor.showIndentGuide', true, scopeSelector: ".source.js")
 
-          presenter = new TextEditorPresenter(model: editor)
+          presenter = buildPresenter()
           expect(presenter.state.content.indentGuidesVisible).toBe false
 
           stateUpdated = false
@@ -450,7 +462,7 @@ describe "TextEditorPresenter", ->
         it "is always false when the editor is mini", ->
           atom.config.set('editor.showIndentGuide', true)
           editor.setMini(true)
-          presenter = new TextEditorPresenter(model: editor)
+          presenter = buildPresenter()
           expect(presenter.state.content.indentGuidesVisible).toBe false
           editor.setMini(false)
           expect(presenter.state.content.indentGuidesVisible).toBe true
@@ -459,20 +471,20 @@ describe "TextEditorPresenter", ->
 
       describe ".backgroundColor", ->
         it "is assigned to ::backgroundColor unless the editor is mini", ->
-          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
           expect(presenter.state.content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
           editor.setMini(true)
-          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
           expect(presenter.state.content.backgroundColor).toBeNull()
 
         it "updates when ::backgroundColor changes", ->
-          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
           expect(presenter.state.content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
           expectStateUpdate presenter, -> presenter.setBackgroundColor('rgba(0, 0, 255, 0)')
           expect(presenter.state.content.backgroundColor).toBe 'rgba(0, 0, 255, 0)'
 
         it "updates when ::mini changes", ->
-          presenter = new TextEditorPresenter(model: editor, backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
           expect(presenter.state.content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
           expectStateUpdate presenter, -> editor.setMini(true)
           expect(presenter.state.content.backgroundColor).toBeNull()
@@ -480,7 +492,7 @@ describe "TextEditorPresenter", ->
       describe ".placeholderText", ->
         it "is present when the editor has no text", ->
           editor.setPlaceholderText("the-placeholder-text")
-          presenter = new TextEditorPresenter(model: editor)
+          presenter = buildPresenter()
           expect(presenter.state.content.placeholderText).toBeNull()
 
           expectStateUpdate presenter, -> editor.setText("")
@@ -494,7 +506,7 @@ describe "TextEditorPresenter", ->
           presenter.state.content.lines[presenter.model.tokenizedLineForScreenRow(screenRow).id]
 
         it "contains states for lines that are visible on screen, plus and minus the overdraw margin", ->
-          presenter = new TextEditorPresenter(model: editor, height: 15, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: 15, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 1)
 
           expect(lineStateForScreenRow(presenter, 3)).toBeUndefined()
 
@@ -541,7 +553,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 9)).toBeUndefined()
 
         it "does not overdraw above the first row", ->
-          presenter = new TextEditorPresenter(model: editor, height: 15, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 2)
+          presenter = buildPresenter(height: 15, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 2)
           expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 1)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 2)).toBeDefined()
@@ -551,7 +563,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 6)).toBeUndefined()
 
         it "does not overdraw below the last row", ->
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 105, lineHeight: 10, lineOverdrawMargin: 2)
+          presenter = buildPresenter(height: 25, scrollTop: 105, lineHeight: 10, lineOverdrawMargin: 2)
           expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
           expect(lineStateForScreenRow(presenter, 8)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 9)).toBeDefined()
@@ -560,12 +572,12 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 12)).toBeDefined()
 
         it "includes state for all lines if no external ::height is assigned", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: null)
           expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 12)).toBeDefined()
 
         it "is empty until all of the required measurements are assigned", ->
-          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 1, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: null, lineHeight: null, scrollTop: null)
           expect(presenter.state.content.lines).toEqual({})
 
           presenter.setHeight(25)
@@ -578,7 +590,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.lines).not.toEqual({})
 
         it "updates when ::scrollTop changes", ->
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
 
           expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
@@ -592,7 +604,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
 
         it "updates when ::height changes", ->
-          presenter = new TextEditorPresenter(model: editor, height: 15, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: 15, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
 
           line5 = editor.tokenizedLineForScreenRow(5)
 
@@ -606,7 +618,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
 
         it "updates when ::lineHeight changes", ->
-          presenter = new TextEditorPresenter(model: editor, height: 15, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 0)
+          presenter = buildPresenter(height: 15, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 0)
 
           expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
           expect(lineStateForScreenRow(presenter, 1)).toBeDefined()
@@ -622,7 +634,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 6)).toBeUndefined()
 
         it "updates when the editor's content changes", ->
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 0)
+          presenter = buildPresenter(height: 25, scrollTop: 10, lineHeight: 10)
 
           expectStateUpdate presenter, -> buffer.insert([2, 0], "hello\nworld\n")
 
@@ -645,7 +657,7 @@ describe "TextEditorPresenter", ->
           }
 
         it "does not remove out-of-view lines corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
 
           expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
@@ -674,7 +686,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 2)).toBeUndefined()
 
         it "does not preserve on-screen lines even if they correspond to ::mouseWheelScreenRow", ->
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
           oldLine3 = editor.tokenizedLineForScreenRow(6)
 
           presenter.setMouseWheelScreenRow(3)
@@ -688,12 +700,12 @@ describe "TextEditorPresenter", ->
         describe "[lineId]", -> # line state objects
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
-            presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter(height: 25, scrollTop: 0, lineHeight: 10)
             expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toBeNull()
             expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toBeNull()
 
             atom.config.set('editor.showInvisibles', true)
-            presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter(height: 25, scrollTop: 0, lineHeight: 10)
             expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
             expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
 
@@ -701,7 +713,7 @@ describe "TextEditorPresenter", ->
             it "adds decoration classes to the relevant line state objects, both initially and when decorations change", ->
               marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
               decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
-              presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              presenter = buildPresenter()
               marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
               decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
 
@@ -750,7 +762,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
             it "honors the 'onlyEmpty' option on line decorations", ->
-              presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              presenter = buildPresenter()
               marker = editor.markBufferRange([[4, 0], [6, 1]])
               decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyEmpty: true)
 
@@ -765,7 +777,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
             it "honors the 'onlyNonEmpty' option on line decorations", ->
-              presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              presenter = buildPresenter()
               marker = editor.markBufferRange([[4, 0], [6, 2]])
               decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyNonEmpty: true)
 
@@ -778,7 +790,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
             it "honors the 'onlyHead' option on line decorations", ->
-              presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              presenter = buildPresenter()
               marker = editor.markBufferRange([[4, 0], [6, 2]])
               decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyHead: true)
 
@@ -787,7 +799,7 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
             it "does not decorate the last line of a non-empty line decoration range if it ends at column 0", ->
-              presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              presenter = buildPresenter()
               marker = editor.markBufferRange([[4, 0], [6, 0]])
               decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
 
@@ -797,7 +809,7 @@ describe "TextEditorPresenter", ->
 
             it "does not apply line decorations to mini editors", ->
               editor.setMini(true)
-              presenter = new TextEditorPresenter(model: editor, height: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              presenter = buildPresenter(height: 10)
               marker = editor.markBufferRange([[0, 0], [0, 0]])
               decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
@@ -814,7 +826,7 @@ describe "TextEditorPresenter", ->
               editor.setEditorWidthInChars(16)
               marker = editor.markBufferRange([[0, 0], [0, 2]])
               editor.decorateMarker(marker, type: 'line', class: 'a')
-              presenter = new TextEditorPresenter(model: editor, height: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+              presenter = buildPresenter(height: 10)
 
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
               expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
@@ -835,7 +847,7 @@ describe "TextEditorPresenter", ->
             [[5, 12], [5, 12]],
             [[8, 4], [8, 4]]
           ])
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expect(stateForCursor(presenter, 0)).toBeUndefined()
           expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
@@ -844,7 +856,7 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 4)).toBeUndefined()
 
         it "is empty until all of the required measurements are assigned", ->
-          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: null, lineHeight: null, scrollTop: null, baseCharacterWidth: null)
           expect(presenter.state.content.cursors).toEqual({})
 
           presenter.setHeight(25)
@@ -867,7 +879,7 @@ describe "TextEditorPresenter", ->
             [[5, 12], [5, 12]],
             [[8, 4], [8, 4]]
           ])
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expectStateUpdate presenter, -> presenter.setScrollTop(5 * 10)
           expect(stateForCursor(presenter, 0)).toBeUndefined()
@@ -884,7 +896,7 @@ describe "TextEditorPresenter", ->
             [[5, 12], [5, 12]],
             [[8, 4], [8, 4]]
           ])
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 20)
 
           expectStateUpdate presenter, -> presenter.setHeight(30)
           expect(stateForCursor(presenter, 0)).toBeUndefined()
@@ -901,7 +913,7 @@ describe "TextEditorPresenter", ->
             [[5, 12], [5, 12]],
             [[8, 4], [8, 4]]
           ])
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 20)
 
           expectStateUpdate presenter, -> presenter.setLineHeight(5)
           expect(stateForCursor(presenter, 0)).toBeUndefined()
@@ -912,7 +924,7 @@ describe "TextEditorPresenter", ->
 
         it "updates when ::baseCharacterWidth changes", ->
           editor.setCursorBufferPosition([2, 4])
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 20)
 
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
           expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 20, width: 20, height: 10}
@@ -923,7 +935,7 @@ describe "TextEditorPresenter", ->
 
           runs ->
             editor.setCursorBufferPosition([1, 4])
-            presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+            presenter = buildPresenter(height: 20)
 
             expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'v', 20)
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
@@ -936,7 +948,7 @@ describe "TextEditorPresenter", ->
             [[1, 2], [1, 2]],
             [[3, 4], [3, 5]]
           ])
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 20)
 
           # moving into view
           expect(stateForCursor(presenter, 0)).toBeUndefined()
@@ -970,14 +982,14 @@ describe "TextEditorPresenter", ->
 
         it "makes cursors as wide as the ::baseCharacterWidth if they're at the end of a line", ->
           editor.setCursorBufferPosition([1, Infinity])
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 0)
           expect(stateForCursor(presenter, 0).width).toBe 10
 
       describe ".blinkCursorsOff", ->
         it "alternates between true and false twice per ::cursorBlinkPeriod", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
-          presenter = new TextEditorPresenter({model: editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
+          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
 
           expect(presenter.state.content.blinkCursorsOff).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
@@ -990,7 +1002,7 @@ describe "TextEditorPresenter", ->
         it "stops alternating for ::cursorBlinkResumeDelay when a cursor moves or a cursor is added", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
-          presenter = new TextEditorPresenter({model: editor, cursorBlinkPeriod, cursorBlinkResumeDelay})
+          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
 
           expect(presenter.state.content.blinkCursorsOff).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
@@ -1058,7 +1070,7 @@ describe "TextEditorPresenter", ->
           marker8 = editor.markBufferRange([[2, 2], [2, 2]])
           highlight8 = editor.decorateMarker(marker8, type: 'highlight', class: 'h')
 
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expect(stateForHighlight(presenter, highlight1)).toBeUndefined()
 
@@ -1109,7 +1121,7 @@ describe "TextEditorPresenter", ->
             [[0, 2], [2, 4]],
           ])
 
-          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: null, lineHeight: null, scrollTop: null, baseCharacterWidth: null)
           expect(presenter.state.content.highlights).toEqual({})
 
           presenter.setHeight(25)
@@ -1128,7 +1140,7 @@ describe "TextEditorPresenter", ->
           marker = editor.markBufferRange([[2, 2], [2, 4]], invalidate: 'touch')
           highlight = editor.decorateMarker(marker, type: 'highlight', class: 'h')
 
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expect(stateForHighlight(presenter, highlight)).toBeDefined()
           expectStateUpdate presenter, -> editor.getBuffer().insert([2, 2], "stuff")
@@ -1139,7 +1151,7 @@ describe "TextEditorPresenter", ->
             [[6, 2], [6, 4]],
           ])
 
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expect(stateForSelection(presenter, 0)).toBeUndefined()
           expectStateUpdate presenter, -> presenter.setScrollTop(5 * 10)
@@ -1152,7 +1164,7 @@ describe "TextEditorPresenter", ->
             [[6, 2], [6, 4]],
           ])
 
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 20)
 
           expect(stateForSelection(presenter, 0)).toBeUndefined()
           expectStateUpdate presenter, -> presenter.setHeight(60)
@@ -1166,7 +1178,7 @@ describe "TextEditorPresenter", ->
             [[3, 4], [3, 6]],
           ])
 
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 0)
 
           expectValues stateForSelection(presenter, 0), {
             regions: [
@@ -1194,7 +1206,7 @@ describe "TextEditorPresenter", ->
             [[2, 2], [2, 4]],
           ])
 
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 0)
 
           expectValues stateForSelection(presenter, 0), {
             regions: [{top: 2 * 10, left: 2 * 10, width: 2 * 10, height: 10}]
@@ -1213,7 +1225,7 @@ describe "TextEditorPresenter", ->
               [[2, 4], [2, 6]],
             ])
 
-            presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+            presenter = buildPresenter(height: 20, scrollTop: 0)
 
             expectValues stateForSelection(presenter, 0), {
               regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
@@ -1228,7 +1240,7 @@ describe "TextEditorPresenter", ->
             [[1, 2], [1, 4]],
             [[3, 4], [3, 6]]
           ])
-          presenter = new TextEditorPresenter(model: editor, height: 20, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 20, scrollTop: 0)
 
           expectValues stateForSelection(presenter, 0), {
             regions: [{top: 1 * 10, left: 2 * 10, width: 2 * 10, height: 10}]
@@ -1276,14 +1288,14 @@ describe "TextEditorPresenter", ->
           marker = editor.markBufferRange([[2, 2], [2, 4]])
           highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
 
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expectValues stateForHighlight(presenter, highlight), {class: 'a'}
           expectStateUpdate presenter, -> highlight.setProperties(class: 'b', type: 'highlight')
           expectValues stateForHighlight(presenter, highlight), {class: 'b'}
 
         it "increments the .flashCount and sets the .flashClass and .flashDuration when the highlight model flashes", ->
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           marker = editor.markBufferRange([[2, 2], [2, 4]])
           highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
@@ -1311,7 +1323,7 @@ describe "TextEditorPresenter", ->
           item = {}
           marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           # Initial state
           expectValues stateForOverlay(presenter, decoration), {
@@ -1359,7 +1371,7 @@ describe "TextEditorPresenter", ->
           item = {}
           marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item
@@ -1377,7 +1389,7 @@ describe "TextEditorPresenter", ->
           item = {}
           marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item
@@ -1395,7 +1407,7 @@ describe "TextEditorPresenter", ->
           item = {}
           marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
-          presenter = new TextEditorPresenter(model: editor, height: 30, scrollTop: 20, lineHeight: 10, lineOverdrawMargin: 0, baseCharacterWidth: 10)
+          presenter = buildPresenter(height: 30, scrollTop: 20)
           expectValues stateForOverlay(presenter, decoration), {
             item: item
             pixelPosition: {top: 2 * 10, left: 13 * 10}
@@ -1406,7 +1418,7 @@ describe "TextEditorPresenter", ->
           marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
 
-          presenter = new TextEditorPresenter(model: editor, lineOverdrawMargin: 0, scrollTop: 0, scrollHeight: 50)
+          presenter = buildPresenter(baseCharacterWidth: null, lineHeight: null)
           expect(presenter.state.content.overlays).toEqual({})
 
           presenter.setBaseCharacterWidth(10)
@@ -1418,43 +1430,43 @@ describe "TextEditorPresenter", ->
     describe ".gutter", ->
       describe ".scrollHeight", ->
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter()
           expect(presenter.state.gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, height: 500)
+          presenter = buildPresenter(height: 500)
           expect(presenter.state.gutter.scrollHeight).toBe 500
 
         it "updates when the ::lineHeight changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter()
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
           expect(presenter.state.gutter.scrollHeight).toBe editor.getScreenLineCount() * 20
 
         it "updates when the line count changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter()
           expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
           expect(presenter.state.gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
 
         it "updates when ::height changes", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10)
+          presenter = buildPresenter()
           expectStateUpdate presenter, -> presenter.setHeight(500)
           expect(presenter.state.gutter.scrollHeight).toBe 500
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, height: 20)
+          presenter = buildPresenter(scrollTop: 10, height: 20)
           expect(presenter.state.gutter.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.state.gutter.scrollTop).toBe 50
 
         it "never exceeds the computed scroll height minus the computed client height", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, height: 50, horizontalScrollbarHeight: 10)
+          presenter = buildPresenter(scrollTop: 10, height: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
           expect(presenter.state.gutter.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
           expectStateUpdate presenter, -> presenter.setHeight(60)
           expect(presenter.state.gutter.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
-          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(15)
+          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
           expect(presenter.state.gutter.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
@@ -1467,7 +1479,7 @@ describe "TextEditorPresenter", ->
 
       describe ".backgroundColor", ->
         it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
-          presenter = new TextEditorPresenter(model: editor, backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
+          presenter = buildPresenter(backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
           expect(presenter.state.gutter.backgroundColor).toBe "rgba(0, 255, 0, 0)"
 
           expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 255, 0)")
@@ -1478,7 +1490,7 @@ describe "TextEditorPresenter", ->
 
       describe ".maxLineNumberDigits", ->
         it "is set to the number of digits used by the greatest line number", ->
-          presenter = new TextEditorPresenter(model: editor)
+          presenter = buildPresenter()
           expect(editor.getLastBufferRow()).toBe 12
           expect(presenter.state.gutter.maxLineNumberDigits).toBe 2
 
@@ -1501,7 +1513,7 @@ describe "TextEditorPresenter", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 30, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: 25, scrollTop: 30, lineHeight: 10, lineOverdrawMargin: 1)
 
           expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
           expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false, top: 2 * 10}
@@ -1513,7 +1525,7 @@ describe "TextEditorPresenter", ->
           expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
         it "includes states for all line numbers if no external client height is assigned", ->
-          presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: null)
           expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineNumberStateForScreenRow(presenter, 12)).toBeDefined()
 
@@ -1521,7 +1533,7 @@ describe "TextEditorPresenter", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 30, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: 25, scrollTop: 30, lineOverdrawMargin: 1)
 
           expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
           expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
@@ -1539,7 +1551,7 @@ describe "TextEditorPresenter", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 30, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(height: 25, scrollTop: 30, lineOverdrawMargin: 1)
 
           expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
           expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
@@ -1557,7 +1569,7 @@ describe "TextEditorPresenter", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+          presenter = buildPresenter(height: 25, scrollTop: 0, lineOverdrawMargin: 0)
 
           expectValues lineNumberStateForScreenRow(presenter, 0), {bufferRow: 0}
           expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
@@ -1573,7 +1585,7 @@ describe "TextEditorPresenter", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = new TextEditorPresenter(model: editor, height: 35, scrollTop: 30, lineHeight: 10, lineOverdrawMargin: 0)
+          presenter = buildPresenter(height: 35, scrollTop: 30, lineOverdrawMargin: 0)
 
           expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
           expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
@@ -1595,7 +1607,7 @@ describe "TextEditorPresenter", ->
           expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
         it "does not remove out-of-view line numbers corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(height: 25, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
 
           expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineNumberStateForScreenRow(presenter, 4)).toBeDefined()
@@ -1619,7 +1631,7 @@ describe "TextEditorPresenter", ->
         it "correctly handles the first screen line being soft-wrapped", ->
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(30)
-          presenter = new TextEditorPresenter(model: editor, height: 25, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 0)
+          presenter = buildPresenter(height: 25, scrollTop: 50)
 
           expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 3, softWrapped: true}
           expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 3, softWrapped: true}
@@ -1629,7 +1641,7 @@ describe "TextEditorPresenter", ->
           it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
             marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
             decoration1 = editor.decorateMarker(marker1, type: 'line-number', class: 'a')
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
             decoration2 = editor.decorateMarker(marker2, type: 'line-number', class: 'b')
 
@@ -1678,7 +1690,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
           it "honors the 'onlyEmpty' option on line-number decorations", ->
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             marker = editor.markBufferRange([[4, 0], [6, 1]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyEmpty: true)
 
@@ -1693,7 +1705,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
           it "honors the 'onlyNonEmpty' option on line-number decorations", ->
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             marker = editor.markBufferRange([[4, 0], [6, 2]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyNonEmpty: true)
 
@@ -1706,7 +1718,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
           it "honors the 'onlyHead' option on line-number decorations", ->
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             marker = editor.markBufferRange([[4, 0], [6, 2]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyHead: true)
 
@@ -1715,7 +1727,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
           it "does not decorate the last line of a non-empty line-number decoration range if it ends at column 0", ->
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             marker = editor.markBufferRange([[4, 0], [6, 0]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
 
@@ -1725,7 +1737,7 @@ describe "TextEditorPresenter", ->
 
           it "does not apply line-number decorations to mini editors", ->
             editor.setMini(true)
-            presenter = new TextEditorPresenter(model: editor, height: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             marker = editor.markBufferRange([[0, 0], [0, 0]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
             expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
@@ -1742,7 +1754,7 @@ describe "TextEditorPresenter", ->
             editor.setEditorWidthInChars(16)
             marker = editor.markBufferRange([[0, 0], [0, 2]])
             editor.decorateMarker(marker, type: 'line-number', class: 'a')
-            presenter = new TextEditorPresenter(model: editor, height: 10, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter(height: 10)
 
             expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
             expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
@@ -1753,7 +1765,7 @@ describe "TextEditorPresenter", ->
 
         describe ".foldable", ->
           it "marks line numbers at the start of a foldable region as foldable", ->
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             expect(lineNumberStateForScreenRow(presenter, 0).foldable).toBe true
             expect(lineNumberStateForScreenRow(presenter, 1).foldable).toBe true
             expect(lineNumberStateForScreenRow(presenter, 2).foldable).toBe false
@@ -1762,7 +1774,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 5).foldable).toBe false
 
           it "updates the foldable class on the correct line numbers when the foldable positions change", ->
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             editor.getBuffer().insert([0, 0], '\n')
             expect(lineNumberStateForScreenRow(presenter, 0).foldable).toBe false
             expect(lineNumberStateForScreenRow(presenter, 1).foldable).toBe true
@@ -1773,7 +1785,7 @@ describe "TextEditorPresenter", ->
             expect(lineNumberStateForScreenRow(presenter, 6).foldable).toBe false
 
           it "updates the foldable class on a line number that becomes foldable", ->
-            presenter = new TextEditorPresenter(model: editor, height: 130, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 0)
+            presenter = buildPresenter()
             expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe false
 
             editor.getBuffer().insert([11, 44], '\n    fold me')
@@ -1784,7 +1796,7 @@ describe "TextEditorPresenter", ->
 
     describe ".height", ->
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
-        presenter = new TextEditorPresenter(model: editor, scrollTop: 0, lineHeight: 10, autoHeight: true)
+        presenter = buildPresenter(height: null, autoHeight: true)
         expect(presenter.state.height).toBe editor.getScreenLineCount() * 10
 
         expectStateUpdate presenter, -> presenter.setAutoHeight(false)
