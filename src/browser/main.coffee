@@ -103,7 +103,7 @@ parseCommandLine = ->
                               Defaults to `~/github/atom`.
 
       ATOM_HOME               The root path for all configuration files and folders.
-                              Default to `~/.atom`.
+                              Defaults to `~/.atom`.
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
