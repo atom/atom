@@ -98,12 +98,12 @@ beforeEach ->
   spyOn(atom, 'saveSync')
   atom.grammars.clearGrammarOverrides()
 
+  resolvePackagePath = _.bind(atom.packages.resolvePackagePath, atom.packages)
   spy = spyOn(atom.packages, 'resolvePackagePath').and.callFake (packageName) ->
     if specPackageName and packageName is specPackageName
       resolvePackagePath(specPackagePath)
     else
       resolvePackagePath(packageName)
-  # resolvePackagePath = _.bind(spy.originalValue, atom.packages)
 
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
