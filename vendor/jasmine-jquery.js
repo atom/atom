@@ -135,8 +135,7 @@ jasmine.JQuery.matchersClass = {};
   };
 
   var bindMatcher = function(methodName) {
-    // var builtInMatcher = jasmine.Matchers.prototype[methodName];
-    var builtInMatcher = null
+    var builtInMatcher = jasmine.matchers[methodName];
 
     jasmine.JQuery.matchersClass[methodName] = function() {
       return {
@@ -152,7 +151,8 @@ jasmine.JQuery.matchersClass = {};
           }
 
           if (builtInMatcher) {
-            return builtInMatcher.apply(this, arguments);
+            throw "Not tested yet!";
+            return builtInMatcher()["compare"].apply(this, arguments);
           }
 
 
