@@ -414,7 +414,13 @@ class TextEditorPresenter
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
   hasRequiredMeasurements: ->
-    @lineHeight? and @baseCharacterWidth? and @getHeight()? and @scrollTop? and @contentFrameWidth? and @scrollLeft?
+    @lineHeight? and
+      @baseCharacterWidth? and
+      @scrollTop? and
+      @contentFrameWidth? and
+      @scrollLeft? and
+      @verticalScrollbarWidth? and
+      @horizontalScrollbarHeight?
 
   setScrollTop: (scrollTop) ->
     unless @scrollTop is scrollTop
