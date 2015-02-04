@@ -294,7 +294,7 @@ class Install extends Command
   #
   # Returns a path to the cached tarball or undefined when not in the cache.
   getPackageCachePath: (packageName, packageVersion, callback) ->
-    cacheDir = config.getPackageCacheDirectory()
+    cacheDir = config.getCacheDirectory()
     cachePath = path.join(cacheDir, packageName, packageVersion, 'package.tgz')
     if fs.isFileSync(cachePath)
       tempPath = path.join(temp.mkdirSync(), path.basename(cachePath))

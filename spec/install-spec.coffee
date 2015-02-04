@@ -99,7 +99,7 @@ describe 'apm install', ->
 
       describe "when the package is already in the cache", ->
         it "installs it from the cache", ->
-          cachePath = path.join(require('../lib/apm').getPackageCacheDirectory(), 'test-module2', '2.0.0', 'package.tgz')
+          cachePath = path.join(require('../lib/apm').getCacheDirectory(), 'test-module2', '2.0.0', 'package.tgz')
           testModuleDirectory = path.join(atomHome, 'packages', 'test-module2')
 
           callback = jasmine.createSpy('callback')
