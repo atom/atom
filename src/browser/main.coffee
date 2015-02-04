@@ -84,6 +84,7 @@ setupAtomHome = ->
     if SquirrelUpdate.existsSync()
       atomPath = path.join(process.env.LOCALAPPDATA, 'atom').toLowerCase()
       if __dirname.toLowerCase().indexOf(atomPath) isnt 0
+        rootAtomFolder = path.resolve(process.execPath, '..', '..')
         process.env.ATOM_HOME = path.join(rootAtomFolder, '.atom')
         return
 
