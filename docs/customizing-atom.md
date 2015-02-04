@@ -103,7 +103,7 @@ You can open this file in an editor from the _Atom > Open Your Config_ menu.
 ### Custom Configuration Location
 
 You can override the location that Atom stores configuration files and folders
-by setting the `ATOM_HOME` environment variable. The `ATOM_HOME` path will be
+in by setting the `ATOM_HOME` environment variable. The `ATOM_HOME` path will be
 used instead of `~/.atom` when it is set.
 
 This option can be useful when you want to make Atom portable across machines.
