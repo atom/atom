@@ -414,7 +414,6 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode, safeMode}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      fs = require 'fs-plus'
       @packages = new PackageManager
         configDirPath: process.env.ATOM_HOME
         devMode: devMode
