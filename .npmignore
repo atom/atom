@@ -7,4 +7,3 @@ tasks/
 bin/node
 .travis.yml
 .pairs
-/.apmrc

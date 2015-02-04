@@ -37,7 +37,10 @@ module.exports = (grunt) ->
     grunt.file.delete('lib') if grunt.file.exists('lib')
     grunt.file.delete('bin/node_darwin_x64') if grunt.file.exists('bin/node_darwin_x64')
 
+  grunt.registerTask 'generate-apmrc', ->
+    grunt.file.write('.apmrc', 'cache = ~/.atom/.apm\n')
+
   grunt.registerTask('lint', ['coffeelint'])
   grunt.registerTask('default', ['coffee', 'lint'])
   grunt.registerTask('test', ['clean', 'default', 'shell:test'])
-  grunt.registerTask('prepublish', ['clean', 'coffee', 'lint'])
+  grunt.registerTask('prepublish', ['clean', 'coffee', 'lint', 'generate-apmrc'])
