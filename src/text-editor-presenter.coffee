@@ -96,7 +96,7 @@ class TextEditorPresenter
     @state.gutter.scrollHeight = scrollHeight
     @state.verticalScrollbar.scrollHeight = scrollHeight
 
-    scrollTop = @scrollTop
+    scrollTop = @computeScrollTop()
     @state.content.scrollTop = scrollTop
     @state.gutter.scrollTop = scrollTop
     @state.verticalScrollbar.scrollTop = scrollTop
@@ -114,26 +114,16 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateScrollbarsState: ->
-    contentWidth = @computeContentWidth()
-    contentHeight = @computeContentHeight()
-    clientWidthWithoutVerticalScrollbar = @contentFrameWidth
-    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @verticalScrollbarWidth
-    clientHeightWithoutHorizontalScrollbar = @getHeight()
-    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @horizontalScrollbarHeight
-    horizontalScrollbarVisible =
-      contentWidth > clientWidthWithoutVerticalScrollbar or
-        contentWidth > clientWidthWithVerticalScrollbar and contentHeight > clientHeightWithoutHorizontalScrollbar
-    verticalScrollbarVisible =
-      contentHeight > clientHeightWithoutHorizontalScrollbar or
-        contentHeight > clientHeightWithHorizontalScrollbar and contentWidth > clientWidthWithoutVerticalScrollbar
+    horizontalScrollbarHeight = @computeHorizontalScrollbarHeight()
+    verticalScrollbarWidth = @computeVerticalScrollbarWidth()
 
-    @state.horizontalScrollbar.visible = horizontalScrollbarVisible
+    @state.horizontalScrollbar.visible = horizontalScrollbarHeight > 0
     @state.horizontalScrollbar.height = @horizontalScrollbarHeight
-    @state.horizontalScrollbar.right = if verticalScrollbarVisible then @verticalScrollbarWidth else 0
+    @state.horizontalScrollbar.right = verticalScrollbarWidth
 
-    @state.verticalScrollbar.visible = verticalScrollbarVisible
+    @state.verticalScrollbar.visible = verticalScrollbarWidth > 0
     @state.verticalScrollbar.width = @verticalScrollbarWidth
-    @state.verticalScrollbar.bottom = if horizontalScrollbarVisible then @horizontalScrollbarHeight else 0
+    @state.verticalScrollbar.bottom = horizontalScrollbarHeight
 
     @emitter.emit 'did-update-state'
 
@@ -324,11 +314,11 @@ class TextEditorPresenter
       regions
 
   computeStartRow: ->
-    startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
+    startRow = Math.floor(@computeScrollTop() / @lineHeight) - @lineOverdrawMargin
     Math.max(0, startRow)
 
   computeEndRow: ->
-    startRow = Math.floor(@scrollTop / @lineHeight)
+    startRow = Math.floor(@computeScrollTop() / @lineHeight)
     visibleLinesCount = Math.ceil(@getHeight() / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
@@ -346,6 +336,49 @@ class TextEditorPresenter
 
   computeContentHeight: ->
     @lineHeight * @model.getScreenLineCount()
+
+  computeClientHeight: ->
+    @getHeight() - @computeHorizontalScrollbarHeight()
+
+  computeClientWidth: ->
+    @contentFrameWidth - @computeVerticalScrollbarWidth()
+
+  computeScrollTop: ->
+    @scrollTop = Math.min(@scrollTop, @computeScrollHeight() - @computeClientHeight())
+
+  computeHorizontalScrollbarHeight: ->
+    contentWidth = @computeContentWidth()
+    contentHeight = @computeContentHeight()
+    clientWidthWithoutVerticalScrollbar = @contentFrameWidth
+    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @verticalScrollbarWidth
+    clientHeightWithoutHorizontalScrollbar = @getHeight()
+    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @horizontalScrollbarHeight
+
+    horizontalScrollbarVisible =
+      contentWidth > clientWidthWithoutVerticalScrollbar or
+        contentWidth > clientWidthWithVerticalScrollbar and contentHeight > clientHeightWithoutHorizontalScrollbar
+
+    if horizontalScrollbarVisible
+      @horizontalScrollbarHeight
+    else
+      0
+
+  computeVerticalScrollbarWidth: ->
+    contentWidth = @computeContentWidth()
+    contentHeight = @computeContentHeight()
+    clientWidthWithoutVerticalScrollbar = @contentFrameWidth
+    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @verticalScrollbarWidth
+    clientHeightWithoutHorizontalScrollbar = @getHeight()
+    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @horizontalScrollbarHeight
+
+    verticalScrollbarVisible =
+      contentHeight > clientHeightWithoutHorizontalScrollbar or
+        contentHeight > clientHeightWithHorizontalScrollbar and contentWidth > clientWidthWithoutVerticalScrollbar
+
+    if verticalScrollbarVisible
+      @verticalScrollbarWidth
+    else
+      0
 
   lineDecorationClassesForRow: (row) ->
     return null if @model.isMini()
