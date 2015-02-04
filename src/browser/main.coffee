@@ -14,6 +14,7 @@ process.on 'uncaughtException', (error={}) ->
   nslog(error.stack) if error.stack?
 
 start = ->
+  setupAtomHome()
   if process.platform is 'win32'
     SquirrelUpdate = require './squirrel-update'
     squirrelCommand = process.argv[1]
@@ -75,6 +76,16 @@ setupCoffeeScript = ->
 
 setupAtomHome = ->
   return if process.env.ATOM_HOME
+
+  # Use install-relative .atom path on Windows when using the installer version
+  # in a non-default version. This enables an easy portable version.
+  if process.platform is 'win32'
+    SquirrelUpdate = require './squirrel-update'
+    if SquirrelUpdate.existsSync()
+      atomPath = path.join(process.env.LOCALAPPDATA, 'atom').toLowerCase()
+      if __dirname.toLowerCase().indexOf(atomPath) isnt 0
+        process.env.ATOM_HOME = path.join(rootAtomFolder, '.atom')
+        return
 
   if process.platform is 'win32'
     home = process.env.USERPROFILE
@@ -162,5 +173,4 @@ parseCommandLine = ->
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}
 
-setupAtomHome()
 start()
