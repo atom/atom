@@ -31,8 +31,8 @@ class WindowEventHandler
           atom.updateAvailable(detail)
 
           # FIXME: Remove this when deprecations are removed
-          {releaseVersion, releaseNotes} = detail
-          detail = [releaseVersion, releaseNotes]
+          {releaseVersion} = detail
+          detail = [releaseVersion]
           if workspaceElement = atom.views.getView(atom.workspace)
             atom.commands.dispatch workspaceElement, "window:update-available", detail
 

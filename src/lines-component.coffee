@@ -173,8 +173,7 @@ LinesComponent = React.createClass
     innerHTML = ""
 
     scopeStack = []
-    firstTrailingWhitespacePosition = text.search(/\s*$/)
-    lineIsWhitespaceOnly = firstTrailingWhitespacePosition is 0
+    lineIsWhitespaceOnly = line.isOnlyWhitespace()
     for token in tokens
       innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and lineIsWhitespaceOnly))
