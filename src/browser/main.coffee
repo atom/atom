@@ -77,17 +77,6 @@ setupCoffeeScript = ->
 setupAtomHome = ->
   return if process.env.ATOM_HOME
 
-  # Use relative .atom path on Windows when using the installer version
-  # in a non-default location. This enables an easy portable version.
-  if process.platform is 'win32'
-    SquirrelUpdate = require './squirrel-update'
-    if SquirrelUpdate.existsSync() and process.env.LOCALAPPDATA
-      atomPath = path.join(process.env.LOCALAPPDATA, 'atom').toLowerCase()
-      if __dirname.toLowerCase().indexOf(atomPath) isnt 0
-        rootAtomFolder = path.resolve(process.execPath, '..', '..')
-        process.env.ATOM_HOME = path.join(rootAtomFolder, '.atom')
-        return
-
   if process.platform is 'win32'
     home = process.env.USERPROFILE
   else
