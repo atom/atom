@@ -1769,40 +1769,52 @@ describe "TextEditorPresenter", ->
     changeScrollTop = (log) ->
       scrollHeight = presenterParams.lineHeight * editor.getScreenLineCount()
       newScrollTop = Math.max(0, _.random(0, scrollHeight - presenterParams.height))
-      log "Changing scrollTop: #{newScrollTop}"
+      log """
+        presenterParams.scrollTop = #{newScrollTop}
+        presenter.setScrollTop(#{newScrollTop})
+      """
       presenterParams.scrollTop = newScrollTop
       presenter.setScrollTop(newScrollTop)
 
     changeScrollLeft = (log) ->
       scrollWidth = presenter.computeScrollWidth()
       newScrollLeft = Math.max(0, _.random(0, scrollWidth - presenterParams.contentFrameWidth))
-      log "Changing scrollLeft: #{newScrollLeft}"
+      log """
+        presenterParams.scrollLeft = #{newScrollLeft}
+        presenter.setScrollLeft(#{newScrollLeft})
+      """
       presenterParams.scrollLeft = newScrollLeft
       presenter.setScrollLeft(newScrollLeft)
 
     changeHeight = (log) ->
       scrollHeight = presenterParams.lineHeight * editor.getScreenLineCount()
       newHeight = _.random(30, scrollHeight * 1.5)
-      log "Chaning height: #{newHeight}"
+      log """
+        presenterParams.height = #{newHeight}
+        presenter.setHeight(#{newHeight})
+      """
       presenterParams.height = newHeight
       presenter.setHeight(newHeight)
 
     changeContentFrameWidth = (log) ->
       scrollWidth = presenter.computeScrollWidth()
       newContentFrameWidth = _.random(100, scrollWidth * 1.5)
-      log "Chaning contentFrameWidth: #{newContentFrameWidth}"
+      log """
+        presenterParams.contentFrameWidth = #{newContentFrameWidth}
+        presenter.setContentFrameWidth(#{newContentFrameWidth})
+      """
       presenterParams.contentFrameWidth = newContentFrameWidth
       presenter.setContentFrameWidth(newContentFrameWidth)
 
     toggleSoftWrap = (log) ->
       softWrapped = not editor.isSoftWrapped()
-      log "Changing softWrapped: #{softWrapped}"
+      log "editor.setSoftWrapped(#{softWrapped})"
       editor.setSoftWrapped(softWrapped)
 
     insertText = (log) ->
       range = buildRandomRange()
       text = buildRandomText()
-      log "Inserting text in range #{range}: #{text}"
+      log "editor.setTextInBufferRange(#{JSON.stringify(range.serialize())}, #{JSON.stringify(text)})"
       editor.setTextInBufferRange(range, text)
 
     changeCursors = (log) ->
@@ -1812,20 +1824,25 @@ describe "TextEditorPresenter", ->
 
     addCursor = (log) ->
       position = buildRandomPoint()
-      log "Adding cursor at #{position}"
+      log "editor.addCursorAtBufferPosition(#{JSON.stringify(position.serialize())})"
       editor.addCursorAtBufferPosition(position)
 
     moveCursor = (log) ->
+      index = _.random(0, editor.getCursors().length - 1)
       position = buildRandomPoint()
-      cursor = getRandomElement(editor.getCursors())
-      log "Moving cursor from #{cursor.getBufferPosition()} to #{position}"
+      log """
+        cursor = editor.getCursors()[#{index}]
+        cursor.selection.clear()
+        cursor.setBufferPosition(#{JSON.stringify(position.serialize())})
+      """
+      cursor = editor.getCursors()[index]
       cursor.selection.clear()
       cursor.setBufferPosition(position)
 
     destroyCursor = (log) ->
-      cursor = getRandomElement(editor.getCursors())
-      log "Destroying cursor at #{cursor.getBufferPosition()}"
-      cursor.destroy()
+      index = _.random(0, editor.getCursors().length - 1)
+      log "editor.getCursors()[#{index}].destroy()"
+      editor.getCursors()[index].destroy()
 
     changeSelections = (log) ->
       actions = [addSelection, changeSelection]
@@ -1834,19 +1851,19 @@ describe "TextEditorPresenter", ->
 
     addSelection = (log) ->
       range = buildRandomRange()
-      log "Adding selection at #{range}"
+      log "editor.addSelectionForBufferRange(#{JSON.stringify(range.serialize())})"
       editor.addSelectionForBufferRange(range)
 
     changeSelection = (log) ->
+      index = _.random(0, editor.getSelections().length - 1)
       range = buildRandomRange()
-      selection = getRandomElement(editor.getSelections())
-      log "Changing selection from #{selection.getBufferRange()} to #{range}"
-      selection.setBufferRange(range)
+      log "editor.getSelections()[#{index}].setBufferRange(#{JSON.stringify(range.serialize())})"
+      editor.getSelections()[index].setBufferRange(range)
 
     destroySelection = (log) ->
-      selection = getRandomElement(editor.getSelections())
-      log "Destroying selection at #{selection.getBufferRange()}"
-      selection.destroy()
+      index = _.random(0, editor.getSelections().length - 1)
+      log "editor.getSelections()[#{index}].destroy()"
+      editor.getSelections()[index].destroy()
 
     changeLineDecorations = (log) ->
       actions = [addLineDecoration]
@@ -1866,23 +1883,24 @@ describe "TextEditorPresenter", ->
       else if Math.random() > .2
         options.onlyHead = true
 
-      log "Adding line decoration at #{range}: #{JSON.stringify(options)}"
+      log """
+        marker = editor.markBufferRange(#{JSON.stringify(range.serialize())})
+        editor.decorateMarker(marker, #{JSON.stringify(options)})
+      """
 
       marker = editor.markBufferRange(range)
       editor.decorateMarker(marker, options)
 
     changeLineDecoration = (log) ->
-      decoration = getRandomElement(editor.getLineDecorations())
-      marker = decoration.getMarker()
+      index = _.random(0, editor.getLineDecorations().length - 1)
       range = buildRandomRange()
-      log "Changing line decoration (#{JSON.stringify(decoration.getProperties())}) from #{marker.getBufferRange()} to #{range}"
-      marker.setBufferRange(range)
+      log "editor.getLineDecorations()[#{index}].getMarker().setBufferRange(#{JSON.stringify(range.serialize())})"
+      editor.getLineDecorations()[index].getMarker().setBufferRange(range)
 
     destroyLineDecoration = (log) ->
-      decoration = getRandomElement(editor.getLineDecorations())
-      marker = decoration.getMarker()
-      log "Destroying line decoration (#{JSON.stringify(decoration.getProperties())}) at #{marker.getBufferRange()}"
-      decoration.destroy()
+      index = _.random(0, editor.getLineDecorations().length - 1)
+      log "editor.getLineDecorations()[#{index}].destroy()"
+      editor.getLineDecorations()[index].destroy()
 
     buildRandomPoint = ->
       row = _.random(0, buffer.getLastRow())
