@@ -3,7 +3,7 @@ atom.initialize()
 atom.restoreWindowDimensions()
 
 # require 'jasmine-json'
-# require '../vendor/jasmine-jquery'
+require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
@@ -50,7 +50,7 @@ Object.defineProperty document, 'title',
   set: (title) -> documentTitle = title
 
 beforeEach ->
-  jasmine.env.addCustomEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+  jasmine.addCustomEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
 # if process.env.JANKY_SHA1 and process.platform is 'win32'
 #   jasmine.defaultTimeoutInterval = 60000

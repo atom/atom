@@ -1,6 +1,6 @@
 fs = require 'fs'
 Jasmine = require "jasmine"
-window.jasmine = new Jasmine
+window.jasmine = (new Jasmine).jasmine
 
 module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   {$, $$} = require '../src/space-pen-extensions'
@@ -35,7 +35,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
 
   require specSuite
 
-  jasmineEnv = jasmine.env
+  jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(reporter)
   # jasmineEnv.addReporter(timeReporter)
   # jasmineEnv.setIncludedTags([process.platform])

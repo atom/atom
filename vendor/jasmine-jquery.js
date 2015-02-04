@@ -135,23 +135,30 @@ jasmine.JQuery.matchersClass = {};
   };
 
   var bindMatcher = function(methodName) {
-    var builtInMatcher = jasmine.Matchers.prototype[methodName];
+    // var builtInMatcher = jasmine.Matchers.prototype[methodName];
+    var builtInMatcher = null
 
     jasmine.JQuery.matchersClass[methodName] = function() {
-      if (this.actual instanceof HTMLElement) {
-        this.actual = jQuery(this.actual);
-      }
-      if (this.actual && this.actual.jquery) {
-        var result = jQueryMatchers[methodName].apply(this, arguments);
-        this.actual = jasmine.JQuery.elementToString(this.actual);
-        return result;
-      }
+      return {
+        compare: function (actual) {
+          var result = { pass: true };
+          if (actual instanceof HTMLElement) {
+            actual = jQuery(actual);
+          }
+          if (actual && actual.jquery) {
+            this.actual = actual;
+            result.pass = jQueryMatchers[methodName].apply(this, arguments);
+            this.actual = jasmine.JQuery.elementToString(actual);
+          }
 
-      if (builtInMatcher) {
-        return builtInMatcher.apply(this, arguments);
-      }
+          if (builtInMatcher) {
+            return builtInMatcher.apply(this, arguments);
+          }
 
-      return false;
+
+          return result;
+        }
+      };
     };
   };
 
@@ -161,18 +168,18 @@ jasmine.JQuery.matchersClass = {};
 })();
 
 beforeEach(function() {
-  this.addMatchers(jasmine.JQuery.matchersClass);
-  this.addMatchers({
-    toHaveBeenTriggeredOn: function(selector) {
-      this.message = function() {
-        return [
-          "Expected event " + this.actual + " to have been triggered on" + selector,
-          "Expected event " + this.actual + " not to have been triggered on" + selector
-        ];
-      };
-      return jasmine.JQuery.events.wasTriggered(selector, this.actual);
-    }
-  })
+  jasmine.addMatchers(jasmine.JQuery.matchersClass);
+  // jasmine.addMatchers({
+  //   toHaveBeenTriggeredOn: function(selector) {
+  //     this.message = function() {
+  //       return [
+  //         "Expected event " + this.actual + " to have been triggered on" + selector,
+  //         "Expected event " + this.actual + " not to have been triggered on" + selector
+  //       ];
+  //     };
+  //     return jasmine.JQuery.events.wasTriggered(selector, this.actual);
+  //   }
+  // })
 });
 
 afterEach(function() {
