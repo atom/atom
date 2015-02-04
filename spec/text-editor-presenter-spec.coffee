@@ -137,7 +137,7 @@ describe "TextEditorPresenter", ->
             expect(presenter.state.horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
-          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
@@ -179,6 +179,11 @@ describe "TextEditorPresenter", ->
           scrollLeftBefore = presenter.state.horizontalScrollbar.scrollLeft
           expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe scrollLeftBefore
+
+        it "never goes negative", ->
+          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          expectStateUpdate presenter, -> presenter.setScrollLeft(-300)
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 0
 
     describe ".verticalScrollbar", ->
       describe ".visible", ->
@@ -278,6 +283,11 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
           expect(presenter.state.verticalScrollbar.scrollTop).toBe scrollTopBefore
 
+        it "never goes negative", ->
+          presenter = buildPresenter(scrollTop: 10, height: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(-100)
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe 0
+
     describe ".content", ->
       describe ".scrollingVertically", ->
         it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
@@ -354,7 +364,7 @@ describe "TextEditorPresenter", ->
             expect(presenter.state.content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
-          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
@@ -397,6 +407,12 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
           expect(presenter.state.content.scrollTop).toBe scrollTopBefore
 
+        it "never goes negative", ->
+          presenter = buildPresenter(scrollTop: 10, height: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(-100)
+          expect(presenter.state.content.scrollTop).toBe 0
+
+      describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.state.content.scrollLeft).toBe 10
@@ -421,6 +437,11 @@ describe "TextEditorPresenter", ->
           scrollLeftBefore = presenter.state.content.scrollLeft
           expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
           expect(presenter.state.content.scrollLeft).toBe scrollLeftBefore
+
+        it "never goes negative", ->
+          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          expectStateUpdate presenter, -> presenter.setScrollLeft(-300)
+          expect(presenter.state.content.scrollLeft).toBe 0
 
       describe ".indentGuidesVisible", ->
         it "is initialized based on the editor.showIndentGuide config setting", ->
@@ -1476,6 +1497,11 @@ describe "TextEditorPresenter", ->
           scrollTopBefore = presenter.state.verticalScrollbar.scrollTop
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
           expect(presenter.state.gutter.scrollTop).toBe scrollTopBefore
+
+        it "never goes negative", ->
+          presenter = buildPresenter(scrollTop: 10, height: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(-100)
+          expect(presenter.state.gutter.scrollTop).toBe 0
 
       describe ".backgroundColor", ->
         it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->

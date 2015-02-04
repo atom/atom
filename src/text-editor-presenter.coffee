@@ -18,6 +18,7 @@ class TextEditorPresenter
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @charWidthsByScope = {}
+    @transferMeasurementsToModel()
     @observeModel()
     @observeConfig()
     @buildState()
@@ -28,6 +29,16 @@ class TextEditorPresenter
 
   onDidUpdateState: (callback) ->
     @emitter.on 'did-update-state', callback
+
+  transferMeasurementsToModel: ->
+    @model.setHeight(@height) if @height?
+    @model.setWidth(@contentFrameWidth) if @contentFrameWidth?
+    @model.setLineHeightInPixels(@lineHeight) if @lineHeight?
+    @model.setDefaultCharWidth(@baseCharacterWidth) if @baseCharacterWidth?
+    @model.setScrollTop(@scrollTop) if @scrollTop?
+    @model.setScrollLeft(@scrollLeft) if @scrollLeft?
+    @model.setVerticalScrollbarWidth(@verticalScrollbarWidth) if @verticalScrollbarWidth?
+    @model.setHorizontalScrollbarHeight(@horizontalScrollbarHeight) if @horizontalScrollbarHeight?
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
@@ -49,6 +60,8 @@ class TextEditorPresenter
       @updateLineNumbersState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
+    @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
+    @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
 
@@ -346,16 +359,22 @@ class TextEditorPresenter
     @contentFrameWidth - @computeVerticalScrollbarWidth()
 
   computeScrollTop: ->
+    @scrollTop = @constrainScrollTop(@scrollTop)
+
+  constrainScrollTop: (scrollTop) ->
     if @hasRequiredMeasurements()
-      @scrollTop = Math.min(@scrollTop, @computeScrollHeight() - @computeClientHeight())
+      Math.max(0, Math.min(scrollTop, @computeScrollHeight() - @computeClientHeight()))
     else
-      @scrollTop
+      Math.max(0, scrollTop) if scrollTop?
 
   computeScrollLeft: ->
+    @scrollLeft = @constrainScrollLeft(@scrollLeft)
+
+  constrainScrollLeft: (scrollLeft) ->
     if @hasRequiredMeasurements()
-      @scrollLeft = Math.min(@scrollLeft, @computeScrollWidth() - @computeClientWidth())
+      Math.max(0, Math.min(scrollLeft, @computeScrollWidth() - @computeClientWidth()))
     else
-      @scrollLeft
+      Math.max(0, scrollLeft) if scrollLeft?
 
   computeHorizontalScrollbarHeight: ->
     contentWidth = @computeContentWidth()
@@ -423,8 +442,10 @@ class TextEditorPresenter
       @horizontalScrollbarHeight?
 
   setScrollTop: (scrollTop) ->
+    scrollTop = @constrainScrollTop(scrollTop)
     unless @scrollTop is scrollTop
       @scrollTop = scrollTop
+      @model.setScrollTop(scrollTop)
       @didStartScrolling()
       @updateVerticalScrollState()
       @updateDecorations()
@@ -450,19 +471,23 @@ class TextEditorPresenter
       @emitter.emit 'did-update-state'
 
   setScrollLeft: (scrollLeft) ->
+    scrollLeft = @constrainScrollLeft(scrollLeft)
     unless @scrollLeft is scrollLeft
       @scrollLeft = scrollLeft
+      @model.setScrollLeft(scrollLeft)
       @updateHorizontalScrollState()
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @horizontalScrollbarHeight is horizontalScrollbarHeight
       @horizontalScrollbarHeight = horizontalScrollbarHeight
+      @model.setHorizontalScrollbarHeight(horizontalScrollbarHeight)
       @updateScrollbarsState()
       @updateVerticalScrollState()
 
   setVerticalScrollbarWidth: (verticalScrollbarWidth) ->
     unless @verticalScrollbarWidth is verticalScrollbarWidth
       @verticalScrollbarWidth = verticalScrollbarWidth
+      @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
       @updateScrollbarsState()
       @updateHorizontalScrollState()
 
@@ -474,6 +499,7 @@ class TextEditorPresenter
   setHeight: (height) ->
     unless @height is height
       @height = height
+      @model.setHeight(height)
       @updateVerticalScrollState()
       @updateScrollbarsState()
       @updateDecorations()
@@ -487,6 +513,7 @@ class TextEditorPresenter
   setContentFrameWidth: (contentFrameWidth) ->
     unless @contentFrameWidth is contentFrameWidth
       @contentFrameWidth = contentFrameWidth
+      @model.setWidth(contentFrameWidth)
       @updateVerticalScrollState()
       @updateHorizontalScrollState()
       @updateScrollbarsState()
@@ -523,6 +550,7 @@ class TextEditorPresenter
   setBaseCharacterWidth: (baseCharacterWidth) ->
     unless @baseCharacterWidth is baseCharacterWidth
       @baseCharacterWidth = baseCharacterWidth
+      @model.setDefaultCharWidth(baseCharacterWidth)
       @characterWidthsChanged()
 
   getScopedCharWidth: (scopeNames, char) ->

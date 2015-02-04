@@ -230,8 +230,6 @@ TextEditorComponent = React.createClass
     @subscribe editor.observeGrammar(@onGrammarChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
     @subscribe editor.observeSelections(@onSelectionAdded)
-    @subscribe editor.$scrollTop.changes, @onScrollTopChanged
-    @subscribe editor.$scrollLeft.changes, @onScrollLeftChanged
     @subscribe editor.$verticalScrollbarWidth.changes, @requestUpdate
     @subscribe editor.$horizontalScrollbarHeight.changes, @requestUpdate
     @subscribe editor.$height.changes, @requestUpdate
@@ -356,7 +354,6 @@ TextEditorComponent = React.createClass
         pendingScrollTop = @pendingScrollTop
         @pendingScrollTop = null
         @presenter.setScrollTop(pendingScrollTop)
-        @props.editor.setScrollTop(pendingScrollTop)
 
   onHorizontalScroll: (scrollLeft) ->
     {editor} = @props
@@ -367,7 +364,6 @@ TextEditorComponent = React.createClass
     @pendingScrollLeft = scrollLeft
     unless animationFramePending
       @requestAnimationFrame =>
-        @props.editor.setScrollLeft(@pendingScrollLeft)
         @presenter.setScrollLeft(@pendingScrollLeft)
         @pendingScrollLeft = null
 
@@ -389,13 +385,13 @@ TextEditorComponent = React.createClass
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
       previousScrollLeft = editor.getScrollLeft()
-      editor.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
+      @presenter.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
       event.preventDefault() unless previousScrollLeft is editor.getScrollLeft()
     else
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
-      previousScrollTop = editor.getScrollTop()
-      editor.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
+      previousScrollTop = @presenter.scrollTop
+      @presenter.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
       event.preventDefault() unless previousScrollTop is editor.getScrollTop()
 
   onScrollViewScroll: ->
@@ -550,24 +546,6 @@ TextEditorComponent = React.createClass
       @selectionChanged = true
       @requestUpdate()
 
-  onScrollTopChanged: ->
-    @presenter.setScrollTop(@props.editor.getScrollTop())
-    @requestUpdate()
-    @onStoppedScrollingAfterDelay ?= debounce(@onStoppedScrolling, 200)
-    @onStoppedScrollingAfterDelay()
-
-  onScrollLeftChanged: ->
-    @presenter.setScrollLeft(@props.editor.getScrollLeft())
-    @requestUpdate()
-
-  onStoppedScrolling: ->
-    return unless @isMounted()
-
-    @mouseWheelScreenRow = null
-    @requestUpdate()
-
-  onStoppedScrollingAfterDelay: null # created lazily
-
   onCursorAdded: (cursor) ->
     @subscribe cursor.onDidChangePosition @onCursorMoved
 
@@ -675,18 +653,15 @@ TextEditorComponent = React.createClass
       height =  hostElement.offsetHeight
       if height > 0
         @presenter.setHeight(height)
-        editor.setHeight(height)
     else
       @presenter.setAutoHeight(true)
       @presenter.setHeight(null)
-      editor.setHeight(null)
 
     clientWidth = scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
     clientWidth -= paddingLeft
     if clientWidth > 0
       @presenter.setContentFrameWidth(clientWidth)
-      editor.setWidth(clientWidth)
 
   sampleFontStyling: ->
     oldFontSize = @fontSize
@@ -737,9 +712,7 @@ TextEditorComponent = React.createClass
     width = (cornerNode.offsetWidth - cornerNode.clientWidth) or 15
     height = (cornerNode.offsetHeight - cornerNode.clientHeight) or 15
 
-    editor.setVerticalScrollbarWidth(width)
     @presenter.setVerticalScrollbarWidth(width)
-    editor.setHorizontalScrollbarHeight(height)
     @presenter.setHorizontalScrollbarHeight(height)
 
     cornerNode.style.display = originalDisplayValue
