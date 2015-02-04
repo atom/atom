@@ -125,6 +125,7 @@
     "language-c": "0.38.0",
     "language-clojure": "0.10.0",
     "language-coffee-script": "0.39.0",
+    "language-csharp": "0.4.0",
     "language-css": "0.27.0",
     "language-gfm": "0.63.0",
     "language-git": "0.10.0",
