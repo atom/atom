@@ -34,7 +34,7 @@ class OverlayManager
       left -= itemWidth
 
     top = pixelPosition.top + presenter.lineHeight
-    if top + itemHeight - scrollTop > presenter.getHeight() and top - itemHeight - presenter.lineHeight >= scrollTop
+    if top + itemHeight - scrollTop > presenter.computeHeight() and top - itemHeight - presenter.lineHeight >= scrollTop
       top -= itemHeight + presenter.lineHeight
 
     overlayNode.style.top = top + 'px'

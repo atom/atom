@@ -10,7 +10,7 @@ class TextEditorPresenter
   mouseWheelScreenRow: null
 
   constructor: (params) ->
-    {@model, @autoHeight, @height, @contentFrameWidth, @scrollTop, @scrollLeft} = params
+    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft} = params
     {@horizontalScrollbarHeight, @verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
@@ -31,7 +31,7 @@ class TextEditorPresenter
     @emitter.on 'did-update-state', callback
 
   transferMeasurementsToModel: ->
-    @model.setHeight(@height) if @height?
+    @model.setHeight(@explicitHeight) if @explicitHeight?
     @model.setWidth(@contentFrameWidth) if @contentFrameWidth?
     @model.setLineHeightInPixels(@lineHeight) if @lineHeight?
     @model.setDefaultCharWidth(@baseCharacterWidth) if @baseCharacterWidth?
@@ -334,7 +334,7 @@ class TextEditorPresenter
 
   computeEndRow: ->
     startRow = Math.floor(@computeScrollTop() / @lineHeight)
-    visibleLinesCount = Math.ceil(@getHeight() / @lineHeight) + 1
+    visibleLinesCount = Math.ceil(@computeHeight() / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
 
@@ -342,7 +342,7 @@ class TextEditorPresenter
     Math.max(@computeContentWidth(), @contentFrameWidth)
 
   computeScrollHeight: ->
-    Math.max(@computeContentHeight(), @getHeight())
+    Math.max(@computeContentHeight(), @computeHeight())
 
   computeContentWidth: ->
     contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
@@ -353,7 +353,7 @@ class TextEditorPresenter
     @lineHeight * @model.getScreenLineCount()
 
   computeClientHeight: ->
-    @getHeight() - @computeHorizontalScrollbarHeight()
+    @computeHeight() - @computeHorizontalScrollbarHeight()
 
   computeClientWidth: ->
     @contentFrameWidth - @computeVerticalScrollbarWidth()
@@ -381,7 +381,7 @@ class TextEditorPresenter
     contentHeight = @computeContentHeight()
     clientWidthWithoutVerticalScrollbar = @contentFrameWidth
     clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @verticalScrollbarWidth
-    clientHeightWithoutHorizontalScrollbar = @getHeight()
+    clientHeightWithoutHorizontalScrollbar = @computeHeight()
     clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @horizontalScrollbarHeight
 
     horizontalScrollbarVisible =
@@ -398,7 +398,7 @@ class TextEditorPresenter
     contentHeight = @computeContentHeight()
     clientWidthWithoutVerticalScrollbar = @contentFrameWidth
     clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @verticalScrollbarWidth
-    clientHeightWithoutHorizontalScrollbar = @getHeight()
+    clientHeightWithoutHorizontalScrollbar = @computeHeight()
     clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @horizontalScrollbarHeight
 
     verticalScrollbarVisible =
@@ -443,6 +443,7 @@ class TextEditorPresenter
 
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
+
     unless @scrollTop is scrollTop
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
@@ -496,10 +497,10 @@ class TextEditorPresenter
       @autoHeight = autoHeight
       @updateHeightState()
 
-  setHeight: (height) ->
-    unless @height is height
-      @height = height
-      @model.setHeight(height)
+  setExplicitHeight: (explicitHeight) ->
+    unless @explicitHeight is explicitHeight
+      @explicitHeight = explicitHeight
+      @model.setHeight(explicitHeight)
       @updateVerticalScrollState()
       @updateScrollbarsState()
       @updateDecorations()
@@ -507,8 +508,8 @@ class TextEditorPresenter
       @updateCursorsState()
       @updateLineNumbersState()
 
-  getHeight: ->
-    @height ? @computeContentHeight()
+  computeHeight: ->
+    @explicitHeight ? @computeContentHeight()
 
   setContentFrameWidth: (contentFrameWidth) ->
     unless @contentFrameWidth is contentFrameWidth

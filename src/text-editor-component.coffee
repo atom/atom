@@ -652,10 +652,10 @@ TextEditorComponent = React.createClass
       @presenter.setAutoHeight(false)
       height =  hostElement.offsetHeight
       if height > 0
-        @presenter.setHeight(height)
+        @presenter.setExplicitHeight(height)
     else
       @presenter.setAutoHeight(true)
-      @presenter.setHeight(null)
+      @presenter.setExplicitHeight(null)
 
     clientWidth = scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(scrollViewNode).paddingLeft)
