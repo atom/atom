@@ -1,5 +1,4 @@
 path = require 'path'
-fs = require 'fs-plus'
 LessCache = require 'less-cache'
 
 # {LessCache} wrapper used by {ThemeManager} to read stylesheets.
