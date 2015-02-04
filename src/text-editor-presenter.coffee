@@ -108,8 +108,9 @@ class TextEditorPresenter
     @state.content.scrollWidth = scrollWidth
     @state.horizontalScrollbar.scrollWidth = scrollWidth
 
-    @state.content.scrollLeft = @scrollLeft
-    @state.horizontalScrollbar.scrollLeft = @scrollLeft
+    scrollLeft = @computeScrollLeft()
+    @state.content.scrollLeft = scrollLeft
+    @state.horizontalScrollbar.scrollLeft = scrollLeft
 
     @emitter.emit 'did-update-state'
 
@@ -345,6 +346,9 @@ class TextEditorPresenter
 
   computeScrollTop: ->
     @scrollTop = Math.min(@scrollTop, @computeScrollHeight() - @computeClientHeight())
+
+  computeScrollLeft: ->
+    @scrollLeft = Math.min(@scrollLeft, @computeScrollWidth() - @computeClientWidth())
 
   computeHorizontalScrollbarHeight: ->
     contentWidth = @computeContentWidth()

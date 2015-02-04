@@ -143,10 +143,29 @@ describe "TextEditorPresenter", ->
 
       describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
-          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 50
+
+        it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
+          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          expectStateUpdate presenter, -> presenter.setScrollLeft(300)
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(15)
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          # Scroll top only gets smaller when needed as dimensions change, never bigger
+          scrollLeftBefore = presenter.state.horizontalScrollbar.scrollLeft
+          expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe scrollLeftBefore
 
     describe ".verticalScrollbar", ->
       describe ".visible", ->
@@ -228,7 +247,7 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe 50
 
-        it "never exceeds the computed scroll height minus the computed client height", ->
+        it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
           presenter = new TextEditorPresenter(model: editor, scrollTop: 10, lineHeight: 10, height: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.computeClientHeight()
@@ -366,12 +385,30 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
           expect(presenter.state.content.scrollTop).toBe scrollTopBefore
 
-      describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
-          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.state.content.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.state.content.scrollLeft).toBe 50
+
+        it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
+          presenter = new TextEditorPresenter(model: editor, scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, lineOverdrawMargin: 1, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          expectStateUpdate presenter, -> presenter.setScrollLeft(300)
+          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
+          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(15)
+          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
+          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
+
+          # Scroll top only gets smaller when needed as dimensions change, never bigger
+          scrollLeftBefore = presenter.state.content.scrollLeft
+          expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
+          expect(presenter.state.content.scrollLeft).toBe scrollLeftBefore
 
       describe ".indentGuidesVisible", ->
         it "is initialized based on the editor.showIndentGuide config setting", ->
@@ -1804,6 +1841,7 @@ describe "TextEditorPresenter", ->
 
     expectValidState = ->
       presenterParams.scrollTop = presenter.scrollTop
+      presenterParams.scrollLeft = presenter.scrollLeft
       actualState = presenter.state
       expectedState = new TextEditorPresenter(presenterParams).state
       delete actualState.content.scrollingVertically
