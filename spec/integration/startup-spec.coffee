@@ -1,3 +1,8 @@
+# These tests are excluded by default. To run them from the command line:
+#
+# ATOM_INTEGRATION_TESTS_ENABLED=true apm test
+return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
+
 os = require "os"
 fs = require "fs"
 path = require "path"
@@ -12,18 +17,16 @@ SocketPath = path.join(os.tmpdir(), "atom-integration-test.sock")
 ChromeDriverPort = 9515
 
 describe "Starting Atom", ->
-  if spawnSync("which", ["chromedriver"]).status isnt 0
-    console.log "Skipping integration tests because the `chromedriver` executable was not found."
-    return
-
   [chromeDriver, driver, tempDirPath] = []
 
   beforeEach ->
     tempDirPath = temp.mkdirSync("empty-dir")
-    chromeDriver = spawn "chromedriver", ["--verbose", "--port=#{ChromeDriverPort}"]
 
-    # Uncomment to see chromedriver debug output
-    # chromeDriver.stderr.on "data", (d) -> console.log(d.toString())
+    waitsFor "chromedriver to start", (done) ->
+      chromeDriver = spawn "chromedriver", ["--verbose", "--port=#{ChromeDriverPort}"]
+      chromeDriver.on "error", (error) ->
+        throw new Error("chromedriver failed to start: #{error.message}")
+      chromeDriver.stderr.on "data", -> done()
 
   afterEach ->
     waitsForPromise -> driver.quit().thenFinally(-> chromeDriver.kill())
