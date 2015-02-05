@@ -955,9 +955,14 @@ describe "Workspace", ->
           expect(editor.isModified()).toBeTruthy()
 
   describe "::saveActivePaneItem()", ->
+    editor = null
+    beforeEach ->
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (o) -> editor = o
+
     describe "when there is an error", ->
       it "emits a warning notification when the file cannot be saved", ->
-        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+        spyOn(editor, 'save').andCallFake ->
           throw new Error("'/some/file' is a directory")
 
         atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
@@ -966,7 +971,7 @@ describe "Workspace", ->
         expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
 
       it "emits a warning notification when the directory cannot be written to", ->
-        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+        spyOn(editor, 'save').andCallFake ->
           throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
 
         atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
@@ -975,7 +980,7 @@ describe "Workspace", ->
         expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
 
       it "emits a warning notification when the user does not have permission", ->
-        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+        spyOn(editor, 'save').andCallFake ->
           error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
           error.code = 'EACCES'
           error.path = '/Some/dir/and-a-file.js'
@@ -987,14 +992,14 @@ describe "Workspace", ->
         expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
 
       it "emits a warning notification when the operation is not permitted", ->
-        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+        spyOn(editor, 'save').andCallFake ->
           error = new Error("EPERM, operation not permitted '/Some/dir/and-a-file.js'")
           error.code = 'EPERM'
           error.path = '/Some/dir/and-a-file.js'
           throw error
 
       it "emits a warning notification when the file is already open by another app", ->
-        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+        spyOn(editor, 'save').andCallFake ->
           error = new Error("EBUSY, resource busy or locked '/Some/dir/and-a-file.js'")
           error.code = 'EBUSY'
           error.path = '/Some/dir/and-a-file.js'
@@ -1009,7 +1014,7 @@ describe "Workspace", ->
         expect(notificaiton.getMessage()).toContain 'Unable to save'
 
       it "emits a warning notification when the file system is read-only", ->
-        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+        spyOn(editor, 'save').andCallFake ->
           error = new Error("EROFS, read-only file system '/Some/dir/and-a-file.js'")
           error.code = 'EROFS'
           error.path = '/Some/dir/and-a-file.js'
@@ -1024,7 +1029,7 @@ describe "Workspace", ->
         expect(notification.getMessage()).toContain 'Unable to save'
 
       it "emits a warning notification when the file cannot be saved", ->
-        spyOn(Pane::, 'saveActiveItem').andCallFake ->
+        spyOn(editor, 'save').andCallFake ->
           throw new Error("no one knows")
 
         save = -> atom.workspace.saveActivePaneItem()
