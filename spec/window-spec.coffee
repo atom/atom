@@ -1,5 +1,7 @@
 {$, $$} = require '../src/space-pen-extensions'
 path = require 'path'
+fs = require 'fs-plus'
+temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 
@@ -54,7 +56,7 @@ describe "Window", ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
       beforeUnloadEvent = $.Event(new Event('beforeunload'))
 
-    describe "when pane items are are modified", ->
+    describe "when pane items are modified", ->
       it "prompts user to save and calls atom.workspace.confirmClose", ->
         editor = null
         spyOn(atom.workspace, 'confirmClose').andCallThrough()
@@ -91,6 +93,25 @@ describe "Window", ->
           editor.insertText("I look different, I feel different.")
           $(window).trigger(beforeUnloadEvent)
           expect(atom.confirm).toHaveBeenCalled()
+
+      describe "when the same path is modified in multiple panes", ->
+        it "prompts to save the item", ->
+          editor = null
+          filePath = path.join(temp.mkdirSync('atom-file'), 'file.txt')
+          fs.writeFileSync(filePath, 'hello')
+          spyOn(atom.workspace, 'confirmClose').andCallThrough()
+          spyOn(atom, 'confirm').andReturn(0)
+
+          waitsForPromise ->
+            atom.workspace.open(filePath).then (o) -> editor = o
+
+          runs ->
+            atom.workspace.getActivePane().splitRight(copyActiveItem: true)
+            editor.setText('world')
+            $(window).trigger(beforeUnloadEvent)
+            expect(atom.workspace.confirmClose).toHaveBeenCalled()
+            expect(atom.confirm.callCount).toBe 1
+            expect(fs.readFileSync(filePath, 'utf8')).toBe 'world'
 
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->

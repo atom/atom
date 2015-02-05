@@ -437,8 +437,8 @@ class Pane extends Model
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
 
-  promptToSaveItem: (item) ->
-    return true unless item.shouldPromptToSave?()
+  promptToSaveItem: (item, options={}) ->
+    return true unless item.shouldPromptToSave?(options)
 
     if typeof item.getURI is 'function'
       uri = item.getURI()

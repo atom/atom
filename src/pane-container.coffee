@@ -152,12 +152,12 @@ class PaneContainer extends Model
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
 
-  confirmClose: ->
+  confirmClose: (options) ->
     allSaved = true
 
     for pane in @getPanes()
       for item in pane.getItems()
-        unless pane.promptToSaveItem(item)
+        unless pane.promptToSaveItem(item, options)
           allSaved = false
           break
 

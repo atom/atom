@@ -641,7 +641,11 @@ class TextEditor extends Model
 
   # Determine whether the user should be prompted to save before closing
   # this editor.
-  shouldPromptToSave: -> @isModified() and not @buffer.hasMultipleEditors()
+  shouldPromptToSave: ({windowCloseRequested}={})->
+    if windowCloseRequested
+      @isModified()
+    else
+      @isModified() and not @buffer.hasMultipleEditors()
 
   ###
   Section: Reading Text

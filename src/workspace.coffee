@@ -599,8 +599,8 @@ class Workspace extends Model
   saveAll: ->
     @paneContainer.saveAll()
 
-  confirmClose: ->
-    @paneContainer.confirmClose()
+  confirmClose: (options) ->
+    @paneContainer.confirmClose(options)
 
   # Save the active pane item.
   #
