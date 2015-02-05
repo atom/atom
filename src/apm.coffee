@@ -112,6 +112,5 @@ module.exports =
     null
 
   setupApmRcFile: ->
-    rcPath = path.resolve(__dirname, '..', '.apmrc')
     try
-      fs.writeFileSync(rcPath, "cache = #{@getCacheDirectory()}\n")
+      fs.writeFileSync(@getGlobalConfigPath(), "cache = #{@getCacheDirectory()}\n")
