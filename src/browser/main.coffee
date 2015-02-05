@@ -2,7 +2,7 @@ global.shellStartTime = Date.now()
 
 crashReporter = require 'crash-reporter'
 app = require 'app'
-fs = require 'fs'
+fs = require 'fs-plus'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
@@ -43,10 +43,11 @@ start = ->
 
     cwd = args.executedFrom?.toString() or process.cwd()
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
+      pathToOpen = fs.normalize(pathToOpen)
       if cwd
-        path.resolve(cwd, pathToOpen.toString())
+        path.resolve(cwd, pathToOpen)
       else
-        path.resolve(pathToOpen.toString())
+        path.resolve(pathToOpen)
 
     setupCoffeeScript()
     if args.devMode
