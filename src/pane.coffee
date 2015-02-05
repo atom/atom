@@ -502,7 +502,6 @@ class Pane extends Model
     newItemPath = atom.showSaveDialogSync(itemPath)
     if newItemPath
       try
-        console.log 'here?'
         item.saveAs(newItemPath)
       catch error
         @handleSaveError(error)
