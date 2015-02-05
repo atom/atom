@@ -174,6 +174,9 @@ class CommandRegistry
 
   onWillDispatch: (callback) ->
     @emitter.on 'will-dispatch', callback
+  
+  onDidDispatch: (callback) ->
+    @emitter.on 'did-dispatch', callback
 
   getSnapshot: ->
     snapshot = {}
@@ -223,6 +226,7 @@ class CommandRegistry
       for listener in listeners
         break if immediatePropagationStopped
         listener.callback.call(currentTarget, syntheticEvent)
+        @emitter.emit 'did-dispatch', syntheticEvent
 
       break if currentTarget is window
       break if propagationStopped
