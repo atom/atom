@@ -5,7 +5,7 @@
   "repository": "https://github.com/__package-author__/__package-name__",
   "license": "MIT",
   "engines": {
-    "atom": ">0.50.0"
+    "atom": ">=0.174.0 <2.0.0"
   },
   "dependencies": {
   }
