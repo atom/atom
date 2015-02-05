@@ -483,7 +483,7 @@ class Pane extends Model
     if itemURI?
       try
         item.save?()
-      catch
+      catch error
         @handleSaveError(error)
       nextAction?()
     else
