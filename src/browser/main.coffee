@@ -78,11 +78,7 @@ setupCoffeeScript = ->
 setupAtomHome = ->
   return if process.env.ATOM_HOME
 
-  if process.platform is 'win32'
-    home = process.env.USERPROFILE
-  else
-    home = process.env.HOME
-  atomHome = path.join(home, '.atom')
+  atomHome = path.join(app.getHomeDir(), '.atom')
   try
     atomHome = fs.realpathSync(atomHome)
   process.env.ATOM_HOME = atomHome
