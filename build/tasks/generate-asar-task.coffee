@@ -1,4 +1,5 @@
 asar = require 'asar'
+fs = require 'fs'
 path = require 'path'
 
 module.exports = (grunt) ->
@@ -8,6 +9,10 @@ module.exports = (grunt) ->
     done = @async()
 
     appDir = grunt.config.get('atom.appDir')
+    unless fs.existsSync(appDir)
+      grunt.log.error 'The app has to be built before generating asar archive.'
+      return done(false)
+
     asar.createPackage appDir, path.resolve(appDir, '..', 'app.asar'), (err) ->
       return done(err) if err?
       rm appDir
