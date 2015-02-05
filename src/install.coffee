@@ -531,7 +531,9 @@ class Install extends Command
     return @checkNativeBuildTools(callback) if options.argv.check
 
     @verbose = options.argv.verbose
-    process.env.NODE_DEBUG = 'request' if @verbose
+    if @verbose
+      request.debug(true)
+      process.env.NODE_DEBUG = 'request'
 
     installPackage = (name, callback) =>
       if name is '.'

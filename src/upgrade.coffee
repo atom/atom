@@ -39,6 +39,7 @@ class Upgrade extends Command
     options.alias('l', 'list').boolean('list').describe('list', 'List but don\'t install the outdated packages')
     options.boolean('json').describe('json', 'Output outdated packages as a JSON array')
     options.string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
+    options.boolean('verbose').default('verbose', false).describe('verbose', 'Show verbose debug information')
 
   getInstalledPackages: ->
     packages = []
@@ -118,13 +119,13 @@ class Upgrade extends Command
 
   installUpdates: (updates, callback) ->
     installCommands = []
+    verbose = @verbose
     for {pack, latestVersion} in updates
       do (pack, latestVersion) ->
         installCommands.push (callback) ->
-          options =
-            callback: callback
-            commandArgs: ["#{pack.name}@#{latestVersion}"]
-          new Install().run(options)
+          commandArgs = ["#{pack.name}@#{latestVersion}"]
+          commandArgs.unshift('--verbose') if verbose
+          new Install().run({callback, commandArgs})
 
     async.waterfall(installCommands, callback)
 
@@ -132,6 +133,11 @@ class Upgrade extends Command
     {callback, command} = options
     options = @parseOptions(options.commandArgs)
     options.command = command
+
+    @verbose = options.argv.verbose
+    if @verbose
+      request.debug(true)
+      process.env.NODE_DEBUG = 'request'
 
     @loadInstalledAtomVersion options, =>
       if @installedAtomVersion

@@ -40,3 +40,6 @@ module.exports =
       'atom.io is temporarily unavailable, please try again later.'
     else
       body?.message ? body?.error ? body
+
+  debug: (debug) ->
+    request.debug = debug
