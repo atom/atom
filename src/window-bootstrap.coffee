@@ -1,12 +1,10 @@
 # Like sands through the hourglass, so are the days of our lives.
-console.profile('loading')
 require './window'
 
 Atom = require './atom'
 window.atom = Atom.loadOrCreate('editor')
 atom.initialize()
 atom.startEditorWindow()
-console.profileEnd('loading')
 
 # Workaround for focus getting cleared upon window creation
 windowFocused = ->
