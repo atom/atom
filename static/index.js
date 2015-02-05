@@ -13,6 +13,23 @@ window.onload = function() {
     var fs = require('fs');
     var path = require('path');
 
+    // Ensure ATOM_HOME is always set before anything else is required
+    if (!process.env.ATOM_HOME) {
+      var home;
+      if (process.platform === 'win32') {
+        home = process.env.USERPROFILE;
+      } else {
+        home = process.env.HOME;
+      }
+      var atomHome = path.join(home, '.atom');
+      try {
+        atomHome = fs.realpathSync(atomHome);
+      } catch (error) {
+        // Ignore since the path might just not exist yet.
+      }
+      process.env.ATOM_HOME = atomHome;
+    }
+
     // Skip "?loadSettings=".
     var rawLoadSettings = decodeURIComponent(location.search.substr(14));
     var loadSettings;
