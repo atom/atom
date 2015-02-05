@@ -222,7 +222,7 @@ module.exports = (grunt) ->
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
   grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
 
-  ciTasks = ['output-disk-space', 'download-atom-shell', 'build']
+  ciTasks = ['output-disk-space', 'download-atom-shell', 'download-atom-shell-chromedriver', 'build']
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint')
   ciTasks.push('mkdeb') if process.platform is 'linux'
@@ -232,6 +232,6 @@ module.exports = (grunt) ->
   ciTasks.push('publish-build')
   grunt.registerTask('ci', ciTasks)
 
-  defaultTasks = ['download-atom-shell', 'build', 'set-version']
+  defaultTasks = ['download-atom-shell', 'download-atom-shell-chromedriver', 'build', 'set-version']
   defaultTasks.push 'install' unless process.platform is 'linux'
   grunt.registerTask('default', defaultTasks)
