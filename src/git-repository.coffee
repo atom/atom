@@ -79,7 +79,7 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
-    @watch = fs.watch path, { persistent: false }, (_, file) =>
+    @watch = fs.watch path, { persistent: false }, (event, file) =>
       @getPathStatus join(path, file)
 
     @statuses = {}
