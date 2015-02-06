@@ -16,7 +16,7 @@ keystrokes pass through `atom-text-editor` elements:
   'ctrl-shift-e': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
 
-'atom-text-editor:not([mini])'
+'atom-text-editor:not([mini])':
   'cmd-alt-[': 'editor:fold-current-row'
   'cmd-alt-]': 'editor:unfold-current-row'
 ```
