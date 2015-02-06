@@ -44,7 +44,13 @@ class Project extends Model
 
     Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor") if path?
     paths ?= _.compact([path])
+    @repositoryProviders = []
     @setPaths(paths)
+
+    atom.packages.serviceHub.consume(
+        'atom.repository-provider',
+        '>=0.0.0',
+        @addRepositoryProvider.bind(this))
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
@@ -120,6 +126,11 @@ class Project extends Model
     Grim.deprecate("Use ::getPaths instead")
     @projectRoot?.getDirectory()?.path
 
+  addRepositoryProvider: (provider) ->
+    # TODO: Iterate over @getProjectRoots() and try to use this provider to
+    # create a repo for any ProjectRoot that does not have one.
+    @repositoryProviders.push provider
+
   # Public: Set the paths of the project's directories.
   #
   # * `projectPaths` {Array} of {String} paths.
@@ -131,9 +142,14 @@ class Project extends Model
 
     if projectPath?
       directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
-      if repo = GitRepository.open(directory, project: this)
+      options = project: this
+      if repo = GitRepository.open(directory, options)
         repo.refreshIndex()
         repo.refreshStatus()
+      else
+        for repositoryProvider in @repositoryProviders
+          repo = repositoryProvider.createRepository(directory, options)
+          break if repo
       @projectRoot = new ProjectRoot(new Directory(directory), repo)
     else
       @projectRoot = null
