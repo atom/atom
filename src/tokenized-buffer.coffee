@@ -154,7 +154,7 @@ class TokenizedBuffer extends Model
       row = invalidRow
       loop
         previousStack = @stackForRow(row)
-        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
         if --rowsRemaining == 0
           filledRegion = false
           break
@@ -223,7 +223,7 @@ class TokenizedBuffer extends Model
     line = @tokenizedLines[row]
     if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
       while line?.isOnlyWhitespace()
-        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
         row += increment
         line = @tokenizedLines[row]
 
@@ -234,7 +234,7 @@ class TokenizedBuffer extends Model
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow]
       if (ruleStack or row == 0) and row < stopTokenizingAt
-        screenLine = @buildTokenizedTokenizedLineForRow(row, ruleStack)
+        screenLine = @buildTokenizedLineForRow(row, ruleStack)
         ruleStack = screenLine.ruleStack
       else
         screenLine = @buildPlaceholderTokenizedLineForRow(row)
@@ -257,7 +257,7 @@ class TokenizedBuffer extends Model
     lineEnding = @buffer.lineEndingForRow(row)
     new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
 
-  buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
+  buildTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
