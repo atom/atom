@@ -26,7 +26,7 @@ describe "Starting Atom", ->
       chromeDriver = spawn "chromedriver", ["--verbose", "--port=#{ChromeDriverPort}"]
       chromeDriver.on "error", (error) ->
         throw new Error("chromedriver failed to start: #{error.message}")
-      chromeDriver.stderr.on "data", -> done()
+      chromeDriver.stdout.on "data", -> done()
 
   afterEach ->
     waitsForPromise -> driver.quit().thenFinally(-> chromeDriver.kill())
