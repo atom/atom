@@ -3,105 +3,64 @@
 # ATOM_INTEGRATION_TESTS_ENABLED=true apm test
 return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 
-os = require "os"
 fs = require "fs"
 path = require "path"
-remote = require "remote"
 temp = require("temp").track()
-{spawn, spawnSync} = require "child_process"
-{Builder, By} = require "../../build/node_modules/selenium-webdriver"
-
-AtomPath = remote.process.argv[0]
-AtomLauncherPath = path.join(__dirname, "helpers", "atom-launcher.sh")
-SocketPath = path.join(os.tmpdir(), "atom-integration-test.sock")
-ChromeDriverPort = 9515
+{startAtom, startAnotherAtom, driverTest} = require("./helpers/start-atom")
 
 describe "Starting Atom", ->
-  [chromeDriver, driver, tempDirPath] = []
-
   beforeEach ->
-    tempDirPath = temp.mkdirSync("empty-dir")
+    jasmine.useRealClock()
 
-    waitsFor "chromedriver to start", (done) ->
-      chromeDriver = spawn "chromedriver", ["--verbose", "--port=#{ChromeDriverPort}"]
-      chromeDriver.on "error", (error) ->
-        throw new Error("chromedriver failed to start: #{error.message}")
-      chromeDriver.stdout.on "data", -> done()
-
-  afterEach ->
-    waitsForPromise -> driver.quit().thenFinally(-> chromeDriver.kill())
-
-  startAtom = (args...) ->
-    driver = new Builder()
-      .usingServer("http://localhost:#{ChromeDriverPort}")
-      .withCapabilities(
-        chromeOptions:
-          binary: AtomLauncherPath
-          args: [
-            "atom-path=#{AtomPath}"
-            "atom-args=#{args.join(" ")}"
-            "dev"
-            "safe"
-            "user-data-dir=#{temp.mkdirSync('integration-spec-')}"
-            "socket-path=#{SocketPath}"
-          ]
-      )
-      .forBrowser('atom')
-      .build()
-
-    waitsForPromise ->
-      driver.wait ->
-        driver.getTitle().then (title) -> title.indexOf("Atom") >= 0
-
-  startAnotherAtom = (args...) ->
-    spawnSync(AtomPath, args.concat([
-      "--dev",
-      "--safe",
-      "--socket-path=#{SocketPath}"
-    ]))
-
-  describe "when given the name of a file that doesn't exist", ->
-    tempFilePath = null
+  describe "opening paths via commmand-line arguments", ->
+    [tempDirPath, tempFilePath] = []
 
     beforeEach ->
+      tempDirPath = temp.mkdirSync("empty-dir")
       tempFilePath = path.join(tempDirPath, "an-existing-file")
       fs.writeFileSync(tempFilePath, "This was already here.")
-      startAtom(path.join(tempDirPath, "new-file"))
 
-    it "opens a new window with an empty text editor", ->
-      waitsForPromise ->
-        driver.getAllWindowHandles().then (handles) ->
-          expect(handles.length).toBe 1
-        driver.executeScript(-> atom.workspace.getActivePane().getItems().length).then (length) ->
-          expect(length).toBe 1
-        driver.executeScript(-> atom.workspace.getActiveTextEditor().getText()).then (text) ->
-          expect(text).toBe("")
-        driver.findElement(By.tagName("atom-text-editor")).sendKeys("Hello world!")
-        driver.executeScript(-> atom.workspace.getActiveTextEditor().getText()).then (text) ->
-          expect(text).toBe "Hello world!"
+    it "reuses existing windows when directories are reopened", ->
+      driverTest ->
 
-      # Opening another existing file in the same directory reuses the window,
-      # and opens a new tab for the file.
-      waitsForPromise ->
-        startAnotherAtom(tempFilePath)
-        driver.wait ->
-          driver.executeScript(-> atom.workspace.getActivePane().getItems().length).then (length) ->
-            length is 2
-        driver.executeScript(-> atom.workspace.getActiveTextEditor().getText()).then (text) ->
-          expect(text).toBe "This was already here."
+        # Opening a new file creates one window with one empty text editor.
+        startAtom(path.join(tempDirPath, "new-file"))
+          .waitForExist("atom-text-editor", 5000)
+          .then((exists) -> expect(exists).toBe true)
+          .windowHandles()
+          .then(({value}) -> expect(value.length).toBe 1)
+          .execute(-> atom.workspace.getActivePane().getItems().length)
+          .then(({value}) -> expect(value).toBe 1)
 
-      # Opening a different directory creates a new window.
-      waitsForPromise ->
-        startAnotherAtom(temp.mkdirSync("another-empty-dir"))
-        driver.wait ->
-          driver.getAllWindowHandles().then (handles) ->
-            handles.length is 2
+          # Typing in the editor changes its text.
+          .execute(-> atom.workspace.getActiveTextEditor().getText())
+          .then(({value}) -> expect(value).toBe "")
+          .click("atom-text-editor")
+          .keys("Hello!")
+          .execute(-> atom.workspace.getActiveTextEditor().getText())
+          .then(({value}) -> expect(value).toBe "Hello!")
 
-  describe "when given the name of a directory that exists", ->
-    beforeEach ->
-      startAtom(tempDirPath)
+          # Opening an existing file in the same directory reuses the window and
+          # adds a new tab for the file.
+          .call(-> startAnotherAtom(tempFilePath))
+          .waitForCondition(
+            (-> @execute((-> atom.workspace.getActivePane().getItems().length)).then ({value}) -> value is 2),
+            5000)
+          .then((result) -> expect(result).toBe(true))
+          .execute(-> atom.workspace.getActiveTextEditor().getText())
+          .then(({value}) -> expect(value).toBe "This was already here.")
 
-    it "opens a new window no text editors open", ->
-      waitsForPromise ->
-        driver.executeScript(-> atom.workspace.getActiveTextEditor()).then (editor) ->
-          expect(editor).toBeNull()
+          # Opening a different directory creates a second window with no
+          # tabs open.
+          .call(-> startAnotherAtom(temp.mkdirSync("another-empty-dir")))
+          .waitForCondition(
+            (-> @windowHandles().then(({value}) -> value.length is 2)),
+            5000)
+          .then((result) -> expect(result).toBe(true))
+          .windowHandles()
+          .then(({value}) ->
+            @window(value[1])
+            .waitForExist("atom-workspace", 5000)
+            .then((exists) -> expect(exists).toBe true)
+            .execute(-> atom.workspace.getActivePane().getItems().length)
+            .then(({value}) -> expect(value).toBe 0))
