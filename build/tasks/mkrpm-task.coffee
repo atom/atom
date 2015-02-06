@@ -32,7 +32,7 @@ module.exports = (grunt) ->
 
     installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
-    iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
+    iconName = 'atom'
     executable = 'atom'
 
     data = {name, version, description, installDir, iconName, executable}
