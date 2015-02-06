@@ -120,7 +120,7 @@ ScopeDescriptor = require './scope-descriptor'
 # If you would like to store your schema in an external file and require it, you must require it prior to setting the `config` value in `module.exports`:
 #
 # ```
-# ConfigSchema = requrie('./configuration.coffee')
+# ConfigSchema = require('./configuration.coffee')
 # module.exports =
 #   config: ConfigSchema
 # ```
@@ -129,7 +129,7 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # ```
 # module.exports =
-#   config: requrie('./configuration.coffee')
+#   config: require('./configuration.coffee')
 # ```
 #
 # ### Supported Types
