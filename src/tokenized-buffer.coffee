@@ -147,25 +147,27 @@ class TokenizedBuffer extends Model
     rowsRemaining = @chunkSize
 
     while @firstInvalidRow()? and rowsRemaining > 0
-      invalidRow = @invalidRows.shift()
+      startRow = @invalidRows.shift()
       lastRow = @getLastRow()
-      continue if invalidRow > lastRow
+      continue if startRow > lastRow
 
-      row = invalidRow
+      row = startRow
       loop
         previousStack = @stackForRow(row)
         @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
         if --rowsRemaining == 0
           filledRegion = false
+          endRow = row
           break
         if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
           filledRegion = true
+          endRow = row
           break
         row++
 
-      @validateRow(row)
-      @invalidateRow(row + 1) unless filledRegion
-      event = { start: invalidRow, end: row, delta: 0 }
+      @validateRow(endRow)
+      @invalidateRow(endRow + 1) unless filledRegion
+      event = {start: startRow, end: endRow, delta: 0}
       @emit 'changed', event
       @emitter.emit 'did-change', event
 
