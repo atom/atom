@@ -907,7 +907,10 @@ class Config
 
     if value?
       value = @deepClone(value)
-      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+      if isPlainObject(value) and isPlainObject(defaultValue)
+          _.defaults(value, defaultValue)
+          for key of defaultValue
+              value[key] = @getRawValue([keyPath, key].join('.'), options)
     else
       value = @deepClone(defaultValue)
 
