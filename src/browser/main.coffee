@@ -2,7 +2,7 @@ global.shellStartTime = Date.now()
 
 crashReporter = require 'crash-reporter'
 app = require 'app'
-fs = require 'fs'
+fs = require 'fs-plus'
 path = require 'path'
 optimist = require 'optimist'
 nslog = require 'nslog'
@@ -14,6 +14,7 @@ process.on 'uncaughtException', (error={}) ->
   nslog(error.stack) if error.stack?
 
 start = ->
+  setupAtomHome()
   if process.platform is 'win32'
     SquirrelUpdate = require './squirrel-update'
     squirrelCommand = process.argv[1]
@@ -42,10 +43,11 @@ start = ->
 
     cwd = args.executedFrom?.toString() or process.cwd()
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
+      pathToOpen = fs.normalize(pathToOpen)
       if cwd
-        path.resolve(cwd, pathToOpen.toString())
+        path.resolve(cwd, pathToOpen)
       else
-        path.resolve(pathToOpen.toString())
+        path.resolve(pathToOpen)
 
     setupCoffeeScript()
     if args.devMode
@@ -73,6 +75,14 @@ setupCoffeeScript = ->
     js = CoffeeScript.compile(coffee, filename: filePath)
     module._compile(js, filePath)
 
+setupAtomHome = ->
+  return if process.env.ATOM_HOME
+
+  atomHome = path.join(app.getHomeDir(), '.atom')
+  try
+    atomHome = fs.realpathSync(atomHome)
+  process.env.ATOM_HOME = atomHome
+
 parseCommandLine = ->
   version = app.getVersion()
   options = optimist(process.argv[1..])
@@ -89,8 +99,12 @@ parseCommandLine = ->
     opened or a new window if it hasn't.
 
     Environment Variables:
-    ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
-                            Defaults to `~/github/atom`.
+
+      ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
+                              Defaults to `~/github/atom`.
+
+      ATOM_HOME               The root path for all configuration files and folders.
+                              Defaults to `~/.atom`.
   """
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')

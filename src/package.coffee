@@ -159,6 +159,7 @@ class Package
       if @requireMainModule()
         @mainModule.activate(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
+        @activateServices()
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
@@ -208,6 +209,15 @@ class Package
 
     settings.activate() for settings in @settings
     @settingsActivated = true
+
+  activateServices: ->
+    for name, {versions} of @metadata.providedServices
+      for version, methodName of versions
+        @activationDisposables.add atom.packages.serviceHub.provide(name, version, @mainModule[methodName]())
+
+    for name, {versions} of @metadata.consumedServices
+      for version, methodName of versions
+        @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
 
   loadKeymaps: ->
     if @bundledPackage and packagesCache[@name]?

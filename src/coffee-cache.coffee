@@ -5,7 +5,11 @@ CoffeeScript = require 'coffee-script'
 CSON = require 'season'
 fs = require 'fs-plus'
 
-cacheDir = path.join(fs.absolute('~/.atom'), 'compile-cache')
+cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
+
+stats =
+  hits: 0
+  misses: 0
 
 # Use separate compile cache when sudo'ing as root to avoid permission issues
 if process.env.USER is 'root' and process.env.SUDO_USER and process.env.SUDO_USER isnt process.env.USER
@@ -21,7 +25,10 @@ getCachePath = (coffee) ->
 getCachedJavaScript = (cachePath) ->
   if fs.isFileSync(cachePath)
     try
-      fs.readFileSync(cachePath, 'utf8')
+      cachedJavaScript = fs.readFileSync(cachePath, 'utf8')
+      stats.hits++
+      return cachedJavaScript
+  return
 
 convertFilePath = (filePath) ->
   if process.platform is 'win32'
@@ -30,6 +37,7 @@ convertFilePath = (filePath) ->
 
 compileCoffeeScript = (coffee, filePath, cachePath) ->
   {js, v3SourceMap} = CoffeeScript.compile(coffee, filename: filePath, sourceMap: true)
+  stats.misses++
   # Include source map in the web page environment.
   if btoa? and JSON? and unescape? and encodeURIComponent?
     js = "#{js}\n//# sourceMappingURL=data:application/json;base64,#{btoa unescape encodeURIComponent v3SourceMap}\n//# sourceURL=#{convertFilePath(filePath)}"
@@ -53,10 +61,16 @@ module.exports =
     })
 
   addPathToCache: (filePath) ->
-    extension = path.extname(filePath)
-    if extension is '.coffee'
-      content = fs.readFileSync(filePath, 'utf8')
-      cachePath = getCachePath(coffee)
-      compileCoffeeScript(coffee, filePath, cachePath)
-    else if extension is '.cson'
-      CSON.readFileSync(filePath)
+    switch path.extname(filePath)
+      when '.coffee'
+        content = fs.readFileSync(filePath, 'utf8')
+        cachePath = getCachePath(coffee)
+        compileCoffeeScript(coffee, filePath, cachePath)
+      when '.cson'
+        CSON.readFileSync(filePath)
+      when '.js'
+        require('./6to5').addPathToCache(filePath)
+
+  getCacheMisses: -> stats.misses
+
+  getCacheHits: -> stats.hits

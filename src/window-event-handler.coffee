@@ -31,8 +31,8 @@ class WindowEventHandler
           atom.updateAvailable(detail)
 
           # FIXME: Remove this when deprecations are removed
-          {releaseVersion, releaseNotes} = detail
-          detail = [releaseVersion, releaseNotes]
+          {releaseVersion} = detail
+          detail = [releaseVersion]
           if workspaceElement = atom.views.getView(atom.workspace)
             atom.commands.dispatch workspaceElement, "window:update-available", detail
 
@@ -52,7 +52,7 @@ class WindowEventHandler
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
     @subscribe $(window), 'beforeunload', =>
-      confirmed = atom.workspace?.confirmClose()
+      confirmed = atom.workspace?.confirmClose(windowCloseRequested: true)
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
 

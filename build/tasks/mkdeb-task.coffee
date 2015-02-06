@@ -36,8 +36,9 @@ module.exports = (grunt) ->
     maintainer = 'GitHub <atom@github.com>'
     installDir = '/usr'
     iconName = 'atom'
+    executable = path.join(installDir, 'share', 'atom', 'atom')
     getInstalledSize buildDir, (error, installedSize) ->
-      data = {name, version, description, section, arch, maintainer, installDir, iconName, installedSize}
+      data = {name, version, description, section, arch, maintainer, installDir, iconName, installedSize, executable}
       controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
       desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
       icon = path.join('resources', 'atom.png')

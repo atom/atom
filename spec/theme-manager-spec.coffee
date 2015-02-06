@@ -364,12 +364,13 @@ describe "ThemeManager", ->
           throw new Error('EACCES permission denied "styles.less"')
         atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
 
-      it "creates an error notification", ->
+      it "creates an error notification and does not add the stylesheet", ->
         themeManager.loadUserStylesheet()
         expect(addErrorHandler).toHaveBeenCalled()
         note = addErrorHandler.mostRecentCall.args[0]
         expect(note.getType()).toBe 'error'
         expect(note.getMessage()).toContain 'Error loading'
+        expect(atom.styles.styleElementsBySourcePath[atom.styles.getUserStyleSheetPath()]).toBeUndefined()
 
     describe "when there is an error watching the user stylesheet", ->
       addErrorHandler = null

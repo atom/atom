@@ -8,7 +8,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * C++ toolchain
   * [Git](http://git-scm.com/)
   * [Node.js](http://nodejs.org/download/) v0.10.x
-  * [npm](http://www.npmjs.org/) v1.4.x (bundled with Node.js)
+  * [npm](https://www.npmjs.com/) v1.4.x (bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
       * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).

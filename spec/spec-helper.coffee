@@ -17,6 +17,7 @@ Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
 Workspace = require '../src/workspace'
+ServiceHub = require 'service-hub'
 TextEditor = require '../src/text-editor'
 TextEditorView = require '../src/text-editor-view'
 TextEditorElement = require '../src/text-editor-element'
@@ -77,6 +78,7 @@ beforeEach ->
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
+  atom.packages.serviceHub = new ServiceHub
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
@@ -303,13 +305,13 @@ window.waitsForPromise = (args...) ->
   window.waitsFor timeout, (moveOn) ->
     promise = fn()
     if shouldReject
-      promise.fail(moveOn)
-      promise.done ->
+      promise.catch(moveOn)
+      promise.then ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be rejected, but it was resolved")
         moveOn()
     else
-      promise.done(moveOn)
-      promise.fail (error) ->
+      promise.then(moveOn)
+      promise.catch (error) ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
         moveOn()
 

@@ -5,7 +5,7 @@ AutoUpdateManager = require './auto-update-manager'
 BrowserWindow = require 'browser-window'
 Menu = require 'menu'
 app = require 'app'
-fs = require 'fs'
+fs = require 'fs-plus'
 ipc = require 'ipc'
 path = require 'path'
 os = require 'os'
@@ -216,6 +216,8 @@ class AtomApplication
     ipc.on 'open', (event, options) =>
       window = @windowForEvent(event)
       if options?
+        if typeof options.pathsToOpen is 'string'
+          options.pathsToOpen = [options.pathsToOpen]
         if options.pathsToOpen?.length > 0
           options.window = window
           @openPaths(options)
@@ -340,6 +342,7 @@ class AtomApplication
   #   :window - {AtomWindow} to open file paths in.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
     {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
+    pathToOpen = fs.normalize(pathToOpen)
 
     unless pidToKillWhenClosed or newWindow
       pathToOpenStat = fs.statSyncNoException(pathToOpen)
@@ -412,9 +415,8 @@ class AtomApplication
   openUrl: ({urlToOpen, devMode, safeMode}) ->
     unless @packages?
       PackageManager = require '../package-manager'
-      fs = require 'fs-plus'
       @packages = new PackageManager
-        configDirPath: fs.absolute('~/.atom')
+        configDirPath: process.env.ATOM_HOME
         devMode: devMode
         resourcePath: @resourcePath
 

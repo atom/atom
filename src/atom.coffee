@@ -3,7 +3,6 @@ ipc = require 'ipc'
 os = require 'os'
 path = require 'path'
 remote = require 'remote'
-screen = require 'screen'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
@@ -43,6 +42,12 @@ class Atom extends Model
       which returns an HTMLElement.
     """
 
+    serviceHubDeprecationMessage = """
+      atom.services is no longer available. To register service providers and
+      consumers, use the `providedServices` and `consumedServices` fields in
+      your package's package.json.
+    """
+
     Object.defineProperty atom, 'workspaceView',
       get: ->
         deprecate(workspaceViewDeprecationMessage)
@@ -50,6 +55,14 @@ class Atom extends Model
       set: (newValue) ->
         deprecate(workspaceViewDeprecationMessage)
         atom.__workspaceView = newValue
+
+    Object.defineProperty atom, 'services',
+      get: ->
+        deprecate(serviceHubDeprecationMessage)
+        atom.packages.serviceHub
+      set: (newValue) ->
+        deprecate(serviceHubDeprecationMessage)
+        atom.packages.serviceHub = newValue
 
     atom
 
@@ -96,7 +109,7 @@ class Atom extends Model
   #
   # Returns the absolute path to ~/.atom
   @getConfigDirPath: ->
-    @configDirPath ?= fs.absolute('~/.atom')
+    @configDirPath ?= process.env.ATOM_HOME
 
   # Get the path to Atom's storage directory.
   #
@@ -133,9 +146,6 @@ class Atom extends Model
 
   # Public: A {Clipboard} instance
   clipboard: null
-
-  # A {ServiceHub} instance
-  services: null
 
   # Public: A {ContextMenuManager} instance
   contextMenu: null
@@ -236,7 +246,6 @@ class Atom extends Model
     NotificationManager = require './notification-manager'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
-    ServiceHub = require './service-hub'
     GrammarRegistry = require './grammar-registry'
     ThemeManager = require './theme-manager'
     StyleManager = require './style-manager'
@@ -254,9 +263,6 @@ class Atom extends Model
     # Make react.js faster
     process.env.NODE_ENV ?= 'production' unless devMode
 
-    # Set Atom's home so packages don't have to guess it
-    process.env.ATOM_HOME = configDirPath
-
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
@@ -272,7 +278,6 @@ class Atom extends Model
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
-    @services = new ServiceHub
 
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
 
@@ -547,6 +552,7 @@ class Atom extends Model
     if @isValidDimensions(dimensions)
       dimensions
     else
+      screen = remote.require 'screen'
       {width, height} = screen.getPrimaryDisplay().workAreaSize
       {x: 0, y: 0, width: Math.min(1024, width), height}
 

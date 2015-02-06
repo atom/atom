@@ -48,7 +48,7 @@ class PaneContainer extends Model
   deserializeParams: (params) ->
     params.root = atom.deserializers.deserialize(params.root, container: this)
     params.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
-    params.activePane = params.root.getPanes().find (pane) -> pane.id is params.activePaneId
+    params.activePane = find params.root.getPanes(), (pane) -> pane.id is params.activePaneId
     params
 
   serializeParams: (params) ->
@@ -147,17 +147,17 @@ class PaneContainer extends Model
     find @getPanes(), (pane) -> pane.itemForURI(uri)?
 
   paneForItem: (item) ->
-    @getPanes().find (pane) -> item in pane.getItems()
+    find @getPanes(), (pane) -> item in pane.getItems()
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
 
-  confirmClose: ->
+  confirmClose: (options) ->
     allSaved = true
 
     for pane in @getPanes()
       for item in pane.getItems()
-        unless pane.promptToSaveItem(item)
+        unless pane.promptToSaveItem(item, options)
           allSaved = false
           break
 

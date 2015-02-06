@@ -51,9 +51,24 @@ in the _menus_ directory are added alphabetically.
 - `snippets` (**Optional**): an Array of Strings identifying the order of the
 snippets your package needs to load. If not specified, snippets in the
 _snippets_ directory are added alphabetically.
-- `activationEvents` (**Optional**): an Array of Strings identifying events that
+- `activationCommands` (**Optional**): an Array of Strings identifying commands that
 trigger your package's activation. You can delay the loading of your package
 until one of these events is triggered.
+- `providedServices` (**Optional**): an Object describing the services that your
+package provides, which can be used by other packages. The keys of this object
+are the names of the services, and the values are Objects with the following
+keys:
+  - `description` (**Optional**) a String describing the service
+  - `versions` (**Required**) an Object whose keys are Semver version strings,
+  and whose values are names of methods in your package's top-level module
+  that return a value implementing the service.
+- `consumedServices` (**Optional**): an Object describing the services that your
+package uses, which can be provided by other packages. The keys of this object
+are the names of the services, and the values are Objects with the following
+keys:
+  - `versions` (**Required**) an Object whose keys are Semver version ranges
+  and whose values are names of methods in your package's top-level module
+  that are called with values implementing the service.
 
 ## Source Code
 
@@ -83,9 +98,9 @@ module's `activate` method so you can restore your view to where the user left
 off.
 
 - `deactivate()`: This **optional** method is called when the window is shutting
-down. If your package is watching any files or holding external resources in any
-other way, release them here. If you're just subscribing to things on window,
-you don't need to worry because that's getting torn down anyway.
+down, or when your package is being updated or disabled. If your package is
+watching any files, holding external resources, providing commands or subscribing
+to events, release them here.
 
 ### Simple Package Code
 
@@ -112,19 +127,18 @@ module.exports =
   serialize: -> # ...
 ```
 
-Beyond this simple contract, your package has access to Atom's API. Be aware
-that since we are early in development, APIs are subject to change and we have
-not yet established clear boundaries between what is public and what is private.
-Also, please collaborate with us if you need an API that doesn't exist. Our goal
-is to build out Atom's API organically based on the needs of package authors
-like you.
+Beyond this simple contract, your package has access to [Atom's API][api]. Be aware
+that the Atom 1.0 API is mostly frozen. Refer to the API documentation for what
+is public. That said, please collaborate with us if you need an API that doesn't
+exist. Our goal is to build out Atom's API organically based on the needs of
+package authors like you.
 
 ## Style Sheets
 
 Style sheets for your package should be placed in the _styles_ directory.
 Any style sheets in this directory will be loaded and attached to the DOM when
-your package is activated. Style sheets can be written as CSS or [LESS], but
-LESS is recommended.
+your package is activated. Style sheets can be written as CSS or [Less], but
+Less is recommended.
 
 Ideally, you won't need much in the way of styling. We've provided a standard
 set of components which define both the colors and UI elements for any package
@@ -352,6 +366,79 @@ to indicate the type your value should be, its default, etc.
 See the [Config API Docs](https://atom.io/docs/api/latest/Config) for more
 details specifying your configuration.
 
+## Interacting With Other Packages Via Services
+
+Atom packages can interact with each other through versioned APIs called
+*services*. To provide a service, in your `package.json`, specify one or more
+version numbers, each paired with the name of a method on your package's main module:
+
+```json
+{
+  "providedServices": {
+    "my-service": {
+      "description": "Does a useful thing",
+      "versions": {
+        "1.2.3": "provideMyServiceV1",
+        "2.3.4": "provideMyServiceV2",
+      }
+    }
+  }
+}
+```
+
+In your package's main module, implement the methods named above. These methods
+will be called any time a package is activated that consumes their corresponding
+service. They should return a value that implements the service's API.
+
+
+```coffeescript
+module.exports =
+  activate: -> # ...
+
+  provideMyServiceV1: ->
+    adaptToLegacyAPI(myService)
+
+  provideMyServiceV2: ->
+    myService
+```
+
+Similarly, to consume a service, specify one or more [version *ranges*][version-ranges],
+each paired with the name of a method on the package's main module:
+
+```json
+{
+  "consumedServices": {
+    "another-service": {
+      "versions": {
+        "^1.2.3": "consumeAnotherServiceV1",
+        ">=2.3.4 <2.5": "consumeAnotherServiceV2",
+      }
+    }
+  }
+}
+```
+
+These methods will be called any time a package is activated that *provides* their
+corresponding service. They will receive the service object as an argument. You
+will usually need to perform some kind of cleanup in the event that the package
+providing the service is deactivated. To do this, return a `Disposable` from
+your service-consuming method:
+
+```coffeescript
+{Disposable} = require 'atom'
+
+module.exports =
+  activate: -> # ...
+
+  consumeAnotherServiceV1: (service) ->
+    useService(adaptServiceFromLegacyAPI(service))
+    new Disposable -> stopUsingService(service)
+
+  consumeAnotherServiceV2: (service) ->
+    useService(service)
+    new Disposable -> stopUsingService(service)
+```
+
 ## Bundle External Resources
 
 It's common to ship external resources like images and fonts in the package, to
@@ -402,11 +489,12 @@ registry.
 Run `apm help publish` to see all the available options and `apm help` to see
 all the other available commands.
 
+[api]: https://atom.io/docs/api/latest
 [file-tree]: https://github.com/atom/tree-view
 [status-bar]: https://github.com/atom/status-bar
 [cs-syntax]: https://github.com/atom/language-coffee-script
-[npm]: http://en.wikipedia.org/wiki/Npm_(software)
-[npm-keys]: https://npmjs.org/doc/json.html
+[npm]: https://en.wikipedia.org/wiki/Npm_(software)
+[npm-keys]: https://docs.npmjs.com/files/package.json
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
 [wrap-guide]: https://github.com/atom/wrap-guide/
 [keymaps]: advanced/keymaps.md
@@ -418,9 +506,10 @@ all the other available commands.
 [underscore]: http://underscorejs.org/
 [jasmine]: http://jasmine.github.io
 [cson]: https://github.com/atom/season
-[LESS]: http://lesscss.org
+[Less]: http://lesscss.org
 [ui-variables]: https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
 [first-package]: your-first-package.html
 [convert-bundle]: converting-a-text-mate-bundle.html
 [convert-theme]: converting-a-text-mate-theme.html
 [json-schema]: http://json-schema.org/
+[version-ranges]: https://docs.npmjs.com/misc/semver#ranges

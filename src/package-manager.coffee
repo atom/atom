@@ -7,6 +7,7 @@ fs = require 'fs-plus'
 Q = require 'q'
 Grim = require 'grim'
 
+ServiceHub = require 'service-hub'
 Package = require './package'
 ThemePackage = require './theme-package'
 
@@ -40,6 +41,7 @@ class PackageManager
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
+    @serviceHub = new ServiceHub
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])

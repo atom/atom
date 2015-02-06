@@ -36,7 +36,7 @@ many packages and themes that are stored in other repos under the
 [tabs](https://github.com/atom/tabs),
 [find-and-replace](https://github.com/atom/find-and-replace),
 [language-javascript](https://github.com/atom/language-javascript), and
-[atom-light-ui](http://github.com/atom/atom-light-ui).
+[atom-light-ui](https://github.com/atom/atom-light-ui).
 
 For more information on how to work with Atom's official packages, see
 [Contributing to Atom Packages](https://atom.io/docs/latest/contributing-to-packages.html)

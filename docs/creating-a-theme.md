@@ -1,7 +1,7 @@
 # Creating a Theme
 
-Atom's interface is rendered using HTML, and it's styled via [LESS] which is a
-superset of CSS. Don't worry if you haven't heard of LESS before; it's just like
+Atom's interface is rendered using HTML, and it's styled via [Less] which is a
+superset of CSS. Don't worry if you haven't heard of Less before; it's just like
 CSS, but with a few handy extensions.
 
 Atom supports two types of themes: _UI_ and _syntax_.  UI themes style
@@ -9,22 +9,23 @@ elements such as the tree view, the tabs, drop-down lists, and the status bar.
 Syntax themes style the code inside the editor.
 
 Themes can be installed and changed from the settings view which you can open
-by selecting the _Atom > Preferences..._ menu and navigating to the _Themes_
-section on the left hand side.
+by selecting the _Atom > Preferences..._ menu and navigating to the _Install_
+section and the _Themes_ section on the left hand side.
 
 ## Getting Started
 
 Themes are pretty straightforward but it's still helpful to be familiar with
 a few things before starting:
 
-* LESS is a superset of CSS, but it has some really handy features like
+* Less is a superset of CSS, but it has some really handy features like
   variables. If you aren't familiar with its syntax, take a few minutes
   to [familiarize yourself][less-tutorial].
 * You may also want to review the concept of a _[package.json]_, too. This file
   is used to help distribute your theme to Atom users.
 * Your theme's _package.json_ must contain a `"theme"` key with a value
   of `"ui"` or `"syntax"` for Atom to recognize and load it as a theme.
-* You can find existing themes to install or fork on [atom.io](atomio).
+* You can find existing themes to install or fork on
+  [atom.io][atomio-themes].
 
 ## Creating a Syntax Theme
 
@@ -130,13 +131,13 @@ _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
 
 ![styleguide-img]
 
-[atomio]: http://atom.io/packages
-[LESS]: http://lesscss.org/
+[atomio-themes]: https://atom.io/themes
+[Less]: http://lesscss.org/
 [git]: http://git-scm.com/
 [atom]: https://atom.io/
 [package.json]: ./creating-a-package.html#package-json
 [less-tutorial]: https://speakerdeck.com/danmatthews/less-css
-[devtools-tutorial]: https://developers.google.com/chrome-developer-tools/docs/elements
+[devtools-tutorial]: https://developer.chrome.com/devtools/docs/dom-and-styles
 [ui-variables]: ./theme-variables.html
 [livereload]: https://github.com/atom/dev-live-reload
 [styleguide]: https://github.com/atom/styleguide

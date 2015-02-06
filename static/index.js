@@ -1,9 +1,34 @@
+function registerRuntimeTranspilers() {
+  // This sets require.extensions['.coffee'].
+  require('coffee-script').register();
+
+  // This redefines require.extensions['.js'].
+  require('../src/6to5').register();
+}
+
 window.onload = function() {
   try {
     var startTime = Date.now();
 
     var fs = require('fs');
     var path = require('path');
+
+    // Ensure ATOM_HOME is always set before anything else is required
+    if (!process.env.ATOM_HOME) {
+      var home;
+      if (process.platform === 'win32') {
+        home = process.env.USERPROFILE;
+      } else {
+        home = process.env.HOME;
+      }
+      var atomHome = path.join(home, '.atom');
+      try {
+        atomHome = fs.realpathSync(atomHome);
+      } catch (error) {
+        // Ignore since the path might just not exist yet.
+      }
+      process.env.ATOM_HOME = atomHome;
+    }
 
     // Skip "?loadSettings=".
     var rawLoadSettings = decodeURIComponent(location.search.substr(14));
@@ -22,7 +47,7 @@ window.onload = function() {
 
     // Require before the module cache in dev mode
     if (devMode) {
-      require('coffee-script').register();
+      registerRuntimeTranspilers();
     }
 
     ModuleCache = require('../src/module-cache');
@@ -41,7 +66,7 @@ window.onload = function() {
     require('vm-compatibility-layer');
 
     if (!devMode) {
-      require('coffee-script').register();
+      registerRuntimeTranspilers();
     }
 
     require('../src/coffee-cache').register();

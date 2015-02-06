@@ -100,6 +100,14 @@ namespaces: `core` and `editor`.
 
 You can open this file in an editor from the _Atom > Open Your Config_ menu.
 
+### Custom Configuration Location
+
+You can override the location that Atom stores configuration files and folders
+in by setting the `ATOM_HOME` environment variable. The `ATOM_HOME` path will be
+used instead of `~/.atom` when it is set.
+
+This option can be useful when you want to make Atom portable across machines.
+
 ### Configuration Key Reference
 
 - `core`
@@ -169,17 +177,17 @@ For example, to change the color of the cursor, you could add the following
 rule to your _~/.atom/styles.less_ file:
 
 ```less
-atom-text-editor.is-focused .cursor {
+atom-text-editor::shadow .cursor {
   border-color: pink;
 }
 ```
 
-Unfamiliar with LESS? Read more about it [here][LESS].
+Unfamiliar with Less? Read more about it [here][Less].
 
 This file can also be named _styles.css_ and contain CSS.
 
 [creating-a-package]: creating-a-package.md
 [create-theme]: creating-a-theme.md
-[LESS]: http://www.lesscss.org
+[Less]: http://www.lesscss.org
 [CSON]: https://github.com/atom/season
 [CoffeeScript]: http://coffeescript.org/

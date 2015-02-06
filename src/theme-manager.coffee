@@ -266,7 +266,11 @@ class ThemeManager
       """
       atom.notifications.addError(message, dismissable: true)
 
-    userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
+    try
+      userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
+    catch
+      return
+
     @userStyleSheetDisposable = atom.styles.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
 
   loadBaseStylesheets: ->
@@ -320,6 +324,7 @@ class ThemeManager
         detail = error.message
 
       atom.notifications.addError(message, {detail, dismissable: true})
+      throw error
 
   removeStylesheet: (stylesheetPath) ->
     @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()

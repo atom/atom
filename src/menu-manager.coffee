@@ -176,7 +176,7 @@ class MenuManager
     element?.classList.toString().split(' ') ? []
 
   sortPackagesMenu: ->
-    packagesMenu = @template.find ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
+    packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
     return unless packagesMenu?.submenu?
 
     packagesMenu.submenu.sort (item1, item2) ->

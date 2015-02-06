@@ -11,6 +11,7 @@
 * [Contributing](contributing.md)
 * [Contributing to Core Packages](contributing-to-packages.md)
 * [Debugging](debugging.md)
+* [Your First Package](your-first-package.md)
 
 ### Advanced Topics
 
@@ -19,6 +20,8 @@
 * [Keymaps](advanced/keymaps.md)
 * [Serialization](advanced/serialization.md)
 * [Scopes and Scope Descriptors](advanced/scopes-and-scope-descriptors.md)
+* [Theme Variables](theme-variables.md)
+* [apm REST API](apm-rest-api.md)
 
 ### Upgrading to 1.0 APIs
 

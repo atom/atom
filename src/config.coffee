@@ -83,7 +83,7 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # ## Config Schemas
 #
-# We use [json schema](json-schema.org) which allows you to define your value's
+# We use [json schema](http://json-schema.org) which allows you to define your value's
 # default, the type it should be, etc. A simple example:
 #
 # ```coffee
@@ -519,7 +519,7 @@ class Config
   # * `options` (optional) {Object} see the `options` argument to {::get}
   #
   # Returns an {Array} of {Object}s with the following keys:
-  #  * `scopeSelector` The scope-selector {String} with which the value is associated
+  #  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
   #  * `value` The value for the key-path
   getAll: (keyPath, options) ->
     {scope, sources} = options if options?
@@ -602,7 +602,7 @@ class Config
         return false
 
     if scopeSelector?
-      @setRawScopedValue(source, scopeSelector, keyPath, value)
+      @setRawScopedValue(keyPath, value, source, scopeSelector)
     else
       @setRawValue(keyPath, value)
 
@@ -797,6 +797,7 @@ class Config
     _.extend rootSchema, schema
     @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
     @setScopedDefaultsFromSchema(keyPath, schema)
+    @resetSettingsForSchemaChange()
 
   load: ->
     @initializeConfigDirectory()
@@ -867,7 +868,12 @@ class Config
   save: ->
     allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
-    CSON.writeFileSync(@configFilePath, allSettings)
+    try
+      CSON.writeFileSync(@configFilePath, allSettings)
+    catch error
+      message = "Failed to save `#{path.basename(@configFilePath)}`"
+      detail = error.message
+      @notifyFailure(message, detail)
 
   ###
   Section: Private methods managing global settings
@@ -998,9 +1004,28 @@ class Config
       defaults[key] = @extractDefaultsFromSchema(value) for key, value of properties
       defaults
 
-  makeValueConformToSchema: (keyPath, value) ->
-    value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
-    value
+  makeValueConformToSchema: (keyPath, value, options) ->
+    if options?.suppressException
+      try
+        @makeValueConformToSchema(keyPath, value)
+      catch e
+        undefined
+    else
+      value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
+      value
+
+  # When the schema is changed / added, there may be values set in the config
+  # that do not conform to the schema. This will reset make them conform.
+  resetSettingsForSchemaChange: (source=@getUserConfigPath()) ->
+    @transact =>
+      @settings = @makeValueConformToSchema(null, @settings, suppressException: true)
+      priority = @priorityForSource(source)
+      selectorsAndSettings = @scopedSettingsStore.propertiesForSource(source)
+      @scopedSettingsStore.removePropertiesForSource(source)
+      for scopeSelector, settings of selectorsAndSettings
+        settings = @makeValueConformToSchema(null, settings, suppressException: true)
+        @setRawScopedValue(null, settings, source, scopeSelector)
+      return
 
   ###
   Section: Private Scoped Settings
@@ -1017,8 +1042,15 @@ class Config
 
   resetUserScopedSettings: (newScopedSettings) ->
     source = @getUserConfigPath()
+    priority = @priorityForSource(source)
     @scopedSettingsStore.removePropertiesForSource(source)
-    @scopedSettingsStore.addProperties(source, newScopedSettings, priority: @priorityForSource(source))
+
+    for scopeSelector, settings of newScopedSettings
+      settings = @makeValueConformToSchema(null, settings, suppressException: true)
+      validatedSettings = {}
+      validatedSettings[scopeSelector] = withoutEmptyObjects(settings)
+      @scopedSettingsStore.addProperties(source, validatedSettings, {priority}) if validatedSettings[scopeSelector]?
+
     @emitChangeEvent()
 
   addScopedSettings: (source, selector, value, options) ->
@@ -1031,7 +1063,7 @@ class Config
       disposable.dispose()
       @emitChangeEvent()
 
-  setRawScopedValue: (source, selector, keyPath, value) ->
+  setRawScopedValue: (keyPath, value, source, selector, options) ->
     if keyPath?
       newValue = {}
       _.setValueForKeyPath(newValue, keyPath, value)
@@ -1118,12 +1150,17 @@ Config.addSchemaEnforcers
       return value unless schema.properties?
 
       newValue = {}
-      for prop, childSchema of schema.properties
-        continue unless value.hasOwnProperty(prop)
-        try
-          newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", value[prop], childSchema)
-        catch error
-          console.warn "Error setting item in object: #{error.message}"
+      for prop, propValue of value
+        childSchema = schema.properties[prop]
+        if childSchema?
+          try
+            newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", propValue, childSchema)
+          catch error
+            console.warn "Error setting item in object: #{error.message}"
+        else
+          # Just pass through un-schema'd values
+          newValue[prop] = propValue
+
       newValue
 
   'array':
