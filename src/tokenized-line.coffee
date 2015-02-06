@@ -10,6 +10,7 @@ module.exports =
 class TokenizedLine
   endOfLineInvisibles: null
   lineIsWhitespaceOnly: false
+  foldable: false
 
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0

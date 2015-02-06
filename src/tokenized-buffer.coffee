@@ -167,6 +167,9 @@ class TokenizedBuffer extends Model
 
       @validateRow(endRow)
       @invalidateRow(endRow + 1) unless filledRegion
+
+      @updateFoldableStatus(startRow, endRow)
+
       event = {start: startRow, end: endRow, delta: 0}
       @emit 'changed', event
       @emitter.emit 'did-change', event
@@ -217,6 +220,9 @@ class TokenizedBuffer extends Model
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
+    [start, end] = @updateFoldableStatus(start, end + delta)
+    end -= delta
+
     event = { start, end, delta, bufferChange: e }
     @emit 'changed', event
     @emitter.emit 'did-change', event
@@ -230,6 +236,28 @@ class TokenizedBuffer extends Model
         line = @tokenizedLines[row]
 
     row - increment
+
+  updateFoldableStatus: (startRow, endRow) ->
+    scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
+    scanEndRow++ if scanEndRow < @buffer.getLastRow()
+    scanStartRow = startRow
+    while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
+      scanStartRow = @buffer.previousNonBlankRow(scanStartRow) ? 0
+
+    commentLineCount = 0
+    for row in [scanStartRow..scanEndRow] by 1
+      if @tokenizedLineForRow(row).isComment()
+        if row > 0
+          foldable = commentLineCount is 1
+          unless @tokenizedLineForRow(row - 1).foldable is foldable
+            @tokenizedLineForRow(row - 1).foldable = foldable
+            startRow = Math.min(startRow, row - 1)
+            endRow = Math.max(endRow, row - 1)
+        commentLineCount++
+      else
+        commentLineCount = 0
+
+    [startRow, endRow]
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
