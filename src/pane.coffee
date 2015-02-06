@@ -481,7 +481,10 @@ class Pane extends Model
       itemURI = item.getUri()
 
     if itemURI?
-      item.save?()
+      try
+        item.save?()
+      catch error
+        @handleSaveError(error)
       nextAction?()
     else
       @saveItemAs(item, nextAction)
@@ -498,7 +501,10 @@ class Pane extends Model
     itemPath = item.getPath?()
     newItemPath = atom.showSaveDialogSync(itemPath)
     if newItemPath
-      item.saveAs(newItemPath)
+      try
+        item.saveAs(newItemPath)
+      catch error
+        @handleSaveError(error)
       nextAction?()
 
   # Public: Save all items.
@@ -667,3 +673,18 @@ class Pane extends Model
     for item in @getItems()
       return false unless @promptToSaveItem(item)
     true
+
+  handleSaveError: (error) ->
+    if error.message.endsWith('is a directory')
+      atom.notifications.addWarning("Unable to save file: #{error.message}")
+    else if error.code is 'EACCES' and error.path?
+      atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
+    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN'] and error.path?
+      atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
+    else if error.code is 'EROFS' and error.path?
+      atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
+    else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
+      fileName = errorMatch[1]
+      atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
+    else
+      throw error

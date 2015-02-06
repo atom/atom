@@ -383,6 +383,25 @@ describe "Pane", ->
           pane.saveActiveItem()
           expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
 
+    describe "when the item's saveAs method throws a well-known IO error", ->
+      notificationSpy = null
+      beforeEach ->
+        atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
+      it "creates a notification", ->
+        pane.getActiveItem().saveAs = ->
+          error = new Error("EACCES, permission denied '/foo'")
+          error.path = '/foo'
+          error.code = 'EACCES'
+          throw error
+
+        pane.saveActiveItem()
+        expect(notificationSpy).toHaveBeenCalled()
+        notification = notificationSpy.mostRecentCall.args[0]
+        expect(notification.getType()).toBe 'warning'
+        expect(notification.getMessage()).toContain 'Permission denied'
+        expect(notification.getMessage()).toContain '/foo'
+
   describe "::saveActiveItemAs()", ->
     pane = null
 
@@ -403,6 +422,25 @@ describe "Pane", ->
         expect(pane.getActiveItem().saveAs).toBeUndefined()
         pane.saveActiveItemAs()
         expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
+
+    describe "when the item's saveAs method throws a well-known IO error", ->
+      notificationSpy = null
+      beforeEach ->
+        atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
+      it "creates a notification", ->
+        pane.getActiveItem().saveAs = ->
+          error = new Error("EACCES, permission denied '/foo'")
+          error.path = '/foo'
+          error.code = 'EACCES'
+          throw error
+
+        pane.saveActiveItemAs()
+        expect(notificationSpy).toHaveBeenCalled()
+        notification = notificationSpy.mostRecentCall.args[0]
+        expect(notification.getType()).toBe 'warning'
+        expect(notification.getMessage()).toContain 'Permission denied'
+        expect(notification.getMessage()).toContain '/foo'
 
   describe "::itemForURI(uri)", ->
     it "returns the item for which a call to .getURI() returns the given uri", ->

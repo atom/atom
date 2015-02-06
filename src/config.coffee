@@ -868,7 +868,12 @@ class Config
   save: ->
     allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
-    CSON.writeFileSync(@configFilePath, allSettings)
+    try
+      CSON.writeFileSync(@configFilePath, allSettings)
+    catch error
+      message = "Failed to save `#{path.basename(@configFilePath)}`"
+      detail = error.message
+      @notifyFailure(message, detail)
 
   ###
   Section: Private methods managing global settings
