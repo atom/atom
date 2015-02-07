@@ -260,7 +260,7 @@ class LanguageMode
 
     precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    return desiredIndentLevel
+    return desiredIndentLevel if options.autoIndentIncrease
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
