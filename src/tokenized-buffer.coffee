@@ -168,7 +168,7 @@ class TokenizedBuffer extends Model
       @validateRow(endRow)
       @invalidateRow(endRow + 1) unless filledRegion
 
-      @updateFoldableStatus(startRow, endRow)
+      [startRow, endRow] = @updateFoldableStatus(startRow, endRow)
 
       event = {start: startRow, end: endRow, delta: 0}
       @emit 'changed', event
@@ -238,26 +238,40 @@ class TokenizedBuffer extends Model
     row - increment
 
   updateFoldableStatus: (startRow, endRow) ->
+    scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
+    scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
     scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
-    scanEndRow++ if scanEndRow < @buffer.getLastRow()
-    scanStartRow = startRow
-    while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
-      scanStartRow = @buffer.previousNonBlankRow(scanStartRow) ? 0
 
-    commentLineCount = 0
     for row in [scanStartRow..scanEndRow] by 1
-      if @tokenizedLineForRow(row).isComment()
-        if row > 0
-          foldable = commentLineCount is 1
-          unless @tokenizedLineForRow(row - 1).foldable is foldable
-            @tokenizedLineForRow(row - 1).foldable = foldable
-            startRow = Math.min(startRow, row - 1)
-            endRow = Math.max(endRow, row - 1)
-        commentLineCount++
-      else
-        commentLineCount = 0
+      foldable = @isFoldableAtRow(row)
+      line = @tokenizedLineForRow(row)
+      unless line.foldable is foldable
+        line.foldable = foldable
+        startRow = Math.min(startRow, row)
+        endRow = Math.max(endRow, row)
 
     [startRow, endRow]
+
+  isFoldableAtRow: (row) ->
+    @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
+
+  # Returns a {Boolean} indicating whether the given buffer row starts
+  # a a foldable row range due to the code's indentation patterns.
+  isFoldableCodeAtRow: (row) ->
+    return false if @buffer.isRowBlank(row) or @tokenizedLineForRow(row).isComment()
+    nextRow = @buffer.nextNonBlankRow(row)
+    return false unless nextRow?
+
+    @indentLevelForRow(nextRow) > @indentLevelForRow(row)
+
+  isFoldableCommentAtRow: (row) ->
+    previousRow = row - 1
+    nextRow = row + 1
+    return false if nextRow > @buffer.getLastRow()
+
+    (row is 0 or not @tokenizedLineForRow(previousRow).isComment()) and
+      @tokenizedLineForRow(row).isComment() and
+      @tokenizedLineForRow(nextRow).isComment()
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
