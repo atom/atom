@@ -182,26 +182,8 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  # Public: Returns a {Boolean} indicating whether the given buffer row starts a
-  # foldable row range. Rows that are "foldable" have a fold icon next to their
-  # icon in the gutter in the default configuration.
   isFoldableAtBufferRow: (bufferRow) ->
-    @isFoldableCodeAtBufferRow(bufferRow) or @isFoldableCommentAtBufferRow(bufferRow)
-
-  # Returns a {Boolean} indicating whether the given buffer row starts
-  # a a foldable row range due to the code's indentation patterns.
-  isFoldableCodeAtBufferRow: (bufferRow) ->
-    return false if @editor.isBufferRowBlank(bufferRow) or @isLineCommentedAtBufferRow(bufferRow)
-    nextNonEmptyRow = @editor.nextNonBlankBufferRow(bufferRow)
-    return false unless nextNonEmptyRow?
-    @editor.indentationForBufferRow(nextNonEmptyRow) > @editor.indentationForBufferRow(bufferRow)
-
-  # Returns a {Boolean} indicating whether the given buffer row starts
-  # a foldable row range due to being the start of a multi-line comment.
-  isFoldableCommentAtBufferRow: (bufferRow) ->
-    @isLineCommentedAtBufferRow(bufferRow) and
-      @isLineCommentedAtBufferRow(bufferRow + 1) and
-        not @isLineCommentedAtBufferRow(bufferRow - 1)
+    @editor.displayBuffer.tokenizedBuffer.isFoldableAtRow(bufferRow)
 
   # Returns a {Boolean} indicating whether the line at the given buffer
   # row is a comment.

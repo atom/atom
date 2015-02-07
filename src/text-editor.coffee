@@ -2705,7 +2705,8 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtBufferRow: (bufferRow) ->
-    @languageMode.isFoldableAtBufferRow(bufferRow)
+    # @languageMode.isFoldableAtBufferRow(bufferRow)
+    @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)?.foldable ? false
 
   # Extended: Determine whether the given row in screen coordinates is foldable.
   #
