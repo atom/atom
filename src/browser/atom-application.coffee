@@ -20,6 +20,55 @@ socketPath =
   else
     path.join(os.tmpdir(), 'atom.sock')
 
+# detect the existing atom process
+class ProcessLaunchDetector
+  isProcessNotExists: ->
+    # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
+    # take a few seconds to trigger 'error' event, it could be a bug of node
+    # or atom-shell, before it's fixed we check the existence of socketPath to
+    # speedup startup.
+    if process.platform isnt 'win32' and not fs.existsSync socketPath
+      return true
+    return false
+
+  sendDataToExistsProcess: (options, callback)->
+    client = net.connect {path: socketPath}, ->
+      client.write JSON.stringify(options), ->
+        client.end()
+        callback(null)
+        app.terminate()
+
+    client.on 'error', callback
+
+  # Creates server to listen for additional atom application launches.
+  #
+  # You can run the atom command multiple times, but after the first launch
+  # the other launches will just pass their information to this server and then
+  # close immediately.
+  listenForArgumentsFromNewProcess: (callback)->
+    @deleteSocketFile()
+    server = net.createServer (connection) =>
+      connection.on 'data', (data) =>
+        callback(null, data)
+
+    server.listen socketPath
+    server.on 'error', (error) ->
+      console.error 'Application server failed', error
+      callback(error)
+
+  deleteSocketFile: ->
+    return if process.platform is 'win32'
+
+    if fs.existsSync(socketPath)
+      try
+        fs.unlinkSync(socketPath)
+      catch error
+        # Ignore ENOENT errors in case the file was deleted between the exists
+        # check and the call to unlink sync. This occurred occasionally on CI
+        # which is why this check is here.
+        throw error unless error.code is 'ENOENT'
+
+processLaunchDetector = new ProcessLaunchDetector;
 # The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
@@ -32,21 +81,10 @@ class AtomApplication
   # Public: The entry point into the Atom application.
   @open: (options) ->
     createAtomApplication = -> new AtomApplication(options)
-
-    # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
-    # take a few seconds to trigger 'error' event, it could be a bug of node
-    # or atom-shell, before it's fixed we check the existence of socketPath to
-    # speedup startup.
-    if (process.platform isnt 'win32' and not fs.existsSync socketPath) or options.test
-      createAtomApplication()
-      return
-
-    client = net.connect {path: socketPath}, ->
-      client.write JSON.stringify(options), ->
-        client.end()
-        app.terminate()
-
-    client.on 'error', createAtomApplication
+    if options.test or processLaunchDetector.isProcessNotExists()
+      return createAtomApplication()
+    processLaunchDetector.sendDataToExistsProcess options, (err) ->
+      createAtomApplication() if err?
 
   windows: null
   applicationMenu: null
@@ -72,7 +110,8 @@ class AtomApplication
     @applicationMenu = new ApplicationMenu(@version)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
-    @listenForArgumentsFromNewProcess()
+    processLaunchDetector.listenForArgumentsFromNewProcess (err, data) =>
+      @openWithOptions(JSON.parse(data)) unless err?
     @setupJavaScriptArguments()
     @handleEvents()
 
@@ -107,32 +146,6 @@ class AtomApplication
       window.browserWindow.once 'closed', =>
         @lastFocusedWindow = null if window is @lastFocusedWindow
         window.browserWindow.removeListener 'focus', focusHandler
-
-  # Creates server to listen for additional atom application launches.
-  #
-  # You can run the atom command multiple times, but after the first launch
-  # the other launches will just pass their information to this server and then
-  # close immediately.
-  listenForArgumentsFromNewProcess: ->
-    @deleteSocketFile()
-    server = net.createServer (connection) =>
-      connection.on 'data', (data) =>
-        @openWithOptions(JSON.parse(data))
-
-    server.listen socketPath
-    server.on 'error', (error) -> console.error 'Application server failed', error
-
-  deleteSocketFile: ->
-    return if process.platform is 'win32'
-
-    if fs.existsSync(socketPath)
-      try
-        fs.unlinkSync(socketPath)
-      catch error
-        # Ignore ENOENT errors in case the file was deleted between the exists
-        # check and the call to unlink sync. This occurred occasionally on CI
-        # which is why this check is here.
-        throw error unless error.code is 'ENOENT'
 
   # Configures required javascript environment flags.
   setupJavaScriptArguments: ->
@@ -194,11 +207,11 @@ class AtomApplication
 
     app.on 'will-quit', =>
       @killAllProcesses()
-      @deleteSocketFile()
+      processLaunchDetector.deleteSocketFile()
 
     app.on 'will-exit', =>
       @killAllProcesses()
-      @deleteSocketFile()
+      processLaunchDetector.deleteSocketFile()
 
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()

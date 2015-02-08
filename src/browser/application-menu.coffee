@@ -91,9 +91,10 @@ class ApplicationMenu
 
   # Sets the proper visible state the update menu items
   showUpdateMenuItem: (state) ->
-    checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Check for Update')
-    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Downloading Update')
-    installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Restart and Install Update')
+    flattenedMenuItems = @flattenMenuItems(@menu);
+    checkForUpdateItem = _.find(flattenedMenuItems, ({label}) -> label == 'Check for Update')
+    downloadingUpdateItem = _.find(flattenedMenuItems, ({label}) -> label == 'Downloading Update')
+    installUpdateItem = _.find(flattenedMenuItems, ({label}) -> label == 'Restart and Install Update')
 
     return unless checkForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
 
