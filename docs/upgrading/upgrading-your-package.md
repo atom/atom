@@ -1,4 +1,4 @@
-# Upgrading your package to 1.0 APIs
+# Upgrading Your Package
 
 Atom is rapidly approaching 1.0. Much of the effort leading up to the 1.0 has been cleaning up APIs in an attempt to future proof, and make a more pleasant experience developing packages.
 
