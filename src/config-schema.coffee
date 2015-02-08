@@ -127,7 +127,7 @@ module.exports =
         properties:
           enabled:
             type: 'boolean'
-            default: true
+            default: false
           trueCurrentLineNumber:
             type: 'boolean'
             default: true
