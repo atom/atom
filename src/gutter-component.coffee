@@ -3,8 +3,8 @@ React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 Decoration = require './decoration'
-SubscriberMixin = require './subscriber-mixin'
 {$} = require './space-pen-extensions'
+SubscriberMixin = require './subscriber-mixin'
 
 WrapperDiv = document.createElement('div')
 
@@ -100,6 +100,10 @@ GutterComponent = React.createClass
     {editor, renderedRowRange, scrollTop, maxLineNumberDigits, lineDecorations} = @props
     [startRow, endRow] = renderedRowRange
 
+    relativeLineNumbers = atom.config.get("editor.relativeLineNumbers")
+    if relativeLineNumbers?.enabled
+      cursorRow = editor.getCursorBufferPosition().row
+
     newLineNumberIds = null
     newLineNumbersHTML = null
     visibleLineNumberIds = new Set
@@ -107,7 +111,14 @@ GutterComponent = React.createClass
     wrapCount = 0
     for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
       screenRow = startRow + index
-      displayRow = bufferRow + 1
+      if relativeLineNumbers?.enabled
+        relativeRow = Math.abs(cursorRow - bufferRow)
+        if relativeRow is 0 and relativeLineNumbers.trueCurrentLineNumber
+          displayRow = cursorRow + 1
+        else
+          displayRow = relativeRow
+      else
+        displayRow = bufferRow + 1
 
       if bufferRow is lastBufferRow
         id = "#{bufferRow}-#{wrapCount++}"

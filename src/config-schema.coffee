@@ -122,6 +122,15 @@ module.exports =
       showLineNumbers:
         type: 'boolean'
         default: true
+      relativeLineNumbers:
+        type: 'object'
+        properties:
+          enabled:
+            type: 'boolean'
+            default: true
+          trueCurrentLineNumber:
+            type: 'boolean'
+            default: true
       autoIndent:
         type: 'boolean'
         default: true
