@@ -6,6 +6,7 @@ return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 fs = require "fs"
 path = require "path"
 temp = require("temp").track()
+AtomHome = path.join(__dirname, "fixtures", "atom-home")
 {startAtom, startAnotherAtom, driverTest} = require("./helpers/start-atom")
 
 describe "Starting Atom", ->
@@ -24,7 +25,7 @@ describe "Starting Atom", ->
       driverTest ->
 
         # Opening a new file creates one window with one empty text editor.
-        startAtom(path.join(tempDirPath, "new-file"))
+        startAtom([path.join(tempDirPath, "new-file")], ATOM_HOME: AtomHome)
           .waitForExist("atom-text-editor", 5000)
           .then((exists) -> expect(exists).toBe true)
           .windowHandles()
@@ -42,7 +43,7 @@ describe "Starting Atom", ->
 
           # Opening an existing file in the same directory reuses the window and
           # adds a new tab for the file.
-          .call(-> startAnotherAtom(tempFilePath))
+          .call(-> startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome))
           .waitForCondition(
             (-> @execute((-> atom.workspace.getActivePane().getItems().length)).then ({value}) -> value is 2),
             5000)
@@ -52,7 +53,7 @@ describe "Starting Atom", ->
 
           # Opening a different directory creates a second window with no
           # tabs open.
-          .call(-> startAnotherAtom(temp.mkdirSync("another-empty-dir")))
+          .call(-> startAnotherAtom([temp.mkdirSync("another-empty-dir")], ATOM_HOME: AtomHome))
           .waitForCondition(
             (-> @windowHandles().then(({value}) -> value.length is 2)),
             5000)

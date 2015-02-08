@@ -2,6 +2,7 @@ os = require "os"
 path = require "path"
 temp = require("temp").track()
 remote = require "remote"
+{map, extend} = require "underscore-plus"
 {spawn, spawnSync} = require "child_process"
 webdriverio = require "../../../build/node_modules/webdriverio"
 async = require "async"
@@ -39,7 +40,7 @@ module.exports =
     runs -> chromedriver.kill()
 
   # Start Atom using chromedriver.
-  startAtom: (args...) ->
+  startAtom: (args, env={}) ->
     webdriverio.remote(
       host: 'localhost'
       port: ChromedriverPort
@@ -49,12 +50,13 @@ module.exports =
           binary: AtomLauncherPath
           args: [
             "atom-path=#{AtomPath}"
-            "atom-args=#{args.join(" ")}"
             "dev"
             "safe"
             "user-data-dir=#{temp.mkdirSync('integration-spec-')}"
             "socket-path=#{SocketPath}"
-          ])
+          ]
+          .concat(map args, (arg) -> "atom-arg=#{arg}")
+          .concat(map env, (value, key) -> "atom-env=#{key}=#{value}"))
       .init()
       .addCommand "waitForCondition", (conditionFn, timeout, cb) ->
         timedOut = succeeded = false
@@ -78,9 +80,9 @@ module.exports =
 
   # Once one `Atom` window is open, subsequent invocations of `Atom` will exit
   # immediately.
-  startAnotherAtom: (args...) ->
+  startAnotherAtom: (args, env={}) ->
     spawnSync(AtomPath, args.concat([
-      "--dev",
-      "--safe",
+      "--dev"
+      "--safe"
       "--socket-path=#{SocketPath}"
-    ]))
+    ]), env: extend({}, process.env, env))
