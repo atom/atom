@@ -3,7 +3,6 @@ React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 Decoration = require './decoration'
-{$} = require './space-pen-extensions'
 SubscriberMixin = require './subscriber-mixin'
 
 WrapperDiv = document.createElement('div')
@@ -202,7 +201,7 @@ GutterComponent = React.createClass
     previousDisplayRow = parseInt(node.dataset['displayRow'])
     if displayRow != previousDisplayRow
       node.dataset['displayRow'] = displayRow.toString()
-      $(node).html(@buildLineNumberInnerHTML(displayRow, softWrapped, maxLineNumberDigits))
+      node.innerHTML = @buildLineNumberInnerHTML(displayRow, softWrapped, maxLineNumberDigits)
 
     if editor.isFoldableAtBufferRow(bufferRow)
       node.classList.add('foldable')
