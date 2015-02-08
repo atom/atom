@@ -603,7 +603,7 @@ atom.workspaceView.command 'core:close core:cancel', ->
 
 ## Upgrading your stylesheet's selectors
 
-Many selectors have changed, and we have introduced the [Shadow DOM][shadowdom] to the editor. See [Upgrading Your Package Selectors guide][upgrading-selectors] for more information in upgrading your package stylesheets.
+Many selectors have changed, and we have introduced the [Shadow DOM][shadowdom] to the editor. See [Upgrading Your UI Theme Or Package Selectors guide][upgrading-selectors] for more information in upgrading your package stylesheets.
 
 ## Help us improve this guide!
 
@@ -620,6 +620,6 @@ Did you hit something painful that wasn't in here? Want to reword some bit of it
 [texteditor]:https://atom.io/docs/api/latest/TextEditor
 [disposable]:https://atom.io/docs/api/latest/Disposable
 [commands-add]:https://atom.io/docs/api/latest/CommandRegistry#instance-add
-[upgrading-selectors]:upgrading-your-ui-theme
+[upgrading-selectors]:https://atom.io/docs/latest/upgrading/upgrading-your-ui-theme
 [shadowdom]:http://blog.atom.io/2014/11/18/avoiding-style-pollution-with-the-shadow-dom.html
 [guide]:https://github.com/atom/atom/blob/master/docs/upgrading/upgrading-your-package.md
