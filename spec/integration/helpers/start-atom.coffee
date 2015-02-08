@@ -1,4 +1,3 @@
-os = require "os"
 path = require "path"
 temp = require("temp").track()
 remote = require "remote"
@@ -9,7 +8,7 @@ async = require "async"
 
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
-SocketPath = path.join(os.tmpdir(), "atom-integration-test.sock")
+SocketPath = path.join(temp.mkdirSync("socket-dir"), "atom.sock")
 ChromedriverPort = 9515
 
 module.exports =
