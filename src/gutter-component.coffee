@@ -4,6 +4,7 @@ React = require 'react-atom-fork'
 {isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
 Decoration = require './decoration'
 SubscriberMixin = require './subscriber-mixin'
+{$} = require './space-pen-extensions'
 
 WrapperDiv = document.createElement('div')
 
@@ -84,7 +85,7 @@ GutterComponent = React.createClass
   # since the real line numbers are absolutely positioned for performance reasons.
   appendDummyLineNumber: ->
     {maxLineNumberDigits} = @props
-    WrapperDiv.innerHTML = @buildLineNumberHTML(-1, false, maxLineNumberDigits)
+    WrapperDiv.innerHTML = @buildLineNumberHTML(-1, null, 0, false, maxLineNumberDigits)
     @dummyLineNumberNode = WrapperDiv.children[0]
     @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
 
@@ -106,6 +107,7 @@ GutterComponent = React.createClass
     wrapCount = 0
     for bufferRow, index in editor.bufferRowsForScreenRows(startRow, endRow - 1)
       screenRow = startRow + index
+      displayRow = bufferRow + 1
 
       if bufferRow is lastBufferRow
         id = "#{bufferRow}-#{wrapCount++}"
@@ -117,12 +119,12 @@ GutterComponent = React.createClass
       visibleLineNumberIds.add(id)
 
       if @hasLineNumberNode(id)
-        @updateLineNumberNode(id, bufferRow, screenRow, wrapCount > 0)
+        @updateLineNumberNode(id, bufferRow, screenRow, displayRow, wrapCount > 0)
       else
         newLineNumberIds ?= []
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, wrapCount > 0, maxLineNumberDigits, screenRow)
+        newLineNumbersHTML += @buildLineNumberHTML(bufferRow, screenRow, displayRow, wrapCount > 0, maxLineNumberDigits)
         @screenRowsByLineNumberId[id] = screenRow
         @lineNumberIdsByScreenRow[screenRow] = id
 
@@ -152,13 +154,14 @@ GutterComponent = React.createClass
         delete @renderedDecorationsByLineNumberId[lineNumberId]
         node.removeChild(lineNumberNode)
 
-  buildLineNumberHTML: (bufferRow, softWrapped, maxLineNumberDigits, screenRow) ->
+  buildLineNumberHTML: (bufferRow, screenRow, displayRow, softWrapped, maxLineNumberDigits) ->
     {editor, lineHeightInPixels, lineDecorations} = @props
+
     if screenRow?
       style = "position: absolute; top: #{screenRow * lineHeightInPixels}px;"
     else
       style = "visibility: hidden;"
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped, maxLineNumberDigits)
+    innerHTML = @buildLineNumberInnerHTML(displayRow, softWrapped, maxLineNumberDigits)
 
     classes = ''
     if lineDecorations? and decorations = lineDecorations[screenRow]
@@ -169,21 +172,26 @@ GutterComponent = React.createClass
     classes += "foldable " if bufferRow >= 0 and editor.isFoldableAtBufferRow(bufferRow)
     classes += "line-number line-number-#{bufferRow}"
 
-    "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"#{classes}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\" data-display-row=\"#{displayRow}\">#{innerHTML}</div>"
 
-  buildLineNumberInnerHTML: (bufferRow, softWrapped, maxLineNumberDigits) ->
+  buildLineNumberInnerHTML: (displayRow, softWrapped, maxLineNumberDigits) ->
     if softWrapped
       lineNumber = "•"
     else
-      lineNumber = (bufferRow + 1).toString()
+      lineNumber = displayRow.toString()
 
     padding = multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
     iconHTML = '<div class="icon-right"></div>'
     padding + lineNumber + iconHTML
 
-  updateLineNumberNode: (lineNumberId, bufferRow, screenRow, softWrapped) ->
-    {editor, lineDecorations} = @props
+  updateLineNumberNode: (lineNumberId, bufferRow, screenRow, displayRow, softWrapped) ->
+    {editor, lineDecorations, maxLineNumberDigits} = @props
     node = @lineNumberNodesById[lineNumberId]
+
+    previousDisplayRow = parseInt(node.dataset['displayRow'])
+    if displayRow != previousDisplayRow
+      node.dataset['displayRow'] = displayRow.toString()
+      $(node).html(@buildLineNumberInnerHTML(displayRow, softWrapped, maxLineNumberDigits))
 
     if editor.isFoldableAtBufferRow(bufferRow)
       node.classList.add('foldable')
