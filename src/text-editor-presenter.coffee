@@ -569,7 +569,7 @@ class TextEditorPresenter
   batchCharacterMeasurement: (fn) ->
     oldChangeCount = @scopedCharacterWidthsChangeCount
     @batchingCharacterMeasurement = true
-    fn()
+    @model.batchCharacterMeasurement(fn)
     @batchingCharacterMeasurement = false
     @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
 

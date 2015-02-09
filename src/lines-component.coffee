@@ -264,10 +264,9 @@ LinesComponent = React.createClass
     @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
-    {editor} = @props
-    node = @getDOMNode()
+    {presenter} = @props
 
-    editor.batchCharacterMeasurement =>
+    presenter.batchCharacterMeasurement =>
       for id, lineState of @oldState.lines
         unless @measuredLines.has(id)
           lineNode = @lineNodesByLineId[id]
