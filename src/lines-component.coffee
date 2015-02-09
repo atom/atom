@@ -253,9 +253,7 @@ LinesComponent = React.createClass
 
     {editor, presenter} = @props
     presenter.setLineHeight(lineHeightInPixels)
-    editor.setLineHeightInPixels(lineHeightInPixels)
     presenter.setBaseCharacterWidth(charWidth)
-    editor.setDefaultCharWidth(charWidth)
 
   remeasureCharacterWidths: ->
     return unless @props.presenter.hasRequiredMeasurements()
@@ -312,7 +310,6 @@ LinesComponent = React.createClass
           rangeForMeasurement.setStart(textNode, i)
           rangeForMeasurement.setEnd(textNode, i + charLength)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
-          editor.setScopedCharWidth(scopes, char, charWidth)
           @props.presenter.setScopedCharacterWidth(scopes, char, charWidth)
 
         charIndex += charLength

@@ -537,6 +537,7 @@ class TextEditorPresenter
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
+      @model.setLineHeightInPixels(lineHeight)
       @updateHeightState()
       @updateVerticalScrollState()
       @updateDecorations()
@@ -574,8 +575,9 @@ class TextEditorPresenter
     @batchingCharacterMeasurement = false
     @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
 
-  setScopedCharacterWidth: (scopeNames, char, width) ->
-    @getScopedCharacterWidths(scopeNames)[char] = width
+  setScopedCharacterWidth: (scopeNames, character, width) ->
+    @getScopedCharacterWidths(scopeNames)[character] = width
+    @model.setScopedCharWidth(scopeNames, character, width)
     @scopedCharacterWidthsChangeCount++
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
