@@ -313,7 +313,7 @@ LinesComponent = React.createClass
           rangeForMeasurement.setEnd(textNode, i + charLength)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
           editor.setScopedCharWidth(scopes, char, charWidth)
-          @props.presenter.setScopedCharWidth(scopes, char, charWidth)
+          @props.presenter.setScopedCharacterWidth(scopes, char, charWidth)
 
         charIndex += charLength
 
@@ -322,4 +322,4 @@ LinesComponent = React.createClass
   clearScopedCharWidths: ->
     @measuredLines.clear()
     @props.editor.clearScopedCharWidths()
-    @props.presenter.clearScopedCharWidths()
+    @props.presenter.clearScopedCharacterWidths()

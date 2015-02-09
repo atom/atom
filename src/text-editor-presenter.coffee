@@ -18,7 +18,7 @@ class TextEditorPresenter
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
-    @charWidthsByScope = {}
+    @characterWidthsByScope = {}
     @transferMeasurementsToModel()
     @observeModel()
     @observeConfig()
@@ -556,16 +556,16 @@ class TextEditorPresenter
       @model.setDefaultCharWidth(baseCharacterWidth)
       @characterWidthsChanged()
 
-  getScopedCharWidth: (scopeNames, char) ->
-    @getScopedCharWidths(scopeNames)[char]
+  getScopedCharacterWidth: (scopeNames, char) ->
+    @getScopedCharacterWidths(scopeNames)[char]
 
-  getScopedCharWidths: (scopeNames) ->
-    scope = @charWidthsByScope
+  getScopedCharacterWidths: (scopeNames) ->
+    scope = @characterWidthsByScope
     for scopeName in scopeNames
       scope[scopeName] ?= {}
       scope = scope[scopeName]
-    scope.charWidths ?= {}
-    scope.charWidths
+    scope.characterWidths ?= {}
+    scope.characterWidths
 
   batchCharacterMeasurement: (fn) ->
     oldChangeCount = @scopedCharacterWidthsChangeCount
@@ -574,8 +574,8 @@ class TextEditorPresenter
     @batchingCharacterMeasurement = false
     @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
 
-  setScopedCharWidth: (scopeNames, char, width) ->
-    @getScopedCharWidths(scopeNames)[char] = width
+  setScopedCharacterWidth: (scopeNames, char, width) ->
+    @getScopedCharacterWidths(scopeNames)[char] = width
     @scopedCharacterWidthsChangeCount++
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
@@ -587,8 +587,8 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateOverlaysState()
 
-  clearScopedCharWidths: ->
-    @charWidthsByScope = {}
+  clearScopedCharacterWidths: ->
+    @characterWidthsByScope = {}
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
@@ -602,7 +602,7 @@ class TextEditorPresenter
     left = 0
     column = 0
     for token in @model.tokenizedLineForScreenRow(targetRow).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
+      characterWidths = @getScopedCharacterWidths(token.scopes)
 
       valueIndex = 0
       while valueIndex < token.value.length
@@ -617,7 +617,7 @@ class TextEditorPresenter
 
         return {top, left} if column is targetColumn
 
-        left += charWidths[char] ? baseCharacterWidth unless char is '\0'
+        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
     {top, left}
 

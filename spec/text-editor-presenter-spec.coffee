@@ -133,7 +133,7 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
-            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
             expect(presenter.state.horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
@@ -360,7 +360,7 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
-            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'support.function.js'], 'p', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
             expect(presenter.state.content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
@@ -958,10 +958,10 @@ describe "TextEditorPresenter", ->
             editor.setCursorBufferPosition([1, 4])
             presenter = buildPresenter(explicitHeight: 20)
 
-            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
 
-            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
         it "updates when cursors are added, moved, hidden, shown, or destroyed", ->
@@ -1251,7 +1251,7 @@ describe "TextEditorPresenter", ->
             expectValues stateForSelection(presenter, 0), {
               regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
             }
-            expectStateUpdate presenter, -> presenter.setScopedCharWidth(['source.js', 'keyword.control.js'], 'i', 20)
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'keyword.control.js'], 'i', 20)
             expectValues stateForSelection(presenter, 0), {
               regions: [{top: 2 * 10, left: 4 * 10, width: 20 + 10, height: 10}]
             }
