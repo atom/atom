@@ -94,7 +94,7 @@ module.exports = (grunt) ->
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
-            PATH: [process.env.path, chromedriverPath].join(":")
+            PATH: [process.env.path, chromedriverPath].join(path.delimiter)
           )
 
     else if process.platform is 'win32'
