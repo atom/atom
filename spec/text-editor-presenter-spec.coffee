@@ -1514,6 +1514,9 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
           expect(presenter.state.gutter.backgroundColor).toBe "rgba(255, 0, 0, 0)"
 
+          expectStateUpdate presenter, -> presenter.setBackgroundColor("rgba(0, 0, 255, 0)")
+          expect(presenter.state.gutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+
       describe ".maxLineNumberDigits", ->
         it "is set to the number of digits used by the greatest line number", ->
           presenter = buildPresenter()

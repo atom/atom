@@ -526,6 +526,7 @@ class TextEditorPresenter
     unless @backgroundColor is backgroundColor
       @backgroundColor = backgroundColor
       @updateContentState()
+      @updateGutterState()
 
   setGutterBackgroundColor: (gutterBackgroundColor) ->
     unless @gutterBackgroundColor is gutterBackgroundColor
