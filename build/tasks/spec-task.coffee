@@ -85,15 +85,27 @@ module.exports = (grunt) ->
     appPath = getAppPath()
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
+    chromedriverPath = path.join(resourcePath, "atom-shell", "chromedriver")
 
     if process.platform in ['darwin', 'linux']
       options =
         cmd: appPath
         args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+        opts:
+          env: _.extend({}, process.env,
+            ATOM_INTEGRATION_TESTS_ENABLED: true
+            PATH: [process.env.path, chromedriverPath].join(":")
+          )
+
     else if process.platform is 'win32'
       options =
         cmd: process.env.comspec
         args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=ci.log"]
+        opts:
+          env: _.extend({}, process.env,
+            ATOM_INTEGRATION_TESTS_ENABLED: true
+            PATH: [process.env.path, chromedriverPath].join(";")
+          )
 
     spawn options, (error, results, code) ->
       if process.platform is 'win32'

@@ -19,7 +19,7 @@
     "grunt-contrib-csslint": "~0.1.2",
     "grunt-contrib-less": "~0.8.0",
     "grunt-cson": "0.14.0",
-    "grunt-download-atom-shell": "~0.11.0",
+    "grunt-download-atom-shell": "~0.12.0",
     "grunt-lesslint": "0.13.0",
     "grunt-peg": "~1.1.0",
     "grunt-shell": "~0.3.1",
@@ -35,6 +35,7 @@
     "temp": "~0.8.1",
     "underscore-plus": "1.x",
     "unzip": "~0.1.9",
-    "vm-compatibility-layer": "~0.1.0"
+    "vm-compatibility-layer": "~0.1.0",
+    "webdriverio": "^2.4.5"
   }
 }

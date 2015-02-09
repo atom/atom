@@ -305,13 +305,13 @@ window.waitsForPromise = (args...) ->
   window.waitsFor timeout, (moveOn) ->
     promise = fn()
     if shouldReject
-      promise.catch(moveOn)
+      (promise.catch ? promise.thenCatch).call(promise, moveOn)
       promise.then ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be rejected, but it was resolved")
         moveOn()
     else
       promise.then(moveOn)
-      promise.catch (error) ->
+      (promise.catch ? promise.thenCatch).call promise, (error) ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
         moveOn()
 

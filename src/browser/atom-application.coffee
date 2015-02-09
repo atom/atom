@@ -14,7 +14,7 @@ url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
-socketPath =
+DefaultSocketPath =
   if process.platform is 'win32'
     '\\\\.\\pipe\\atom-sock'
   else
@@ -31,17 +31,20 @@ class AtomApplication
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
+    options.socketPath ?= DefaultSocketPath
+
     createAtomApplication = -> new AtomApplication(options)
 
     # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if (process.platform isnt 'win32' and not fs.existsSync socketPath) or options.test
+    if (process.platform isnt 'win32' and not fs.existsSync options.socketPath) or options.test
       createAtomApplication()
       return
 
-    client = net.connect {path: socketPath}, ->
+
+    client = net.connect {path: options.socketPath}, ->
       client.write JSON.stringify(options), ->
         client.end()
         app.terminate()
@@ -57,7 +60,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @version, @devMode, @safeMode} = options
+    {@resourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
@@ -119,15 +122,15 @@ class AtomApplication
       connection.on 'data', (data) =>
         @openWithOptions(JSON.parse(data))
 
-    server.listen socketPath
+    server.listen @socketPath
     server.on 'error', (error) -> console.error 'Application server failed', error
 
   deleteSocketFile: ->
     return if process.platform is 'win32'
 
-    if fs.existsSync(socketPath)
+    if fs.existsSync(@socketPath)
       try
-        fs.unlinkSync(socketPath)
+        fs.unlinkSync(@socketPath)
       catch error
         # Ignore ENOENT errors in case the file was deleted between the exists
         # check and the call to unlink sync. This occurred occasionally on CI
