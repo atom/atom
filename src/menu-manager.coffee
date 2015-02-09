@@ -112,14 +112,14 @@ class MenuManager
       testBody = document.createElement('body')
       testBody.classList.add(@classesForElement(document.body)...)
 
-      testWorkspace = document.createElement('div')
+      testWorkspace = document.createElement('atom-workspace')
       workspaceClasses = @classesForElement(document.body.querySelector('atom-workspace'))
       workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
 
       testBody.appendChild(testWorkspace)
 
-      @testEditor = document.createElement('div')
+      @testEditor = document.createElement('atom-text-editor')
       @testEditor.classList.add('editor')
       testWorkspace.appendChild(@testEditor)
 
