@@ -160,6 +160,9 @@ module.exports = (grunt) ->
       cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'resources', 'cli', 'atom.js')
       cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
 
+    if process.platform is 'linux'
+      cp path.join('resources', 'linux', 'icons'), path.join(buildDir, 'icons')
+
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'

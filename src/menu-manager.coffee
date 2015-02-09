@@ -109,17 +109,20 @@ class MenuManager
     # Simulate an atom-text-editor element attached to a atom-workspace element attached
     # to a body element that has the same classes as the current body element.
     unless @testEditor?
-      testBody = document.createElement('body')
+      # Use new document so that custom elements don't actually get created
+      testDocument = document.implementation.createDocument(document.namespaceURI, 'html')
+
+      testBody = testDocument.createElement('body')
       testBody.classList.add(@classesForElement(document.body)...)
 
-      testWorkspace = document.createElement('div')
+      testWorkspace = testDocument.createElement('atom-workspace')
       workspaceClasses = @classesForElement(document.body.querySelector('atom-workspace'))
       workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
 
       testBody.appendChild(testWorkspace)
 
-      @testEditor = document.createElement('div')
+      @testEditor = testDocument.createElement('atom-text-editor')
       @testEditor.classList.add('editor')
       testWorkspace.appendChild(@testEditor)
 

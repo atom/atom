@@ -3,4 +3,4 @@
 set -e
 
 script/build
-script/grunt mkrpm publish-build --stack
+script/grunt mkrpm publish-build --stack --install-dir /usr

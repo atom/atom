@@ -25,5 +25,6 @@
 
 ### Upgrading to 1.0 APIs
 
+* [Upgrading Your Package](upgrading/upgrading-your-package.md)
 * [Upgrading Your UI Theme Or Package Selectors](upgrading/upgrading-your-ui-theme.md)
 * [Upgrading Your Syntax Theme](upgrading/upgrading-your-syntax-theme.md)

@@ -52,7 +52,7 @@ class WindowEventHandler
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
     @subscribe $(window), 'beforeunload', =>
-      confirmed = atom.workspace?.confirmClose()
+      confirmed = atom.workspace?.confirmClose(windowCloseRequested: true)
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
 

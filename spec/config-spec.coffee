@@ -666,6 +666,23 @@ describe "Config", ->
               foo:
                 bar: 'coffee'
 
+      describe "when an error is thrown writing the file to disk", ->
+        addErrorHandler = null
+        beforeEach ->
+          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
+
+        it "creates a notification", ->
+          jasmine.unspy CSON, 'writeFileSync'
+          spyOn(CSON, 'writeFileSync').andCallFake ->
+            error = new Error()
+            error.code = 'EPERM'
+            error.path = atom.config.getUserConfigPath()
+            throw error
+
+          save = -> atom.config.save()
+          expect(save).not.toThrow()
+          expect(addErrorHandler.callCount).toBe 1
+
     describe ".loadUserConfig()", ->
       beforeEach ->
         expect(fs.existsSync(atom.config.configDirPath)).toBeFalsy()
