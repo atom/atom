@@ -147,25 +147,30 @@ class TokenizedBuffer extends Model
     rowsRemaining = @chunkSize
 
     while @firstInvalidRow()? and rowsRemaining > 0
-      invalidRow = @invalidRows.shift()
+      startRow = @invalidRows.shift()
       lastRow = @getLastRow()
-      continue if invalidRow > lastRow
+      continue if startRow > lastRow
 
-      row = invalidRow
+      row = startRow
       loop
         previousStack = @stackForRow(row)
-        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
         if --rowsRemaining == 0
           filledRegion = false
+          endRow = row
           break
         if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
           filledRegion = true
+          endRow = row
           break
         row++
 
-      @validateRow(row)
-      @invalidateRow(row + 1) unless filledRegion
-      event = { start: invalidRow, end: row, delta: 0 }
+      @validateRow(endRow)
+      @invalidateRow(endRow + 1) unless filledRegion
+
+      [startRow, endRow] = @updateFoldableStatus(startRow, endRow)
+
+      event = {start: startRow, end: endRow, delta: 0}
       @emit 'changed', event
       @emitter.emit 'did-change', event
 
@@ -215,6 +220,9 @@ class TokenizedBuffer extends Model
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
+    [start, end] = @updateFoldableStatus(start, end + delta)
+    end -= delta
+
     event = { start, end, delta, bufferChange: e }
     @emit 'changed', event
     @emitter.emit 'did-change', event
@@ -223,18 +231,54 @@ class TokenizedBuffer extends Model
     line = @tokenizedLines[row]
     if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
       while line?.isOnlyWhitespace()
-        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
         row += increment
         line = @tokenizedLines[row]
 
     row - increment
+
+  updateFoldableStatus: (startRow, endRow) ->
+    scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
+    scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
+    scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
+
+    for row in [scanStartRow..scanEndRow] by 1
+      foldable = @isFoldableAtRow(row)
+      line = @tokenizedLineForRow(row)
+      unless line.foldable is foldable
+        line.foldable = foldable
+        startRow = Math.min(startRow, row)
+        endRow = Math.max(endRow, row)
+
+    [startRow, endRow]
+
+  isFoldableAtRow: (row) ->
+    @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
+
+  # Returns a {Boolean} indicating whether the given buffer row starts
+  # a a foldable row range due to the code's indentation patterns.
+  isFoldableCodeAtRow: (row) ->
+    return false if @buffer.isRowBlank(row) or @tokenizedLineForRow(row).isComment()
+    nextRow = @buffer.nextNonBlankRow(row)
+    return false unless nextRow?
+
+    @indentLevelForRow(nextRow) > @indentLevelForRow(row)
+
+  isFoldableCommentAtRow: (row) ->
+    previousRow = row - 1
+    nextRow = row + 1
+    return false if nextRow > @buffer.getLastRow()
+
+    (row is 0 or not @tokenizedLineForRow(previousRow).isComment()) and
+      @tokenizedLineForRow(row).isComment() and
+      @tokenizedLineForRow(nextRow).isComment()
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow]
       if (ruleStack or row == 0) and row < stopTokenizingAt
-        screenLine = @buildTokenizedTokenizedLineForRow(row, ruleStack)
+        screenLine = @buildTokenizedLineForRow(row, ruleStack)
         ruleStack = screenLine.ruleStack
       else
         screenLine = @buildPlaceholderTokenizedLineForRow(row)
@@ -257,7 +301,7 @@ class TokenizedBuffer extends Model
     lineEnding = @buffer.lineEndingForRow(row)
     new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
 
-  buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
+  buildTokenizedLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()

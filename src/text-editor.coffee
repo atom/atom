@@ -721,8 +721,12 @@ class TextEditor extends Model
   # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
+  screenRowForBufferRow: (row) -> @displayBuffer.screenRowForBufferRow(row)
+
   # {Delegates to: DisplayBuffer.getMaxLineLength}
   getMaxScreenLineLength: -> @displayBuffer.getMaxLineLength()
+
+  getLongestScreenRow: -> @displayBuffer.getLongestScreenRow()
 
   # Returns the range for the given buffer row.
   #
@@ -1353,14 +1357,19 @@ class TextEditor extends Model
   getLineDecorations: (propertyFilter) ->
     @displayBuffer.getLineDecorations(propertyFilter)
 
+  # Soft-deprecated (forgot to deprecated this pre 1.0)
+  getGutterDecorations: (propertyFilter) ->
+    deprecate("Use ::getLineNumberDecorations instead")
+    @getLineNumberDecorations(propertyFilter)
+
   # Extended: Get all decorations of type 'line-number'.
   #
   # * `propertyFilter` (optional) An {Object} containing key value pairs that
   #   the returned decorations' properties must match.
   #
   # Returns an {Array} of {Decoration}s.
-  getGutterDecorations: (propertyFilter) ->
-    @displayBuffer.getGutterDecorations(propertyFilter)
+  getLineNumberDecorations: (propertyFilter) ->
+    @displayBuffer.getLineNumberDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'highlight'.
   #
@@ -2700,7 +2709,8 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtBufferRow: (bufferRow) ->
-    @languageMode.isFoldableAtBufferRow(bufferRow)
+    # @languageMode.isFoldableAtBufferRow(bufferRow)
+    @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)?.foldable ? false
 
   # Extended: Determine whether the given row in screen coordinates is foldable.
   #

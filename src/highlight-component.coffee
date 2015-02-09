@@ -5,94 +5,46 @@ React = require 'react-atom-fork'
 module.exports =
 HighlightComponent = React.createClass
   displayName: 'HighlightComponent'
+  currentFlashCount: 0
+  currentFlashClass: null
 
   render: ->
-    {startPixelPosition, endPixelPosition, decoration} = @props
+    {state} = @props
 
     className = 'highlight'
-    className += " #{decoration.class}" if decoration.class?
+    className += " #{state.class}" if state.class?
 
     div {className},
-      if endPixelPosition.top is startPixelPosition.top
-        @renderSingleLineRegions(decoration.deprecatedRegionClass)
-      else
-        @renderMultiLineRegions(decoration.deprecatedRegionClass)
+      for region, i in state.regions
+        regionClassName = 'region'
+        regionClassName += " #{state.deprecatedRegionClass}" if state.deprecatedRegionClass?
+        div className: regionClassName, key: i, style: region
 
   componentDidMount: ->
-    {editor, decoration} = @props
-    if decoration.id?
-      @decoration = editor.decorationForId(decoration.id)
-      @decorationDisposable = @decoration.onDidFlash @startFlashAnimation
-      @startFlashAnimation()
+    @flashIfRequested()
 
-  componentWillUnmount: ->
-    @decorationDisposable?.dispose()
-    @decorationDisposable = null
+  componentDidUpdate: ->
+    @flashIfRequested()
 
-  startFlashAnimation: ->
-    return unless flash = @decoration.consumeNextFlash()
+  flashIfRequested: ->
+    if @props.state.flashCount > @currentFlashCount
+      @currentFlashCount = @props.state.flashCount
 
-    node = @getDOMNode()
-    node.classList.remove(flash.class)
+      node = @getDOMNode()
+      {flashClass, flashDuration} = @props.state
 
-    requestAnimationFrame =>
-      node.classList.add(flash.class)
-      clearTimeout(@flashTimeoutId)
-      removeFlashClass = -> node.classList.remove(flash.class)
-      @flashTimeoutId = setTimeout(removeFlashClass, flash.duration)
+      addFlashClass = =>
+        node.classList.add(flashClass)
+        @currentFlashClass = flashClass
+        @flashTimeoutId = setTimeout(removeFlashClass, flashDuration)
 
-  renderSingleLineRegions: (regionClass) ->
-    {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props
+      removeFlashClass = =>
+        node.classList.remove(@currentFlashClass)
+        @currentFlashClass = null
+        clearTimeout(@flashTimeoutId)
 
-    className = 'region'
-    className += " #{regionClass}" if regionClass?
-
-    [
-      div className: className, key: 0, style:
-        top: startPixelPosition.top
-        height: lineHeightInPixels
-        left: startPixelPosition.left
-        width: endPixelPosition.left - startPixelPosition.left
-    ]
-
-  renderMultiLineRegions: (regionClass) ->
-    {startPixelPosition, endPixelPosition, lineHeightInPixels} = @props
-
-    className = 'region'
-    className += " #{regionClass}" if regionClass?
-
-    regions = []
-    index = 0
-
-    # First row, extending from selection start to the right side of screen
-    regions.push(
-      div className: className, key: index++, style:
-        top: startPixelPosition.top
-        left: startPixelPosition.left
-        height: lineHeightInPixels
-        right: 0
-    )
-
-    # Middle rows, extending from left side to right side of screen
-    if endPixelPosition.top - startPixelPosition.top > lineHeightInPixels
-      regions.push(
-        div className: className, key: index++, style:
-          top: startPixelPosition.top + lineHeightInPixels
-          height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
-          left: 0
-          right: 0
-      )
-
-    # Last row, extending from left side of screen to selection end
-    regions.push(
-      div className: className, key: index, style:
-        top: endPixelPosition.top
-        height: lineHeightInPixels
-        left: 0
-        width: endPixelPosition.left
-    )
-
-    regions
-
-  shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'startPixelPosition', 'endPixelPosition', 'lineHeightInPixels', 'decoration')
+      if @currentFlashClass?
+        removeFlashClass()
+        requestAnimationFrame(addFlashClass)
+      else
+        addFlashClass()

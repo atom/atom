@@ -1,46 +1,41 @@
 module.exports =
 class OverlayManager
   constructor: (@container) ->
-    @overlays = {}
+    @overlayNodesById = {}
 
   render: (props) ->
-    {editor, overlayDecorations, lineHeightInPixels} = props
+    {presenter} = props
 
-    existingDecorations = null
-    for markerId, {headPixelPosition, tailPixelPosition, decorations} of overlayDecorations
-      for decoration in decorations
-        pixelPosition =
-          if decoration.position is 'tail' then tailPixelPosition else headPixelPosition
+    for decorationId, {pixelPosition, item} of presenter.state.content.overlays
+      @renderOverlay(presenter, decorationId, item, pixelPosition)
 
-        @renderOverlay(editor, decoration, pixelPosition, lineHeightInPixels)
-
-        existingDecorations ?= {}
-        existingDecorations[decoration.id] = true
-
-    for id, overlay of @overlays
-      unless existingDecorations? and id of existingDecorations
-        @container.removeChild(overlay)
-        delete @overlays[id]
+    for id, overlayNode of @overlayNodesById
+      unless presenter.state.content.overlays.hasOwnProperty(id)
+        overlayNode.remove()
+        delete @overlayNodesById[id]
 
     return
 
-  renderOverlay: (editor, decoration, pixelPosition, lineHeightInPixels) ->
-    item = atom.views.getView(decoration.item)
-    unless overlay = @overlays[decoration.id]
-      overlay = @overlays[decoration.id] = document.createElement('atom-overlay')
-      overlay.appendChild(item)
-      @container.appendChild(overlay)
+  renderOverlay: (presenter, decorationId, item, pixelPosition) ->
+    item = atom.views.getView(item)
+    unless overlayNode = @overlayNodesById[decorationId]
+      overlayNode = @overlayNodesById[decorationId] = document.createElement('atom-overlay')
+      overlayNode.appendChild(item)
+      @container.appendChild(overlayNode)
 
     itemWidth = item.offsetWidth
     itemHeight = item.offsetHeight
 
+
+    {scrollTop, scrollLeft} = presenter.state.content
+
     left = pixelPosition.left
-    if left + itemWidth - editor.getScrollLeft() > editor.getWidth() and left - itemWidth >= editor.getScrollLeft()
+    if left + itemWidth - scrollLeft > presenter.contentFrameWidth and left - itemWidth >= scrollLeft
       left -= itemWidth
 
-    top = pixelPosition.top + lineHeightInPixels
-    if top + itemHeight - editor.getScrollTop() > editor.getHeight() and top - itemHeight - lineHeightInPixels >= editor.getScrollTop()
-      top -= itemHeight + lineHeightInPixels
+    top = pixelPosition.top + presenter.lineHeight
+    if top + itemHeight - scrollTop > presenter.computeHeight() and top - itemHeight - presenter.lineHeight >= scrollTop
+      top -= itemHeight + presenter.lineHeight
 
-    overlay.style.top = top + 'px'
-    overlay.style.left = left + 'px'
+    overlayNode.style.top = top + 'px'
+    overlayNode.style.left = left + 'px'

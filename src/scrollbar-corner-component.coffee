@@ -7,7 +7,11 @@ ScrollbarCornerComponent = React.createClass
   displayName: 'ScrollbarCornerComponent'
 
   render: ->
-    {visible, measuringScrollbars, width, height} = @props
+    {presenter, measuringScrollbars} = @props
+
+    visible = presenter.state.horizontalScrollbar.visible and presenter.state.verticalScrollbar.visible
+    width = presenter.state.verticalScrollbar.width
+    height = presenter.state.horizontalScrollbar.height
 
     if measuringScrollbars
       height = 25
@@ -19,6 +23,3 @@ ScrollbarCornerComponent = React.createClass
       div style:
         height: height + 1
         width: width + 1
-
-  shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'measuringScrollbars', 'visible', 'width', 'height')

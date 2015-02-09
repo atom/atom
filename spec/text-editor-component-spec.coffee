@@ -135,7 +135,7 @@ describe "TextEditorComponent", ->
       expect(newLineHeightInPixels).not.toBe initialLineHeightInPixels
       expect(component.lineNodeForScreenRow(1).offsetTop).toBe 1 * newLineHeightInPixels
 
-    it "updates the top position of lines when the font family changes", ->
+    xit "updates the top position of lines when the font family changes", ->
       # Can't find a font that changes the line height, but we think one might exist
       linesComponent = component.refs.lines
       spyOn(linesComponent, 'measureLineHeightAndDefaultCharWidth').andCallFake -> editor.setLineHeightInPixels(10)
@@ -301,7 +301,9 @@ describe "TextEditorComponent", ->
         expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
-        component.setShowIndentGuide(true)
+        atom.config.set "editor.showIndentGuide", true
+        nextAnimationFrame()
+
         editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", normalizeLineEndings: false)
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>'
@@ -334,7 +336,8 @@ describe "TextEditorComponent", ->
 
     describe "when indent guides are enabled", ->
       beforeEach ->
-        component.setShowIndentGuide(true)
+        atom.config.set "editor.showIndentGuide", true
+        nextAnimationFrame()
 
       it "adds an 'indent-guide' class to spans comprising the leading whitespace", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -426,7 +429,7 @@ describe "TextEditorComponent", ->
 
     describe "when indent guides are disabled", ->
       beforeEach ->
-        component.setShowIndentGuide(false)
+        expect(atom.config.get("editor.showIndentGuide")).toBe false
 
       it "does not render indent guides on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
@@ -669,7 +672,7 @@ describe "TextEditorComponent", ->
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
   describe "cursor rendering", ->
-    it "renders the currently visible cursors, translated relative to the scroll position", ->
+    it "renders the currently visible cursors", ->
       cursor1 = editor.getLastCursor()
       cursor1.setScreenPosition([0, 5])
 
@@ -706,9 +709,16 @@ describe "TextEditorComponent", ->
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
       expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
 
+      wrapperView.on 'cursor:moved', cursorMovedListener = jasmine.createSpy('cursorMovedListener')
+      cursor3.setScreenPosition([4, 11], autoscroll: false)
+      nextAnimationFrame()
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorMovedListener).toHaveBeenCalled()
+
       cursor3.destroy()
       nextAnimationFrame()
       cursorNodes = componentNode.querySelectorAll('.cursor')
+
       expect(cursorNodes.length).toBe 1
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
 
@@ -789,18 +799,23 @@ describe "TextEditorComponent", ->
       cursorsNode = componentNode.querySelector('.cursors')
 
       expect(cursorsNode.classList.contains('blink-off')).toBe false
+
       advanceClock(component.props.cursorBlinkPeriod / 2)
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
       advanceClock(component.props.cursorBlinkPeriod / 2)
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       # Stop blinking after moving the cursor
       editor.moveRight()
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       advanceClock(component.props.cursorBlinkResumeDelay)
       advanceClock(component.props.cursorBlinkPeriod / 2)
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
     it "does not render cursors that are associated with non-empty selections", ->
@@ -931,7 +946,6 @@ describe "TextEditorComponent", ->
     it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
       nextAnimationFrame()
-      nextAnimationFrame() # flash starts on its own frame
       selectionNode = componentNode.querySelector('.selection')
       expect(selectionNode.classList.contains('flash')).toBe true
 
@@ -1105,14 +1119,14 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       # Should not be rendering range containing the marker
-      expect(component.getRenderedRowRange()[1]).toBeLessThan 9
+      expect(component.presenter.computeEndRow()).toBeLessThan 9
 
       regions = componentNode.querySelectorAll('.some-highlight .region')
 
       # Nothing when outside the rendered row range
       expect(regions.length).toBe 0
 
-      verticalScrollbarNode.scrollTop = 3.5 * lineHeightInPixels
+      verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
@@ -1191,6 +1205,8 @@ describe "TextEditorComponent", ->
           advanceClock(2)
 
           decoration.flash('flash-class', 10)
+          nextAnimationFrame()
+
           # Removed for 1 frame to force CSS transition to restart
           expect(highlightNode.classList.contains('flash-class')).toBe false
 
@@ -1968,14 +1984,14 @@ describe "TextEditorComponent", ->
     it "assigns the bottom/right of the scrollbars to the width of the opposite scrollbar if it is visible", ->
       scrollbarCornerNode = componentNode.querySelector('.scrollbar-corner')
 
-      expect(verticalScrollbarNode.style.bottom).toBe ''
-      expect(horizontalScrollbarNode.style.right).toBe ''
+      expect(verticalScrollbarNode.style.bottom).toBe '0px'
+      expect(horizontalScrollbarNode.style.right).toBe '0px'
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
       component.measureHeightAndWidth()
       nextAnimationFrame()
-      expect(verticalScrollbarNode.style.bottom).toBe ''
+      expect(verticalScrollbarNode.style.bottom).toBe '0px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
@@ -1990,7 +2006,7 @@ describe "TextEditorComponent", ->
       component.measureHeightAndWidth()
       nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
-      expect(horizontalScrollbarNode.style.right).toBe ''
+      expect(horizontalScrollbarNode.style.right).toBe '0px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
     it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
@@ -2075,7 +2091,7 @@ describe "TextEditorComponent", ->
         componentNode.dispatchEvent(wheelEvent)
         nextAnimationFrame()
 
-        expect(component.mouseWheelScreenRow).toBe null
+        expect(component.presenter.mouseWheelScreenRow).toBe null
 
       it "clears the mouseWheelScreenRow after a delay even if the event does not cause scrolling", ->
         expect(editor.getScrollTop()).toBe 0
@@ -2084,13 +2100,12 @@ describe "TextEditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 10)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        expect(nextAnimationFrame).toBe noAnimationFrame
 
         expect(editor.getScrollTop()).toBe 0
 
-        expect(component.mouseWheelScreenRow).toBe 0
-        advanceClock(component.mouseWheelScreenRowClearDelay)
-        expect(component.mouseWheelScreenRow).toBe null
+        expect(component.presenter.mouseWheelScreenRow).toBe 0
+        advanceClock(component.presenter.stoppedScrollingDelay)
+        expect(component.presenter.mouseWheelScreenRow).toBe null
 
       it "does not preserve the line if it is on screen", ->
         expect(componentNode.querySelectorAll('.line-number').length).toBe 14 # dummy line
@@ -2101,9 +2116,8 @@ describe "TextEditorComponent", ->
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 100) # goes nowhere, we're already at scrollTop 0
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
-        expect(nextAnimationFrame).toBe noAnimationFrame
 
-        expect(component.mouseWheelScreenRow).toBe 0
+        expect(component.presenter.mouseWheelScreenRow).toBe 0
         editor.insertText("hello")
         expect(componentNode.querySelectorAll('.line-number').length).toBe 14 # dummy line
         expect(componentNode.querySelectorAll('.line').length).toBe 13
@@ -2524,6 +2538,7 @@ describe "TextEditorComponent", ->
       it "does not assign a height on the component node", ->
         wrapperNode.style.height = '200px'
         component.measureHeightAndWidth()
+        nextAnimationFrame()
         expect(componentNode.style.height).toBe ''
 
     describe "when the wrapper view does not have an explicit height", ->
@@ -2581,6 +2596,7 @@ describe "TextEditorComponent", ->
 
     it "works with the ::setEditorHeightInLines and ::setEditorWidthInChars helpers", ->
       setEditorHeightInLines(wrapperView, 7)
+      nextAnimationFrame()
       expect(componentNode.offsetHeight).toBe lineHeightInPixels * 7
 
       setEditorWidthInChars(wrapperView, 10)
@@ -2714,6 +2730,7 @@ describe "TextEditorComponent", ->
       beforeEach ->
         atom.config.set 'editor.showIndentGuide', true, scopeSelector: '.source.js'
         atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.coffee'
+        nextAnimationFrame()
 
       it "has an 'indent-guide' class when scoped editor.showIndentGuide is true, but not when scoped editor.showIndentGuide is false", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -2722,6 +2739,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
         editor.setGrammar(coffeeEditor.getGrammar())
+        nextAnimationFrame()
 
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '
@@ -2735,6 +2753,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
         atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.js'
+        nextAnimationFrame()
 
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe '  '

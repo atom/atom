@@ -283,7 +283,7 @@ class TextEditorView extends View
 
   setShowIndentGuide: (showIndentGuide) ->
     deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
-    @component.setShowIndentGuide(showIndentGuide)
+    atom.config.set("editor.showIndentGuide", showIndentGuide)
 
   setSoftWrap: (softWrapped) ->
     deprecate 'Use TextEditor::setSoftWrapped instead. You can get the editor via editorView.getModel()'
