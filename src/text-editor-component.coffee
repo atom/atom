@@ -39,6 +39,7 @@ TextEditorComponent = React.createClass
   measureScrollbarsWhenShown: true
   measureLineHeightAndDefaultCharWidthWhenShown: true
   remeasureCharacterWidthsWhenShown: false
+  stylingChangeAnimationFrameRequested: false
 
   render: ->
     {focused, showLineNumbers} = @state
@@ -508,10 +509,14 @@ TextEditorComponent = React.createClass
     # This delay prevents the styling from going haywire when stylesheets are
     # reloaded in dev mode. It seems like a workaround for a browser bug, but
     # not totally sure.
-    requestAnimationFrame =>
-      if @isMounted()
-        @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
-        @handleStylingChange()
+
+    unless @stylingChangeAnimationFrameRequested
+      @stylingChangeAnimationFrameRequested = true
+      requestAnimationFrame =>
+        @stylingChangeAnimationFrameRequested = false
+        if @isMounted()
+          @refreshScrollbars() if not styleElement.sheet? or @containsScrollbarSelector(styleElement.sheet)
+          @handleStylingChange()
 
   onAllThemesLoaded: ->
     @refreshScrollbars()
