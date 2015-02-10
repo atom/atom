@@ -24,6 +24,22 @@ describe 'apm publish', ->
   afterEach ->
     server.close()
 
+  it "validates the package is in a Git repository", ->
+    packageToPublish = temp.mkdirSync('apm-test-package-')
+    metadata =
+      name: 'test'
+      version: '1.0.0'
+    fs.writeFileSync(path.join(packageToPublish, 'package.json'), JSON.stringify(metadata))
+    process.chdir(packageToPublish)
+    callback = jasmine.createSpy('callback')
+    apm.run(['publish'], callback)
+
+    waitsFor 'waiting for publish to complete', 600000, ->
+      callback.callCount is 1
+
+    runs ->
+      expect(callback.mostRecentCall.args[0].message).toBe 'Package must be in a Git repository before publishing: https://help.github.com/articles/create-a-repo'
+
   it "validates the engines.atom range in the package.json file", ->
     packageToPublish = temp.mkdirSync('apm-test-package-')
     metadata =
