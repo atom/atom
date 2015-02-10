@@ -2,6 +2,7 @@ path = require 'path'
 
 optimist = require 'optimist'
 Git = require 'git-utils'
+semver = require 'npm/node_modules/semver'
 
 fs = require './fs'
 config = require './apm'
@@ -290,6 +291,29 @@ class Publish extends Command
     pack.name = name
     @saveMetadata(pack, callback)
 
+  validateSemverValues: (pack) ->
+    return unless pack
+
+    if pack.engines.atom?
+      try
+        new semver.Range(pack.engines.atom)
+      catch error
+        throw new Error("The Atom engine range is invalid: #{pack.engines.atom}")
+
+    for packageName, semverRange of pack.dependencies
+      try
+        new semver.Range(semverRange)
+      catch error
+        throw new Error("The #{packageName} dependency range is invalid: #{semverRange}")
+
+    for packageName, semverRange of pack.devDependencies
+      try
+        new semver.Range(semverRange)
+      catch error
+        throw new Error("The #{packageName} dev dependency range is invalid: #{semverRange}")
+
+    return
+
   # Run the publish command with the given options
   run: (options) ->
     {callback} = options
@@ -299,6 +323,11 @@ class Publish extends Command
 
     try
       pack = @loadMetadata()
+    catch error
+      return callback(error)
+
+    try
+      @validateSemverValues(pack)
     catch error
       return callback(error)
 
