@@ -165,22 +165,7 @@ class Project extends Model
     @rootDirectories = []
     @repositories = []
 
-    for projectPath, i in projectPaths
-      projectPath = path.normalize(projectPath)
-
-      directoryPath = if fs.isDirectorySync(projectPath)
-        projectPath
-      else
-        path.dirname(projectPath)
-
-      directory = new Directory(directoryPath)
-      @rootDirectories.push(directory)
-
-      # For now, use only the repositoryProviders with a sync API.
-      repo = null
-      for provider in @repositoryProviders
-        break if repo = provider.repositoryForDirectorySync?(directory)
-      @repositories.push(repo ? null)
+    @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
     @emit "path-changed"
     @emitter.emit 'did-change-paths', projectPaths
@@ -188,6 +173,28 @@ class Project extends Model
   setPath: (path) ->
     Grim.deprecate("Use ::setPaths instead")
     @setPaths([path])
+
+  # Public: Add a path the project's list of root paths
+  #
+  # * `projectPath` {String} The path to the directory to add.
+  addPath: (projectPath, options) ->
+    projectPath = path.normalize(projectPath)
+
+    directoryPath = if fs.isDirectorySync(projectPath)
+      projectPath
+    else
+      path.dirname(projectPath)
+    directory = new Directory(directoryPath)
+    @rootDirectories.push(directory)
+
+    repo = null
+    for provider in @repositoryProviders
+      break if repo = provider.repositoryForDirectorySync?(directory)
+    @repositories.push(repo ? null)
+
+    unless options?.emitEvent is false
+      @emit "path-changed"
+      @emitter.emit 'did-change-paths', @getPaths()
 
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->

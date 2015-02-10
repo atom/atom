@@ -259,6 +259,16 @@ describe "Project", ->
           expect(repo3.getShortHead()).toBe "master"
           expect(repo3.getPath()).toBe fs.realpathSync(path.join(directory3, ".git"))
 
+      it "calls callbacks registered with ::onDidChangePaths", ->
+        onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+        atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+        paths = [ temp.mkdirSync("dir1"), temp.mkdirSync("dir2") ]
+        atom.project.setPaths(paths)
+
+        expect(onDidChangePathsSpy.callCount).toBe 1
+        expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual(paths)
+
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
         atom.project.setPaths([])
@@ -269,6 +279,19 @@ describe "Project", ->
       atom.project.setPaths(["#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}.."])
       expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
       expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+
+  describe ".addPath(path)", ->
+    it "calls callbacks registered with ::onDidChangePaths", ->
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+      [oldPath] = atom.project.getPaths()
+
+      newPath = temp.mkdirSync("dir")
+      atom.project.addPath(newPath)
+
+      expect(onDidChangePathsSpy.callCount).toBe 1
+      expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual([oldPath, newPath])
 
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
