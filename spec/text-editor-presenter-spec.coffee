@@ -288,6 +288,18 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe 0
 
+        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeContentHeight() - presenter.computeClientHeight()
+
+          atom.config.set("editor.scrollPastEnd", true)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeContentHeight()
+
+          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeContentHeight() - presenter.computeClientHeight()
+
     describe ".content", ->
       describe ".scrollingVertically", ->
         it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
@@ -411,6 +423,18 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
           expect(presenter.state.content.scrollTop).toBe 0
+
+        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.state.content.scrollTop).toBe presenter.computeContentHeight() - presenter.computeClientHeight()
+
+          atom.config.set("editor.scrollPastEnd", true)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.state.content.scrollTop).toBe presenter.computeContentHeight()
+
+          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expect(presenter.state.content.scrollTop).toBe presenter.computeContentHeight() - presenter.computeClientHeight()
 
       describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
@@ -1502,6 +1526,18 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
           expect(presenter.state.gutter.scrollTop).toBe 0
+
+        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.state.gutter.scrollTop).toBe presenter.computeContentHeight() - presenter.computeClientHeight()
+
+          atom.config.set("editor.scrollPastEnd", true)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.state.gutter.scrollTop).toBe presenter.computeContentHeight()
+
+          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expect(presenter.state.gutter.scrollTop).toBe presenter.computeContentHeight() - presenter.computeClientHeight()
 
       describe ".backgroundColor", ->
         it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->

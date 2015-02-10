@@ -68,6 +68,9 @@ class TextEditorPresenter
 
   observeConfig: ->
     @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
+    @disposables.add atom.config.onDidChange 'editor.scrollPastEnd', scope: @model.getRootScopeDescriptor(), =>
+      @updateVerticalScrollState()
+      @updateScrollbarsState()
 
   buildState: ->
     @state =
@@ -364,7 +367,9 @@ class TextEditorPresenter
 
   constrainScrollTop: (scrollTop) ->
     if @hasRequiredMeasurements()
-      Math.max(0, Math.min(scrollTop, @computeScrollHeight() - @computeClientHeight()))
+      maxScrollTop = @computeScrollHeight()
+      maxScrollTop -= @computeClientHeight() unless atom.config.get('editor.scrollPastEnd')
+      Math.max(0, Math.min(scrollTop, maxScrollTop))
     else
       Math.max(0, scrollTop) if scrollTop?
 
