@@ -15,7 +15,6 @@ class TextEditorElement extends HTMLElement
   componentDescriptor: null
   component: null
   attached: false
-  lineOverdrawMargin: null
   focusOnAttach: false
 
   createdCallback: ->
@@ -110,7 +109,6 @@ class TextEditorElement extends HTMLElement
       rootElement: @rootElement
       stylesElement: @stylesElement
       editor: @model
-      lineOverdrawMargin: @lineOverdrawMargin
       useShadowDOM: @useShadowDOM
     )
     @component = React.renderComponent(@componentDescriptor, @rootElement)
