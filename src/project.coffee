@@ -15,7 +15,7 @@ Grim = require 'grim'
 
 TextEditor = require './text-editor'
 Task = require './task'
-GitRepository = require './git-repository'
+GitRepositoryProvider = require './git-repository-provider'
 
 # Extended: Represents a project that's opened in Atom.
 #
@@ -38,6 +38,20 @@ class Project extends Model
   constructor: ({path, paths, @buffers}={}) ->
     @emitter = new Emitter
     @buffers ?= []
+
+    # Mapping from the real path of a {Directory} to a {Promise} that resolves
+    # to either a {Repository} or null. Ideally, the {Directory} would be used
+    # as the key; however, there can be multiple {Directory} objects created for
+    # the same real path, so it is not a good key.
+    @directoryToRepositoryMap = new Map();
+
+    # Note that the GitRepositoryProvider is registered synchronously so that
+    # it is available immediately on startup.
+    @repositoryProviders = [new GitRepositoryProvider(this)]
+    atom.packages.serviceHub.consume(
+        'atom.repository-provider',
+        '>=0.1.0',
+        (provider) => @repositoryProviders.push(provider))
 
     @subscribeToBuffer(buffer) for buffer in @buffers
 
@@ -96,10 +110,44 @@ class Project extends Model
 
   # Public: Get an {Array} of {GitRepository}s associated with the project's
   # directories.
+  #
+  # This method will be removed in 2.0 because it does synchronous I/O.
+  # Prefer the following, which evaluates to a Promise that resolves to an
+  # {Array} of {Repository} objects:
+  # ```
+  # project.getDirectories().map(
+  #     project.repositoryForDirectory.bind(project))
+  # ```
   getRepositories: -> _.compact([@repo])
   getRepo: ->
     Grim.deprecate("Use ::getRepositories instead")
     @repo
+
+  # Public: Returns a {Promise} that resolves with either:
+  # * {Repository} if a repository can be created for the given directory
+  # * `null` if no repository can be created for the given directory.
+  #
+  # * `directory` {Directory} for which to get a {Repository}.
+  repositoryForDirectory: (directory) ->
+    path = directory.getRealPathSync()
+    promise = @directoryToRepositoryMap.get(path)
+    unless promise
+      promises = @repositoryProviders.map(
+          (provider) -> provider.repositoryForDirectory directory)
+      promise = Promise.all(promises).then((repositories) =>
+          # Find the first non-falsy value, if any.
+          repos = repositories.filter((repo) -> repo)
+          repo = repos[0] or null
+
+          # If no repository is found, remove the entry in for the directory in
+          # @directoryToRepositoryMap in case some other RepositoryProvider is
+          # registered in the future that could supply a Repository for the
+          # directory.
+          if repo is null
+            @directoryToRepositoryMap.delete path
+          repo)
+      @directoryToRepositoryMap.set(path, promise)
+    promise
 
   ###
   Section: Managing Paths
@@ -126,9 +174,13 @@ class Project extends Model
     if projectPath?
       directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      if @repo = GitRepository.open(directory, project: this)
-        @repo.refreshIndex()
-        @repo.refreshStatus()
+
+      # For now, use only the repositoryProviders with a sync API.
+      for provider in @repositoryProviders
+        if provider.createRepositorySync
+          @repo = provider.createRepositorySync @rootDirectory
+          if @repo
+            break
     else
       @rootDirectory = null
 
