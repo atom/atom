@@ -347,7 +347,9 @@ class TextEditorPresenter
     Math.max(@computeContentWidth(), @contentFrameWidth)
 
   computeScrollHeight: ->
-    Math.max(@computeContentHeight(), @computeHeight())
+    contentHeight = @computeContentHeight()
+    contentHeight += @computeClientHeight() if atom.config.get('editor.scrollPastEnd')
+    Math.max(contentHeight, @computeHeight())
 
   computeContentWidth: ->
     contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
@@ -368,9 +370,7 @@ class TextEditorPresenter
 
   constrainScrollTop: (scrollTop) ->
     if @hasRequiredMeasurements()
-      maxScrollTop = @computeScrollHeight()
-      maxScrollTop -= @computeClientHeight() unless atom.config.get('editor.scrollPastEnd')
-      Math.max(0, Math.min(scrollTop, maxScrollTop))
+      Math.max(0, Math.min(scrollTop, @computeScrollHeight() - @computeClientHeight()))
     else
       Math.max(0, scrollTop) if scrollTop?
 
