@@ -483,23 +483,29 @@ class TextEditorPresenter
   setScrollLeft: (scrollLeft) ->
     scrollLeft = @constrainScrollLeft(scrollLeft)
     unless @scrollLeft is scrollLeft
+      oldScrollLeft = @scrollLeft
       @scrollLeft = scrollLeft
       @model.setScrollLeft(scrollLeft)
       @updateHorizontalScrollState()
+      @updateCursorsState() unless oldScrollLeft?
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @horizontalScrollbarHeight is horizontalScrollbarHeight
+      oldHorizontalScrollbarHeight = @horizontalScrollbarHeight
       @horizontalScrollbarHeight = horizontalScrollbarHeight
       @model.setHorizontalScrollbarHeight(horizontalScrollbarHeight)
       @updateScrollbarsState()
       @updateVerticalScrollState()
+      @updateCursorsState() unless oldHorizontalScrollbarHeight?
 
   setVerticalScrollbarWidth: (verticalScrollbarWidth) ->
     unless @verticalScrollbarWidth is verticalScrollbarWidth
+      oldVerticalScrollbarWidth = @verticalScrollbarWidth
       @verticalScrollbarWidth = verticalScrollbarWidth
       @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
       @updateScrollbarsState()
       @updateHorizontalScrollState()
+      @updateCursorsState() unless oldVerticalScrollbarWidth?
 
   setAutoHeight: (autoHeight) ->
     unless @autoHeight is autoHeight
@@ -522,6 +528,7 @@ class TextEditorPresenter
 
   setContentFrameWidth: (contentFrameWidth) ->
     unless @contentFrameWidth is contentFrameWidth
+      oldContentFrameWidth = @contentFrameWidth
       @contentFrameWidth = contentFrameWidth
       @model.setWidth(contentFrameWidth)
       @updateVerticalScrollState()
@@ -530,6 +537,7 @@ class TextEditorPresenter
       @updateContentState()
       @updateDecorations()
       @updateLinesState()
+      @updateCursorsState() unless oldContentFrameWidth?
 
   setBackgroundColor: (backgroundColor) ->
     unless @backgroundColor is backgroundColor

@@ -923,7 +923,7 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 4)).toBeUndefined()
 
         it "is empty until all of the required measurements are assigned", ->
-          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null, baseCharacterWidth: null)
+          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null, baseCharacterWidth: null, horizontalScrollbarHeight: null)
           expect(presenter.state.content.cursors).toEqual({})
 
           presenter.setExplicitHeight(25)
@@ -936,6 +936,9 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.cursors).toEqual({})
 
           presenter.setBaseCharacterWidth(8)
+          expect(presenter.state.content.cursors).toEqual({})
+
+          presenter.setHorizontalScrollbarHeight(10)
           expect(presenter.state.content.cursors).not.toEqual({})
 
         it "updates when ::scrollTop changes", ->
