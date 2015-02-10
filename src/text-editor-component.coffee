@@ -107,7 +107,6 @@ TextEditorComponent = React.createClass
   getDefaultProps: ->
     cursorBlinkPeriod: 800
     cursorBlinkResumeDelay: 100
-    lineOverdrawMargin: 15
 
   componentWillMount: ->
     @props.editor.manageScrollPosition = true
@@ -115,6 +114,7 @@ TextEditorComponent = React.createClass
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
     {editor, lineOverdrawMargin, cursorBlinkPeriod, cursorBlinkResumeDelay}  = @props
+    lineOverdrawMargin ?= 15
 
     @presenter = new TextEditorPresenter
       model: editor
