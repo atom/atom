@@ -348,7 +348,9 @@ class TextEditorPresenter
 
   computeScrollHeight: ->
     contentHeight = @computeContentHeight()
-    contentHeight += @computeClientHeight() if atom.config.get('editor.scrollPastEnd')
+    if atom.config.get('editor.scrollPastEnd')
+      extraScrollHeight = @computeClientHeight() - (@lineHeight * 3)
+      contentHeight += extraScrollHeight if extraScrollHeight > 0
     Math.max(contentHeight, @computeHeight())
 
   computeContentWidth: ->
