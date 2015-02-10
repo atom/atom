@@ -101,8 +101,13 @@ class GitRepository
   # Public: Destroy this {GitRepository} object.
   #
   # This destroys any tasks and subscriptions and releases the underlying
-  # libgit2 repository handle.
+  # libgit2 repository handle. This method is idempotent.
   destroy: ->
+    if @emitter?
+      @emitter.emit 'did-destroy'
+      @emitter.off()
+      @emitter = null
+
     if @statusTask?
       @statusTask.terminate()
       @statusTask = null
@@ -111,7 +116,14 @@ class GitRepository
       @repo.release()
       @repo = null
 
-    @subscriptions.dispose()
+    if @subscriptions?
+      @subscriptions.dispose()
+      @subscriptions = null
+
+  # Public: Invoke the given callback when this GitRepository's destroy() method
+  # is invoked.
+  onDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
 
   ###
   Section: Event Subscription
