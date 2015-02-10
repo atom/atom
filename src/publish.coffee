@@ -298,19 +298,19 @@ class Publish extends Command
       try
         new semver.Range(pack.engines.atom)
       catch error
-        throw new Error("The Atom engine range is invalid: #{pack.engines.atom}")
+        throw new Error("The Atom engine range in the package.json file is invalid: #{pack.engines.atom}")
 
     for packageName, semverRange of pack.dependencies
       try
         new semver.Range(semverRange)
       catch error
-        throw new Error("The #{packageName} dependency range is invalid: #{semverRange}")
+        throw new Error("The #{packageName} dependency range in the package.json file is invalid: #{semverRange}")
 
     for packageName, semverRange of pack.devDependencies
       try
         new semver.Range(semverRange)
       catch error
-        throw new Error("The #{packageName} dev dependency range is invalid: #{semverRange}")
+        throw new Error("The #{packageName} dev dependency range in the package.json file is invalid: #{semverRange}")
 
     return
 

@@ -40,7 +40,7 @@ describe 'apm publish', ->
       callback.callCount is 1
 
     runs ->
-      expect(callback.mostRecentCall.args[0].message).toBe 'The Atom engine range is invalid: ><>'
+      expect(callback.mostRecentCall.args[0].message).toBe 'The Atom engine range in the package.json file is invalid: ><>'
 
   it "validates the dependency semver ranges in the package.json file", ->
     packageToPublish = temp.mkdirSync('apm-test-package-')
@@ -60,7 +60,7 @@ describe 'apm publish', ->
       callback.callCount is 1
 
     runs ->
-      expect(callback.mostRecentCall.args[0].message).toBe 'The foo dependency range is invalid: ^^'
+      expect(callback.mostRecentCall.args[0].message).toBe 'The foo dependency range in the package.json file is invalid: ^^'
 
   it "validates the dev dependency semver ranges in the package.json file", ->
     packageToPublish = temp.mkdirSync('apm-test-package-')
@@ -82,4 +82,4 @@ describe 'apm publish', ->
       callback.callCount is 1
 
     runs ->
-      expect(callback.mostRecentCall.args[0].message).toBe 'The bar dev dependency range is invalid: 1,3'
+      expect(callback.mostRecentCall.args[0].message).toBe 'The bar dev dependency range in the package.json file is invalid: 1,3'
