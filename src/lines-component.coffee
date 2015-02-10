@@ -31,7 +31,6 @@ LinesComponent = React.createClass
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
-      CursorsComponent {presenter}
       HighlightsComponent {presenter}
 
   getTransform: ->
@@ -51,17 +50,22 @@ LinesComponent = React.createClass
     @renderedDecorationsByLineId = {}
 
   componentDidMount: ->
+    node = @getDOMNode()
+
+    @cursorsComponent = new CursorsComponent(@props.presenter)
+    node.appendChild(@cursorsComponent.domNode)
+
     if @props.useShadowDOM
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
-      @getDOMNode().appendChild(insertionPoint)
+      node.appendChild(insertionPoint)
 
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', 'atom-overlay')
       @overlayManager = new OverlayManager(@props.hostElement)
-      @getDOMNode().appendChild(insertionPoint)
+      node.appendChild(insertionPoint)
     else
-      @overlayManager = new OverlayManager(@getDOMNode())
+      @overlayManager = new OverlayManager(node)
 
   componentDidUpdate: ->
     {visible, presenter} = @props
@@ -69,6 +73,8 @@ LinesComponent = React.createClass
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
     @measureCharactersInNewLines() if visible and not @newState.scrollingVertically
+
+    @cursorsComponent.updateSync()
 
     @overlayManager?.render(@props)
 

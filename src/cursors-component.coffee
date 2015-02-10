@@ -1,37 +1,23 @@
-React = require 'react-atom-fork'
-{div} = require 'reactionary-atom-fork'
-{debounce, toArray, isEqualForProperties, isEqual} = require 'underscore-plus'
-SubscriberMixin = require './subscriber-mixin'
-
 module.exports =
-CursorsComponent = React.createClass
-  displayName: 'CursorsComponent'
+class CursorsComponent
   oldState: null
-  cursorNodesById: null
 
-  render: ->
-    div className: 'cursors'
-
-  componentWillMount: ->
+  constructor: (@presenter) ->
     @cursorNodesById = {}
-
-  componentDidMount: ->
-    @updateSync()
-
-  componentDidUpdate: ->
+    @domNode = document.createElement('div')
+    @domNode.classList.add('cursors')
     @updateSync()
 
   updateSync: ->
-    node = @getDOMNode()
-    newState = @props.presenter.state.content
+    newState = @presenter.state.content
     @oldState ?= {cursors: {}}
 
     # update blink class
     if newState.blinkCursorsOff isnt @oldState.blinkCursorsOff
       if newState.blinkCursorsOff
-        node.classList.add 'blink-off'
+        @domNode.classList.add 'blink-off'
       else
-        node.classList.remove 'blink-off'
+        @domNode.classList.remove 'blink-off'
       @oldState.blinkCursorsOff = newState.blinkCursorsOff
 
     # remove cursors
@@ -47,7 +33,7 @@ CursorsComponent = React.createClass
         cursorNode = document.createElement('div')
         cursorNode.classList.add('cursor')
         @cursorNodesById[id] = cursorNode
-        node.appendChild(cursorNode)
+        @domNode.appendChild(cursorNode)
       @updateCursorNode(id, cursorState)
 
   updateCursorNode: (id, newCursorState) ->
