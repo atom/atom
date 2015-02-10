@@ -291,7 +291,7 @@ class Publish extends Command
     pack.name = name
     @saveMetadata(pack, callback)
 
-  validateSemverValues: (pack) ->
+  validateSemverRanges: (pack) ->
     return unless pack
 
     if pack.engines.atom?
@@ -327,7 +327,7 @@ class Publish extends Command
       return callback(error)
 
     try
-      @validateSemverValues(pack)
+      @validateSemverRanges(pack)
     catch error
       return callback(error)
 
