@@ -2246,6 +2246,53 @@ class TextEditor extends Model
     return unless @getSoftTabs()
     @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
 
+  # Essential: Set the indentation level for the given buffer row.
+  #
+  # Rebuilds the indentation based on the soft tabs and tab length settings of
+  # this editor in order to bring it to the given indentation level.
+  # Note that if soft tabs are enabled and the tab length is 2, a row with 4
+  # leading spaces would have an indentation level of 2.
+  #
+  # * `bufferRow` A {Number} indicating the buffer row.
+  # * `newLevel` A {Number} indicating the new indentation level.
+  setIndentLevelForRow: (bufferRow, newLevel) ->
+    @modifyIndentLevelForRow(bufferRow, newLevel)
+
+  # Essential: Adjust the indentation level for the given buffer row.
+  #
+  # Rebuilds the indentation based on the soft tabs and tab length settings of
+  # this editor in order to increase or decrease it by the requested number of
+  # levels.
+  # Note that if soft tabs are enabled and the tab length is 2, a row with 4
+  # leading spaces would have an indentation level of 2.
+  #
+  # * `bufferRow` A {Number} indicating the buffer row.
+  # * `adjustLevel` A {Number} indicating how many levels to increase by. A
+  #   negative value will remove levels.
+  adjustIndentLevelForRow: (bufferRow, adjustLevel) ->
+    @modifyIndentLevelForRow(bufferRow, undefined, adjustLevel)
+
+  # Helper for modifying indentation for a buffer row
+  modifyIndentLevelForRow: (bufferRow, newLevel=undefined, indentIncrease=0) ->
+    leadingWhitespace = @lineTextForBufferRow(bufferRow).match(/^[\t ]*/)[0]
+    newIndentString = @modifyIndentWhitespace(leadingWhitespace, newLevel, indentIncrease)
+    @buffer.setTextInRange([[bufferRow, 0], [bufferRow, leadingWhitespace.length]], newIndentString)
+
+  # Helper for modifying indentation for a line of text
+  modifyIndentLevelForLine: (line, newLevel=undefined, indentIncrease=0) ->
+    line.replace /^\s*/, (matchText) =>
+      @modifyIndentWhitespace(matchText, newLevel, indentIncrease)
+
+  # Helper for modifying indentation whitespace, while preserving straggling
+  # spaces (such as those used to align asterisks in /* */ blocks)
+  modifyIndentWhitespace: (leadingWhitespace, newLevel=undefined, indentIncrease=0) ->
+    {indentLevel, excessSpace} = @displayBuffer.parseIndentation(leadingWhitespace)
+    if newLevel?
+      newIndentString = @buildIndentString(newLevel + indentIncrease)
+    else
+      newIndentString = @buildIndentString(indentLevel + indentIncrease)
+    newIndentString + _.multiplyString(' ', excessSpace)
+
   ###
   Section: Soft Wrap Behavior
   ###
@@ -2301,11 +2348,11 @@ class TextEditor extends Model
   #      the beginning of the line (default: false).
   setIndentationForBufferRow: (bufferRow, newLevel, {preserveLeadingWhitespace}={}) ->
     if preserveLeadingWhitespace
-      endColumn = 0
+      newIndentString = @buildIndentString(newLevel)
+      @buffer.insert([bufferRow, 0], newIndentString)
     else
-      endColumn = @lineTextForBufferRow(bufferRow).match(/^\s*/)[0].length
-    newIndentString = @buildIndentString(newLevel)
-    @buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
+      @setIndentLevelForRow(bufferRow, newLevel)
+
 
   # Extended: Indent rows intersecting selections by one level.
   indentSelectedRows: ->

@@ -722,7 +722,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(1).indentLevel).toBe 1
         expect(tokenizedBuffer.tokenizedLineForRow(2).indentLevel).toBe 2
         buffer.insert([2, 0], ' ')
-        expect(tokenizedBuffer.tokenizedLineForRow(2).indentLevel).toBe 2.5
+        expect(tokenizedBuffer.tokenizedLineForRow(2).indentLevel).toBe 2
 
     describe "when the line is empty", ->
       it "assumes the indentation level of the first non-empty line below or above if one exists", ->
@@ -900,3 +900,35 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].value).toBe 'b'
       expect(tokenizedBuffer.tokenizedLineForRow(2).tokens.length).toBe 1
       expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].value).toBe 'c'
+
+  describe ".parseIndentation(leadingWhitespace)", ->
+    it "parses the indentation correctly", ->
+      buffer = atom.project.bufferForPathSync('sample-with-tabs-and-initial-comment.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      fullyTokenize(tokenizedBuffer)
+
+      parseIndentation = (bufferRow) ->
+        leadingWhitespace = tokenizedBuffer.tokenizedLineForRow(bufferRow).text.match(/^[\t ]*/)[0]
+        tokenizedBuffer.parseIndentation(leadingWhitespace)
+
+      parsed = parseIndentation(0)
+      expect(parsed.indentLevel).toBe 0
+      expect(parsed.excessSpace).toBe 0
+      parsed = parseIndentation(1)
+      expect(parsed.indentLevel).toBe 0
+      expect(parsed.excessSpace).toBe 1
+      parsed = parseIndentation(2)
+      expect(parsed.indentLevel).toBe 0
+      expect(parsed.excessSpace).toBe 1
+      parsed = parseIndentation(3)
+      expect(parsed.indentLevel).toBe 0
+      expect(parsed.excessSpace).toBe 1
+      parsed = parseIndentation(4)
+      expect(parsed.indentLevel).toBe 0
+      expect(parsed.excessSpace).toBe 0
+      parsed = parseIndentation(5)
+      expect(parsed.indentLevel).toBe 0
+      expect(parsed.excessSpace).toBe 0
+      parsed = parseIndentation(6)
+      expect(parsed.indentLevel).toBe 1
+      expect(parsed.excessSpace).toBe 0
