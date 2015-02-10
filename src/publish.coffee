@@ -294,7 +294,7 @@ class Publish extends Command
   validateSemverRanges: (pack) ->
     return unless pack
 
-    if pack.engines.atom?
+    if pack.engines?.atom?
       try
         new semver.Range(pack.engines.atom)
       catch error
