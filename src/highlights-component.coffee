@@ -1,34 +1,23 @@
-React = require 'react-atom-fork'
-{div} = require 'reactionary-atom-fork'
-
 RegionStyleProperties = ['top', 'left', 'right', 'width', 'height']
 
 module.exports =
-HighlightsComponent = React.createClass
-  displayName: 'HighlightsComponent'
+class HighlightsComponent
   oldState: null
-  highlightNodesById: null
-  regionNodesByHighlightId: null
 
-  render: ->
-    div className: 'highlights'
-
-  componentWillMount: ->
+  constructor: (@presenter) ->
     @highlightNodesById = {}
     @regionNodesByHighlightId = {}
 
-  componentDidMount: ->
+    @domNode = document.createElement('div')
+    @domNode.classList.add('highlights')
+
     if atom.config.get('editor.useShadowDOM')
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.underlayer')
-      @getDOMNode().appendChild(insertionPoint)
-
-  componentDidUpdate: ->
-    @updateSync()
+      @domNode.appendChild(insertionPoint)
 
   updateSync: ->
-    node = @getDOMNode()
-    newState = @props.presenter.state.content.highlights
+    newState = @presenter.state.content.highlights
     @oldState ?= {}
 
     # remove highlights
@@ -46,7 +35,7 @@ HighlightsComponent = React.createClass
         highlightNode.classList.add('highlight')
         @highlightNodesById[id] = highlightNode
         @regionNodesByHighlightId[id] = {}
-        node.appendChild(highlightNode)
+        @domNode.appendChild(highlightNode)
       @updateHighlightNode(id, highlightState)
 
   updateHighlightNode: (id, newHighlightState) ->

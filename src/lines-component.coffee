@@ -31,7 +31,6 @@ LinesComponent = React.createClass
 
     div {className: 'lines', style},
       div className: 'placeholder-text', placeholderText if placeholderText?
-      HighlightsComponent {presenter}
 
   getTransform: ->
     {scrollTop, scrollLeft} = @newState
@@ -55,6 +54,9 @@ LinesComponent = React.createClass
     @cursorsComponent = new CursorsComponent(@props.presenter)
     node.appendChild(@cursorsComponent.domNode)
 
+    @highlightsComponent = new HighlightsComponent(@props.presenter)
+    node.appendChild(@highlightsComponent.domNode)
+
     if @props.useShadowDOM
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
@@ -75,6 +77,7 @@ LinesComponent = React.createClass
     @measureCharactersInNewLines() if visible and not @newState.scrollingVertically
 
     @cursorsComponent.updateSync()
+    @highlightsComponent.updateSync()
 
     @overlayManager?.render(@props)
 
