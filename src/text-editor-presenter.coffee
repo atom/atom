@@ -257,24 +257,25 @@ class TextEditorPresenter
       lastBufferRow = null
       wrapCount = 0
 
-    for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
-      if bufferRow is lastBufferRow
-        wrapCount++
-        id = bufferRow + '-' + wrapCount
-        softWrapped = true
-      else
-        id = bufferRow
-        wrapCount = 0
-        lastBufferRow = bufferRow
-        softWrapped = false
+    if endRow > startRow
+      for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
+        if bufferRow is lastBufferRow
+          wrapCount++
+          id = bufferRow + '-' + wrapCount
+          softWrapped = true
+        else
+          id = bufferRow
+          wrapCount = 0
+          lastBufferRow = bufferRow
+          softWrapped = false
 
-      screenRow = startRow + i
-      top = screenRow * @lineHeight
-      decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-      foldable = @model.isFoldableAtScreenRow(screenRow)
+        screenRow = startRow + i
+        top = screenRow * @lineHeight
+        decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+        foldable = @model.isFoldableAtScreenRow(screenRow)
 
-      @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
-      visibleLineNumberIds[id] = true
+        @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        visibleLineNumberIds[id] = true
 
     if @mouseWheelScreenRow?
       bufferRow = @model.bufferRowForScreenRow(@mouseWheelScreenRow)

@@ -1702,6 +1702,12 @@ describe "TextEditorPresenter", ->
           expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 3, softWrapped: true}
           expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 4, softWrapped: false}
 
+        it "renders no line numbers if scrolled past the end", ->
+          atom.config.set('editor.scrollPastEnd', true)
+          presenter = buildPresenter(explicitHeight: 50, lineHeight: 10, lineOverdrawMargin: 0)
+          presenter.setScrollTop(300)
+          expect(presenter.state.gutter.lineNumbers).toEqual {}
+
         describe ".decorationClasses", ->
           it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
             marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
