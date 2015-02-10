@@ -24,6 +24,19 @@ describe 'apm publish', ->
   afterEach ->
     server.close()
 
+  it "validates the package's package.json file", ->
+    packageToPublish = temp.mkdirSync('apm-test-package-')
+    fs.writeFileSync(path.join(packageToPublish, 'package.json'), '}{')
+    process.chdir(packageToPublish)
+    callback = jasmine.createSpy('callback')
+    apm.run(['publish'], callback)
+
+    waitsFor 'waiting for publish to complete', 600000, ->
+      callback.callCount is 1
+
+    runs ->
+      expect(callback.mostRecentCall.args[0].message).toBe 'Error parsing package.json file: Unexpected token }'
+
   it "validates the package is in a Git repository", ->
     packageToPublish = temp.mkdirSync('apm-test-package-')
     metadata =
