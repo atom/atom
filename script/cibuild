@@ -30,7 +30,17 @@ function readEnvironmentVariables() {
   }
 }
 
+function removeNodeModules() {
+  try {
+    require('fs-plus').removeSync(path.resolve(__dirname, '..', 'node_modules'));
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+}
+
 readEnvironmentVariables();
+removeNodeModules();
 cp.safeExec.bind(global, 'npm install npm', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
   cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
     if (error)
