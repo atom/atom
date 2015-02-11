@@ -7,8 +7,9 @@ InputComponent = React.createClass
   displayName: 'InputComponent'
 
   render: ->
-    {className, style} = @props
-
+    {className} = @props
+    style = @props.presenter.state.hiddenInput
+    style.WebkitTransform ?= 'translateZ(0)'
     input {className, style, 'data-react-skip-selection-restoration': true}
 
   getInitialState: ->
@@ -28,9 +29,6 @@ InputComponent = React.createClass
   # This should actually consult the property lists in /System/Library/Input Methods/PressAndHold.app
   isPressAndHoldCharacter: (char) ->
     @state.lastChar.match /[aeiouAEIOU]/
-
-  shouldComponentUpdate: (newProps) ->
-    not isEqual(newProps.style, @props.style)
 
   onPaste: (e) ->
     e.preventDefault()

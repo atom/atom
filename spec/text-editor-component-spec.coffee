@@ -1501,7 +1501,8 @@ describe "TextEditorComponent", ->
       expect(inputNode.offsetLeft).toBe 0
 
       # In bounds and focused
-      inputNode.focus() # updates via state change
+      wrapperNode.focus() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - editor.getScrollTop()
       expect(inputNode.offsetLeft).toBe (4 * charWidth) - editor.getScrollLeft()
 

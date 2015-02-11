@@ -51,8 +51,6 @@ TextEditorComponent = React.createClass
     @performedInitialMeasurement = false if editor.isDestroyed()
 
     if @performedInitialMeasurement
-      hiddenInputStyle = @getHiddenInputPosition()
-      hiddenInputStyle.WebkitTransform = 'translateZ(0)'
       style.height = @presenter.state.height if @presenter.state.height?
 
     if useShadowDOM
@@ -67,7 +65,7 @@ TextEditorComponent = React.createClass
         InputComponent
           ref: 'input'
           className: 'hidden-input'
-          style: hiddenInputStyle
+          presenter: @presenter
 
         ScrollbarComponent
           ref: 'horizontalScrollbar'
@@ -221,19 +219,6 @@ TextEditorComponent = React.createClass
   getTopmostDOMNode: ->
     @props.hostElement
 
-  getHiddenInputPosition: ->
-    {editor} = @props
-    {focused} = @state
-    return {top: 0, left: 0} unless @isMounted() and focused and editor.getLastCursor()?
-
-    {top, left, height, width} = editor.getLastCursor().getPixelRect()
-    width = 2 if width is 0 # Prevent autoscroll at the end of longest line
-    top -= editor.getScrollTop()
-    left -= editor.getScrollLeft()
-    top = Math.max(0, Math.min(editor.getHeight() - height, top))
-    left = Math.max(0, Math.min(editor.getWidth() - width, left))
-    {top, left}
-
   observeEditor: ->
     {editor} = @props
     @subscribe editor.onDidChangeGutterVisible(@updateGutterVisible)
@@ -317,10 +302,12 @@ TextEditorComponent = React.createClass
   focused: ->
     if @isMounted()
       @setState(focused: true)
+      @presenter.setFocused(true)
       @refs.input.focus()
 
   blurred: ->
     if @isMounted()
+      @presenter.setFocused(false)
       @setState(focused: false)
 
   onTextInput: (event) ->
