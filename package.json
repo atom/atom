@@ -21,7 +21,7 @@
   "dependencies": {
     "6to5-core": "^3.0.14",
     "async": "0.2.6",
-    "atom-keymap": "^3.1.0",
+    "atom-keymap": "^3.1.1",
     "bootstrap": "git+https://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "0.4.0",
     "coffee-script": "1.8.0",
