@@ -38,18 +38,24 @@ function bootstrap() {
   var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
 
   var packagesToDedupe = [
+    'abbrev',
+    'amdefine',
     'atom-space-pen-views',
     'fs-plus',
     'grim',
     'highlights',
     'humanize-plus',
+    'inherits',
     'loophole',
     'oniguruma',
+    'q',
     'request',
+    'rimraf',
     'roaster',
     'season',
+    'sigmund',
     'semver',
-    'q',
+    'through',
     'temp'
   ];
 
