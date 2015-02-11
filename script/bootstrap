@@ -43,6 +43,7 @@ function bootstrap() {
     'grim',
     'humanize-plus',
     'oniguruma',
+    'request',
     'roaster',
     'season',
     'semver',
