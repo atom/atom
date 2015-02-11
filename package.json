@@ -41,7 +41,7 @@
     "q": "~0.9.7",
     "plist": "git+https://github.com/nathansobo/node-plist.git",
     "first-mate": ">=3 <4",
-    "git-utils": ">=2.2.0 <3",
+    "git-utils": ">=3 <4",
     "mv": "2.0.0",
     "open": "0.0.4",
     "exit": "0.1.2"
