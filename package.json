@@ -63,7 +63,7 @@
     "service-hub": "^0.4.0",
     "space-pen": "3.8.2",
     "stacktrace-parser": "0.1.1",
-    "temp": "0.7.0",
+    "temp": "0.8.1",
     "text-buffer": "^4.1.3",
     "theorist": "^1.0.2",
     "underscore-plus": "^1.6.6",
