@@ -116,11 +116,10 @@ TextEditorComponent = React.createClass
 
     @mountGutterComponent() if @gutterVisible
 
-    @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM})
     scrollViewNode = @refs.scrollView.getDOMNode()
     horizontalScrollbarNode = @refs.horizontalScrollbar.getDOMNode()
+    @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM, visible: @isVisible()})
     scrollViewNode.insertBefore(@linesComponent.domNode, horizontalScrollbarNode)
-    @linesComponent.updateSync(@isVisible())
 
     @observeEditor()
     @listenForDOMEvents()

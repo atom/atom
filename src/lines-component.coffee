@@ -14,7 +14,7 @@ module.exports =
 class LinesComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @hostElement, @useShadowDOM}) ->
+  constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
     @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
@@ -42,7 +42,7 @@ class LinesComponent
     else
       @overlayManager = new OverlayManager(@domNode)
 
-    @updateSync()
+    @updateSync(visible)
 
   updateSync: (visible) ->
     @newState = @presenter.state.content
