@@ -9,6 +9,8 @@ module.exports = (grunt) ->
       return if fileName isnt 'package.json'
 
       {name, version} = grunt.file.readJSON(absolutePath)
+      return unless name and version
+
       modules[name] ?= {versions: {}, count: 0}
       modules[name].count++
       modules[name].versions[version] = true
