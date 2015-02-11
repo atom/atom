@@ -1,3 +1,4 @@
+fs = require 'fs'
 path = require 'path'
 
 module.exports = (grunt) ->
@@ -19,7 +20,7 @@ module.exports = (grunt) ->
     getOtherTotal = ->
       Object.keys(otherModules).length
 
-    grunt.file.recurse nodeModulesDir, (absolutePath, rootPath, relativePath, fileName) ->
+    recurseHandler = (absolutePath, rootPath, relativePath, fileName) ->
       return if fileName isnt 'package.json'
 
       {name, version, repository} = grunt.file.readJSON(absolutePath)
@@ -35,6 +36,22 @@ module.exports = (grunt) ->
       modules[name] ?= {versions: {}, count: 0}
       modules[name].count++
       modules[name].versions[version] = true
+
+    walkNodeModuleDir = ->
+      grunt.file.recurse(nodeModulesDir, recurseHandler)
+
+    # Handle broken symlinks that grunt.file.recurse fails to handle
+    loop
+      try
+        walkNodeModuleDir()
+        break
+      catch error
+        if error.code is 'ENOENT'
+          fs.unlinkSync(error.path)
+          otherModules = {}
+          atomModules = {}
+        else
+          break
 
     if getAtomTotal() > 0
       console.log "Atom Modules: #{getAtomTotal()}"
