@@ -47,6 +47,7 @@ function bootstrap() {
     'grim',
     'highlights',
     'humanize-plus',
+    'iconv-lite',
     'inherits',
     'loophole',
     'oniguruma',
