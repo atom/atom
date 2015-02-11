@@ -1,7 +1,5 @@
 _ = require 'underscore-plus'
-React = require 'react-atom-fork'
-{div, span} = require 'reactionary-atom-fork'
-{debounce, isEqual, isEqualForProperties, multiplyString, toArray} = require 'underscore-plus'
+{toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
 CursorsComponent = require './cursors-component'
@@ -13,76 +11,58 @@ AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
 
 module.exports =
-LinesComponent = React.createClass
-  displayName: 'LinesComponent'
+class LinesComponent
   placeholderTextDiv: null
 
-  render: ->
-    div {className: 'lines'}
-
-  getTransform: (scrollTop, scrollLeft) ->
-    {useHardwareAcceleration} = @props
-
-    if useHardwareAcceleration
-      "translate3d(#{-scrollLeft}px, #{-scrollTop}px, 0px)"
-    else
-      "translate(#{-scrollLeft}px, #{-scrollTop}px)"
-
-  componentWillMount: ->
+  constructor: ({@presenter, @hostElement, @useShadowDOM}) ->
     @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
     @renderedDecorationsByLineId = {}
 
-  componentDidMount: ->
-    node = @getDOMNode()
+    @domNode = document.createElement('div')
+    @domNode.classList.add('lines')
 
-    @cursorsComponent = new CursorsComponent(@props.presenter)
-    node.appendChild(@cursorsComponent.domNode)
+    @cursorsComponent = new CursorsComponent(@presenter)
+    @domNode.appendChild(@cursorsComponent.domNode)
 
-    @highlightsComponent = new HighlightsComponent(@props.presenter)
-    node.appendChild(@highlightsComponent.domNode)
+    @highlightsComponent = new HighlightsComponent(@presenter)
+    @domNode.appendChild(@highlightsComponent.domNode)
 
-    if @props.useShadowDOM
+    if @useShadowDOM
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
-      node.appendChild(insertionPoint)
+      @domNode.appendChild(insertionPoint)
 
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', 'atom-overlay')
-      @overlayManager = new OverlayManager(@props.hostElement)
-      node.appendChild(insertionPoint)
+      @overlayManager = new OverlayManager(@hostElement)
+      @domNode.appendChild(insertionPoint)
     else
-      @overlayManager = new OverlayManager(node)
+      @overlayManager = new OverlayManager(@domNode)
 
     @updateSync()
 
-  componentDidUpdate: ->
-    @updateSync()
-
-  updateSync: ->
-    {visible, presenter} = @props
-    @newState = presenter.state.content
+  updateSync: (visible) ->
+    @newState = @presenter.state.content
     @oldState ?= {lines: {}}
 
-    node = @getDOMNode()
-
     if @newState.scrollHeight isnt @oldState.scrollHeight
-      node.style.height = @newState.scrollHeight + 'px'
+      @domNode.style.height = @newState.scrollHeight + 'px'
       @oldState.scrollHeight = @newState.scrollHeight
 
     if @newState.scrollWidth isnt @oldState.scrollWidth
-      node.style.width = @newState.scrollWidth + 'px'
+      @domNode.style.width = @newState.scrollWidth + 'px'
       @oldState.scrollWidth = @newState.scrollWidth
 
     if @newState.scrollTop isnt @oldState.scrollTop or @newState.scrollLeft isnt @oldState.scrollLeft
-      node.style['-webkit-transform'] = @getTransform(@newState.scrollTop, @newState.scrollLeft)
+      @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, #{-@newState.scrollTop}px, 0px)"
       @oldState.scrollTop = @newState.scrollTop
       @oldState.scrollLeft = @newState.scrollLeft
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
-      node.style.backgroundColor = @newState.backgroundColor
+      @domNode.style.backgroundColor = @newState.backgroundColor
       @oldState.backgroundColor = @newState.backgroundColor
 
     if @newState.placeholderText isnt @oldState.placeholderText
@@ -91,7 +71,7 @@ LinesComponent = React.createClass
         @placeholderTextDiv = document.createElement('div')
         @placeholderTextDiv.classList.add('placeholder-text')
         @placeholderTextDiv.textContent = @newState.placeholderText
-        node.appendChild(@placeholderTextDiv)
+        @domNode.appendChild(@placeholderTextDiv)
 
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
@@ -100,14 +80,10 @@ LinesComponent = React.createClass
     @cursorsComponent.updateSync()
     @highlightsComponent.updateSync()
 
-    @overlayManager?.render(@props)
+    @overlayManager?.render(@presenter)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
-
-  clearScreenRowCaches: ->
-    @screenRowsByLineId = {}
-    @lineIdsByScreenRow = {}
 
   removeLineNodes: ->
     @removeLineNode(id) for id of @oldState.lines
@@ -120,8 +96,6 @@ LinesComponent = React.createClass
     delete @oldState.lines[id]
 
   updateLineNodes: ->
-    {presenter} = @props
-
     for id of @oldState.lines
       unless @newState.lines.hasOwnProperty(id)
         @removeLineNode(id)
@@ -144,15 +118,13 @@ LinesComponent = React.createClass
     return unless newLineIds?
 
     WrapperDiv.innerHTML = newLinesHTML
-    newLineNodes = toArray(WrapperDiv.children)
-    node = @getDOMNode()
+    newLineNodes = _.toArray(WrapperDiv.children)
     for id, i in newLineIds
       lineNode = newLineNodes[i]
       @lineNodesByLineId[id] = lineNode
-      node.appendChild(lineNode)
+      @domNode.appendChild(lineNode)
 
   buildLineHTML: (id) ->
-    {presenter} = @props
     {scrollWidth} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newState.lines[id]
 
@@ -197,7 +169,6 @@ LinesComponent = React.createClass
       @buildEndOfLineHTML(id) or '&nbsp;'
 
   buildLineInnerHTML: (id) ->
-    {editor} = @props
     {indentGuidesVisible} = @newState
     {tokens, text, isOnlyWhitespace} = @newState.lines[id]
     innerHTML = ""
@@ -275,26 +246,22 @@ LinesComponent = React.createClass
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
   measureLineHeightAndDefaultCharWidth: ->
-    node = @getDOMNode()
-    node.appendChild(DummyLineNode)
+    @domNode.appendChild(DummyLineNode)
     lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
     charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
-    node.removeChild(DummyLineNode)
+    @domNode.removeChild(DummyLineNode)
 
-    {editor, presenter} = @props
-    presenter.setLineHeight(lineHeightInPixels)
-    presenter.setBaseCharacterWidth(charWidth)
+    @presenter.setLineHeight(lineHeightInPixels)
+    @presenter.setBaseCharacterWidth(charWidth)
 
   remeasureCharacterWidths: ->
-    return unless @props.presenter.baseCharacterWidth
+    return unless @presenter.baseCharacterWidth
 
     @clearScopedCharWidths()
     @measureCharactersInNewLines()
 
   measureCharactersInNewLines: ->
-    {presenter} = @props
-
-    presenter.batchCharacterMeasurement =>
+    @presenter.batchCharacterMeasurement =>
       for id, lineState of @oldState.lines
         unless @measuredLines.has(id)
           lineNode = @lineNodesByLineId[id]
@@ -302,13 +269,12 @@ LinesComponent = React.createClass
       return
 
   measureCharactersInLine: (tokenizedLine, lineNode) ->
-    {editor} = @props
     rangeForMeasurement = null
     iterator = null
     charIndex = 0
 
     for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
-      charWidths = editor.getScopedCharWidths(scopes)
+      charWidths = @presenter.getScopedCharacterWidths(scopes)
 
       valueIndex = 0
       while valueIndex < value.length
@@ -340,7 +306,7 @@ LinesComponent = React.createClass
           rangeForMeasurement.setStart(textNode, i)
           rangeForMeasurement.setEnd(textNode, i + charLength)
           charWidth = rangeForMeasurement.getBoundingClientRect().width
-          @props.presenter.setScopedCharacterWidth(scopes, char, charWidth)
+          @presenter.setScopedCharacterWidth(scopes, char, charWidth)
 
         charIndex += charLength
 
@@ -348,5 +314,4 @@ LinesComponent = React.createClass
 
   clearScopedCharWidths: ->
     @measuredLines.clear()
-    @props.editor.clearScopedCharWidths()
-    @props.presenter.clearScopedCharacterWidths()
+    @presenter.clearScopedCharacterWidths()

@@ -3,9 +3,7 @@ class OverlayManager
   constructor: (@container) ->
     @overlayNodesById = {}
 
-  render: (props) ->
-    {presenter} = props
-
+  render: (presenter) ->
     for decorationId, {pixelPosition, item} of presenter.state.content.overlays
       @renderOverlay(presenter, decorationId, item, pixelPosition)
 

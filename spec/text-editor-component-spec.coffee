@@ -2558,7 +2558,7 @@ describe "TextEditorComponent", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
     it "does not have an opaque background on lines", ->
-      expect(component.refs.lines.getDOMNode().getAttribute('style')).not.toContain 'background-color'
+      expect(component.linesComponent.domNode.getAttribute('style')).not.toContain 'background-color'
 
     it "does not render invisible characters", ->
       atom.config.set('editor.invisibles', eol: 'E')

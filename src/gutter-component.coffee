@@ -30,13 +30,8 @@ GutterComponent = React.createClass
         backgroundColor: backgroundColor
 
   getTransform: ->
-    {useHardwareAcceleration} = @props
     {scrollTop} = @newState
-
-    if useHardwareAcceleration
-      "translate3d(0px, #{-scrollTop}px, 0px)"
-    else
-      "translate(0px, #{-scrollTop}px)"
+    "translate3d(0px, #{-scrollTop}px, 0px)"
 
   componentWillMount: ->
     @lineNumberNodesById = {}

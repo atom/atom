@@ -631,6 +631,7 @@ class TextEditorPresenter
 
   clearScopedCharacterWidths: ->
     @characterWidthsByScope = {}
+    @model.clearScopedCharWidths()
 
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?

@@ -50,10 +50,8 @@ TextEditorComponent = React.createClass
     @performedInitialMeasurement = false if editor.isDestroyed()
 
     if @performedInitialMeasurement
-      visible = @isVisible()
-
       hiddenInputStyle = @getHiddenInputPosition()
-      hiddenInputStyle.WebkitTransform = 'translateZ(0)' if @useHardwareAcceleration
+      hiddenInputStyle.WebkitTransform = 'translateZ(0)'
       style.height = @presenter.state.height if @presenter.state.height?
 
     if useShadowDOM
@@ -67,7 +65,7 @@ TextEditorComponent = React.createClass
       if @gutterVisible
         GutterComponent {
           ref: 'gutter', onMouseDown: @onGutterMouseDown,
-          @presenter, editor, @useHardwareAcceleration
+          @presenter, editor
         }
 
       div ref: 'scrollView', className: 'scroll-view',
@@ -76,17 +74,12 @@ TextEditorComponent = React.createClass
           className: 'hidden-input'
           style: hiddenInputStyle
 
-        LinesComponent {
-          ref: 'lines', @presenter, editor, hostElement, @useHardwareAcceleration, useShadowDOM, visible
-        }
-
         ScrollbarComponent
           ref: 'horizontalScrollbar'
           className: 'horizontal-scrollbar'
           orientation: 'horizontal'
           presenter: @presenter
           onScroll: @onHorizontalScroll
-          useHardwareAcceleration: @useHardwareAcceleration
 
       ScrollbarComponent
         ref: 'verticalScrollbar'
@@ -94,7 +87,6 @@ TextEditorComponent = React.createClass
         orientation: 'vertical'
         presenter: @presenter
         onScroll: @onVerticalScroll
-        useHardwareAcceleration: @useHardwareAcceleration
 
       # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent
@@ -126,9 +118,14 @@ TextEditorComponent = React.createClass
       stoppedScrollingDelay: 200
     @presenter.onDidUpdateState(@requestUpdate)
 
-
   componentDidMount: ->
-    {editor, stylesElement} = @props
+    {editor, stylesElement, hostElement, useShadowDOM} = @props
+
+    @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM})
+    scrollViewNode = @refs.scrollView.getDOMNode()
+    horizontalScrollbarNode = @refs.horizontalScrollbar.getDOMNode()
+    scrollViewNode.insertBefore(@linesComponent.domNode, horizontalScrollbarNode)
+    @linesComponent.updateSync(@isVisible())
 
     @observeEditor()
     @listenForDOMEvents()
@@ -160,6 +157,8 @@ TextEditorComponent = React.createClass
     selectionChanged = @selectionChanged
     @cursorMoved = false
     @selectionChanged = false
+
+    @linesComponent.updateSync(@isVisible())
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
@@ -289,7 +288,6 @@ TextEditorComponent = React.createClass
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
   observeConfig: ->
-    @subscribe atom.config.observe 'editor.useHardwareAcceleration', @setUseHardwareAcceleration
     @subscribe atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
     @subscribe atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
     @subscribe atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
@@ -689,14 +687,14 @@ TextEditorComponent = React.createClass
   measureLineHeightAndDefaultCharWidth: ->
     if @isVisible()
       @measureLineHeightAndDefaultCharWidthWhenShown = false
-      @refs.lines.measureLineHeightAndDefaultCharWidth()
+      @linesComponent.measureLineHeightAndDefaultCharWidth()
     else
       @measureLineHeightAndDefaultCharWidthWhenShown = true
 
   remeasureCharacterWidths: ->
     if @isVisible()
       @remeasureCharacterWidthsWhenShown = false
-      @refs.lines.remeasureCharacterWidths()
+      @linesComponent.remeasureCharacterWidths()
     else
       @remeasureCharacterWidthsWhenShown = true
 
@@ -761,7 +759,7 @@ TextEditorComponent = React.createClass
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @props.editor.consolidateSelections()
 
-  lineNodeForScreenRow: (screenRow) -> @refs.lines.lineNodeForScreenRow(screenRow)
+  lineNodeForScreenRow: (screenRow) -> @linesComponent.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
 
@@ -816,11 +814,6 @@ TextEditorComponent = React.createClass
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
 
-  setUseHardwareAcceleration: (useHardwareAcceleration=true) ->
-    unless @useHardwareAcceleration is useHardwareAcceleration
-      @useHardwareAcceleration = useHardwareAcceleration
-      @requestUpdate()
-
   screenPositionForMouseEvent: (event) ->
     pixelPosition = @pixelPositionForMouseEvent(event)
     @props.editor.screenPositionForPixelPosition(pixelPosition)
@@ -829,7 +822,7 @@ TextEditorComponent = React.createClass
     {editor} = @props
     {clientX, clientY} = event
 
-    linesClientRect = @refs.lines.getDOMNode().getBoundingClientRect()
+    linesClientRect = @linesComponent.domNode.getBoundingClientRect()
     top = clientY - linesClientRect.top
     left = clientX - linesClientRect.left
     {top, left}

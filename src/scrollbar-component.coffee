@@ -7,7 +7,7 @@ ScrollbarComponent = React.createClass
   displayName: 'ScrollbarComponent'
 
   render: ->
-    {presenter, orientation, className, useHardwareAcceleration} = @props
+    {presenter, orientation, className} = @props
 
     switch orientation
       when 'vertical'
@@ -18,7 +18,7 @@ ScrollbarComponent = React.createClass
     style = {}
 
     style.display = 'none' unless @newState.visible
-    style.transform = 'translateZ(0)' if useHardwareAcceleration # See atom/atom#3559
+    style.transform = 'translateZ(0)' # See atom/atom#3559
     switch orientation
       when 'vertical'
         style.width = @newState.width

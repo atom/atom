@@ -162,10 +162,6 @@ module.exports =
         default: 300
         minimum: 0
         description: 'Time interval in milliseconds within which operations will be grouped together in the undo history'
-      useHardwareAcceleration:
-        type: 'boolean'
-        default: true
-        description: 'Disabling will improve editor font rendering but reduce scrolling performance.'
       useShadowDOM:
         type: 'boolean'
         default: true
