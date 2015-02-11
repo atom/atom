@@ -4,4 +4,3 @@ lib/
 .DS_Store
 npm-debug.log
 *~
-/.apmrc

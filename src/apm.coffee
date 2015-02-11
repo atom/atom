@@ -65,7 +65,7 @@ module.exports =
     path.resolve(@getAtomDirectory(), '.apmrc')
 
   getGlobalConfigPath: ->
-    path.resolve(__dirname, '..', '.apmrc')
+    path.resolve(@getAtomDirectory(), '.apm', '.apmrc')
 
   isWin32: ->
     process.platform is 'win32'
