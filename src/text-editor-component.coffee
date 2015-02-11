@@ -62,11 +62,6 @@ TextEditorComponent = React.createClass
 
     div {className, style},
       div ref: 'scrollView', className: 'scroll-view',
-        InputComponent
-          ref: 'input'
-          className: 'hidden-input'
-          presenter: @presenter
-
         ScrollbarComponent
           ref: 'horizontalScrollbar'
           className: 'horizontal-scrollbar'
@@ -118,6 +113,10 @@ TextEditorComponent = React.createClass
 
     scrollViewNode = @refs.scrollView.getDOMNode()
     horizontalScrollbarNode = @refs.horizontalScrollbar.getDOMNode()
+
+    @hiddenInputComponent = new InputComponent(@presenter)
+    scrollViewNode.insertBefore(@hiddenInputComponent.domNode, horizontalScrollbarNode)
+
     @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM, visible: @isVisible()})
     scrollViewNode.insertBefore(@linesComponent.domNode, horizontalScrollbarNode)
 
@@ -159,6 +158,7 @@ TextEditorComponent = React.createClass
       @gutterComponent?.domNode?.remove()
       @gutterComponent = null
 
+    @hiddenInputComponent.updateSync()
     @linesComponent.updateSync(@isVisible())
 
     if @props.editor.isAlive()
@@ -302,7 +302,7 @@ TextEditorComponent = React.createClass
     if @isMounted()
       @setState(focused: true)
       @presenter.setFocused(true)
-      @refs.input.focus()
+      @hiddenInputComponent.domNode.focus()
 
   blurred: ->
     if @isMounted()
