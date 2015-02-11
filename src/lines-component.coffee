@@ -15,25 +15,12 @@ WrapperDiv = document.createElement('div')
 module.exports =
 LinesComponent = React.createClass
   displayName: 'LinesComponent'
+  placeholderTextDiv: null
 
   render: ->
-    {editor, presenter} = @props
-    @oldState ?= {lines: {}}
-    @newState = presenter.state.content
+    div {className: 'lines'}
 
-    {scrollHeight, scrollWidth, backgroundColor, placeholderText} = @newState
-
-    style =
-      height: scrollHeight
-      width: scrollWidth
-      WebkitTransform: @getTransform()
-      backgroundColor: backgroundColor
-
-    div {className: 'lines', style},
-      div className: 'placeholder-text', placeholderText if placeholderText?
-
-  getTransform: ->
-    {scrollTop, scrollLeft} = @newState
+  getTransform: (scrollTop, scrollLeft) ->
     {useHardwareAcceleration} = @props
 
     if useHardwareAcceleration
@@ -69,8 +56,42 @@ LinesComponent = React.createClass
     else
       @overlayManager = new OverlayManager(node)
 
+    @updateSync()
+
   componentDidUpdate: ->
+    @updateSync()
+
+  updateSync: ->
     {visible, presenter} = @props
+    @newState = presenter.state.content
+    @oldState ?= {lines: {}}
+
+    node = @getDOMNode()
+
+    if @newState.scrollHeight isnt @oldState.scrollHeight
+      node.style.height = @newState.scrollHeight + 'px'
+      @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.scrollWidth isnt @oldState.scrollWidth
+      node.style.width = @newState.scrollWidth + 'px'
+      @oldState.scrollWidth = @newState.scrollWidth
+
+    if @newState.scrollTop isnt @oldState.scrollTop or @newState.scrollLeft isnt @oldState.scrollLeft
+      node.style['-webkit-transform'] = @getTransform(@newState.scrollTop, @newState.scrollLeft)
+      @oldState.scrollTop = @newState.scrollTop
+      @oldState.scrollLeft = @newState.scrollLeft
+
+    if @newState.backgroundColor isnt @oldState.backgroundColor
+      node.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
+
+    if @newState.placeholderText isnt @oldState.placeholderText
+      @placeholderTextDiv?.remove()
+      if @newState.placeholderText?
+        @placeholderTextDiv = document.createElement('div')
+        @placeholderTextDiv.classList.add('placeholder-text')
+        @placeholderTextDiv.textContent = @newState.placeholderText
+        node.appendChild(@placeholderTextDiv)
 
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
