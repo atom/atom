@@ -41,6 +41,8 @@ function bootstrap() {
     'abbrev',
     'amdefine',
     'atom-space-pen-views',
+    'cheerio',
+    'domelementtype',
     'fs-plus',
     'grim',
     'highlights',
