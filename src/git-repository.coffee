@@ -79,24 +79,17 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
+    @watch = setInterval (=>
+      @refreshIndex()
+      @refreshStatus()
+    ), 1000
+
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
     for submodulePath, submoduleRepo of @repo.submodules
       submoduleRepo.upstream = {ahead: 0, behind: 0}
 
     {@project, refreshOnWindowFocus} = options
-
-    refreshOnWindowFocus ?= true
-    if refreshOnWindowFocus
-      onWindowFocus = =>
-        @refreshIndex()
-        @refreshStatus()
-
-      window.addEventListener 'focus', onWindowFocus
-      @subscriptions.add new Disposable(-> window.removeEventListener 'focus', onWindowFocus)
-
-    if @project?
-      @subscriptions.add @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
 
   # Public: Destroy this {GitRepository} object.
   #
@@ -110,6 +103,10 @@ class GitRepository
     if @repo?
       @repo.release()
       @repo = null
+
+    if @watch?
+      clearInterval(@watch)
+      @watch = null
 
     @subscriptions.dispose()
 
@@ -401,22 +398,6 @@ class GitRepository
   ###
   Section: Private
   ###
-
-  # Subscribes to buffer events.
-  subscribeToBuffer: (buffer) ->
-    getBufferPathStatus = =>
-      if path = buffer.getPath()
-        @getPathStatus(path)
-
-    bufferSubscriptions = new CompositeDisposable
-    bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
-    bufferSubscriptions.add buffer.onDidReload(getBufferPathStatus)
-    bufferSubscriptions.add buffer.onDidChangePath(getBufferPathStatus)
-    bufferSubscriptions.add buffer.onDidDestroy =>
-      bufferSubscriptions.dispose()
-      @subscriptions.remove(bufferSubscriptions)
-    @subscriptions.add(bufferSubscriptions)
-    return
 
   # Subscribes to editor view event.
   checkoutHeadForEditor: (editor) ->
