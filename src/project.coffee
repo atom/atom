@@ -162,33 +162,42 @@ class Project extends Model
     @rootDirectory?.path
 
   # Public: Set the paths of the project's directories.
+  # This is an async method, so it returns a {Promise} that will be resolved
+  # when the paths have been set.
   #
   # * `projectPaths` {Array} of {String} paths.
   setPaths: (projectPaths) ->
     [projectPath] = projectPaths
     projectPath = path.normalize(projectPath) if projectPath
-    @path = projectPath
     @rootDirectory?.off()
 
     @destroyRepo()
     if projectPath?
-      directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
-      @rootDirectory = new Directory(directory)
-
-      # For now, use only the repositoryProviders with a sync API.
-      for provider in @repositoryProviders
-        if provider.createRepositorySync
-          @repo = provider.createRepositorySync @rootDirectory
-          if @repo
-            break
+      out = new Promise((resolve, reject) -> fs.isDirectory(projectPath, resolve))
+      .then((isDirectory) =>
+          directory = if isDirectory then projectPath else path.dirname(projectPath)
+          @directoryForPath directory)
+      .then((directory) =>
+          @rootDirectory = directory
+          @repositoryForDirectory @rootDirectory)
+      .then((@repo) => )
     else
       @rootDirectory = null
+      out = Promise.resolve(null)
 
-    @emit "path-changed"
-    @emitter.emit 'did-change-paths', projectPaths
+    return out.then(() =>
+        @emit "path-changed"
+        @emitter.emit 'did-change-paths', projectPaths
+    )
   setPath: (path) ->
     Grim.deprecate("Use ::setPaths instead")
     @setPaths([path])
+
+  # Returns a Promise that resolves to a Directory.
+  # * `directory` {String} that is a path to the directory.
+  directoryForPath: (directory) ->
+    # TODO: Use the DirectoryProvider service once it is built.
+    Promise.resolve(new Directory(directory))
 
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
