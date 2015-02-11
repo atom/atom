@@ -60,7 +60,7 @@
     "season": "^5.1.2",
     "semver": "2.2.1",
     "serializable": "^1",
-    "service-hub": "^0.2.0",
+    "service-hub": "^0.3.0",
     "space-pen": "3.8.2",
     "stacktrace-parser": "0.1.1",
     "temp": "0.7.0",
