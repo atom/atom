@@ -18,6 +18,7 @@ module.exports = (grunt) ->
       diff = name1.localeCompare(name2) if diff is 0
       diff
 
+    console.log "Total Modules: #{sortedNames.length}"
     sortedNames.forEach (name) ->
       {count, versions} = modules[name]
       grunt.log.error "#{name}: #{count} (#{Object.keys(versions).join(', ')})" if count > 1
