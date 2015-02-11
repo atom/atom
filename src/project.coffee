@@ -43,7 +43,7 @@ class Project extends Model
     # to either a {Repository} or null. Ideally, the {Directory} would be used
     # as the key; however, there can be multiple {Directory} objects created for
     # the same real path, so it is not a good key.
-    @repositoryPromisesByDirectory = new Map();
+    @repositoryPromisesByPath = new Map();
 
     # Note that the GitRepositoryProvider is registered synchronously so that
     # it is available immediately on startup.
@@ -132,7 +132,7 @@ class Project extends Model
   # * `null` if no repository can be created for the given directory.
   repositoryForDirectory: (directory) ->
     path = directory.getRealPathSync()
-    promise = @repositoryPromisesByDirectory.get(path)
+    promise = @repositoryPromisesByPath.get(path)
     unless promise
       promises = @repositoryProviders.map (provider) ->
           provider.repositoryForDirectory directory
@@ -142,13 +142,13 @@ class Project extends Model
           repo = repos[0] or null
 
           # If no repository is found, remove the entry in for the directory in
-          # @repositoryPromisesByDirectory in case some other RepositoryProvider is
+          # @repositoryPromisesByPath in case some other RepositoryProvider is
           # registered in the future that could supply a Repository for the
           # directory.
           if repo is null
-            @repositoryPromisesByDirectory.delete path
+            @repositoryPromisesByPath.delete path
           repo
-      @repositoryPromisesByDirectory.set(path, promise)
+      @repositoryPromisesByPath.set(path, promise)
     promise
 
   ###
