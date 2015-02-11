@@ -41,6 +41,7 @@ function bootstrap() {
     'atom-space-pen-views',
     'fs-plus',
     'grim',
+    'highlights',
     'humanize-plus',
     'loophole',
     'oniguruma',
