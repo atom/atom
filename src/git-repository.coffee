@@ -105,7 +105,7 @@ class GitRepository
   destroy: ->
     if @emitter?
       @emitter.emit 'did-destroy'
-      @emitter.off()
+      @emitter.dispose()
       @emitter = null
 
     if @statusTask?
@@ -122,7 +122,7 @@ class GitRepository
 
   # Public: Invoke the given callback when this GitRepository's destroy() method
   # is invoked.
-  onDestroy: (callback) ->
+  onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
   ###

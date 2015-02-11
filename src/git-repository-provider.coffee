@@ -1,10 +1,9 @@
 fs = require 'fs'
 GitRepository = require './git-repository'
 
-# Checks whether the specified directory has, or has a parent directory that
-# has, a valid .git folder, indicating the root of a Git repository.
-# If found, a Directory that corresponds to the .git folder will be returned.
-# Otherwise, returns `null`.
+# Checks whether a valid `.git` directory is contained within the given
+# directory or one of its ancestors. If so, a Directory that corresponds to the
+# `.git` folder will be returned. Otherwise, returns `null`.
 #
 # * `directory` {Directory} to explore whether it is part of a Git repository.
 findGitDirectorySync = (directory) ->
@@ -56,12 +55,12 @@ class GitRepositoryProvider
   repositoryForDirectory: (directory) ->
     # TODO: Currently, this method is designed to be async, but it relies on a
     # synchronous API. It should be rewritten to be truly async.
-    Promise.resolve(@createRepositorySync(directory))
+    Promise.resolve(@repositoryForDirectorySync(directory))
 
   # Returns either:
   # * {GitRepository} if the given directory has a Git repository.
   # * `null` if the given directory does not have a Git repository.
-  createRepositorySync: (directory) ->
+  repositoryForDirectorySync: (directory) ->
     # Only one GitRepository should be created for each .git folder. Therefore,
     # we must check directory and its parent directories to find the nearest
     # .git folder.
@@ -73,7 +72,7 @@ class GitRepositoryProvider
     repo = @pathToRepository[gitDirPath]
     unless repo
       repo = GitRepository.open(gitDirPath, project: @project)
-      repo.onDestroy(() => delete @pathToRepository[gitDirPath])
+      repo.onDidDestroy(() => delete @pathToRepository[gitDirPath])
       @pathToRepository[gitDirPath] = repo
       repo.refreshIndex()
       repo.refreshStatus()
