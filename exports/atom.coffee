@@ -1,4 +1,5 @@
 {Point, Range} = require 'text-buffer'
+{File, Directory} = require 'pathwatcher'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {deprecate} = require 'grim'
 
@@ -9,6 +10,8 @@ module.exports =
   Notification: require '../src/notification'
   Point: Point
   Range: Range
+  File: File
+  Directory: Directory
   Emitter: Emitter
   Disposable: Disposable
   CompositeDisposable: CompositeDisposable
