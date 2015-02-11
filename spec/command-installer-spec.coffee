@@ -11,24 +11,19 @@ describe "install(commandPath, callback)", ->
 
   beforeEach ->
     fs.chmodSync(commandFilePath, '755')
-    spyOn(installer, 'getInstallDirectory').andReturn installationPath
+    spyOn(installer, 'getInstallDirectory').and.returnValue(installationPath)
 
   describe "on #darwin", ->
-    it "symlinks the command and makes it executable", ->
+    it "symlinks the command and makes it executable", (done) ->
       expect(fs.isFileSync(commandFilePath)).toBeTruthy()
       expect(fs.isFileSync(installationFilePath)).toBeFalsy()
 
       installDone = false
       installError = null
       installer.createSymlink commandFilePath, false, (error) ->
-        installDone = true
-        installError = error
-
-      waitsFor ->
-        installDone
-
-      runs ->
-        expect(installError).toBeNull()
+        expect(error).toBeNull()
         expect(fs.isFileSync(installationFilePath)).toBeTruthy()
         expect(fs.realpathSync(installationFilePath)).toBe fs.realpathSync(commandFilePath)
         expect(fs.isExecutableSync(installationFilePath)).toBeTruthy()
+
+        done()

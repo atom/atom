@@ -1,13 +1,14 @@
 describe "TokenizedLine", ->
   editor = null
 
-  beforeEach ->
-    waitsForPromise -> atom.packages.activatePackage('language-coffee-script')
+  beforeEach (done) ->
+    atom.packages.activatePackage('language-coffee-script').then(done)
 
   describe "::isOnlyWhitespace()", ->
-    beforeEach ->
-      waitsForPromise ->
-        atom.project.open('coffee.coffee').then (o) -> editor = o
+    beforeEach (done) ->
+      atom.project.open('coffee.coffee').then (o) ->
+        editor = o
+        done()
 
     it "returns true when the line is only whitespace", ->
       expect(editor.tokenizedLineForScreenRow(3).isOnlyWhitespace()).toBe true
@@ -19,7 +20,7 @@ describe "TokenizedLine", ->
       expect(editor.tokenizedLineForScreenRow(2).isOnlyWhitespace()).toBe false
 
   describe "::getScopeTree()", ->
-    it "returns a tree whose inner nodes are scopeDescriptor and whose leaf nodes are tokens in those scopeDescriptor", ->
+    it "returns a tree whose inner nodes are scopeDescriptor and whose leaf nodes are tokens in those scopeDescriptor", (done) ->
       [tokens, tokenIndex] = []
 
       ensureValidScopeTree = (scopeTree, scopeDescriptor=[]) ->
@@ -30,11 +31,9 @@ describe "TokenizedLine", ->
           expect(scopeTree).toBe tokens[tokenIndex++]
           expect(scopeDescriptor).toEqual scopeTree.scopes
 
-      waitsForPromise ->
-        atom.project.open('coffee.coffee').then (o) -> editor = o
-
-      runs ->
+      atom.project.open('coffee.coffee').then (editor) ->
         tokenIndex = 0
         tokens = editor.tokenizedLineForScreenRow(1).tokens
         scopeTree = editor.tokenizedLineForScreenRow(1).getScopeTree()
         ensureValidScopeTree(scopeTree)
+        done()

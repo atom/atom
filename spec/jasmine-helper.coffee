@@ -1,16 +1,16 @@
 fs = require 'fs'
+Jasmine = require "jasmine"
+window.jasmine = (new Jasmine).jasmine
 
 module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   {$, $$} = require '../src/space-pen-extensions'
 
-  window[key] = value for key, value of require '../vendor/jasmine'
-
-  {TerminalReporter} = require 'jasmine-tagged'
+  {ConsoleReporter} = require 'jasmine'
 
   disableFocusMethods() if process.env.JANKY_SHA1
 
-  TimeReporter = require './time-reporter'
-  timeReporter = new TimeReporter()
+  # TimeReporter = require './time-reporter'
+  # timeReporter = new TimeReporter()
 
   logStream = fs.openSync(logFile, 'w') if logFile?
   log = (str) ->
@@ -20,7 +20,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
       process.stderr.write(str)
 
   if atom.getLoadSettings().exitWhenDone
-    reporter = new TerminalReporter
+    reporter = new ConsoleReporter
       print: (str) ->
         log(str)
       onComplete: (runner) ->
@@ -37,8 +37,8 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
 
   jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(reporter)
-  jasmineEnv.addReporter(timeReporter)
-  jasmineEnv.setIncludedTags([process.platform])
+  # jasmineEnv.addReporter(timeReporter)
+  # jasmineEnv.setIncludedTags([process.platform])
 
   $('body').append $$ -> @div id: 'jasmine-content'
 
