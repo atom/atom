@@ -16,29 +16,14 @@ GutterComponent = React.createClass
   measuredWidth: null
 
   render: ->
-    {presenter} = @props
-    @newState = presenter.state.gutter
-    @oldState ?= {lineNumbers: {}}
-
-    {scrollHeight, backgroundColor} = @newState
-
     div className: 'gutter',
-      div className: 'line-numbers', ref: 'lineNumbers', style:
-        height: scrollHeight
-        WebkitTransform: @getTransform()
-        backgroundColor: backgroundColor
-
-  getTransform: ->
-    {scrollTop} = @newState
-    "translate3d(0px, #{-scrollTop}px, 0px)"
+      div className: 'line-numbers', ref: 'lineNumbers'
 
   componentWillMount: ->
     @lineNumberNodesById = {}
 
   componentDidMount: ->
-    {@maxLineNumberDigits} = @newState
-    @appendDummyLineNumber()
-    @updateLineNumbers()
+    @updateSync()
 
     node = @getDOMNode()
     node.addEventListener 'click', @onClick
@@ -48,6 +33,24 @@ GutterComponent = React.createClass
     @updateSync()
 
   updateSync: ->
+    @newState = @props.presenter.state.gutter
+    @oldState ?= {lineNumbers: {}}
+
+    @lineNumbersNode ?= @refs.lineNumbers.getDOMNode()
+    @appendDummyLineNumber() unless @dummyLineNumberNode?
+
+    if @newState.scrollHeight isnt @oldState.scrollHeight
+      @lineNumbersNode.style.height = @newState.scrollHeight + 'px'
+      @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.scrollTop isnt @oldState.scrollTop
+      @lineNumbersNode.style['-webkit-transform'] = "translate3d(0px, #{-@newState.scrollTop}px, 0px)"
+      @oldState.scrollTop = @newState.scrollTop
+
+    if @newState.backgroundColor isnt @oldState.backgroundColor
+      @lineNumbersNode.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
+
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
       node.remove() for id, node of @lineNumberNodesById
