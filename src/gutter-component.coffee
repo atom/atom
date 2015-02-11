@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 React = require 'react-atom-fork'
 {div} = require 'reactionary-atom-fork'
-_ = require 'underscore-plus'
 {isEqual, isEqualForProperties, multiplyString, toArray} = _
 Decoration = require './decoration'
 SubscriberMixin = require './subscriber-mixin'
