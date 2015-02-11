@@ -79,8 +79,10 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
-    @watch = fs.watch path, { persistent: false, recursive: true }, (event, file) =>
-      @getPathStatus join(path, file)
+    @watch = setInterval (=>
+      @refreshIndex()
+      @refreshStatus()
+    ), 1000
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
@@ -103,7 +105,7 @@ class GitRepository
       @repo = null
 
     if @watch?
-      @watch.close()
+      clearInterval(@watch)
       @watch = null
 
     @subscriptions.dispose()
