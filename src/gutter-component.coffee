@@ -12,7 +12,6 @@ GutterComponent = React.createClass
   displayName: 'GutterComponent'
   mixins: [SubscriberMixin]
 
-  maxLineNumberDigits: null
   dummyLineNumberNode: null
   measuredWidth: null
 
@@ -45,13 +44,14 @@ GutterComponent = React.createClass
     node.addEventListener 'click', @onClick
     node.addEventListener 'mousedown', @onMouseDown
 
-  componentDidUpdate: (oldProps) ->
-    {maxLineNumberDigits} = @newState
-    unless maxLineNumberDigits is @maxLineNumberDigits
-      @maxLineNumberDigits = maxLineNumberDigits
+  componentDidUpdate: ->
+    @updateSync()
+
+  updateSync: ->
+    if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
       node.remove() for id, node of @lineNumberNodesById
-      @oldState = {lineNumbers: {}}
+      @oldState = {maxLineNumberDigits: @newState.maxLineNumberDigits, lineNumbers: {}}
       @lineNumberNodesById = {}
 
     @updateLineNumbers()
