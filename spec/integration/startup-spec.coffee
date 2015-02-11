@@ -7,34 +7,33 @@ fs = require "fs"
 path = require "path"
 temp = require("temp").track()
 AtomHome = temp.mkdirSync('atom-home')
-
 fs.writeFileSync(path.join(AtomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config.cson')))
-
-{startAtom, startAnotherAtom, driverTest} = require("./helpers/start-atom")
+runAtom = require("./helpers/start-atom")
 
 describe "Starting Atom", ->
   beforeEach ->
     jasmine.useRealClock()
 
   describe "opening paths via commmand-line arguments", ->
-    [tempDirPath, tempFilePath] = []
+    [tempDirPath, tempFilePath, otherTempDirPath] = []
 
     beforeEach ->
       tempDirPath = temp.mkdirSync("empty-dir")
+      otherTempDirPath = temp.mkdirSync("another-temp-dir")
       tempFilePath = path.join(tempDirPath, "an-existing-file")
-      fs.writeFileSync(tempFilePath, "This was already here.")
+      fs.writeFileSync(tempFilePath, "This file was already here.")
 
     it "reuses existing windows when directories are reopened", ->
-      driverTest ->
+      runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: AtomHome}, (client) ->
+        client
 
-        # Opening a new file creates one window with one empty text editor.
-        startAtom([path.join(tempDirPath, "new-file")], ATOM_HOME: AtomHome)
+          # Opening a new file creates one window with one empty text editor.
           .waitForExist("atom-text-editor", 5000)
           .then((exists) -> expect(exists).toBe true)
-          .windowHandles()
-          .then(({value}) -> expect(value.length).toBe 1)
-          .execute(-> atom.workspace.getActivePane().getItems().length)
-          .then(({value}) -> expect(value).toBe 1)
+          .waitForWindowCount(1, 1000)
+          .waitForPaneItemCount(1, 1000)
+          .execute(-> atom.project.getPaths())
+          .then(({value}) -> expect(value).toEqual([tempDirPath]))
 
           # Typing in the editor changes its text.
           .execute(-> atom.workspace.getActiveTextEditor().getText())
@@ -46,25 +45,17 @@ describe "Starting Atom", ->
 
           # Opening an existing file in the same directory reuses the window and
           # adds a new tab for the file.
-          .call(-> startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome))
-          .waitForCondition(
-            (-> @execute((-> atom.workspace.getActivePane().getItems().length)).then ({value}) -> value is 2),
-            5000)
-          .then((result) -> expect(result).toBe(true))
+          .startAnotherWindow([tempFilePath], ATOM_HOME: AtomHome)
+          .waitForPaneItemCount(2, 5000)
+          .waitForWindowCount(1, 1000)
           .execute(-> atom.workspace.getActiveTextEditor().getText())
-          .then(({value}) -> expect(value).toBe "This was already here.")
+          .then(({value}) -> expect(value).toBe "This file was already here.")
 
           # Opening a different directory creates a second window with no
           # tabs open.
-          .call(-> startAnotherAtom([temp.mkdirSync("another-empty-dir")], ATOM_HOME: AtomHome))
-          .waitForCondition(
-            (-> @windowHandles().then(({value}) -> value.length is 2)),
-            5000)
-          .then((result) -> expect(result).toBe(true))
-          .windowHandles()
-          .then(({value}) ->
-            @window(value[1])
-            .waitForExist("atom-workspace", 5000)
-            .then((exists) -> expect(exists).toBe true)
-            .execute(-> atom.workspace.getActivePane().getItems().length)
-            .then(({value}) -> expect(value).toBe 0))
+          .startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
+          .waitForWindowCount(2, 5000)
+          .then(({value}) -> @window(value[1]))
+          .waitForExist("atom-workspace", 5000)
+          .then((exists) -> expect(exists).toBe true)
+          .waitForPaneItemCount(0, 1000)
