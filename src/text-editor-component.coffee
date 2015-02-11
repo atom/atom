@@ -40,6 +40,7 @@ TextEditorComponent = React.createClass
   measureLineHeightAndDefaultCharWidthWhenShown: true
   remeasureCharacterWidthsWhenShown: false
   stylingChangeAnimationFrameRequested: false
+  gutterComponent: null
 
   render: ->
     {focused, showLineNumbers} = @state
@@ -62,12 +63,6 @@ TextEditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div {className, style},
-      if @gutterVisible
-        GutterComponent {
-          ref: 'gutter', onMouseDown: @onGutterMouseDown,
-          @presenter, editor
-        }
-
       div ref: 'scrollView', className: 'scroll-view',
         InputComponent
           ref: 'input'
@@ -121,6 +116,8 @@ TextEditorComponent = React.createClass
   componentDidMount: ->
     {editor, stylesElement, hostElement, useShadowDOM} = @props
 
+    @mountGutterComponent() if @gutterVisible
+
     @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM})
     scrollViewNode = @refs.scrollView.getDOMNode()
     horizontalScrollbarNode = @refs.horizontalScrollbar.getDOMNode()
@@ -158,6 +155,13 @@ TextEditorComponent = React.createClass
     @cursorMoved = false
     @selectionChanged = false
 
+    if @gutterVisible
+      @mountGutterComponent() unless @gutterComponent?
+      @gutterComponent.updateSync()
+    else
+      @gutterComponent?.domNode?.remove()
+      @gutterComponent = null
+
     @linesComponent.updateSync(@isVisible())
 
     if @props.editor.isAlive()
@@ -166,6 +170,12 @@ TextEditorComponent = React.createClass
       @props.hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
       @props.hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
       @props.hostElement.__spacePenView.trigger 'editor:display-updated'
+
+  mountGutterComponent: ->
+    {editor} = @props
+    @gutterComponent = new GutterComponent({@presenter, editor, onMouseDown: @onGutterMouseDown})
+    node = @getDOMNode()
+    node.insertBefore(@gutterComponent.domNode, node.firstChild)
 
   becameVisible: ->
     @updatesPaused = true
@@ -680,8 +690,8 @@ TextEditorComponent = React.createClass
 
     @presenter.setBackgroundColor(backgroundColor)
 
-    if @refs.gutter?
-      gutterBackgroundColor = getComputedStyle(@refs.gutter.getDOMNode()).backgroundColor
+    if @gutterComponent?
+      gutterBackgroundColor = getComputedStyle(@gutterComponent.domNode).backgroundColor
       @presenter.setGutterBackgroundColor(gutterBackgroundColor)
 
   measureLineHeightAndDefaultCharWidth: ->
@@ -761,7 +771,7 @@ TextEditorComponent = React.createClass
 
   lineNodeForScreenRow: (screenRow) -> @linesComponent.lineNodeForScreenRow(screenRow)
 
-  lineNumberNodeForScreenRow: (screenRow) -> @refs.gutter.lineNumberNodeForScreenRow(screenRow)
+  lineNumberNodeForScreenRow: (screenRow) -> @gutterComponent.lineNumberNodeForScreenRow(screenRow)
 
   screenRowForNode: (node) ->
     while node?
