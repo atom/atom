@@ -4,23 +4,46 @@ module.exports = (grunt) ->
   grunt.registerTask 'output-module-counts', 'Log modules where more than one copy exists in node_modules', ->
     nodeModulesDir = path.resolve(__dirname, '..', '..', 'node_modules')
 
-    modules = {}
+    otherModules = {}
+    atomModules = {}
+
+    sortModuleNames = (modules) ->
+      Object.keys(modules).sort (name1, name2) ->
+        diff = modules[name2].count - modules[name1].count
+        diff = name1.localeCompare(name2) if diff is 0
+        diff
+
+    getAtomTotal = ->
+      Object.keys(atomModules).length
+
+    getOtherTotal = ->
+      Object.keys(otherModules).length
+
     grunt.file.recurse nodeModulesDir, (absolutePath, rootPath, relativePath, fileName) ->
       return if fileName isnt 'package.json'
 
-      {name, version} = grunt.file.readJSON(absolutePath)
+      {name, version, repository} = grunt.file.readJSON(absolutePath)
       return unless name and version
+
+      repository = repository.url if repository?.url
+
+      if /.+\/atom\/.+/.test(repository)
+        modules = atomModules
+      else
+        modules = otherModules
 
       modules[name] ?= {versions: {}, count: 0}
       modules[name].count++
       modules[name].versions[version] = true
 
-    sortedNames = Object.keys(modules).sort (name1, name2) ->
-      diff = modules[name2].count - modules[name1].count
-      diff = name1.localeCompare(name2) if diff is 0
-      diff
+    if getAtomTotal() > 0
+      console.log "Atom Modules: #{getAtomTotal()}"
+      sortModuleNames(atomModules).forEach (name) ->
+        {count, versions, atom} = atomModules[name]
+        grunt.log.error "#{name}: #{count} (#{Object.keys(versions).join(', ')})" if count > 1
+      console.log()
 
-    console.log "Total Modules: #{sortedNames.length}"
-    sortedNames.forEach (name) ->
-      {count, versions} = modules[name]
+    console.log "Other Modules: #{getOtherTotal()}"
+    sortModuleNames(otherModules).forEach (name) ->
+      {count, versions, atom} = otherModules[name]
       grunt.log.error "#{name}: #{count} (#{Object.keys(versions).join(', ')})" if count > 1
