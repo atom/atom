@@ -126,9 +126,18 @@ class Project extends Model
     if projectPath?
       directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
       @rootDirectory = new Directory(directory)
-      if @repo = GitRepository.open(directory, project: this)
-        @repo.refreshIndex()
-        @repo.refreshStatus()
+
+      vcsList = [GitRepository]
+      for atomPackage in atom.packages.getLoadedPackages()
+        if atomPackage.metadata['vcs-package'] is true
+          implementation = atomPackage.metadata['vcs-implementation'] ? atomPackage.name
+          vcsList.push(require "#{atomPackage.path}/lib/#{implementation}")
+
+      for vcs in vcsList
+        if @repo = vcs.open(directory, project: this)
+          @repo.refreshIndex()
+          @repo.refreshStatus()
+          break
     else
       @rootDirectory = null
 
