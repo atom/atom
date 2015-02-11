@@ -149,6 +149,7 @@ TextEditorComponent = React.createClass
     {editor, hostElement} = @props
 
     @unsubscribe()
+    @presenter.destroy()
     @scopedConfigSubscriptions.dispose()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
