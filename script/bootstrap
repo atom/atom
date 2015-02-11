@@ -42,6 +42,7 @@ function bootstrap() {
     'fs-plus',
     'grim',
     'humanize-plus',
+    'loophole',
     'oniguruma',
     'request',
     'roaster',
