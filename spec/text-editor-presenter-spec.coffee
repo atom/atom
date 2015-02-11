@@ -323,6 +323,69 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
           expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
+    describe ".hiddenInput", ->
+      describe ".top/.left", ->
+        it "is positioned over the last cursor it is in view and the editor is focused", ->
+          editor.setCursorBufferPosition([3, 6])
+          presenter = buildPresenter(focused: false, explicitHeight: 50, contentFrameWidth: 300, horizontalScrollbarHeight: 0, verticalScrollbarWidth: 0)
+          expectValues presenter.state.hiddenInput, {top: 0, left: 0}
+
+          expectStateUpdate presenter, -> presenter.setFocused(true)
+          expectValues presenter.state.hiddenInput, {top: 3 * 10, left: 6 * 10}
+
+          expectStateUpdate presenter, -> presenter.setScrollTop(15)
+          expectValues presenter.state.hiddenInput, {top: (3 * 10) - 15, left: 6 * 10}
+
+          expectStateUpdate presenter, -> presenter.setScrollLeft(35)
+          expectValues presenter.state.hiddenInput, {top: (3 * 10) - 15, left: (6 * 10) - 35}
+
+          expectStateUpdate presenter, -> presenter.setScrollTop(40)
+          expectValues presenter.state.hiddenInput, {top: 0, left: (6 * 10) - 35}
+
+          expectStateUpdate presenter, -> presenter.setScrollLeft(70)
+          expectValues presenter.state.hiddenInput, {top: 0, left: 0}
+
+          expectStateUpdate presenter, -> editor.setCursorBufferPosition([11, 43])
+          expectValues presenter.state.hiddenInput, {top: 50 - 10, left: 300 - 10}
+
+          newCursor = null
+          expectStateUpdate presenter, -> newCursor = editor.addCursorAtBufferPosition([6, 10])
+          expectValues presenter.state.hiddenInput, {top: (6 * 10) - 40, left: (10 * 10) - 70}
+
+          expectStateUpdate presenter, -> newCursor.destroy()
+          expectValues presenter.state.hiddenInput, {top: 50 - 10, left: 300 - 10}
+
+          expectStateUpdate presenter, -> presenter.setFocused(false)
+          expectValues presenter.state.hiddenInput, {top: 0, left: 0}
+
+      describe ".height", ->
+        it "is assigned based on the line height", ->
+          presenter = buildPresenter()
+          expect(presenter.state.hiddenInput.height).toBe 10
+
+          expectStateUpdate presenter, -> presenter.setLineHeight(20)
+          expect(presenter.state.hiddenInput.height).toBe 20
+
+      describe ".width", ->
+        it "is assigned based on the width of the character following the cursor", ->
+          waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            editor.setCursorBufferPosition([3, 6])
+            presenter = buildPresenter()
+            expect(presenter.state.hiddenInput.width).toBe 10
+
+            expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+            expect(presenter.state.hiddenInput.width).toBe 15
+
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            expect(presenter.state.hiddenInput.width).toBe 20
+
+        it "is 2px at the end of lines", ->
+          presenter = buildPresenter()
+          editor.setCursorBufferPosition([3, Infinity])
+          expect(presenter.state.hiddenInput.width).toBe 2
+
     describe ".content", ->
       describe ".scrollingVertically", ->
         it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->

@@ -86,6 +86,7 @@ class TextEditorPresenter
     @state =
       horizontalScrollbar: {}
       verticalScrollbar: {}
+      hiddenInput: {}
       content:
         scrollingVertically: false
         blinkCursorsOff: false
@@ -106,6 +107,7 @@ class TextEditorPresenter
     @updateVerticalScrollState()
     @updateHorizontalScrollState()
     @updateScrollbarsState()
+    @updateHiddenInputState()
     @updateContentState()
     @updateDecorations()
     @updateLinesState()
@@ -150,6 +152,25 @@ class TextEditorPresenter
     @state.verticalScrollbar.visible = @verticalScrollbarWidth > 0
     @state.verticalScrollbar.width = @measuredVerticalScrollbarWidth
     @state.verticalScrollbar.bottom = @horizontalScrollbarHeight
+
+    @emitter.emit 'did-update-state'
+
+  updateHiddenInputState: ->
+    return unless lastCursor = @model.getLastCursor()
+
+    {top, left, height, width} = @pixelRectForScreenRange(lastCursor.getScreenRange())
+
+    if @focused
+      top -= @scrollTop
+      left -= @scrollLeft
+      @state.hiddenInput.top = Math.max(Math.min(top, @clientHeight - height), 0)
+      @state.hiddenInput.left = Math.max(Math.min(left, @clientWidth - width), 0)
+    else
+      @state.hiddenInput.top = 0
+      @state.hiddenInput.left = 0
+
+    @state.hiddenInput.height = height
+    @state.hiddenInput.width = Math.max(width, 2)
 
     @emitter.emit 'did-update-state'
 
@@ -448,6 +469,11 @@ class TextEditorPresenter
 
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
+  setFocused: (focused) ->
+    unless @focused is focused
+      @focused = focused
+      @updateHiddenInputState()
+
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
 
@@ -458,6 +484,7 @@ class TextEditorPresenter
       @updateEndRow()
       @didStartScrolling()
       @updateVerticalScrollState()
+      @updateHiddenInputState()
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
@@ -487,6 +514,7 @@ class TextEditorPresenter
       @scrollLeft = scrollLeft
       @model.setScrollLeft(scrollLeft)
       @updateHorizontalScrollState()
+      @updateHiddenInputState()
       @updateCursorsState() unless oldScrollLeft?
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
@@ -576,6 +604,7 @@ class TextEditorPresenter
       @updateHorizontalScrollState()
       @updateVerticalScrollState()
       @updateScrollbarsState()
+      @updateHiddenInputState()
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
@@ -623,6 +652,7 @@ class TextEditorPresenter
     @updateHorizontalScrollState()
     @updateVerticalScrollState()
     @updateScrollbarsState()
+    @updateHiddenInputState()
     @updateContentState()
     @updateDecorations()
     @updateLinesState()
@@ -886,6 +916,7 @@ class TextEditorPresenter
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
+      @updateHiddenInputState() if cursor.isLastCursor()
       @pauseCursorBlinking()
       @updateCursorsState()
 
@@ -895,6 +926,7 @@ class TextEditorPresenter
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
+      @updateHiddenInputState()
       @updateCursorsState()
 
     @disposables.add(didChangePositionDisposable)
@@ -903,6 +935,7 @@ class TextEditorPresenter
 
   didAddCursor: (cursor) ->
     @observeCursor(cursor)
+    @updateHiddenInputState()
     @pauseCursorBlinking()
     @updateCursorsState()
 
