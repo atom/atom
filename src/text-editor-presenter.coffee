@@ -344,7 +344,7 @@ class TextEditorPresenter
     Math.min(@model.getScreenLineCount(), endRow)
 
   computeScrollWidth: ->
-    Math.max(@computeContentWidth(), @contentFrameWidth)
+    Math.max(@computeContentWidth(), @computeClientWidth())
 
   computeScrollHeight: ->
     contentHeight = @computeContentHeight()

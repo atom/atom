@@ -140,7 +140,7 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
-          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe presenter.computeClientWidth()
           expectStateUpdate presenter, -> editor.setSoftWrapped(false)
           expect(presenter.state.horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
@@ -162,7 +162,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe 50
 
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
-          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, explicitHeight: 100, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
           expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.computeClientWidth()
 
@@ -361,14 +361,14 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.scrollHeight).toBe presenter.computeContentHeight()
 
       describe ".scrollWidth", ->
-        it "is initialized as the max of the ::contentFrameWidth and the width of the longest line", ->
+        it "is initialized as the max of the computed clientWidth and the width of the longest line", ->
           maxLineLength = editor.getMaxScreenLineLength()
 
-          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
+          presenter = buildPresenter(explicitHeight: 100, contentFrameWidth: 50, baseCharacterWidth: 10, verticalScrollbarWidth: 10)
           expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 1
 
-          presenter = buildPresenter(contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
-          expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20
+          presenter = buildPresenter(explicitHeight: 100, contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10, verticalScrollbarWidth: 10)
+          expect(presenter.state.content.scrollWidth).toBe 10 * maxLineLength + 20 - 10 # subtract vertical scrollbar width
 
         it "updates when the ::contentFrameWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
@@ -401,7 +401,7 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
-          expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength()
+          expect(presenter.state.horizontalScrollbar.scrollWidth).toBe presenter.computeClientWidth()
           expectStateUpdate presenter, -> editor.setSoftWrapped(false)
           expect(presenter.state.content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
