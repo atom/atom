@@ -214,19 +214,18 @@ describe "Project", ->
 
     it "resolves to a GitRepository and is cached when the given directory is a Git repo", ->
       the_result = "dummy_value"
-      the_promise = null
       directory = new Directory(path.join(__dirname, '..'))
 
       waitsForPromise ->
-        the_promise = atom.project.repositoryForDirectory(directory)
-        the_promise.then (result) -> the_result = result
+        atom.project.repositoryForDirectory(directory).then (result) -> the_result = result
 
       runs ->
         dirPath = directory.getRealPathSync()
         expect(the_result).toBeInstanceOf GitRepository
         expect(the_result.getPath()).toBe path.join(dirPath, '.git')
-        expect(atom.project.repositoryPromisesByPath.size).toBe 1
-        expect(atom.project.repositoryPromisesByPath.get dirPath).toBe the_promise
+
+        # Verify that the result is cached.
+        expect(atom.project.repositoryForDirectory(directory)).toBe(atom.project.repositoryForDirectory(directory))
 
   describe ".setPaths(path)", ->
     describe "when path is a file", ->
