@@ -8,6 +8,7 @@ Q = require 'q'
 {Model} = require 'theorist'
 {Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
+ProjectRoot = require './project-root'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 {Directory} = require 'pathwatcher'
@@ -43,16 +44,16 @@ class Project extends Model
 
     Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor") if path?
     paths ?= _.compact([path])
+    @repositoryProviders = []
     @setPaths(paths)
+
+    atom.packages.serviceHub.consume(
+        'atom.repository-provider',
+        '>=0.0.0',
+        @addRepositoryProvider.bind(this))
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
-    @destroyRepo()
-
-  destroyRepo: ->
-    if @repo?
-      @repo.destroy()
-      @repo = null
 
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
@@ -91,27 +92,44 @@ class Project extends Model
     super
 
   ###
+  Going forward, this should be the starting point for getting information about
+  the root folders in the project. It should replace getRepositories(),
+  getPaths(), and getDirectories(). Note how those methods are currently
+  implemented in terms of this one.
+
+  TODO: Make it possible to programmatically add a ProjectRoot.
+  ###
+  getProjectRoots: ->
+    return if @projectRoot then [@projectRoot] else []
+
+  ###
   Section: Accessing the git repository
   ###
 
   # Public: Get an {Array} of {GitRepository}s associated with the project's
   # directories.
-  getRepositories: -> _.compact([@repo])
+  getRepositories: ->
+    projectRoot?.getRepository() for projectRoot in @getProjectRoots() when projectRoot?.getRepository()
   getRepo: ->
     Grim.deprecate("Use ::getRepositories instead")
-    @repo
+    @projectRoot?.getRepository()
 
   ###
   Section: Managing Paths
   ###
 
-
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
-  getPaths: -> _.compact([@rootDirectory?.path])
+  getPaths: ->
+    directory.getPath() for directory in @getDirectories()
   getPath: ->
     Grim.deprecate("Use ::getPaths instead")
-    @rootDirectory?.path
+    @projectRoot?.getDirectory()?.path
+
+  addRepositoryProvider: (provider) ->
+    # TODO: Iterate over @getProjectRoots() and try to use this provider to
+    # create a repo for any ProjectRoot that does not have one.
+    @repositoryProviders.push provider
 
   # Public: Set the paths of the project's directories.
   #
@@ -120,17 +138,21 @@ class Project extends Model
     [projectPath] = projectPaths
     projectPath = path.normalize(projectPath) if projectPath
     @path = projectPath
-    @rootDirectory?.off()
+    @projectRoot?.destroy()
 
-    @destroyRepo()
     if projectPath?
       directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
-      @rootDirectory = new Directory(directory)
-      if @repo = GitRepository.open(directory, project: this)
-        @repo.refreshIndex()
-        @repo.refreshStatus()
+      options = project: this
+      if repo = GitRepository.open(directory, options)
+        repo.refreshIndex()
+        repo.refreshStatus()
+      else
+        for repositoryProvider in @repositoryProviders
+          repo = repositoryProvider.createRepository(directory, options)
+          break if repo
+      @projectRoot = new ProjectRoot(new Directory(directory), repo)
     else
-      @rootDirectory = null
+      @projectRoot = null
 
     @emit "path-changed"
     @emitter.emit 'did-change-paths', projectPaths
@@ -140,10 +162,10 @@ class Project extends Model
 
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
-    [@rootDirectory]
+    projectRoot?.getDirectory() for projectRoot in @getProjectRoots() when projectRoot?.getDirectory()
   getRootDirectory: ->
     Grim.deprecate("Use ::getDirectories instead")
-    @rootDirectory
+    @projectRoot?.getDirectory()
 
   resolve: (uri) ->
     Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
@@ -167,7 +189,7 @@ class Project extends Model
   # * `fullPath` {String} full path
   relativize: (fullPath) ->
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
-    @rootDirectory?.relativize(fullPath) ? fullPath
+    @projectRoot?.getDirectory()?.relativize(fullPath) ? fullPath
 
   # Public: Determines whether the given path (real or symbolic) is inside the
   # project's directory.
@@ -197,7 +219,7 @@ class Project extends Model
   #
   # Returns whether the path is inside the project's root directory.
   contains: (pathToCheck) ->
-    @rootDirectory?.contains(pathToCheck) ? false
+    @projectRoot?.getDirectory()?.contains(pathToCheck) ? false
 
   ###
   Section: Searching and Replacing
