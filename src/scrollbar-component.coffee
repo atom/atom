@@ -7,33 +7,19 @@ ScrollbarComponent = React.createClass
   displayName: 'ScrollbarComponent'
 
   render: ->
-    {presenter, orientation, className} = @props
-
-    switch orientation
-      when 'vertical'
-        @newState = presenter.state.verticalScrollbar
-      when 'horizontal'
-        @newState = presenter.state.horizontalScrollbar
+    {orientation, className} = @props
 
     style = {}
 
-    style.display = 'none' unless @newState.visible
     style.transform = 'translateZ(0)' # See atom/atom#3559
-    switch orientation
-      when 'vertical'
-        style.width = @newState.width
-        style.bottom = @newState.bottom
-      when 'horizontal'
-        style.left = 0
-        style.right = @newState.right
-        style.height = @newState.height
+    style.left = 0 if orientation is 'horizontal'
 
     div {className, style},
       switch orientation
         when 'vertical'
-          div className: 'scrollbar-content', style: {height: @newState.scrollHeight}
+          div ref: 'content', className: 'scrollbar-content'
         when 'horizontal'
-          div className: 'scrollbar-content', style: {width: @newState.scrollWidth}
+          div ref: 'content', className: 'scrollbar-content'
 
   componentDidMount: ->
     {orientation} = @props
@@ -43,18 +29,71 @@ ScrollbarComponent = React.createClass
 
     @getDOMNode().addEventListener 'scroll', @onScroll
 
+    @updateSync()
+
   componentWillUnmount: ->
     @getDOMNode().removeEventListener 'scroll', @onScroll
 
   componentDidUpdate: ->
-    {orientation} = @props
+    @updateSync()
+
+  updateSync: ->
+    {presenter, orientation} = @props
     node = @getDOMNode()
 
+    @oldState ?= {}
     switch orientation
       when 'vertical'
-        node.scrollTop = @newState.scrollTop
+        @newState = presenter.state.verticalScrollbar
+        @updateVertical()
       when 'horizontal'
-        node.scrollLeft = @newState.scrollLeft
+        @newState = presenter.state.horizontalScrollbar
+        @updateHorizontal()
+
+    if @newState.visible isnt @oldState.visible
+      if @newState.visible
+        node.style.display = ''
+      else
+        node.style.display = 'none'
+      @oldState.visible = @newState.visible
+
+  updateVertical: ->
+    node = @getDOMNode()
+
+    if @newState.width isnt @oldState.width
+      node.style.width = @newState.width + 'px'
+      @oldState.width = @newState.width
+
+    if @newState.bottom isnt @oldState.bottom
+      node.style.bottom = @newState.bottom + 'px'
+      @oldState.bottom = @newState.bottom
+
+    if @newState.scrollTop isnt @oldState.scrollTop
+      node.scrollTop = @newState.scrollTop
+      @oldState = @newState.scrollTop
+
+    if @newState.scrollHeight isnt @oldState.scrollHeight
+      @refs.content.getDOMNode().style.height = @newState.scrollHeight + 'px'
+      @oldState = @newState.scrollHeight
+
+  updateHorizontal: ->
+    node = @getDOMNode()
+
+    if @newState.height isnt @oldState.height
+      node.style.height = @newState.height + 'px'
+      @oldState.height = @newState.height
+
+    if @newState.right isnt @oldState.right
+      node.style.right = @newState.right + 'px'
+      @oldState.right = @newState.right
+
+    if @newState.scrollLeft isnt @oldState.scrollLeft
+      node.scrollLeft = @newState.scrollLeft
+      @oldState = @newState.scrollLeft
+
+    if @newState.scrollWidth isnt @oldState.scrollWidth
+      @refs.content.getDOMNode().style.width = @newState.scrollWidth + 'px'
+      @oldState = @newState.scrollWidth
 
   onScroll: ->
     {orientation, onScroll} = @props
