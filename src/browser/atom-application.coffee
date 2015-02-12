@@ -312,8 +312,9 @@ class AtomApplication
         @openPath({pathToOpen})
 
   # Returns the {AtomWindow} for the given paths.
-  windowForPaths: (pathsToOpen) ->
-    _.find @windows, (atomWindow) -> atomWindow.containsPaths(pathsToOpen)
+  windowForPaths: (pathsToOpen, devMode) ->
+    _.find @windows, (atomWindow) ->
+      atomWindow.devMode is devMode and atomWindow.containsPaths(pathsToOpen)
 
   # Returns the {AtomWindow} for the given ipc event.
   windowForEvent: ({sender}) ->
@@ -351,7 +352,7 @@ class AtomApplication
     locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
 
     unless pidToKillWhenClosed or newWindow # or devMode
-      existingWindow = @windowForPaths(pathsToOpen)
+      existingWindow = @windowForPaths(pathsToOpen, devMode)
 
     if existingWindow?
       openedWindow = existingWindow
