@@ -57,8 +57,7 @@ window.onload = function() {
       global.atom.loadTime = Date.now() - startTime;
       console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms');
     }
-  }
-  catch (error) {
+  } catch (error) {
     var currentWindow = require('remote').getCurrentWindow();
     currentWindow.setSize(800, 600);
     currentWindow.center();
