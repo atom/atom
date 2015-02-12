@@ -8,35 +8,35 @@ describe "GitRepositoryProvider", ->
 
     describe "when specified a Directory with a Git repository", ->
       provider = new GitRepositoryProvider atom.project
-      the_result = 'dummy_value'
-      the_second_result = 'dummy_value2'
+      theResult = 'dummy_value'
+      theSecondResult = 'dummy_value2'
 
       it "returns a Promise that resolves to a GitRepository", ->
         waitsForPromise ->
           directory = new Directory path.join(__dirname, 'fixtures/git/master.git')
-          provider.repositoryForDirectory(directory).then (result) -> the_result = result
+          provider.repositoryForDirectory(directory).then (result) -> theResult = result
 
         runs ->
-          expect(the_result).toBeInstanceOf GitRepository
-          expect(provider.pathToRepository[the_result.getPath()]).toBeTruthy()
-          expect(the_result.statusTask).toBeTruthy()
+          expect(theResult).toBeInstanceOf GitRepository
+          expect(provider.pathToRepository[theResult.getPath()]).toBeTruthy()
+          expect(theResult.statusTask).toBeTruthy()
 
         waitsForPromise ->
           directory = new Directory path.join(__dirname, 'fixtures/git/master.git/objects')
-          provider.repositoryForDirectory(directory).then (result) -> the_second_result = result
+          provider.repositoryForDirectory(directory).then (result) -> theSecondResult = result
 
         runs ->
-          expect(the_second_result).toBeInstanceOf GitRepository
-          expect(the_second_result).toBe the_result
+          expect(theSecondResult).toBeInstanceOf GitRepository
+          expect(theSecondResult).toBe theResult
 
     describe "when specified a Directory without a Git repository", ->
       provider = new GitRepositoryProvider atom.project
-      the_result = 'dummy_value'
+      theResult = 'dummy_value'
 
       it "returns a Promise that resolves to null", ->
         waitsForPromise ->
           directory = new Directory '/tmp'
-          provider.repositoryForDirectory(directory).then (result) -> the_result = result
+          provider.repositoryForDirectory(directory).then (result) -> theResult = result
 
       runs ->
-        expect(the_result).toBe null
+        expect(theResult).toBe null
