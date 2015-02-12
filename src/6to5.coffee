@@ -141,6 +141,7 @@ loadFile = (module, filePath) ->
 
 register = ->
   Object.defineProperty(require.extensions, '.js', {
+    enumerable: true
     writable: false
     value: loadFile
   })
