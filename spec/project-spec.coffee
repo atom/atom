@@ -201,31 +201,23 @@ describe "Project", ->
 
   describe ".repositoryForDirectory(directory)", ->
     it "resolves to null when the directory does not have a repository", ->
-      theResult = "dummy_value"
-
       waitsForPromise ->
         directory = new Directory("/tmp")
-        atom.project.repositoryForDirectory(directory).then (result) -> theResult = result
-
-      runs ->
-        expect(atom.project.repositoryProviders.length).toBeGreaterThan 0
-        expect(theResult).toBe null
-        expect(atom.project.repositoryPromisesByPath.size).toBe 0
+        atom.project.repositoryForDirectory(directory).then (result) ->
+          expect(result).toBeNull()
+          expect(atom.project.repositoryProviders.length).toBeGreaterThan 0
+          expect(atom.project.repositoryPromisesByPath.size).toBe 0
 
     it "resolves to a GitRepository and is cached when the given directory is a Git repo", ->
-      theResult = "dummy_value"
-      directory = new Directory(path.join(__dirname, '..'))
-
       waitsForPromise ->
-        atom.project.repositoryForDirectory(directory).then (result) -> theResult = result
+        directory = new Directory(path.join(__dirname, '..'))
+        atom.project.repositoryForDirectory(directory).then (result) ->
+          expect(result).toBeInstanceOf GitRepository
+          dirPath = directory.getRealPathSync()
+          expect(result.getPath()).toBe path.join(dirPath, '.git')
 
-      runs ->
-        dirPath = directory.getRealPathSync()
-        expect(theResult).toBeInstanceOf GitRepository
-        expect(theResult.getPath()).toBe path.join(dirPath, '.git')
-
-        # Verify that the result is cached.
-        expect(atom.project.repositoryForDirectory(directory)).toBe(atom.project.repositoryForDirectory(directory))
+          # Verify that the result is cached.
+          expect(atom.project.repositoryForDirectory(directory)).toBe(atom.project.repositoryForDirectory(directory))
 
   describe ".setPaths(path)", ->
     describe "when path is a file", ->
