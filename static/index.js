@@ -15,6 +15,8 @@ window.onload = function() {
       // This sets require.extensions['.coffee'].
       require('coffee-cash').register(path.join(cacheDir, 'coffee'));
 
+      require('coffeestack').setCacheDirectory(path.join(cacheDir, 'coffee', 'source-maps'));
+
       require('season').setCacheDir(path.join(cacheDir, 'cson'));
 
       // This redefines require.extensions['.js'].
