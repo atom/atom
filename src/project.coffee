@@ -49,9 +49,9 @@ class Project extends Model
     # it is available immediately on startup.
     @repositoryProviders = [new GitRepositoryProvider(this)]
     atom.packages.serviceHub.consume(
-        'atom.repository-provider',
-        '^0.1.0',
-        (provider) => @repositoryProviders.push(provider))
+      'atom.repository-provider',
+      '^0.1.0',
+      (provider) => @repositoryProviders.push(provider))
 
     @subscribeToBuffer(buffer) for buffer in @buffers
 
@@ -135,26 +135,22 @@ class Project extends Model
     promise = @repositoryPromisesByPath.get(pathForDirectory)
     unless promise
       promises = @repositoryProviders.map (provider) ->
-          provider.repositoryForDirectory directory
+        provider.repositoryForDirectory(directory)
       promise = Promise.all(promises).then (repositories) =>
-          # Find the first non-falsy value, if any.
-          repos = repositories.filter((repo) -> repo)
-          repo = repos[0] or null
+        repo = _.find(repositories, (repo) -> repo?) ? null
 
-          # If no repository is found, remove the entry in for the directory in
-          # @repositoryPromisesByPath in case some other RepositoryProvider is
-          # registered in the future that could supply a Repository for the
-          # directory.
-          if repo is null
-            @repositoryPromisesByPath.delete pathForDirectory
-          repo
+        # If no repository is found, remove the entry in for the directory in
+        # @repositoryPromisesByPath in case some other RepositoryProvider is
+        # registered in the future that could supply a Repository for the
+        # directory.
+        @repositoryPromisesByPath.delete(pathForDirectory) unless repo?
+        repo
       @repositoryPromisesByPath.set(pathForDirectory, promise)
     promise
 
   ###
   Section: Managing Paths
   ###
-
 
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
