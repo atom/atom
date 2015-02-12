@@ -1,33 +1,17 @@
-function registerRuntimeTranspilers() {
-  // This sets require.extensions['.coffee'].
-  require('coffee-script').register();
-
-  // This redefines require.extensions['.js'].
-  require('../src/6to5').register();
-}
+var fs = require('fs');
+var path = require('path');
 
 window.onload = function() {
   try {
     var startTime = Date.now();
 
-    var fs = require('fs');
-    var path = require('path');
-
     // Ensure ATOM_HOME is always set before anything else is required
-    if (!process.env.ATOM_HOME) {
-      var home;
-      if (process.platform === 'win32') {
-        home = process.env.USERPROFILE;
-      } else {
-        home = process.env.HOME;
-      }
-      var atomHome = path.join(home, '.atom');
-      try {
-        atomHome = fs.realpathSync(atomHome);
-      } catch (error) {
-        // Ignore since the path might just not exist yet.
-      }
-      process.env.ATOM_HOME = atomHome;
+    setupAtomHome();
+
+    var cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
+    // Use separate compile cache when sudo'ing as root to avoid permission issues
+    if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
+      cacheDir = path.join(cacheDir, 'root');
     }
 
     // Skip "?loadSettings=".
@@ -45,10 +29,7 @@ window.onload = function() {
 
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
-    // Require before the module cache in dev mode
-    if (devMode) {
-      registerRuntimeTranspilers();
-    }
+    setupCoffeeCache(cacheDir);
 
     ModuleCache = require('../src/module-cache');
     ModuleCache.register(loadSettings);
@@ -65,11 +46,9 @@ window.onload = function() {
 
     require('vm-compatibility-layer');
 
-    if (!devMode) {
-      registerRuntimeTranspilers();
-    }
-
-    require('../src/coffee-cache').register();
+    setupCsonCache(cacheDir);
+    setupSourceMapCache(cacheDir);
+    setup6to5(cacheDir);
 
     require(loadSettings.bootstrapScript);
     require('ipc').sendChannel('window-command', 'window:loaded');
@@ -78,8 +57,7 @@ window.onload = function() {
       global.atom.loadTime = Date.now() - startTime;
       console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms');
     }
-  }
-  catch (error) {
+  } catch (error) {
     var currentWindow = require('remote').getCurrentWindow();
     currentWindow.setSize(800, 600);
     currentWindow.center();
@@ -87,4 +65,42 @@ window.onload = function() {
     currentWindow.openDevTools();
     console.error(error.stack || error);
   }
+}
+
+var setupCoffeeCache = function(cacheDir) {
+  var CoffeeCache = require('coffee-cash');
+  CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'));
+  CoffeeCache.register();
+}
+
+var setupAtomHome = function() {
+  if (!process.env.ATOM_HOME) {
+    var home;
+    if (process.platform === 'win32') {
+      home = process.env.USERPROFILE;
+    } else {
+      home = process.env.HOME;
+    }
+    var atomHome = path.join(home, '.atom');
+    try {
+      atomHome = fs.realpathSync(atomHome);
+    } catch (error) {
+      // Ignore since the path might just not exist yet.
+    }
+    process.env.ATOM_HOME = atomHome;
+  }
+}
+
+var setup6to5 = function(cacheDir) {
+  var to5 = require('../src/6to5');
+  to5.setCacheDirectory(path.join(cacheDir, 'js', '6to5'));
+  to5.register();
+}
+
+var setupCsonCache = function(cacheDir) {
+  require('season').setCacheDir(path.join(cacheDir, 'cson'));
+}
+
+var setupSourceMapCache = function(cacheDir) {
+  require('coffeestack').setCacheDirectory(path.join(cacheDir, 'coffee', 'source-maps'));
 }
