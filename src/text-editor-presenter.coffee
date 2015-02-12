@@ -72,8 +72,12 @@ class TextEditorPresenter
     @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
+    @scrollPastEnd = atom.config.get('editor.scrollPastEnd')
+
     @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
-    @disposables.add atom.config.onDidChange 'editor.scrollPastEnd', scope: @model.getRootScopeDescriptor(), =>
+    @disposables.add atom.config.onDidChange 'editor.scrollPastEnd', scope: @model.getRootScopeDescriptor(), ({newValue}) =>
+      @scrollPastEnd = newValue
+      @updateScrollHeight()
       @updateVerticalScrollState()
       @updateScrollbarsState()
 
@@ -118,10 +122,9 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateVerticalScrollState: ->
-    scrollHeight = @computeScrollHeight()
-    @state.content.scrollHeight = scrollHeight
-    @state.gutter.scrollHeight = scrollHeight
-    @state.verticalScrollbar.scrollHeight = scrollHeight
+    @state.content.scrollHeight = @scrollHeight
+    @state.gutter.scrollHeight = @scrollHeight
+    @state.verticalScrollbar.scrollHeight = @scrollHeight
 
     scrollTop = @computeScrollTop()
     @state.content.scrollTop = scrollTop
@@ -352,12 +355,12 @@ class TextEditorPresenter
   updateScrollWidth: ->
     @scrollWidth = Math.max(@contentWidth, @clientWidth)
 
-  computeScrollHeight: ->
+  updateScrollHeight: ->
     contentHeight = @contentHeight
-    if atom.config.get('editor.scrollPastEnd')
+    if @scrollPastEnd
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
       contentHeight += extraScrollHeight if extraScrollHeight > 0
-    Math.max(contentHeight, @height)
+    @scrollHeight = Math.max(contentHeight, @height)
 
   updateContentWidth: ->
     contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
@@ -373,9 +376,13 @@ class TextEditorPresenter
       @contentHeight = contentHeight
       @updateHeight()
       @updateScrollbarDimensions()
+      @updateScrollHeight()
 
   updateClientHeight: ->
-    @clientHeight = @height - @horizontalScrollbarHeight
+    clientHeight = @height - @horizontalScrollbarHeight
+    unless @clientHeight is clientHeight
+      @clientHeight = clientHeight
+      @updateScrollHeight()
 
   updateClientWidth: ->
     clientWidth = @contentFrameWidth - @verticalScrollbarWidth
@@ -388,7 +395,7 @@ class TextEditorPresenter
 
   constrainScrollTop: (scrollTop) ->
     if @hasRequiredMeasurements()
-      Math.max(0, Math.min(scrollTop, @computeScrollHeight() - @clientHeight))
+      Math.max(0, Math.min(scrollTop, @scrollHeight - @clientHeight))
     else
       Math.max(0, scrollTop) if scrollTop?
 
@@ -548,6 +555,7 @@ class TextEditorPresenter
       @height = height
       @updateScrollbarDimensions()
       @updateClientHeight()
+      @updateScrollHeight()
 
   setContentFrameWidth: (contentFrameWidth) ->
     unless @contentFrameWidth is contentFrameWidth
@@ -579,9 +587,8 @@ class TextEditorPresenter
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
       @model.setLineHeightInPixels(lineHeight)
-
       @updateContentHeight()
-
+      @updateScrollHeight()
       @updateHeightState()
       @updateVerticalScrollState()
       @updateDecorations()

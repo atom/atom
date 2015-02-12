@@ -278,16 +278,16 @@ describe "TextEditorPresenter", ->
         it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollTopBefore = presenter.state.verticalScrollbar.scrollTop
@@ -425,16 +425,16 @@ describe "TextEditorPresenter", ->
         it "never exceeds the computed scroll height minus the computed client height", ->
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.state.content.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.state.content.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.state.content.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.state.content.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollTopBefore = presenter.state.verticalScrollbar.scrollTop
@@ -1542,16 +1542,16 @@ describe "TextEditorPresenter", ->
         it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.state.gutter.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.state.gutter.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.state.gutter.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.state.gutter.scrollTop).toBe presenter.computeScrollHeight() - presenter.clientHeight
+          expect(presenter.state.gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollTopBefore = presenter.state.verticalScrollbar.scrollTop
