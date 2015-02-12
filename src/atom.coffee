@@ -582,21 +582,20 @@ class Atom extends Model
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
-    @deserializeEditorWindow()
+    @deserializeEditorWindow().then(() =>
+      @watchProjectPath()
 
-    @watchProjectPath()
+      @packages.activate()
+      @keymaps.loadUserKeymap()
+      @requireUserInitScript() unless safeMode
 
-    @packages.activate()
-    @keymaps.loadUserKeymap()
-    @requireUserInitScript() unless safeMode
+      @menu.update()
+      @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
+        @setAutoHideMenuBar(newValue)
+      @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
-    @menu.update()
-    @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
-      @setAutoHideMenuBar(newValue)
-    @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
-
-    maximize = dimensions?.maximized and process.platform isnt 'darwin'
-    @displayWindow({maximize})
+      maximize = dimensions?.maximized and process.platform isnt 'darwin'
+      @displayWindow({maximize}))
 
   unloadEditorWindow: ->
     return if not @project
@@ -694,7 +693,8 @@ class Atom extends Model
 
     startTime = Date.now()
     @project ?= @deserializers.deserialize(@state.project) ? new Project(paths: [@getLoadSettings().initialPath])
-    @deserializeTimings.project = Date.now() - startTime
+    @project.getInitialized().then(() =>
+      @deserializeTimings.project = Date.now() - startTime)
 
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
@@ -716,8 +716,7 @@ class Atom extends Model
 
   deserializeEditorWindow: ->
     @deserializePackageStates()
-    @deserializeProject()
-    @deserializeWorkspaceView()
+    @deserializeProject().then(() => @deserializeWorkspaceView())
 
   loadConfig: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}

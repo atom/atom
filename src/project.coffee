@@ -57,7 +57,15 @@ class Project extends Model
 
     Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor") if path?
     paths ?= _.compact([path])
-    @setPaths(paths)
+
+    # This Promise is chained to one that resolves to null so the return value
+    # of @setPaths() can be garbage collected.
+    @setPathsInitialized = @setPaths(paths).then () -> null
+
+  # Returns a {Promise} that will be resolved when the initial call to
+  # {@setPaths()} in the constructor has resolved.
+  getInitialized: ->
+    @setPathsInitialized
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
@@ -166,6 +174,9 @@ class Project extends Model
   # Public: Set the paths of the project's directories.
   #
   # * `projectPaths` {Array} of {String} paths.
+  #
+  # Returns a {Promise} that is resolved when the paths are set. It resolves to
+  # an array of corresponding {Directory} objects created for each path.
   setPaths: (projectPaths) ->
     [projectPath] = projectPaths
     projectPath = path.normalize(projectPath) if projectPath
@@ -174,20 +185,32 @@ class Project extends Model
 
     @destroyRepo()
     if projectPath?
-      directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
-      @rootDirectory = new Directory(directory)
-
-      # For now, use only the repositoryProviders with a sync API.
-      for provider in @repositoryProviders
-        break if @repo = provider.repositoryForDirectorySync?(@rootDirectory)
+      out = new Promise((resolve, reject) -> fs.isDirectory(projectPath, resolve))
+      .then((isDirectory) =>
+        directory = if isDirectory then projectPath else path.dirname(projectPath)
+        @directoryForPath directory)
+      .then((directory) =>
+        @rootDirectory = directory
+        @repositoryForDirectory @rootDirectory)
+      .then((@repo) => [@rootDirectory])
     else
       @rootDirectory = null
+      out = Promise.resolve([])
 
-    @emit "path-changed"
-    @emitter.emit 'did-change-paths', projectPaths
+    out.then((directories) =>
+      @emit "path-changed"
+      @emitter.emit 'did-change-paths', projectPaths
+      directories)
   setPath: (path) ->
     Grim.deprecate("Use ::setPaths instead")
     @setPaths([path])
+
+  # * `directory` {String} that is a path to the directory.
+  #
+  # Returns a {Promise} that resolves to a Directory.
+  directoryForPath: (directory) ->
+    # TODO: Use the DirectoryProvider service once it is built.
+    Promise.resolve(new Directory(directory))
 
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
