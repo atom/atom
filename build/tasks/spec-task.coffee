@@ -85,7 +85,6 @@ module.exports = (grunt) ->
     appPath = getAppPath()
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
-    chromedriverPath = path.join(resourcePath, "atom-shell", "chromedriver")
 
     if process.platform in ['darwin', 'linux']
       options =
@@ -94,7 +93,6 @@ module.exports = (grunt) ->
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
-            PATH: [process.env.path, chromedriverPath].join(path.delimiter)
           )
 
     else if process.platform is 'win32'
@@ -104,7 +102,6 @@ module.exports = (grunt) ->
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
-            PATH: [process.env.path, chromedriverPath].join(";")
           )
 
     spawn options, (error, results, code) ->

@@ -8,12 +8,13 @@ async = require "async"
 
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
+ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'atom-shell', 'chromedriver', 'chromedriver')
 SocketPath = path.join(temp.mkdirSync("socket-dir"), "atom.sock")
 ChromedriverPort = 9515
 
 module.exports =
   driverTest: (fn) ->
-    chromedriver = spawn("chromedriver", [
+    chromedriver = spawn(ChromedriverPath, [
       "--verbose",
       "--port=#{ChromedriverPort}",
       "--url-base=/wd/hub"
