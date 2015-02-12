@@ -784,7 +784,8 @@ class TextEditor extends Model
 
     if willInsert
       options.autoIndentNewline ?= @shouldAutoIndent()
-      options.autoDecreaseIndent ?= @shouldAutoIndent()
+      options.autoDecreaseIndent ?= @shouldAutoChangeIndent()
+      options.autoChangeIndent ?= @shouldAutoChangeIndent()
       @mutateSelectedText (selection) =>
         range = selection.insertText(text, options)
         didInsertEvent = {text, range}
@@ -2840,6 +2841,9 @@ class TextEditor extends Model
 
   shouldAutoIndent: ->
     atom.config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
+
+  shouldAutoChangeIndent: ->
+    atom.config.get("editor.autoChangeIndent", scope: @getRootScopeDescriptor())
 
   shouldAutoIndentOnPaste: ->
     atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())

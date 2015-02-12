@@ -260,7 +260,9 @@ class LanguageMode
 
     precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    return desiredIndentLevel
+    if not options?.autoChangeIndent
+      return desiredIndentLevel
+
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
@@ -298,6 +300,7 @@ class LanguageMode
   #
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
+    console.log("Decreasing indent")
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
