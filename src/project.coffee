@@ -131,8 +131,8 @@ class Project extends Model
   # * {Repository} if a repository can be created for the given directory
   # * `null` if no repository can be created for the given directory.
   repositoryForDirectory: (directory) ->
-    path = directory.getRealPathSync()
-    promise = @repositoryPromisesByPath.get(path)
+    pathForDirectory = directory.getRealPathSync()
+    promise = @repositoryPromisesByPath.get(pathForDirectory)
     unless promise
       promises = @repositoryProviders.map (provider) ->
           provider.repositoryForDirectory directory
@@ -146,9 +146,9 @@ class Project extends Model
           # registered in the future that could supply a Repository for the
           # directory.
           if repo is null
-            @repositoryPromisesByPath.delete path
+            @repositoryPromisesByPath.delete pathForDirectory
           repo
-      @repositoryPromisesByPath.set(path, promise)
+      @repositoryPromisesByPath.set(pathForDirectory, promise)
     promise
 
   ###

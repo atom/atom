@@ -5,6 +5,8 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 BufferedProcess = require '../src/buffered-process'
+{Directory} = require 'pathwatcher'
+GitRepository = require '../src/git-repository'
 
 describe "Project", ->
   beforeEach ->
@@ -196,6 +198,43 @@ describe "Project", ->
         waitsForPromise ->
           atom.project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
+
+  describe ".repositoryForDirectory(directory)", ->
+    # it() causes beforeEach() in spec-helper.coffee to be run, which reassigns
+    # atom.project. Therefore, the atom.project used in waitsForPromise() will
+    # be different than the atom.project used in a subsequent it(). To work
+    # around this issue, we use runs() instead of it().
+
+    describe "there is no repository for /tmp even though there are RepositoryProviders", ->
+      the_result = "dummy_value"
+
+      waitsForPromise ->
+        directory = new Directory("/tmp")
+        atom.project.repositoryForDirectory(directory).then (result) ->
+          the_result = result
+
+      runs ->
+        expect(atom.project.repositoryProviders.length).toBeGreaterThan 0
+        expect(the_result).toBe null
+        expect(atom.project.repositoryPromisesByPath.size).toBe 0
+
+    describe "when Git repository for directory, promise resolves to Atom's GitRepository and is cached", ->
+      the_result = "dummy_value"
+      the_promise = null
+      directory = new Directory(path.join(__dirname, '..'))
+
+      waitsForPromise ->
+        the_promise = atom.project.repositoryForDirectory(directory)
+        the_promise.then (result) ->
+          the_result = result
+
+      runs ->
+        dirPath = directory.getRealPathSync()
+        expect(the_result).toBeInstanceOf GitRepository
+        expect(the_result.getWorkingDirectory()).toBe path.join(dirPath, '.git')
+
+        expect(atom.project.repositoryPromisesByPath.size).toBe 1
+        expect(atom.project.repositoryPromisesByPath.get dirPath).toBe the_promise
 
   describe ".setPaths(path)", ->
     describe "when path is a file", ->
