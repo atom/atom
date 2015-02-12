@@ -200,34 +200,31 @@ describe "Project", ->
             expect(anotherBuffer).not.toBe buffer
 
   describe ".repositoryForDirectory(directory)", ->
-    it "there is no repository for /tmp even though there are RepositoryProviders", ->
+    it "resolves to null when the directory does not have a repository", ->
       the_result = "dummy_value"
 
       waitsForPromise ->
         directory = new Directory("/tmp")
-        atom.project.repositoryForDirectory(directory).then (result) ->
-          the_result = result
+        atom.project.repositoryForDirectory(directory).then (result) -> the_result = result
 
       runs ->
         expect(atom.project.repositoryProviders.length).toBeGreaterThan 0
         expect(the_result).toBe null
         expect(atom.project.repositoryPromisesByPath.size).toBe 0
 
-    it "when Git repository for directory, promise resolves to Atom's GitRepository and is cached", ->
+    it "resolves to a GitRepository and is cached when the given directory is a Git repo", ->
       the_result = "dummy_value"
       the_promise = null
       directory = new Directory(path.join(__dirname, '..'))
 
       waitsForPromise ->
         the_promise = atom.project.repositoryForDirectory(directory)
-        the_promise.then (result) ->
-          the_result = result
+        the_promise.then (result) -> the_result = result
 
       runs ->
         dirPath = directory.getRealPathSync()
         expect(the_result).toBeInstanceOf GitRepository
         expect(the_result.getPath()).toBe path.join(dirPath, '.git')
-
         expect(atom.project.repositoryPromisesByPath.size).toBe 1
         expect(atom.project.repositoryPromisesByPath.get dirPath).toBe the_promise
 
