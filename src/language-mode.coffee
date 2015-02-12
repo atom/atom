@@ -2,6 +2,7 @@
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 {Emitter, Subscriber} = require 'emissary'
+ScopeDescriptor = require './scope-descriptor'
 
 module.exports =
 class LanguageMode
@@ -246,6 +247,26 @@ class LanguageMode
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
+
+    Math.max(desiredIndentLevel, 0)
+
+  suggestedIndentForLineAtBufferRow: (bufferRow, line) ->
+    currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
+
+    scopes = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line).tokens[0].scopes
+    scopeDescriptor = new ScopeDescriptor({scopes})
+
+    return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return 0 unless precedingRow?
+
+    precedingLine = @buffer.lineForRow(precedingRow)
+    desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
+    desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
+
+    return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(line)
 
     Math.max(desiredIndentLevel, 0)
 

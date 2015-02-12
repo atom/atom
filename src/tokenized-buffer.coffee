@@ -309,6 +309,14 @@ class TokenizedBuffer extends Model
     {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
     new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
+  buildTokenizedLineForRowWithText: (row, line) ->
+    ruleStack = @stackForRow(row - 1)
+    lineEnding = @buffer.lineEndingForRow(row)
+    tabLength = @getTabLength()
+    indentLevel = @indentLevelForRow(row)
+    {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
+    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
+
   tokenizedLineForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]
 
