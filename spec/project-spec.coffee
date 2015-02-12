@@ -200,11 +200,6 @@ describe "Project", ->
             expect(anotherBuffer).not.toBe buffer
 
   describe ".repositoryForDirectory(directory)", ->
-    # it() causes beforeEach() in spec-helper.coffee to be run, which reassigns
-    # atom.project. Therefore, the atom.project used in waitsForPromise() will
-    # be different than the atom.project used in a subsequent it(). To work
-    # around this issue, we use runs() instead of it().
-
     it "there is no repository for /tmp even though there are RepositoryProviders", ->
       the_result = "dummy_value"
 
