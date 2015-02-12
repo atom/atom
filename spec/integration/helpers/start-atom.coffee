@@ -78,7 +78,7 @@ buildAtomClient = (args, env) ->
           [newWindowHandle] = difference(value, oldWindowHandles)
           @window(newWindowHandle, done))))
 
-    .addCommand "startAnotherWindow", (args, env, done) ->
+    .addCommand "startAnotherAtom", (args, env, done) ->
       @call ->
         if isRunning
           spawnSync(AtomPath, args.concat([

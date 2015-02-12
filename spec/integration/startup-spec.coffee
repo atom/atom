@@ -45,7 +45,7 @@ describe "Starting Atom", ->
 
           # Opening an existing file in the same directory reuses the window and
           # adds a new tab for the file.
-          .startAnotherWindow([tempFilePath], ATOM_HOME: AtomHome)
+          .startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome)
           .waitForPaneItemCount(2, 5000)
           .waitForWindowCount(1, 1000)
           .execute(-> atom.workspace.getActiveTextEditor().getText())
@@ -54,7 +54,7 @@ describe "Starting Atom", ->
           # Opening a different directory creates a second window with no
           # tabs open.
           .waitForNewWindow(->
-            @startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
+            @startAnotherAtom([otherTempDirPath], ATOM_HOME: AtomHome)
           , 5000)
           .waitForExist("atom-workspace", 5000)
           .then((exists) -> expect(exists).toBe true)
@@ -67,7 +67,7 @@ describe "Starting Atom", ->
           # In a second window, opening a new buffer creates a new tab.
           .waitForExist("atom-workspace", 5000)
           .waitForNewWindow(->
-            @startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
+            @startAnotherAtom([otherTempDirPath], ATOM_HOME: AtomHome)
           , 5000)
           .waitForPaneItemCount(0, 3000)
           .execute(-> atom.workspace.open())
@@ -79,7 +79,7 @@ describe "Starting Atom", ->
           .close()
           .waitForWindowCount(1, 5000)
           .waitForNewWindow(->
-            @startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
+            @startAnotherAtom([otherTempDirPath], ATOM_HOME: AtomHome)
           , 5000)
           .waitForPaneItemCount(1, 5000)
 
@@ -93,7 +93,7 @@ describe "Starting Atom", ->
 
           # Opening a file in one of the directories reuses the same window
           # and does not change the project paths.
-          .startAnotherWindow([tempFilePath], ATOM_HOME: AtomHome)
+          .startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome)
           .waitForPaneItemCount(1, 5000)
           .execute(-> atom.project.getPaths())
           .then(({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath]))
