@@ -53,39 +53,35 @@ describe "Starting Atom", ->
 
           # Opening a different directory creates a second window with no
           # tabs open.
-          .startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
-          .waitForWindowCount(2, 5000)
-          .then(({value}) -> @window(value[1]))
+          .waitForNewWindow(->
+            @startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
+          , 5000)
           .waitForExist("atom-workspace", 5000)
           .then((exists) -> expect(exists).toBe true)
           .waitForPaneItemCount(0, 1000)
 
     it "saves the state of closed windows", ->
-      runAtom [otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+      runAtom [tempDirPath], {ATOM_HOME: AtomHome}, (client) ->
         client
 
-          # Opening a file in another window creates another window with a tab
-          # open for that file.
+          # In a second window, opening a new buffer creates a new tab.
           .waitForExist("atom-workspace", 5000)
-          .startAnotherWindow([tempFilePath], ATOM_HOME: AtomHome)
-          .waitForWindowCount(2, 5000)
-          .then(({value}) -> @window(value[1]))
-          .waitForExist("atom-text-editor", 5000)
-          .click("atom-text-editor")
-          .execute(-> atom.workspace.getActiveTextEditor().getText())
-          .then(({value}) -> expect(value).toBe "This file was already here.")
+          .waitForNewWindow(->
+            @startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
+          , 5000)
+          .waitForPaneItemCount(0, 3000)
+          .execute(-> atom.workspace.open())
+          .waitForPaneItemCount(1, 3000)
 
           # Closing that window and reopening that directory shows the
-          # previously-opened file.
+          # previously-created new buffer.
           .execute(-> atom.unloadEditorWindow())
           .close()
           .waitForWindowCount(1, 5000)
-          .startAnotherWindow([tempDirPath], ATOM_HOME: AtomHome)
-          .waitForWindowCount(2, 5000)
-          .then(({value}) -> @window(value[1]))
-          .waitForExist("atom-text-editor", 5000)
-          .execute(-> atom.workspace.getActiveTextEditor().getText())
-          .then(({value}) -> expect(value).toBe "This file was already here.")
+          .waitForNewWindow(->
+            @startAnotherWindow([otherTempDirPath], ATOM_HOME: AtomHome)
+          , 5000)
+          .waitForPaneItemCount(1, 5000)
 
     it "allows multiple project directories to be passed as separate arguments", ->
       runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->

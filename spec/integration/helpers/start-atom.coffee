@@ -2,7 +2,7 @@ path = require "path"
 temp = require("temp").track()
 remote = require "remote"
 async = require "async"
-{map, extend, once} = require "underscore-plus"
+{map, extend, once, difference} = require "underscore-plus"
 {spawn, spawnSync} = require "child_process"
 webdriverio = require "../../../build/node_modules/webdriverio"
 
@@ -66,6 +66,17 @@ buildAtomClient = (args, env) ->
       .then (result) ->
         expect(result).toBe(true)
         cb(null)
+
+    .addCommand("waitForNewWindow", (fn, timeout, done) ->
+      @windowHandles()
+      .then(({value}) ->
+        return done() unless isRunning
+        oldWindowHandles = value
+        @call(-> fn.call(this))
+        .waitForWindowCount(oldWindowHandles.length + 1, 5000)
+        .then(({value}) ->
+          [newWindowHandle] = difference(value, oldWindowHandles)
+          @window(newWindowHandle, done))))
 
     .addCommand "startAnotherWindow", (args, env, done) ->
       @call ->
