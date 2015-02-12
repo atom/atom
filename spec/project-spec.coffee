@@ -205,7 +205,7 @@ describe "Project", ->
     # be different than the atom.project used in a subsequent it(). To work
     # around this issue, we use runs() instead of it().
 
-    describe "there is no repository for /tmp even though there are RepositoryProviders", ->
+    it "there is no repository for /tmp even though there are RepositoryProviders", ->
       the_result = "dummy_value"
 
       waitsForPromise ->
@@ -218,7 +218,7 @@ describe "Project", ->
         expect(the_result).toBe null
         expect(atom.project.repositoryPromisesByPath.size).toBe 0
 
-    describe "when Git repository for directory, promise resolves to Atom's GitRepository and is cached", ->
+    it "when Git repository for directory, promise resolves to Atom's GitRepository and is cached", ->
       the_result = "dummy_value"
       the_promise = null
       directory = new Directory(path.join(__dirname, '..'))
