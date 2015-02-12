@@ -18,6 +18,11 @@ defaultOptions =
   # when the source map is inlined.
   sourceMap: 'inline'
 
+  # Because Atom is currently packaged with a fork of React v0.11,
+  # it makes sense to use the --react-compat option so the React
+  # JSX transformer produces pre-v0.12 code.
+  reactCompat: true
+
   # Blacklisted features do not get transpiled. Features that are
   # natively supported in the target environment should be listed
   # here. Because Atom uses a bleeding edge version of Node/io.js,
@@ -35,11 +40,6 @@ defaultOptions =
     # Target a version of the regenerator runtime that
     # supports yield so the transpiled code is cleaner/smaller.
     'asyncToGenerator'
-
-    # Because Atom is currently packaged with a fork of React v0.11,
-    # it makes sense to use the --react-compat option so the React
-    # JSX transformer produces pre-v0.12 code.
-    'reactCompat'
   ]
 
 ###
