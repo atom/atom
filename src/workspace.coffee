@@ -66,16 +66,16 @@ class Workspace extends Model
 
     @subscribeToActiveItem()
 
-    @addOpener (filePath) =>
+    @addOpener (filePath) ->
       switch filePath
         when 'atom://.atom/stylesheet'
-          @open(atom.styles.getUserStyleSheetPath())
+          atom.project.open(atom.styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @open(atom.keymaps.getUserKeymapPath())
+          atom.project.open(atom.keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @open(atom.config.getUserConfigPath())
+          atom.project.open(atom.config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @open(atom.getUserInitScriptPath())
+          atom.project.open(atom.getUserInitScriptPath())
 
     atom.views.addViewProvider Workspace, (model) ->
       new WorkspaceElement().initialize(model)
