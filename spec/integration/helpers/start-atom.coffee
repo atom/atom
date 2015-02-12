@@ -95,7 +95,7 @@ module.exports = (args, env, fn) ->
     "--url-base=/wd/hub"
   ])
 
-  chromedriverExit = new Promise (resolve, reject) ->
+  chromedriverExit = new Promise (resolve) ->
     errorCode = null
     logs = []
     chromedriver.on "exit", (code, signal) ->
@@ -103,10 +103,7 @@ module.exports = (args, env, fn) ->
     chromedriver.stderr.on "data", (log) ->
       logs.push(log.toString())
     chromedriver.stderr.on "close", ->
-      if errorCode?
-        reject("Chromedriver failed. Code: #{errorCode}. Logs: #{logs.join("\n")}")
-      else
-        resolve()
+      resolve({errorCode, logs})
 
   waitsFor("webdriver to finish", (done) ->
     finish = once ->
@@ -114,15 +111,18 @@ module.exports = (args, env, fn) ->
         .end()
         .then(-> chromedriver.kill())
         .then(chromedriverExit.then(
-          done,
-          (message) ->
-            jasmine.getEnv().currentSpec.fail(message)
+          ({errorCode, logs}) ->
+            if errorCode?
+              jasmine.getEnv().currentSpec.fail """
+                Chromedriver exited with code #{errorCode}.
+                Logs:\n#{logs.join("\n")}
+              """
             done()))
 
     client = buildAtomClient(args, env)
 
-    client.on "error", ({err, body}) ->
-      jasmine.getEnv().currentSpec.fail(err ? body.value.message)
+    client.on "error", ({body}) ->
+      jasmine.getEnv().currentSpec.fail(body)
       finish()
 
     fn(client.init()).then(finish)
