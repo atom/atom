@@ -46,6 +46,7 @@ describe "Starting Atom", ->
           # Opening an existing file in the same directory reuses the window and
           # adds a new tab for the file.
           .startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome)
+          .waitForExist("atom-workspace")
           .waitForPaneItemCount(2, 5000)
           .waitForWindowCount(1, 1000)
           .execute(-> atom.workspace.getActiveTextEditor().getText())
@@ -57,7 +58,6 @@ describe "Starting Atom", ->
             @startAnotherAtom([otherTempDirPath], ATOM_HOME: AtomHome)
           , 5000)
           .waitForExist("atom-workspace", 5000)
-          .then((exists) -> expect(exists).toBe true)
           .waitForPaneItemCount(0, 1000)
 
     it "saves the state of closed windows", ->
@@ -69,6 +69,7 @@ describe "Starting Atom", ->
           .waitForNewWindow(->
             @startAnotherAtom([otherTempDirPath], ATOM_HOME: AtomHome)
           , 5000)
+          .waitForExist("atom-workspace", 5000)
           .waitForPaneItemCount(0, 3000)
           .execute(-> atom.workspace.open())
           .waitForPaneItemCount(1, 3000)
@@ -81,6 +82,7 @@ describe "Starting Atom", ->
           .waitForNewWindow(->
             @startAnotherAtom([otherTempDirPath], ATOM_HOME: AtomHome)
           , 5000)
+          .waitForExist("atom-workspace", 5000)
           .waitForPaneItemCount(1, 5000)
 
     it "allows multiple project directories to be passed as separate arguments", ->
@@ -94,6 +96,7 @@ describe "Starting Atom", ->
           # Opening a file in one of the directories reuses the same window
           # and does not change the project paths.
           .startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome)
+          .waitForExist("atom-workspace", 5000)
           .waitForPaneItemCount(1, 5000)
           .execute(-> atom.project.getPaths())
           .then(({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath]))

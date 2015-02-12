@@ -60,9 +60,9 @@ buildAtomClient = (args, env) ->
       .windowHandles(cb)
 
     .addCommand "waitForPaneItemCount", (count, timeout, cb) ->
-      @waitUntil(
-        (-> @execute((-> atom.workspace.getActivePane().getItems().length)).then ({value}) -> value is count),
-        timeout)
+      @waitUntil((->
+        @execute(-> atom.workspace?.getActivePane()?.getItems().length)
+          .then(({value}) -> value is count)), timeout)
       .then (result) ->
         expect(result).toBe(true)
         cb(null)
@@ -95,15 +95,17 @@ module.exports = (args, env, fn) ->
     "--url-base=/wd/hub"
   ])
 
+  waits(50)
+
+  chromedriverLogs = []
   chromedriverExit = new Promise (resolve) ->
     errorCode = null
-    logs = []
     chromedriver.on "exit", (code, signal) ->
       errorCode = code unless signal?
     chromedriver.stderr.on "data", (log) ->
-      logs.push(log.toString())
+      chromedriverLogs.push(log.toString())
     chromedriver.stderr.on "close", ->
-      resolve({errorCode, logs})
+      resolve(errorCode)
 
   waitsFor("webdriver to finish", (done) ->
     finish = once ->
@@ -111,18 +113,18 @@ module.exports = (args, env, fn) ->
         .end()
         .then(-> chromedriver.kill())
         .then(chromedriverExit.then(
-          ({errorCode, logs}) ->
+          (errorCode) ->
             if errorCode?
               jasmine.getEnv().currentSpec.fail """
                 Chromedriver exited with code #{errorCode}.
-                Logs:\n#{logs.join("\n")}
+                Logs:\n#{chromedriverLogs.join("\n")}
               """
             done()))
 
     client = buildAtomClient(args, env)
 
-    client.on "error", ({body}) ->
-      jasmine.getEnv().currentSpec.fail(body)
+    client.on "error", (err) ->
+      jasmine.getEnv().currentSpec.fail(JSON.stringify(err))
       finish()
 
     fn(client.init()).then(finish)
