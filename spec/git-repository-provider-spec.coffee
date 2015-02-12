@@ -8,17 +8,13 @@ describe "GitRepositoryProvider", ->
 
     describe "when specified a Directory with a Git repository", ->
       it "returns a Promise that resolves to a GitRepository", ->
-        provider = new GitRepositoryProvider atom.project
-        theResult = null
-
         waitsForPromise ->
+          provider = new GitRepositoryProvider atom.project
           directory = new Directory path.join(__dirname, 'fixtures/git/master.git')
-          provider.repositoryForDirectory(directory).then (result) -> theResult = result
-
-        runs ->
-          expect(theResult).toBeInstanceOf GitRepository
-          expect(provider.pathToRepository[theResult.getPath()]).toBeTruthy()
-          expect(theResult.statusTask).toBeTruthy()
+          provider.repositoryForDirectory(directory).then (result) ->
+            expect(result).toBeInstanceOf GitRepository
+            expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
+            expect(result.statusTask).toBeTruthy()
 
       it "returns the same GitRepository for different Directory objects in the same repo", ->
         provider = new GitRepositoryProvider atom.project
@@ -38,13 +34,9 @@ describe "GitRepositoryProvider", ->
           expect(firstRepo).toBe secondRepo
 
     describe "when specified a Directory without a Git repository", ->
-      provider = new GitRepositoryProvider atom.project
-      theResult = 'dummy_value'
-
       it "returns a Promise that resolves to null", ->
         waitsForPromise ->
+          provider = new GitRepositoryProvider atom.project
           directory = new Directory '/tmp'
-          provider.repositoryForDirectory(directory).then (result) -> theResult = result
-
-      runs ->
-        expect(theResult).toBe null
+          provider.repositoryForDirectory(directory).then (result) ->
+            expect(result).toBe null
