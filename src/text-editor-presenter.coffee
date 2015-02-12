@@ -361,14 +361,18 @@ class TextEditorPresenter
     Math.max(contentHeight, @height)
 
   updateContentWidth: ->
-    @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-    @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    @updateScrollbarDimensions()
+    contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+    contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+    unless @contentWidth is contentWidth
+      @contentWidth = contentWidth
+      @updateScrollbarDimensions()
 
   updateContentHeight: ->
-    @contentHeight = @lineHeight * @model.getScreenLineCount()
-    @updateHeight()
-    @updateScrollbarDimensions()
+    contentHeight = @lineHeight * @model.getScreenLineCount()
+    unless @contentHeight is contentHeight
+      @contentHeight = contentHeight
+      @updateHeight()
+      @updateScrollbarDimensions()
 
   computeClientHeight: ->
     @height - @horizontalScrollbarHeight
@@ -528,8 +532,10 @@ class TextEditorPresenter
       @updateLineNumbersState()
 
   updateHeight: ->
-    @height = @explicitHeight ? @contentHeight
-    @updateScrollbarDimensions()
+    height = @explicitHeight ? @contentHeight
+    unless @height is height
+      @height = height
+      @updateScrollbarDimensions()
 
   setContentFrameWidth: (contentFrameWidth) ->
     unless @contentFrameWidth is contentFrameWidth
