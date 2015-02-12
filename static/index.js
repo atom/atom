@@ -12,14 +12,16 @@ window.onload = function() {
         cacheDir = path.join(cacheDir, 'root');
       }
 
-      // This sets require.extensions['.coffee'].
+      // Setup caching of .coffee files
       require('coffee-cash').register(path.join(cacheDir, 'coffee'));
 
+      // Set up caching of source maps for generated stack traces
       require('coffeestack').setCacheDirectory(path.join(cacheDir, 'coffee', 'source-maps'));
 
+      // Setup caching of .cson files
       require('season').setCacheDir(path.join(cacheDir, 'cson'));
 
-      // This redefines require.extensions['.js'].
+      // Setup caching of .js files that start with "use 6to5"
       require('../src/6to5').register(path.join(cacheDir, 'js'));
     }
 
