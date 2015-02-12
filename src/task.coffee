@@ -71,7 +71,8 @@ class Task
     stackCachePath = require('coffeestack').getCacheDirectory()
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
-      #{coffeeCacheRequire}.register('#{coffeeCachePath}');
+      #{coffeeCacheRequire}.setCacheDirectory('#{coffeeCachePath}');
+      #{coffeeCacheRequire}.register();
       #{coffeeStackRequire}.setCacheDirectory('#{stackCachePath}');
       #{taskBootstrapRequire}
     """
