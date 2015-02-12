@@ -61,20 +61,7 @@ TextEditorComponent = React.createClass
     className += ' has-selection' if hasSelection
 
     div {className, style},
-      div ref: 'scrollView', className: 'scroll-view',
-        ScrollbarComponent
-          ref: 'horizontalScrollbar'
-          className: 'horizontal-scrollbar'
-          orientation: 'horizontal'
-          presenter: @presenter
-          onScroll: @onHorizontalScroll
-
-      ScrollbarComponent
-        ref: 'verticalScrollbar'
-        className: 'vertical-scrollbar'
-        orientation: 'vertical'
-        presenter: @presenter
-        onScroll: @onVerticalScroll
+      div ref: 'scrollView', className: 'scroll-view'
 
       # Also used to measure the height/width of scrollbars after the initial render
       ScrollbarCornerComponent
@@ -111,14 +98,21 @@ TextEditorComponent = React.createClass
 
     @mountGutterComponent() if @gutterVisible
 
+    node = @getDOMNode()
     scrollViewNode = @refs.scrollView.getDOMNode()
-    horizontalScrollbarNode = @refs.horizontalScrollbar.getDOMNode()
+    scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
 
     @hiddenInputComponent = new InputComponent(@presenter)
-    scrollViewNode.insertBefore(@hiddenInputComponent.domNode, horizontalScrollbarNode)
+    scrollViewNode.appendChild(@hiddenInputComponent.domNode)
 
     @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM, visible: @isVisible()})
-    scrollViewNode.insertBefore(@linesComponent.domNode, horizontalScrollbarNode)
+    scrollViewNode.appendChild(@linesComponent.domNode)
+
+    @horizontalScrollbarComponent = new ScrollbarComponent({@presenter, orientation: 'horizontal', onScroll: @onHorizontalScroll})
+    scrollViewNode.appendChild(@horizontalScrollbarComponent.domNode)
+
+    @verticalScrollbarComponent = new ScrollbarComponent({@presenter, orientation: 'vertical', onScroll: @onVerticalScroll})
+    node.insertBefore(@verticalScrollbarComponent.domNode, scrollbarCornerNode)
 
     @observeEditor()
     @listenForDOMEvents()
@@ -160,6 +154,8 @@ TextEditorComponent = React.createClass
 
     @hiddenInputComponent.updateSync()
     @linesComponent.updateSync(@isVisible())
+    @horizontalScrollbarComponent.updateSync()
+    @verticalScrollbarComponent.updateSync()
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
@@ -724,10 +720,10 @@ TextEditorComponent = React.createClass
       @measureScrollbarsWhenShown = true
       return
 
-    {verticalScrollbar, horizontalScrollbar, scrollbarCorner} = @refs
+    {scrollbarCorner} = @refs
 
-    verticalNode = verticalScrollbar.getDOMNode()
-    horizontalNode = horizontalScrollbar.getDOMNode()
+    verticalNode = @verticalScrollbarComponent.domNode
+    horizontalNode = @horizontalScrollbarComponent.domNode
     cornerNode = scrollbarCorner.getDOMNode()
 
     originalVerticalDisplayValue = verticalNode.style.display
