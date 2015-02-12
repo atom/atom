@@ -93,7 +93,7 @@ var setupAtomHome = function() {
 
 var setup6to5 = function(cacheDir) {
   var to5 = require('../src/6to5');
-  to5.setCacheDirectory(path.join(cacheDir, 'js'));
+  to5.setCacheDirectory(path.join(cacheDir, 'js', '6to5'));
   to5.register();
 }
 

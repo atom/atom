@@ -97,7 +97,7 @@ getCachePath = (sourceCode) ->
 
   unless jsCacheDir?
     to5Version = require('6to5-core/package.json').version
-    jsCacheDir = path.join(cacheDir, '6to5', create6to5VersionAndOptionsDigest(to5Version, defaultOptions))
+    jsCacheDir = path.join(cacheDir, create6to5VersionAndOptionsDigest(to5Version, defaultOptions))
 
   path.join(jsCacheDir, "#{digest}.js")
 
