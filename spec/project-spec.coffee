@@ -8,7 +8,7 @@ BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 temp = require "temp"
-{ncp} = require "ncp"
+{ncp} = require "../build/node_modules/ncp"
 
 describe "Project", ->
   beforeEach ->
