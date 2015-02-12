@@ -13,3 +13,4 @@ debug.log
 docs/output
 docs/includes
 spec/fixtures/evil-files/
+spec/integration/fixtures/atom-home/
