@@ -231,7 +231,7 @@ describe "Project", ->
       runs ->
         dirPath = directory.getRealPathSync()
         expect(the_result).toBeInstanceOf GitRepository
-        expect(the_result.getWorkingDirectory()).toBe path.join(dirPath, '.git')
+        expect(the_result.getPath()).toBe path.join(dirPath, '.git')
 
         expect(atom.project.repositoryPromisesByPath.size).toBe 1
         expect(atom.project.repositoryPromisesByPath.get dirPath).toBe the_promise
