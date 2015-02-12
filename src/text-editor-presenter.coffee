@@ -206,7 +206,7 @@ class TextEditorPresenter
     @state.content.cursors = {}
     return unless @hasRequiredMeasurements()
 
-    for cursor in @model.getCursors()
+    for cursor in @model.cursors # using property directly to avoid allocation
       if cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
         pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
         pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
