@@ -679,7 +679,7 @@ class Pane extends Model
       atom.notifications.addWarning("Unable to save file: #{error.message}")
     else if error.code is 'EACCES' and error.path?
       atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
-    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN'] and error.path?
+    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST'] and error.path?
       atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
     else if error.code is 'EROFS' and error.path?
       atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
