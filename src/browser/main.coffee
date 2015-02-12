@@ -15,6 +15,8 @@ process.on 'uncaughtException', (error={}) ->
 
 start = ->
   setupAtomHome()
+  setupCoffeeCache()
+
   if process.platform is 'win32'
     SquirrelUpdate = require './squirrel-update'
     squirrelCommand = process.argv[1]
@@ -49,9 +51,7 @@ start = ->
       else
         path.resolve(pathToOpen)
 
-    setupCoffeeScript()
     if args.devMode
-      require(path.join(args.resourcePath, 'src', 'coffee-cache')).register()
       AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
     else
       AtomApplication = require './atom-application'
@@ -66,15 +66,6 @@ global.devResourcePath = path.normalize(global.devResourcePath) if global.devRes
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
-setupCoffeeScript = ->
-  CoffeeScript = null
-
-  require.extensions['.coffee'] = (module, filePath) ->
-    CoffeeScript ?= require('coffee-script')
-    coffee = fs.readFileSync(filePath, 'utf8')
-    js = CoffeeScript.compile(coffee, filename: filePath)
-    module._compile(js, filePath)
-
 setupAtomHome = ->
   return if process.env.ATOM_HOME
 
@@ -82,6 +73,11 @@ setupAtomHome = ->
   try
     atomHome = fs.realpathSync(atomHome)
   process.env.ATOM_HOME = atomHome
+
+setupCoffeeCache = ->
+  CoffeeCache = require 'coffee-cash'
+  cacheDirectory = path.join(process.env.ATOM_HOME, 'compile-cache', 'coffee')
+  CoffeeCache.register(cacheDirectory)
 
 parseCommandLine = ->
   version = app.getVersion()

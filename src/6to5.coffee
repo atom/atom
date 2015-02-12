@@ -89,6 +89,7 @@ create6to5VersionAndOptionsDigest = (version, options) ->
   updateDigestForJsonValue(shasum, options)
   shasum.digest('hex')
 
+cacheDir = null
 jsCacheDir = null
 
 getCachePath = (sourceCode) ->
@@ -96,8 +97,7 @@ getCachePath = (sourceCode) ->
 
   unless jsCacheDir?
     to5Version = require('6to5-core/package.json').version
-    cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
-    jsCacheDir = path.join(cacheDir, 'js', '6to5', create6to5VersionAndOptionsDigest(to5Version, defaultOptions))
+    jsCacheDir = path.join(cacheDir, '6to5', create6to5VersionAndOptionsDigest(to5Version, defaultOptions))
 
   path.join(jsCacheDir, "#{digest}.js")
 
@@ -139,7 +139,8 @@ loadFile = (module, filePath) ->
   js = getCachedJavaScript(cachePath) ? transpile(sourceCode, filePath, cachePath)
   module._compile(js, filePath)
 
-register = ->
+register = (newCacheDir) ->
+  cacheDir = newCacheDir
   Object.defineProperty(require.extensions, '.js', {
     writable: false
     value: loadFile

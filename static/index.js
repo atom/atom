@@ -1,17 +1,25 @@
-function registerRuntimeTranspilers() {
-  // This sets require.extensions['.coffee'].
-  require('coffee-script').register();
-
-  // This redefines require.extensions['.js'].
-  require('../src/6to5').register();
-}
-
 window.onload = function() {
   try {
     var startTime = Date.now();
 
     var fs = require('fs');
     var path = require('path');
+
+    function registerRuntimeTranspilers() {
+      var cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
+      // Use separate compile cache when sudo'ing as root to avoid permission issues
+      if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
+        cacheDir = path.join(cacheDir, 'root');
+      }
+
+      // This sets require.extensions['.coffee'].
+      require('coffee-cash').register(path.join(cacheDir, 'coffee'));
+
+      require('season').setCacheDir(path.join(cacheDir, 'cson'));
+
+      // This redefines require.extensions['.js'].
+      require('../src/6to5').register(path.join(cacheDir, 'js'));
+    }
 
     // Ensure ATOM_HOME is always set before anything else is required
     if (!process.env.ATOM_HOME) {
@@ -45,10 +53,7 @@ window.onload = function() {
 
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
-    // Require before the module cache in dev mode
-    if (devMode) {
-      registerRuntimeTranspilers();
-    }
+    registerRuntimeTranspilers();
 
     ModuleCache = require('../src/module-cache');
     ModuleCache.register(loadSettings);
@@ -64,13 +69,6 @@ window.onload = function() {
     });
 
     require('vm-compatibility-layer');
-
-    if (!devMode) {
-      registerRuntimeTranspilers();
-    }
-
-    require('../src/coffee-cache').register();
-
     require(loadSettings.bootstrapScript);
     require('ipc').sendChannel('window-command', 'window:loaded');
 
