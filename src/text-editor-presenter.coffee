@@ -166,6 +166,9 @@ class TextEditorPresenter
     row = @startRow
     while row < @endRow
       line = @model.tokenizedLineForScreenRow(row)
+      unless line?
+        throw new Error("No line exists for row #{row}. Last screen row: #{@model.getLastScreenRow()}")
+
       visibleLineIds[line.id] = true
       if @state.content.lines.hasOwnProperty(line.id)
         @updateLineState(row, line)
