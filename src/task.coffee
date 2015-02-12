@@ -67,9 +67,12 @@ class Task
   constructor: (taskPath) ->
     coffeeCacheRequire = "require('#{require.resolve('coffee-cash')}')"
     coffeeCachePath = require('coffee-cash').getCacheDirectory()
+    coffeeStackRequire = "require('#{require.resolve('coffeestack')}')"
+    stackCachePath = require('coffeestack').getCacheDirectory()
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
       #{coffeeCacheRequire}.register('#{coffeeCachePath}');
+      #{coffeeStackRequire}.setCacheDirectory('#{stackCachePath}');
       #{taskBootstrapRequire}
     """
     bootstrap = bootstrap.replace(/\\/g, "\\\\")
