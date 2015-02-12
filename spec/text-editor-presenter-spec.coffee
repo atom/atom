@@ -164,16 +164,16 @@ describe "TextEditorPresenter", ->
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, explicitHeight: 100, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
-          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
-          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
-          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
-          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollLeftBefore = presenter.state.horizontalScrollbar.scrollLeft
@@ -468,16 +468,16 @@ describe "TextEditorPresenter", ->
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
-          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
-          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
-          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
-          expect(presenter.state.content.scrollLeft).toBe presenter.computeScrollWidth() - presenter.clientWidth
+          expect(presenter.state.content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollLeftBefore = presenter.state.content.scrollLeft
@@ -1995,7 +1995,7 @@ describe "TextEditorPresenter", ->
       presenter.setScrollTop(newScrollTop)
 
     changeScrollLeft = (log) ->
-      scrollWidth = presenter.computeScrollWidth()
+      scrollWidth = presenter.scrollWidth
       newScrollLeft = Math.max(0, _.random(0, scrollWidth - presenterParams.contentFrameWidth))
       log """
         presenterParams.scrollLeft = #{newScrollLeft}
@@ -2015,7 +2015,7 @@ describe "TextEditorPresenter", ->
       presenter.setExplicitHeight(newExplicitHeight)
 
     changeContentFrameWidth = (log) ->
-      scrollWidth = presenter.computeScrollWidth()
+      scrollWidth = presenter.scrollWidth
       newContentFrameWidth = _.random(100, scrollWidth * 1.5)
       log """
         presenterParams.contentFrameWidth = #{newContentFrameWidth}

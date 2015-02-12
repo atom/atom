@@ -131,9 +131,8 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateHorizontalScrollState: ->
-    scrollWidth = @computeScrollWidth()
-    @state.content.scrollWidth = scrollWidth
-    @state.horizontalScrollbar.scrollWidth = scrollWidth
+    @state.content.scrollWidth = @scrollWidth
+    @state.horizontalScrollbar.scrollWidth = @scrollWidth
 
     scrollLeft = @computeScrollLeft()
     @state.content.scrollLeft = scrollLeft
@@ -153,7 +152,7 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateContentState: ->
-    @state.content.scrollWidth = @computeScrollWidth()
+    @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
     @state.content.indentGuidesVisible = not @model.isMini() and atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
@@ -350,8 +349,8 @@ class TextEditorPresenter
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
 
-  computeScrollWidth: ->
-    Math.max(@contentWidth, @clientWidth)
+  updateScrollWidth: ->
+    @scrollWidth = Math.max(@contentWidth, @clientWidth)
 
   computeScrollHeight: ->
     contentHeight = @contentHeight
@@ -366,6 +365,7 @@ class TextEditorPresenter
     unless @contentWidth is contentWidth
       @contentWidth = contentWidth
       @updateScrollbarDimensions()
+      @updateScrollWidth()
 
   updateContentHeight: ->
     contentHeight = @lineHeight * @model.getScreenLineCount()
@@ -378,7 +378,10 @@ class TextEditorPresenter
     @clientHeight = @height - @horizontalScrollbarHeight
 
   updateClientWidth: ->
-    @clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+    clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+    unless @clientWidth is clientWidth
+      @clientWidth = clientWidth
+      @updateScrollWidth()
 
   computeScrollTop: ->
     @scrollTop = @constrainScrollTop(@scrollTop)
@@ -394,7 +397,7 @@ class TextEditorPresenter
 
   constrainScrollLeft: (scrollLeft) ->
     if @hasRequiredMeasurements()
-      Math.max(0, Math.min(scrollLeft, @computeScrollWidth() - @clientWidth))
+      Math.max(0, Math.min(scrollLeft, @scrollWidth - @clientWidth))
     else
       Math.max(0, scrollLeft) if scrollLeft?
 
@@ -671,7 +674,7 @@ class TextEditorPresenter
       top = @pixelPositionForScreenPosition(screenRange.start).top
       left = 0
       height = (screenRange.end.row - screenRange.start.row + 1) * @lineHeight
-      width = @computeScrollWidth()
+      width = @scrollWidth
     else
       {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
       height = @lineHeight
