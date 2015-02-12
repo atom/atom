@@ -37,7 +37,30 @@ function bootstrap() {
   var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
   var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
 
-  var packagesToDedupe = ['fs-plus', 'humanize-plus', 'oniguruma', 'roaster', 'season', 'grim', 'q'];
+  var packagesToDedupe = [
+    'abbrev',
+    'amdefine',
+    'atom-space-pen-views',
+    'cheerio',
+    'domelementtype',
+    'fs-plus',
+    'grim',
+    'highlights',
+    'humanize-plus',
+    'iconv-lite',
+    'inherits',
+    'loophole',
+    'oniguruma',
+    'q',
+    'request',
+    'rimraf',
+    'roaster',
+    'season',
+    'sigmund',
+    'semver',
+    'through',
+    'temp'
+  ];
 
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
