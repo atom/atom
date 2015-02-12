@@ -473,16 +473,16 @@ class Install extends Command
   warmCompileCache: (packageName, callback) ->
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
 
-    @getResourcePath (resourcePath) ->
+    @getResourcePath (resourcePath) =>
       try
-        CompileCache = require(path.join(resourcePath, 'src', 'coffee-cache'))
+        CompileCache = require(path.join(resourcePath, 'src', 'compile-cache'))
 
         onDirectory = (directoryPath) ->
           path.basename(directoryPath) isnt 'node_modules'
 
-        onFile = (filePath) ->
+        onFile = (filePath) =>
           try
-            CompileCache.addPathToCache(filePath)
+            CompileCache.addPathToCache(filePath, @atomDirectory)
 
         fs.traverseTreeSync(packageDirectory, onFile, onDirectory)
       callback(null)
