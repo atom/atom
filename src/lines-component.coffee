@@ -10,6 +10,11 @@ DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibi
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
 
+cloneObject = (object) ->
+  clone = {}
+  clone[key] = value for key, value of object
+  clone
+
 module.exports =
 class LinesComponent
   placeholderTextDiv: null
@@ -52,10 +57,6 @@ class LinesComponent
       @domNode.style.height = @newState.scrollHeight + 'px'
       @oldState.scrollHeight = @newState.scrollHeight
 
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      @domNode.style.width = @newState.scrollWidth + 'px'
-      @oldState.scrollWidth = @newState.scrollWidth
-
     if @newState.scrollTop isnt @oldState.scrollTop or @newState.scrollLeft isnt @oldState.scrollLeft
       @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, #{-@newState.scrollTop}px, 0px)"
       @oldState.scrollTop = @newState.scrollTop
@@ -75,6 +76,11 @@ class LinesComponent
 
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
+
+    if @newState.scrollWidth isnt @oldState.scrollWidth
+      @domNode.style.width = @newState.scrollWidth + 'px'
+      @oldState.scrollWidth = @newState.scrollWidth
+
     @measureCharactersInNewLines() if visible and not @newState.scrollingVertically
 
     @cursorsComponent.updateSync()
@@ -113,7 +119,7 @@ class LinesComponent
         newLinesHTML += @buildLineHTML(id)
         @screenRowsByLineId[id] = lineState.screenRow
         @lineIdsByScreenRow[lineState.screenRow] = id
-      @oldState.lines[id] = _.clone(lineState)
+        @oldState.lines[id] = cloneObject(lineState)
 
     return unless newLineIds?
 
@@ -218,13 +224,16 @@ class LinesComponent
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
-    {scrollWidth} = @newState
-    {screenRow, top} = @newState.lines[id]
+    oldLineState = @oldState.lines[id]
+    newLineState = @newState.lines[id]
 
     lineNode = @lineNodesByLineId[id]
 
-    newDecorationClasses = @newState.lines[id].decorationClasses
-    oldDecorationClasses = @oldState.lines[id].decorationClasses
+    if @newState.scrollWidth isnt @oldState.scrollWidth
+      lineNode.style.width = @newState.scrollWidth + 'px'
+
+    newDecorationClasses = newLineState.decorationClasses
+    oldDecorationClasses = oldLineState.decorationClasses
 
     if oldDecorationClasses?
       for decorationClass in oldDecorationClasses
@@ -236,11 +245,16 @@ class LinesComponent
         unless oldDecorationClasses? and decorationClass in oldDecorationClasses
           lineNode.classList.add(decorationClass)
 
-    lineNode.style.width = scrollWidth + 'px'
-    lineNode.style.top = top + 'px'
-    lineNode.dataset.screenRow = screenRow
-    @screenRowsByLineId[id] = screenRow
-    @lineIdsByScreenRow[screenRow] = id
+    oldLineState.decorationClasses = newLineState.decorationClasses
+
+    if newLineState.top isnt oldLineState.top
+      lineNode.style.top = newLineState.top + 'px'
+      oldLineState.top = newLineState.cop
+
+    if newLineState.screenRow isnt oldLineState.screenRow
+      lineNode.dataset.screenRow = newLineState.screenRow
+      oldLineState.screenRow = newLineState.screenRow
+      @lineIdsByScreenRow[newLineState.screenRow] = id
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
