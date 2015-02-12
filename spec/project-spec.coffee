@@ -5,6 +5,8 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 BufferedProcess = require '../src/buffered-process'
+{Directory} = require 'pathwatcher'
+GitRepository = require '../src/git-repository'
 
 describe "Project", ->
   beforeEach ->
@@ -196,6 +198,27 @@ describe "Project", ->
         waitsForPromise ->
           atom.project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
+
+  describe ".repositoryForDirectory(directory)", ->
+    it "resolves to null when the directory does not have a repository", ->
+      waitsForPromise ->
+        directory = new Directory("/tmp")
+        atom.project.repositoryForDirectory(directory).then (result) ->
+          expect(result).toBeNull()
+          expect(atom.project.repositoryProviders.length).toBeGreaterThan 0
+          expect(atom.project.repositoryPromisesByPath.size).toBe 0
+
+    it "resolves to a GitRepository and is cached when the given directory is a Git repo", ->
+      waitsForPromise ->
+        directory = new Directory(path.join(__dirname, '..'))
+        promise = atom.project.repositoryForDirectory(directory)
+        promise.then (result) ->
+          expect(result).toBeInstanceOf GitRepository
+          dirPath = directory.getRealPathSync()
+          expect(result.getPath()).toBe path.join(dirPath, '.git')
+
+          # Verify that the result is cached.
+          expect(atom.project.repositoryForDirectory(directory)).toBe(promise)
 
   describe ".setPaths(path)", ->
     describe "when path is a file", ->
