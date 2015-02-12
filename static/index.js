@@ -13,7 +13,9 @@ window.onload = function() {
       }
 
       // Setup caching of .coffee files
-      require('coffee-cash').register(path.join(cacheDir, 'coffee'));
+      var CoffeeCache = require('coffee-cash');
+      CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'));
+      CoffeeCache.register();
 
       // Set up caching of source maps for generated stack traces
       require('coffeestack').setCacheDirectory(path.join(cacheDir, 'coffee', 'source-maps'));
@@ -22,7 +24,9 @@ window.onload = function() {
       require('season').setCacheDir(path.join(cacheDir, 'cson'));
 
       // Setup caching of .js files that start with "use 6to5"
-      require('../src/6to5').register(path.join(cacheDir, 'js'));
+      var to5 = require('../src/6to5');
+      to5.setCacheDirectory(path.join(cacheDir, 'js'));
+      to5.register();
     }
 
     // Ensure ATOM_HOME is always set before anything else is required

@@ -139,15 +139,20 @@ loadFile = (module, filePath) ->
   js = getCachedJavaScript(cachePath) ? transpile(sourceCode, filePath, cachePath)
   module._compile(js, filePath)
 
-register = (newCacheDir) ->
-  cacheDir = newCacheDir
+register = ->
   Object.defineProperty(require.extensions, '.js', {
     writable: false
     value: loadFile
   })
 
+setCacheDirectory = (newCacheDir) ->
+  if cacheDir isnt newCacheDir
+    cacheDir = newCacheDir
+    jsCacheDir = null
+
 module.exports =
   register: register
+  setCacheDirectory: setCacheDirectory
   getCacheMisses: -> stats.misses
   getCacheHits: -> stats.hits
 
