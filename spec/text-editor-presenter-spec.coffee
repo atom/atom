@@ -314,7 +314,7 @@ describe "TextEditorPresenter", ->
     describe ".content", ->
       describe ".scrollingVertically", ->
         it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
-          presenter = buildPresenter(scrollTop: 10, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(scrollTop: 10, stoppedScrollingDelay: 200, explicitHeight: 100)
           expect(presenter.state.content.scrollingVertically).toBe false
           expectStateUpdate presenter, -> presenter.setScrollTop(0)
           expect(presenter.state.content.scrollingVertically).toBe true

@@ -126,10 +126,9 @@ class TextEditorPresenter
     @state.gutter.scrollHeight = @scrollHeight
     @state.verticalScrollbar.scrollHeight = @scrollHeight
 
-    scrollTop = @computeScrollTop()
-    @state.content.scrollTop = scrollTop
-    @state.gutter.scrollTop = scrollTop
-    @state.verticalScrollbar.scrollTop = scrollTop
+    @state.content.scrollTop = @scrollTop
+    @state.gutter.scrollTop = @scrollTop
+    @state.verticalScrollbar.scrollTop = @scrollTop
 
     @emitter.emit 'did-update-state'
 
@@ -343,11 +342,11 @@ class TextEditorPresenter
       regions
 
   computeStartRow: ->
-    startRow = Math.floor(@computeScrollTop() / @lineHeight) - @lineOverdrawMargin
+    startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
     Math.max(0, startRow)
 
   computeEndRow: ->
-    startRow = Math.floor(@computeScrollTop() / @lineHeight)
+    startRow = Math.floor(@scrollTop / @lineHeight)
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     Math.min(@model.getScreenLineCount(), endRow)
@@ -360,7 +359,11 @@ class TextEditorPresenter
     if @scrollPastEnd
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
       contentHeight += extraScrollHeight if extraScrollHeight > 0
-    @scrollHeight = Math.max(contentHeight, @height)
+    scrollHeight = Math.max(contentHeight, @height)
+
+    unless @scrollHeight is scrollHeight
+      @scrollHeight = scrollHeight
+      @updateScrollTop()
 
   updateContentWidth: ->
     contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
@@ -383,6 +386,7 @@ class TextEditorPresenter
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
       @updateScrollHeight()
+      @updateScrollTop()
 
   updateClientWidth: ->
     clientWidth = @contentFrameWidth - @verticalScrollbarWidth
@@ -390,7 +394,7 @@ class TextEditorPresenter
       @clientWidth = clientWidth
       @updateScrollWidth()
 
-  computeScrollTop: ->
+  updateScrollTop: ->
     @scrollTop = @constrainScrollTop(@scrollTop)
 
   constrainScrollTop: (scrollTop) ->
