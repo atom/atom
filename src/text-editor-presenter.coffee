@@ -45,9 +45,8 @@ class TextEditorPresenter
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
-      @updateContentHeight()
-      @updateContentWidth()
-
+      @updateContentDimensions()
+      @updateEndRow()
       @updateHeightState()
       @updateVerticalScrollState()
       @updateHorizontalScrollState()
@@ -96,10 +95,10 @@ class TextEditorPresenter
     @updateState()
 
   updateState: ->
-    @updateContentHeight()
-    @updateHeight()
-    @updateContentWidth()
+    @updateContentDimensions()
     @updateScrollbarDimensions()
+    @updateStartRow()
+    @updateEndRow()
 
     @updateHeightState()
     @updateVerticalScrollState()
@@ -136,9 +135,8 @@ class TextEditorPresenter
     @state.content.scrollWidth = @scrollWidth
     @state.horizontalScrollbar.scrollWidth = @scrollWidth
 
-    scrollLeft = @computeScrollLeft()
-    @state.content.scrollLeft = scrollLeft
-    @state.horizontalScrollbar.scrollLeft = scrollLeft
+    @state.content.scrollLeft = @scrollLeft
+    @state.horizontalScrollbar.scrollLeft = @scrollLeft
 
     @emitter.emit 'did-update-state'
 
@@ -165,10 +163,8 @@ class TextEditorPresenter
     return unless @hasRequiredMeasurements()
 
     visibleLineIds = {}
-    startRow = @computeStartRow()
-    endRow = @computeEndRow()
-    row = startRow
-    while row < endRow
+    row = @startRow
+    while row < @endRow
       line = @model.tokenizedLineForScreenRow(row)
       visibleLineIds[line.id] = true
       if @state.content.lines.hasOwnProperty(line.id)
@@ -210,11 +206,8 @@ class TextEditorPresenter
     @state.content.cursors = {}
     return unless @hasRequiredMeasurements()
 
-    startRow = @computeStartRow()
-    endRow = @computeEndRow()
-
     for cursor in @model.getCursors()
-      if cursor.isVisible() and startRow <= cursor.getScreenRow() < endRow
+      if cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
         pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
         pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
         @state.content.cursors[cursor.id] = pixelRect
@@ -253,20 +246,18 @@ class TextEditorPresenter
     @emitter.emit "did-update-state"
 
   updateLineNumbersState: ->
-    startRow = @computeStartRow()
-    endRow = @computeEndRow()
     visibleLineNumberIds = {}
 
-    if startRow > 0
-      rowBeforeStartRow = startRow - 1
+    if @startRow > 0
+      rowBeforeStartRow = @startRow - 1
       lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
       wrapCount = rowBeforeStartRow - @model.screenRowForBufferRow(lastBufferRow)
     else
       lastBufferRow = null
       wrapCount = 0
 
-    if endRow > startRow
-      for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
+    if @endRow > @startRow
+      for bufferRow, i in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
         if bufferRow is lastBufferRow
           wrapCount++
           id = bufferRow + '-' + wrapCount
@@ -277,7 +268,7 @@ class TextEditorPresenter
           lastBufferRow = bufferRow
           softWrapped = false
 
-        screenRow = startRow + i
+        screenRow = @startRow + i
         top = screenRow * @lineHeight
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
@@ -341,18 +332,21 @@ class TextEditorPresenter
 
       regions
 
-  computeStartRow: ->
+  updateStartRow: ->
     startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
-    Math.max(0, startRow)
+    @startRow = Math.max(0, startRow)
 
-  computeEndRow: ->
-    startRow = Math.floor(@scrollTop / @lineHeight)
+  updateEndRow: ->
+    startRow = Math.max(0, Math.floor(@scrollTop / @lineHeight))
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
-    Math.min(@model.getScreenLineCount(), endRow)
+    @endRow = Math.min(@model.getScreenLineCount(), endRow)
 
   updateScrollWidth: ->
-    @scrollWidth = Math.max(@contentWidth, @clientWidth)
+    scrollWidth = Math.max(@contentWidth, @clientWidth)
+    unless @scrollWidth is scrollWidth
+      @scrollWidth = scrollWidth
+      @updateScrollLeft()
 
   updateScrollHeight: ->
     contentHeight = @contentHeight
@@ -365,21 +359,24 @@ class TextEditorPresenter
       @scrollHeight = scrollHeight
       @updateScrollTop()
 
-  updateContentWidth: ->
-    contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-    contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    unless @contentWidth is contentWidth
-      @contentWidth = contentWidth
-      @updateScrollbarDimensions()
-      @updateScrollWidth()
+  updateContentDimensions: (updateHeight=true, updateWidth=true) ->
+    if updateHeight
+      oldContentHeight = @contentHeight
+      @contentHeight = @lineHeight * @model.getScreenLineCount()
 
-  updateContentHeight: ->
-    contentHeight = @lineHeight * @model.getScreenLineCount()
-    unless @contentHeight is contentHeight
-      @contentHeight = contentHeight
+    if updateWidth
+      oldContentWidth = @contentWidth
+      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+      @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+
+    if updateHeight and @contentHeight isnt oldContentHeight
       @updateHeight()
       @updateScrollbarDimensions()
       @updateScrollHeight()
+
+    if updateWidth and @contentWidth isnt oldContentWidth
+      @updateScrollbarDimensions()
+      @updateScrollWidth()
 
   updateClientHeight: ->
     clientHeight = @height - @horizontalScrollbarHeight
@@ -393,9 +390,14 @@ class TextEditorPresenter
     unless @clientWidth is clientWidth
       @clientWidth = clientWidth
       @updateScrollWidth()
+      @updateScrollLeft()
 
   updateScrollTop: ->
-    @scrollTop = @constrainScrollTop(@scrollTop)
+    scrollTop = @constrainScrollTop(@scrollTop)
+    unless @scrollTop is scrollTop
+      @scrollTop = scrollTop
+      @updateStartRow()
+      @updateEndRow()
 
   constrainScrollTop: (scrollTop) ->
     if @hasRequiredMeasurements()
@@ -403,7 +405,7 @@ class TextEditorPresenter
     else
       Math.max(0, scrollTop) if scrollTop?
 
-  computeScrollLeft: ->
+  updateScrollLeft: ->
     @scrollLeft = @constrainScrollLeft(@scrollLeft)
 
   constrainScrollLeft: (scrollLeft) ->
@@ -483,6 +485,8 @@ class TextEditorPresenter
     unless @scrollTop is scrollTop
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
+      @updateStartRow()
+      @updateEndRow()
       @didStartScrolling()
       @updateVerticalScrollState()
       @updateDecorations()
@@ -560,6 +564,7 @@ class TextEditorPresenter
       @updateScrollbarDimensions()
       @updateClientHeight()
       @updateScrollHeight()
+      @updateEndRow()
 
   setContentFrameWidth: (contentFrameWidth) ->
     unless @contentFrameWidth is contentFrameWidth
@@ -591,9 +596,11 @@ class TextEditorPresenter
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
       @model.setLineHeightInPixels(lineHeight)
-      @updateContentHeight()
+      @updateContentDimensions(true, false)
       @updateScrollHeight()
       @updateHeightState()
+      @updateStartRow()
+      @updateEndRow()
       @updateVerticalScrollState()
       @updateDecorations()
       @updateLinesState()
@@ -637,7 +644,7 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @updateContentWidth()
+    @updateContentDimensions(false, true)
 
     @updateHorizontalScrollState()
     @updateContentState()
@@ -710,16 +717,14 @@ class TextEditorPresenter
       return if change.textChanged
 
       intersectsVisibleRowRange = false
-      startRow = @computeStartRow()
-      endRow = @computeEndRow()
       oldRange = new Range(change.oldTailScreenPosition, change.oldHeadScreenPosition)
       newRange = new Range(change.newTailScreenPosition, change.newHeadScreenPosition)
 
-      if oldRange.intersectsRowRange(startRow, endRow - 1)
+      if oldRange.intersectsRowRange(@startRow, @endRow - 1)
         @removeFromLineDecorationCaches(decoration, oldRange)
         intersectsVisibleRowRange = true
 
-      if newRange.intersectsRowRange(startRow, endRow - 1)
+      if newRange.intersectsRowRange(@startRow, @endRow - 1)
         @addToLineDecorationCaches(decoration, newRange)
         intersectsVisibleRowRange = true
 
@@ -771,11 +776,9 @@ class TextEditorPresenter
     @highlightDecorationsById = {}
 
     visibleHighlights = {}
-    startRow = @computeStartRow()
-    endRow = @computeEndRow()
-    return unless 0 <= startRow <= endRow <= Infinity
+    return unless 0 <= @startRow <= @endRow <= Infinity
 
-    for markerId, decorations of @model.decorationsForScreenRowRange(startRow, endRow - 1)
+    for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
       range = @model.getMarker(markerId).getScreenRange()
       for decoration in decorations
         if decoration.isType('line') or decoration.isType('line-number')
@@ -821,22 +824,20 @@ class TextEditorPresenter
   updateHighlightState: (decoration) ->
     return unless @hasRequiredMeasurements()
 
-    startRow = @computeStartRow()
-    endRow = @computeEndRow()
     properties = decoration.getProperties()
     marker = decoration.getMarker()
     range = marker.getScreenRange()
 
-    if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(startRow, endRow - 1)
+    if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
       delete @state.content.highlights[decoration.id]
       @emitter.emit 'did-update-state'
       return
 
-    if range.start.row < startRow
-      range.start.row = startRow
+    if range.start.row < @startRow
+      range.start.row = @startRow
       range.start.column = 0
-    if range.end.row >= endRow
-      range.end.row = endRow
+    if range.end.row >= @endRow
+      range.end.row = @endRow
       range.end.column = 0
 
     if range.isEmpty()
