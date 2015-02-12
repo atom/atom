@@ -44,6 +44,7 @@ class TextEditorPresenter
   observeModel: ->
     @disposables.add @model.onDidChange =>
       @updateContentHeight()
+      @updateContentWidth()
 
       @updateHeightState()
       @updateVerticalScrollState()
@@ -91,6 +92,7 @@ class TextEditorPresenter
   updateState: ->
     @updateContentHeight()
     @updateHeight()
+    @updateContentWidth()
 
     @updateHeightState()
     @updateVerticalScrollState()
@@ -349,7 +351,7 @@ class TextEditorPresenter
     Math.min(@model.getScreenLineCount(), endRow)
 
   computeScrollWidth: ->
-    Math.max(@computeContentWidth(), @computeClientWidth())
+    Math.max(@contentWidth, @computeClientWidth())
 
   computeScrollHeight: ->
     contentHeight = @contentHeight
@@ -358,10 +360,9 @@ class TextEditorPresenter
       contentHeight += extraScrollHeight if extraScrollHeight > 0
     Math.max(contentHeight, @height)
 
-  computeContentWidth: ->
-    contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-    contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-    contentWidth
+  updateContentWidth: ->
+    @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+    @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
   updateContentHeight: ->
     @contentHeight = @lineHeight * @model.getScreenLineCount()
@@ -392,15 +393,14 @@ class TextEditorPresenter
       Math.max(0, scrollLeft) if scrollLeft?
 
   computeHorizontalScrollbarHeight: ->
-    contentWidth = @computeContentWidth()
     clientWidthWithoutVerticalScrollbar = @contentFrameWidth
     clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @verticalScrollbarWidth
     clientHeightWithoutHorizontalScrollbar = @height
     clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @horizontalScrollbarHeight
 
     horizontalScrollbarVisible =
-      contentWidth > clientWidthWithoutVerticalScrollbar or
-        contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar
+      @contentWidth > clientWidthWithoutVerticalScrollbar or
+        @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar
 
     if horizontalScrollbarVisible
       @horizontalScrollbarHeight
@@ -408,7 +408,6 @@ class TextEditorPresenter
       0
 
   computeVerticalScrollbarWidth: ->
-    contentWidth = @computeContentWidth()
     clientWidthWithoutVerticalScrollbar = @contentFrameWidth
     clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @verticalScrollbarWidth
     clientHeightWithoutHorizontalScrollbar = @height
@@ -416,7 +415,7 @@ class TextEditorPresenter
 
     verticalScrollbarVisible =
       @contentHeight > clientHeightWithoutHorizontalScrollbar or
-        @contentHeight > clientHeightWithHorizontalScrollbar and contentWidth > clientWidthWithoutVerticalScrollbar
+        @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar
 
     if verticalScrollbarVisible
       @verticalScrollbarWidth
@@ -606,6 +605,8 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
+    @updateContentWidth()
+
     @updateHorizontalScrollState()
     @updateContentState()
     @updateDecorations()
