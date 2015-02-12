@@ -19,7 +19,7 @@
   ],
   "atomShellVersion": "0.21.0",
   "dependencies": {
-    "6to5-core": "^3.0.14",
+    "6to5-core": "^3.6.0",
     "async": "0.2.6",
     "atom-keymap": "^3.1.2",
     "bootstrap": "git+https://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
