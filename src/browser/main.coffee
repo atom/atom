@@ -76,7 +76,7 @@ setupAtomHome = ->
 
 setupCoffeeCache = ->
   CoffeeCache = require 'coffee-cash'
-  cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
+  cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
   # Use separate compile cache when sudo'ing as root to avoid permission issues
   if process.env.USER is 'root' and process.env.SUDO_USER and process.env.SUDO_USER isnt process.env.USER
     cacheDir = path.join(cacheDir, 'root')
