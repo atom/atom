@@ -38,7 +38,7 @@ directoryExistsSync = (directory) ->
   # an exists() method, which is synchronous, so it may be tricky to achieve
   # consistency between the File and Directory APIs. Once Directory has its own
   # method, this function should be replaced with direct calls to existsSync().
-  return fs.existsSync(directory.getRealPathSync())
+  return fs.existsSync(directory.getPath())
 
 # Provider that conforms to the atom.repository-provider@0.1.0 service.
 module.exports =
@@ -68,7 +68,7 @@ class GitRepositoryProvider
     unless gitDir
       return null
 
-    gitDirPath = gitDir.getRealPathSync()
+    gitDirPath = gitDir.getPath()
     repo = @pathToRepository[gitDirPath]
     unless repo
       repo = GitRepository.open(gitDirPath, project: @project)
