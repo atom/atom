@@ -1,12 +1,15 @@
 # These tests are excluded by default. To run them from the command line:
 #
 # ATOM_INTEGRATION_TESTS_ENABLED=true apm test
-return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
+# return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 
 fs = require "fs"
 path = require "path"
 temp = require("temp").track()
-AtomHome = path.join(__dirname, "fixtures", "atom-home")
+AtomHome = temp.mkdirSync('atom-home')
+
+fs.writeFileSync(path.join(AtomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config.cson')))
+
 {startAtom, startAnotherAtom, driverTest} = require("./helpers/start-atom")
 
 describe "Starting Atom", ->
