@@ -15,7 +15,7 @@ exports.addPathToCache = (filePath, atomHome) ->
 
   CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'))
   CSON.setCacheDir(path.join(cacheDir, 'cson'))
-  to5.setCacheDirectory(path.join(cacheDir, 'js'))
+  to5.setCacheDirectory(path.join(cacheDir, 'js', '6to5'))
 
   switch path.extname(filePath)
     when '.coffee'
