@@ -666,6 +666,8 @@ class TextEditorPresenter
 
   decorationMarkerDidChange: (decoration, change) ->
     if decoration.isType('line') or decoration.isType('line-number')
+      return if change.textChanged
+
       intersectsVisibleRowRange = false
       startRow = @computeStartRow()
       endRow = @computeEndRow()
@@ -685,6 +687,8 @@ class TextEditorPresenter
         @updateLineNumbersState() if decoration.isType('line-number')
 
     if decoration.isType('highlight')
+      return if change.textChanged
+
       @updateHighlightState(decoration)
 
     if decoration.isType('overlay')
