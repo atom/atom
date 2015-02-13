@@ -354,9 +354,9 @@ class AtomApplication
     unless pidToKillWhenClosed or newWindow
       existingWindow = @windowForPaths(pathsToOpen, devMode)
 
-    # Default to using the specified window or the last focused window
-    if pathsToOpen.every((pathToOpen) -> fs.statSyncNoException(pathToOpen).isFile?())
-      existingWindow ?= window ? @lastFocusedWindow
+      # Default to using the specified window or the last focused window
+      if pathsToOpen.every((pathToOpen) -> fs.statSyncNoException(pathToOpen).isFile?())
+        existingWindow ?= window ? @lastFocusedWindow
 
     if existingWindow?
       openedWindow = existingWindow
