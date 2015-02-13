@@ -1,7 +1,7 @@
 # These tests are excluded by default. To run them from the command line:
 #
 # ATOM_INTEGRATION_TESTS_ENABLED=true apm test
-# return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
+return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 
 fs = require "fs"
 path = require "path"
