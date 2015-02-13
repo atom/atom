@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 async = require 'async'
 fs = require 'fs-plus'
 mkdirp = require 'mkdirp'
-runas = require 'runas'
+runas = null # defer until used
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
   fs.unlink destinationPath, (error) ->
@@ -17,6 +17,7 @@ symlinkCommand = (sourcePath, destinationPath, callback) ->
           fs.symlink sourcePath, destinationPath, callback
 
 symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
+  runas ?= require 'runas'
   if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
     throw new Error("Failed to remove '#{destinationPath}'")
 
