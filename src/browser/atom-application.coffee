@@ -152,11 +152,11 @@ class AtomApplication
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
-    @on 'application:open', -> @promptForPath(_.extend(type: 'all', getLoadSettings()))
-    @on 'application:open-file', -> @promptForPath(_.extend(type: 'file', getLoadSettings()))
-    @on 'application:open-folder', -> @promptForPath(_.extend(type: 'folder', getLoadSettings()))
-    @on 'application:open-dev', -> @promptForPath(devMode: true)
-    @on 'application:open-safe', -> @promptForPath(safeMode: true)
+    @on 'application:open', -> @promptForPathToOpen('all', getLoadSettings())
+    @on 'application:open-file', -> @promptForPathToOpen('file', getLoadSettings())
+    @on 'application:open-folder', -> @promptForPathToOpen('folder', getLoadSettings())
+    @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
+    @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
@@ -227,7 +227,7 @@ class AtomApplication
         else
           new AtomWindow(options)
       else
-        @promptForPath({window})
+        @promptForPathToOpen('all', {window})
 
     ipc.on 'update-application-menu', (event, template, keystrokesByCommand) =>
       win = BrowserWindow.fromWebContents(event.sender)
@@ -246,6 +246,10 @@ class AtomApplication
     ipc.on 'call-window-method', (event, method, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
+
+    ipc.on 'pick-folder', (event, responseChannel) =>
+      @promptForPath "folder", (selectedPaths) ->
+        event.sender.send(responseChannel, selectedPaths)
 
     clipboard = null
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
@@ -497,8 +501,11 @@ class AtomApplication
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
   #   :window - An {AtomWindow} to use for opening a selected file path.
-  promptForPath: ({type, devMode, safeMode, window}={}) ->
-    type ?= 'all'
+  promptForPathToOpen: (type, {devMode, safeMode, window}) ->
+    @promptForPath type, (pathsToOpen) =>
+      @openPaths({pathsToOpen, devMode, safeMode, window})
+
+  promptForPath: (type, callback) ->
     properties =
       switch type
         when 'file' then ['openFile']
@@ -523,5 +530,4 @@ class AtomApplication
         openOptions.defaultPath = projectPath
 
     dialog = require 'dialog'
-    dialog.showOpenDialog parentWindow, openOptions, (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode, window})
+    dialog.showOpenDialog(parentWindow, openOptions, callback)
