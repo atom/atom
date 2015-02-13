@@ -27,7 +27,7 @@ isValidGitDirectorySync = (directory) ->
   # the heuristic adopted by the valid_repository_path() function defined in
   # node_modules/git-utils/deps/libgit2/src/repository.c.
   return directoryExistsSync(directory.getSubdirectory('objects')) and
-      directory.getFile('HEAD').exists() and
+      directory.getFile('HEAD').existsSync() and
       directoryExistsSync(directory.getSubdirectory('refs'))
 
 # Returns a boolean indicating whether the specified directory exists.
