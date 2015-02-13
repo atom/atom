@@ -336,22 +336,30 @@ class TextEditorPresenter
       regions
 
   updateStartRow: ->
+    return unless @scrollTop? and @lineHeight?
+
     startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
     @startRow = Math.max(0, startRow)
 
   updateEndRow: ->
+    return unless @scrollTop? and @lineHeight? and @height?
+
     startRow = Math.max(0, Math.floor(@scrollTop / @lineHeight))
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
 
   updateScrollWidth: ->
+    return unless @contentWidth? and @clientWidth?
+
     scrollWidth = Math.max(@contentWidth, @clientWidth)
     unless @scrollWidth is scrollWidth
       @scrollWidth = scrollWidth
       @updateScrollLeft()
 
   updateScrollHeight: ->
+    return unless @contentHeight? and @clientHeight?
+
     contentHeight = @contentHeight
     if @scrollPastEnd
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
@@ -362,26 +370,28 @@ class TextEditorPresenter
       @scrollHeight = scrollHeight
       @updateScrollTop()
 
-  updateContentDimensions: (updateHeight=true, updateWidth=true) ->
-    if updateHeight
-      oldContentHeight = @contentHeight
-      @contentHeight = @lineHeight * @model.getScreenLineCount()
+  updateContentDimensions: ->
+    return unless @lineHeight? and @baseCharacterWidth?
 
-    if updateWidth
-      oldContentWidth = @contentWidth
-      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-      @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+    oldContentHeight = @contentHeight
+    @contentHeight = @lineHeight * @model.getScreenLineCount()
 
-    if updateHeight and @contentHeight isnt oldContentHeight
+    oldContentWidth = @contentWidth
+    @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+    @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+
+    if @contentHeight isnt oldContentHeight
       @updateHeight()
       @updateScrollbarDimensions()
       @updateScrollHeight()
 
-    if updateWidth and @contentWidth isnt oldContentWidth
+    if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
       @updateScrollWidth()
 
   updateClientHeight: ->
+    return unless @height? and @horizontalScrollbarHeight?
+
     clientHeight = @height - @horizontalScrollbarHeight
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
@@ -389,6 +399,8 @@ class TextEditorPresenter
       @updateScrollTop()
 
   updateClientWidth: ->
+    return unless @contentFrameWidth? and @verticalScrollbarWidth?
+
     clientWidth = @contentFrameWidth - @verticalScrollbarWidth
     unless @clientWidth is clientWidth
       @clientWidth = clientWidth
@@ -403,6 +415,8 @@ class TextEditorPresenter
       @updateEndRow()
 
   constrainScrollTop: (scrollTop) ->
+    return scrollTop unless scrollTop? and @scrollHeight? and @clientHeight?
+
     if @hasRequiredMeasurements()
       Math.max(0, Math.min(scrollTop, @scrollHeight - @clientHeight))
     else
@@ -412,12 +426,18 @@ class TextEditorPresenter
     @scrollLeft = @constrainScrollLeft(@scrollLeft)
 
   constrainScrollLeft: (scrollLeft) ->
+    return scrollLeft unless scrollLeft? and @scrollWidth? and @clientWidth?
+
     if @hasRequiredMeasurements()
       Math.max(0, Math.min(scrollLeft, @scrollWidth - @clientWidth))
     else
       Math.max(0, scrollLeft) if scrollLeft?
 
   updateScrollbarDimensions: ->
+    return unless @contentFrameWidth? and @height?
+    return unless @measuredVerticalScrollbarWidth? and @measuredHorizontalScrollbarHeight?
+    return unless @contentWidth? and @contentHeight?
+
     clientWidthWithoutVerticalScrollbar = @contentFrameWidth
     clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @measuredVerticalScrollbarWidth
     clientHeightWithoutHorizontalScrollbar = @height
@@ -599,11 +619,12 @@ class TextEditorPresenter
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
       @model.setLineHeightInPixels(lineHeight)
-      @updateContentDimensions(true, false)
+      @updateContentDimensions()
       @updateScrollHeight()
-      @updateHeightState()
+      @updateHeight()
       @updateStartRow()
       @updateEndRow()
+      @updateHeightState()
       @updateVerticalScrollState()
       @updateDecorations()
       @updateLinesState()
@@ -647,7 +668,7 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @updateContentDimensions(false, true)
+    @updateContentDimensions()
 
     @updateHorizontalScrollState()
     @updateContentState()
