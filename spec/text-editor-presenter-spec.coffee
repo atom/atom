@@ -1987,6 +1987,15 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
         expect(presenter.state.height).toBe editor.getScreenLineCount() * 20
 
+    describe ".focused", ->
+      it "tracks the value of ::focused", ->
+        presenter = buildPresenter(focused: false)
+        expect(presenter.state.focused).toBe false
+        expectStateUpdate presenter, -> presenter.setFocused(true)
+        expect(presenter.state.focused).toBe true
+        expectStateUpdate presenter, -> presenter.setFocused(false)
+        expect(presenter.state.focused).toBe false
+
   # disabled until we fix an issue with display buffer markers not updating when
   # they are moved on screen but not in the buffer
   xdescribe "when the model and view measurements are mutated randomly", ->

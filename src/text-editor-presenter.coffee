@@ -14,7 +14,7 @@ class TextEditorPresenter
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
 
@@ -103,6 +103,7 @@ class TextEditorPresenter
     @updateStartRow()
     @updateEndRow()
 
+    @updateFocusedState()
     @updateHeightState()
     @updateVerticalScrollState()
     @updateHorizontalScrollState()
@@ -115,6 +116,9 @@ class TextEditorPresenter
     @updateOverlaysState()
     @updateGutterState()
     @updateLineNumbersState()
+
+  updateFocusedState: ->
+    @state.focused = @focused
 
   updateHeightState: ->
     if @autoHeight
@@ -472,6 +476,7 @@ class TextEditorPresenter
   setFocused: (focused) ->
     unless @focused is focused
       @focused = focused
+      @updateFocusedState()
       @updateHiddenInputState()
 
   setScrollTop: (scrollTop) ->
