@@ -1965,8 +1965,8 @@ describe "TextEditorPresenter", ->
         console.log "Actual:", actualState
         console.log "Expected:", expectedState
         console.log "Uncomment code below this line to see a JSON diff"
-        {diff} = require 'json-diff' # !!! Run `npm install json-diff` in your `atom/` repository
-        console.log "Difference:", diff(actualState, expectedState)
+        # {diff} = require 'json-diff' # !!! Run `npm install json-diff` in your `atom/` repository
+        # console.log "Difference:", diff(actualState, expectedState)
         if statements.length > 0
           console.log """
             =====================================================
