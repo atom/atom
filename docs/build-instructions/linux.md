@@ -18,6 +18,9 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+  * Make sure the command `node` is available after Node.js installation (some sytems install it as `nodejs`).
+  * `which node` to check it.
+    * If output is emtpy run `sudo ln -s /usr/bin/nodejs /usr/bin/node` to fix this.
 
 ### Fedora / CentOS / RHEL
 
