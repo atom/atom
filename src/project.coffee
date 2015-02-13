@@ -165,7 +165,6 @@ class Project extends Model
   setPaths: (projectPaths) ->
     [projectPath] = projectPaths
     projectPath = path.normalize(projectPath) if projectPath
-    @path = projectPath
     @rootDirectory?.off()
 
     @destroyRepo()
