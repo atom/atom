@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 EmitterMixin = require('emissary').Emitter
-guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
 {CompositeDisposable, Emitter} = require 'event-kit'
