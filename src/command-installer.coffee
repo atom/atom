@@ -2,7 +2,6 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 fs = require 'fs-plus'
-mkdirp = require 'mkdirp'
 runas = null # defer until used
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
@@ -10,7 +9,7 @@ symlinkCommand = (sourcePath, destinationPath, callback) ->
     if error? and error?.code != 'ENOENT'
       callback(error)
     else
-      mkdirp path.dirname(destinationPath), (error) ->
+      fs.makeTree path.dirname(destinationPath), (error) ->
         if error?
           callback(error)
         else
