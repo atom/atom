@@ -19,7 +19,7 @@
   ],
   "atomShellVersion": "0.21.0",
   "dependencies": {
-    "6to5-core": "^3.0.14",
+    "6to5-core": "^3.6.0",
     "async": "0.2.6",
     "atom-keymap": "^3.1.2",
     "atom-space-pen-views": "^2.0.4",
