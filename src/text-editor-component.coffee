@@ -63,11 +63,6 @@ TextEditorComponent = React.createClass
     div {className, style},
       div ref: 'scrollView', className: 'scroll-view'
 
-      # Also used to measure the height/width of scrollbars after the initial render
-      ScrollbarCornerComponent
-        ref: 'scrollbarCorner'
-        presenter: @presenter
-
   getInitialState: -> {}
 
   getDefaultProps: ->
@@ -99,7 +94,6 @@ TextEditorComponent = React.createClass
 
     node = @getDOMNode()
     scrollViewNode = @refs.scrollView.getDOMNode()
-    scrollbarCornerNode = @refs.scrollbarCorner.getDOMNode()
 
     @hiddenInputComponent = new InputComponent(@presenter)
     scrollViewNode.appendChild(@hiddenInputComponent.domNode)
@@ -111,7 +105,10 @@ TextEditorComponent = React.createClass
     scrollViewNode.appendChild(@horizontalScrollbarComponent.domNode)
 
     @verticalScrollbarComponent = new ScrollbarComponent({@presenter, orientation: 'vertical', onScroll: @onVerticalScroll})
-    node.insertBefore(@verticalScrollbarComponent.domNode, scrollbarCornerNode)
+    node.appendChild(@verticalScrollbarComponent.domNode)
+
+    @scrollbarCornerComponent = new ScrollbarCornerComponent(@presenter)
+    node.appendChild(@scrollbarCornerComponent.domNode)
 
     @observeEditor()
     @listenForDOMEvents()
@@ -155,6 +152,7 @@ TextEditorComponent = React.createClass
     @linesComponent.updateSync(@isVisible())
     @horizontalScrollbarComponent.updateSync()
     @verticalScrollbarComponent.updateSync()
+    @scrollbarCornerComponent.updateSync()
 
     if @props.editor.isAlive()
       @updateParentViewFocusedClassIfNeeded(prevState)
@@ -693,7 +691,7 @@ TextEditorComponent = React.createClass
     @measureScrollbarsWhenShown = false
 
     {editor} = @props
-    cornerNode = @refs.scrollbarCorner.getDOMNode()
+    cornerNode = @scrollbarCornerComponent.domNode
     originalDisplayValue = cornerNode.style.display
 
     cornerNode.style.display = 'block'
@@ -719,11 +717,9 @@ TextEditorComponent = React.createClass
       @measureScrollbarsWhenShown = true
       return
 
-    {scrollbarCorner} = @refs
-
     verticalNode = @verticalScrollbarComponent.domNode
     horizontalNode = @horizontalScrollbarComponent.domNode
-    cornerNode = scrollbarCorner.getDOMNode()
+    cornerNode = @scrollbarCornerComponent.domNode
 
     originalVerticalDisplayValue = verticalNode.style.display
     originalHorizontalDisplayValue = horizontalNode.style.display
