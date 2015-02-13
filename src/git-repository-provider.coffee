@@ -11,7 +11,7 @@ findGitDirectorySync = (directory) ->
   # can return cached values rather than always returning new objects:
   # getParent(), getFile(), getSubdirectory().
   gitDir = directory.getSubdirectory('.git')
-  if directoryExistsSync(gitDir) and isValidGitDirectorySync gitDir
+  if gitDir.existsSync() and isValidGitDirectorySync gitDir
     gitDir
   else if directory.isRoot()
     return null
@@ -26,19 +26,9 @@ isValidGitDirectorySync = (directory) ->
   # To decide whether a directory has a valid .git folder, we use
   # the heuristic adopted by the valid_repository_path() function defined in
   # node_modules/git-utils/deps/libgit2/src/repository.c.
-  return directoryExistsSync(directory.getSubdirectory('objects')) and
+  return directory.getSubdirectory('objects').existsSync() and
       directory.getFile('HEAD').existsSync() and
-      directoryExistsSync(directory.getSubdirectory('refs'))
-
-# Returns a boolean indicating whether the specified directory exists.
-#
-# * `directory` {Directory} to check for existence.
-directoryExistsSync = (directory) ->
-  # TODO: Directory should have its own existsSync() method. Currently, File has
-  # an exists() method, which is synchronous, so it may be tricky to achieve
-  # consistency between the File and Directory APIs. Once Directory has its own
-  # method, this function should be replaced with direct calls to existsSync().
-  return fs.existsSync(directory.getPath())
+      directory.getSubdirectory('refs').existsSync()
 
 # Provider that conforms to the atom.repository-provider@0.1.0 service.
 module.exports =
