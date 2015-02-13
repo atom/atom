@@ -6,10 +6,9 @@
 # arguments, so this script accepts the following special switches:
 #
 # * `atom-path`: The path to the `Atom` binary.
-# * `atom-arg`:  A positional argument to pass to Atom. This flag can be specified
-#                multiple times.
-# * `atom-env`:  A key=value environment variable to set for Atom. This flag can
-#                be specified multiple times.
+# * `atom-args`: A space-separated list of positional arguments to pass to Atom.
+# * `atom-env`:  A space-separated list of key=value pairs representing environment
+#                variables to set for Atom.
 #
 # Any other switches will be passed through to `Atom`.
 
@@ -23,12 +22,18 @@ for arg in "$@"; do
       atom_path="${arg#*=}"
       ;;
 
-    --atom-arg=*)
-      atom_args+=(${arg#*=})
+    --atom-args=*)
+      atom_arg_string="${arg#*=}"
+      for atom_arg in $atom_arg_string; do
+        atom_args+=($atom_arg)
+      done
       ;;
 
     --atom-env=*)
-      export ${arg#*=}
+      atom_env_string="${arg#*=}"
+      for atom_env_pair in $atom_env_string; do
+        export $atom_env_pair
+      done
       ;;
 
     *)

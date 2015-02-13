@@ -50,13 +50,13 @@ module.exports =
           binary: AtomLauncherPath
           args: [
             "atom-path=#{AtomPath}"
+            "atom-args=#{args.join(" ")}"
+            "atom-env=#{map(env, (value, key) -> "#{key}=#{value}").join(" ")}"
             "dev"
             "safe"
             "user-data-dir=#{temp.mkdirSync('integration-spec-')}"
             "socket-path=#{SocketPath}"
-          ]
-          .concat(map args, (arg) -> "atom-arg=#{arg}")
-          .concat(map env, (value, key) -> "atom-env=#{key}=#{value}"))
+          ])
       .init()
       .addCommand "waitForCondition", (conditionFn, timeout, cb) ->
         timedOut = succeeded = false
