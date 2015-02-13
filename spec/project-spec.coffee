@@ -7,6 +7,8 @@ path = require 'path'
 BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
+temp = require "temp"
+{ncp} = require "ncp"
 
 describe "Project", ->
   beforeEach ->
@@ -228,11 +230,34 @@ describe "Project", ->
         expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
     describe "when path is a directory", ->
-      it "sets its path to the directory and updates the root directory", ->
-        directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
-        atom.project.setPaths([directory])
-        expect(atom.project.getPaths()[0]).toEqual directory
-        expect(atom.project.getDirectories()[0].path).toEqual directory
+      it "assigns the directories and repositories", ->
+        directory1 = temp.mkdirSync("non-git-repo")
+        directory2 = temp.mkdirSync("git-repo1")
+        directory3 = temp.mkdirSync("git-repo2")
+
+        waitsFor (done) ->
+          ncp(
+            fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git')),
+            path.join(directory2, ".git"),
+            done
+          )
+
+        waitsFor (done) ->
+          ncp(
+            fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git')),
+            path.join(directory3, ".git"),
+            done
+          )
+
+        runs ->
+          atom.project.setPaths([directory1, directory2, directory3])
+
+          [repo1, repo2, repo3] = atom.project.getRepositories()
+          expect(repo1).toBeNull()
+          expect(repo2.getShortHead()).toBe "master"
+          expect(repo2.getPath()).toBe fs.realpathSync(path.join(directory2, ".git"))
+          expect(repo3.getShortHead()).toBe "master"
+          expect(repo3.getPath()).toBe fs.realpathSync(path.join(directory3, ".git"))
 
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
@@ -244,6 +269,25 @@ describe "Project", ->
       atom.project.setPaths(["#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}.."])
       expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
       expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+
+  describe ".relativize(path)", ->
+    it "returns the path, relative to whichever root directory it is inside of", ->
+      rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
+
+    it "returns the given path if it is not in any of the root directories", ->
+      randomPath = path.join("some", "random", "path")
+      expect(atom.project.relativize(randomPath)).toBe randomPath
+
+  describe ".contains(path)", ->
+    it "returns whether or not the given path is in one of the root directories", ->
+      rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.contains(childPath)).toBe true
+
+      randomPath = path.join("some", "random", "path")
+      expect(atom.project.contains(randomPath)).toBe false
 
   describe ".eachBuffer(callback)", ->
     beforeEach ->

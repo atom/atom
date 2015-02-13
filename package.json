@@ -44,6 +44,7 @@
     "less-cache": "0.21",
     "marked": "^0.3",
     "mixto": "^1",
+    "ncp": "^1.0.1",
     "nslog": "^2.0.0",
     "oniguruma": "^4.0.0",
     "optimist": "0.4.0",
