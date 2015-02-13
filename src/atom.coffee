@@ -95,9 +95,9 @@ class Atom extends Model
       when 'spec'
         filename = 'spec'
       when 'editor'
-        {initialPath} = @getLoadSettings()
-        if initialPath
-          sha1 = crypto.createHash('sha1').update(initialPath).digest('hex')
+        {initialPaths} = @getLoadSettings()
+        if initialPaths
+          sha1 = crypto.createHash('sha1').update(initialPaths.join("\n")).digest('hex')
           filename = "editor-#{sha1}"
 
     if filename
@@ -407,6 +407,17 @@ class Atom extends Model
   open: (options) ->
     ipc.send('open', options)
 
+  # Extended: Show the native dialog to prompt the user to select a folder.
+  #
+  # * `callback` A {Function} to call once the user has selected a folder.
+  #   * `path` {String} the path to the folder the user selected.
+  pickFolder: (callback) ->
+    responseChannel = "atom-pick-folder-response"
+    ipc.on responseChannel, (path) ->
+      ipc.removeAllListeners(responseChannel)
+      callback(path)
+    ipc.send("pick-folder", responseChannel)
+
   # Essential: Close the current window.
   close: ->
     @getCurrentWindow().close()
@@ -693,7 +704,7 @@ class Atom extends Model
     Project = require './project'
 
     startTime = Date.now()
-    @project ?= @deserializers.deserialize(@state.project) ? new Project(paths: [@getLoadSettings().initialPath])
+    @project ?= @deserializers.deserialize(@state.project) ? new Project()
     @deserializeTimings.project = Date.now() - startTime
 
   deserializeWorkspaceView: ->
@@ -736,7 +747,7 @@ class Atom extends Model
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     onProjectPathChanged = =>
-      ipc.send('window-command', 'project-path-changed', @project.getPaths()[0])
+      ipc.send('window-command', 'project-path-changed', @project.getPaths())
     @subscribe @project.onDidChangePaths(onProjectPathChanged)
     onProjectPathChanged()
 

@@ -7,6 +7,7 @@ path = require 'path'
 BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
+temp = require "temp"
 
 describe "Project", ->
   beforeEach ->
@@ -228,11 +229,33 @@ describe "Project", ->
         expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
     describe "when path is a directory", ->
-      it "sets its path to the directory and updates the root directory", ->
-        directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
-        atom.project.setPaths([directory])
-        expect(atom.project.getPaths()[0]).toEqual directory
-        expect(atom.project.getDirectories()[0].path).toEqual directory
+      it "assigns the directories and repositories", ->
+        directory1 = temp.mkdirSync("non-git-repo")
+        directory2 = temp.mkdirSync("git-repo1")
+        directory3 = temp.mkdirSync("git-repo2")
+
+        gitDirPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+        fs.copySync(gitDirPath, path.join(directory2, ".git"))
+        fs.copySync(gitDirPath, path.join(directory3, ".git"))
+
+        atom.project.setPaths([directory1, directory2, directory3])
+
+        [repo1, repo2, repo3] = atom.project.getRepositories()
+        expect(repo1).toBeNull()
+        expect(repo2.getShortHead()).toBe "master"
+        expect(repo2.getPath()).toBe fs.realpathSync(path.join(directory2, ".git"))
+        expect(repo3.getShortHead()).toBe "master"
+        expect(repo3.getPath()).toBe fs.realpathSync(path.join(directory3, ".git"))
+
+      it "calls callbacks registered with ::onDidChangePaths", ->
+        onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+        atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+        paths = [ temp.mkdirSync("dir1"), temp.mkdirSync("dir2") ]
+        atom.project.setPaths(paths)
+
+        expect(onDidChangePathsSpy.callCount).toBe 1
+        expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual(paths)
 
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
@@ -244,6 +267,53 @@ describe "Project", ->
       atom.project.setPaths(["#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}.."])
       expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
       expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+
+  describe ".addPath(path)", ->
+    it "calls callbacks registered with ::onDidChangePaths", ->
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+      [oldPath] = atom.project.getPaths()
+
+      newPath = temp.mkdirSync("dir")
+      atom.project.addPath(newPath)
+
+      expect(onDidChangePathsSpy.callCount).toBe 1
+      expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual([oldPath, newPath])
+
+    describe "when the project already has the path or one of its descendants", ->
+      it "doesn't add it again", ->
+        onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+        atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+        [oldPath] = atom.project.getPaths()
+
+        atom.project.addPath(oldPath)
+        atom.project.addPath(path.join(oldPath, "some-file.txt"))
+        atom.project.addPath(path.join(oldPath, "a-dir"))
+        atom.project.addPath(path.join(oldPath, "a-dir", "oh-git"))
+
+        expect(atom.project.getPaths()).toEqual([oldPath])
+        expect(onDidChangePathsSpy).not.toHaveBeenCalled()
+
+  describe ".relativize(path)", ->
+    it "returns the path, relative to whichever root directory it is inside of", ->
+      rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
+
+    it "returns the given path if it is not in any of the root directories", ->
+      randomPath = path.join("some", "random", "path")
+      expect(atom.project.relativize(randomPath)).toBe randomPath
+
+  describe ".contains(path)", ->
+    it "returns whether or not the given path is in one of the root directories", ->
+      rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.contains(childPath)).toBe true
+
+      randomPath = path.join("some", "random", "path")
+      expect(atom.project.contains(randomPath)).toBe false
 
   describe ".eachBuffer(callback)", ->
     beforeEach ->

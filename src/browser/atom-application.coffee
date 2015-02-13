@@ -152,11 +152,11 @@ class AtomApplication
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
-    @on 'application:open', -> @promptForPath(_.extend(type: 'all', getLoadSettings()))
-    @on 'application:open-file', -> @promptForPath(_.extend(type: 'file', getLoadSettings()))
-    @on 'application:open-folder', -> @promptForPath(_.extend(type: 'folder', getLoadSettings()))
-    @on 'application:open-dev', -> @promptForPath(devMode: true)
-    @on 'application:open-safe', -> @promptForPath(safeMode: true)
+    @on 'application:open', -> @promptForPathToOpen('all', getLoadSettings())
+    @on 'application:open-file', -> @promptForPathToOpen('file', getLoadSettings())
+    @on 'application:open-folder', -> @promptForPathToOpen('folder', getLoadSettings())
+    @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
+    @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
     @on 'application:inspect', ({x,y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
@@ -227,7 +227,7 @@ class AtomApplication
         else
           new AtomWindow(options)
       else
-        @promptForPath({window})
+        @promptForPathToOpen('all', {window})
 
     ipc.on 'update-application-menu', (event, template, keystrokesByCommand) =>
       win = BrowserWindow.fromWebContents(event.sender)
@@ -246,6 +246,10 @@ class AtomApplication
     ipc.on 'call-window-method', (event, method, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
+
+    ipc.on 'pick-folder', (event, responseChannel) =>
+      @promptForPath "folder", (selectedPaths) ->
+        event.sender.send(responseChannel, selectedPaths)
 
     clipboard = null
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
@@ -307,9 +311,10 @@ class AtomApplication
       else
         @openPath({pathToOpen})
 
-  # Returns the {AtomWindow} for the given path.
-  windowForPath: (pathToOpen) ->
-    _.find @windows, (atomWindow) -> atomWindow.containsPath(pathToOpen)
+  # Returns the {AtomWindow} for the given paths.
+  windowForPaths: (pathsToOpen, devMode) ->
+    _.find @windows, (atomWindow) ->
+      atomWindow.devMode is devMode and atomWindow.containsPaths(pathsToOpen)
 
   # Returns the {AtomWindow} for the given ipc event.
   windowForEvent: ({sender}) ->
@@ -323,49 +328,39 @@ class AtomApplication
   # Public: Opens multiple paths, in existing windows if possible.
   #
   # options -
-  #   :pathsToOpen - The array of file paths to open
+  #   :pathToOpen - The file path to open
   #   :pidToKillWhenClosed - The integer of the pid to kill
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :window - {AtomWindow} to open file paths in.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window}) ->
-    for pathToOpen in pathsToOpen ? []
-      @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window})
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window}) ->
+    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, window})
 
   # Public: Opens a single path, in an existing window if possible.
   #
   # options -
-  #   :pathToOpen - The file path to open
+  #   :pathsToOpen - The array of file paths to open
   #   :pidToKillWhenClosed - The integer of the pid to kill
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
-    {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
-    pathToOpen = fs.normalize(pathToOpen)
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
+    pathsToOpen = (fs.normalize(pathToOpen) for pathToOpen in pathsToOpen)
+    locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
 
     unless pidToKillWhenClosed or newWindow
-      pathToOpenStat = fs.statSyncNoException(pathToOpen)
+      existingWindow = @windowForPaths(pathsToOpen, devMode)
 
-      # Default to using the specified window or the last focused window
-      currentWindow = window ? @lastFocusedWindow
-
-      if pathToOpenStat.isFile?()
-        # Open the file in the current window
-        existingWindow = currentWindow
-      else if pathToOpenStat.isDirectory?()
-        # Open the folder in the current window if it doesn't have a path
-        existingWindow = currentWindow unless currentWindow?.hasProjectPath()
-
-      # Don't reuse windows in dev mode
-      existingWindow ?= @windowForPath(pathToOpen) unless devMode
+    # Default to using the specified window or the last focused window
+    if pathsToOpen.every((pathToOpen) -> fs.statSyncNoException(pathToOpen).isFile?())
+      existingWindow ?= window ? @lastFocusedWindow
 
     if existingWindow?
       openedWindow = existingWindow
-      openedWindow.openPath(pathToOpen, initialLine, initialColumn)
+      openedWindow.openLocations(locationsToOpen)
       if openedWindow.isMinimized()
         openedWindow.restore()
       else
@@ -378,7 +373,7 @@ class AtomApplication
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, initialLine, initialColumn, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions})
+      openedWindow = new AtomWindow({locationsToOpen, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -497,8 +492,11 @@ class AtomApplication
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
   #   :window - An {AtomWindow} to use for opening a selected file path.
-  promptForPath: ({type, devMode, safeMode, window}={}) ->
-    type ?= 'all'
+  promptForPathToOpen: (type, {devMode, safeMode, window}) ->
+    @promptForPath type, (pathsToOpen) =>
+      @openPaths({pathsToOpen, devMode, safeMode, window})
+
+  promptForPath: (type, callback) ->
     properties =
       switch type
         when 'file' then ['openFile']
@@ -523,5 +521,4 @@ class AtomApplication
         openOptions.defaultPath = projectPath
 
     dialog = require 'dialog'
-    dialog.showOpenDialog parentWindow, openOptions, (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode, window})
+    dialog.showOpenDialog(parentWindow, openOptions, callback)

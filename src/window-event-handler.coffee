@@ -17,15 +17,13 @@ class WindowEventHandler
 
     @subscribe ipc, 'message', (message, detail) ->
       switch message
-        when 'open-path'
-          {pathToOpen, initialLine, initialColumn} = detail
+        when 'open-locations'
+          for {pathToOpen, initialLine, initialColumn} in detail
+            if pathToOpen and (fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen)))
+              atom.project?.addPath(pathToOpen)
 
-          unless atom.project?.getPaths().length
-            if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
-              atom.project?.setPaths([pathToOpen])
-
-          unless fs.isDirectorySync(pathToOpen)
-            atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+            unless fs.isDirectorySync(pathToOpen)
+              atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
         when 'update-available'
           atom.updateAvailable(detail)
