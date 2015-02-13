@@ -160,7 +160,7 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateLinesState: ->
-    return unless @hasRequiredMeasurements()
+    return unless @startRow? and @endRow? and @lineHeight?
 
     visibleLineIds = {}
     row = @startRow
@@ -207,7 +207,8 @@ class TextEditorPresenter
 
   updateCursorsState: ->
     @state.content.cursors = {}
-    return unless @hasRequiredMeasurements()
+
+    return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
 
     for cursor in @model.cursors # using property directly to avoid allocation
       if cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
@@ -218,7 +219,7 @@ class TextEditorPresenter
     @emitter.emit 'did-update-state'
 
   updateOverlaysState: ->
-    return unless @hasRequiredMeasurements()
+    return unless @hasPixelRectRequirements()
 
     visibleDecorationIds = {}
 
@@ -249,6 +250,8 @@ class TextEditorPresenter
     @emitter.emit "did-update-state"
 
   updateLineNumbersState: ->
+    return unless @startRow? and @endRow? and @lineHeight?
+
     visibleLineNumberIds = {}
 
     if @startRow > 0
@@ -290,50 +293,6 @@ class TextEditorPresenter
       delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
     @emitter.emit 'did-update-state'
-
-  buildHighlightRegions: (screenRange) ->
-    lineHeightInPixels = @lineHeight
-    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, true)
-    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, true)
-    spannedRows = screenRange.end.row - screenRange.start.row + 1
-
-    if spannedRows is 1
-      [
-        top: startPixelPosition.top
-        height: lineHeightInPixels
-        left: startPixelPosition.left
-        width: endPixelPosition.left - startPixelPosition.left
-      ]
-    else
-      regions = []
-
-      # First row, extending from selection start to the right side of screen
-      regions.push(
-        top: startPixelPosition.top
-        left: startPixelPosition.left
-        height: lineHeightInPixels
-        right: 0
-      )
-
-      # Middle rows, extending from left side to right side of screen
-      if spannedRows > 2
-        regions.push(
-          top: startPixelPosition.top + lineHeightInPixels
-          height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
-          left: 0
-          right: 0
-        )
-
-      # Last row, extending from left side of screen to selection end
-      if screenRange.end.column > 0
-        regions.push(
-          top: endPixelPosition.top
-          height: lineHeightInPixels
-          left: 0
-          width: endPixelPosition.left
-        )
-
-      regions
 
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
@@ -416,22 +375,14 @@ class TextEditorPresenter
 
   constrainScrollTop: (scrollTop) ->
     return scrollTop unless scrollTop? and @scrollHeight? and @clientHeight?
-
-    if @hasRequiredMeasurements()
-      Math.max(0, Math.min(scrollTop, @scrollHeight - @clientHeight))
-    else
-      Math.max(0, scrollTop) if scrollTop?
+    Math.max(0, Math.min(scrollTop, @scrollHeight - @clientHeight))
 
   updateScrollLeft: ->
     @scrollLeft = @constrainScrollLeft(@scrollLeft)
 
   constrainScrollLeft: (scrollLeft) ->
     return scrollLeft unless scrollLeft? and @scrollWidth? and @clientWidth?
-
-    if @hasRequiredMeasurements()
-      Math.max(0, Math.min(scrollLeft, @scrollWidth - @clientWidth))
-    else
-      Math.max(0, scrollLeft) if scrollLeft?
+    Math.max(0, Math.min(scrollLeft, @scrollWidth - @clientWidth))
 
   updateScrollbarDimensions: ->
     return unless @contentFrameWidth? and @height?
@@ -492,15 +443,6 @@ class TextEditorPresenter
   getCursorBlinkPeriod: -> @cursorBlinkPeriod
 
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
-
-  hasRequiredMeasurements: ->
-    @lineHeight? and
-      @baseCharacterWidth? and
-      @scrollTop? and
-      @contentFrameWidth? and
-      @scrollLeft? and
-      @measuredVerticalScrollbarWidth? and
-      @measuredHorizontalScrollbarHeight?
 
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
@@ -680,6 +622,9 @@ class TextEditorPresenter
   clearScopedCharacterWidths: ->
     @characterWidthsByScope = {}
 
+  hasPixelPositionRequirements: ->
+    @lineHeight? and @baseCharacterWidth?
+
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
@@ -710,6 +655,9 @@ class TextEditorPresenter
         left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
     {top, left}
+
+  hasPixelRectRequirements: ->
+    @hasPixelPositionRequirements() and @scrollWidth?
 
   pixelRectForScreenRange: (screenRange) ->
     if screenRange.end.row > screenRange.start.row
@@ -846,7 +794,7 @@ class TextEditorPresenter
         @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
 
   updateHighlightState: (decoration) ->
-    return unless @hasRequiredMeasurements()
+    return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
 
     properties = decoration.getProperties()
     marker = decoration.getMarker()
@@ -880,6 +828,50 @@ class TextEditorPresenter
 
     @emitter.emit 'did-update-state'
     true
+
+  buildHighlightRegions: (screenRange) ->
+    lineHeightInPixels = @lineHeight
+    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, true)
+    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, true)
+    spannedRows = screenRange.end.row - screenRange.start.row + 1
+
+    if spannedRows is 1
+      [
+        top: startPixelPosition.top
+        height: lineHeightInPixels
+        left: startPixelPosition.left
+        width: endPixelPosition.left - startPixelPosition.left
+      ]
+    else
+      regions = []
+
+      # First row, extending from selection start to the right side of screen
+      regions.push(
+        top: startPixelPosition.top
+        left: startPixelPosition.left
+        height: lineHeightInPixels
+        right: 0
+      )
+
+      # Middle rows, extending from left side to right side of screen
+      if spannedRows > 2
+        regions.push(
+          top: startPixelPosition.top + lineHeightInPixels
+          height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
+          left: 0
+          right: 0
+        )
+
+      # Last row, extending from left side of screen to selection end
+      if screenRange.end.column > 0
+        regions.push(
+          top: endPixelPosition.top
+          height: lineHeightInPixels
+          left: 0
+          width: endPixelPosition.left
+        )
+
+      regions
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>

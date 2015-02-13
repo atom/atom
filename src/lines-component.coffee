@@ -256,7 +256,7 @@ LinesComponent = React.createClass
     presenter.setBaseCharacterWidth(charWidth)
 
   remeasureCharacterWidths: ->
-    return unless @props.presenter.hasRequiredMeasurements()
+    return unless @props.presenter.baseCharacterWidth
 
     @clearScopedCharWidths()
     @measureCharactersInNewLines()

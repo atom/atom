@@ -26,7 +26,7 @@ GutterComponent = React.createClass
     div className: 'gutter',
       div className: 'line-numbers', ref: 'lineNumbers', style:
         height: scrollHeight
-        WebkitTransform: @getTransform() if presenter.hasRequiredMeasurements()
+        WebkitTransform: @getTransform()
         backgroundColor: backgroundColor
 
   getTransform: ->
