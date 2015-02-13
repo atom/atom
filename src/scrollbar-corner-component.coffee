@@ -7,19 +7,43 @@ ScrollbarCornerComponent = React.createClass
   displayName: 'ScrollbarCornerComponent'
 
   render: ->
-    {presenter, measuringScrollbars} = @props
+    div className: 'scrollbar-corner',
+      div ref: 'content'
 
-    visible = presenter.state.horizontalScrollbar.visible and presenter.state.verticalScrollbar.visible
-    width = presenter.state.verticalScrollbar.width
-    height = presenter.state.horizontalScrollbar.height
+  componentDidMount: ->
+    @updateSync()
 
-    if measuringScrollbars
-      height = 25
-      width = 25
+  componentDidUpdate: ->
+    @updateSync()
 
-    display = 'none' unless visible
+  updateSync: ->
+    {presenter} = @props
 
-    div className: 'scrollbar-corner', style: {display, width, height},
-      div style:
-        height: height + 1
-        width: width + 1
+    @oldState ?= {}
+    @newState ?= {}
+
+    newHorizontalState = presenter.state.horizontalScrollbar
+    newVerticalState = presenter.state.verticalScrollbar
+    @newState.visible = newHorizontalState.visible and newVerticalState.visible
+    @newState.height = newHorizontalState.height
+    @newState.width = newVerticalState.width
+
+    node = @getDOMNode()
+    contentNode = @refs.content.getDOMNode()
+
+    if @newState.visible isnt @oldState.visible
+      if @newState.visible
+        node.style.display = ''
+      else
+        node.style.display = 'none'
+      @oldState.visible = @newState.visible
+
+    if @newState.height isnt @oldState.height
+      node.style.height = @newState.height + 'px'
+      contentNode.style.height = @newState.height + 1 + 'px'
+      @oldState.height = @newState.height
+
+    if @newState.width isnt @oldState.width
+      node.style.width = @newState.width + 'px'
+      contentNode.style.width = @newState.width + 1 + 'px'
+      @oldState.width = @newState.width

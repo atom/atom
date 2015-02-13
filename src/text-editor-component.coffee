@@ -67,7 +67,6 @@ TextEditorComponent = React.createClass
       ScrollbarCornerComponent
         ref: 'scrollbarCorner'
         presenter: @presenter
-        measuringScrollbars: @measuringScrollbars
 
   getInitialState: -> {}
 
