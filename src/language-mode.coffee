@@ -2,6 +2,7 @@
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 {Emitter, Subscriber} = require 'emissary'
+ScopeDescriptor = require './scope-descriptor'
 
 module.exports =
 class LanguageMode
@@ -228,11 +229,20 @@ class LanguageMode
   #
   # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow, options) ->
+    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+
+  suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
+    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+
+  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
+    scopes = tokenizedLine.tokens[0].scopes
+    scopeDescriptor = new ScopeDescriptor({scopes})
+
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
-    currentLine = @buffer.lineForRow(bufferRow)
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
@@ -245,7 +255,7 @@ class LanguageMode
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(tokenizedLine.text)
 
     Math.max(desiredIndentLevel, 0)
 

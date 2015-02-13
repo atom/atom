@@ -359,11 +359,24 @@ class Selection extends Model
     @clear()
     @cursor.needsAutoscroll = @cursor.isLastCursor()
 
+    autoIndentFirstLine = false
     precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
-    startLevel = @editor.indentLevelForLine(precedingText)
+    remainingLines = text.split('\n')
+    firstInsertedLine = remainingLines.shift()
 
     if options.indentBasis?
-      text = @adjustIndent(text, startLevel - options.indentBasis)
+      indentAdjustment = @editor.indentLevelForLine(precedingText) - options.indentBasis
+      @adjustIndent(remainingLines, indentAdjustment)
+
+    if options.autoIndent and not NonWhitespaceRegExp.test(precedingText)
+      autoIndentFirstLine = true
+      firstLine = precedingText + firstInsertedLine
+      desiredIndentLevel = @editor.languageMode.suggestedIndentForLineAtBufferRow(oldBufferRange.start.row, firstLine)
+      indentAdjustment = desiredIndentLevel - @editor.indentLevelForLine(firstLine)
+      @adjustIndent(remainingLines, indentAdjustment)
+
+    text = firstInsertedLine
+    text += '\n' + remainingLines.join('\n') if remainingLines.length > 0
 
     newBufferRange = @editor.buffer.setTextInRange(oldBufferRange, text, pick(options, 'undo', 'normalizeLineEndings'))
 
@@ -372,20 +385,10 @@ class Selection extends Model
     else
       @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    if options.autoIndent
-      precedingText = @editor.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
-      unless NonWhitespaceRegExp.test(precedingText)
-        rowsToIndent = newBufferRange.getRows()
-        firstRow = rowsToIndent.shift()
-        rowsToIndent.pop() if text.endsWith("\n")
-        suggestedIndent = @editor.suggestedIndentForBufferRow(firstRow)
-        actualIndent = @editor.indentationForBufferRow(firstRow)
-        @editor.setIndentationForBufferRow(firstRow, suggestedIndent)
-        indentChange = suggestedIndent - actualIndent
-        for row in rowsToIndent
-          newIndent = @editor.indentationForBufferRow(row) + indentChange
-          @editor.setIndentationForBufferRow(row, newIndent)
-    else if options.autoIndentNewline and text == '\n'
+    if autoIndentFirstLine
+      @editor.setIndentationForBufferRow(oldBufferRange.start.row, desiredIndentLevel)
+
+    if options.autoIndentNewline and text == '\n'
       currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
       @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
       if @editor.indentationForBufferRow(newBufferRange.end.row) < currentIndentation
@@ -605,18 +608,16 @@ class Selection extends Model
 
   # Private: Increase the indentation level of the given text by given number
   # of levels. Leaves the first line unchanged.
-  adjustIndent: (text, indentIncrease) ->
-    lines = text.split('\n')
-    for line, i in lines when i > 0
-      if indentIncrease == 0 or line is ''
+  adjustIndent: (lines, indentAdjustment) ->
+    for line, i in lines
+      if indentAdjustment == 0 or line is ''
         continue
-      else if indentIncrease > 0
-        lines[i] = @editor.buildIndentString(indentIncrease) + line
+      else if indentAdjustment > 0
+        lines[i] = @editor.buildIndentString(indentAdjustment) + line
       else
         currentIndentLevel = @editor.indentLevelForLine(lines[i])
-        indentLevel = Math.max(0, currentIndentLevel + indentIncrease)
+        indentLevel = Math.max(0, currentIndentLevel + indentAdjustment)
         lines[i] = line.replace(/^[\t ]+/, @editor.buildIndentString(indentLevel))
-    lines.join('\n')
 
   # Indent the current line(s).
   #
