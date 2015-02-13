@@ -8,7 +8,6 @@ BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 temp = require "temp"
-{ncp} = require "../build/node_modules/ncp"
 
 describe "Project", ->
   beforeEach ->
@@ -235,29 +234,18 @@ describe "Project", ->
         directory2 = temp.mkdirSync("git-repo1")
         directory3 = temp.mkdirSync("git-repo2")
 
-        waitsFor (done) ->
-          ncp(
-            fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git')),
-            path.join(directory2, ".git"),
-            done
-          )
+        gitDirPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+        fs.copySync(gitDirPath, path.join(directory2, ".git"))
+        fs.copySync(gitDirPath, path.join(directory3, ".git"))
 
-        waitsFor (done) ->
-          ncp(
-            fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git')),
-            path.join(directory3, ".git"),
-            done
-          )
+        atom.project.setPaths([directory1, directory2, directory3])
 
-        runs ->
-          atom.project.setPaths([directory1, directory2, directory3])
-
-          [repo1, repo2, repo3] = atom.project.getRepositories()
-          expect(repo1).toBeNull()
-          expect(repo2.getShortHead()).toBe "master"
-          expect(repo2.getPath()).toBe fs.realpathSync(path.join(directory2, ".git"))
-          expect(repo3.getShortHead()).toBe "master"
-          expect(repo3.getPath()).toBe fs.realpathSync(path.join(directory3, ".git"))
+        [repo1, repo2, repo3] = atom.project.getRepositories()
+        expect(repo1).toBeNull()
+        expect(repo2.getShortHead()).toBe "master"
+        expect(repo2.getPath()).toBe fs.realpathSync(path.join(directory2, ".git"))
+        expect(repo3.getShortHead()).toBe "master"
+        expect(repo3.getPath()).toBe fs.realpathSync(path.join(directory3, ".git"))
 
       it "calls callbacks registered with ::onDidChangePaths", ->
         onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
