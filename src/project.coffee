@@ -184,6 +184,11 @@ class Project extends Model
       projectPath
     else
       path.dirname(projectPath)
+
+    return if @getPaths().some (existingPath) ->
+      (directoryPath is existingPath) or
+      (directoryPath.indexOf(path.join(existingPath, path.sep)) is 0)
+
     directory = new Directory(directoryPath)
     @rootDirectories.push(directory)
 

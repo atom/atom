@@ -311,9 +311,9 @@ class AtomApplication
       else
         @openPath({pathToOpen})
 
-  # Returns the {AtomWindow} for the given path.
-  windowForPath: (pathToOpen) ->
-    _.find @windows, (atomWindow) -> atomWindow.containsPath(pathToOpen)
+  # Returns the {AtomWindow} for the given paths.
+  windowForPaths: (pathsToOpen) ->
+    _.find @windows, (atomWindow) -> atomWindow.containsPaths(pathsToOpen)
 
   # Returns the {AtomWindow} for the given ipc event.
   windowForEvent: ({sender}) ->
@@ -327,49 +327,35 @@ class AtomApplication
   # Public: Opens multiple paths, in existing windows if possible.
   #
   # options -
-  #   :pathsToOpen - The array of file paths to open
+  #   :pathToOpen - The file path to open
   #   :pidToKillWhenClosed - The integer of the pid to kill
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :window - {AtomWindow} to open file paths in.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window}) ->
-    for pathToOpen in pathsToOpen ? []
-      @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window})
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, window}) ->
+    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, window})
 
   # Public: Opens a single path, in an existing window if possible.
   #
   # options -
-  #   :pathToOpen - The file path to open
+  #   :pathsToOpen - The array of file paths to open
   #   :pidToKillWhenClosed - The integer of the pid to kill
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
-    {pathToOpen, initialLine, initialColumn} = @locationForPathToOpen(pathToOpen)
-    pathToOpen = fs.normalize(pathToOpen)
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
+    pathsToOpen = (fs.normalize(pathToOpen) for pathToOpen in pathsToOpen)
+    locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
 
-    unless pidToKillWhenClosed or newWindow
-      pathToOpenStat = fs.statSyncNoException(pathToOpen)
-
-      # Default to using the specified window or the last focused window
-      currentWindow = window ? @lastFocusedWindow
-
-      if pathToOpenStat.isFile?()
-        # Open the file in the current window
-        existingWindow = currentWindow
-      else if pathToOpenStat.isDirectory?()
-        # Open the folder in the current window if it doesn't have a path
-        existingWindow = currentWindow unless currentWindow?.hasProjectPath()
-
-      # Don't reuse windows in dev mode
-      existingWindow ?= @windowForPath(pathToOpen) unless devMode
+    unless pidToKillWhenClosed or newWindow # or devMode
+      existingWindow = @windowForPaths(pathsToOpen)
 
     if existingWindow?
       openedWindow = existingWindow
-      openedWindow.openPath(pathToOpen, initialLine, initialColumn)
+      openedWindow.openLocations(locationsToOpen)
       if openedWindow.isMinimized()
         openedWindow.restore()
       else
@@ -382,7 +368,7 @@ class AtomApplication
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({pathToOpen, initialLine, initialColumn, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions})
+      openedWindow = new AtomWindow({locationsToOpen, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow

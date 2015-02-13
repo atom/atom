@@ -59,3 +59,45 @@ describe "Starting Atom", ->
           .waitForExist("atom-workspace", 5000)
           .then((exists) -> expect(exists).toBe true)
           .waitForPaneItemCount(0, 1000)
+
+    it "saves the state of closed windows", ->
+      runAtom [otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+        client
+
+          # Opening a file in another window creates another window with a tab
+          # open for that file.
+          .waitForExist("atom-workspace", 5000)
+          .startAnotherWindow([tempFilePath], ATOM_HOME: AtomHome)
+          .waitForWindowCount(2, 5000)
+          .then(({value}) -> @window(value[1]))
+          .waitForExist("atom-text-editor", 5000)
+          .click("atom-text-editor")
+          .execute(-> atom.workspace.getActiveTextEditor().getText())
+          .then(({value}) -> expect(value).toBe "This file was already here.")
+
+          # Closing that window and reopening that directory shows the
+          # previously-opened file.
+          .execute(-> atom.unloadEditorWindow())
+          .close()
+          .waitForWindowCount(1, 5000)
+          .startAnotherWindow([tempDirPath], ATOM_HOME: AtomHome)
+          .waitForWindowCount(2, 5000)
+          .then(({value}) -> @window(value[1]))
+          .waitForExist("atom-text-editor", 5000)
+          .execute(-> atom.workspace.getActiveTextEditor().getText())
+          .then(({value}) -> expect(value).toBe "This file was already here.")
+
+    it "allows multiple project directories to be passed as separate arguments", ->
+      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace", 5000)
+          .then((exists) -> expect(exists).toBe true)
+          .execute(-> atom.project.getPaths())
+          .then(({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath]))
+
+          # Opening a file in one of the directories reuses the same window
+          # and does not change the project paths.
+          .startAnotherWindow([tempFilePath], ATOM_HOME: AtomHome)
+          .waitForPaneItemCount(1, 5000)
+          .execute(-> atom.project.getPaths())
+          .then(({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath]))

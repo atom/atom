@@ -293,6 +293,21 @@ describe "Project", ->
       expect(onDidChangePathsSpy.callCount).toBe 1
       expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual([oldPath, newPath])
 
+    describe "when the project already has the path or one of its descendants", ->
+      it "doesn't add it again", ->
+        onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+        atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+        [oldPath] = atom.project.getPaths()
+
+        atom.project.addPath(oldPath)
+        atom.project.addPath(path.join(oldPath, "some-file.txt"))
+        atom.project.addPath(path.join(oldPath, "a-dir"))
+        atom.project.addPath(path.join(oldPath, "a-dir", "oh-git"))
+
+        expect(atom.project.getPaths()).toEqual([oldPath])
+        expect(onDidChangePathsSpy).not.toHaveBeenCalled()
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
       rootPath = atom.project.getPaths()[0]
