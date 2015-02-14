@@ -77,6 +77,18 @@ describe "TextEditorPresenter", ->
           presenter.setExplicitHeight((editor.getLineCount() * 10) - 1)
           expect(state.horizontalScrollbar.visible).toBe true
 
+        it "is false if the editor is mini", ->
+          presenter = buildPresenter
+            explicitHeight: editor.getLineCount() * 10
+            contentFrameWidth: editor.getMaxScreenLineLength() * 10 - 10
+            baseCharacterWidth: 10
+
+          expect(presenter.state.horizontalScrollbar.visible).toBe true
+          editor.setMini(true)
+          expect(presenter.state.horizontalScrollbar.visible).toBe false
+          editor.setMini(false)
+          expect(presenter.state.horizontalScrollbar.visible).toBe true
+
       describe ".height", ->
         it "tracks the value of ::horizontalScrollbarHeight", ->
           presenter = buildPresenter(horizontalScrollbarHeight: 10)

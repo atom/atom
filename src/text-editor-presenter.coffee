@@ -59,6 +59,8 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
+      @updateScrollbarDimensions()
+      @updateScrollbarsState()
       @updateContentState()
       @updateDecorations()
       @updateLinesState()
@@ -395,12 +397,14 @@ class TextEditorPresenter
     clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
     horizontalScrollbarVisible =
-      @contentWidth > clientWidthWithoutVerticalScrollbar or
-        @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar
+      not @model.isMini() and
+        (@contentWidth > clientWidthWithoutVerticalScrollbar or
+         @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar)
 
     verticalScrollbarVisible =
-      @contentHeight > clientHeightWithoutHorizontalScrollbar or
-        @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar
+      not @model.isMini() and
+        (@contentHeight > clientHeightWithoutHorizontalScrollbar or
+         @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar)
 
     horizontalScrollbarHeight =
       if horizontalScrollbarVisible
