@@ -1917,13 +1917,16 @@ describe "TextEditorPresenter", ->
   xdescribe "when the model and view measurements are mutated randomly", ->
     [editor, buffer, presenterParams, presenter, statements] = []
 
+    recordStatement = (statement) -> statements.push(statement)
+
     it "correctly maintains the presenter state", ->
       _.times 20, ->
         waits(0)
         runs ->
           performSetup()
+          performRandomInitialization(recordStatement)
           _.times 20, ->
-            performRandomAction (statement) -> statements.push(statement)
+            performRandomAction recordStatement
             expectValidState()
           performTeardown()
 
@@ -1939,17 +1942,24 @@ describe "TextEditorPresenter", ->
       editor.setEditorWidthInChars(80)
       presenterParams =
         model: editor
-        explicitHeight: 50
-        contentFrameWidth: 300
-        scrollTop: 0
-        scrollLeft: 0
-        lineHeight: 10
-        baseCharacterWidth: 10
         lineOverdrawMargin: 1
-        horizontalScrollbarHeight: 5
-        verticalScrollbarWidth: 5
       presenter = new TextEditorPresenter(presenterParams)
       statements = []
+
+    performRandomInitialization = (log) ->
+      actions = _.shuffle([
+        changeScrollLeft
+        changeScrollTop
+        changeExplicitHeight
+        changeContentFrameWidth
+        changeLineHeight
+        changeBaseCharacterWidth
+        changeHorizontalScrollbarHeight
+        changeVerticalScrollbarWidth
+      ])
+      for action in actions
+        action(log)
+        expectValidState()
 
     performTeardown = ->
       buffer.destroy()
@@ -1991,14 +2001,16 @@ describe "TextEditorPresenter", ->
       ])(log)
 
     changeScrollTop = (log) ->
-      scrollHeight = presenterParams.lineHeight * editor.getScreenLineCount()
-      newScrollTop = Math.max(0, _.random(0, scrollHeight - presenterParams.explicitHeight))
+      scrollHeight = (presenterParams.lineHeight ? 10) * editor.getScreenLineCount()
+      explicitHeight = (presenterParams.explicitHeight ? 500)
+      newScrollTop = Math.max(0, _.random(0, scrollHeight - explicitHeight))
       log "presenter.setScrollTop(#{newScrollTop})"
       presenter.setScrollTop(newScrollTop)
 
     changeScrollLeft = (log) ->
-      scrollWidth = presenter.scrollWidth
-      newScrollLeft = Math.max(0, _.random(0, scrollWidth - presenterParams.contentFrameWidth))
+      scrollWidth = presenter.scrollWidth ? 300
+      contentFrameWidth = presenter.contentFrameWidth ? 200
+      newScrollLeft = Math.max(0, _.random(0, scrollWidth - contentFrameWidth))
       log """
         presenterParams.scrollLeft = #{newScrollLeft}
         presenter.setScrollLeft(#{newScrollLeft})
@@ -2007,7 +2019,7 @@ describe "TextEditorPresenter", ->
       presenter.setScrollLeft(newScrollLeft)
 
     changeExplicitHeight = (log) ->
-      scrollHeight = presenterParams.lineHeight * editor.getScreenLineCount()
+      scrollHeight = (presenterParams.lineHeight ? 10) * editor.getScreenLineCount()
       newExplicitHeight = _.random(30, scrollHeight * 1.5)
       log """
         presenterParams.explicitHeight = #{newExplicitHeight}
@@ -2017,7 +2029,7 @@ describe "TextEditorPresenter", ->
       presenter.setExplicitHeight(newExplicitHeight)
 
     changeContentFrameWidth = (log) ->
-      scrollWidth = presenter.scrollWidth
+      scrollWidth = presenter.scrollWidth ? 300
       newContentFrameWidth = _.random(100, scrollWidth * 1.5)
       log """
         presenterParams.contentFrameWidth = #{newContentFrameWidth}
@@ -2025,6 +2037,42 @@ describe "TextEditorPresenter", ->
       """
       presenterParams.contentFrameWidth = newContentFrameWidth
       presenter.setContentFrameWidth(newContentFrameWidth)
+
+    changeLineHeight = (log) ->
+      newLineHeight = _.random(5, 15)
+      log """
+        presenterParams.lineHeight = #{newLineHeight}
+        presenter.setLineHeight(#{newLineHeight})
+      """
+      presenterParams.lineHeight = newLineHeight
+      presenter.setLineHeight(newLineHeight)
+
+    changeBaseCharacterWidth = (log) ->
+      newBaseCharacterWidth = _.random(5, 15)
+      log """
+        presenterParams.baseCharacterWidth = #{newBaseCharacterWidth}
+        presenter.setBaseCharacterWidth(#{newBaseCharacterWidth})
+      """
+      presenterParams.baseCharacterWidth = newBaseCharacterWidth
+      presenter.setBaseCharacterWidth(newBaseCharacterWidth)
+
+    changeHorizontalScrollbarHeight = (log) ->
+      newHorizontalScrollbarHeight = _.random(2, 15)
+      log """
+        presenterParams.horizontalScrollbarHeight = #{newHorizontalScrollbarHeight}
+        presenter.setHorizontalScrollbarHeight(#{newHorizontalScrollbarHeight})
+      """
+      presenterParams.horizontalScrollbarHeight = newHorizontalScrollbarHeight
+      presenter.setHorizontalScrollbarHeight(newHorizontalScrollbarHeight)
+
+    changeVerticalScrollbarWidth = (log) ->
+      newVerticalScrollbarWidth = _.random(2, 15)
+      log """
+        presenterParams.verticalScrollbarWidth = #{newVerticalScrollbarWidth}
+        presenter.setVerticalScrollbarWidth(#{newVerticalScrollbarWidth})
+      """
+      presenterParams.verticalScrollbarWidth = newVerticalScrollbarWidth
+      presenter.setVerticalScrollbarWidth(newVerticalScrollbarWidth)
 
     toggleSoftWrap = (log) ->
       softWrapped = not editor.isSoftWrapped()

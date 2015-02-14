@@ -330,14 +330,14 @@ class TextEditorPresenter
       @updateScrollTop()
 
   updateContentDimensions: ->
-    return unless @lineHeight? and @baseCharacterWidth?
+    if @lineHeight?
+      oldContentHeight = @contentHeight
+      @contentHeight = @lineHeight * @model.getScreenLineCount()
 
-    oldContentHeight = @contentHeight
-    @contentHeight = @lineHeight * @model.getScreenLineCount()
-
-    oldContentWidth = @contentWidth
-    @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-    @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+    if @baseCharacterWidth?
+      oldContentWidth = @contentWidth
+      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+      @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()
@@ -447,7 +447,7 @@ class TextEditorPresenter
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
 
-    unless @scrollTop is scrollTop
+    unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
       @updateStartRow()
@@ -478,7 +478,7 @@ class TextEditorPresenter
 
   setScrollLeft: (scrollLeft) ->
     scrollLeft = @constrainScrollLeft(scrollLeft)
-    unless @scrollLeft is scrollLeft
+    unless @scrollLeft is scrollLeft or Number.isNaN(scrollLeft)
       oldScrollLeft = @scrollLeft
       @scrollLeft = scrollLeft
       @model.setScrollLeft(scrollLeft)
@@ -493,6 +493,7 @@ class TextEditorPresenter
       @updateScrollbarDimensions()
       @updateScrollbarsState()
       @updateVerticalScrollState()
+      @updateHorizontalScrollState()
       @updateCursorsState() unless oldHorizontalScrollbarHeight?
 
   setVerticalScrollbarWidth: (verticalScrollbarWidth) ->
@@ -502,6 +503,7 @@ class TextEditorPresenter
       @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
       @updateScrollbarDimensions()
       @updateScrollbarsState()
+      @updateVerticalScrollState()
       @updateHorizontalScrollState()
       @updateCursorsState() unless oldVerticalScrollbarWidth?
 
@@ -567,7 +569,9 @@ class TextEditorPresenter
       @updateStartRow()
       @updateEndRow()
       @updateHeightState()
+      @updateHorizontalScrollState()
       @updateVerticalScrollState()
+      @updateScrollbarsState()
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
@@ -613,6 +617,8 @@ class TextEditorPresenter
     @updateContentDimensions()
 
     @updateHorizontalScrollState()
+    @updateVerticalScrollState()
+    @updateScrollbarsState()
     @updateContentState()
     @updateDecorations()
     @updateLinesState()
