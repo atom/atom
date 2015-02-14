@@ -101,7 +101,7 @@ TextEditorComponent = React.createClass
     @hiddenInputComponent = new InputComponent(@presenter)
     scrollViewNode.appendChild(@hiddenInputComponent.domNode)
 
-    @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM, visible: @isVisible()})
+    @linesComponent = new LinesComponent({@presenter, hostElement, useShadowDOM})
     scrollViewNode.appendChild(@linesComponent.domNode)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({@presenter, orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -153,7 +153,7 @@ TextEditorComponent = React.createClass
       @gutterComponent = null
 
     @hiddenInputComponent.updateSync()
-    @linesComponent.updateSync(@isVisible())
+    @linesComponent.updateSync()
     @horizontalScrollbarComponent.updateSync()
     @verticalScrollbarComponent.updateSync()
     @scrollbarCornerComponent.updateSync()
@@ -164,6 +164,8 @@ TextEditorComponent = React.createClass
       @props.hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
       @props.hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
       @props.hostElement.__spacePenView.trigger 'editor:display-updated'
+
+    @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
 
   mountGutterComponent: ->
     {editor} = @props

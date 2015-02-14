@@ -49,7 +49,7 @@ class LinesComponent
 
     @updateSync(visible)
 
-  updateSync: (visible) ->
+  updateSync: ->
     @newState = @presenter.state.content
     @oldState ?= {lines: {}}
 
@@ -80,8 +80,6 @@ class LinesComponent
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'
       @oldState.scrollWidth = @newState.scrollWidth
-
-    @measureCharactersInNewLines() if visible and not @newState.scrollingVertically
 
     @cursorsComponent.updateSync()
     @highlightsComponent.updateSync()
