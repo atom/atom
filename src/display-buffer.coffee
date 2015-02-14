@@ -841,7 +841,7 @@ class DisplayBuffer extends Model
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
       if wrapAtSoftNewlines
         row++
-        column = 0
+        column = @screenLines[row].tokens[0].value.length # TODO: call screenLine.clipScreenColumn
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
     else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()

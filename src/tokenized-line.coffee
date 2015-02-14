@@ -97,19 +97,23 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
+    tab = leftTokens[0].buildPhantomToken(@indentLevel * 2)
+
     leftFragment = new TokenizedLine(
       tokens: leftTokens
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
       invisibles: @invisibles
-      lineEnding: null
+      lineEnding: null,
+      indentLevel: @indentLevel
     )
     rightFragment = new TokenizedLine(
-      tokens: rightTokens
+      tokens: [tab].concat(rightTokens)
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       invisibles: @invisibles
-      lineEnding: @lineEnding
+      lineEnding: @lineEnding,
+      indentLevel: @indentLevel
     )
     [leftFragment, rightFragment]
 

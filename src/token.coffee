@@ -144,6 +144,14 @@ class Token
       isHardTab: isHardTab
     )
 
+  buildPhantomToken: (length) ->
+    new Token(
+      value: _.multiplyString(" ", length),
+      scopes: @scopes,
+      bufferDelta: 0,
+      isAtomic: true
+    )
+
   isOnlyWhitespace: ->
     not WhitespaceRegex.test(@value)
 
