@@ -43,7 +43,10 @@ TextEditorComponent = React.createClass
   gutterComponent: null
 
   render: ->
-    {focused, showLineNumbers} = @state
+    @oldState ?= {}
+    @newState = @presenter.state
+
+    {showLineNumbers} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
@@ -57,7 +60,7 @@ TextEditorComponent = React.createClass
       className = 'editor-contents--private'
     else
       className = 'editor-contents'
-    className += ' is-focused' if focused
+    className += ' is-focused' if @newState.focused
     className += ' has-selection' if hasSelection
 
     div {className, style},
@@ -121,7 +124,8 @@ TextEditorComponent = React.createClass
     @subscribe scrollbarStyle.changes, @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
-    @updateParentViewFocusedClassIfNeeded({})
+
+    @updateParentViewFocusedClassIfNeeded()
     @updateParentViewMiniClass()
     @checkForVisibilityChange()
 
@@ -135,7 +139,7 @@ TextEditorComponent = React.createClass
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
 
-  componentDidUpdate: (prevProps, prevState) ->
+  componentDidUpdate: ->
     cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
     @cursorMoved = false
@@ -155,7 +159,7 @@ TextEditorComponent = React.createClass
     @scrollbarCornerComponent.updateSync()
 
     if @props.editor.isAlive()
-      @updateParentViewFocusedClassIfNeeded(prevState)
+      @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
       @props.hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
       @props.hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
@@ -293,14 +297,12 @@ TextEditorComponent = React.createClass
 
   focused: ->
     if @isMounted()
-      @setState(focused: true)
       @presenter.setFocused(true)
       @hiddenInputComponent.domNode.focus()
 
   blurred: ->
     if @isMounted()
       @presenter.setFocused(false)
-      @setState(focused: false)
 
   onTextInput: (event) ->
     event.stopPropagation()
@@ -399,7 +401,7 @@ TextEditorComponent = React.createClass
     return if ctrlKey and process.platform is 'darwin'
 
     # Prevent focusout event on hidden input if editor is already focused
-    event.preventDefault() if @state.focused
+    event.preventDefault() if @oldState.focused
 
     screenPosition = @screenPositionForMouseEvent(event)
 
@@ -821,10 +823,11 @@ TextEditorComponent = React.createClass
 
   setInputEnabled: (@inputEnabled) -> @inputEnabled
 
-  updateParentViewFocusedClassIfNeeded: (prevState) ->
-    if prevState.focused isnt @state.focused
-      @props.hostElement.classList.toggle('is-focused', @state.focused)
-      @props.rootElement.classList.toggle('is-focused', @state.focused)
+  updateParentViewFocusedClassIfNeeded: ->
+    if @oldState.focused isnt @newState.focused
+      @props.hostElement.classList.toggle('is-focused', @newState.focused)
+      @props.rootElement.classList.toggle('is-focused', @newState.focused)
+      @oldState.focused = @newState.focused
 
   updateParentViewMiniClass: ->
     @props.hostElement.classList.toggle('mini', @props.editor.isMini())

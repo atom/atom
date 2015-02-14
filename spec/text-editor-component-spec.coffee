@@ -1508,6 +1508,7 @@ describe "TextEditorComponent", ->
 
       # In bounds, not focused
       inputNode.blur() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
@@ -1519,6 +1520,7 @@ describe "TextEditorComponent", ->
 
       # Out of bounds, focused
       inputNode.focus() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
@@ -1840,9 +1842,11 @@ describe "TextEditorComponent", ->
     it "adds the 'is-focused' class to the editor when the hidden input is focused", ->
       expect(document.activeElement).toBe document.body
       inputNode.focus()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe true
       expect(wrapperView.hasClass('is-focused')).toBe true
       inputNode.blur()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe false
       expect(wrapperView.hasClass('is-focused')).toBe false
 
