@@ -59,7 +59,7 @@ class GitRepository
   # Public: Creates a new GitRepository instance.
   #
   # * `path` The {String} path to the Git repository to open.
-  # * `options` An optinal {Object} with the following keys:
+  # * `options` An optional {Object} with the following keys:
   #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
   #     statuses when the window is focused.
   #
