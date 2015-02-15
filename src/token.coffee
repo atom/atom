@@ -21,7 +21,7 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isPhantom}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
@@ -149,7 +149,8 @@ class Token
       value: _.multiplyString(" ", length),
       scopes: @scopes,
       bufferDelta: 0,
-      isAtomic: true
+      isAtomic: true,
+      isPhantom: true
     )
 
   isOnlyWhitespace: ->
