@@ -844,7 +844,7 @@ class DisplayBuffer extends Model
         column = @screenLines[row].clipScreenColumn(0)
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
-    else if screenLine.tokens[0].isPhantom and column < screenLine.tokens[0].screenDelta
+    else if screenLine.isInsidePhantomToken(column)
       row--
       column = @screenLines[row].getMaxScreenColumn()
     else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
