@@ -866,17 +866,25 @@ class DisplayBuffer extends Model
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
     return unless @isSoftWrapped()
-    return unless line.length > softWrapColumn
+    return unless line.text.length > softWrapColumn
 
-    if /\s/.test(line[softWrapColumn])
+    if /\s/.test(line.text[softWrapColumn])
       # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.length]
-        return column if /\S/.test(line[column])
-      return line.length
+      for column in [softWrapColumn..line.text.length]
+        if /\S/.test(line.text[column])
+          if line.tokens[0].isPhantom && column <= line.tokens[0].screenDelta
+            continue
+
+          return column
+      return line.text.length
     else
       # search backward for the start of the word on the boundary
       for column in [softWrapColumn..0]
-        return column + 1 if /\s/.test(line[column])
+        if /\s/.test(line.text[column])
+          if line.tokens[0].isPhantom && column <= line.tokens[0].screenDelta
+            continue
+
+          return column + 1
       return softWrapColumn
 
   # Calculates a {Range} representing the start of the {TextBuffer} until the end.
@@ -1163,8 +1171,9 @@ class DisplayBuffer extends Model
         bufferRow += foldedRowCount
       else
         softWraps = 0
-        while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
+        while wrapScreenColumn = @findWrapColumn(tokenizedLine)
           [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+          break if wrappedLine.text == tokenizedLine.text
           screenLines.push(wrappedLine)
           softWraps++
         screenLines.push(tokenizedLine)
