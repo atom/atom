@@ -97,7 +97,7 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    tab = leftTokens[0].buildPhantomToken(@indentLevel * 2)
+    tab = leftTokens[0].buildPhantomToken(@indentLevel * @tabLength)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
@@ -105,7 +105,8 @@ class TokenizedLine
       ruleStack: @ruleStack
       invisibles: @invisibles
       lineEnding: null,
-      indentLevel: @indentLevel
+      indentLevel: @indentLevel,
+      tabLength: @tabLength
     )
     rightFragment = new TokenizedLine(
       tokens: [tab].concat(rightTokens)
@@ -113,7 +114,8 @@ class TokenizedLine
       ruleStack: @ruleStack
       invisibles: @invisibles
       lineEnding: @lineEnding,
-      indentLevel: @indentLevel
+      indentLevel: @indentLevel,
+      tabLength: @tabLength
     )
     [leftFragment, rightFragment]
 
