@@ -48,7 +48,9 @@ class TokenizedLine
       break if tokenStartColumn + token.screenDelta > column
       tokenStartColumn += token.screenDelta
 
-    if token.isAtomic and tokenStartColumn < column
+    if token.isPhantom and tokenStartColumn <= column
+      tokenStartColumn + token.screenDelta
+    else if token.isAtomic and tokenStartColumn < column
       if skipAtomicTokens
         tokenStartColumn + token.screenDelta
       else

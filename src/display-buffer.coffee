@@ -841,10 +841,7 @@ class DisplayBuffer extends Model
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
       if wrapAtSoftNewlines
         row++
-        column = if @screenLines[row].tokens[0].isPhantom
-                   @screenLines[row].tokens[0].screenDelta
-                 else
-                   0
+        column = @screenLines[row].clipScreenColumn(0)
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
     else if screenLine.tokens[0].isPhantom and column < screenLine.tokens[0].screenDelta
