@@ -62,7 +62,7 @@ atom-text-editor {
       opacity: .6;
       padding: 0 .4em;
 
-      &:before {
+      &::before {
         text-align: center;
       }
     }
@@ -84,7 +84,7 @@ atom-text-editor {
 
       visibility: visible;
 
-      &:before {
+      &::before {
         position: relative;
         left: -.1em;
       }
@@ -129,7 +129,7 @@ atom-text-editor {
   .line {
     white-space: pre;
 
-    &.cursor-line .fold-marker:after {
+    &.cursor-line .fold-marker::after {
       opacity: 1;
     }
   }
@@ -137,7 +137,7 @@ atom-text-editor {
   .fold-marker {
     cursor: default;
 
-    &:after {
+    &::after {
       .icon(0.8em, inline);
 
       content: @ellipsis;
