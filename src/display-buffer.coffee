@@ -867,7 +867,7 @@ class DisplayBuffer extends Model
 
     if /\s/.test(line.text[softWrapColumn])
        # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.text.length] when line.isOutsidePhantomToken(column)
+      for column in [softWrapColumn..line.text.length]
         return column if /\S/.test(line.text[column])
 
       return line.text.length
@@ -1164,7 +1164,7 @@ class DisplayBuffer extends Model
         softWraps = 0
         while wrapScreenColumn = @findWrapColumn(tokenizedLine)
           [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-          break if wrappedLine.text == tokenizedLine.text
+          break if wrappedLine.hasOnlyPhantomTokens()
           screenLines.push(wrappedLine)
           softWraps++
         screenLines.push(tokenizedLine)

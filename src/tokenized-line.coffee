@@ -130,6 +130,9 @@ class TokenizedLine
   isInsidePhantomToken: (column) ->
     @tokens[0].isPhantom && column < @tokens[0].screenDelta
 
+  hasOnlyPhantomTokens: ->
+    @tokens.length == 1 && @tokens[0].isPhantom
+
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
 
