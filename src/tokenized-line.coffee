@@ -124,6 +124,9 @@ class TokenizedLine
   isSoftWrapped: ->
     @lineEnding is null
 
+  isOutsidePhantomToken: (column) ->
+    !@tokens[0].isPhantom || column > @tokens[0].screenDelta
+
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
 

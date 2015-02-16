@@ -866,22 +866,16 @@ class DisplayBuffer extends Model
     return unless line.text.length > softWrapColumn
 
     if /\s/.test(line.text[softWrapColumn])
-      # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.text.length]
-        if /\S/.test(line.text[column])
-          if line.tokens[0].isPhantom && column <= line.tokens[0].screenDelta
-            continue
+       # search forward for the start of a word past the boundary
+      for column in [softWrapColumn..line.text.length] when line.isOutsidePhantomToken(column)
+        return column if /\S/.test(line.text[column])
 
-          return column
       return line.text.length
     else
       # search backward for the start of the word on the boundary
-      for column in [softWrapColumn..0]
-        if /\s/.test(line.text[column])
-          if line.tokens[0].isPhantom && column <= line.tokens[0].screenDelta
-            continue
+      for column in [softWrapColumn..0] when line.isOutsidePhantomToken(column)
+        return column + 1 if /\s/.test(line.text[column])
 
-          return column + 1
       return softWrapColumn
 
   # Calculates a {Range} representing the start of the {TextBuffer} until the end.
