@@ -125,10 +125,14 @@ class TokenizedLine
     @lineEnding is null
 
   isOutsidePhantomToken: (column) ->
-    !@tokens[0].isPhantom || column > @tokens[0].screenDelta
+    return true unless @tokens[0].isPhantom
+
+    column > @tokens[0].screenDelta
 
   isInsidePhantomToken: (column) ->
-    @tokens[0].isPhantom && column < @tokens[0].screenDelta
+    return false unless @tokens[0].isPhantom
+
+    column < @tokens[0].screenDelta
 
   hasOnlyPhantomTokens: ->
     @tokens.length == 1 && @tokens[0].isPhantom
