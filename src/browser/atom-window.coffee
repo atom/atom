@@ -58,6 +58,7 @@ class AtomWindow
       else
         pathToOpen
     loadSettings.initialPaths.sort()
+    @projectPaths = loadSettings.initialPaths
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', =>

@@ -86,7 +86,7 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(1, 5000)
 
     it "allows multiple project directories to be passed as separate arguments", ->
-      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+      runAtom [tempDirPath, otherTempDirPath, "--multi-folder"], {ATOM_HOME: AtomHome}, (client) ->
         client
           .waitForExist("atom-workspace", 5000)
           .then((exists) -> expect(exists).toBe true)
@@ -100,3 +100,24 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(1, 5000)
           .execute(-> atom.project.getPaths())
           .then(({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath]))
+
+    it "opens each path in its own window unless the --multi-folder flag is passed", ->
+      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+        projectPaths = []
+
+        client
+          .waitForWindowCount(2, 5000)
+          .windowHandles()
+          .then ({value: windowHandles}) ->
+            @window(windowHandles[0])
+              .execute(-> atom.project.getPaths())
+              .then ({value}) ->
+                expect(value).toHaveLength(1)
+                projectPaths.push(value[0])
+              .window(windowHandles[1])
+              .execute(-> atom.project.getPaths())
+              .then ({value}) ->
+                expect(value).toHaveLength(1)
+                projectPaths.push(value[0])
+              .then ->
+                expect(projectPaths.sort()).toEqual([tempDirPath, otherTempDirPath].sort())
