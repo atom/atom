@@ -82,11 +82,15 @@ class AtomApplication
     @openWithOptions(options)
 
   # Opens a new window based on the options provided.
-  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile}) ->
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, enableMultiFolderProject}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode})
+      if enableMultiFolderProject
+        @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode})
+      else
+        for pathToOpen in pathsToOpen
+          @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode})
     else if urlsToOpen.length > 0
       @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
     else
