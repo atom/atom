@@ -79,7 +79,8 @@ describe 'apm publish', ->
       engines:
         atom: '1'
       dependencies:
-        bar: 'git://github.com/user/project.git'
+        abc: 'git://github.com/user/project.git'
+        abcd: 'latest'
         foo: '^^'
     fs.writeFileSync(path.join(packageToPublish, 'package.json'), JSON.stringify(metadata))
     process.chdir(packageToPublish)
@@ -103,6 +104,7 @@ describe 'apm publish', ->
         foo: '^5'
       devDependencies:
         abc: 'git://github.com/user/project.git'
+        abcd: 'latest'
         bar: '1,3'
     fs.writeFileSync(path.join(packageToPublish, 'package.json'), JSON.stringify(metadata))
     process.chdir(packageToPublish)

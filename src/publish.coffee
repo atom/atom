@@ -295,22 +295,24 @@ class Publish extends Command
   validateSemverRanges: (pack) ->
     return unless pack
 
-    isUrlDependency = (semverRange) ->
+    isValidRange = (semverRange) ->
+      return true if semver.validRange(semverRange)
+
       try
-        url.parse(semverRange).protocol.length > 0
-      catch error
-        false
+        return true if url.parse(semverRange).protocol.length > 0
+
+      semverRange is 'latest'
 
     if pack.engines?.atom?
       unless semver.validRange(pack.engines.atom)
         throw new Error("The Atom engine range in the package.json file is invalid: #{pack.engines.atom}")
 
     for packageName, semverRange of pack.dependencies
-      unless semver.validRange(semverRange) or isUrlDependency(semverRange)
+      unless isValidRange(semverRange)
         throw new Error("The #{packageName} dependency range in the package.json file is invalid: #{semverRange}")
 
     for packageName, semverRange of pack.devDependencies
-      unless semver.validRange(semverRange) or isUrlDependency(semverRange)
+      unless isValidRange(semverRange)
         throw new Error("The #{packageName} dev dependency range in the package.json file is invalid: #{semverRange}")
 
     return
