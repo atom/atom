@@ -53,7 +53,6 @@ describe "apm upgrade", ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'empty'
 
-
   it "does not display updates for packages whose engine does not satisfy the installed Atom version", ->
     fs.writeFileSync(path.join(packagesDir, 'test-module', 'package.json'), JSON.stringify({name: 'test-module', version: '0.3.0', repository: 'https://github.com/a/b'}))
 
@@ -105,6 +104,22 @@ describe "apm upgrade", ->
     runs ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'different-repo 0.3.0 -> 0.4.0'
+
+  it "allows the package names to upgrade to be specified", ->
+    fs.writeFileSync(path.join(packagesDir, 'multi-module', 'package.json'), JSON.stringify({name: 'multi-module', version: '0.1.0', repository: 'https://github.com/a/b'}))
+    fs.writeFileSync(path.join(packagesDir, 'different-repo', 'package.json'), JSON.stringify({name: 'different-repo', version: '0.3.0', repository: 'https://github.com/world/hello'}))
+
+    callback = jasmine.createSpy('callback')
+    apm.run(['upgrade', '--list', '--no-color', 'different-repo'], callback)
+
+    waitsFor 'waiting for upgrade to complete', 600000, ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.log.callCount).toBe 2
+      expect(console.log.argsForCall[0][0]).not.toContain 'multi-module 0.1.0 -> 0.3.0'
+      expect(console.log.argsForCall[1][0]).toContain 'different-repo 0.3.0 -> 0.4.0'
+      expect(console.log.argsForCall[1][0]).not.toContain 'multi-module 0.1.0 -> 0.3.0'
 
   it "does not display updates when the installed package's repository does not exist", ->
     fs.writeFileSync(path.join(packagesDir, 'different-repo', 'package.json'), JSON.stringify({name: 'different-repo', version: '0.3.0'}))

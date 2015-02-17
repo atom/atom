@@ -28,6 +28,7 @@ class Upgrade extends Command
 
       Usage: apm upgrade
              apm upgrade --list
+             apm upgrade [<package_name>...]
 
       Upgrade out of date packages installed to ~/.atom/packages
 
@@ -41,11 +42,16 @@ class Upgrade extends Command
     options.string('compatible').describe('compatible', 'Only list packages/themes compatible with this Atom version')
     options.boolean('verbose').default('verbose', false).describe('verbose', 'Show verbose debug information')
 
-  getInstalledPackages: ->
+  getInstalledPackages: (options) ->
     packages = []
     for name in fs.list(@atomPackagesDirectory)
       if pack = @getIntalledPackage(name)
         packages.push(pack)
+
+    packageNames = @packageNamesFromArgv(options.argv)
+    if packageNames.length > 0
+      packages = packages.filter ({name}) -> packageNames.indexOf(name) isnt -1
+
     packages
 
   getIntalledPackage: (name) ->
@@ -146,7 +152,7 @@ class Upgrade extends Command
         callback('Could not determine current Atom version installed')
 
   upgradePackages: (options, callback) ->
-    packages = @getInstalledPackages()
+    packages = @getInstalledPackages(options)
     @getAvailableUpdates packages, (error, updates) =>
       return callback(error) if error?
 
