@@ -298,7 +298,7 @@ class Publish extends Command
     isUrlDependency = (semverRange) ->
       try
         url.parse(semverRange).protocol.length > 0
-      catch
+      catch error
         false
 
     if pack.engines?.atom?
