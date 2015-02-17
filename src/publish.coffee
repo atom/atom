@@ -1,4 +1,5 @@
 path = require 'path'
+url = require 'url'
 
 optimist = require 'optimist'
 Git = require 'git-utils'
@@ -294,22 +295,22 @@ class Publish extends Command
   validateSemverRanges: (pack) ->
     return unless pack
 
-    if pack.engines?.atom?
+    isUrlDependency = (semverRange) ->
       try
-        new semver.Range(pack.engines.atom)
-      catch error
+        url.parse(semverRange).protocol.length > 0
+      catch
+        false
+
+    if pack.engines?.atom?
+      unless semver.validRange(pack.engines.atom)
         throw new Error("The Atom engine range in the package.json file is invalid: #{pack.engines.atom}")
 
     for packageName, semverRange of pack.dependencies
-      try
-        new semver.Range(semverRange)
-      catch error
+      unless semver.validRange(semverRange) or isUrlDependency(semverRange)
         throw new Error("The #{packageName} dependency range in the package.json file is invalid: #{semverRange}")
 
     for packageName, semverRange of pack.devDependencies
-      try
-        new semver.Range(semverRange)
-      catch error
+      unless semver.validRange(semverRange) or isUrlDependency(semverRange)
         throw new Error("The #{packageName} dev dependency range in the package.json file is invalid: #{semverRange}")
 
     return
