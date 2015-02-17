@@ -47,7 +47,7 @@
     "exit": "0.1.2"
   },
   "devDependencies": {
-    "jasmine-focused": ">=1.0.5 <2.0",
+    "jasmine-focused": ">=1.0.7 <2.0",
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.12.0",
     "grunt-cli": "~0.1.8",
