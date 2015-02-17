@@ -13,6 +13,40 @@ describe "Project", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
 
+  describe "constructor", ->
+    it "tries to update repositories when a new RepositoryProvider is registered", ->
+      tmp = temp.mkdirSync('atom-project')
+      atom.project.setPaths([tmp])
+      expect(atom.project.getRepositories()).toEqual [null]
+      expect(atom.project.repositoryProviders.length).toEqual 1
+
+      # Register a new RepositoryProvider.
+      dummyRepository = destroy: ->
+      repositoryProvider =
+        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
+        repositoryForDirectorySync: (directory) -> dummyRepository
+      atom.packages.serviceHub.provide(
+        "atom.repository-provider", "0.1.0", repositoryProvider)
+
+      expect(atom.project.repositoryProviders.length).toBe 2
+      expect(atom.project.getRepositories()).toEqual [dummyRepository]
+
+    it "does not update @repositories if every path has a Repository", ->
+      repositories = atom.project.getRepositories()
+      expect(repositories.length).toEqual 1
+      [repository] = repositories
+      expect(repository).toBeTruthy()
+
+      # Register a new RepositoryProvider.
+      dummyRepository = destroy: ->
+      repositoryProvider =
+        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
+        repositoryForDirectorySync: (directory) -> dummyRepository
+      atom.packages.serviceHub.provide(
+        "atom.repository-provider", "0.1.0", repositoryProvider)
+
+      expect(atom.project.getRepositories()).toBe repositories
+
   describe "serialization", ->
     deserializedProject = null
 
