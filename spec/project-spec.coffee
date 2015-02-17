@@ -15,12 +15,13 @@ describe "Project", ->
 
   describe "constructor", ->
     it "tries to update repositories when a new RepositoryProvider is registered", ->
-      atom.project.setPaths(["/tmp"])
+      tmp = temp.mkdirSync('atom-project')
+      atom.project.setPaths([tmp])
       expect(atom.project.getRepositories()).toEqual [null]
       expect(atom.project.repositoryProviders.length).toEqual 1
 
       # Register a new RepositoryProvider.
-      dummyRepository = destroy: () ->
+      dummyRepository = destroy: ->
       repositoryProvider =
         repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
         repositoryForDirectorySync: (directory) -> dummyRepository
@@ -37,7 +38,7 @@ describe "Project", ->
       expect(repository).toBeTruthy()
 
       # Register a new RepositoryProvider.
-      dummyRepository = destroy: () ->
+      dummyRepository = destroy: ->
       repositoryProvider =
         repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
         repositoryForDirectorySync: (directory) -> dummyRepository
