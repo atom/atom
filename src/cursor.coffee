@@ -310,7 +310,7 @@ class Cursor extends Model
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column})
+      @setScreenPosition({row, column}, wrapAtPhantomTokens: true)
 
   # Public: Moves the cursor right one screen column.
   #
