@@ -144,7 +144,7 @@ class Token
       isHardTab: isHardTab
     )
 
-  buildPhantomToken: (length) ->
+  buildPhantomTabToken: (length) ->
     new Token(
       value: _.multiplyString(" ", length),
       scopes: @scopes,

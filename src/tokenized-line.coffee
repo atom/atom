@@ -99,7 +99,7 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    tab = leftTokens[0].buildPhantomToken(@indentLevel * @tabLength)
+    phantomTab = leftTokens[0].buildPhantomTabToken(@indentLevel * @tabLength)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
@@ -111,7 +111,7 @@ class TokenizedLine
       tabLength: @tabLength
     )
     rightFragment = new TokenizedLine(
-      tokens: [tab].concat(rightTokens)
+      tokens: [phantomTab].concat(rightTokens)
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       invisibles: @invisibles
@@ -124,12 +124,12 @@ class TokenizedLine
   isSoftWrapped: ->
     @lineEnding is null
 
-  isOutsidePhantomToken: (column) ->
+  isColumnOutsidePhantomToken: (column) ->
     return true unless @tokens[0].isPhantom
 
     column > @tokens[0].screenDelta
 
-  isInsidePhantomToken: (column) ->
+  isColumnInsidePhantomToken: (column) ->
     return false unless @tokens[0].isPhantom
 
     column < @tokens[0].screenDelta

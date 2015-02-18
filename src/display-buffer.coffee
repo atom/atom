@@ -844,7 +844,7 @@ class DisplayBuffer extends Model
         column = @screenLines[row].clipScreenColumn(0)
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
-    else if screenLine.isInsidePhantomToken(column)
+    else if screenLine.isColumnInsidePhantomToken(column)
       row--
       column = @screenLines[row].getMaxScreenColumn()
     else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
@@ -873,7 +873,7 @@ class DisplayBuffer extends Model
       return line.text.length
     else
       # search backward for the start of the word on the boundary
-      for column in [softWrapColumn..0] when line.isOutsidePhantomToken(column)
+      for column in [softWrapColumn..0] when line.isColumnOutsidePhantomToken(column)
         return column + 1 if /\s/.test(line.text[column])
 
       return softWrapColumn
