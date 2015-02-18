@@ -229,7 +229,7 @@ class Token
       else match
 
   hasLeadingWhitespace: ->
-    @firstNonWhitespaceIndex? and @firstNonWhitespaceIndex > 0
+    !@isPhantom and @firstNonWhitespaceIndex? and @firstNonWhitespaceIndex > 0
 
   hasTrailingWhitespace: ->
     @firstTrailingWhitespaceIndex? and @firstTrailingWhitespaceIndex < @value.length
