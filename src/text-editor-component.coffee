@@ -218,7 +218,6 @@ TextEditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor.onDidChangeMini(@setMini)
     @subscribe editor.observeGrammar(@onGrammarChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
     @subscribe editor.observeSelections(@onSelectionAdded)
@@ -778,9 +777,6 @@ TextEditorComponent = React.createClass
 
   setShowIndentGuide: (showIndentGuide) ->
     atom.config.set("editor.showIndentGuide", showIndentGuide)
-
-  setMini: ->
-    @requestUpdate()
 
   # Deprecated
   setInvisibles: (invisibles={}) ->
