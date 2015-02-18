@@ -854,30 +854,6 @@ class DisplayBuffer extends Model
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
-  # Given a line, finds the point where it would wrap.
-  #
-  # line - The {String} to check
-  # softWrapColumn - The {Number} where you want soft wrapping to occur
-  #
-  # Returns a {Number} representing the `line` position where the wrap would take place.
-  # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @isSoftWrapped()
-    return unless line.text.length > softWrapColumn
-
-    if /\s/.test(line.text[softWrapColumn])
-       # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.text.length]
-        return column if /\S/.test(line.text[column])
-
-      return line.text.length
-    else
-      # search backward for the start of the word on the boundary
-      for column in [softWrapColumn..0] when line.isColumnOutsidePhantomToken(column)
-        return column + 1 if /\s/.test(line.text[column])
-
-      return softWrapColumn
-
   # Calculates a {Range} representing the start of the {TextBuffer} until the end.
   #
   # Returns a {Range}.
@@ -1162,11 +1138,12 @@ class DisplayBuffer extends Model
         bufferRow += foldedRowCount
       else
         softWraps = 0
-        while wrapScreenColumn = @findWrapColumn(tokenizedLine)
-          [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-          break if wrappedLine.hasOnlyPhantomTokens()
-          screenLines.push(wrappedLine)
-          softWraps++
+        if @isSoftWrapped()
+          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
+            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+            break if wrappedLine.hasOnlyPhantomTokens()
+            screenLines.push(wrappedLine)
+            softWraps++
         screenLines.push(tokenizedLine)
 
         if softWraps > 0
