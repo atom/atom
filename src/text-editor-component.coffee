@@ -290,7 +290,6 @@ TextEditorComponent = React.createClass
 
     scopeDescriptor = editor.getRootScopeDescriptor()
 
-    subscriptions.add atom.config.observe 'editor.showIndentGuide', scope: scopeDescriptor, @requestUpdate
     subscriptions.add atom.config.observe 'editor.scrollSensitivity', scope: scopeDescriptor, @setScrollSensitivity
 
   focused: ->
