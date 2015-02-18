@@ -19,6 +19,11 @@ module.exports =
 TextEditorComponent = React.createClass
   displayName: 'TextEditorComponent'
 
+  scrollSensitivity: 0.4
+  domPollingInterval: 100
+  cursorBlinkPeriod: 800
+  cursorBlinkResumeDelay: 100
+
   pendingScrollTop: null
   pendingScrollLeft: null
   updateRequested: false
@@ -27,9 +32,7 @@ TextEditorComponent = React.createClass
   heightAndWidthMeasurementRequested: false
   cursorMoved: false
   selectionChanged: false
-  scrollSensitivity: 0.4
   inputEnabled: true
-  domPollingInterval: 100
   domPollingIntervalId: null
   domPollingPaused: false
   measureScrollbarsWhenShown: true
@@ -49,10 +52,6 @@ TextEditorComponent = React.createClass
 
   getInitialState: -> {}
 
-  getDefaultProps: ->
-    cursorBlinkPeriod: 800
-    cursorBlinkResumeDelay: 100
-
   componentWillMount: ->
     @props.editor.manageScrollPosition = true
 
@@ -61,7 +60,7 @@ TextEditorComponent = React.createClass
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
-    {editor, lineOverdrawMargin, cursorBlinkPeriod, cursorBlinkResumeDelay}  = @props
+    {editor, lineOverdrawMargin}  = @props
     lineOverdrawMargin ?= 15
 
     @presenter = new TextEditorPresenter
@@ -69,8 +68,8 @@ TextEditorComponent = React.createClass
       scrollTop: editor.getScrollTop()
       scrollLeft: editor.getScrollLeft()
       lineOverdrawMargin: lineOverdrawMargin
-      cursorBlinkPeriod: cursorBlinkPeriod
-      cursorBlinkResumeDelay: cursorBlinkResumeDelay
+      cursorBlinkPeriod: @cursorBlinkPeriod
+      cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
     @presenter.onDidUpdateState(@requestUpdate)
 
