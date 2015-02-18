@@ -44,8 +44,7 @@ window.onload = function() {
       extra: {_version: loadSettings.appVersion}
     });
 
-    require('vm-compatibility-layer');
-
+    setupVmCompatibility();
     setupCsonCache(cacheDir);
     setupSourceMapCache(cacheDir);
     setup6to5(cacheDir);
@@ -103,4 +102,10 @@ var setupCsonCache = function(cacheDir) {
 
 var setupSourceMapCache = function(cacheDir) {
   require('coffeestack').setCacheDirectory(path.join(cacheDir, 'coffee', 'source-maps'));
+}
+
+var setupVmCompatibility = function() {
+  var vm = require('vm');
+  if (!vm.Script.createContext)
+    vm.Script.createContext = vm.createContext;
 }

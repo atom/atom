@@ -66,8 +66,7 @@
     "temp": "0.8.1",
     "text-buffer": "^4.1.5",
     "theorist": "^1.0.2",
-    "underscore-plus": "^1.6.6",
-    "vm-compatibility-layer": "0.1.0"
+    "underscore-plus": "^1.6.6"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.26.0",
