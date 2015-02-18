@@ -89,23 +89,26 @@ buildAtomClient = (args, env) ->
         done()
 
 module.exports = (args, env, fn) ->
-  chromedriver = spawn(ChromedriverPath, [
-    "--verbose",
-    "--port=#{ChromedriverPort}",
-    "--url-base=/wd/hub"
-  ])
+  [chromedriver, chromedriverLogs, chromedriverExit] = []
 
-  waits(50)
+  runs ->
+    chromedriver = spawn(ChromedriverPath, [
+      "--verbose",
+      "--port=#{ChromedriverPort}",
+      "--url-base=/wd/hub"
+    ])
 
-  chromedriverLogs = []
-  chromedriverExit = new Promise (resolve) ->
-    errorCode = null
-    chromedriver.on "exit", (code, signal) ->
-      errorCode = code unless signal?
-    chromedriver.stderr.on "data", (log) ->
-      chromedriverLogs.push(log.toString())
-    chromedriver.stderr.on "close", ->
-      resolve(errorCode)
+    chromedriverLogs = []
+    chromedriverExit = new Promise (resolve) ->
+      errorCode = null
+      chromedriver.on "exit", (code, signal) ->
+        errorCode = code unless signal?
+      chromedriver.stderr.on "data", (log) ->
+        chromedriverLogs.push(log.toString())
+      chromedriver.stderr.on "close", ->
+        resolve(errorCode)
+
+  waits(100)
 
   waitsFor("webdriver to finish", (done) ->
     finish = once ->
