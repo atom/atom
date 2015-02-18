@@ -43,26 +43,12 @@ TextEditorComponent = React.createClass
   gutterComponent: null
 
   render: ->
-    @oldState ?= {}
-    @newState = @presenter.state
-
-    {editor, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
-    hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
-    style = {}
-
-    @performedInitialMeasurement = false if editor.isDestroyed()
-
-    if @performedInitialMeasurement
-      style.height = @presenter.state.height if @presenter.state.height?
-
-    if useShadowDOM
+    if @props.useShadowDOM
       className = 'editor-contents--private'
     else
       className = 'editor-contents'
-    className += ' is-focused' if @newState.focused
-    className += ' has-selection' if hasSelection
 
-    div {className, style},
+    div {className},
       div ref: 'scrollView', className: 'scroll-view'
 
   getInitialState: -> {}
@@ -124,8 +110,7 @@ TextEditorComponent = React.createClass
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
 
-    @updateParentViewFocusedClassIfNeeded()
-    @updateParentViewMiniClass()
+    @updateSync()
     @checkForVisibilityChange()
 
   componentWillUnmount: ->
@@ -139,10 +124,36 @@ TextEditorComponent = React.createClass
     @domPollingIntervalId = null
 
   componentDidUpdate: ->
+    @updateSync()
+
+  updateSync: ->
+    @oldState ?= {}
+    @newState = @presenter.state
+
     cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
     @cursorMoved = false
     @selectionChanged = false
+
+    node = @getDOMNode()
+    {editor} = @props
+
+    if editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
+      node.classList.add('has-selection')
+    else
+      node.classList.remove('has-selection')
+
+    if @newState.focused isnt @oldState.focused
+      node.classList.toggle('is-focused', @newState.focused)
+
+    @performedInitialMeasurement = false if editor.isDestroyed()
+
+    if @performedInitialMeasurement
+      if @newState.height isnt @oldState.height
+        if @newState.height?
+          node.style.height = @newState.height + 'px'
+        else
+          node.style.height = ''
 
     if @presenter.state.gutter.visible
       @mountGutterComponent() unless @gutterComponent?
