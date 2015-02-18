@@ -131,3 +131,14 @@ describe "Starting Atom", ->
             @title()
               .then(({value}) -> value.indexOf(path.basename(tempDirPath)) >= 0)), 5000)
           .waitForWindowCount(1, 5000)
+
+    it "always opens with a single untitled buffer when launched w/ no path", ->
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)
+
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)
