@@ -64,7 +64,10 @@ class TextEditorPresenter
       @updateContentState()
       @updateDecorations()
       @updateLinesState()
+      @updateGutterState()
       @updateLineNumbersState()
+    @disposables.add @model.onDidChangeGutterVisible =>
+      @updateGutterState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
@@ -74,6 +77,7 @@ class TextEditorPresenter
 
   observeConfig: ->
     @scrollPastEnd = atom.config.get('editor.scrollPastEnd')
+    @showLineNumbers = atom.config.get('editor.showLineNumbers')
 
     @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
     @disposables.add atom.config.onDidChange 'editor.scrollPastEnd', scope: @model.getRootScopeDescriptor(), ({newValue}) =>
@@ -81,6 +85,9 @@ class TextEditorPresenter
       @updateScrollHeight()
       @updateVerticalScrollState()
       @updateScrollbarsState()
+    @disposables.add atom.config.onDidChange 'editor.showLineNumbers', scope: @model.getRootScopeDescriptor(), ({newValue}) =>
+      @showLineNumbers = newValue
+      @updateGutterState()
 
   buildState: ->
     @state =
@@ -269,6 +276,7 @@ class TextEditorPresenter
     @emitter.emit "did-update-state"
 
   updateGutterState: ->
+    @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
     @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
     @state.gutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
       @gutterBackgroundColor

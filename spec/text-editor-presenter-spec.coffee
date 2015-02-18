@@ -1970,6 +1970,28 @@ describe "TextEditorPresenter", ->
             editor.undo()
             expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe false
 
+      describe ".visible", ->
+        it "is true iff the editor isn't mini, ::isGutterVisible is true on the editor, and 'editor.showLineNumbers' is enabled in config", ->
+          presenter = buildPresenter()
+
+          expect(editor.isGutterVisible()).toBe true
+          expect(presenter.state.gutter.visible).toBe true
+
+          expectStateUpdate presenter, -> editor.setMini(true)
+          expect(presenter.state.gutter.visible).toBe false
+
+          expectStateUpdate presenter, -> editor.setMini(false)
+          expect(presenter.state.gutter.visible).toBe true
+
+          expectStateUpdate presenter, -> editor.setGutterVisible(false)
+          expect(presenter.state.gutter.visible).toBe false
+
+          expectStateUpdate presenter, -> editor.setGutterVisible(true)
+          expect(presenter.state.gutter.visible).toBe true
+
+          expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
+          expect(presenter.state.gutter.visible).toBe false
+
     describe ".height", ->
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null, autoHeight: true)
