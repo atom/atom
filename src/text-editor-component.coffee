@@ -21,17 +21,15 @@ TextEditorComponent = React.createClass
   displayName: 'TextEditorComponent'
   mixins: [SubscriberMixin]
 
-  visible: false
   pendingScrollTop: null
   pendingScrollLeft: null
-  selectOnMouseMove: false
   updateRequested: false
   updatesPaused: false
   updateRequestedWhilePaused: false
+  heightAndWidthMeasurementRequested: false
   cursorMoved: false
   selectionChanged: false
   scrollSensitivity: 0.4
-  heightAndWidthMeasurementRequested: false
   inputEnabled: true
   domPollingInterval: 100
   domPollingIntervalId: null
