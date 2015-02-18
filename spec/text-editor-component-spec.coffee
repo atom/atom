@@ -46,7 +46,7 @@ describe "TextEditorComponent", ->
 
       lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()
-      componentNode = component.getDOMNode()
+      componentNode = component.domNode
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
@@ -466,11 +466,6 @@ describe "TextEditorComponent", ->
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
   describe "gutter rendering", ->
-    [gutter] = []
-
-    beforeEach ->
-      {gutter} = component.refs
-
     it "renders the currently-visible line numbers", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
@@ -800,11 +795,11 @@ describe "TextEditorComponent", ->
 
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
@@ -813,8 +808,8 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      advanceClock(component.props.cursorBlinkResumeDelay)
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkResumeDelay)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
@@ -2356,7 +2351,7 @@ describe "TextEditorComponent", ->
         wrapperView.appendTo(hiddenParent)
 
         {component} = wrapperView
-        componentNode = component.getDOMNode()
+        componentNode = component.domNode
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
         hiddenParent.style.display = 'block'
