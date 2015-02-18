@@ -46,7 +46,6 @@ TextEditorComponent = React.createClass
     @oldState ?= {}
     @newState = @presenter.state
 
-    {showLineNumbers} = @state
     {editor, cursorBlinkPeriod, cursorBlinkResumeDelay, hostElement, useShadowDOM} = @props
     hasSelection = editor.getLastSelection()? and !editor.getLastSelection().isEmpty()
     style = {}
@@ -93,7 +92,7 @@ TextEditorComponent = React.createClass
   componentDidMount: ->
     {editor, stylesElement, hostElement, useShadowDOM} = @props
 
-    @mountGutterComponent() if @gutterVisible
+    @mountGutterComponent() if @presenter.state.gutter.visible
 
     node = @getDOMNode()
     scrollViewNode = @refs.scrollView.getDOMNode()
@@ -145,7 +144,7 @@ TextEditorComponent = React.createClass
     @cursorMoved = false
     @selectionChanged = false
 
-    if @gutterVisible
+    if @presenter.state.gutter.visible
       @mountGutterComponent() unless @gutterComponent?
       @gutterComponent.updateSync()
     else
@@ -219,7 +218,6 @@ TextEditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor.onDidChangeGutterVisible(@updateGutterVisible)
     @subscribe editor.onDidChangeMini(@setMini)
     @subscribe editor.observeGrammar(@onGrammarChanged)
     @subscribe editor.observeCursors(@onCursorAdded)
@@ -294,7 +292,6 @@ TextEditorComponent = React.createClass
     scopeDescriptor = editor.getRootScopeDescriptor()
 
     subscriptions.add atom.config.observe 'editor.showIndentGuide', scope: scopeDescriptor, @requestUpdate
-    subscriptions.add atom.config.observe 'editor.showLineNumbers', scope: scopeDescriptor, @updateGutterVisible
     subscriptions.add atom.config.observe 'editor.scrollSensitivity', scope: scopeDescriptor, @setScrollSensitivity
 
   focused: ->
@@ -783,14 +780,7 @@ TextEditorComponent = React.createClass
     atom.config.set("editor.showIndentGuide", showIndentGuide)
 
   setMini: ->
-    @updateGutterVisible()
     @requestUpdate()
-
-  updateGutterVisible: ->
-    gutterVisible = not @props.editor.isMini() and @props.editor.isGutterVisible() and atom.config.get('editor.showLineNumbers')
-    if gutterVisible isnt @gutterVisible
-      @gutterVisible = gutterVisible
-      @requestUpdate()
 
   # Deprecated
   setInvisibles: (invisibles={}) ->

@@ -580,12 +580,12 @@ describe "TextEditorComponent", ->
       expect(componentNode.querySelector('.gutter')).toBeNull()
 
       atom.config.set("editor.showLineNumbers", false)
-      expect(nextAnimationFrame).toBe noAnimationFrame
+      nextAnimationFrame()
 
       expect(componentNode.querySelector('.gutter')).toBeNull()
 
       editor.setGutterVisible(true)
-      expect(nextAnimationFrame).toBe noAnimationFrame
+      nextAnimationFrame()
 
       expect(componentNode.querySelector('.gutter')).toBeNull()
 
