@@ -56,7 +56,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateGutterState()
       @updateLineNumbersState()
-    @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
+    @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
       @updateScrollbarDimensions()
@@ -76,18 +76,32 @@ class TextEditorPresenter
     @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
-    @scrollPastEnd = atom.config.get('editor.scrollPastEnd')
-    @showLineNumbers = atom.config.get('editor.showLineNumbers')
+    scope = @model.getRootScopeDescriptor()
 
-    @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
-    @disposables.add atom.config.onDidChange 'editor.scrollPastEnd', scope: @model.getRootScopeDescriptor(), ({newValue}) =>
+    @scrollPastEnd = atom.config.get('editor.scrollPastEnd', {scope})
+    @showLineNumbers = atom.config.get('editor.showLineNumbers', {scope})
+
+    if @configDisposables?
+      @configDisposables?.dispose()
+      @disposables.remove(@configDisposables)
+
+    @configDisposables = new CompositeDisposable
+    @disposables.add(@configDisposables)
+
+    @configDisposables.add atom.config.onDidChange 'editor.showIndentGuide', {scope}, @updateContentState.bind(this)
+    @configDisposables.add atom.config.onDidChange 'editor.scrollPastEnd', {scope}, ({newValue}) =>
       @scrollPastEnd = newValue
       @updateScrollHeight()
       @updateVerticalScrollState()
       @updateScrollbarsState()
-    @disposables.add atom.config.onDidChange 'editor.showLineNumbers', scope: @model.getRootScopeDescriptor(), ({newValue}) =>
+    @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', {scope}, ({newValue}) =>
       @showLineNumbers = newValue
       @updateGutterState()
+
+  didChangeGrammar: ->
+    @observeConfig()
+    @updateContentState()
+    @updateGutterState()
 
   buildState: ->
     @state =

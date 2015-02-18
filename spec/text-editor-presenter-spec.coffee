@@ -1992,6 +1992,20 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
           expect(presenter.state.gutter.visible).toBe false
 
+        it "updates when the editor's grammar changes", ->
+          presenter = buildPresenter()
+
+          atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
+          expect(presenter.state.gutter.visible).toBe true
+          stateUpdated = false
+          presenter.onDidUpdateState -> stateUpdated = true
+
+          waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            expect(stateUpdated).toBe true
+            expect(presenter.state.gutter.visible).toBe false
+
     describe ".height", ->
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null, autoHeight: true)
