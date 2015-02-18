@@ -14,12 +14,10 @@ InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
-SubscriberMixin = require './subscriber-mixin'
 
 module.exports =
 TextEditorComponent = React.createClass
   displayName: 'TextEditorComponent'
-  mixins: [SubscriberMixin]
 
   pendingScrollTop: null
   pendingScrollLeft: null
@@ -57,6 +55,9 @@ TextEditorComponent = React.createClass
 
   componentWillMount: ->
     @props.editor.manageScrollPosition = true
+
+    @disposables = new CompositeDisposable
+
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
@@ -99,12 +100,12 @@ TextEditorComponent = React.createClass
     @observeEditor()
     @listenForDOMEvents()
 
-    @subscribe stylesElement.onDidAddStyleElement @onStylesheetsChanged
-    @subscribe stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
-    @subscribe stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
+    @disposables.add stylesElement.onDidAddStyleElement @onStylesheetsChanged
+    @disposables.add stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
+    @disposables.add stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
     unless atom.themes.isInitialLoadComplete()
-      @subscribe atom.themes.onDidChangeActiveThemes @onAllThemesLoaded
-    @subscribe scrollbarStyle.changes, @refreshScrollbars
+      @disposables.add atom.themes.onDidChangeActiveThemes @onAllThemesLoaded
+    @disposables.add scrollbarStyle.changes.onValue @refreshScrollbars
 
     @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
 
@@ -114,9 +115,9 @@ TextEditorComponent = React.createClass
   componentWillUnmount: ->
     {editor, hostElement} = @props
 
-    @unsubscribe()
+    @disposables.dispose()
     @presenter.destroy()
-    @scopedConfigSubscriptions.dispose()
+    @scopedConfigDisposables.dispose()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
     clearInterval(@domPollingIntervalId)
     @domPollingIntervalId = null
@@ -227,9 +228,9 @@ TextEditorComponent = React.createClass
 
   observeEditor: ->
     {editor} = @props
-    @subscribe editor.observeGrammar(@onGrammarChanged)
-    @subscribe editor.observeCursors(@onCursorAdded)
-    @subscribe editor.observeSelections(@onSelectionAdded)
+    @disposables.add editor.observeGrammar(@onGrammarChanged)
+    @disposables.add editor.observeCursors(@onCursorAdded)
+    @disposables.add editor.observeSelections(@onSelectionAdded)
 
   listenForDOMEvents: ->
     node = @getDOMNode()
@@ -282,24 +283,27 @@ TextEditorComponent = React.createClass
         # clipboard.writeText is a sync ipc call on Linux and that
         # will slow down selections.
         ipc.send('write-text-to-selection-clipboard', selectedText)
-    @subscribe editor.onDidChangeSelectionRange ->
+    @disposables.add editor.onDidChangeSelectionRange ->
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
   observeConfig: ->
-    @subscribe atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
-    @subscribe atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
-    @subscribe atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
+    @disposables.add atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
+    @disposables.add atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
 
   onGrammarChanged: ->
     {editor} = @props
 
-    @scopedConfigSubscriptions?.dispose()
-    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
+    if @scopedConfigDisposables?
+      @scopedConfigDisposables.dispose()
+      @disposables.remove(@scopedConfigDisposables)
 
-    scopeDescriptor = editor.getRootScopeDescriptor()
+    @scopedConfigDisposables = new CompositeDisposable
+    @disposables.add(@scopedConfigDisposables)
 
-    subscriptions.add atom.config.observe 'editor.scrollSensitivity', scope: scopeDescriptor, @setScrollSensitivity
+    scope = editor.getRootScopeDescriptor()
+    @scopedConfigDisposables.add atom.config.observe 'editor.scrollSensitivity', {scope}, @setScrollSensitivity
 
   focused: ->
     if @isMounted()
@@ -526,10 +530,14 @@ TextEditorComponent = React.createClass
   onSelectionAdded: (selection) ->
     {editor} = @props
 
-    @subscribe selection.onDidChangeRange => @onSelectionChanged(selection)
-    @subscribe selection.onDidDestroy =>
+    selectionDisposables = new CompositeDisposable
+    selectionDisposables.add selection.onDidChangeRange => @onSelectionChanged(selection)
+    selectionDisposables.add selection.onDidDestroy =>
       @onSelectionChanged(selection)
-      @unsubscribe(selection)
+      selectionDisposables.dispose()
+      @disposables.remove(selectionDisposables)
+
+    @disposables.add(selectionDisposables)
 
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
@@ -542,7 +550,7 @@ TextEditorComponent = React.createClass
       @requestUpdate()
 
   onCursorAdded: (cursor) ->
-    @subscribe cursor.onDidChangePosition @onCursorMoved
+    @disposables.add cursor.onDidChangePosition @onCursorMoved
 
   onCursorMoved: ->
     @cursorMoved = true
