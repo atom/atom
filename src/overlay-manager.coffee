@@ -9,8 +9,8 @@ class OverlayManager
 
     for id, overlayNode of @overlayNodesById
       unless presenter.state.content.overlays.hasOwnProperty(id)
-        overlayNode.remove()
         delete @overlayNodesById[id]
+        overlayNode.remove()
 
     return
 
