@@ -115,6 +115,11 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[0].isHardTab).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[1].isHardTab).toBeTruthy()
 
+      describe "when a line is wrapped", ->
+        it "correctly tokenizes the phantom tokens", ->
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isPhantom).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].hasLeadingWhitespace()).toBeFalsy()
+
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
         describe "when whitespace is added after the max line length", ->
