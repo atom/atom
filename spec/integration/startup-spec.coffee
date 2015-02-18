@@ -121,3 +121,24 @@ describe "Starting Atom", ->
                 projectPaths.push(value[0])
               .then ->
                 expect(projectPaths.sort()).toEqual([tempDirPath, otherTempDirPath].sort())
+
+    it "opens the path in the current window if it doesn't have a project path yet", ->
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .startAnotherAtom([tempDirPath], ATOM_HOME: AtomHome)
+          .waitUntil((->
+            @title()
+              .then(({value}) -> value.indexOf(path.basename(tempDirPath)) >= 0)), 5000)
+          .waitForWindowCount(1, 5000)
+
+    it "always opens with a single untitled buffer when launched w/ no path", ->
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)
+
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)

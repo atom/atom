@@ -18,8 +18,9 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, @locationsToOpen, @isSpec, @exitWhenDone, @safeMode, @devMode} = settings
-    @locationsToOpen ?= [{pathToOpen}] if pathToOpen
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @exitWhenDone, @safeMode, @devMode} = settings
+    locationsToOpen ?= [{pathToOpen}] if pathToOpen
+    locationsToOpen ?= []
 
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
@@ -52,11 +53,13 @@ class AtomWindow
       @constructor.includeShellLoadTime = false
       loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
-    loadSettings.initialPaths = for {pathToOpen} in (@locationsToOpen ? [])
-      if fs.statSyncNoException(pathToOpen).isFile?()
-        path.dirname(pathToOpen)
-      else
-        pathToOpen
+    loadSettings.initialPaths =
+      for {pathToOpen} in locationsToOpen when pathToOpen
+        if fs.statSyncNoException(pathToOpen).isFile?()
+          path.dirname(pathToOpen)
+        else
+          pathToOpen
+
     loadSettings.initialPaths.sort()
     @projectPaths = loadSettings.initialPaths
 
@@ -70,7 +73,7 @@ class AtomWindow
     @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
-    @openLocations(@locationsToOpen) unless @isSpecWindow()
+    @openLocations(locationsToOpen) unless @isSpecWindow()
 
   getUrl: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
