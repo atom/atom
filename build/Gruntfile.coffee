@@ -220,7 +220,6 @@ module.exports = (grunt) ->
   grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson', 'peg'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
-  grunt.registerTask('docs', ['markdown:guides', 'build-docs'])
 
   ciTasks = ['output-disk-space', 'download-atom-shell', 'download-atom-shell-chromedriver', 'build']
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
