@@ -41,7 +41,7 @@
     "jasmine-json": "~0.0",
     "jasmine-tagged": "^1.1.4",
     "jquery": "^2.1.1",
-    "less-cache": "0.21",
+    "less-cache": "0.22",
     "marked": "^0.3",
     "mixto": "^1",
     "nslog": "^2.0.0",
