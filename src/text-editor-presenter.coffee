@@ -76,10 +76,11 @@ class TextEditorPresenter
     @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
-    scope = @model.getRootScopeDescriptor()
+    configParams = {scope: @model.getRootScopeDescriptor()}
 
-    @scrollPastEnd = atom.config.get('editor.scrollPastEnd', {scope})
-    @showLineNumbers = atom.config.get('editor.showLineNumbers', {scope})
+    @scrollPastEnd = atom.config.get('editor.scrollPastEnd', configParams)
+    @showLineNumbers = atom.config.get('editor.showLineNumbers', configParams)
+    @showIndentGuide = atom.config.get('editor.showIndentGuide', configParams)
 
     if @configDisposables?
       @configDisposables?.dispose()
@@ -88,13 +89,15 @@ class TextEditorPresenter
     @configDisposables = new CompositeDisposable
     @disposables.add(@configDisposables)
 
-    @configDisposables.add atom.config.onDidChange 'editor.showIndentGuide', {scope}, @updateContentState.bind(this)
-    @configDisposables.add atom.config.onDidChange 'editor.scrollPastEnd', {scope}, ({newValue}) =>
+    @configDisposables.add atom.config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
+      @showIndentGuide = newValue
+      @updateContentState()
+    @configDisposables.add atom.config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
       @scrollPastEnd = newValue
       @updateScrollHeight()
       @updateVerticalScrollState()
       @updateScrollbarsState()
-    @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', {scope}, ({newValue}) =>
+    @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
       @showLineNumbers = newValue
       @updateGutterState()
 
@@ -202,7 +205,7 @@ class TextEditorPresenter
   updateContentState: ->
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
-    @state.content.indentGuidesVisible = not @model.isMini() and atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
+    @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
     @emitter.emit 'did-update-state'
