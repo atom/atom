@@ -541,20 +541,17 @@ TextEditorComponent = React.createClass
 
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
-      @requestUpdate()
 
   onSelectionChanged: (selection) ->
     {editor} = @props
     if editor.selectionIntersectsVisibleRowRange(selection)
       @selectionChanged = true
-      @requestUpdate()
 
   onCursorAdded: (cursor) ->
     @disposables.add cursor.onDidChangePosition @onCursorMoved
 
   onCursorMoved: ->
     @cursorMoved = true
-    @requestUpdate()
 
   handleDragUntilMouseUp: (event, dragHandler) ->
     {editor} = @props
