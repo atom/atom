@@ -352,6 +352,12 @@ describe "Project", ->
       expect(atom.project.getPaths()).toEqual(originalPaths)
       expect(onDidChangePathsSpy).not.toHaveBeenCalled()
 
+    it "doesn't destroy the repository if it is shared by another root directory", ->
+      atom.project.setPaths([__dirname, path.join(__dirname, "..", "src")])
+      atom.project.removePath(__dirname)
+      expect(atom.project.getPaths()).toEqual([path.join(__dirname, "..", "src")])
+      expect(atom.project.getRepositories()[0].isSubmodule("src")).toBe false
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
       atom.project.addPath(temp.mkdirSync("another-path"))

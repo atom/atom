@@ -225,7 +225,7 @@ class Project extends Model
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedDirectory.off()
-      removedRepository?.destroy()
+      removedRepository?.destroy() unless removedRepository in @repositories
       @emit "path-changed"
       @emitter.emit "did-change-paths", @getPaths()
       true
