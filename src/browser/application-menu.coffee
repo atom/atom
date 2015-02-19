@@ -92,19 +92,23 @@ class ApplicationMenu
   # Sets the proper visible state the update menu items
   showUpdateMenuItem: (state) ->
     checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Check for Update')
+    checkingForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Checking for Update')
     downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Downloading Update')
     installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Restart and Install Update')
 
-    return unless checkForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
+    return unless checkForUpdateItem? and checkingForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
 
     checkForUpdateItem.visible = false
+    checkingForUpdateItem.visible = false
     downloadingUpdateItem.visible = false
     installUpdateItem.visible = false
 
     switch state
       when 'idle', 'error', 'no-update-available'
         checkForUpdateItem.visible = true
-      when 'checking', 'downloading'
+      when 'checking'
+        checkingForUpdateItem.visible = true
+      when 'downloading'
         downloadingUpdateItem.visible = true
       when 'update-available'
         installUpdateItem.visible = true
