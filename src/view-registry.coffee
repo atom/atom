@@ -43,6 +43,8 @@ Grim = require 'grim'
 module.exports =
 class ViewRegistry
   documentPollingInterval: 200
+  documentUpdateRequested: false
+  pollIntervalHandle: null
 
   constructor: ->
     @views = new WeakMap
@@ -174,6 +176,12 @@ class ViewRegistry
     new Disposable =>
       @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
       @stopPollingDocument() if @documentPollers.length is 0
+
+  clearDocumentRequests: ->
+    @documentReaders = []
+    @documentWriters = []
+    @documentPollers = []
+    @documentUpdateRequested = false
 
   requestDocumentUpdate: ->
     unless @documentUpdateRequested

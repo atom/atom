@@ -15,7 +15,6 @@ ScrollbarCornerComponent = require './scrollbar-corner-component'
 module.exports =
 class TextEditorComponent
   scrollSensitivity: 0.4
-  domPollingInterval: 100
   cursorBlinkPeriod: 800
   cursorBlinkResumeDelay: 100
   lineOverdrawMargin: 15
@@ -29,8 +28,6 @@ class TextEditorComponent
   cursorMoved: false
   selectionChanged: false
   inputEnabled: true
-  domPollingIntervalId: null
-  domPollingPaused: false
   measureScrollbarsWhenShown: true
   measureLineHeightAndDefaultCharWidthWhenShown: true
   remeasureCharacterWidthsWhenShown: false
@@ -94,7 +91,7 @@ class TextEditorComponent
       @disposables.add atom.themes.onDidChangeActiveThemes @onAllThemesLoaded
     @disposables.add scrollbarStyle.changes.onValue @refreshScrollbars
 
-    @domPollingIntervalId = setInterval(@pollDOM, @domPollingInterval)
+    @disposables.add atom.views.pollDocument(@pollDOM)
 
     @updateSync()
     @checkForVisibilityChange()
@@ -104,8 +101,6 @@ class TextEditorComponent
     @disposables.dispose()
     @presenter.destroy()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
-    clearInterval(@domPollingIntervalId)
-    @domPollingIntervalId = null
 
   updateSync: ->
     @oldState ?= {}
@@ -153,6 +148,7 @@ class TextEditorComponent
       @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
       @hostElement.__spacePenView.trigger 'editor:display-updated'
 
+  readAfterUpdateSync: =>
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
 
   mountGutterComponent: ->
@@ -183,16 +179,16 @@ class TextEditorComponent
       @updateSync()
     else unless @updateRequested
       @updateRequested = true
-      requestAnimationFrame =>
+      atom.views.updateDocument =>
         @updateRequested = false
         @updateSync() if @editor.isAlive()
+      atom.views.readDocument(@readAfterUpdateSync)
 
   canUpdate: ->
     @mounted and @editor.isAlive()
 
   requestAnimationFrame: (fn) ->
     @updatesPaused = true
-    @pauseDOMPolling()
     requestAnimationFrame =>
       fn()
       @updatesPaused = false
@@ -550,19 +546,7 @@ class TextEditorComponent
   isVisible: ->
     @domNode.offsetHeight > 0 or @domNode.offsetWidth > 0
 
-  pauseDOMPolling: ->
-    @domPollingPaused = true
-    @resumeDOMPollingAfterDelay ?= _.debounce(@resumeDOMPolling, 100)
-    @resumeDOMPollingAfterDelay()
-
-  resumeDOMPolling: ->
-    @domPollingPaused = false
-
-  resumeDOMPollingAfterDelay: null # created lazily
-
   pollDOM: =>
-    return if @domPollingPaused or @updateRequested or not @mounted
-
     unless @checkForVisibilityChange()
       @sampleBackgroundColors()
       @measureHeightAndWidth()

@@ -193,7 +193,8 @@ describe "TextEditorComponent", ->
       expect(linesNode.style.backgroundColor).toBe backgroundColor
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      advanceClock(component.domPollingInterval)
+
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
@@ -562,7 +563,7 @@ describe "TextEditorComponent", ->
 
       # favor gutter color if it's assigned
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
@@ -2355,7 +2356,7 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
         hiddenParent.style.display = 'block'
-        advanceClock(component.domPollingInterval)
+        advanceClock(atom.views.documentPollingInterval)
 
         expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan 0
 
@@ -2465,13 +2466,13 @@ describe "TextEditorComponent", ->
       expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
 
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(componentNode.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
@@ -2480,7 +2481,7 @@ describe "TextEditorComponent", ->
       scrollViewNode.style.paddingLeft = 20 + 'px'
       componentNode.style.width = 30 * charWidth + 'px'
 
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
 
       expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "
