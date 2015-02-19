@@ -359,19 +359,21 @@ class Cursor extends Model
   # line.
   moveToFirstCharacterOfLine: ->
     screenRow = @getScreenRow()
-    lineBufferRange = @editor.bufferRangeForScreenRange([[screenRow, 0], [screenRow, Infinity]])
+    screenLineStart = @editor.clipScreenPosition([screenRow, 0], wrapAtSoftNewlines: true)
+    screenLineEnd = [screenRow, Infinity]
+    screenLineBufferRange = @editor.bufferRangeForScreenRange([screenLineStart, screenLineEnd])
 
     firstCharacterColumn = null
-    @editor.scanInBufferRange /\S/, lineBufferRange, ({range, stop}) ->
+    @editor.scanInBufferRange /\S/, screenLineBufferRange, ({range, stop}) ->
       firstCharacterColumn = range.start.column
       stop()
 
     if firstCharacterColumn? and firstCharacterColumn isnt @getBufferColumn()
       targetBufferColumn = firstCharacterColumn
     else
-      targetBufferColumn = lineBufferRange.start.column
+      targetBufferColumn = screenLineBufferRange.start.column
 
-    @setBufferPosition([lineBufferRange.start.row, targetBufferColumn])
+    @setBufferPosition([screenLineBufferRange.start.row, targetBufferColumn])
 
   # Public: Moves the cursor to the end of the line.
   moveToEndOfScreenLine: ->

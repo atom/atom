@@ -196,7 +196,7 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([3, 5])).toEqual([3, 5])
         expect(displayBuffer.screenPositionForBufferPosition([3, 50])).toEqual([3, 50])
         expect(displayBuffer.screenPositionForBufferPosition([3, 51])).toEqual([3, 50])
-        expect(displayBuffer.bufferPositionForScreenPosition([4, 0])).toEqual([3, 51])
+        expect(displayBuffer.bufferPositionForScreenPosition([4, 0])).toEqual([3, 50])
         expect(displayBuffer.bufferPositionForScreenPosition([3, 50])).toEqual([3, 50])
         expect(displayBuffer.screenPositionForBufferPosition([3, 62])).toEqual([4, 15])
         expect(displayBuffer.bufferPositionForScreenPosition([4, 11])).toEqual([3, 58])
@@ -671,7 +671,7 @@ describe "DisplayBuffer", ->
       displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(10)
       expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 4]
-      expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 10]
+      expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 9]
 
   describe "::getMaxLineLength()", ->
     it "returns the length of the longest screen line", ->
