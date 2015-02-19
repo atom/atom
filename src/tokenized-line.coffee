@@ -121,7 +121,7 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    phantomTab = leftTokens[0].buildSoftWrapIndentToken(@indentLevel * @tabLength)
+    indentToken = leftTokens[0].buildSoftWrapIndentToken(@indentLevel * @tabLength)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
@@ -133,7 +133,7 @@ class TokenizedLine
       tabLength: @tabLength
     )
     rightFragment = new TokenizedLine(
-      tokens: [phantomTab].concat(rightTokens)
+      tokens: [indentToken].concat(rightTokens)
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       invisibles: @invisibles
