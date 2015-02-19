@@ -40,13 +40,13 @@ class ScrollbarComponent
       @domNode.style.bottom = @newState.bottom + 'px'
       @oldState.bottom = @newState.bottom
 
-    if @newState.scrollTop isnt @oldState.scrollTop
-      @domNode.scrollTop = @newState.scrollTop
-      @oldState.scrollTop = @newState.scrollTop
-
     if @newState.scrollHeight isnt @oldState.scrollHeight
       @contentNode.style.height = @newState.scrollHeight + 'px'
       @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.scrollTop isnt @oldState.scrollTop
+      @domNode.scrollTop = @newState.scrollTop
+      @oldState.scrollTop = @newState.scrollTop
 
   updateHorizontal: ->
     if @newState.height isnt @oldState.height
@@ -57,13 +57,14 @@ class ScrollbarComponent
       @domNode.style.right = @newState.right + 'px'
       @oldState.right = @newState.right
 
+    if @newState.scrollWidth isnt @oldState.scrollWidth
+      @contentNode.style.width = @newState.scrollWidth + 'px'
+      @oldState.scrollWidth = @newState.scrollWidth
+
     if @newState.scrollLeft isnt @oldState.scrollLeft
       @domNode.scrollLeft = @newState.scrollLeft
       @oldState.scrollLeft = @newState.scrollLeft
 
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      @contentNode.style.width = @newState.scrollWidth + 'px'
-      @oldState.scrollWidth = @newState.scrollWidth
 
   onScrollCallback: =>
     switch @orientation
