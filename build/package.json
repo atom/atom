@@ -26,7 +26,7 @@
     "harmony-collections": "~0.3.8",
     "legal-eagle": "~0.9.0",
     "minidump": "~0.8",
-    "npm": "~1.4.5",
+    "npm": "2.5.1",
     "rcedit": "~0.3.0",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
