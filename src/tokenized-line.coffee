@@ -121,7 +121,7 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    phantomTab = leftTokens[0].buildPhantomTabToken(@indentLevel * @tabLength)
+    phantomTab = leftTokens[0].buildSoftWrapIndentToken(@indentLevel * @tabLength)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
