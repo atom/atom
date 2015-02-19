@@ -41,6 +41,14 @@ handleEvents = ->
     result = handler.bind({async})(args...)
     emit('task:completed', result) unless isAsync
 
+setupDeprecations = ->
+  Grim = require 'grim'
+  Grim.on 'updated', ->
+    deprecations = Grim.getDeprecations().map (deprecation) -> deprecation.serialize()
+    emit('task:deprecations', deprecations)
+    Grim.clearDeprecations()
+
 setupGlobals()
 handleEvents()
+setupDeprecations()
 handler = require(taskPath)
