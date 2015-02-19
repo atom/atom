@@ -241,8 +241,8 @@ class Project extends Model
   relativize: (fullPath) ->
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     for rootDirectory in @rootDirectories
-      if (relativePath = rootDirectory.relativize(fullPath))?
-        return relativePath
+      relativePath = rootDirectory.relativize(fullPath)
+      return relativePath if relativePath isnt fullPath
     fullPath
 
   # Public: Determines whether the given path (real or symbolic) is inside the

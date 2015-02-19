@@ -332,7 +332,13 @@ describe "Project", ->
 
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
+      atom.project.addPath(temp.mkdirSync("another-path"))
+
       rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
+
+      rootPath = atom.project.getPaths()[1]
       childPath = path.join(rootPath, "some", "child", "directory")
       expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
 
