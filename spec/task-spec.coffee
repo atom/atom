@@ -47,11 +47,13 @@ describe "Task", ->
 
   it "reports deprecations in tasks", ->
     jasmine.snapshotDeprecations()
-    task = new Task(require.resolve('./fixtures/task-handler-with-deprecations'))
+    handlerPath = require.resolve('./fixtures/task-handler-with-deprecations')
+    task = new Task(handlerPath)
 
     waitsFor (done) -> task.start(done)
 
     runs ->
       deprecations = Grim.getDeprecations()
       expect(deprecations.length).toBe 1
+      expect(deprecations[0].getStacks()[0][1].fileName).toBe handlerPath
       jasmine.restoreDeprecationsSnapshot()
