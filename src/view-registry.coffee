@@ -42,9 +42,14 @@ Grim = require 'grim'
 # ```
 module.exports =
 class ViewRegistry
+  documentPollingInterval: 200
+
   constructor: ->
     @views = new WeakMap
     @providers = []
+    @documentWriters = []
+    @documentReaders = []
+    @documentPollers = []
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -150,3 +155,43 @@ class ViewRegistry
 
   findProvider: (object) ->
     find @providers, ({modelConstructor}) -> object instanceof modelConstructor
+
+  updateDocument: (fn) ->
+    @documentWriters.push(fn)
+    @requestDocumentUpdate()
+    new Disposable =>
+      @documentWriters = @documentWriters.filter (writer) -> writer isnt fn
+
+  readDocument: (fn) ->
+    @documentReaders.push(fn)
+    @requestDocumentUpdate()
+    new Disposable =>
+      @documentReaders = @documentReaders.filter (reader) -> reader isnt fn
+
+  pollDocument: (fn) ->
+    @startPollingDocument() if @documentPollers.length is 0
+    @documentPollers.push(fn)
+    new Disposable =>
+      @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
+      @stopPollingDocument() if @documentPollers.length is 0
+
+  requestDocumentUpdate: ->
+    unless @documentUpdateRequested
+      @documentUpdateRequested = true
+      @stopPollingDocument()
+      requestAnimationFrame(@performDocumentUpdate)
+
+  performDocumentUpdate: =>
+    @documentUpdateRequested = false
+    @startPollingDocument()
+    writer() while writer = @documentWriters.shift()
+    reader() while reader = @documentReaders.shift()
+
+  startPollingDocument: ->
+    @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
+
+  stopPollingDocument: ->
+    window.clearInterval(@pollIntervalHandle)
+
+  performDocumentPoll: =>
+    poller() for poller in @documentPollers

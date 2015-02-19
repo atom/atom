@@ -85,3 +85,77 @@ describe "ViewRegistry", ->
       expect(registry.getView(new TestModel) instanceof TestView).toBe true
       disposable.dispose()
       expect(-> registry.getView(new TestModel)).toThrow()
+
+  describe "::updateDocument(fn) and ::readDocument(fn)", ->
+    frameRequests = null
+
+    beforeEach ->
+      frameRequests = []
+      spyOn(window, 'requestAnimationFrame').andCallFake (fn) -> frameRequests.push(fn)
+
+    it "performs all pending writes before all pending reads on the next animation frame", ->
+      events = []
+
+      registry.updateDocument -> events.push('write 1')
+      registry.readDocument -> events.push('read 1')
+      registry.readDocument -> events.push('read 2')
+      registry.updateDocument -> events.push('write 2')
+
+      expect(events).toEqual []
+
+      expect(frameRequests.length).toBe 1
+      frameRequests[0]()
+      expect(events).toEqual ['write 1', 'write 2', 'read 1', 'read 2']
+
+      frameRequests = []
+      events = []
+      disposable = registry.updateDocument -> events.push('write 3')
+      registry.updateDocument -> events.push('write 4')
+      registry.readDocument -> events.push('read 3')
+
+      disposable.dispose()
+
+      expect(frameRequests.length).toBe 1
+      frameRequests[0]()
+      expect(events).toEqual ['write 4', 'read 3']
+
+    it "pauses DOM polling when reads or writes are pending", ->
+      spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
+      spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
+      events = []
+
+      registry.pollDocument -> events.push('poll')
+      registry.updateDocument -> events.push('write')
+      registry.readDocument -> events.push('read')
+
+      advanceClock(registry.documentPollingInterval)
+
+      frameRequests[0]()
+      expect(events).toEqual ['write', 'read']
+
+      advanceClock(registry.documentPollingInterval)
+      expect(events).toEqual ['write', 'read', 'poll']
+
+  describe "::pollDocument(fn)", ->
+    it "calls all registered reader functions on an interval until they are disabled via a returned disposable", ->
+      spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
+
+      events = []
+      disposable1 = registry.pollDocument -> events.push('poll 1')
+      disposable2 = registry.pollDocument -> events.push('poll 2')
+
+      expect(events).toEqual []
+
+      advanceClock(registry.documentPollingInterval)
+      expect(events).toEqual ['poll 1', 'poll 2']
+
+      advanceClock(registry.documentPollingInterval)
+      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2']
+
+      disposable1.dispose()
+      advanceClock(registry.documentPollingInterval)
+      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']
+
+      disposable2.dispose()
+      advanceClock(registry.documentPollingInterval)
+      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']
