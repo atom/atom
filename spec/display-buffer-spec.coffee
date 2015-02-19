@@ -599,18 +599,6 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.clipScreenPosition([1000, 0])).toEqual [15, 2]
       expect(displayBuffer.clipScreenPosition([1000, 1000])).toEqual [15, 2]
 
-    describe "when wrapAtPhantomTokens is false (the default)", ->
-      it "clips positions inside a phantom token to the beginning of the line", ->
-        expect(displayBuffer.clipScreenPosition([4, 0])).toEqual [4, 4]
-        expect(displayBuffer.clipScreenPosition([4, 1])).toEqual [4, 4]
-        expect(displayBuffer.clipScreenPosition([4, 3])).toEqual [4, 4]
-
-    describe "when wrapAtPhantomTokens is true", ->
-      it "wraps positions inside a phantom token to the previous line", ->
-        expect(displayBuffer.clipScreenPosition([4, 0], wrapAtPhantomTokens: true)).toEqual [3, 51]
-        expect(displayBuffer.clipScreenPosition([4, 1], wrapAtPhantomTokens: true)).toEqual [3, 51]
-        expect(displayBuffer.clipScreenPosition([4, 3], wrapAtPhantomTokens: true)).toEqual [3, 51]
-
     describe "when wrapBeyondNewlines is false (the default)", ->
       it "wraps positions beyond the end of hard newlines to the end of the line", ->
         expect(displayBuffer.clipScreenPosition([1, 10000])).toEqual [1, 30]
@@ -634,12 +622,22 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([3, 58])).toEqual [3, 50]
         expect(displayBuffer.clipScreenPosition([3, 1000])).toEqual [3, 50]
 
+      it "clips positions inside a phantom token to the beginning of the line", ->
+        expect(displayBuffer.clipScreenPosition([4, 0])).toEqual [4, 4]
+        expect(displayBuffer.clipScreenPosition([4, 1])).toEqual [4, 4]
+        expect(displayBuffer.clipScreenPosition([4, 3])).toEqual [4, 4]
+
     describe "when wrapAtSoftNewlines is true", ->
       it "wraps positions at the end of soft-wrapped lines to the next screen line", ->
         expect(displayBuffer.clipScreenPosition([3, 50], wrapAtSoftNewlines: true)).toEqual [3, 50]
         expect(displayBuffer.clipScreenPosition([3, 51], wrapAtSoftNewlines: true)).toEqual [4, 4]
         expect(displayBuffer.clipScreenPosition([3, 58], wrapAtSoftNewlines: true)).toEqual [4, 4]
         expect(displayBuffer.clipScreenPosition([3, 1000], wrapAtSoftNewlines: true)).toEqual [4, 4]
+
+      it "wraps positions inside a phantom token to the previous line", ->
+        expect(displayBuffer.clipScreenPosition([4, 0], wrapAtSoftNewlines: true)).toEqual [3, 50]
+        expect(displayBuffer.clipScreenPosition([4, 1], wrapAtSoftNewlines: true)).toEqual [3, 50]
+        expect(displayBuffer.clipScreenPosition([4, 3], wrapAtSoftNewlines: true)).toEqual [3, 50]
 
     describe "when skipAtomicTokens is false (the default)", ->
       it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->

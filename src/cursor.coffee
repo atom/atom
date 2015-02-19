@@ -304,13 +304,14 @@ class Cursor extends Model
     else
       {row, column} = @getScreenPosition()
 
+      originalRow = row
       while columnCount > column and row > 0
         columnCount -= column
         column = @editor.lineTextForScreenRow(--row).length
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column}, wrapAtPhantomTokens: true)
+      @setScreenPosition({row, column}, wrapAtSoftNewlines: originalRow == row)
 
   # Public: Moves the cursor right one screen column.
   #
