@@ -209,6 +209,29 @@ class Project extends Model
       @emit "path-changed"
       @emitter.emit 'did-change-paths', @getPaths()
 
+  # Public: remove a path from the project's list of root paths.
+  #
+  # * `projectPath` {String} The path to remove.
+  removePath: (projectPath) ->
+    projectPath = path.normalize(projectPath)
+
+    indexToRemove = null
+    for directory, i in @rootDirectories
+      if directory.getPath() is projectPath
+        indexToRemove = i
+        break
+
+    if indexToRemove?
+      [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
+      [removedRepository] = @repositories.splice(indexToRemove, 1)
+      removedDirectory.off()
+      removedRepository?.destroy()
+      @emit "path-changed"
+      @emitter.emit "did-change-paths", @getPaths()
+      true
+    else
+      false
+
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
     @rootDirectories

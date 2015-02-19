@@ -330,6 +330,28 @@ describe "Project", ->
         expect(atom.project.getPaths()).toEqual([oldPath])
         expect(onDidChangePathsSpy).not.toHaveBeenCalled()
 
+  describe ".removePath(path)", ->
+    onDidChangePathsSpy = null
+
+    beforeEach ->
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths listener')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+    it "removes the directory and repository for the path", ->
+      result = atom.project.removePath(atom.project.getPaths()[0])
+      expect(atom.project.getDirectories()).toEqual([])
+      expect(atom.project.getRepositories()).toEqual([])
+      expect(atom.project.getPaths()).toEqual([])
+      expect(result).toBe true
+      expect(onDidChangePathsSpy).toHaveBeenCalled()
+
+    it "does nothing if the path is not one of the project's root paths", ->
+      originalPaths = atom.project.getPaths()
+      result = atom.project.removePath(originalPaths[0] + "xyz")
+      expect(result).toBe false
+      expect(atom.project.getPaths()).toEqual(originalPaths)
+      expect(onDidChangePathsSpy).not.toHaveBeenCalled()
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
       atom.project.addPath(temp.mkdirSync("another-path"))
