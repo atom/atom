@@ -361,12 +361,11 @@ class AtomApplication
 
       # Default to using the specified window or the last focused window
       currentWindow = window ? @lastFocusedWindow
-
-      if pathsToOpen.every((pathToOpen) -> fs.statSyncNoException(pathToOpen).isFile?())
-        existingWindow ?= currentWindow
-
-      unless currentWindow?.projectPaths?.length > 0
-        existingWindow ?= currentWindow
+      stats = (fs.statSyncNoException(pathToOpen) for pathToOpen in pathsToOpen)
+      existingWindow ?= currentWindow if (
+        stats.every((stat) -> stat.isFile?()) or
+        stats.some((stat) -> stat.isDirectory?()) and not currentWindow?.hasProjectPath()
+      )
 
     if existingWindow?
       openedWindow = existingWindow

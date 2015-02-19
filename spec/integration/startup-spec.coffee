@@ -142,3 +142,9 @@ describe "Starting Atom", ->
         client
           .waitForExist("atom-workspace")
           .waitForPaneItemCount(1, 5000)
+
+          # Opening with no file paths always creates a new window, even if
+          # existing windows have no project paths.
+          .waitForNewWindow(->
+            @startAnotherAtom([], ATOM_HOME: AtomHome)
+          , 5000)
