@@ -7,7 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
   * [Git](http://git-scm.com/)
-  * [Node.js](http://nodejs.org/download/) v0.10.x
+  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x)
   * [npm](https://www.npmjs.com/) v1.4.x (bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
