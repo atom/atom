@@ -271,7 +271,7 @@ class Cursor extends Model
       { row, column } = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row - rowCount, column: column})
+    @setScreenPosition({row: row - rowCount, column: column}, wrapAtSoftNewlines: true)
     @goalColumn = column
 
   # Public: Moves the cursor down one screen row.
@@ -288,7 +288,7 @@ class Cursor extends Model
       { row, column } = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row + rowCount, column: column})
+    @setScreenPosition({row: row + rowCount, column: column}, wrapAtSoftNewlines: true)
     @goalColumn = column
 
   # Public: Moves the cursor left one screen column.
@@ -304,14 +304,13 @@ class Cursor extends Model
     else
       {row, column} = @getScreenPosition()
 
-      originalRow = row
       while columnCount > column and row > 0
         columnCount -= column
         column = @editor.lineTextForScreenRow(--row).length
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column}, wrapAtSoftNewlines: originalRow == row)
+      @setScreenPosition({row, column})
 
   # Public: Moves the cursor right one screen column.
   #
