@@ -227,7 +227,7 @@ describe "DisplayBuffer", ->
 
     it "sets ::scrollLeft to 0 and keeps it there when soft wrapping is enabled", ->
       displayBuffer.setDefaultCharWidth(10)
-      displayBuffer.setWidth(50)
+      displayBuffer.setWidth(85)
       displayBuffer.manageScrollPosition = true
 
       displayBuffer.setSoftWrapped(false)
