@@ -167,7 +167,7 @@ class Project extends Model
 
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
-  getPaths: -> rootDirectory.path for rootDirectory in @rootDirectories
+  getPaths: -> rootDirectory.getPath() for rootDirectory in @rootDirectories
   getPath: ->
     Grim.deprecate("Use ::getPaths instead")
     @getPaths()[0]

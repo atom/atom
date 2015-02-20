@@ -24,8 +24,8 @@ describe "DefaultDirectoryProvider", ->
     it "creates a Directory for its parent dir when passed a file", ->
       provider = new DefaultDirectoryProvider()
       tmp = temp.mkdirSync()
-      file = path.join(tmp, 'example.txt')
-      fs.writeFileSync(file, 'data')
+      file = path.join(tmp, "example.txt")
+      fs.writeFileSync(file, "data")
 
       directory = provider.directoryForURISync(file)
       expect(directory.getPath()).toEqual tmp
