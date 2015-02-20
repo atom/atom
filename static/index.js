@@ -47,7 +47,7 @@ window.onload = function() {
     setupVmCompatibility();
     setupCsonCache(cacheDir);
     setupSourceMapCache(cacheDir);
-    setup6to5(cacheDir);
+    setupBabel(cacheDir);
 
     require(loadSettings.bootstrapScript);
     require('ipc').sendChannel('window-command', 'window:loaded');
@@ -90,10 +90,10 @@ var setupAtomHome = function() {
   }
 }
 
-var setup6to5 = function(cacheDir) {
-  var to5 = require('../src/6to5');
-  to5.setCacheDirectory(path.join(cacheDir, 'js', '6to5'));
-  to5.register();
+var setupBabel = function(cacheDir) {
+  var babel = require('../src/babel');
+  babel.setCacheDirectory(path.join(cacheDir, 'js', 'babel'));
+  babel.register();
 }
 
 var setupCsonCache = function(cacheDir) {
