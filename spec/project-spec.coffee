@@ -65,7 +65,7 @@ describe "Project", ->
       expect(otherDummyDirectory.getPath()).toBe otherRemotePath
       expect(otherDummyDirectory instanceof DummyDirectory).toBe true
 
-    it "a custom DirectoryProvider that returns null defaults to the DefaultDirectoryProvider", ->
+    it "uses the default directory provider if no custom provider can handle the URI", ->
       directoryProvider =
         directoryForURISync: (uri) -> null
         directoryForURI: (uri) -> throw new Error("This should not be called.")
