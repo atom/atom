@@ -207,3 +207,4 @@ class ViewRegistry
     else
       @performDocumentPollAfterUpdate = false
       poller() for poller in @documentPollers
+      return
