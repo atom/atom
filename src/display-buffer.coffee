@@ -819,11 +819,12 @@ class DisplayBuffer extends Model
   # options - A hash with the following values:
   #           wrapBeyondNewlines: if `true`, continues wrapping past newlines
   #           wrapAtSoftNewlines: if `true`, continues wrapping past soft newlines
+  #           skipSoftWrapIndentation: if `true`, skips soft wrap indentation
   #           screenLine: if `true`, indicates that you're using a line number, not a row number
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
+    { wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation } = options
     { row, column } = Point.fromObject(screenPosition)
 
     if row < 0
@@ -845,7 +846,7 @@ class DisplayBuffer extends Model
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
     else if screenLine.isColumnInsideSoftWrapIndentation(column)
-      if wrapAtSoftNewlines
+      if skipSoftWrapIndentation
         column = screenLine.clipScreenColumn(0)
       else
         row--

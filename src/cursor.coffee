@@ -271,7 +271,7 @@ class Cursor extends Model
       { row, column } = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row - rowCount, column: column}, wrapAtSoftNewlines: true)
+    @setScreenPosition({row: row - rowCount, column: column}, skipSoftWrapIndentation: true)
     @goalColumn = column
 
   # Public: Moves the cursor down one screen row.
@@ -288,7 +288,7 @@ class Cursor extends Model
       { row, column } = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row + rowCount, column: column}, wrapAtSoftNewlines: true)
+    @setScreenPosition({row: row + rowCount, column: column}, skipSoftWrapIndentation: true)
     @goalColumn = column
 
   # Public: Moves the cursor left one screen column.
@@ -359,7 +359,7 @@ class Cursor extends Model
   # line.
   moveToFirstCharacterOfLine: ->
     screenRow = @getScreenRow()
-    screenLineStart = @editor.clipScreenPosition([screenRow, 0], wrapAtSoftNewlines: true)
+    screenLineStart = @editor.clipScreenPosition([screenRow, 0], skipSoftWrapIndentation: true)
     screenLineEnd = [screenRow, Infinity]
     screenLineBufferRange = @editor.bufferRangeForScreenRange([screenLineStart, screenLineEnd])
 

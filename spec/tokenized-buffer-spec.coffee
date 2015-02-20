@@ -670,8 +670,8 @@ describe "TokenizedBuffer", ->
       [segment1, segment2] = tokenizedLine.softWrapAt(16)
       expect(segment1.tokens[5].value).toBe ' '
       expect(segment1.tokens[5].firstTrailingWhitespaceIndex).toBe null
-      expect(segment2.tokens[7].value).toBe '  '
-      expect(segment2.tokens[7].firstTrailingWhitespaceIndex).toBe 0
+      expect(segment2.tokens[6].value).toBe '  '
+      expect(segment2.tokens[6].firstTrailingWhitespaceIndex).toBe 0
 
     it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
       buffer.setText("  \t a line with tabs\tand \tspaces \t ")
