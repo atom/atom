@@ -14,6 +14,70 @@ describe "Project", ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
 
   describe "constructor", ->
+    it "enables a custom DirectoryProvider to supersede the DefaultDirectoryProvider", ->
+      remotePath = "ssh://foreign-directory:8080/"
+      class DummyDirectory
+        constructor: (@path) ->
+        getPath: -> @path
+        getFile: -> existsSync: -> false
+        getSubdirectory: -> existsSync: -> false
+        isRoot: -> true
+        off: ->
+        contains: (filePath) -> filePath.startsWith(remotePath)
+
+      directoryProvider =
+        directoryForURISync: (uri) ->
+          if uri.startsWith("ssh://")
+            new DummyDirectory(uri)
+          else
+            null
+        directoryForURI: (uri) -> throw new Error("This should not be called.")
+      atom.packages.serviceHub.provide(
+        "atom.directory-provider", "0.1.0", directoryProvider)
+
+      tmp = temp.mkdirSync()
+      atom.project.setPaths([tmp, remotePath])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 2
+
+      localDirectory = directories[0]
+      expect(localDirectory.getPath()).toBe tmp
+      expect(localDirectory instanceof Directory).toBe true
+
+      dummyDirectory = directories[1]
+      expect(dummyDirectory.getPath()).toBe remotePath
+      expect(dummyDirectory instanceof DummyDirectory).toBe true
+
+      expect(atom.project.getPaths()).toEqual([tmp, remotePath])
+
+      # Make sure that DummyDirectory.contains() is honored.
+      remotePathSubdirectory = remotePath + "a/subdirectory"
+      atom.project.addPath(remotePathSubdirectory)
+      expect(atom.project.getDirectories().length).toBe 2
+
+      # Make sure that a new DummyDirectory that is not contained by the first
+      # DummyDirectory can be added.
+      otherRemotePath = "ssh://other-foreign-directory:8080/"
+      atom.project.addPath(otherRemotePath)
+      newDirectories = atom.project.getDirectories()
+      expect(newDirectories.length).toBe 3
+      otherDummyDirectory = newDirectories[2]
+      expect(otherDummyDirectory.getPath()).toBe otherRemotePath
+      expect(otherDummyDirectory instanceof DummyDirectory).toBe true
+
+    it "uses the default directory provider if no custom provider can handle the URI", ->
+      directoryProvider =
+        directoryForURISync: (uri) -> null
+        directoryForURI: (uri) -> throw new Error("This should not be called.")
+      atom.packages.serviceHub.provide(
+        "atom.directory-provider", "0.1.0", directoryProvider)
+
+      tmp = temp.mkdirSync()
+      atom.project.setPaths([tmp])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 1
+      expect(directories[0].getPath()).toBe tmp
+
     it "tries to update repositories when a new RepositoryProvider is registered", ->
       tmp = temp.mkdirSync('atom-project')
       atom.project.setPaths([tmp])

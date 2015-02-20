@@ -8,9 +8,9 @@ Q = require 'q'
 {Model} = require 'theorist'
 {Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
+DefaultDirectoryProvider = require './default-directory-provider'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
-{Directory} = require 'pathwatcher'
 Grim = require 'grim'
 
 TextEditor = require './text-editor'
@@ -40,6 +40,14 @@ class Project extends Model
     @buffers ?= []
     @rootDirectories = []
     @repositories = []
+
+    @directoryProviders = [new DefaultDirectoryProvider()]
+    atom.packages.serviceHub.consume(
+      'atom.directory-provider',
+      '^0.1.0',
+      # New providers are added to the front of @directoryProviders because
+      # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
+      (provider) => @directoryProviders.unshift(provider))
 
     # Mapping from the real path of a {Directory} to a {Promise} that resolves
     # to either a {Repository} or null. Ideally, the {Directory} would be used
@@ -159,7 +167,7 @@ class Project extends Model
 
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
-  getPaths: -> rootDirectory.path for rootDirectory in @rootDirectories
+  getPaths: -> rootDirectory.getPath() for rootDirectory in @rootDirectories
   getPath: ->
     Grim.deprecate("Use ::getPaths instead")
     @getPaths()[0]
@@ -182,22 +190,22 @@ class Project extends Model
     Grim.deprecate("Use ::setPaths instead")
     @setPaths([path])
 
-  # Public: Add a path the project's list of root paths
+  # Public: Add a path to the project's list of root paths
   #
   # * `projectPath` {String} The path to the directory to add.
   addPath: (projectPath, options) ->
-    projectPath = path.normalize(projectPath)
+    for directory in @getDirectories()
+      # Apparently a Directory does not believe it can contain itself, so we
+      # must also check whether the paths match.
+      return if directory.contains(projectPath) or directory.getPath() is projectPath
 
-    directoryPath = if fs.isDirectorySync(projectPath)
-      projectPath
-    else
-      path.dirname(projectPath)
-
-    return if @getPaths().some (existingPath) ->
-      (directoryPath is existingPath) or
-      (directoryPath.indexOf(path.join(existingPath, path.sep)) is 0)
-
-    directory = new Directory(directoryPath)
+    directory = null
+    for provider in @directoryProviders
+      break if directory = provider.directoryForURISync?(projectPath)
+    if directory is null
+      # This should never happen because DefaultDirectoryProvider should always
+      # return a Directory.
+      throw new Error(projectPath + ' could not be resolved to a directory')
     @rootDirectories.push(directory)
 
     repo = null
