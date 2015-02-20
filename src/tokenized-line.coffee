@@ -17,6 +17,8 @@ class TokenizedLine
     @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
     @bufferDelta = @buildBufferDelta()
+    @softWrapIndentTokens = @getSoftWrapIndentTokens()
+    @softWrapIndentDelta = @buildSoftWrapIndentDelta()
 
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
@@ -48,8 +50,8 @@ class TokenizedLine
       break if tokenStartColumn + token.screenDelta > column
       tokenStartColumn += token.screenDelta
 
-    if token.isPhantom and tokenStartColumn <= column
-      tokenStartColumn + token.screenDelta
+    if @isColumnInsideSoftWrapIndentation(tokenStartColumn)
+      @softWrapIndentDelta
     else if token.isAtomic and tokenStartColumn < column
       if skipAtomicTokens
         tokenStartColumn + token.screenDelta
@@ -103,7 +105,7 @@ class TokenizedLine
       return @text.length
     else
       # search backward for the start of the word on the boundary
-      for column in [maxColumn..0] when @isColumnOutsidePhantomToken(column)
+      for column in [maxColumn..0] when @isColumnOutsideSoftWrapIndentation(column)
         return column + 1 if /\s/.test(@text[column])
 
       return maxColumn
@@ -121,7 +123,8 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    indentToken = leftTokens[0].buildSoftWrapIndentToken(@indentLevel * @tabLength)
+    indentTokens = [0...@indentLevel].map =>
+      leftTokens[0].buildSoftWrapIndentToken(@tabLength)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
@@ -133,7 +136,7 @@ class TokenizedLine
       tabLength: @tabLength
     )
     rightFragment = new TokenizedLine(
-      tokens: [indentToken].concat(rightTokens)
+      tokens: indentTokens.concat(rightTokens)
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       invisibles: @invisibles
@@ -146,18 +149,24 @@ class TokenizedLine
   isSoftWrapped: ->
     @lineEnding is null
 
-  isColumnOutsidePhantomToken: (column) ->
-    return true unless @tokens[0].isPhantom
+  isColumnOutsideSoftWrapIndentation: (column) ->
+    return true if @softWrapIndentTokens.length == 0
 
-    column > @tokens[0].screenDelta
+    column > @softWrapIndentDelta
 
-  isColumnInsidePhantomToken: (column) ->
-    return false unless @tokens[0].isPhantom
+  isColumnInsideSoftWrapIndentation: (column) ->
+    return false if @softWrapIndentTokens.length == 0
 
-    column < @tokens[0].screenDelta
+    column < @softWrapIndentDelta
 
-  hasOnlyPhantomTokens: ->
-    @tokens.length == 1 && @tokens[0].isPhantom
+  getSoftWrapIndentTokens: ->
+    _.select(@tokens, (token) -> token.isSoftWrapIndent)
+
+  buildSoftWrapIndentDelta: ->
+    _.reduce @softWrapIndentTokens, ((acc, token) -> acc + token.screenDelta), 0
+
+  hasOnlySoftWrapIndentation: ->
+    @tokens.length == @softWrapIndentTokens.length
 
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
@@ -213,7 +222,7 @@ class TokenizedLine
           changedText = true
       else
         if invisibles.space
-          if token.hasLeadingWhitespace()
+          if token.hasLeadingWhitespace() and not token.isSoftWrapIndent
             token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
             token.hasInvisibleCharacters = true

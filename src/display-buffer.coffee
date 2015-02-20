@@ -844,7 +844,7 @@ class DisplayBuffer extends Model
         column = @screenLines[row].clipScreenColumn(0)
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
-    else if screenLine.isColumnInsidePhantomToken(column)
+    else if screenLine.isColumnInsideSoftWrapIndentation(column)
       if wrapAtSoftNewlines
         column = screenLine.clipScreenColumn(0)
       else
@@ -1144,7 +1144,7 @@ class DisplayBuffer extends Model
         if @isSoftWrapped()
           while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
             [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-            break if wrappedLine.hasOnlyPhantomTokens()
+            break if wrappedLine.hasOnlySoftWrapIndentation()
             screenLines.push(wrappedLine)
             softWraps++
         screenLines.push(tokenizedLine)

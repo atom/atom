@@ -21,7 +21,7 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isPhantom}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndent}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
@@ -150,7 +150,7 @@ class Token
       scopes: @scopes,
       bufferDelta: 0,
       isAtomic: true,
-      isPhantom: true
+      isSoftWrapIndent: true
     )
 
   isOnlyWhitespace: ->
@@ -229,7 +229,7 @@ class Token
       else match
 
   hasLeadingWhitespace: ->
-    !@isPhantom and @firstNonWhitespaceIndex? and @firstNonWhitespaceIndex > 0
+    @firstNonWhitespaceIndex? and @firstNonWhitespaceIndex > 0
 
   hasTrailingWhitespace: ->
     @firstTrailingWhitespaceIndex? and @firstTrailingWhitespaceIndex < @value.length
