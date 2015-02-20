@@ -11,6 +11,7 @@ module.exports = (grunt) ->
     appDir = grunt.config.get('atom.appDir')
 
     rm shellAppDir
+    rm path.join(buildDir, 'installer')
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
@@ -20,7 +21,9 @@ module.exports = (grunt) ->
 
     mkdir appDir
 
-    cp 'atom.sh', path.join(appDir, 'atom.sh')
+    if process.platform isnt 'win32'
+      cp 'atom.sh', path.join(appDir, 'atom.sh')
+
     cp 'package.json', path.join(appDir, 'package.json')
 
     packageDirectories = []
@@ -68,6 +71,7 @@ module.exports = (grunt) ->
       path.join('build', 'Release', 'obj')
       path.join('build', 'Release', '.deps')
       path.join('vendor', 'apm')
+      path.join('resources', 'linux')
       path.join('resources', 'mac')
       path.join('resources', 'win')
 
@@ -140,7 +144,10 @@ module.exports = (grunt) ->
     cp 'spec', path.join(appDir, 'spec')
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
-    cp 'apm', path.join(appDir, 'apm'), filter: filterNodeModule
+
+    cp path.join('apm', 'node_modules', 'atom-package-manager'), path.join(appDir, 'apm'), filter: filterNodeModule
+    if process.platform isnt 'win32'
+      fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(appDir, 'apm', 'node_modules', '.bin', 'apm'))
 
     if process.platform is 'darwin'
       grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
@@ -148,12 +155,15 @@ module.exports = (grunt) ->
           grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
     if process.platform is 'win32'
-      # Set up chocolatey ignore and gui files
-      fs.writeFileSync path.join(appDir, 'apm', 'node_modules', 'atom-package-manager', 'bin', 'node.exe.ignore'), ''
-      fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
-      fs.writeFileSync path.join(shellAppDir, 'atom.exe.gui'), ''
+      cp path.join('resources', 'win', 'atom.cmd'), path.join(shellAppDir, 'resources', 'cli', 'atom.cmd')
+      cp path.join('resources', 'win', 'atom.sh'), path.join(shellAppDir, 'resources', 'cli', 'atom.sh')
+      cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'resources', 'cli', 'atom.js')
+      cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
 
-    dependencies = ['compile', "generate-license:save"]
+    if process.platform is 'linux'
+      cp path.join('resources', 'linux', 'icons'), path.join(buildDir, 'icons')
+
+    dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
     grunt.task.run(dependencies...)

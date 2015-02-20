@@ -1,0 +1,5 @@
+{
+  "name": "no events",
+  "version": "0.1.0",
+  "activationCommands": {"atom-workspace": []}
+}

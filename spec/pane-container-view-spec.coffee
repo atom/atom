@@ -1,31 +1,35 @@
 path = require 'path'
 temp = require 'temp'
+PaneContainer = require '../src/pane-container'
 PaneContainerView = require '../src/pane-container-view'
 PaneView = require '../src/pane-view'
-{$, View, $$} = require 'atom'
+{Disposable} = require 'event-kit'
+{$, View, $$} = require '../src/space-pen-extensions'
 
 describe "PaneContainerView", ->
-  [TestView, container, pane1, pane2, pane3] = []
+  [TestView, container, pane1, pane2, pane3, deserializerDisposable] = []
 
   beforeEach ->
     class TestView extends View
-      atom.deserializers.add(this)
+      deserializerDisposable = atom.deserializers.add(this)
       @deserialize: ({name}) -> new TestView(name)
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
       serialize: -> { deserializer: 'TestView', @name }
-      getUri: -> path.join(temp.dir, @name)
+      getURI: -> path.join(temp.dir, @name)
       save: -> @saved = true
       isEqual: (other) -> @name is other?.name
+      onDidChangeTitle: -> new Disposable(->)
+      onDidChangeModified: -> new Disposable(->)
 
-    container = new PaneContainerView
+    container = atom.views.getView(atom.workspace.paneContainer).__spacePenView
     pane1 = container.getRoot()
     pane1.activateItem(new TestView('1'))
     pane2 = pane1.splitRight(new TestView('2'))
     pane3 = pane2.splitDown(new TestView('3'))
 
   afterEach ->
-    atom.deserializers.remove(TestView)
+    deserializerDisposable.dispose()
 
   describe ".getActivePaneView()", ->
     it "returns the most-recently focused pane", ->
@@ -70,39 +74,16 @@ describe "PaneContainerView", ->
         for item in pane.getItems()
           expect(item.saved).toBeTruthy()
 
-  describe ".confirmClose()", ->
-    it "returns true after modified files are saved", ->
-      pane1.itemAtIndex(0).shouldPromptToSave = -> true
-      pane2.itemAtIndex(0).shouldPromptToSave = -> true
-      spyOn(atom, "confirm").andReturn(0)
-
-      saved = container.confirmClose()
-
-      runs ->
-        expect(saved).toBeTruthy()
-        expect(atom.confirm).toHaveBeenCalled()
-
-    it "returns false if the user cancels saving", ->
-      pane1.itemAtIndex(0).shouldPromptToSave = -> true
-      pane2.itemAtIndex(0).shouldPromptToSave = -> true
-      spyOn(atom, "confirm").andReturn(1)
-
-      saved = container.confirmClose()
-
-      runs ->
-        expect(saved).toBeFalsy()
-        expect(atom.confirm).toHaveBeenCalled()
-
   describe "serialization", ->
     it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
-      newContainer = new PaneContainerView(container.model.testSerialization())
-      expect(newContainer.find('.pane-row > :contains(1)')).toExist()
-      expect(newContainer.find('.pane-row > .pane-column > :contains(2)')).toExist()
-      expect(newContainer.find('.pane-row > .pane-column > :contains(3)')).toExist()
+      newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
+      expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)')).toExist()
+      expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(2)')).toExist()
+      expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(3)')).toExist()
 
       newContainer.height(200).width(300).attachToDom()
-      expect(newContainer.find('.pane-row > :contains(1)').width()).toBe 150
-      expect(newContainer.find('.pane-row > .pane-column > :contains(2)').height()).toBe 100
+      expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)').width()).toBe 150
+      expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(2)').height()).toBe 100
 
     describe "if there are empty panes after deserialization", ->
       beforeEach ->
@@ -111,15 +92,15 @@ describe "PaneContainerView", ->
 
       describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
         it "leaves the empty panes intact", ->
-          newContainer = new PaneContainerView(container.model.testSerialization())
-          expect(newContainer.find('.pane-row > :contains(1)')).toExist()
-          expect(newContainer.find('.pane-row > .pane-column > .pane').length).toBe 2
+          newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
+          expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)')).toExist()
+          expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').length).toBe 2
 
       describe "if the 'core.destroyEmptyPanes' config option is true", ->
         it "removes empty panes on deserialization", ->
           atom.config.set('core.destroyEmptyPanes', true)
-          newContainer = new PaneContainerView(container.model.testSerialization())
-          expect(newContainer.find('.pane-row, .pane-column')).not.toExist()
+          newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
+          expect(newContainer.find('atom-pane-axis.horizontal, atom-pane-axis.vertical')).not.toExist()
           expect(newContainer.find('> :contains(1)')).toExist()
 
   describe "pane-container:active-pane-item-changed", ->
@@ -131,7 +112,7 @@ describe "PaneContainerView", ->
       item2b = new TestView('2b')
       item3a = new TestView('3a')
 
-      container = new PaneContainerView
+      container = atom.views.getView(new PaneContainer).__spacePenView
       pane1 = container.getRoot()
       pane1.activateItem(item1a)
       container.attachToDom()
@@ -281,7 +262,7 @@ describe "PaneContainerView", ->
       # |7|8|9|
       # -------
 
-      container = new PaneContainerView
+      container = atom.views.getView(new PaneContainer).__spacePenView
       pane1 = container.getRoot()
       pane1.activateItem(new TestView('1'))
       pane4 = pane1.splitDown(new TestView('4'))

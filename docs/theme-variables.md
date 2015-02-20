@@ -24,7 +24,7 @@ Here's an example `.less` file that a package can define using theme variables:
 ```css
 @import "ui-variables";
 
-.my-selector{
+.my-selector {
   background-color: @base-background-color;
   padding: @component-padding;
 }

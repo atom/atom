@@ -1,6 +1,7 @@
 {deprecate} = require 'grim'
 Delegator = require 'delegato'
-{$, View} = require './space-pen-extensions'
+{CompositeDisposable} = require 'event-kit'
+{$, View, callAttachHooks} = require './space-pen-extensions'
 PaneView = require './pane-view'
 PaneContainer = require './pane-container'
 
@@ -14,56 +15,25 @@ class PaneContainerView extends View
   @content: ->
     @div class: 'panes'
 
-  initialize: (params) ->
-    if params instanceof PaneContainer
-      @model = params
-    else
-      @model = new PaneContainer({root: params?.root?.model})
+  constructor: (@element) ->
+    super
+    @subscriptions = new CompositeDisposable
 
-    @subscribe @model.$root, @onRootChanged
-    @subscribe @model.$activePaneItem.changes, @onActivePaneItemChanged
-
-  viewForModel: (model) ->
-    if model?
-      viewClass = model.getViewClass()
-      model._view ?= new viewClass(model)
+  setModel: (@model) ->
+    @subscriptions.add @model.onDidChangeActivePaneItem(@onActivePaneItemChanged)
 
   getRoot: ->
-    @children().first().view()
-
-  onRootChanged: (root) =>
-    focusedElement = document.activeElement if @hasFocus()
-
-    oldRoot = @getRoot()
-    if oldRoot instanceof PaneView and oldRoot.model.isDestroyed()
-      @trigger 'pane:removed', [oldRoot]
-    oldRoot?.detach()
-    if root?
-      view = @viewForModel(root)
-      @append(view)
-      focusedElement?.focus()
-    else
-      atom.workspaceView?.focus() if focusedElement?
+    view = atom.views.getView(@model.getRoot())
+    view.__spacePenView ? view
 
   onActivePaneItemChanged: (activeItem) =>
     @trigger 'pane-container:active-pane-item-changed', [activeItem]
 
-  removeChild: (child) ->
-    throw new Error("Removing non-existant child") unless @getRoot() is child
-    @setRoot(null)
-    @trigger 'pane:removed', [child] if child instanceof PaneView
-
   confirmClose: ->
-    saved = true
-    for paneView in @getPaneViews()
-      for item in paneView.getItems()
-        if not paneView.promptToSaveItem(item)
-          saved = false
-          break
-    saved
+    @model.confirmClose()
 
   getPaneViews: ->
-    @find('.pane').views()
+    @find('atom-pane').views()
 
   indexOfPane: (paneView) ->
     @getPaneViews().indexOf(paneView.view())
@@ -78,23 +48,23 @@ class PaneContainerView extends View
     off: => @off 'pane:attached', paneViewAttached
 
   getFocusedPane: ->
-    @find('.pane:has(:focus)').view()
+    @find('atom-pane:has(:focus)').view()
 
   getActivePane: ->
     deprecate("Use PaneContainerView::getActivePaneView instead.")
     @getActivePaneView()
 
   getActivePaneView: ->
-    @viewForModel(@model.activePane)
+    atom.views.getView(@model.getActivePane()).__spacePenView
 
   getActivePaneItem: ->
-    @model.activePaneItem
+    @model.getActivePaneItem()
 
   getActiveView: ->
     @getActivePaneView()?.activeView
 
   paneForUri: (uri) ->
-    @viewForModel(@model.paneForUri(uri))
+    atom.views.getView(@model.paneForURI(uri)).__spacePenView
 
   focusNextPaneView: ->
     @model.activateNextPane()
@@ -103,53 +73,17 @@ class PaneContainerView extends View
     @model.activatePreviousPane()
 
   focusPaneViewAbove: ->
-    @nearestPaneInDirection('above')?.focus()
+    @element.focusPaneViewAbove()
 
   focusPaneViewBelow: ->
-    @nearestPaneInDirection('below')?.focus()
+    @element.focusPaneViewBelow()
 
   focusPaneViewOnLeft: ->
-    @nearestPaneInDirection('left')?.focus()
+    @element.focusPaneViewOnLeft()
 
   focusPaneViewOnRight: ->
-    @nearestPaneInDirection('right')?.focus()
+    @element.focusPaneViewOnRight()
 
-  nearestPaneInDirection: (direction) ->
-    distance = (pointA, pointB) ->
-      x = pointB.x - pointA.x
-      y = pointB.y - pointA.y
-      Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
-
-    paneView = @getActivePaneView()
-    box = @boundingBoxForPaneView(paneView)
-    paneViews = @getPaneViews()
-      .filter (otherPaneView) =>
-        otherBox = @boundingBoxForPaneView(otherPaneView)
-        switch direction
-          when 'left' then otherBox.right.x <= box.left.x
-          when 'right' then otherBox.left.x >= box.right.x
-          when 'above' then otherBox.bottom.y <= box.top.y
-          when 'below' then otherBox.top.y >= box.bottom.y
-      .sort (paneViewA, paneViewB) =>
-        boxA = @boundingBoxForPaneView(paneViewA)
-        boxB = @boundingBoxForPaneView(paneViewB)
-        switch direction
-          when 'left' then distance(box.left, boxA.right) - distance(box.left, boxB.right)
-          when 'right' then distance(box.right, boxA.left) - distance(box.right, boxB.left)
-          when 'above' then distance(box.top, boxA.bottom) - distance(box.top, boxB.bottom)
-          when 'below' then distance(box.bottom, boxA.top) - distance(box.bottom, boxB.top)
-
-    paneViews[0]
-
-  boundingBoxForPaneView: (paneView) ->
-    boundingBox = paneView[0].getBoundingClientRect()
-
-    left: {x: boundingBox.left, y: boundingBox.top}
-    right: {x: boundingBox.right, y: boundingBox.top}
-    top: {x: boundingBox.left, y: boundingBox.top}
-    bottom: {x: boundingBox.left, y: boundingBox.bottom}
-
-  # Deprecated
   getPanes: ->
     deprecate("Use PaneContainerView::getPaneViews() instead")
     @getPaneViews()

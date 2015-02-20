@@ -3,32 +3,68 @@ ipc = require 'ipc'
 os = require 'os'
 path = require 'path'
 remote = require 'remote'
-screen = require 'screen'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{deprecated} = require 'grim'
+{deprecate} = require 'grim'
+{Emitter} = require 'event-kit'
 {Model} = require 'theorist'
 fs = require 'fs-plus'
+{convertStackTrace, convertLine} = require 'coffeestack'
 
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
+StylesElement = require './styles-element'
 
-# Public: Atom global for dealing with packages, themes, menus, and the window.
+# Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
 module.exports =
 class Atom extends Model
   @version: 1  # Increment this when the serialization format changes
 
-  # Public: Load or create the Atom environment in the given mode.
+  # Load or create the Atom environment in the given mode.
   #
   # * `mode` A {String} mode that is either 'editor' or 'spec' depending on the
-  #          kind of environment you want to build.
+  #   kind of environment you want to build.
   #
   # Returns an Atom instance, fully initialized
   @loadOrCreate: (mode) ->
-    @deserialize(@loadState(mode)) ? new this({mode, @version})
+    startTime = Date.now()
+    atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
+    atom.deserializeTimings.atom = Date.now() -  startTime
+
+    workspaceViewDeprecationMessage = """
+      atom.workspaceView is no longer available.
+      In most cases you will not need the view. See the Workspace docs for
+      alternatives: https://atom.io/docs/api/latest/Workspace.
+      If you do need the view, please use `atom.views.getView(atom.workspace)`,
+      which returns an HTMLElement.
+    """
+
+    serviceHubDeprecationMessage = """
+      atom.services is no longer available. To register service providers and
+      consumers, use the `providedServices` and `consumedServices` fields in
+      your package's package.json.
+    """
+
+    Object.defineProperty atom, 'workspaceView',
+      get: ->
+        deprecate(workspaceViewDeprecationMessage)
+        atom.__workspaceView
+      set: (newValue) ->
+        deprecate(workspaceViewDeprecationMessage)
+        atom.__workspaceView = newValue
+
+    Object.defineProperty atom, 'services',
+      get: ->
+        deprecate(serviceHubDeprecationMessage)
+        atom.packages.serviceHub
+      set: (newValue) ->
+        deprecate(serviceHubDeprecationMessage)
+        atom.packages.serviceHub = newValue
+
+    atom
 
   # Deserializes the Atom environment from a state object
   @deserialize: (state) ->
@@ -59,9 +95,9 @@ class Atom extends Model
       when 'spec'
         filename = 'spec'
       when 'editor'
-        {initialPath} = @getLoadSettings()
-        if initialPath
-          sha1 = crypto.createHash('sha1').update(initialPath).digest('hex')
+        {initialPaths} = @getLoadSettings()
+        if initialPaths?.length > 0
+          sha1 = crypto.createHash('sha1').update(initialPaths.join("\n")).digest('hex')
           filename = "editor-#{sha1}"
 
     if filename
@@ -73,7 +109,7 @@ class Atom extends Model
   #
   # Returns the absolute path to ~/.atom
   @getConfigDirPath: ->
-    @configDirPath ?= fs.absolute('~/.atom')
+    @configDirPath ?= process.env.ATOM_HOME
 
   # Get the path to Atom's storage directory.
   #
@@ -98,58 +134,104 @@ class Atom extends Model
   workspaceViewParentSelector: 'body'
   lastUncaughtError: null
 
-  # Public: A {Clipboard} instance
-  clipboard: null
+  ###
+  Section: Properties
+  ###
+
+  # Public: A {CommandRegistry} instance
+  commands: null
 
   # Public: A {Config} instance
   config: null
 
+  # Public: A {Clipboard} instance
+  clipboard: null
+
   # Public: A {ContextMenuManager} instance
   contextMenu: null
-
-  # Public: A {DeserializerManager} instance
-  deserializers: null
-
-  # Public: A {KeymapManager} instance
-  keymaps: null
 
   # Public: A {MenuManager} instance
   menu: null
 
-  # Public: A {PackageManager} instance
-  packages: null
+  # Public: A {KeymapManager} instance
+  keymaps: null
+
+  # Public: A {TooltipManager} instance
+  tooltips: null
+
+  # Experimental: A {NotificationManager} instance
+  notifications: null
 
   # Public: A {Project} instance
   project: null
 
-  # Public: A {Syntax} instance
-  syntax: null
+  # Public: A {GrammarRegistry} instance
+  grammars: null
+
+  # Public: A {PackageManager} instance
+  packages: null
 
   # Public: A {ThemeManager} instance
   themes: null
 
+  # Public: A {StyleManager} instance
+  styles: null
+
+  # Public: A {DeserializerManager} instance
+  deserializers: null
+
+  # Public: A {ViewRegistry} instance
+  views: null
+
   # Public: A {Workspace} instance
   workspace: null
 
-  # Public: A {WorkspaceView} instance
-  workspaceView: null
+  ###
+  Section: Construction and Destruction
+  ###
 
   # Call .loadOrCreate instead
   constructor: (@state) ->
+    @emitter = new Emitter
     {@mode} = @state
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
+    @deserializeTimings = {}
 
-  # Public: Sets up the basic services that should be available in all modes
+  # Sets up the basic services that should be available in all modes
   # (both spec and application).
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
+    # Disable deprecations unless in dev mode or spec mode so that regular
+    # editor performance isn't impacted by generating stack traces for
+    # deprecated calls.
+    unless @inDevMode() or @inSpecMode()
+      require('grim').deprecate = ->
+
+    sourceMapCache = {}
+
     window.onerror = =>
-      @openDevTools()
-      @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
       @lastUncaughtError = Array::slice.call(arguments)
+      [message, url, line, column, originalError] = @lastUncaughtError
+
+      convertedLine = convertLine(url, line, column, sourceMapCache)
+      {line, column} = convertedLine if convertedLine?
+      originalError.stack = convertStackTrace(originalError.stack, sourceMapCache) if originalError
+
+      eventObject = {message, url, line, column, originalError}
+
+      openDevTools = true
+      eventObject.preventDefault = -> openDevTools = false
+
+      @emitter.emit 'will-throw-error', eventObject
+
+      if openDevTools
+        @openDevTools()
+        @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
+
       @emit 'uncaught-error', arguments...
+      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @unsubscribe()
     @setBodyPlatformClass()
@@ -158,10 +240,15 @@ class Atom extends Model
 
     Config = require './config'
     KeymapManager = require './keymap-extensions'
+    ViewRegistry = require './view-registry'
+    CommandRegistry = require './command-registry'
+    TooltipManager = require './tooltip-manager'
+    NotificationManager = require './notification-manager'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
-    Syntax = require './syntax'
+    GrammarRegistry = require './grammar-registry'
     ThemeManager = require './theme-manager'
+    StyleManager = require './style-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
@@ -179,41 +266,247 @@ class Atom extends Model
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymap = @keymaps # Deprecated
+    @keymaps.subscribeToFileReadFailure()
+    @tooltips = new TooltipManager
+    @notifications = new NotificationManager
+    @commands = new CommandRegistry
+    @views = new ViewRegistry
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
+    @styles = new StyleManager
+    document.head.appendChild(new StylesElement)
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
 
-    @syntax = @deserializers.deserialize(@state.syntax) ? new Syntax()
+    @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
 
-    @subscribe @packages, 'activated', => @watchThemes()
+    Object.defineProperty this, 'syntax', get: ->
+      deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
+      @grammars
+
+    @subscribe @packages.onDidActivateInitialPackages => @watchThemes()
 
     Project = require './project'
     TextBuffer = require 'text-buffer'
     @deserializers.add(TextBuffer)
     TokenizedBuffer = require './tokenized-buffer'
     DisplayBuffer = require './display-buffer'
-    Editor = require './editor'
+    TextEditor = require './text-editor'
 
     @windowEventHandler = new WindowEventHandler
 
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClass: ->
-    deprecated("Callers should be converted to use atom.deserializers")
+  ###
+  Section: Event Subscription
+  ###
 
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClasses: ->
-    deprecated("Callers should be converted to use atom.deserializers")
+  # Extended: Invoke the given callback whenever {::beep} is called.
+  #
+  # * `callback` {Function} to be called whenever {::beep} is called.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidBeep: (callback) ->
+    @emitter.on 'did-beep', callback
 
-  setBodyPlatformClass: ->
-    document.body.classList.add("platform-#{process.platform}")
+  # Extended: Invoke the given callback when there is an unhandled error, but
+  # before the devtools pop open
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
+  #     * `preventDefault` {Function} call this to avoid popping up the dev tools.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onWillThrowError: (callback) ->
+    @emitter.on 'will-throw-error', callback
 
-  # Public: Get the current window
+  # Extended: Invoke the given callback whenever there is an unhandled error.
+  #
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidThrowError: (callback) ->
+    @emitter.on 'did-throw-error', callback
+
+  ###
+  Section: Atom Details
+  ###
+
+  # Public: Is the current window in development mode?
+  inDevMode: ->
+    @getLoadSettings().devMode
+
+  # Public: Is the current window in safe mode?
+  inSafeMode: ->
+    @getLoadSettings().safeMode
+
+  # Public: Is the current window running specs?
+  inSpecMode: ->
+    @getLoadSettings().isSpec
+
+  # Public: Get the version of the Atom application.
+  #
+  # Returns the version text {String}.
+  getVersion: ->
+    @appVersion ?= @getLoadSettings().appVersion
+
+  # Public: Determine whether the current version is an official release.
+  isReleasedVersion: ->
+    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
+
+  # Public: Get the directory path to Atom's configuration area.
+  #
+  # Returns the absolute path to `~/.atom`.
+  getConfigDirPath: ->
+    @constructor.getConfigDirPath()
+
+  # Public: Get the time taken to completely load the current window.
+  #
+  # This time include things like loading and activating packages, creating
+  # DOM elements for the editor, and reading the config.
+  #
+  # Returns the {Number} of milliseconds taken to load the window or null
+  # if the window hasn't finished loading yet.
+  getWindowLoadTime: ->
+    @loadTime
+
+  # Public: Get the load settings for the current window.
+  #
+  # Returns an {Object} containing all the load setting key/value pairs.
+  getLoadSettings: ->
+    @constructor.getLoadSettings()
+
+  ###
+  Section: Managing The Atom Window
+  ###
+
+  # Essential: Open a new Atom window using the given options.
+  #
+  # Calling this method without an options parameter will open a prompt to pick
+  # a file/folder to open in the new window.
+  #
+  # * `options` An {Object} with the following keys:
+  #   * `pathsToOpen`  An {Array} of {String} paths to open.
+  #   * `newWindow` A {Boolean}, true to always open a new window instead of
+  #     reusing existing windows depending on the paths to open.
+  #   * `devMode` A {Boolean}, true to open the window in development mode.
+  #     Development mode loads the Atom source from the locally cloned
+  #     repository and also loads all the packages in ~/.atom/dev/packages
+  #   * `safeMode` A {Boolean}, true to open the window in safe mode. Safe
+  #     mode prevents all packages installed to ~/.atom/packages from loading.
+  open: (options) ->
+    ipc.send('open', options)
+
+  # Extended: Show the native dialog to prompt the user to select a folder.
+  #
+  # * `callback` A {Function} to call once the user has selected a folder.
+  #   * `path` {String} the path to the folder the user selected.
+  pickFolder: (callback) ->
+    responseChannel = "atom-pick-folder-response"
+    ipc.on responseChannel, (path) ->
+      ipc.removeAllListeners(responseChannel)
+      callback(path)
+    ipc.send("pick-folder", responseChannel)
+
+  # Essential: Close the current window.
+  close: ->
+    @getCurrentWindow().close()
+
+  # Essential: Get the size of current window.
+  #
+  # Returns an {Object} in the format `{width: 1000, height: 700}`
+  getSize: ->
+    [width, height] = @getCurrentWindow().getSize()
+    {width, height}
+
+  # Essential: Set the size of current window.
+  #
+  # * `width` The {Number} of pixels.
+  # * `height` The {Number} of pixels.
+  setSize: (width, height) ->
+    @getCurrentWindow().setSize(width, height)
+
+  # Essential: Get the position of current window.
+  #
+  # Returns an {Object} in the format `{x: 10, y: 20}`
+  getPosition: ->
+    [x, y] = @getCurrentWindow().getPosition()
+    {x, y}
+
+  # Essential: Set the position of current window.
+  #
+  # * `x` The {Number} of pixels.
+  # * `y` The {Number} of pixels.
+  setPosition: (x, y) ->
+    ipc.send('call-window-method', 'setPosition', x, y)
+
+  # Extended: Get the current window
   getCurrentWindow: ->
     @constructor.getCurrentWindow()
 
-  # Public: Get the dimensions of this window.
+  # Extended: Move current window to the center of the screen.
+  center: ->
+    ipc.send('call-window-method', 'center')
+
+  # Extended: Focus the current window.
+  focus: ->
+    ipc.send('call-window-method', 'focus')
+    $(window).focus()
+
+  # Extended: Show the current window.
+  show: ->
+    ipc.send('call-window-method', 'show')
+
+  # Extended: Hide the current window.
+  hide: ->
+    ipc.send('call-window-method', 'hide')
+
+  # Extended: Reload the current window.
+  reload: ->
+    ipc.send('call-window-method', 'restart')
+
+  # Extended: Returns a {Boolean} true when the current window is maximized.
+  isMaximixed: ->
+    @getCurrentWindow().isMaximized()
+
+  maximize: ->
+    ipc.send('call-window-method', 'maximize')
+
+  # Extended: Is the current window in full screen mode?
+  isFullScreen: ->
+    @getCurrentWindow().isFullScreen()
+
+  # Extended: Set the full screen state of the current window.
+  setFullScreen: (fullScreen=false) ->
+    ipc.send('call-window-method', 'setFullScreen', fullScreen)
+    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
+
+  # Extended: Toggle the full screen state of the current window.
+  toggleFullScreen: ->
+    @setFullScreen(!@isFullScreen())
+
+  # Schedule the window to be shown and focused on the next tick.
+  #
+  # This is done in a next tick to prevent a white flicker from occurring
+  # if called synchronously.
+  displayWindow: ({maximize}={}) ->
+    setImmediate =>
+      @show()
+      @focus()
+      @setFullScreen(true) if @workspace.fullScreen
+      @maximize() if maximize
+
+  # Get the dimensions of this window.
   #
   # Returns an {Object} with the following keys:
   #   * `x`      The window's x-position {Number}.
@@ -227,7 +520,7 @@ class Atom extends Model
     maximized = browserWindow.isMaximized()
     {x, y, width, height, maximized}
 
-  # Public: Set the dimensions of the window.
+  # Set the dimensions of the window.
   #
   # The window will be centered if either the x or y coordinate is not set
   # in the dimensions parameter. If x or y are omitted the window will be
@@ -270,6 +563,7 @@ class Atom extends Model
     if @isValidDimensions(dimensions)
       dimensions
     else
+      screen = remote.require 'screen'
       {width, height} = screen.getPrimaryDisplay().workAreaSize
       {x: 0, y: 0, width: Math.min(1024, width), height}
 
@@ -284,54 +578,18 @@ class Atom extends Model
     dimensions = @getWindowDimensions()
     @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
-  # Public: Get the load settings for the current window.
-  #
-  # Returns an {Object} containing all the load setting key/value pairs.
-  getLoadSettings: ->
-    @constructor.getLoadSettings()
-
-  deserializeProject: ->
-    Project = require './project'
-
-    startTime = Date.now()
-    @project ?= @deserializers.deserialize(@state.project) ? new Project(path: @getLoadSettings().initialPath)
-    @deserializeTimings.project = Date.now() - startTime
-
-  deserializeWorkspaceView: ->
-    Workspace = require './workspace'
-    WorkspaceView = require './workspace-view'
-
-    startTime = Date.now()
-    @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-    @workspaceView = new WorkspaceView(@workspace)
-    @deserializeTimings.workspace = Date.now() - startTime
-
-    @keymaps.defaultTarget = @workspaceView[0]
-    $(@workspaceViewParentSelector).append(@workspaceView)
-
-  deserializePackageStates: ->
-    @packages.packageStates = @state.packageStates ? {}
-    delete @state.packageStates
-
-  deserializeEditorWindow: ->
-    @deserializeTimings = {}
-    @deserializePackageStates()
-    @deserializeProject()
-    @deserializeWorkspaceView()
-
   # Call this method when establishing a real application window.
   startEditorWindow: ->
+    {resourcePath, safeMode} = @getLoadSettings()
+
     CommandInstaller = require './command-installer'
-    resourcePath = atom.getLoadSettings().resourcePath
     CommandInstaller.installAtomCommand resourcePath, false, (error) ->
       console.warn error.message if error?
     CommandInstaller.installApmCommand resourcePath, false, (error) ->
       console.warn error.message if error?
 
     dimensions = @restoreWindowDimensions()
-    @config.load()
-    @config.setDefaults('core', require('./workspace-view').configDefaults)
-    @config.setDefaults('editor', require('./editor-view').configDefaults)
+    @loadConfig()
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
@@ -341,16 +599,20 @@ class Atom extends Model
 
     @packages.activate()
     @keymaps.loadUserKeymap()
-    @requireUserInitScript()
+    @requireUserInitScript() unless safeMode
+
     @menu.update()
+    @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
+      @setAutoHideMenuBar(newValue)
+    @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
     maximize = dimensions?.maximized and process.platform isnt 'darwin'
     @displayWindow({maximize})
 
   unloadEditorWindow: ->
-    return if not @project and not @workspaceView
+    return if not @project
 
-    @state.syntax = @syntax.serialize()
+    @state.grammars = @grammars.serialize()
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
@@ -359,68 +621,43 @@ class Atom extends Model
     @windowState = null
 
   removeEditorWindow: ->
-    return if not @project and not @workspaceView
+    return if not @project
 
-    @workspaceView?.remove()
-    @workspaceView = null
+    @workspace?.destroy()
+    @workspace = null
     @project?.destroy()
     @project = null
 
     @windowEventHandler?.unsubscribe()
 
-  loadThemes: ->
-    @themes.load()
+  ###
+  Section: Messaging the User
+  ###
 
-  watchThemes: ->
-    @themes.on 'reloaded', =>
-      # Only reload stylesheets from non-theme packages
-      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
-        pack.reloadStylesheets?()
-      null
+  # Essential: Visually and audibly trigger a beep.
+  beep: ->
+    shell.beep() if @config.get('core.audioBeep')
+    @__workspaceView?.trigger 'beep'
+    @emitter.emit 'did-beep'
 
-  # Notify the browser project of the window's current project path
-  watchProjectPath: ->
-    onProjectPathChanged = =>
-      ipc.send('window-command', 'project-path-changed', @project.getPath())
-    @subscribe @project, 'path-changed', onProjectPathChanged
-    onProjectPathChanged()
-
-  # Public: Open a new Atom window using the given options.
-  #
-  # Calling this method without an options parameter will open a prompt to pick
-  # a file/folder to open in the new window.
-  #
-  # * `options` An {Object} with the following keys:
-  #   * `pathsToOpen`  An {Array} of {String} paths to open.
-  #   * `newWindow` A {Boolean}, true to always open a new window instead of
-  #     reusing existing windows depending on the paths to open.
-  #   * `devMode` A {Boolean}, true to open the window in development mode.
-  #     Development mode loads the Atom source from the locally cloned
-  #     repository and also loads all the packages in ~/.atom/dev/packages
-  #   * `safeMode` A {Boolean}, true to open the window in safe mode. Safe
-  #     mode prevents all packages installed to ~/.atom/packages from loading.
-  open: (options) ->
-    ipc.send('open', options)
-
-  # Public: Open a confirm dialog.
+  # Essential: A flexible way to open a dialog akin to an alert dialog.
   #
   # ## Examples
   #
   # ```coffee
-  #   atom.confirm
-  #     message: 'How you feeling?'
-  #     detailedMessage: 'Be honest.'
-  #     buttons:
-  #       Good: -> window.alert('good to hear')
-  #       Bad:  -> window.alert('bummer')
+  # atom.confirm
+  #   message: 'How you feeling?'
+  #   detailedMessage: 'Be honest.'
+  #   buttons:
+  #     Good: -> window.alert('good to hear')
+  #     Bad: -> window.alert('bummer')
   # ```
   #
   # * `options` An {Object} with the following keys:
   #   * `message` The {String} message to display.
-  #   * `detailedMessage` The {String} detailed message to display.
-  #   * `buttons` Either an array of strings or an object where keys are
-  #               button names and the values are callbacks to invoke when
-  #               clicked.
+  #   * `detailedMessage` (optional) The {String} detailed message to display.
+  #   * `buttons` (optional) Either an array of strings or an object where keys are
+  #     button names and the values are callbacks to invoke when clicked.
   #
   # Returns the chosen button index {Number} if the buttons option was an array.
   confirm: ({message, detailedMessage, buttons}={}) ->
@@ -443,77 +680,76 @@ class Atom extends Model
       callback = buttons[buttonLabels[chosen]]
       callback?()
 
-  showSaveDialog: (callback) ->
-    callback(showSaveDialogSync())
+  ###
+  Section: Managing the Dev Tools
+  ###
 
-  showSaveDialogSync: (defaultPath) ->
-    defaultPath ?= @project?.getPath()
-    currentWindow = @getCurrentWindow()
-    dialog = remote.require('dialog')
-    dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
-
-  # Public: Open the dev tools for the current window.
+  # Extended: Open the dev tools for the current window.
   openDevTools: ->
     ipc.send('call-window-method', 'openDevTools')
 
-  # Public: Toggle the visibility of the dev tools for the current window.
+  # Extended: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
     ipc.send('call-window-method', 'toggleDevTools')
 
-  # Public: Execute code in dev tools.
+  # Extended: Execute code in dev tools.
   executeJavaScriptInDevTools: (code) ->
     ipc.send('call-window-method', 'executeJavaScriptInDevTools', code)
 
-  # Public: Reload the current window.
-  reload: ->
-    ipc.send('call-window-method', 'restart')
+  ###
+  Section: Private
+  ###
 
-  # Public: Focus the current window.
-  focus: ->
-    ipc.send('call-window-method', 'focus')
-    $(window).focus()
+  deserializeProject: ->
+    Project = require './project'
 
-  # Public: Show the current window.
-  show: ->
-    ipc.send('call-window-method', 'show')
+    startTime = Date.now()
+    @project ?= @deserializers.deserialize(@state.project) ? new Project()
+    @deserializeTimings.project = Date.now() - startTime
 
-  # Public: Hide the current window.
-  hide: ->
-    ipc.send('call-window-method', 'hide')
+  deserializeWorkspaceView: ->
+    Workspace = require './workspace'
+    WorkspaceView = require './workspace-view'
 
-  # Public: Set the size of current window.
-  #
-  # * `width` The {Number} of pixels.
-  # * `height` The {Number} of pixels.
-  setSize: (width, height) ->
-    @getCurrentWindow().setSize(width, height)
+    startTime = Date.now()
+    @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
 
-  # Public: Set the position of current window.
-  #
-  # * `x` The {Number} of pixels.
-  # * `y` The {Number} of pixels.
-  setPosition: (x, y) ->
-    ipc.send('call-window-method', 'setPosition', x, y)
+    workspaceElement = @views.getView(@workspace)
+    @__workspaceView = workspaceElement.__spacePenView
+    @deserializeTimings.workspace = Date.now() - startTime
 
-  # Public: Move current window to the center of the screen.
-  center: ->
-    ipc.send('call-window-method', 'center')
+    @keymaps.defaultTarget = workspaceElement
+    document.querySelector(@workspaceViewParentSelector).appendChild(workspaceElement)
 
+  deserializePackageStates: ->
+    @packages.packageStates = @state.packageStates ? {}
+    delete @state.packageStates
 
-  # Schedule the window to be shown and focused on the next tick.
-  #
-  # This is done in a next tick to prevent a white flicker from occurring
-  # if called synchronously.
-  displayWindow: ({maximize}={}) ->
-    setImmediate =>
-      @show()
-      @focus()
-      @setFullScreen(true) if @workspace.fullScreen
-      @maximize() if maximize
+  deserializeEditorWindow: ->
+    @deserializePackageStates()
+    @deserializeProject()
+    @deserializeWorkspaceView()
 
-  # Public: Close the current window.
-  close: ->
-    @getCurrentWindow().close()
+  loadConfig: ->
+    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
+    @config.load()
+
+  loadThemes: ->
+    @themes.load()
+
+  watchThemes: ->
+    @themes.onDidChangeActiveThemes =>
+      # Only reload stylesheets from non-theme packages
+      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
+        pack.reloadStylesheets?()
+      null
+
+  # Notify the browser project of the window's current project path
+  watchProjectPath: ->
+    onProjectPathChanged = =>
+      ipc.send('window-command', 'project-path-changed', @project.getPaths())
+    @subscribe @project.onDidChangePaths(onProjectPathChanged)
+    onProjectPathChanged()
 
   exit: (status) ->
     app = remote.require('app')
@@ -526,45 +762,14 @@ class Atom extends Model
   setRepresentedFilename: (filename) ->
     ipc.send('call-window-method', 'setRepresentedFilename', filename)
 
-  # Public: Is the current window in development mode?
-  inDevMode: ->
-    @getLoadSettings().devMode
+  showSaveDialog: (callback) ->
+    callback(showSaveDialogSync())
 
-  # Public: Is the current window running specs?
-  inSpecMode: ->
-    @getLoadSettings().isSpec
-
-  # Public: Toggle the full screen state of the current window.
-  toggleFullScreen: ->
-    @setFullScreen(!@isFullScreen())
-
-  # Public: Set the full screen state of the current window.
-  setFullScreen: (fullScreen=false) ->
-    ipc.send('call-window-method', 'setFullScreen', fullScreen)
-    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
-
-  # Public: Is the current window in full screen mode?
-  isFullScreen: ->
-    @getCurrentWindow().isFullScreen()
-
-  maximize: ->
-    ipc.send('call-window-method', 'maximize')
-
-  # Public: Get the version of the Atom application.
-  #
-  # Returns the version text {String}.
-  getVersion: ->
-    @appVersion ?= @getLoadSettings().appVersion
-
-  # Public: Determine whether the current version is an official release.
-  isReleasedVersion: ->
-    not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
-
-  # Public: Get the directory path to Atom's configuration area.
-  #
-  # Returns the absolute path to `~/.atom`.
-  getConfigDirPath: ->
-    @constructor.getConfigDirPath()
+  showSaveDialogSync: (defaultPath) ->
+    defaultPath ?= @project?.getPath()
+    currentWindow = @getCurrentWindow()
+    dialog = remote.require('dialog')
+    dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
 
   saveSync: ->
     stateString = JSON.stringify(@state)
@@ -573,26 +778,11 @@ class Atom extends Model
     else
       @getCurrentWindow().loadSettings.windowState = stateString
 
-  # Public: Get the time taken to completely load the current window.
-  #
-  # This time include things like loading and activating packages, creating
-  # DOM elements for the editor, and reading the config.
-  #
-  # Returns the {Number} of milliseconds taken to load the window or null
-  # if the window hasn't finished loading yet.
-  getWindowLoadTime: ->
-    @loadTime
-
   crashMainProcess: ->
     remote.process.crash()
 
   crashRenderProcess: ->
     process.crash()
-
-  # Public: Visually and audibly trigger a beep.
-  beep: ->
-    shell.beep() if @config.get('core.audioBeep')
-    @workspaceView.trigger 'beep'
 
   getUserInitScriptPath: ->
     initScriptPath = fs.resolve(@getConfigDirPath(), 'init', ['js', 'coffee'])
@@ -603,15 +793,17 @@ class Atom extends Model
       try
         require(userInitScriptPath) if fs.isFileSync(userInitScriptPath)
       catch error
-        console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+        atom.notifications.addError "Failed to load `#{userInitScriptPath}`",
+          detail: error.message
+          dismissable: true
 
-  # Public: Require the module with the given globals.
+  # Require the module with the given globals.
   #
   # The globals will be set on the `window` object and removed after the
   # require completes.
   #
   # * `id` The {String} module name or path.
-  # * `globals` An optinal {Object} to set as globals during require.
+  # * `globals` An optional {Object} to set as globals during require.
   requireWithGlobals: (id, globals={}) ->
     existingGlobals = {}
     for key, value of globals
@@ -625,3 +817,24 @@ class Atom extends Model
         delete window[key]
       else
         window[key] = value
+
+  onUpdateAvailable: (callback) ->
+    @emitter.on 'update-available', callback
+
+  updateAvailable: (details) ->
+    @emitter.emit 'update-available', details
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  registerRepresentationClass: ->
+    deprecate("Callers should be converted to use atom.deserializers")
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  registerRepresentationClasses: ->
+    deprecate("Callers should be converted to use atom.deserializers")
+
+  setBodyPlatformClass: ->
+    document.body.classList.add("platform-#{process.platform}")
+
+  setAutoHideMenuBar: (autoHide) ->
+    ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
+    ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)

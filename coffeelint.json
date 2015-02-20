@@ -10,5 +10,8 @@
   },
   "no_interpolation_in_single_quotes": {
     "level": "error"
+  },
+  "no_debugger": {
+    "level": "error"
   }
 }

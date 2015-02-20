@@ -1,9 +1,13 @@
 _ = require 'underscore-plus'
 {Model} = require 'theorist'
+EmitterMixin = require('emissary').Emitter
+{Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
+ScopeDescriptor = require './scope-descriptor'
+Grim = require 'grim'
 
 module.exports =
 class TokenizedBuffer extends Model
@@ -20,25 +24,13 @@ class TokenizedBuffer extends Model
   visible: false
 
   constructor: ({@buffer, @tabLength, @invisibles}) ->
-    @tabLength ?= atom.config.getPositiveInt('editor.tabLength', 2)
+    @emitter = new Emitter
 
-    @subscribe atom.syntax, 'grammar-added grammar-updated', (grammar) =>
-      if grammar.injectionSelector?
-        @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
-      else
-        newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
-        @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+    @subscribe atom.grammars.onDidAddGrammar(@grammarAddedOrUpdated)
+    @subscribe atom.grammars.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
-    @on 'grammar-changed grammar-updated', => @retokenizeLines()
-    @subscribe @buffer, "changed", (e) => @handleBufferChange(e)
-    @subscribe @buffer, "path-changed", =>
-      @bufferPath = @buffer.getPath()
-      @reloadGrammar()
-
-    @subscribe @$tabLength.changes, (tabLength) => @retokenizeLines()
-
-    @subscribe atom.config.observe 'editor.tabLength', callNow: false, =>
-      @setTabLength(atom.config.getPositiveInt('editor.tabLength', 2))
+    @subscribe @buffer.preemptDidChange (e) => @handleBufferChange(e)
+    @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
     @reloadGrammar()
 
@@ -51,16 +43,62 @@ class TokenizedBuffer extends Model
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
     params
 
+  observeGrammar: (callback) ->
+    callback(@grammar)
+    @onDidChangeGrammar(callback)
+
+  onDidChangeGrammar: (callback) ->
+    @emitter.on 'did-change-grammar', callback
+
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  onDidTokenize: (callback) ->
+    @emitter.on 'did-tokenize', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use TokenizedBuffer::onDidChange instead")
+      when 'grammar-changed'
+        Grim.deprecate("Use TokenizedBuffer::onDidChangeGrammar instead")
+      when 'tokenized'
+        Grim.deprecate("Use TokenizedBuffer::onDidTokenize instead")
+      else
+        Grim.deprecate("TokenizedBuffer::on is deprecated. Use event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
+
+  grammarAddedOrUpdated: (grammar) =>
+    if grammar.injectionSelector?
+      @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
+    else
+      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+      @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
+
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
     @unsubscribe(@grammar) if @grammar
     @grammar = grammar
+    @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
-    @subscribe @grammar, 'grammar-updated', => @retokenizeLines()
+    @subscribe @grammar.onDidUpdate => @retokenizeLines()
+
+    @configSettings = tabLength: atom.config.get('editor.tabLength', scope: @rootScopeDescriptor)
+
+    @grammarTabLengthSubscription?.dispose()
+    @grammarTabLengthSubscription = atom.config.onDidChange 'editor.tabLength', scope: @rootScopeDescriptor, ({newValue}) =>
+      @configSettings.tabLength = newValue
+      @retokenizeLines()
+    @subscribe @grammarTabLengthSubscription
+
+    @retokenizeLines()
+
     @emit 'grammar-changed', grammar
+    @emitter.emit 'did-change-grammar', grammar
 
   reloadGrammar: ->
-    if grammar = atom.syntax.selectGrammar(@buffer.getPath(), @buffer.getText())
+    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar)
     else
       throw new Error("No grammar found for path: #{path}")
@@ -77,21 +115,21 @@ class TokenizedBuffer extends Model
     @invalidRows = []
     @invalidateRow(0)
     @fullyTokenized = false
-    @emit "changed", {start: 0, end: lastRow, delta: 0}
+    event = {start: 0, end: lastRow, delta: 0}
+    @emit 'changed', event
+    @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
-  # Retrieves the current tab length.
-  #
-  # Returns a {Number}.
   getTabLength: ->
-    @tabLength
+    @tabLength ? @configSettings.tabLength
 
-  # Specifies the tab length.
-  #
-  # tabLength - A {Number} that defines the new tab length.
-  setTabLength: (@tabLength) ->
+  setTabLength: (tabLength) ->
+    return if tabLength is @tabLength
+
+    @tabLength = tabLength
+    @retokenizeLines()
 
   setInvisibles: (invisibles) ->
     unless _.isEqual(invisibles, @invisibles)
@@ -109,30 +147,39 @@ class TokenizedBuffer extends Model
     rowsRemaining = @chunkSize
 
     while @firstInvalidRow()? and rowsRemaining > 0
-      invalidRow = @invalidRows.shift()
+      startRow = @invalidRows.shift()
       lastRow = @getLastRow()
-      continue if invalidRow > lastRow
+      continue if startRow > lastRow
 
-      row = invalidRow
+      row = startRow
       loop
         previousStack = @stackForRow(row)
-        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
         if --rowsRemaining == 0
           filledRegion = false
+          endRow = row
           break
         if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
           filledRegion = true
+          endRow = row
           break
         row++
 
-      @validateRow(row)
-      @invalidateRow(row + 1) unless filledRegion
-      @emit "changed", { start: invalidRow, end: row, delta: 0 }
+      @validateRow(endRow)
+      @invalidateRow(endRow + 1) unless filledRegion
+
+      [startRow, endRow] = @updateFoldableStatus(startRow, endRow)
+
+      event = {start: startRow, end: endRow, delta: 0}
+      @emit 'changed', event
+      @emitter.emit 'did-change', event
 
     if @firstInvalidRow()?
       @tokenizeInBackground()
     else
-      @emit "tokenized" unless @fullyTokenized
+      unless @fullyTokenized
+        @emit 'tokenized'
+        @emitter.emit 'did-tokenize'
       @fullyTokenized = true
 
   firstInvalidRow: ->
@@ -173,24 +220,65 @@ class TokenizedBuffer extends Model
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
-    @emit "changed", { start, end, delta, bufferChange: e }
+    [start, end] = @updateFoldableStatus(start, end + delta)
+    end -= delta
+
+    event = { start, end, delta, bufferChange: e }
+    @emit 'changed', event
+    @emitter.emit 'did-change', event
 
   retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
     line = @tokenizedLines[row]
     if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
       while line?.isOnlyWhitespace()
-        @tokenizedLines[row] = @buildTokenizedTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
         row += increment
         line = @tokenizedLines[row]
 
     row - increment
+
+  updateFoldableStatus: (startRow, endRow) ->
+    scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
+    scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
+    scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
+
+    for row in [scanStartRow..scanEndRow] by 1
+      foldable = @isFoldableAtRow(row)
+      line = @tokenizedLineForRow(row)
+      unless line.foldable is foldable
+        line.foldable = foldable
+        startRow = Math.min(startRow, row)
+        endRow = Math.max(endRow, row)
+
+    [startRow, endRow]
+
+  isFoldableAtRow: (row) ->
+    @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
+
+  # Returns a {Boolean} indicating whether the given buffer row starts
+  # a a foldable row range due to the code's indentation patterns.
+  isFoldableCodeAtRow: (row) ->
+    return false if @buffer.isRowBlank(row) or @tokenizedLineForRow(row).isComment()
+    nextRow = @buffer.nextNonBlankRow(row)
+    return false unless nextRow?
+
+    @indentLevelForRow(nextRow) > @indentLevelForRow(row)
+
+  isFoldableCommentAtRow: (row) ->
+    previousRow = row - 1
+    nextRow = row + 1
+    return false if nextRow > @buffer.getLastRow()
+
+    (row is 0 or not @tokenizedLineForRow(previousRow).isComment()) and
+      @tokenizedLineForRow(row).isComment() and
+      @tokenizedLineForRow(nextRow).isComment()
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow]
       if (ruleStack or row == 0) and row < stopTokenizingAt
-        screenLine = @buildTokenizedTokenizedLineForRow(row, ruleStack)
+        screenLine = @buildTokenizedLineForRow(row, ruleStack)
         ruleStack = screenLine.ruleStack
       else
         screenLine = @buildPlaceholderTokenizedLineForRow(row)
@@ -213,33 +301,28 @@ class TokenizedBuffer extends Model
     lineEnding = @buffer.lineEndingForRow(row)
     new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
 
-  buildTokenizedTokenizedLineForRow: (row, ruleStack) ->
-    line = @buffer.lineForRow(row)
+  buildTokenizedLineForRow: (row, ruleStack) ->
+    @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack)
+
+  buildTokenizedLineForRowWithText: (row, line, ruleStack = @stackForRow(row - 1)) ->
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
     new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
-  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
-  # accounted for in @tokenizedLines
-  lineForScreenRow: (row) ->
-    @linesForScreenRows(row, row)[0]
+  tokenizedLineForRow: (bufferRow) ->
+    @tokenizedLines[bufferRow]
 
-  # FIXME: benogle says: These are actually buffer rows as all buffer rows are
-  # accounted for in @tokenizedLines
-  linesForScreenRows: (startRow, endRow) ->
-    @tokenizedLines[startRow..endRow]
+  stackForRow: (bufferRow) ->
+    @tokenizedLines[bufferRow]?.ruleStack
 
-  stackForRow: (row) ->
-    @tokenizedLines[row]?.ruleStack
-
-  indentLevelForRow: (row) ->
-    line = @buffer.lineForRow(row)
+  indentLevelForRow: (bufferRow) ->
+    line = @buffer.lineForRow(bufferRow)
     indentLevel = 0
 
     if line is ''
-      nextRow = row + 1
+      nextRow = bufferRow + 1
       lineCount = @getLineCount()
       while nextRow < lineCount
         nextLine = @buffer.lineForRow(nextRow)
@@ -248,7 +331,7 @@ class TokenizedBuffer extends Model
           break
         nextRow++
 
-      previousRow = row - 1
+      previousRow = bufferRow - 1
       while previousRow >= 0
         previousLine = @buffer.lineForRow(previousRow)
         unless previousLine is ''
@@ -269,8 +352,8 @@ class TokenizedBuffer extends Model
     else
       0
 
-  scopesForPosition: (position) ->
-    @tokenForPosition(position).scopes
+  scopeDescriptorForPosition: (position) ->
+    new ScopeDescriptor(scopes: @tokenForPosition(position).scopes)
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)
@@ -373,5 +456,5 @@ class TokenizedBuffer extends Model
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]
-      line = @lineForScreenRow(row).text
+      line = @tokenizedLineForRow(row).text
       console.log row, line, line.length

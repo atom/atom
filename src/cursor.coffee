@@ -1,37 +1,14 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
+Grim = require 'grim'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
 #
-# Cursors belong to {Editor}s and have some metadata attached in the form
+# Cursors belong to {TextEditor}s and have some metadata attached in the form
 # of a {Marker}.
-#
-# ## Events
-#
-# ### moved
-#
-# Extended: Emit when a cursor has been moved. If there are multiple cursors,
-# it will be emit for each cursor.
-#
-# * `event` {Object}
-#   * `oldBufferPosition` {Point}
-#   * `oldScreenPosition` {Point}
-#   * `newBufferPosition` {Point}
-#   * `newScreenPosition` {Point}
-#   * `textChanged` {Boolean}
-#
-# ### destroyed
-#
-# Extended: Emit when the cursor is destroyed
-#
-# ### visibility-changed
-#
-# Extended: Emit when the Cursor is hidden or shown
-#
-# * `visible` {Boolean} true when cursor is visible
-#
 module.exports =
 class Cursor extends Model
   screenPosition: null
@@ -40,11 +17,13 @@ class Cursor extends Model
   visible: true
   needsAutoscroll: null
 
-  # Instantiated by an {Editor}
+  # Instantiated by a {TextEditor}
   constructor: ({@editor, @marker, id}) ->
+    @emitter = new Emitter
+
     @assignId(id)
     @updateVisibility()
-    @marker.on 'changed', (e) =>
+    @marker.onDidChange (e) =>
       @updateVisibility()
       {oldHeadScreenPosition, newHeadScreenPosition} = e
       {oldHeadBufferPosition, newHeadBufferPosition} = e
@@ -63,34 +42,79 @@ class Cursor extends Model
         newBufferPosition: newHeadBufferPosition
         newScreenPosition: newHeadScreenPosition
         textChanged: textChanged
+        cursor: this
 
       @emit 'moved', movedEvent
+      @emitter.emit 'did-change-position', movedEvent
       @editor.cursorMoved(movedEvent)
-    @marker.on 'destroyed', =>
+    @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeCursor(this)
       @emit 'destroyed'
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
     @needsAutoscroll = true
 
   destroy: ->
     @marker.destroy()
 
-  changePosition: (options, fn) ->
-    @clearSelection()
-    @needsAutoscroll = options.autoscroll ? @isLastCursor()
-    fn()
-    if @needsAutoscroll
-      @emit 'autoscrolled' # Support legacy editor
-      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition # Support react editor view
+  ###
+  Section: Event Subscription
+  ###
 
-  getPixelRect: ->
-    @editor.pixelRectForScreenRange(@getScreenRange())
+  # Public: Calls your `callback` when the cursor has been moved.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldBufferPosition` {Point}
+  #     * `oldScreenPosition` {Point}
+  #     * `newBufferPosition` {Point}
+  #     * `newScreenPosition` {Point}
+  #     * `textChanged` {Boolean}
+  #     * `Cursor` {Cursor} that triggered the event
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangePosition: (callback) ->
+    @emitter.on 'did-change-position', callback
+
+  # Public: Calls your `callback` when the cursor is destroyed
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  # Public: Calls your `callback` when the cursor's visibility has changed
+  #
+  # * `callback` {Function}
+  #   * `visibility` {Boolean}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeVisibility: (callback) ->
+    @emitter.on 'did-change-visibility', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'moved'
+        Grim.deprecate("Use Cursor::onDidChangePosition instead")
+      when 'destroyed'
+        Grim.deprecate("Use Cursor::onDidDestroy instead")
+      when 'destroyed'
+        Grim.deprecate("Use Cursor::onDidDestroy instead")
+      else
+        Grim.deprecate("::on is no longer supported. Use the event subscription methods instead")
+    super
+
+  ###
+  Section: Managing Cursor Position
+  ###
 
   # Public: Moves a cursor to a given screen position.
   #
   # * `screenPosition` {Array} of two numbers: the screen row, and the screen column.
   # * `options` (optional) {Object} with the following keys:
-  #   * `autoscroll` A Boolean which, if `true`, scrolls the {Editor} to wherever
+  #   * `autoscroll` A Boolean which, if `true`, scrolls the {TextEditor} to wherever
   #     the cursor moves to.
   setScreenPosition: (screenPosition, options={}) ->
     @changePosition options, =>
@@ -100,15 +124,11 @@ class Cursor extends Model
   getScreenPosition: ->
     @marker.getHeadScreenPosition()
 
-  getScreenRange: ->
-    {row, column} = @getScreenPosition()
-    new Range(new Point(row, column), new Point(row, column + 1))
-
   # Public: Moves a cursor to a given buffer position.
   #
   # * `bufferPosition` {Array} of two numbers: the buffer row, and the buffer column.
   # * `options` (optional) {Object} with the following keys:
-  #   * `autoscroll` A Boolean which, if `true`, scrolls the {Editor} to wherever
+  #   * `autoscroll` A Boolean which, if `true`, scrolls the {TextEditor} to wherever
   #     the cursor moves to.
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
@@ -118,46 +138,42 @@ class Cursor extends Model
   getBufferPosition: ->
     @marker.getHeadBufferPosition()
 
-  autoscroll: (options) ->
-    @editor.scrollToScreenRange(@getScreenRange(), options)
+  # Public: Returns the cursor's current screen row.
+  getScreenRow: ->
+    @getScreenPosition().row
 
-  # Public: If the marker range is empty, the cursor is marked as being visible.
-  updateVisibility: ->
-    @setVisible(@marker.getBufferRange().isEmpty())
+  # Public: Returns the cursor's current screen column.
+  getScreenColumn: ->
+    @getScreenPosition().column
 
-  # Public: Sets whether the cursor is visible.
-  setVisible: (visible) ->
-    if @visible != visible
-      @visible = visible
-      @needsAutoscroll ?= true if @visible and @isLastCursor()
-      @emit 'visibility-changed', @visible
+  # Public: Retrieves the cursor's current buffer row.
+  getBufferRow: ->
+    @getBufferPosition().row
 
-  # Public: Returns the visibility of the cursor.
-  isVisible: -> @visible
+  # Public: Returns the cursor's current buffer column.
+  getBufferColumn: ->
+    @getBufferPosition().column
 
-  # Public: Get the RegExp used by the cursor to determine what a "word" is.
-  #
-  # * `options` (optional) {Object} with the following keys:
-  #   * `includeNonWordCharacters` A {Boolean} indicating whether to include
-  #     non-word characters in the regex. (default: true)
-  #
-  # Returns a {RegExp}.
-  wordRegExp: ({includeNonWordCharacters}={}) ->
-    includeNonWordCharacters ?= true
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters')
-    segments = ["^[\t ]*$"]
-    segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
-    if includeNonWordCharacters
-      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
-    new RegExp(segments.join("|"), "g")
+  # Public: Returns the cursor's current buffer row of text excluding its line
+  # ending.
+  getCurrentBufferLine: ->
+    @editor.lineTextForBufferRow(@getBufferRow())
 
-  # Public: Identifies if this cursor is the last in the {Editor}.
-  #
-  # "Last" is defined as the most recently added cursor.
-  #
-  # Returns a {Boolean}.
-  isLastCursor: ->
-    this == @editor.getCursor()
+  # Public: Returns whether the cursor is at the start of a line.
+  isAtBeginningOfLine: ->
+    @getBufferPosition().column == 0
+
+  # Public: Returns whether the cursor is on the line return character.
+  isAtEndOfLine: ->
+    @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
+
+  ###
+  Section: Cursor Position Details
+  ###
+
+  # Public: Returns the underlying {Marker} for the cursor.
+  # Useful with overlay {Decoration}s.
+  getMarker: -> @marker
 
   # Public: Identifies if the cursor is surrounded by whitespace.
   #
@@ -186,46 +202,68 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters').split('')
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
     _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
-  isInsideWord: ->
+  #
+  # * `options` (optional) {Object}
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #     (default: {::wordRegExp}).
+  #
+  # Returns a {Boolean}
+  isInsideWord: (options) ->
     {row, column} = @getBufferPosition()
     range = [[row, column], [row, Infinity]]
-    @editor.getTextInBufferRange(range).search(@wordRegExp()) == 0
+    @editor.getTextInBufferRange(range).search(options?.wordRegex ? @wordRegExp()) == 0
 
-  # Public: Prevents this cursor from causing scrolling.
-  clearAutoscroll: ->
-    @needsAutoscroll = null
+  # Public: Returns the indentation level of the current line.
+  getIndentLevel: ->
+    if @editor.getSoftTabs()
+      @getBufferColumn() / @editor.getTabLength()
+    else
+      @getBufferColumn()
 
-  # Public: Deselects the current selection.
-  clearSelection: ->
-    @selection?.clear()
+  # Public: Retrieves the scope descriptor for the cursor's current position.
+  #
+  # Returns a {ScopeDescriptor}
+  getScopeDescriptor: ->
+    @editor.scopeDescriptorForBufferPosition(@getBufferPosition())
+  getScopes: ->
+    Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
+    @getScopeDescriptor().getScopesArray()
 
-  # Public: Returns the cursor's current screen row.
-  getScreenRow: ->
-    @getScreenPosition().row
+  # Public: Returns true if this cursor has no non-whitespace characters before
+  # its current position.
+  hasPrecedingCharactersOnLine: ->
+    bufferPosition = @getBufferPosition()
+    line = @editor.lineTextForBufferRow(bufferPosition.row)
+    firstCharacterColumn = line.search(/\S/)
 
-  # Public: Returns the cursor's current screen column.
-  getScreenColumn: ->
-    @getScreenPosition().column
+    if firstCharacterColumn is -1
+      false
+    else
+      bufferPosition.column > firstCharacterColumn
 
-  # Public: Retrieves the cursor's current buffer row.
-  getBufferRow: ->
-    @getBufferPosition().row
+  # Public: Identifies if this cursor is the last in the {TextEditor}.
+  #
+  # "Last" is defined as the most recently added cursor.
+  #
+  # Returns a {Boolean}.
+  isLastCursor: ->
+    this == @editor.getLastCursor()
 
-  # Public: Returns the cursor's current buffer column.
-  getBufferColumn: ->
-    @getBufferPosition().column
-
-  # Public: Returns the cursor's current buffer row of text excluding its line
-  # ending.
-  getCurrentBufferLine: ->
-    @editor.lineForBufferRow(@getBufferRow())
+  ###
+  Section: Moving the Cursor
+  ###
 
   # Public: Moves the cursor up one screen row.
-  moveUp: (rowCount = 1, {moveToEndOfSelection}={}) ->
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
+  moveUp: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       { row, column } = range.start
@@ -237,7 +275,12 @@ class Cursor extends Model
     @goalColumn = column
 
   # Public: Moves the cursor down one screen row.
-  moveDown: (rowCount = 1, {moveToEndOfSelection}={}) ->
+  #
+  # * `rowCount` (optional) {Number} number of rows to move (default: 1)
+  # * `options` (optional) {Object} with the following keys:
+  #   * `moveToEndOfSelection` if true, move to the left of the selection if a
+  #     selection exists.
+  moveDown: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       { row, column } = range.end
@@ -250,30 +293,51 @@ class Cursor extends Model
 
   # Public: Moves the cursor left one screen column.
   #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the left of the selection if a
   #     selection exists.
-  moveLeft: ({moveToEndOfSelection}={}) ->
+  moveLeft: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.start)
     else
       {row, column} = @getScreenPosition()
-      [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
+
+      while columnCount > column and row > 0
+        columnCount -= column
+        column = @editor.lineTextForScreenRow(--row).length
+        columnCount-- # subtract 1 for the row move
+
+      column = column - columnCount
       @setScreenPosition({row, column})
 
   # Public: Moves the cursor right one screen column.
   #
+  # * `columnCount` (optional) {Number} number of columns to move (default: 1)
   # * `options` (optional) {Object} with the following keys:
   #   * `moveToEndOfSelection` if true, move to the right of the selection if a
   #     selection exists.
-  moveRight: ({moveToEndOfSelection}={}) ->
+  moveRight: (columnCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.end)
     else
       { row, column } = @getScreenPosition()
-      @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      maxLines = @editor.getScreenLineCount()
+      rowLength = @editor.lineTextForScreenRow(row).length
+      columnsRemainingInLine = rowLength - column
+
+      while columnCount > columnsRemainingInLine and row < maxLines - 1
+        columnCount -= columnsRemainingInLine
+        columnCount-- # subtract 1 for the row move
+
+        column = 0
+        rowLength = @editor.lineTextForScreenRow(++row).length
+        columnsRemainingInLine = rowLength
+
+      column = column + columnCount
+      @setScreenPosition({row, column}, skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
@@ -309,17 +373,6 @@ class Cursor extends Model
 
     @setBufferPosition([lineBufferRange.start.row, targetBufferColumn])
 
-  # Public: Moves the cursor to the beginning of the buffer line, skipping all
-  # whitespace.
-  skipLeadingWhitespace: ->
-    position = @getBufferPosition()
-    scanRange = @getCurrentLineBufferRange()
-    endOfLeadingWhitespace = null
-    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) ->
-      endOfLeadingWhitespace = range.end
-
-    @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
-
   # Public: Moves the cursor to the end of the line.
   moveToEndOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), Infinity])
@@ -349,8 +402,88 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the next word boundary.
   moveToNextWordBoundary: ->
-    if position = @getMoveNextWordBoundaryBufferPosition()
+    if position = @getNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
+
+  # Public: Moves the cursor to the beginning of the buffer line, skipping all
+  # whitespace.
+  skipLeadingWhitespace: ->
+    position = @getBufferPosition()
+    scanRange = @getCurrentLineBufferRange()
+    endOfLeadingWhitespace = null
+    @editor.scanInBufferRange /^[ \t]*/, scanRange, ({range}) ->
+      endOfLeadingWhitespace = range.end
+
+    @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
+
+  # Public: Moves the cursor to the beginning of the next paragraph
+  moveToBeginningOfNextParagraph: ->
+    if position = @getBeginningOfNextParagraphBufferPosition()
+      @setBufferPosition(position)
+
+  # Public: Moves the cursor to the beginning of the previous paragraph
+  moveToBeginningOfPreviousParagraph: ->
+    if position = @getBeginningOfPreviousParagraphBufferPosition()
+      @setBufferPosition(position)
+
+  ###
+  Section: Local Positions and Ranges
+  ###
+
+  # Public: Returns buffer position of previous word boundary. It might be on
+  # the current word, or the previous word.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #      (default: {::wordRegExp})
+  getPreviousWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
+    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
+
+    beginningOfWordPosition = null
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
+      if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
+        # force it to stop at the beginning of each line
+        beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
+      else if range.end.isLessThan(currentBufferPosition)
+        beginningOfWordPosition = range.end
+      else
+        beginningOfWordPosition = range.start
+
+      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    beginningOfWordPosition or currentBufferPosition
+
+  # Public: Returns buffer position of the next word boundary. It might be on
+  # the current word, or the previous word.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
+  #      (default: {::wordRegExp})
+  getNextWordBoundaryBufferPosition: (options = {}) ->
+    currentBufferPosition = @getBufferPosition()
+    scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
+
+    endOfWordPosition = null
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
+      if range.start.row > currentBufferPosition.row
+        # force it to stop at the beginning of each line
+        endOfWordPosition = new Point(range.start.row, 0)
+      else if range.start.isGreaterThan(currentBufferPosition)
+        endOfWordPosition = range.start
+      else
+        endOfWordPosition = range.end
+
+      if not endOfWordPosition?.isEqual(currentBufferPosition)
+        stop()
+
+    endOfWordPosition or currentBufferPosition
+
+  getMoveNextWordBoundaryBufferPosition: (options) ->
+    Grim.deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
+    @getNextWordBoundaryBufferPosition(options)
 
   # Public: Retrieves the buffer position of where the current word starts.
   #
@@ -383,49 +516,6 @@ class Cursor extends Model
       new Point(0, 0)
     else
       currentBufferPosition
-
-  # Public: Retrieves buffer position of previous word boundary. It might be on
-  # the current word, or the previous word.
-  getPreviousWordBoundaryBufferPosition: (options = {}) ->
-    currentBufferPosition = @getBufferPosition()
-    previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
-    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
-
-    beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
-      if range.start.row < currentBufferPosition.row and currentBufferPosition.column > 0
-        # force it to stop at the beginning of each line
-        beginningOfWordPosition = new Point(currentBufferPosition.row, 0)
-      else if range.end.isLessThan(currentBufferPosition)
-        beginningOfWordPosition = range.end
-      else
-        beginningOfWordPosition = range.start
-
-      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
-        stop()
-
-    beginningOfWordPosition or currentBufferPosition
-
-  # Public: Retrieves buffer position of the next word boundary. It might be on
-  # the current word, or the previous word.
-  getMoveNextWordBoundaryBufferPosition: (options = {}) ->
-    currentBufferPosition = @getBufferPosition()
-    scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
-
-    endOfWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
-      if range.start.row > currentBufferPosition.row
-        # force it to stop at the beginning of each line
-        endOfWordPosition = new Point(range.start.row, 0)
-      else if range.start.isGreaterThan(currentBufferPosition)
-        endOfWordPosition = range.start
-      else
-        endOfWordPosition = range.end
-
-      if not endOfWordPosition?.isEqual(currentBufferPosition)
-        stop()
-
-    endOfWordPosition or currentBufferPosition
 
   # Public: Retrieves the buffer position of where the current word ends.
   #
@@ -460,7 +550,7 @@ class Cursor extends Model
   # Returns a {Range}
   getBeginningOfNextWordBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
-    start = if @isInsideWord() then @getEndOfCurrentWordBufferPosition() else currentBufferPosition
+    start = if @isInsideWord(options) then @getEndOfCurrentWordBufferPosition(options) else currentBufferPosition
     scanRange = [start, @editor.getEofBufferPosition()]
 
     beginningOfNextWordPosition = null
@@ -488,17 +578,99 @@ class Cursor extends Model
   getCurrentLineBufferRange: (options) ->
     @editor.bufferRangeForBufferRow(@getBufferRow(), options)
 
-  # Public: Moves the cursor to the beginning of the next paragraph
-  moveToBeginningOfNextParagraph: ->
-    if position = @getBeginningOfNextParagraphBufferPosition()
-      @setBufferPosition(position)
+  # Public: Retrieves the range for the current paragraph.
+  #
+  # A paragraph is defined as a block of text surrounded by empty lines.
+  #
+  # Returns a {Range}.
+  getCurrentParagraphBufferRange: ->
+    @editor.languageMode.rowRangeForParagraphAtBufferRow(@getBufferRow())
 
-  # Public: Moves the cursor to the beginning of the previous paragraph
-  moveToBeginningOfPreviousParagraph: ->
-    if position = @getBeginningOfPreviousParagraphBufferPosition()
-      @setBufferPosition(position)
+  # Public: Returns the characters preceding the cursor in the current word.
+  getCurrentWordPrefix: ->
+    @editor.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
 
-  getBeginningOfNextParagraphBufferPosition: (editor) ->
+  ###
+  Section: Visibility
+  ###
+
+  # Public: Sets whether the cursor is visible.
+  setVisible: (visible) ->
+    if @visible != visible
+      @visible = visible
+      @needsAutoscroll ?= true if @visible and @isLastCursor()
+      @emit 'visibility-changed', @visible
+      @emitter.emit 'did-change-visibility', @visible
+
+  # Public: Returns the visibility of the cursor.
+  isVisible: -> @visible
+
+  updateVisibility: ->
+    @setVisible(@marker.getBufferRange().isEmpty())
+
+  ###
+  Section: Comparing to another cursor
+  ###
+
+  # Public: Compare this cursor's buffer position to another cursor's buffer position.
+  #
+  # See {Point::compare} for more details.
+  #
+  # * `otherCursor`{Cursor} to compare against
+  compare: (otherCursor) ->
+    @getBufferPosition().compare(otherCursor.getBufferPosition())
+
+  ###
+  Section: Utilities
+  ###
+
+  # Public: Prevents this cursor from causing scrolling.
+  clearAutoscroll: ->
+    @needsAutoscroll = null
+
+  # Public: Deselects the current selection.
+  clearSelection: ->
+    @selection?.clear()
+
+  # Public: Get the RegExp used by the cursor to determine what a "word" is.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `includeNonWordCharacters` A {Boolean} indicating whether to include
+  #     non-word characters in the regex. (default: true)
+  #
+  # Returns a {RegExp}.
+  wordRegExp: ({includeNonWordCharacters}={}) ->
+    includeNonWordCharacters ?= true
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    segments = ["^[\t ]*$"]
+    segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
+    if includeNonWordCharacters
+      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
+    new RegExp(segments.join("|"), "g")
+
+  ###
+  Section: Private
+  ###
+
+  changePosition: (options, fn) ->
+    @clearSelection()
+    @needsAutoscroll = options.autoscroll ? @isLastCursor()
+    fn()
+    if @needsAutoscroll
+      @emit 'autoscrolled' # Support legacy editor
+      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition # Support react editor view
+
+  getPixelRect: ->
+    @editor.pixelRectForScreenRange(@getScreenRange())
+
+  getScreenRange: ->
+    {row, column} = @getScreenPosition()
+    new Range(new Point(row, column), new Point(row, column + 1))
+
+  autoscroll: (options) ->
+    @editor.scrollToScreenRange(@getScreenRange(), options)
+
+  getBeginningOfNextParagraphBufferPosition: ->
     start = @getBufferPosition()
     eof = @editor.getEofBufferPosition()
     scanRange = [start, eof]
@@ -512,8 +684,8 @@ class Cursor extends Model
         stop()
     @editor.screenPositionForBufferPosition(position)
 
-  getBeginningOfPreviousParagraphBufferPosition: (editor) ->
-    start = @editor.getCursorBufferPosition()
+  getBeginningOfPreviousParagraphBufferPosition: ->
+    start = @getBufferPosition()
 
     {row, column} = start
     scanRange = [[row-1, column], [0,0]]
@@ -524,48 +696,3 @@ class Cursor extends Model
         position = range.start
         stop()
     @editor.screenPositionForBufferPosition(position)
-
-  # Public: Retrieves the range for the current paragraph.
-  #
-  # A paragraph is defined as a block of text surrounded by empty lines.
-  #
-  # Returns a {Range}.
-  getCurrentParagraphBufferRange: ->
-    @editor.languageMode.rowRangeForParagraphAtBufferRow(@getBufferRow())
-
-  # Public: Returns the characters preceding the cursor in the current word.
-  getCurrentWordPrefix: ->
-    @editor.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
-
-  # Public: Returns whether the cursor is at the start of a line.
-  isAtBeginningOfLine: ->
-    @getBufferPosition().column == 0
-
-  # Public: Returns the indentation level of the current line.
-  getIndentLevel: ->
-    if @editor.getSoftTabs()
-      @getBufferColumn() / @editor.getTabLength()
-    else
-      @getBufferColumn()
-
-  # Public: Returns whether the cursor is on the line return character.
-  isAtEndOfLine: ->
-    @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
-
-  # Public: Retrieves the grammar's token scopes for the line.
-  #
-  # Returns an {Array} of {String}s.
-  getScopes: ->
-    @editor.scopesForBufferPosition(@getBufferPosition())
-
-  # Public: Returns true if this cursor has no non-whitespace characters before
-  # its current position.
-  hasPrecedingCharactersOnLine: ->
-    bufferPosition = @getBufferPosition()
-    line = @editor.lineForBufferRow(bufferPosition.row)
-    firstCharacterColumn = line.search(/\S/)
-
-    if firstCharacterColumn is -1
-      false
-    else
-      bufferPosition.column > firstCharacterColumn

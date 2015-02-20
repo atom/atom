@@ -85,6 +85,7 @@
       { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
       { label: 'Open Your Snippets', command: 'application:open-your-snippets' }
       { label: 'Open Your Stylesheet', command: 'application:open-your-stylesheet' }
+      { type: 'separator' }
     ]
   }
 
@@ -93,6 +94,7 @@
     submenu: [
       { label: '&Reload', command: 'window:reload' }
       { label: 'Toggle &Full Screen', command: 'window:toggle-full-screen' }
+      { label: 'Toggle Menu Bar', command: 'window:toggle-menu-bar' }
       {
         label: 'Developer'
         submenu: [
@@ -146,17 +148,39 @@
       { label: "VERSION", enabled: false }
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
+      { label: 'Roadmap', command: 'application:open-roadmap' }
+      { label: 'Frequently Asked Questions', command: 'application:open-faq' }
+      { type: 'separator' }
+      { label: 'Community Discussions', command: 'application:open-discussions' }
+      { label: 'Report Issue', command: 'application:report-issue' }
+      { label: 'Search Issues', command: 'application:search-issues' }
       { type: 'separator' }
     ]
   }
 ]
 
 'context-menu':
-  '.overlayer':
-    'Undo': 'core:undo'
-    'Redo': 'core:redo'
-    'Cut': 'core:cut'
-    'Copy': 'core:copy'
-    'Paste': 'core:paste'
-    'Delete': 'core:delete'
-    'Select All': 'core:select-all'
+  'atom-text-editor, .overlayer': [
+    {label: 'Undo', command: 'core:undo'}
+    {label: 'Redo', command: 'core:redo'}
+    {type: 'separator'}
+    {label: 'Cut', command: 'core:cut'}
+    {label: 'Copy', command: 'core:copy'}
+    {label: 'Paste', command: 'core:paste'}
+    {label: 'Delete', command: 'core:delete'}
+    {label: 'Select All', command: 'core:select-all'}
+    {type: 'separator'}
+    {label: 'Split Up', command: 'pane:split-up'}
+    {label: 'Split Down', command: 'pane:split-down'}
+    {label: 'Split Left', command: 'pane:split-left'}
+    {label: 'Split Right', command: 'pane:split-right'}
+    {type: 'separator'}
+  ]
+  'atom-pane': [
+    {type: 'separator'}
+    {label: 'Split Up', command: 'pane:split-up'}
+    {label: 'Split Down', command: 'pane:split-down'}
+    {label: 'Split Left', command: 'pane:split-left'}
+    {label: 'Split Right', command: 'pane:split-right'}
+    {type: 'separator'}
+  ]

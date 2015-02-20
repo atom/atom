@@ -19,6 +19,17 @@ body {
     list-style: none;
   }
 
+  .reload-button {
+    color: #333;
+    background-color: #fff;
+    border: 1px solid #ccc;
+
+    &:hover {
+      background-color: #ddd;
+      color: #222;
+    }
+  }
+
   .symbol-header {
     font-size: 18px;
     font-weight: bold;
@@ -57,7 +68,7 @@ body {
         color: #eee;
       }
 
-      &:before {
+      &::before {
         content: "\02022";
       }
     }
@@ -136,7 +147,18 @@ body {
   }
 
   .result-message.deprecation-message {
-    color: #f0ad4e;
+    font-weight: normal;
+    color: darken(#f0ad4e, 20%);
+    line-height: 1.4;
+
+    a {
+      color: darken(#f0ad4e, 15%);
+    }
+
+    code {
+      color: darken(#f0ad4e, 20%);
+      background: lighten(#f0ad4e, 35%);
+    }
   }
 
   .stack-trace {
@@ -173,7 +195,7 @@ body {
     -webkit-line-clamp: 10;
     overflow: hidden;
 
-    &:hover {
+    &.expanded {
       -webkit-line-clamp: inherit;
       // overflow: hidden;
     }

@@ -1,0 +1,227 @@
+@import "ui-variables";
+@import "octicon-utf-codes";
+@import "octicon-mixins";
+
+atom-text-editor {
+  display: block;
+  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  line-height: 1.3;
+}
+
+atom-text-editor[mini] {
+  font-size: @input-font-size;
+  line-height: @component-line-height;
+  max-height: @component-line-height + 2; // +2 for borders
+  overflow: auto;
+}
+
+atom-overlay {
+  position: absolute;
+  display: block;
+  z-index: 4;
+}
+
+// TODO: Remove the following styles when the editor shadow DOM can no longer be disabled
+atom-text-editor {
+  display: -webkit-flex;
+
+  .editor-contents {
+    width: 100%;
+    overflow: hidden;
+    cursor: text;
+    display: -webkit-flex;
+    -webkit-user-select: none;
+    position: relative;
+  }
+
+  .gutter {
+    overflow: hidden;
+    text-align: right;
+    cursor: default;
+    min-width: 1em;
+    box-sizing: border-box;
+  }
+
+  .line-numbers {
+    position: relative;
+  }
+
+  .line-number {
+    white-space: nowrap;
+    padding-left: .5em;
+    opacity: 0.6;
+
+    &.cursor-line {
+      opacity: 1;
+    }
+
+    .icon-right {
+      .octicon(chevron-down, 0.8em);
+      display: inline-block;
+      visibility: hidden;
+      opacity: .6;
+      padding: 0 .4em;
+
+      &::before {
+        text-align: center;
+      }
+    }
+  }
+
+  .gutter:hover {
+    .line-number.foldable .icon-right {
+      visibility: visible;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .gutter, .gutter:hover {
+    .line-number.folded .icon-right {
+      .octicon(chevron-right, 0.8em);
+
+      visibility: visible;
+
+      &::before {
+        position: relative;
+        left: -.1em;
+      }
+    }
+  }
+
+  .scroll-view {
+    position: relative;
+    z-index: 0;
+
+    overflow: hidden;
+    -webkit-flex: 1;
+    min-width: 0;
+  }
+
+  .underlayer {
+    position: absolute;
+    z-index: -2;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .highlight {
+    background: none;
+    padding: 0;
+  }
+
+  .highlight .region {
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .lines {
+    min-width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .line {
+    white-space: pre;
+
+    &.cursor-line .fold-marker::after {
+      opacity: 1;
+    }
+  }
+
+  .fold-marker {
+    cursor: default;
+
+    &::after {
+      .icon(0.8em, inline);
+
+      content: @ellipsis;
+      padding-left: 0.2em;
+    }
+  }
+
+  .placeholder-text {
+    position: absolute;
+    color: @text-color-subtle;
+  }
+
+  .invisible-character {
+    font-weight: normal !important;
+    font-style: normal !important;
+  }
+
+  .indent-guide {
+    display: inline-block;
+    box-shadow: inset 1px 0;
+  }
+
+  .hidden-input {
+    padding: 0;
+    border: 0;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    width: 1px;
+  }
+
+  .cursor {
+    z-index: 4;
+    pointer-events: none;
+    box-sizing: border-box;
+    position: absolute;
+    border-left: 1px solid;
+    opacity: 0;
+  }
+
+  &.is-focused .cursor {
+    opacity: 1;
+  }
+
+  .cursors.blink-off .cursor {
+    opacity: 0;
+  }
+
+  .horizontal-scrollbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 15px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 3;
+    cursor: default;
+
+    .scrollbar-content {
+      height: 15px;
+    }
+  }
+
+  .vertical-scrollbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 15px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 3;
+    cursor: default;
+  }
+
+  .scrollbar-corner {
+    position: absolute;
+    overflow: auto;
+    bottom: 0;
+    right: 0;
+  }
+}

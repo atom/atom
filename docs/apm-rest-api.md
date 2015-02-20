@@ -30,6 +30,8 @@ All requests that take parameters require `application/json`.
 Parameters:
 
 - **page** (optional)
+- **sort** (optional) - One of `downloads`, `created_at`, `updated_at`, `stars`. Defaults to `downloads`
+- **direction** (optional) - `asc` or `desc`. Defaults to `desc`. `stars` can only be ordered `desc`
 
 Returns a list of all packages in the following format:
 ```json
@@ -56,6 +58,21 @@ Link: <https://www.atom.io/api/packages?page=1>; rel="self",
       <https://www.atom.io/api/packages?page=41>; rel="last",
       <https://www.atom.io/api/packages?page=2>; rel="next"
 ```
+
+By default, results are sorted by download count, descending.
+
+### Searching packages
+
+#### GET /api/packages/search
+
+Parameters:
+
+- **q** (required) - Search query
+- **page** (optional)
+- **sort** (optional) - One of `downloads`, `created_at`, `updated_at`, `stars`. Defaults to the relevance of the search query.
+- **direction** (optional) - `asc` or `desc`. Defaults to `desc`.
+
+Returns results in the same format as [listing packages](#listing-packages).
 
 ### Showing package details
 

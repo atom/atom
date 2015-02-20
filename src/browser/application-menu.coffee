@@ -10,23 +10,47 @@ _ = require 'underscore-plus'
 module.exports =
 class ApplicationMenu
   constructor: (@version) ->
-    @menu = Menu.buildFromTemplate @getDefaultTemplate()
-    Menu.setApplicationMenu @menu
+    @windowTemplates = new WeakMap()
+    @setActiveTemplate(@getDefaultTemplate())
     global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
       @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
+  # window - The BrowserWindow this menu template is associated with.
   # template - The Object which describes the menu to display.
   # keystrokesByCommand - An Object where the keys are commands and the values
   #                       are Arrays containing the keystroke.
-  update: (template, keystrokesByCommand) ->
+  update: (window, template, keystrokesByCommand) ->
     @translateTemplate(template, keystrokesByCommand)
     @substituteVersion(template)
-    @menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(@menu)
+    @windowTemplates.set(window, template)
+    @setActiveTemplate(template) if window is @lastFocusedWindow
+
+  setActiveTemplate: (template) ->
+    unless _.isEqual(template, @activeTemplate)
+      @activeTemplate = template
+      @menu = Menu.buildFromTemplate(_.deepClone(template))
+      Menu.setApplicationMenu(@menu)
 
     @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
+
+  # Register a BrowserWindow with this application menu.
+  addWindow: (window) ->
+    @lastFocusedWindow ?= window
+
+    focusHandler = =>
+      @lastFocusedWindow = window
+      if template = @windowTemplates.get(window)
+        @setActiveTemplate(template)
+
+    window.on 'focus', focusHandler
+    window.once 'closed', =>
+      @lastFocusedWindow = null if window is @lastFocusedWindow
+      @windowTemplates.delete(window)
+      window.removeListener 'focus', focusHandler
+
+    @enableWindowSpecificItems(true)
 
   # Flattens the given menu and submenu items into an single Array.
   #
@@ -68,19 +92,23 @@ class ApplicationMenu
   # Sets the proper visible state the update menu items
   showUpdateMenuItem: (state) ->
     checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Check for Update')
+    checkingForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Checking for Update')
     downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Downloading Update')
     installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Restart and Install Update')
 
-    return unless checkForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
+    return unless checkForUpdateItem? and checkingForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
 
     checkForUpdateItem.visible = false
+    checkingForUpdateItem.visible = false
     downloadingUpdateItem.visible = false
     installUpdateItem.visible = false
 
     switch state
       when 'idle', 'error', 'no-update-available'
         checkForUpdateItem.visible = true
-      when 'checking', 'downloading'
+      when 'checking'
+        checkingForUpdateItem.visible = true
+      when 'downloading'
         downloadingUpdateItem.visible = true
       when 'update-available'
         installUpdateItem.visible = true

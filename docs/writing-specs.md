@@ -1,6 +1,6 @@
 # Writing specs
 
-Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec framework. Any new functionality should have specs to guard against regressions.
+Atom uses [Jasmine](http://jasmine.github.io/1.3/introduction.html) as its spec framework. Any new functionality should have specs to guard against regressions.
 
 ## Create a new spec
 
@@ -12,7 +12,7 @@ Atom uses [Jasmine](http://jasmine.github.io/2.0/introduction.html) as its spec 
 
 0. Add one or more `describe` methods
 
-  The `describe` method takes two arguments, a description and a function. If the description explains a behavior it typically begins with `when` if it is more like a unit test it begins with the method name.
+  The `describe` method takes two arguments, a description and a function. If the description explains a behavior it typically begins with `when`; if it is more like a unit test it begins with the method name.
 
   ```coffee
   describe "when a test is written", ->
@@ -72,7 +72,7 @@ Writing Asynchronous specs can be tricky at first. Some examples.
         atom.workspace.open 'c.coffee'
 
     it "should be opened in an editor", ->
-      expect(atom.workspace.getActiveEditor().getPath()).toContain 'c.coffee'
+      expect(atom.workspace.getActiveTextEditor().getPath()).toContain 'c.coffee'
 
   ```
 
@@ -127,3 +127,10 @@ describe "when a test is written", ->
     expect("apples").toEqual("apples")
     expect("oranges").not.toEqual("apples")
 ```
+
+### Running on CI
+
+It is now easy to run the specs in a CI environment like Travis and AppVeyor. See the
+[Travis CI For Your Packages](http://blog.atom.io/2014/04/25/ci-for-your-packages.html)
+and [AppVeyor CI For Your Packages](http://blog.atom.io/2014/07/28/windows-ci-for-your-packages.html)
+posts for more details.

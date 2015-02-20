@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+docker build -t atom-rpm .
+docker run \
+ --rm \
+ --env JANKY_SHA1="$JANKY_SHA1" \
+ --env JANKY_BRANCH="$JANKY_BRANCH" \
+ --env ATOM_ACCESS_TOKEN="$BUILD_ATOM_RPM_ACCESS_TOKEN" \
+ atom-rpm /atom/script/rpmbuild
+docker rmi atom-rpm

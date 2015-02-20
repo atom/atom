@@ -9,7 +9,9 @@
 * [Converting a TextMate Bundle](converting-a-text-mate-bundle.md)
 * [Converting a TextMate Theme](converting-a-text-mate-theme.md)
 * [Contributing](contributing.md)
+* [Contributing to Core Packages](contributing-to-packages.md)
 * [Debugging](debugging.md)
+* [Your First Package](your-first-package.md)
 
 ### Advanced Topics
 
@@ -17,4 +19,12 @@
 * [Developing Node Modules](advanced/node-modules.md)
 * [Keymaps](advanced/keymaps.md)
 * [Serialization](advanced/serialization.md)
-* [View System](advanced/view-system.md)
+* [Scopes and Scope Descriptors](advanced/scopes-and-scope-descriptors.md)
+* [Theme Variables](theme-variables.md)
+* [apm REST API](apm-rest-api.md)
+
+### Upgrading to 1.0 APIs
+
+* [Upgrading Your Package](upgrading/upgrading-your-package.md)
+* [Upgrading Your UI Theme Or Package Selectors](upgrading/upgrading-your-ui-theme.md)
+* [Upgrading Your Syntax Theme](upgrading/upgrading-your-syntax-theme.md)

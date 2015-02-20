@@ -3,32 +3,32 @@
 ## Structure of a Keymap File
 
 Keymap files are encoded as JSON or CSON files containing nested hashes. They
-work much like stylesheets, but instead of applying style properties to elements
+work much like style sheets, but instead of applying style properties to elements
 matching the selector, they specify the meaning of keystrokes on elements
 matching the selector. Here is an example of some bindings that apply when
-keystrokes pass through elements with the class `.editor`:
+keystrokes pass through `atom-text-editor` elements:
 
 ```coffee
-'.editor':
+'atom-text-editor':
   'cmd-delete': 'editor:delete-to-beginning-of-line'
   'alt-backspace': 'editor:delete-to-beginning-of-word'
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-shift-e': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
 
-'.editor:not(.mini)'
+'atom-text-editor:not([mini])':
   'cmd-alt-[': 'editor:fold-current-row'
   'cmd-alt-]': 'editor:unfold-current-row'
 ```
 
 Beneath the first selector are several bindings, mapping specific *keystroke
-patterns* to *commands*. When an element with the `.editor` class is focused and
+patterns* to *commands*. When an element with the `atom-text-editor` class is focused and
 `cmd-delete` is pressed, an custom DOM event called
-`editor:delete-to-beginning-of-line` is emitted on the `.editor` element.
+`editor:delete-to-beginning-of-line` is emitted on the `atom-text-editor` element.
 
 The second selector group also targets editors, but only if they don't have the
-`.mini` class. In this example, the commands for code folding don't really make
-sense on mini-editors, so the selector restricts them to regular editors.
+`mini` attribute. In this example, the commands for code folding don't really
+make sense on mini-editors, so the selector restricts them to regular editors.
 
 ### Keystroke Patterns
 
@@ -49,25 +49,47 @@ can be expressed as keystroke patterns separated by spaces.
 Commands are custom DOM events that are triggered when a keystroke matches a
 binding. This allows user interface code to listen for named commands without
 specifying the specific keybinding that triggers it. For example, the following
-code sets up {EditorView} to listen for commands to move the cursor to the first
-character of the current line:
+code creates a command to insert the current date in an editor:
 
 ```coffee
-class EditorView
-  listenForEvents: ->
-    @command 'editor:move-to-first-character-of-line', =>
-      @editor.moveCursorToFirstCharacterOfLine()
+atom.commands.add 'atom-text-editor',
+  'user:insert-date': (event) ->
+    editor = @getModel()
+    editor.insertText(new Date().toLocaleString())
 ```
 
-The `::command` method is basically an enhanced version of jQuery's `::on`
-method that listens for a custom DOM event and adds some metadata to the DOM,
-which is read by the command palette.
+`atom.commands` refers to the global {CommandRegistry} instance where all commands
+are set and consequently picked up by the command palette.
 
 When you are looking to bind new keys, it is often useful to use the command
 palette (`ctrl-shift-p`) to discover what commands are being listened for in a
 given focus context. Commands are "humanized" following a simple algorithm, so a
 command like `editor:fold-current-row` would appear as "Editor: Fold Current
 Row".
+
+### "Composed" Commands
+
+A common question is, "How do I make a single keybinding execute two or more
+commands?" There isn't any direct support for this in Atom, but it can be
+achieved by creating a custom command that performs the multiple actions
+you desire and then creating a keybinding for that command. For example, let's
+say I want to create a "composed" command that performs a Select Line followed
+by Cut. You could add the following to your `init.coffee`:
+
+```coffee
+atom.commands.add 'atom-text-editor', 'custom:cut-line', ->
+  editor = atom.workspace.getActiveTextEditor()
+  editor.selectLinesContainingCursors()
+  editor.cutSelectedText()
+```
+
+Then let's say we want to map this custom command to `alt-ctrl-z`, you could
+add the following to your keymap:
+
+```coffee
+'atom-text-editor':
+  'alt-ctrl-z': 'custom:cut-line'
+```
 
 ### Specificity and Cascade Order
 
@@ -91,7 +113,7 @@ the current keystroke sequence and continue searching from its parent. If you
 want to remove a binding from a keymap you don't control, such as keymaps in
 Atom core or in packages, use the `unset!` directive.
 
-For example, the following code removes the keybinding for `a` in the Tree View, 
+For example, the following code removes the keybinding for `a` in the Tree View,
 which is normally used to trigger the `tree-view:add-file` command:
 
 ```coffee

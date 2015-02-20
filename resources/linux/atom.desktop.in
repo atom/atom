@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Atom
+Comment=<%= description %>
+GenericName=Text Editor
+Exec=<%= executable %> %U
+Icon=<%= iconName %>
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Utility;TextEditor;Development;
+MimeType=text/plain;

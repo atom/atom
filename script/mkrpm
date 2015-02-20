@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+SPEC_FILE="$1"
+DESKTOP_FILE="$2"
+BUILD_DIRECTORY="$3"
+
+RPM_BUILD_ROOT=~/rpmbuild
+ARCH=`uname -m`
+
+rpmdev-setuptree
+
+cp -r $BUILD_DIRECTORY/Atom $RPM_BUILD_ROOT/BUILD
+cp -r $BUILD_DIRECTORY/icons $RPM_BUILD_ROOT/BUILD
+cp $SPEC_FILE $RPM_BUILD_ROOT/SPECS
+cp ./atom.sh $RPM_BUILD_ROOT/BUILD
+cp $DESKTOP_FILE $RPM_BUILD_ROOT/BUILD
+
+rpmbuild -ba $SPEC_FILE
+cp $RPM_BUILD_ROOT/RPMS/$ARCH/atom-*.rpm $BUILD_DIRECTORY/rpm
+
+rm -rf $RPM_BUILD_ROOT

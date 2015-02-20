@@ -1,8 +1,8 @@
-fs = require 'fs'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 runas = null
+temp = require 'temp'
 
 module.exports = (grunt) ->
   {cp, mkdir, rm} = require('./task-helpers')(grunt)
@@ -22,12 +22,16 @@ module.exports = (grunt) ->
     else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)
-      cp shellAppDir, installDir
+
+      tempFolder = temp.path()
+      mkdir tempFolder
+      cp shellAppDir, tempFolder
+      fs.renameSync(tempFolder, installDir)
     else
       binDir = path.join(installDir, 'bin')
       shareDir = path.join(installDir, 'share', 'atom')
 
-      iconName = path.join(shareDir,'resources','app','resources','atom.png')
+      iconName = path.join(shareDir,'resources', 'app', 'resources', 'atom.png')
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')
@@ -35,17 +39,17 @@ module.exports = (grunt) ->
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir
 
-      # Create Atom.desktop if installation not in temporary folder
+      # Create atom.desktop if installation not in temporary folder
       tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
       if installDir.indexOf(tmpDir) isnt 0
-        desktopFile = path.join('resources', 'linux', 'Atom.desktop.in')
-        desktopInstallFile = path.join(installDir, 'share', 'applications', 'Atom.desktop')
+        desktopFile = path.join('resources', 'linux', 'atom.desktop.in')
+        desktopInstallFile = path.join(installDir, 'share', 'applications', 'atom.desktop')
 
         {description} = grunt.file.readJSON('package.json')
         iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
-        installDir = path.join(installDir, '.') # To prevent "Exec=/usr/local//share/atom/atom"
+        executable = path.join(shareDir, 'atom')
         template = _.template(String(fs.readFileSync(desktopFile)))
-        filled = template({description, installDir, iconName})
+        filled = template({description, iconName, executable})
 
         grunt.file.write(desktopInstallFile, filled)
 

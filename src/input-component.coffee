@@ -7,16 +7,17 @@ InputComponent = React.createClass
   displayName: 'InputComponent'
 
   render: ->
-    {className, style, onFocus, onBlur} = @props
+    {className, style} = @props
 
-    input {className, style, onFocus, onBlur, 'data-react-skip-selection-restoration': true}
+    input {className, style, 'data-react-skip-selection-restoration': true}
 
   getInitialState: ->
     {lastChar: ''}
 
   componentDidMount: ->
-    @getDOMNode().addEventListener 'paste', @onPaste
-    @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
+    node = @getDOMNode()
+    node.addEventListener 'paste', @onPaste
+    node.addEventListener 'compositionupdate', @onCompositionUpdate
 
   # Don't let text accumulate in the input forever, but avoid excessive reflows
   componentDidUpdate: ->
@@ -33,12 +34,6 @@ InputComponent = React.createClass
 
   onPaste: (e) ->
     e.preventDefault()
-
-  onFocus: ->
-    @props.onFocus?()
-
-  onBlur: ->
-    @props.onBlur?()
 
   focus: ->
     @getDOMNode().focus()

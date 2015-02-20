@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+{deprecate} = require 'grim'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
@@ -12,7 +13,7 @@ MaxTokenLength = 20000
 module.exports =
 class Token
   value: null
-  hasSurrogatePair: false
+  hasPairedCharacter: false
   scopes: null
   isAtomic: null
   isHardTab: null
@@ -20,12 +21,13 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
-    @hasSurrogatePair = textUtils.hasSurrogatePair(@value)
+    @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
 
   isEqual: (other) ->
+    # TODO: scopes is deprecated. This is here for the sake of lang package tests
     @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic
 
   isBracket: ->
@@ -57,11 +59,11 @@ class Token
     WhitespaceRegexesByTabLength[tabLength] ?= new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingSoftTabs, startColumn) ->
-    if @hasSurrogatePair
+    if @hasPairedCharacter
       outputTokens = []
       column = startColumn
 
-      for token in @breakOutSurrogatePairs()
+      for token in @breakOutPairedCharacters()
         if token.isAtomic
           outputTokens.push(token)
         else
@@ -98,31 +100,32 @@ class Token
 
       outputTokens
 
-  breakOutSurrogatePairs: ->
+  breakOutPairedCharacters: ->
     outputTokens = []
     index = 0
-    nonSurrogatePairStart = 0
+    nonPairStart = 0
 
     while index < @value.length
-      if textUtils.isSurrogatePair(@value, index)
-        if nonSurrogatePairStart isnt index
-          outputTokens.push(new Token({value: @value[nonSurrogatePairStart...index], @scopes}))
-        outputTokens.push(@buildSurrogatePairToken(@value, index))
+      if textUtils.isPairedCharacter(@value, index)
+        if nonPairStart isnt index
+          outputTokens.push(new Token({value: @value[nonPairStart...index], @scopes}))
+        outputTokens.push(@buildPairedCharacterToken(@value, index))
         index += 2
-        nonSurrogatePairStart = index
+        nonPairStart = index
       else
         index++
 
-    if nonSurrogatePairStart isnt index
-      outputTokens.push(new Token({value: @value[nonSurrogatePairStart...index], @scopes}))
+    if nonPairStart isnt index
+      outputTokens.push(new Token({value: @value[nonPairStart...index], @scopes}))
 
     outputTokens
 
-  buildSurrogatePairToken: (value, index) ->
+  buildPairedCharacterToken: (value, index) ->
     new Token(
       value: value[index..index + 1]
       scopes: @scopes
       isAtomic: true
+      hasPairedCharacter: true
     )
 
   buildHardTabToken: (tabLength, column) ->
@@ -153,6 +156,8 @@ class Token
   getValueAsHtml: ({hasIndentGuide}) ->
     if @isHardTab
       classes = 'hard-tab'
+      classes += ' leading-whitespace' if @hasLeadingWhitespace()
+      classes += ' trailing-whitespace' if @hasTrailingWhitespace()
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if @hasInvisibleCharacters
       html = "<span class='#{classes}'>#{@escapeString(@value)}</span>"

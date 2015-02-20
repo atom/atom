@@ -14,6 +14,10 @@ describe "LanguageMode", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
 
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
     describe ".minIndentLevelForRowRange(startRow, endRow)", ->
       it "returns the minimum indent level for the given row range", ->
         expect(languageMode.minIndentLevelForRowRange(4, 7)).toBe 2
@@ -70,12 +74,35 @@ describe "LanguageMode", ->
         expect(languageMode.rowRangeForCodeFoldAtBufferRow(2)).toBeNull()
         expect(languageMode.rowRangeForCodeFoldAtBufferRow(4)).toEqual [4, 7]
 
-    describe "suggestedIndentForBufferRow", ->
-      it "returns the suggested indentation based on auto-indent/outdent rules", ->
+    describe ".rowRangeForCommentAtBufferRow(bufferRow)", ->
+      it "returns the start/end rows of the foldable comment starting at the given row", ->
+        buffer.setText("//this is a multi line comment\n//another line")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toEqual [0, 1]
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toEqual [0, 1]
+
+        buffer.setText("//this is a multi line comment\n//another line\n//and one more")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toEqual [0, 2]
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toEqual [0, 2]
+
+        buffer.setText("//this is a multi line comment\n\n//with an empty line")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toBeUndefined()
+        expect(languageMode.rowRangeForCommentAtBufferRow(2)).toBeUndefined()
+
+        buffer.setText("//this is a single line comment\n")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
+        expect(languageMode.rowRangeForCommentAtBufferRow(1)).toBeUndefined()
+
+        buffer.setText("//this is a single line comment")
+        expect(languageMode.rowRangeForCommentAtBufferRow(0)).toBeUndefined()
+
+    describe ".suggestedIndentForBufferRow", ->
+      it "bases indentation off of the previous non-blank line", ->
         expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
         expect(languageMode.suggestedIndentForBufferRow(1)).toBe 1
         expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2
         expect(languageMode.suggestedIndentForBufferRow(9)).toBe 1
+        expect(languageMode.suggestedIndentForBufferRow(11)).toBe 1
 
     describe "rowRangeForParagraphAtBufferRow", ->
       describe "with code and comments", ->
@@ -127,6 +154,10 @@ describe "LanguageMode", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
 
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
         languageMode.toggleLineCommentsForBufferRows(4, 6)
@@ -153,14 +184,6 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(7)).toBe "    # "
 
     describe "fold suggestion", ->
-      describe ".isFoldableAtBufferRow(bufferRow)", ->
-        it "returns true only when the buffer row starts a foldable region", ->
-          expect(languageMode.isFoldableAtBufferRow(0)).toBeTruthy()
-          expect(languageMode.isFoldableAtBufferRow(1)).toBeTruthy()
-          expect(languageMode.isFoldableAtBufferRow(2)).toBeFalsy()
-          expect(languageMode.isFoldableAtBufferRow(3)).toBeFalsy()
-          expect(languageMode.isFoldableAtBufferRow(19)).toBeTruthy()
-
       describe ".rowRangeForCodeFoldAtBufferRow(bufferRow)", ->
         it "returns the start/end rows of the foldable region starting at the given row", ->
           expect(languageMode.rowRangeForCodeFoldAtBufferRow(0)).toEqual [0, 20]
@@ -177,6 +200,10 @@ describe "LanguageMode", ->
 
       waitsForPromise ->
         atom.packages.activatePackage('language-css')
+
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
@@ -226,6 +253,10 @@ describe "LanguageMode", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-css')
 
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
     describe "when commenting lines", ->
       it "only uses the `commentEnd` pattern if it comes from the same grammar as the `commentStart`", ->
         languageMode.toggleLineCommentsForBufferRows(0, 0)
@@ -242,6 +273,10 @@ describe "LanguageMode", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-xml')
 
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
     describe "when uncommenting lines", ->
       it "removes the leading whitespace from the comment end pattern match", ->
         languageMode.toggleLineCommentsForBufferRows(0, 0)
@@ -256,6 +291,10 @@ describe "LanguageMode", ->
 
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
+
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     it "maintains cursor buffer position when a folding/unfolding", ->
       editor.setCursorBufferPosition([5,5])
@@ -275,46 +314,46 @@ describe "LanguageMode", ->
       it "folds every foldable line", ->
         languageMode.foldAll()
 
-        fold1 = editor.lineForScreenRow(0).fold
+        fold1 = editor.tokenizedLineForScreenRow(0).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 12]
         fold1.destroy()
 
-        fold2 = editor.lineForScreenRow(1).fold
+        fold2 = editor.tokenizedLineForScreenRow(1).fold
         expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 9]
         fold2.destroy()
 
-        fold3 = editor.lineForScreenRow(4).fold
+        fold3 = editor.tokenizedLineForScreenRow(4).fold
         expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [4, 7]
 
     describe ".foldBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
         it "creates a fold based on the syntactic region starting at the given row", ->
           languageMode.foldBufferRow(1)
-          fold = editor.lineForScreenRow(1).fold
+          fold = editor.tokenizedLineForScreenRow(1).fold
           expect(fold.getStartRow()).toBe 1
           expect(fold.getEndRow()).toBe 9
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
           languageMode.foldBufferRow(8)
-          fold = editor.lineForScreenRow(1).fold
+          fold = editor.tokenizedLineForScreenRow(1).fold
           expect(fold.getStartRow()).toBe 1
           expect(fold.getEndRow()).toBe 9
 
       describe "when the bufferRow is already folded", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           languageMode.foldBufferRow(2)
-          expect(editor.lineForScreenRow(1).fold).toBeDefined()
-          expect(editor.lineForScreenRow(0).fold).not.toBeDefined()
+          expect(editor.tokenizedLineForScreenRow(1).fold).toBeDefined()
+          expect(editor.tokenizedLineForScreenRow(0).fold).not.toBeDefined()
 
           languageMode.foldBufferRow(1)
-          expect(editor.lineForScreenRow(0).fold).toBeDefined()
+          expect(editor.tokenizedLineForScreenRow(0).fold).toBeDefined()
 
       describe "when the bufferRow is in a multi-line comment", ->
         it "searches upward and downward for surrounding comment lines and folds them as a single fold", ->
           buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
           languageMode.foldBufferRow(1)
-          fold = editor.lineForScreenRow(1).fold
+          fold = editor.tokenizedLineForScreenRow(1).fold
           expect(fold.getStartRow()).toBe 1
           expect(fold.getEndRow()).toBe 3
 
@@ -322,17 +361,26 @@ describe "LanguageMode", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           buffer.insert([1,0], "  //this is a single line comment\n")
           languageMode.foldBufferRow(1)
-          fold = editor.lineForScreenRow(0).fold
+          fold = editor.tokenizedLineForScreenRow(0).fold
           expect(fold.getStartRow()).toBe 0
           expect(fold.getEndRow()).toBe 13
 
-    describe ".isFoldableAtBufferRow(bufferRow)", ->
-      it "returns true if the line starts a foldable row range", ->
-        expect(languageMode.isFoldableAtBufferRow(0)).toBe true
-        expect(languageMode.isFoldableAtBufferRow(1)).toBe true
-        expect(languageMode.isFoldableAtBufferRow(2)).toBe false
-        expect(languageMode.isFoldableAtBufferRow(3)).toBe false
-        expect(languageMode.isFoldableAtBufferRow(4)).toBe true
+    describe ".foldAllAtIndentLevel(indentLevel)", ->
+      it "folds blocks of text at the given indentation level", ->
+        languageMode.foldAllAtIndentLevel(0)
+        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+        expect(editor.getLastScreenRow()).toBe 0
+
+        languageMode.foldAllAtIndentLevel(1)
+        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+        expect(editor.lineTextForScreenRow(1)).toBe "  var sort = function(items) {"
+        expect(editor.getLastScreenRow()).toBe 4
+
+        languageMode.foldAllAtIndentLevel(2)
+        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+        expect(editor.lineTextForScreenRow(1)).toBe "  var sort = function(items) {"
+        expect(editor.lineTextForScreenRow(2)).toBe "    if (items.length <= 1) return items;"
+        expect(editor.getLastScreenRow()).toBe 9
 
   describe "folding with comments", ->
     beforeEach ->
@@ -343,6 +391,10 @@ describe "LanguageMode", ->
 
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
+
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe ".unfoldAll()", ->
       it "unfolds every folded line", ->
@@ -357,38 +409,38 @@ describe "LanguageMode", ->
       it "folds every foldable line", ->
         languageMode.foldAll()
 
-        fold1 = editor.lineForScreenRow(0).fold
+        fold1 = editor.tokenizedLineForScreenRow(0).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
         fold1.destroy()
 
-        fold2 = editor.lineForScreenRow(1).fold
+        fold2 = editor.tokenizedLineForScreenRow(1).fold
         expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 4]
 
-        fold3 = editor.lineForScreenRow(2).fold.destroy()
+        fold3 = editor.tokenizedLineForScreenRow(2).fold.destroy()
 
-        fold4 = editor.lineForScreenRow(3).fold
+        fold4 = editor.tokenizedLineForScreenRow(3).fold
         expect([fold4.getStartRow(), fold4.getEndRow()]).toEqual [6, 8]
 
     describe ".foldAllAtIndentLevel()", ->
       it "folds every foldable range at a given indentLevel", ->
         languageMode.foldAllAtIndentLevel(2)
 
-        fold1 = editor.lineForScreenRow(6).fold
+        fold1 = editor.tokenizedLineForScreenRow(6).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [6, 8]
         fold1.destroy()
 
-        fold2 = editor.lineForScreenRow(11).fold
+        fold2 = editor.tokenizedLineForScreenRow(11).fold
         expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [11, 14]
         fold2.destroy()
 
       it "does not fold anything but the indentLevel", ->
         languageMode.foldAllAtIndentLevel(0)
 
-        fold1 = editor.lineForScreenRow(0).fold
+        fold1 = editor.tokenizedLineForScreenRow(0).fold
         expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
         fold1.destroy()
 
-        fold2 = editor.lineForScreenRow(5).fold
+        fold2 = editor.tokenizedLineForScreenRow(5).fold
         expect(fold2).toBeFalsy()
 
     describe ".isFoldableAtBufferRow(bufferRow)", ->
@@ -412,6 +464,10 @@ describe "LanguageMode", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-source')
         atom.packages.activatePackage('language-css')
+
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
     describe "suggestedIndentForBufferRow", ->
       it "does not return negative values (regression)", ->

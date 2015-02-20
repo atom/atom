@@ -138,7 +138,10 @@ jasmine.JQuery.matchersClass = {};
     var builtInMatcher = jasmine.Matchers.prototype[methodName];
 
     jasmine.JQuery.matchersClass[methodName] = function() {
-      if (this.actual instanceof jQuery) {
+      if (this.actual instanceof HTMLElement) {
+        this.actual = jQuery(this.actual);
+      }
+      if (this.actual && this.actual.jquery) {
         var result = jQueryMatchers[methodName].apply(this, arguments);
         this.actual = jasmine.JQuery.elementToString(this.actual);
         return result;

@@ -1,5 +1,7 @@
 require './benchmark-helper'
-{$, _, WorkspaceView} = require 'atom'
+{$} = require '../src/space-pen-extensions'
+_ = require 'underscore-plus'
+{WorkspaceView} = require 'atom'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editorView.", ->
@@ -7,7 +9,7 @@ describe "editorView.", ->
 
   beforeEach ->
     atom.workspaceViewParentSelector = '#jasmine-content'
-    atom.workspaceView = new WorkspaceView
+    atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
     atom.workspaceView.attachToDom()
 
     atom.workspaceView.width(1024)
@@ -53,7 +55,7 @@ describe "editorView.", ->
 
     describe "at-end.", ->
       beforeEach ->
-        editorView.moveCursorToBottom()
+        editorView.moveToBottom()
 
       benchmark "insert-delete", ->
         editorView.insertText('"')
@@ -62,8 +64,8 @@ describe "editorView.", ->
     describe "empty-vs-set-innerHTML.", ->
       [firstRow, lastRow] = []
       beforeEach ->
-        firstRow = editorView.getFirstVisibleScreenRow()
-        lastRow = editorView.getLastVisibleScreenRow()
+        firstRow = editorView.getModel().getFirstVisibleScreenRow()
+        lastRow = editorView.getModel().getLastVisibleScreenRow()
 
       benchmark "build-gutter-html.", 1000, ->
         editorView.gutter.renderLineNumbers(null, firstRow, lastRow)
@@ -97,13 +99,13 @@ describe "editorView.", ->
       describe "multiple-lines.", ->
         [firstRow, lastRow] = []
         beforeEach ->
-          firstRow = editorView.getFirstVisibleScreenRow()
-          lastRow = editorView.getLastVisibleScreenRow()
+          firstRow = editorView.getModel().getFirstVisibleScreenRow()
+          lastRow = editorView.getModel().getLastVisibleScreenRow()
 
         benchmark "cache-entire-visible-area", 100, ->
           for i in [firstRow..lastRow]
             line = editorView.lineElementForScreenRow(i)[0]
-            editorView.positionLeftForLineAndColumn(line, i, Math.max(0, editorView.lineLengthForBufferRow(i)))
+            editorView.positionLeftForLineAndColumn(line, i, Math.max(0, editorView.getModel().lineTextForBufferRow(i).length))
 
     describe "text-rendering.", ->
       beforeEach ->
@@ -178,7 +180,7 @@ describe "editorView.", ->
         atom.workspaceView.openSync('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
-        editorView.moveCursorToBottom()
+        editorView.moveToBottom()
 
       describe "on-first-line.", ->
         benchmark "inserting-newline", 5, ->
@@ -195,11 +197,11 @@ describe "editorView.", ->
         endPosition = null
 
         beforeEach ->
-          editorView.moveCursorToBottom()
+          editorView.moveToBottom()
           endPosition = editorView.getCursorScreenPosition()
 
         benchmark "move-to-beginning-of-word", ->
-          editorView.moveCursorToBeginningOfWord()
+          editorView.moveToBeginningOfWord()
           editorView.setCursorScreenPosition(endPosition)
 
         benchmark "insert", ->

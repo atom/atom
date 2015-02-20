@@ -29,6 +29,8 @@
   'ctrl-alt-cmd-l': 'window:reload'
   'alt-cmd-i': 'window:toggle-dev-tools'
   'cmd-alt-ctrl-p': 'window:run-package-specs'
+  'ctrl-shift-left': 'pane:move-item-left'
+  'ctrl-shift-right': 'pane:move-item-right'
 
   # Sublime Parity
   'cmd-,': 'application:show-settings'
@@ -100,7 +102,7 @@
   'cmd-8': 'pane:show-item-8'
   'cmd-9': 'pane:show-item-9'
 
-'.editor':
+'atom-text-editor':
   # Platform Bindings
   'alt-left': 'editor:move-to-beginning-of-word'
   'alt-right': 'editor:move-to-end-of-word'
@@ -110,7 +112,7 @@
   # Apple Specific
   'cmd-backspace': 'editor:delete-to-beginning-of-line'
   'cmd-shift-backspace': 'editor:delete-to-beginning-of-line'
-  'cmd-delete': 'editor:delete-to-beginning-of-line'
+  'cmd-delete': 'editor:delete-to-end-of-line'
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-E': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
@@ -119,7 +121,7 @@
   'cmd-shift-right': 'editor:select-to-end-of-line'
   'alt-backspace': 'editor:delete-to-beginning-of-word'
   'alt-delete': 'editor:delete-to-end-of-word'
-  'ctrl-a': 'editor:move-to-beginning-of-line'
+  'ctrl-a': 'editor:move-to-first-character-of-line'
   'ctrl-e': 'editor:move-to-end-of-line'
   'ctrl-k': 'editor:cut-to-end-of-line'
 
@@ -134,7 +136,7 @@
   'cmd-l': 'editor:select-line'
   'ctrl-t': 'editor:transpose'
 
-'.workspace .editor:not(.mini)':
+'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'
@@ -143,6 +145,8 @@
   # Sublime Parity
   'cmd-enter': 'editor:newline-below'
   'cmd-shift-enter': 'editor:newline-above'
+  'alt-enter': 'editor:newline'
+  'shift-enter': 'editor:newline'
   'cmd-]': 'editor:indent-selected-rows'
   'cmd-[': 'editor:outdent-selected-rows'
   'ctrl-cmd-up': 'editor:move-line-up'

@@ -7,6 +7,8 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
 
   {TerminalReporter} = require 'jasmine-tagged'
 
+  disableFocusMethods() if process.env.JANKY_SHA1
+
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
 
@@ -23,6 +25,9 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
         log(str)
       onComplete: (runner) ->
         fs.closeSync(logStream) if logStream?
+        if process.env.JANKY_SHA1
+          grim = require 'grim'
+          grim.logDeprecations() if grim.getDeprecationsLength() > 0
         atom.exit(runner.results().failedCount > 0 ? 1 : 0)
   else
     AtomReporter = require './atom-reporter'
@@ -38,3 +43,10 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   $('body').append $$ -> @div id: 'jasmine-content'
 
   jasmineEnv.execute()
+
+disableFocusMethods = ->
+  ['fdescribe', 'ffdescribe', 'fffdescribe', 'fit', 'ffit', 'fffit'].forEach (methodName) ->
+    focusMethod = window[methodName]
+    window[methodName] = (description) ->
+      error = new Error('Focused spec is running on CI')
+      focusMethod description, -> throw error

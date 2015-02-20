@@ -1,15 +1,16 @@
 _ = require 'underscore-plus'
-{Emitter} = require 'emissary'
-guid = require 'guid'
+EmitterMixin = require('emissary').Emitter
 Serializable = require 'serializable'
 {Model} = require 'theorist'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
 Token = require './token'
 Decoration = require './decoration'
-DisplayBufferMarker = require './display-buffer-marker'
+Marker = require './marker'
+Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -22,7 +23,7 @@ class DisplayBuffer extends Model
 
   @properties
     manageScrollPosition: false
-    softWrap: null
+    softWrapped: null
     editorWidthInChars: null
     lineHeightInPixels: null
     defaultCharWidth: null
@@ -40,7 +41,9 @@ class DisplayBuffer extends Model
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
-    @softWrap ?= atom.config.get('editor.softWrap') ? false
+
+    @emitter = new Emitter
+
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
@@ -48,29 +51,46 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @decorationMarkerChangedSubscriptions = {}
-    @decorationMarkerDestroyedSubscriptions = {}
+    @subscribe @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
+    @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
+    @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
+    @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
-    @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
-    @subscribe @tokenizedBuffer, 'tokenized', => @emit 'tokenized'
-    @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
-    @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
-    @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
 
-    @subscribe @$softWrap, (softWrap) =>
-      @emit 'soft-wrap-changed', softWrap
+  subscribeToScopedConfigSettings: =>
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
+
+    scopeDescriptor = @getRootScopeDescriptor()
+
+    oldConfigSettings = @configSettings
+    @configSettings =
+      scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
+      softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
+      softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
+
+    subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrap = newValue
       @updateWrappedScreenLines()
 
-    @subscribe atom.config.observe 'editor.preferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
+    subscriptions.add atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrapAtPreferredLineLength = newValue
+      @updateWrappedScreenLines() if @isSoftWrapped()
 
-    @subscribe atom.config.observe 'editor.softWrapAtPreferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @softWrap
+    subscriptions.add atom.config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.preferredLineLength = newValue
+      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+
+    subscriptions.add atom.config.observe 'editor.scrollPastEnd', scope: scopeDescriptor, (value) =>
+      @configSettings.scrollPastEnd = value
+
+    @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
 
   serializeParams: ->
     id: @id
-    softWrap: @softWrap
+    softWrapped: @isSoftWrapped()
     editorWidthInChars: @editorWidthInChars
     scrollTop: @scrollTop
     scrollLeft: @scrollLeft
@@ -96,12 +116,71 @@ class DisplayBuffer extends Model
     @rowMap = new RowMap
     @updateScreenLines(0, @buffer.getLineCount(), null, suppressChangeEvent: true)
 
-  emitChanged: (eventProperties, refreshMarkers=true) ->
+  onDidChangeSoftWrapped: (callback) ->
+    @emitter.on 'did-change-soft-wrapped', callback
+
+  onDidChangeGrammar: (callback) ->
+    @tokenizedBuffer.onDidChangeGrammar(callback)
+
+  onDidTokenize: (callback) ->
+    @tokenizedBuffer.onDidTokenize(callback)
+
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  onDidChangeCharacterWidths: (callback) ->
+    @emitter.on 'did-change-character-widths', callback
+
+  observeDecorations: (callback) ->
+    callback(decoration) for decoration in @getDecorations()
+    @onDidAddDecoration(callback)
+
+  onDidAddDecoration: (callback) ->
+    @emitter.on 'did-add-decoration', callback
+
+  onDidRemoveDecoration: (callback) ->
+    @emitter.on 'did-remove-decoration', callback
+
+  onDidCreateMarker: (callback) ->
+    @emitter.on 'did-create-marker', callback
+
+  onDidUpdateMarkers: (callback) ->
+    @emitter.on 'did-update-markers', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChange instead")
+      when 'grammar-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
+      when 'soft-wrap-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeSoftWrap instead")
+      when 'character-widths-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeCharacterWidths instead")
+      when 'decoration-added'
+        Grim.deprecate("Use DisplayBuffer::onDidAddDecoration instead")
+      when 'decoration-removed'
+        Grim.deprecate("Use DisplayBuffer::onDidRemoveDecoration instead")
+      when 'decoration-changed'
+        Grim.deprecate("Use decoration.getMarker().onDidChange() instead")
+      when 'decoration-updated'
+        Grim.deprecate("Use Decoration::onDidChangeProperties instead")
+      when 'marker-created'
+        Grim.deprecate("Use Decoration::onDidCreateMarker instead")
+      when 'markers-updated'
+        Grim.deprecate("Use Decoration::onDidUpdateMarkers instead")
+      else
+        Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
+
+  emitDidChange: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers
-      @pauseMarkerObservers()
+      @pauseMarkerChangeEvents()
       @refreshMarkerScreenPositions()
     @emit 'changed', eventProperties
-    @resumeMarkerObservers()
+    @emitter.emit 'did-change', eventProperties
+    @resumeMarkerChangeEvents()
 
   updateWrappedScreenLines: ->
     start = 0
@@ -109,7 +188,7 @@ class DisplayBuffer extends Model
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @emitChanged({ start, end, screenDelta, bufferDelta })
+    @emitDidChange({ start, end, screenDelta, bufferDelta })
 
   # Sets the visibility of the tokenized buffer.
   #
@@ -153,7 +232,7 @@ class DisplayBuffer extends Model
 
   horizontallyScrollable: (reentrant) ->
     return false unless @width?
-    return false if @getSoftWrap()
+    return false if @isSoftWrapped()
     if reentrant
       @getScrollWidth() > @getWidth()
     else
@@ -178,7 +257,7 @@ class DisplayBuffer extends Model
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
-    @updateWrappedScreenLines() if newWidth isnt oldWidth and @softWrap
+    @updateWrappedScreenLines() if newWidth isnt oldWidth and @isSoftWrapped()
     @setScrollTop(@getScrollTop()) # Ensure scrollTop is still valid in case horizontal scrollbar disappeared
     @width
 
@@ -251,14 +330,20 @@ class DisplayBuffer extends Model
   characterWidthsChanged: ->
     @computeScrollWidth()
     @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount
+    @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
 
   getScrollHeight: ->
-    return 0 unless @getLineHeightInPixels() > 0
+    lineHeight = @getLineHeightInPixels()
+    return 0 unless lineHeight > 0
 
-    @getLineCount() * @getLineHeightInPixels()
+    scrollHeight = @getLineCount() * lineHeight
+    if @height? and @configSettings.scrollPastEnd
+      scrollHeight = scrollHeight + @height - (lineHeight * 3)
+
+    scrollHeight
 
   getScrollWidth: ->
     @scrollWidth
@@ -344,11 +429,19 @@ class DisplayBuffer extends Model
   setInvisibles: (@invisibles) ->
     @tokenizedBuffer.setInvisibles(@invisibles)
 
-  # Deprecated: Use the softWrap property directly
-  setSoftWrap: (@softWrap) -> @softWrap
+  setSoftWrapped: (softWrapped) ->
+    if softWrapped isnt @softWrapped
+      @softWrapped = softWrapped
+      @updateWrappedScreenLines()
+      softWrapped = @isSoftWrapped()
+      @emit 'soft-wrap-changed', softWrapped
+      @emitter.emit 'did-change-soft-wrapped', softWrapped
+      softWrapped
+    else
+      @isSoftWrapped()
 
-  # Deprecated: Use the softWrap property directly
-  getSoftWrap: -> @softWrap
+  isSoftWrapped: ->
+    @softWrapped ? @configSettings.softWrap ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -357,7 +450,7 @@ class DisplayBuffer extends Model
     if editorWidthInChars > 0
       previousWidthInChars = @editorWidthInChars
       @editorWidthInChars = editorWidthInChars
-      if editorWidthInChars isnt previousWidthInChars and @softWrap
+      if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
         @updateWrappedScreenLines()
 
   # Returns the editor width in characters for soft wrap.
@@ -370,32 +463,32 @@ class DisplayBuffer extends Model
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.getPositiveInt('editor.preferredLineLength', @getEditorWidthInChars()))
+    if @configSettings.softWrapAtPreferredLineLength
+      Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
     else
       @getEditorWidthInChars()
 
   # Gets the screen line for the given screen row.
   #
-  # screenRow - A {Number} indicating the screen row.
+  # * `screenRow` - A {Number} indicating the screen row.
   #
-  # Returns a {ScreenLine}.
-  lineForRow: (row) ->
-    @screenLines[row]
+  # Returns {TokenizedLine}
+  tokenizedLineForScreenRow: (screenRow) ->
+    @screenLines[screenRow]
 
   # Gets the screen lines for the given screen row range.
   #
   # startRow - A {Number} indicating the beginning screen row.
   # endRow - A {Number} indicating the ending screen row.
   #
-  # Returns an {Array} of {ScreenLine}s.
-  linesForRows: (startRow, endRow) ->
+  # Returns an {Array} of {TokenizedLine}s.
+  tokenizedLinesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
   # Gets all the screen lines.
   #
-  # Returns an {Array} of {ScreenLines}s.
-  getLines: ->
+  # Returns an {Array} of {TokenizedLine}s.
+  getTokenizedLines: ->
     new Array(@screenLines...)
 
   indentLevelForLine: (line) ->
@@ -523,10 +616,10 @@ class DisplayBuffer extends Model
   # bufferRange - The {Range} to convert
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (bufferRange) ->
+  screenRangeForBufferRange: (bufferRange, options) ->
     bufferRange = Range.fromObject(bufferRange)
-    start = @screenPositionForBufferPosition(bufferRange.start)
-    end = @screenPositionForBufferPosition(bufferRange.end)
+    start = @screenPositionForBufferPosition(bufferRange.start, options)
+    end = @screenPositionForBufferPosition(bufferRange.end, options)
     new Range(start, end)
 
   # Given a screen range, this converts it into a buffer position.
@@ -555,12 +648,22 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    for token in @lineForRow(targetRow).tokens
+    for token in @tokenizedLineForScreenRow(targetRow).tokens
       charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = token.value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         return {top, left} if column is targetColumn
         left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column++
+        column += charLength
     {top, left}
 
   screenPositionForPixelPosition: (pixelPosition) ->
@@ -568,18 +671,29 @@ class DisplayBuffer extends Model
     targetLeft = pixelPosition.left
     defaultCharWidth = @defaultCharWidth
     row = Math.floor(targetTop / @getLineHeightInPixels())
+    targetLeft = Infinity if row > @getLastRow()
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)
 
     left = 0
     column = 0
-    for token in @lineForRow(row).tokens
+    for token in @tokenizedLineForScreenRow(row).tokens
       charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
+      valueIndex = 0
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
+          charLength = 2
+          valueIndex += 2
+        else
+          char = token.value[valueIndex]
+          charLength = 1
+          valueIndex++
+
         charWidth = charWidths[char] ? defaultCharWidth
         break if targetLeft <= left + (charWidth / 2)
         left += charWidth
-        column++
+        column += charLength
 
     new Point(row, column)
 
@@ -620,6 +734,8 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
+    throw new Error("This TextEditor has been destroyed") if @isDestroyed()
+
     { row, column } = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
@@ -627,7 +743,7 @@ class DisplayBuffer extends Model
 
       unless screenLine?
         throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
-          softWrapEnabled: @getSoftWrap()
+          softWrapEnabled: @isSoftWrapped()
           foldCount: @findFoldMarkers().length
           lastBufferRow: @buffer.getLastRow()
           lastScreenRow: @getLastRow()
@@ -658,13 +774,13 @@ class DisplayBuffer extends Model
     [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
     new Point(bufferRow, @screenLines[row].bufferColumnForScreenColumn(column))
 
-  # Retrieves the grammar's token scopes for a buffer position.
+  # Retrieves the grammar's token scopeDescriptor for a buffer position.
   #
   # bufferPosition - A {Point} in the {TextBuffer}
   #
-  # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) ->
-    @tokenizedBuffer.scopesForPosition(bufferPosition)
+  # Returns a {ScopeDescriptor}.
+  scopeDescriptorForBufferPosition: (bufferPosition) ->
+    @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
     @tokenizedBuffer.bufferRangeForScopeAtPosition(selector, position)
@@ -743,7 +859,7 @@ class DisplayBuffer extends Model
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @softWrap
+    return unless @isSoftWrapped()
     return unless line.length > softWrapColumn
 
     if /\s/.test(line[softWrapColumn])
@@ -766,6 +882,29 @@ class DisplayBuffer extends Model
   decorationForId: (id) ->
     @decorationsById[id]
 
+  getDecorations: (propertyFilter) ->
+    allDecorations = []
+    for markerId, decorations of @decorationsByMarkerId
+      allDecorations = allDecorations.concat(decorations) if decorations?
+    if propertyFilter?
+      allDecorations = allDecorations.filter (decoration) ->
+        for key, value of propertyFilter
+          return false unless decoration.properties[key] is value
+        true
+    allDecorations
+
+  getLineDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line')
+
+  getLineNumberDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line-number')
+
+  getHighlightDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('highlight')
+
+  getOverlayDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('overlay')
+
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
     for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
@@ -775,24 +914,13 @@ class DisplayBuffer extends Model
 
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
-
-    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', =>
-      @removeAllDecorationsForMarker(marker)
-
-    @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker, 'changed', (event) =>
-      decorations = @decorationsByMarkerId[marker.id]
-
-      # Why check existence? Markers may get destroyed or decorations removed
-      # in the change handler. Bookmarks does this.
-      if decorations?
-        for decoration in decorations
-          @emit 'decoration-changed', marker, decoration, event
-
     decoration = new Decoration(marker, this, decorationParams)
+    @subscribe decoration.onDidDestroy => @removeDecoration(decoration)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
-    @emit 'decoration-added', marker, decoration
+    @emit 'decoration-added', decoration
+    @emitter.emit 'did-add-decoration', decoration
     decoration
 
   removeDecoration: (decoration) ->
@@ -803,41 +931,25 @@ class DisplayBuffer extends Model
     if index > -1
       decorations.splice(index, 1)
       delete @decorationsById[decoration.id]
-      @emit 'decoration-removed', marker, decoration
-      @removedAllMarkerDecorations(marker) if decorations.length is 0
+      @emit 'decoration-removed', decoration
+      @emitter.emit 'did-remove-decoration', decoration
+      delete @decorationsByMarkerId[marker.id] if decorations.length is 0
 
-  removeAllDecorationsForMarker: (marker) ->
-    decorations = @decorationsByMarkerId[marker.id].slice()
-    for decoration in decorations
-      @emit 'decoration-removed', marker, decoration
-    @removedAllMarkerDecorations(marker)
-
-  removedAllMarkerDecorations: (marker) ->
-    @decorationMarkerChangedSubscriptions[marker.id].off()
-    @decorationMarkerDestroyedSubscriptions[marker.id].off()
-
-    delete @decorationsByMarkerId[marker.id]
-    delete @decorationMarkerChangedSubscriptions[marker.id]
-    delete @decorationMarkerDestroyedSubscriptions[marker.id]
-
-  decorationUpdated: (decoration) ->
-    @emit 'decoration-updated', decoration
-
-  # Retrieves a {DisplayBufferMarker} based on its id.
+  # Retrieves a {Marker} based on its id.
   #
   # id - A {Number} representing a marker id
   #
-  # Returns the {DisplayBufferMarker} (if it exists).
+  # Returns the {Marker} (if it exists).
   getMarker: (id) ->
     unless marker = @markers[id]
       if bufferMarker = @buffer.getMarker(id)
-        marker = new DisplayBufferMarker({bufferMarker, displayBuffer: this})
+        marker = new Marker({bufferMarker, displayBuffer: this})
         @markers[id] = marker
     marker
 
   # Retrieves the active markers in the buffer.
   #
-  # Returns an {Array} of existing {DisplayBufferMarker}s.
+  # Returns an {Array} of existing {Marker}s.
   getMarkers: ->
     @buffer.getMarkers().map ({id}) => @getMarker(id)
 
@@ -892,7 +1004,7 @@ class DisplayBuffer extends Model
   #
   # Refer to {DisplayBuffer::findMarkers} for details.
   #
-  # Returns a {DisplayBufferMarker} or null
+  # Returns a {Marker} or null
   findMarker: (params) ->
     @findMarkers(params)[0]
 
@@ -913,7 +1025,7 @@ class DisplayBuffer extends Model
   #   :containedInBufferRange - A {Range} or range-compatible {Array}. Only
   #     returns markers contained within this range.
   #
-  # Returns an {Array} of {DisplayBufferMarker}s
+  # Returns an {Array} of {Marker}s
   findMarkers: (params) ->
     params = @translateToBufferMarkerParams(params)
     @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
@@ -965,26 +1077,31 @@ class DisplayBuffer extends Model
   getFoldMarkerAttributes: (attributes={}) ->
     _.extend(attributes, class: 'fold', displayBufferId: @id)
 
-  pauseMarkerObservers: ->
-    marker.pauseEvents() for marker in @getMarkers()
+  pauseMarkerChangeEvents: ->
+    marker.pauseChangeEvents() for marker in @getMarkers()
 
-  resumeMarkerObservers: ->
-    marker.resumeEvents() for marker in @getMarkers()
+  resumeMarkerChangeEvents: ->
+    marker.resumeChangeEvents() for marker in @getMarkers()
     @emit 'markers-updated'
+    @emitter.emit 'did-update-markers'
 
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
       marker.notifyObservers(textChanged: false)
 
   destroyed: ->
-    marker.unsubscribe() for marker in @getMarkers()
-    @tokenizedBuffer.destroy()
+    marker.unsubscribe() for id, marker of @markers
+    @scopedConfigSubscriptions.dispose()
     @unsubscribe()
+    @tokenizedBuffer.destroy()
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]
-      line = @lineForRow(row).text
+      line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
+
+  getRootScopeDescriptor: ->
+    @tokenizedBuffer.rootScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
@@ -1012,10 +1129,10 @@ class DisplayBuffer extends Model
       bufferDelta: bufferDelta
 
     if options.delayChangeEvent
-      @pauseMarkerObservers()
+      @pauseMarkerChangeEvents()
       @pendingChangeEvent = changeEvent
     else
-      @emitChanged(changeEvent, options.refreshMarkers)
+      @emitDidChange(changeEvent, options.refreshMarkers)
 
   buildScreenLines: (startBufferRow, endBufferRow) ->
     screenLines = []
@@ -1024,7 +1141,7 @@ class DisplayBuffer extends Model
 
     bufferRow = startBufferRow
     while bufferRow < endBufferRow
-      tokenizedLine = @tokenizedBuffer.lineForScreenRow(bufferRow)
+      tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(bufferRow)
 
       if fold = @largestFoldStartingAtBufferRow(bufferRow)
         foldLine = tokenizedLine.copy()
@@ -1087,23 +1204,24 @@ class DisplayBuffer extends Model
 
   computeScrollWidth: ->
     @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
-    @scrollWidth += 1 unless @getSoftWrap()
+    @scrollWidth += 1 unless @isSoftWrapped()
     @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
 
   handleBufferMarkersUpdated: =>
     if event = @pendingChangeEvent
       @pendingChangeEvent = null
-      @emitChanged(event, false)
+      @emitDidChange(event, false)
 
-  handleBufferMarkerCreated: (marker) =>
-    @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())
-    if displayBufferMarker = @getMarker(marker.id)
+  handleBufferMarkerCreated: (textBufferMarker) =>
+    @createFoldForMarker(textBufferMarker) if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
+    if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
-      @emit 'marker-created', displayBufferMarker
+      @emit 'marker-created', marker
+      @emitter.emit 'did-create-marker', marker
 
   createFoldForMarker: (marker) ->
-    @decorateMarker(marker, type: 'gutter', class: 'folded')
+    @decorateMarker(marker, type: 'line-number', class: 'folded')
     new Fold(this, marker)
 
   foldForMarker: (marker) ->

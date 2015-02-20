@@ -1,7 +1,7 @@
 # Create Your First Package
 
 This tutorial will guide you though creating a simple command that replaces the
-selected text with [ascii art](http://en.wikipedia.org/wiki/ASCII_art). When you
+selected text with [ascii art](https://en.wikipedia.org/wiki/ASCII_art). When you
 run our new command with the word "cool" selected, it will be replaced with:
 
 ```
@@ -49,18 +49,18 @@ Register the command in _lib/ascii-art.coffee_:
 ```coffeescript
 module.exports =
   activate: ->
-    atom.workspaceView.command "ascii-art:convert", => @convert()
+    atom.commands.add 'atom-workspace', "ascii-art:convert", => @convert()
 
   convert: ->
     # This assumes the active pane item is an editor
-    editor = atom.workspace.activePaneItem
+    editor = atom.workspace.getActivePaneItem()
     editor.insertText('Hello, World!')
 ```
 
-The `atom.workspaceView.command` method takes a command name and a callback. The
-callback executes when the command is triggered. In this case, when the command
-is triggered the callback will call the `convert` method and insert 'Hello,
-World!'.
+The `atom.commands.add` method takes a selector, command name, and a callback.
+The callback executes when the command is triggered on an element matching the
+selector. In this case, when the command is triggered the callback will call the
+`convert` method and insert 'Hello, World!'.
 
 ## Reload the Package
 
@@ -72,12 +72,12 @@ command palette or by pressing `ctrl-alt-cmd-l`.
 
 Now open the command panel and search for the `ascii-art:convert` command. But
 it's not there! To fix this, open _package.json_ and find the property called
-`activationEvents`. Activation Events speed up load time by allowing Atom to
+`activationCommands`. Activation Events speed up load time by allowing Atom to
 delay a package's activation until it's needed. So remove the existing command
-and add `ascii-art:convert` to the `activationEvents` array:
+and add `ascii-art:convert` to the `activationCommands` array:
 
 ```json
-"activationEvents": ["ascii-art:convert"],
+"activationCommands": ["ascii-art:convert"],
 ```
 
 First, reload the window by running the command `window:reload`. Now when you
@@ -88,20 +88,20 @@ run the `ascii-art:convert` command it will output 'Hello, World!'
 Now let's add a key binding to trigger the `ascii-art:convert` command. Open
 _keymaps/ascii-art.cson_ and add a key binding linking `ctrl-alt-a` to the
 `ascii-art:convert` command. You can delete the pre-existing key binding since
-you don't need it anymore. When finished, the file will look like this:
+you don't need it anymore. When finished, the file will have this:
 
 ```coffeescript
-'.editor':
-  'cmd-alt-a': 'ascii-art:convert'
+'atom-text-editor':
+  'ctrl-alt-a': 'ascii-art:convert'
 ```
 
-Notice `.editor` on the first line. Just like CSS, keymap selectors *scope* key
-bindings so they only apply to specific elements. In this case, our binding is
-only active for elements matching the `.editor` selector. If the Tree View has
-focus, pressing `cmd-alt-a` won't trigger the `ascii-art:convert` command. But
-if the editor has focus, the `ascii-art:convert` method *will* be triggered.
-More information on key bindings can be found in the
-[keymaps](advanced/keymaps.html) documentation.
+Notice `atom-text-editor` on the first line. Just like CSS, keymap selectors
+*scope* key bindings so they only apply to specific elements. In this case, our
+binding is only active for elements matching the `atom-text-editor` selector. If
+the Tree View has focus, pressing `ctrl-alt-a` won't trigger the
+`ascii-art:convert` command. But if the editor has focus, the
+`ascii-art:convert` method *will* be triggered. More information on key bindings
+can be found in the [keymaps](advanced/keymaps.html) documentation.
 
 Now reload the window and verify that the key binding works! You can also verify
 that it **doesn't** work when the Tree View is focused.
@@ -131,8 +131,8 @@ inserting 'Hello, World!' convert the selected text to ASCII art.
 ```coffeescript
 convert: ->
   # This assumes the active pane item is an editor
-  editor = atom.workspace.activePaneItem
-  selection = editor.getSelection()
+  editor = atom.workspace.getActivePaneItem()
+  selection = editor.getLastSelection()
 
   figlet = require 'figlet'
   figlet selection.getText(), {font: "Larry 3D 2"}, (error, asciiArt) ->
@@ -142,7 +142,7 @@ convert: ->
       selection.insertText("\n#{asciiArt}\n")
 ```
 
-Select some text in an editor window and hit `cmd-alt-a`. :tada: You're now an
+Select some text in an editor window and hit `ctrl-alt-a`. :tada: You're now an
 ASCII art professional!
 
 ## Further reading

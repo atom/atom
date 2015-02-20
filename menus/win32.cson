@@ -33,8 +33,8 @@
       { label: '&Undo', command: 'core:undo' }
       { label: '&Redo', command: 'core:redo' }
       { type: 'separator' }
-      { label: '&Cut', command: 'core:cut' }
-      { label: 'C&opy', command: 'core:copy' }
+      { label: 'Cu&t', command: 'core:cut' }
+      { label: '&Copy', command: 'core:copy' }
       { label: 'Copy Pat&h', command: 'editor:copy-path' }
       { label: '&Paste', command: 'core:paste' }
       { label: 'Select &All', command: 'core:select-all' }
@@ -93,6 +93,7 @@
     submenu: [
       { label: '&Reload', command: 'window:reload' }
       { label: 'Toggle &Full Screen', command: 'window:toggle-full-screen' }
+      { label: 'Toggle Menu Bar', command: 'window:toggle-menu-bar' }
       {
         label: 'Panes'
         submenu: [
@@ -109,7 +110,7 @@
           { label: 'Focus Pane On Left', command: 'window:focus-pane-on-left' }
           { label: 'Focus Pane On Right', command: 'window:focus-pane-on-right' }
           { type: 'separator' }
-          { label: 'Close pane', command: 'pane:close' }
+          { label: 'Close Pane', command: 'pane:close' }
         ]
       }
       {
@@ -162,20 +163,46 @@
     submenu: [
       { label: 'View &Terms of Use', command: 'application:open-terms-of-use' }
       { label: 'View &License', command: 'application:open-license' }
-      { label: "VERSION", enabled: false }
+      { label: 'VERSION', enabled: false }
+      { label: 'Restart and Install Update', command: 'application:install-update', visible: false}
+      { label: 'Check for Update', command: 'application:check-for-update', visible: false}
+      { label: 'Checking for Update', enabled: false, visible: false}
+      { label: 'Downloading Update', enabled: false, visible: false}
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
+      { label: 'Roadmap', command: 'application:open-roadmap' }
+      { label: 'Frequently Asked Questions', command: 'application:open-faq' }
+      { type: 'separator' }
+      { label: 'Community Discussions', command: 'application:open-discussions' }
+      { label: 'Report Issue', command: 'application:report-issue' }
+      { label: 'Search Issues', command: 'application:search-issues' }
       { type: 'separator' }
     ]
   }
 ]
 
 'context-menu':
-  '.overlayer':
-    'Undo': 'core:undo'
-    'Redo': 'core:redo'
-    'Cut': 'core:cut'
-    'Copy': 'core:copy'
-    'Paste': 'core:paste'
-    'Delete': 'core:delete'
-    'Select All': 'core:select-all'
+  'atom-text-editor, .overlayer': [
+    {label: 'Undo', command: 'core:undo'}
+    {label: 'Redo', command: 'core:redo'}
+    {type: 'separator'}
+    {label: 'Cut', command: 'core:cut'}
+    {label: 'Copy', command: 'core:copy'}
+    {label: 'Paste', command: 'core:paste'}
+    {label: 'Delete', command: 'core:delete'}
+    {label: 'Select All', command: 'core:select-all'}
+    {type: 'separator'}
+    {label: 'Split Up', command: 'pane:split-up'}
+    {label: 'Split Down', command: 'pane:split-down'}
+    {label: 'Split Left', command: 'pane:split-left'}
+    {label: 'Split Right', command: 'pane:split-right'}
+    {type: 'separator'}
+  ]
+  'atom-pane': [
+    {type: 'separator'}
+    {label: 'Split Up', command: 'pane:split-up'}
+    {label: 'Split Down', command: 'pane:split-down'}
+    {label: 'Split Left', command: 'pane:split-left'}
+    {label: 'Split Right', command: 'pane:split-right'}
+    {type: 'separator'}
+  ]

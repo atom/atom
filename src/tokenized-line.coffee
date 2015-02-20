@@ -9,6 +9,8 @@ idCounter = 1
 module.exports =
 class TokenizedLine
   endOfLineInvisibles: null
+  lineIsWhitespaceOnly: false
+  foldable: false
 
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
@@ -146,7 +148,7 @@ class TokenizedLine
   markLeadingAndTrailingWhitespaceTokens: ->
     firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
     firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
-    lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
+    @lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
     index = 0
     for token in @tokens
       if index < firstNonWhitespaceIndex
@@ -202,12 +204,7 @@ class TokenizedLine
     false
 
   isOnlyWhitespace: ->
-    if @text == ''
-      true
-    else
-      for token in @tokens
-        return false unless token.isOnlyWhitespace()
-      true
+    @lineIsWhitespaceOnly
 
   tokenAtIndex: (index) ->
     @tokens[index]
@@ -233,19 +230,19 @@ class TokenizedLine
     @updateScopeStack(scopeStack, [])
     @scopeTree
 
-  updateScopeStack: (scopeStack, desiredScopes) ->
+  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
     # Find a common prefix
-    for scope, i in desiredScopes
-      break unless scopeStack[i]?.scope is desiredScopes[i]
+    for scope, i in desiredScopeDescriptor
+      break unless scopeStack[i]?.scope is desiredScopeDescriptor[i]
 
-    # Pop scopes until we're at the common prefx
+    # Pop scopeDescriptor until we're at the common prefx
     until scopeStack.length is i
       poppedScope = scopeStack.pop()
       _.last(scopeStack)?.children.push(poppedScope)
 
-    # Push onto common prefix until scopeStack equals desiredScopes
-    for j in [i...desiredScopes.length]
-      scopeStack.push(new Scope(desiredScopes[j]))
+    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
+    for j in [i...desiredScopeDescriptor.length]
+      scopeStack.push(new Scope(desiredScopeDescriptor[j]))
 
 class Scope
   constructor: (@scope) ->

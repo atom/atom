@@ -4,43 +4,100 @@ _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
-{Emitter} = require 'emissary'
+EmitterMixin = require('emissary').Emitter
+{Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
+{deprecate} = require 'grim'
 
-$ = null # Defer require in case this is in the window-less browser process
+ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
+
+try
+  packagesCache = require('../package.json')?._atomPackages ? {}
+catch error
+  packagesCache = {}
 
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
-  Emitter.includeInto(this)
+  EmitterMixin.includeInto(this)
 
-  @stylesheetsDir: 'stylesheets'
+  @isBundledPackagePath: (packagePath) ->
+    if atom.packages.devMode
+      return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
+
+    @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->
-    if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
-      try
-        metadata = CSON.readFileSync(metadataPath)
-      catch error
-        throw error unless ignoreErrors
+    packageName = path.basename(packagePath)
+    if @isBundledPackagePath(packagePath)
+      metadata = packagesCache[packageName]?.metadata
+    unless metadata?
+      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
+        try
+          metadata = CSON.readFileSync(metadataPath)
+        catch error
+          throw error unless ignoreErrors
     metadata ?= {}
-    metadata.name = path.basename(packagePath)
+    metadata.name = packageName
+
+    if metadata.stylesheetMain?
+      deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
+      metadata.mainStyleSheet = metadata.stylesheetMain
+
+    if metadata.stylesheets?
+      deprecate("Use the `styleSheets` key instead of `stylesheets` in the `package.json` of `#{packageName}`", {packageName})
+      metadata.styleSheets = metadata.stylesheets
+
     metadata
 
   keymaps: null
   menus: null
   stylesheets: null
+  stylesheetDisposables: null
   grammars: null
-  scopedProperties: null
+  settings: null
   mainModulePath: null
   resolvedMainModulePath: false
   mainModule: null
 
+  ###
+  Section: Construction
+  ###
+
   constructor: (@path, @metadata) ->
+    @emitter = new Emitter
     @metadata ?= Package.loadMetadata(@path)
+    @bundledPackage = Package.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
+    ModuleCache.add(@path, @metadata)
     @reset()
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Essential: Invoke the given callback when all packages have been activated.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDeactivate: (callback) ->
+    @emitter.on 'did-deactivate', callback
+
+  on: (eventName) ->
+    switch eventName
+      when 'deactivated'
+        deprecate 'Use Package::onDidDeactivate instead'
+      else
+        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  ###
+  Section: Instance Methods
+  ###
 
   enable: ->
     atom.config.removeAtKeyPath('core.disabledPackages', @name)
@@ -59,7 +116,7 @@ class Package
 
   getType: -> 'atom'
 
-  getStylesheetType: -> 'bundled'
+  getStyleSheetPriority: -> 0
 
   load: ->
     @measure 'loadTime', =>
@@ -67,8 +124,8 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @scopedPropertiesPromise = @loadScopedProperties()
-        @requireMainModule() unless @hasActivationEvents()
+        @settingsPromise = @loadSettings()
+        @requireMainModule() unless @hasActivationCommands()
 
       catch error
         console.warn "Failed to load package named '#{@name}'", error.stack ? error
@@ -79,7 +136,7 @@ class Package
     @keymaps = []
     @menus = []
     @grammars = []
-    @scopedProperties = []
+    @settings = []
 
   activate: ->
     @grammarsPromise ?= @loadGrammars()
@@ -88,12 +145,12 @@ class Package
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
         @activateResources()
-        if @hasActivationEvents()
-          @subscribeToActivationEvents()
+        if @hasActivationCommands()
+          @subscribeToActivationCommands()
         else
           @activateNow()
 
-    Q.all([@grammarsPromise, @scopedPropertiesPromise, @activationDeferred.promise])
+    Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
 
   activateNow: ->
     try
@@ -102,45 +159,77 @@ class Package
       if @requireMainModule()
         @mainModule.activate(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
+        @activateServices()
     catch e
       console.warn "Failed to activate package named '#{@name}'", e.stack
 
-    @activationDeferred.resolve()
+    @activationDeferred?.resolve()
 
   activateConfig: ->
     return if @configActivated
 
     @requireMainModule()
     if @mainModule?
-      atom.config.setDefaults(@name, @mainModule.configDefaults)
+      if @mainModule.config? and typeof @mainModule.config is 'object'
+        atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
+      else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
+        deprecate """Use a config schema instead. See the configuration section
+        of https://atom.io/docs/latest/creating-a-package and
+        https://atom.io/docs/api/latest/Config for more details"""
+        atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
 
   activateStylesheets: ->
     return if @stylesheetsActivated
 
-    type = @getStylesheetType()
-    for [stylesheetPath, content] in @stylesheets
-      atom.themes.applyStylesheet(stylesheetPath, content, type)
+    @stylesheetDisposables = new CompositeDisposable
+
+    priority = @getStyleSheetPriority()
+    for [sourcePath, source] in @stylesheets
+      if match = path.basename(sourcePath).match(/[^.]*\.([^.]*)\./)
+        context = match[1]
+      else if @metadata.theme is 'syntax'
+        context = 'atom-text-editor'
+      else
+        context = undefined
+
+      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, priority, context}))
     @stylesheetsActivated = true
 
   activateResources: ->
-    atom.keymaps.add(keymapPath, map) for [keymapPath, map] in @keymaps
-    atom.contextMenu.add(menuPath, map['context-menu']) for [menuPath, map] in @menus
-    atom.menu.add(map.menu) for [menuPath, map] in @menus when map.menu
+    @activationDisposables = new CompositeDisposable
+    @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus when map['context-menu']?
+    @activationDisposables.add(atom.menu.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
       @grammarsActivated = true
 
-    scopedProperties.activate() for scopedProperties in @scopedProperties
-    @scopedPropertiesActivated = true
+    settings.activate() for settings in @settings
+    @settingsActivated = true
+
+  activateServices: ->
+    for name, {versions} of @metadata.providedServices
+      for version, methodName of versions
+        @activationDisposables.add atom.packages.serviceHub.provide(name, version, @mainModule[methodName]())
+
+    for name, {versions} of @metadata.consumedServices
+      for version, methodName of versions
+        @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
 
   loadKeymaps: ->
-    @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
+    else
+      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
 
   loadMenus: ->
-    @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath)]
+    if @bundledPackage and packagesCache[@name]?
+      @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
+    else
+      @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
@@ -161,15 +250,18 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    path.join(@path, @constructor.stylesheetsDir)
+    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
+      deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
+      path.join(@path, 'stylesheets')
+    else
+      path.join(@path, 'styles')
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
-
-    if @metadata.stylesheetMain
-      [fs.resolve(@path, @metadata.stylesheetMain)]
-    else if @metadata.stylesheets
-      @metadata.stylesheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
+    if @metadata.mainStyleSheet
+      [fs.resolve(@path, @metadata.mainStyleSheet)]
+    else if @metadata.styleSheets
+      @metadata.styleSheets.map (name) -> fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
     else if indexStylesheet = fs.resolve(@path, 'index', ['css', 'less'])
       [indexStylesheet]
     else
@@ -182,7 +274,7 @@ class Package
     grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
     for grammarPath in grammarPaths
       try
-        grammar = atom.syntax.readGrammarSync(grammarPath)
+        grammar = atom.grammars.readGrammarSync(grammarPath)
         grammar.packageName = @name
         @grammars.push(grammar)
         grammar.activate()
@@ -196,7 +288,7 @@ class Package
     return Q() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
-      atom.syntax.readGrammar grammarPath, (error, grammar) =>
+      atom.grammars.readGrammar grammarPath, (error, grammar) =>
         if error?
           console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
         else
@@ -211,22 +303,28 @@ class Package
       async.each grammarPaths, loadGrammar, -> deferred.resolve()
     deferred.promise
 
-  loadScopedProperties: ->
-    @scopedProperties = []
+  loadSettings: ->
+    @settings = []
 
-    loadScopedPropertiesFile = (scopedPropertiesPath, callback) =>
-      ScopedProperties.load scopedPropertiesPath, (error, scopedProperties) =>
+    loadSettingsFile = (settingsPath, callback) =>
+      ScopedProperties.load settingsPath, (error, settings) =>
         if error?
-          console.warn("Failed to load scoped properties: #{scopedPropertiesPath}", error.stack ? error)
+          console.warn("Failed to load package settings: #{settingsPath}", error.stack ? error)
         else
-          @scopedProperties.push(scopedProperties)
-          scopedProperties.activate() if @scopedPropertiesActivated
+          @settings.push(settings)
+          settings.activate() if @settingsActivated
         callback()
 
     deferred = Q.defer()
-    scopedPropertiesDirPath = path.join(@path, 'scoped-properties')
-    fs.list scopedPropertiesDirPath, ['json', 'cson'], (error, scopedPropertiesPaths=[]) ->
-      async.each scopedPropertiesPaths, loadScopedPropertiesFile, -> deferred.resolve()
+
+    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+      settingsDirPath = path.join(@path, 'scoped-properties')
+      deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
+    else
+      settingsDirPath = path.join(@path, 'settings')
+
+    fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
+      async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
     deferred.promise
 
   serialize: ->
@@ -239,11 +337,16 @@ class Package
   deactivate: ->
     @activationDeferred?.reject()
     @activationDeferred = null
-    @unsubscribeFromActivationEvents()
+    @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()
-    @mainModule?.deactivate?() if @mainActivated
-    @emit('deactivated')
+    if @mainActivated
+      try
+        @mainModule?.deactivate?()
+      catch e
+        console.error "Error deactivating package '#{@name}'", e.stack
+    @emit 'deactivated'
+    @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
     @mainModule?.deactivateConfig?()
@@ -251,96 +354,111 @@ class Package
 
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
-    scopedProperties.deactivate() for scopedProperties in @scopedProperties
-    atom.keymaps.remove(keymapPath) for [keymapPath] in @keymaps
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in @stylesheets
+    settings.deactivate() for settings in @settings
+    @stylesheetDisposables?.dispose()
+    @activationDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
-    @scopedPropertiesActivated = false
+    @settingsActivated = false
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
     @loadStylesheets()
-    atom.themes.removeStylesheet(stylesheetPath) for [stylesheetPath] in oldSheets
-    @reloadStylesheet(stylesheetPath, content) for [stylesheetPath, content] in @stylesheets
-
-  reloadStylesheet: (stylesheetPath, content) ->
-    atom.themes.applyStylesheet(stylesheetPath, content, @getStylesheetType())
+    @stylesheetDisposables?.dispose()
+    @stylesheetDisposables = new CompositeDisposable
+    @stylesheetsActivated = false
+    @activateStylesheets()
 
   requireMainModule: ->
     return @mainModule if @mainModule?
-    return unless @isCompatible()
+    unless @isCompatible()
+      console.warn """
+        Failed to require the main module of '#{@name}' because it requires an incompatible native module.
+        Run `apm rebuild` in the package directory to resolve.
+      """
+      return
     mainModulePath = @getMainModulePath()
     @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
-    mainModulePath =
-      if @metadata.main
-        path.join(@path, @metadata.main)
+
+    if @bundledPackage and packagesCache[@name]?
+      if packagesCache[@name].main
+        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{packagesCache[@name].main}"
       else
-        path.join(@path, 'index')
-    @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
+        @mainModulePath = null
+    else
+      mainModulePath =
+        if @metadata.main
+          path.join(@path, @metadata.main)
+        else
+          path.join(@path, 'index')
+      @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
-  hasActivationEvents: ->
-    if _.isArray(@metadata.activationEvents)
-      return @metadata.activationEvents.some (activationEvent) ->
-        activationEvent?.length > 0
-    else if _.isString(@metadata.activationEvents)
-      return @metadata.activationEvents.length > 0
-    else if _.isObject(@metadata.activationEvents)
-      for event, selector of @metadata.activationEvents
-        return true if event.length > 0 and selector.length > 0
-
+  hasActivationCommands: ->
+    for selector, commands of @getActivationCommands()
+      return true if commands.length > 0
     false
 
-  subscribeToActivationEvents: ->
-    return unless @metadata.activationEvents?
-    if _.isArray(@metadata.activationEvents)
-      atom.workspaceView.command(event, @handleActivationEvent) for event in @metadata.activationEvents
-    else if _.isString(@metadata.activationEvents)
-      atom.workspaceView.command(@metadata.activationEvents, @handleActivationEvent)
-    else
-      atom.workspaceView.command(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+  subscribeToActivationCommands: ->
+    @activationCommandSubscriptions = new CompositeDisposable
+    for selector, commands of @getActivationCommands()
+      for command in commands
+        do (selector, command) =>
+          # Add dummy command so it appears in menu.
+          # The real command will be registered on package activation
+          @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          @activationCommandSubscriptions.add atom.commands.onWillDispatch (event) =>
+            return unless event.type is command
+            currentTarget = event.target
+            while currentTarget
+              if currentTarget.webkitMatchesSelector(selector)
+                @activationCommandSubscriptions.dispose()
+                @activateNow()
+                break
+              currentTarget = currentTarget.parentElement
 
-  handleActivationEvent: (event) =>
-    bubblePathEventHandlers = @disableEventHandlersOnBubblePath(event)
-    @activateNow()
-    $ ?= require('./space-pen-extensions').$
-    $(event.target).trigger(event)
-    @restoreEventHandlersOnBubblePath(bubblePathEventHandlers)
-    @unsubscribeFromActivationEvents()
-    false
+  getActivationCommands: ->
+    return @activationCommands if @activationCommands?
 
-  unsubscribeFromActivationEvents: ->
-    return unless atom.workspaceView?
+    @activationCommands = {}
 
-    if _.isArray(@metadata.activationEvents)
-      atom.workspaceView.off(event, @handleActivationEvent) for event in @metadata.activationEvents
-    else if _.isString(@metadata.activationEvents)
-      atom.workspaceView.off(@metadata.activationEvents, @handleActivationEvent)
-    else
-      atom.workspaceView.off(event, selector, @handleActivationEvent) for event, selector of @metadata.activationEvents
+    if @metadata.activationCommands?
+      for selector, commands of @metadata.activationCommands
+        @activationCommands[selector] ?= []
+        if _.isString(commands)
+          @activationCommands[selector].push(commands)
+        else if _.isArray(commands)
+          @activationCommands[selector].push(commands...)
 
-  disableEventHandlersOnBubblePath: (event) ->
-    bubblePathEventHandlers = []
-    disabledHandler = ->
-    $ ?= require('./space-pen-extensions').$
-    element = $(event.target)
-    while element.length
-      if eventHandlers = element.handlers()?[event.type]
-        for eventHandler in eventHandlers
-          eventHandler.disabledHandler = eventHandler.handler
-          eventHandler.handler = disabledHandler
-          bubblePathEventHandlers.push(eventHandler)
-      element = element.parent()
-    bubblePathEventHandlers
+    if @metadata.activationEvents?
+      deprecate """
+        Use `activationCommands` instead of `activationEvents` in your package.json
+        Commands should be grouped by selector as follows:
+        ```json
+          "activationCommands": {
+            "atom-workspace": ["foo:bar", "foo:baz"],
+            "atom-text-editor": ["foo:quux"]
+          }
+        ```
+      """
+      if _.isArray(@metadata.activationEvents)
+        for eventName in @metadata.activationEvents
+          @activationCommands['atom-workspace'] ?= []
+          @activationCommands['atom-workspace'].push(eventName)
+      else if _.isString(@metadata.activationEvents)
+        eventName = @metadata.activationEvents
+        @activationCommands['atom-workspace'] ?= []
+        @activationCommands['atom-workspace'].push(eventName)
+      else
+        for eventName, selector of @metadata.activationEvents
+          selector ?= 'atom-workspace'
+          @activationCommands[selector] ?= []
+          @activationCommands[selector].push(eventName)
 
-  restoreEventHandlersOnBubblePath: (eventHandlers) ->
-    for eventHandler in eventHandlers
-      eventHandler.handler = eventHandler.disabledHandler
-      delete eventHandler.disabledHandler
+    @activationCommands
 
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->

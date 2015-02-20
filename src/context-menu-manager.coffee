@@ -4,128 +4,202 @@ remote = require 'remote'
 path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
+{specificity} = require 'clear-cut'
+{Disposable} = require 'event-kit'
+Grim = require 'grim'
+MenuHelpers = require './menu-helpers'
 
-# Public: Provides a registry for commands that you'd like to appear in the
+SpecificityCache = {}
+
+# Extended: Provides a registry for commands that you'd like to appear in the
 # context menu.
 #
 # An instance of this class is always available as the `atom.contextMenu`
 # global.
+#
+# ## Context Menu CSON Format
+#
+# ```coffee
+# 'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+# 'atom-text-editor': [{
+#   label: 'History',
+#   submenu: [
+#     {label: 'Undo', command:'core:undo'}
+#     {label: 'Redo', command:'core:redo'}
+#   ]
+# }]
+# ```
+#
+# In your package's menu `.cson` file you need to specify it under a
+# `context-menu` key:
+#
+# ```coffee
+# 'context-menu':
+#   'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+#   ...
+# ```
+#
+# The format for use in {::add} is the same minus the `context-menu` key. See
+# {::add} for more information.
 module.exports =
 class ContextMenuManager
   constructor: ({@resourcePath, @devMode}) ->
-    @definitions = {}
-    @devModeDefinitions = {}
-    @activeElement = null
+    @definitions = {'.overlayer': []} # TODO: Remove once color picker package stops touching private data
+    @clear()
 
-    @devModeDefinitions['.workspace'] = [
-      label: 'Inspect Element'
-      command: 'application:inspect'
-      executeAtBuild: (e) ->
-        @commandOptions = x: e.pageX, y: e.pageY
-    ]
-
-    atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
+    atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
 
   loadPlatformItems: ->
     menusDirPath = path.join(@resourcePath, 'menus')
     platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
     map = CSON.readFileSync(platformMenuPath)
-    atom.contextMenu.add(platformMenuPath, map['context-menu'])
+    atom.contextMenu.add(map['context-menu'])
 
-  # Public: Creates menu definitions from the object specified by the menu
-  # JSON API.
+  # Public: Add context menu items scoped by CSS selectors.
   #
-  # * `name` The path of the file that contains the menu definitions.
-  # * `object` The 'context-menu' object specified in the menu JSON API.
-  # * `options` An optional {Object} with the following keys:
-  #   * `devMode` Determines whether the entries should only be shown when
-  #     the window is in dev mode.
-  add: (name, object, {devMode}={}) ->
-    for selector, items of object
-      for label, commandOrSubmenu of items
-        if typeof commandOrSubmenu is 'object'
-          submenu = []
-          for submenuLabel, command of commandOrSubmenu
-            submenu.push(@buildMenuItem(submenuLabel, command))
-          @addBySelector(selector, {label: label, submenu: submenu}, {devMode})
-        else
-          menuItem = @buildMenuItem(label, commandOrSubmenu)
-          @addBySelector(selector, menuItem, {devMode})
-
-    undefined
-
-  buildMenuItem: (label, command) ->
-    if command is '-'
-      {type: 'separator'}
-    else
-      {label, command}
-
-  # Registers a command to be displayed when the relevant item is right
-  # clicked.
+  # ## Examples
   #
-  # * `selector` The css selector for the active element which should include
-  #   the given command in its context menu.
-  # * `definition` The object containing keys which match the menu template API.
-  # * `options` An optional {Object} with the following keys:
-  #   * `devMode` Indicates whether this command should only appear while the
-  #     editor is in dev mode.
-  addBySelector: (selector, definition, {devMode}={}) ->
-    definitions = if devMode then @devModeDefinitions else @definitions
-    if not _.findWhere(definitions[selector], definition) or _.isEqual(definition, {type: 'separator'})
-      (definitions[selector] ?= []).push(definition)
-
-  # Returns definitions which match the element and devMode.
-  definitionsForElement: (element, {devMode}={}) ->
-    definitions = if devMode then @devModeDefinitions else @definitions
-    matchedDefinitions = []
-    for selector, items of definitions when element.webkitMatchesSelector(selector)
-      matchedDefinitions.push(_.clone(item)) for item in items
-
-    matchedDefinitions
-
-  # Used to generate the context menu for a specific element and it's
-  # parents.
+  # To add a context menu, pass a selector matching the elements to which you
+  # want the menu to apply as the top level key, followed by a menu descriptor.
+  # The invocation below adds a global 'Help' context menu item and a 'History'
+  # submenu on the editor supporting undo/redo. This is just for example
+  # purposes and not the way the menu is actually configured in Atom by default.
   #
-  # The menu items are sorted such that menu items that match closest to the
-  # active element are listed first. The further down the list you go, the higher
-  # up the ancestor hierarchy they match.
+  # ```coffee
+  # atom.contextMenu.add {
+  #   'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+  #   'atom-text-editor': [{
+  #     label: 'History',
+  #     submenu: [
+  #       {label: 'Undo', command:'core:undo'}
+  #       {label: 'Redo', command:'core:redo'}
+  #     ]
+  #   }]
+  # }
+  # ```
   #
-  # * `element` The DOM element to generate the menu template for.
-  menuTemplateForMostSpecificElement: (element, {devMode}={}) ->
-    menuTemplate = @definitionsForElement(element, {devMode})
-    if element.parentElement
-      menuTemplate.concat(@menuTemplateForMostSpecificElement(element.parentElement, {devMode}))
-    else
-      menuTemplate
-
-  # Returns a menu template for both normal entries as well as
-  # development mode entries.
-  combinedMenuTemplateForElement: (element) ->
-    normalItems = @menuTemplateForMostSpecificElement(element)
-    devItems = if @devMode then @menuTemplateForMostSpecificElement(element, devMode: true) else []
-
-    menuTemplate = normalItems
-    menuTemplate.push({ type: 'separator' }) if normalItems.length > 0 and devItems.length > 0
-    menuTemplate.concat(devItems)
-
-  # Executes `executeAtBuild` if defined for each menu item with
-  # the provided event and then removes the `executeAtBuild` property from
-  # the menu item.
+  # ## Arguments
   #
-  # This is useful for commands that need to provide data about the event
-  # to the command.
-  executeBuildHandlers: (event, menuTemplate) ->
-    for template in menuTemplate
-      template?.executeAtBuild?.call(template, event)
-      delete template.executeAtBuild
+  # * `itemsBySelector` An {Object} whose keys are CSS selectors and whose
+  #   values are {Array}s of item {Object}s containing the following keys:
+  #   * `label` (Optional) A {String} containing the menu item's label.
+  #   * `command` (Optional) A {String} containing the command to invoke on the
+  #     target of the right click that invoked the context menu.
+  #   * `submenu` (Optional) An {Array} of additional items.
+  #   * `type` (Optional) If you want to create a separator, provide an item
+  #      with `type: 'separator'` and no other keys.
+  #   * `created` (Optional) A {Function} that is called on the item each time a
+  #     context menu is created via a right click. You can assign properties to
+  #    `this` to dynamically compute the command, label, etc. This method is
+  #    actually called on a clone of the original item template to prevent state
+  #    from leaking across context menu deployments. Called with the following
+  #    argument:
+  #     * `event` The click event that deployed the context menu.
+  #   * `shouldDisplay` (Optional) A {Function} that is called to determine
+  #     whether to display this item on a given context menu deployment. Called
+  #     with the following argument:
+  #     * `event` The click event that deployed the context menu.
+  add: (itemsBySelector) ->
+    # Detect deprecated file path as first argument
+    if itemsBySelector? and typeof itemsBySelector isnt 'object'
+      Grim.deprecate """
+        ContextMenuManager::add has changed to take a single object as its
+        argument. Please see
+        https://atom.io/docs/api/latest/ContextMenuManager for more info.
+      """
+      itemsBySelector = arguments[1]
+      devMode = arguments[2]?.devMode
 
-  # Public: Request a context menu to be displayed.
-  #
-  # * `event` A DOM event.
+    # Detect deprecated format for items object
+    for key, value of itemsBySelector
+      unless _.isArray(value)
+        Grim.deprecate """
+          ContextMenuManager::add has changed to take a single object as its
+          argument. Please see
+          https://atom.io/docs/api/latest/ContextMenuManager for more info.
+        """
+        itemsBySelector = @convertLegacyItemsBySelector(itemsBySelector, devMode)
+
+    addedItemSets = []
+
+    for selector, items of itemsBySelector
+      itemSet = new ContextMenuItemSet(selector, items)
+      addedItemSets.push(itemSet)
+      @itemSets.push(itemSet)
+
+    new Disposable =>
+      for itemSet in addedItemSets
+        @itemSets.splice(@itemSets.indexOf(itemSet), 1)
+
+  templateForElement: (target) ->
+    @templateForEvent({target})
+
+  templateForEvent: (event) ->
+    template = []
+    currentTarget = event.target
+
+    while currentTarget?
+      currentTargetItems = []
+      matchingItemSets =
+        @itemSets.filter (itemSet) -> currentTarget.webkitMatchesSelector(itemSet.selector)
+
+      for itemSet in matchingItemSets
+        for item in itemSet.items
+          continue if item.devMode and not @devMode
+          item = Object.create(item)
+          if typeof item.shouldDisplay is 'function'
+            continue unless item.shouldDisplay(event)
+          item.created?(event)
+          MenuHelpers.merge(currentTargetItems, item, itemSet.specificity)
+
+      for item in currentTargetItems
+        MenuHelpers.merge(template, item, false)
+
+      currentTarget = currentTarget.parentElement
+
+    template
+
+  convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
+    itemsBySelector = {}
+
+    for selector, commandsByLabel of legacyItemsBySelector
+      itemsBySelector[selector] = @convertLegacyItems(commandsByLabel, devMode)
+
+    itemsBySelector
+
+  convertLegacyItems: (legacyItems, devMode) ->
+    items = []
+
+    for label, commandOrSubmenu of legacyItems
+      if typeof commandOrSubmenu is 'object'
+        items.push({label, submenu: @convertLegacyItems(commandOrSubmenu, devMode), devMode})
+      else if commandOrSubmenu is '-'
+        items.push({type: 'separator'})
+      else
+        items.push({label, command: commandOrSubmenu, devMode})
+
+    items
+
   showForEvent: (event) ->
     @activeElement = event.target
-    menuTemplate = @combinedMenuTemplateForElement(event.target)
+    menuTemplate = @templateForEvent(event)
+
     return unless menuTemplate?.length > 0
-    @executeBuildHandlers(event, menuTemplate)
     remote.getCurrentWindow().emit('context-menu', menuTemplate)
-    undefined
+    return
+
+  clear: ->
+    @activeElement = null
+    @itemSets = []
+    @add 'atom-workspace': [{
+      label: 'Inspect Element'
+      command: 'application:inspect'
+      devMode: true
+      created: (event) ->
+        {pageX, pageY} = event
+        @commandDetail = {x: pageX, y: pageY}
+    }]
+
+class ContextMenuItemSet
+  constructor: (@selector, @items) ->
+    @specificity = (SpecificityCache[@selector] ?= specificity(@selector))

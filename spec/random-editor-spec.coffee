@@ -1,9 +1,9 @@
 {times, random} = require 'underscore-plus'
 randomWords = require 'random-words'
 TextBuffer = require 'text-buffer'
-Editor = require '../src/editor'
+TextEditor = require '../src/text-editor'
 
-describe "Editor", ->
+describe "TextEditor", ->
   [editor, tokenizedBuffer, buffer, steps, previousSteps] = []
 
   softWrapColumn = 80
@@ -17,7 +17,7 @@ describe "Editor", ->
 
     times 10, (i) ->
       buffer = new TextBuffer
-      editor = new Editor({buffer})
+      editor = new TextEditor({buffer})
       editor.setEditorWidthInChars(80)
       tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
       steps = []
@@ -35,7 +35,7 @@ describe "Editor", ->
         logLines()
         throw new Error("Invalid buffer row #{actualBufferRow} for screen row #{screenRow}", )
 
-      actualScreenLine = editor.lineForScreenRow(screenRow)
+      actualScreenLine = editor.tokenizedLineForScreenRow(screenRow)
       unless actualScreenLine.text is referenceScreenLine.text
         logLines()
         throw new Error("Invalid line text at screen row #{screenRow}")
@@ -50,9 +50,9 @@ describe "Editor", ->
 
   randomlyMutateEditor = ->
     if Math.random() < .2
-      softWrap = not editor.getSoftWrap()
-      steps.push(['setSoftWrap', softWrap])
-      editor.setSoftWrap(softWrap)
+      softWrapped = not editor.isSoftWrapped()
+      steps.push(['setSoftWrapped', softWrapped])
+      editor.setSoftWrapped(softWrapped)
     else
       range = getRandomRange()
       text = getRandomText()
@@ -79,11 +79,11 @@ describe "Editor", ->
     text
 
   getReferenceScreenLines = ->
-    if editor.getSoftWrap()
+    if editor.isSoftWrapped()
       screenLines = []
       bufferRows = []
       for bufferRow in [0..tokenizedBuffer.getLastRow()]
-        for screenLine in softWrapLine(tokenizedBuffer.lineForScreenRow(bufferRow))
+        for screenLine in softWrapLine(tokenizedBuffer.tokenizedLineForRow(bufferRow))
           screenLines.push(screenLine)
           bufferRows.push(bufferRow)
     else

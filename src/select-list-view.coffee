@@ -1,8 +1,8 @@
 {$, View} = require './space-pen-extensions'
-EditorView = require './editor-view'
+TextEditorView = require './text-editor-view'
 fuzzyFilter = require('fuzzaldrin').filter
 
-# Essential: Provides a view that renders a list of items with an editor that
+# Deprecated: Provides a view that renders a list of items with an editor that
 # filters the items. Used by many packages such as the fuzzy-finder,
 # command-palette, symbols-view and autocomplete.
 #
@@ -34,7 +34,7 @@ module.exports =
 class SelectListView extends View
   @content: ->
     @div class: 'select-list', =>
-      @subview 'filterEditorView', new EditorView(mini: true)
+      @subview 'filterEditorView', new TextEditorView(mini: true)
       @div class: 'error-message', outlet: 'error'
       @div class: 'loading', outlet: 'loadingArea', =>
         @span class: 'loading-message', outlet: 'loading'
@@ -46,14 +46,18 @@ class SelectListView extends View
   inputThrottle: 50
   cancelling: false
 
-  # Public: Initialize the select list view.
+  ###
+  Section: Construction
+  ###
+
+  # Essential: Initialize the select list view.
   #
   # This method can be overridden by subclasses but `super` should always
   # be called.
   initialize: ->
-    @filterEditorView.getEditor().getBuffer().on 'changed', =>
+    @filterEditorView.getEditor().getBuffer().onDidChange =>
       @schedulePopulateList()
-    @filterEditorView.hiddenInput.on 'focusout', =>
+    @filterEditorView.on 'blur', =>
       @cancel() unless @cancelling
 
     # This prevents the focusout event from firing on the filter editor view
@@ -85,13 +89,39 @@ class SelectListView extends View
       @confirmSelection() if $(e.target).closest('li').hasClass('selected')
       e.preventDefault()
 
-  schedulePopulateList: ->
-    clearTimeout(@scheduleTimeout)
-    populateCallback = =>
-      @populateList() if @isOnDom()
-    @scheduleTimeout = setTimeout(populateCallback,  @inputThrottle)
+  ###
+  Section: Methods that must be overridden
+  ###
 
-  # Public: Set the array of items to display in the list.
+  # Essential: Create a view for the given model item.
+  #
+  # This method must be overridden by subclasses.
+  #
+  # This is called when the item is about to appended to the list view.
+  #
+  # * `item` The model item being rendered. This will always be one of the items
+  #   previously passed to {::setItems}.
+  #
+  # Returns a String of HTML, DOM element, jQuery object, or View.
+  viewForItem: (item) ->
+    throw new Error("Subclass must implement a viewForItem(item) method")
+
+  # Essential: Callback function for when an item is selected.
+  #
+  # This method must be overridden by subclasses.
+  #
+  # * `item` The selected model item. This will always be one of the items
+  #   previously passed to {::setItems}.
+  #
+  # Returns a DOM element, jQuery object, or {View}.
+  confirmed: (item) ->
+    throw new Error("Subclass must implement a confirmed(item) method")
+
+  ###
+  Section: Managing the list of items
+  ###
+
+  # Essential: Set the array of items to display in the list.
   #
   # This should be model items not actual views. {::viewForItem} will be
   # called to render the item when it is being appended to the list view.
@@ -101,30 +131,26 @@ class SelectListView extends View
     @populateList()
     @setLoading()
 
-  # Public: Set the error message to display.
+  # Essential: Get the model item that is currently selected in the list view.
   #
-  # * `message` The {String} error message (default: '').
-  setError: (message='') ->
-    if message.length is 0
-      @error.text('').hide()
-    else
-      @setLoading()
-      @error.text(message).show()
+  # Returns a model item.
+  getSelectedItem: ->
+    @getSelectedItemView().data('select-list-item')
 
-  # Public: Set the loading message to display.
+  # Extended: Get the property name to use when filtering items.
   #
-  # * `message` The {String} loading message (default: '').
-  setLoading: (message='') ->
-    if message.length is 0
-      @loading.text("")
-      @loadingBadge.text("")
-      @loadingArea.hide()
-    else
-      @setError()
-      @loading.text(message)
-      @loadingArea.show()
+  # This method may be overridden by classes to allow fuzzy filtering based
+  # on a specific property of the item objects.
+  #
+  # For example if the objects you pass to {::setItems} are of the type
+  # `{"id": 3, "name": "Atom"}` then you would return `"name"` from this method
+  # to fuzzy filter by that property when text is entered into this view's
+  # editor.
+  #
+  # Returns the property name to fuzzy filter by.
+  getFilterKey: ->
 
-  # Public: Get the filter query to use when fuzzy filtering the visible
+  # Extended: Get the filter query to use when fuzzy filtering the visible
   # elements.
   #
   # By default this method returns the text in the mini editor but it can be
@@ -134,7 +160,12 @@ class SelectListView extends View
   getFilterQuery: ->
     @filterEditorView.getEditor().getText()
 
-  # Public: Populate the list view with the model items previously set by
+  # Extended: Set the maximum numbers of items to display in the list.
+  #
+  # * `maxItems` The maximum {Number} of items to display.
+  setMaxItems: (@maxItems) ->
+
+  # Extended: Populate the list view with the model items previously set by
   # calling {::setItems}.
   #
   # Subclasses may override this method but should always call `super`.
@@ -161,7 +192,34 @@ class SelectListView extends View
     else
       @setError(@getEmptyMessage(@items.length, filteredItems.length))
 
-  # Public: Get the message to display when there are no items.
+  ###
+  Section: Messages to the user
+  ###
+
+  # Essential: Set the error message to display.
+  #
+  # * `message` The {String} error message (default: '').
+  setError: (message='') ->
+    if message.length is 0
+      @error.text('').hide()
+    else
+      @setLoading()
+      @error.text(message).show()
+
+  # Essential: Set the loading message to display.
+  #
+  # * `message` The {String} loading message (default: '').
+  setLoading: (message='') ->
+    if message.length is 0
+      @loading.text("")
+      @loadingBadge.text("")
+      @loadingArea.hide()
+    else
+      @setError()
+      @loading.text(message)
+      @loadingArea.show()
+
+  # Extended: Get the message to display when there are no items.
   #
   # Subclasses may override this method to customize the message.
   #
@@ -171,10 +229,36 @@ class SelectListView extends View
   # Returns a {String} message (default: 'No matches found').
   getEmptyMessage: (itemCount, filteredItemCount) -> 'No matches found'
 
-  # Public: Set the maximum numbers of items to display in the list.
+  ###
+  Section: View Actions
+  ###
+
+  # Essential: Cancel and close this select list view.
   #
-  # * `maxItems` The maximum {Number} of items to display.
-  setMaxItems: (@maxItems) ->
+  # This restores focus to the previously focused element if
+  # {::storeFocusedElement} was called prior to this view being attached.
+  cancel: ->
+    @list.empty()
+    @cancelling = true
+    filterEditorViewFocused = @filterEditorView.isFocused
+    @cancelled()
+    @detach()
+    @restoreFocus() if filterEditorViewFocused
+    @cancelling = false
+    clearTimeout(@scheduleTimeout)
+
+  # Extended: Focus the fuzzy filter editor view.
+  focusFilterEditor: ->
+    @filterEditorView.focus()
+
+  # Extended: Store the currently focused element. This element will be given
+  # back focus when {::cancel} is called.
+  storeFocusedElement: ->
+    @previouslyFocusedElement = $(document.activeElement)
+
+  ###
+  Section: Private
+  ###
 
   selectPreviousItemView: ->
     view = @getSelectedItemView().prev()
@@ -202,68 +286,6 @@ class SelectListView extends View
     else if desiredBottom > @list.scrollBottom()
       @list.scrollBottom(desiredBottom)
 
-  getSelectedItemView: ->
-    @list.find('li.selected')
-
-  # Public: Get the model item that is currently selected in the list view.
-  #
-  # Returns a model item.
-  getSelectedItem: ->
-    @getSelectedItemView().data('select-list-item')
-
-  confirmSelection: ->
-    item = @getSelectedItem()
-    if item?
-      @confirmed(item)
-    else
-      @cancel()
-
-  # Public: Create a view for the given model item.
-  #
-  # This method must be overridden by subclasses.
-  #
-  # This is called when the item is about to appended to the list view.
-  #
-  # * `item` The model item being rendered. This will always be one of the items
-  #   previously passed to {::setItems}.
-  #
-  # Returns a String of HTML, DOM element, jQuery object, or View.
-  viewForItem: (item) ->
-    throw new Error("Subclass must implement a viewForItem(item) method")
-
-  # Public: Callback function for when an item is selected.
-  #
-  # This method must be overridden by subclasses.
-  #
-  # * `item` The selected model item. This will always be one of the items
-  #   previously passed to {::setItems}.
-  #
-  # Returns a DOM element, jQuery object, or {View}.
-  confirmed: (item) ->
-    throw new Error("Subclass must implement a confirmed(item) method")
-
-  # Public: Get the property name to use when filtering items.
-  #
-  # This method may be overridden by classes to allow fuzzy filtering based
-  # on a specific property of the item objects.
-  #
-  # For example if the objects you pass to {::setItems} are of the type
-  # `{"id": 3, "name": "Atom"}` then you would return `"name"` from this method
-  # to fuzzy filter by that property when text is entered into this view's
-  # editor.
-  #
-  # Returns the property name to fuzzy filter by.
-  getFilterKey: ->
-
-  # Public: Focus the fuzzy filter editor view.
-  focusFilterEditor: ->
-    @filterEditorView.focus()
-
-  # Public: Store the currently focused element. This element will be given
-  # back focus when {::cancel} is called.
-  storeFocusedElement: ->
-    @previouslyFocusedElement = $(':focus')
-
   restoreFocus: ->
     if @previouslyFocusedElement?.isOnDom()
       @previouslyFocusedElement.focus()
@@ -273,16 +295,18 @@ class SelectListView extends View
   cancelled: ->
     @filterEditorView.getEditor().setText('')
 
-  # Public: Cancel and close this select list view.
-  #
-  # This restores focus to the previously focused element if
-  # {::storeFocusedElement} was called prior to this view being attached.
-  cancel: ->
-    @list.empty()
-    @cancelling = true
-    filterEditorViewFocused = @filterEditorView.isFocused
-    @cancelled()
-    @detach()
-    @restoreFocus() if filterEditorViewFocused
-    @cancelling = false
+  getSelectedItemView: ->
+    @list.find('li.selected')
+
+  confirmSelection: ->
+    item = @getSelectedItem()
+    if item?
+      @confirmed(item)
+    else
+      @cancel()
+
+  schedulePopulateList: ->
     clearTimeout(@scheduleTimeout)
+    populateCallback = =>
+      @populateList() if @isOnDom()
+    @scheduleTimeout = setTimeout(populateCallback,  @inputThrottle)

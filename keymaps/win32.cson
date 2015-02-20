@@ -14,6 +14,10 @@
   'ctrl-alt-i': 'window:toggle-dev-tools'
   'ctrl-alt-p': 'window:run-package-specs'
   'ctrl-alt-s': 'application:run-all-specs'
+  'ctrl-alt-o': 'application:open-dev'
+  'ctrl-shift-o': 'application:open-folder'
+  'ctrl-shift-left': 'pane:move-item-left'
+  'ctrl-shift-right': 'pane:move-item-right'
   'F11': 'window:toggle-full-screen'
 
   # Sublime Parity
@@ -74,7 +78,7 @@
   'ctrl-k ctrl-left':  'window:focus-pane-on-left'
   'ctrl-k ctrl-right': 'window:focus-pane-on-right'
 
-'.workspace .editor':
+'atom-workspace atom-text-editor':
   # Platform Bindings
   'ctrl-left': 'editor:move-to-beginning-of-word'
   'ctrl-right': 'editor:move-to-end-of-word'
@@ -94,7 +98,7 @@
   'ctrl-k ctrl-l': 'editor:lower-case'
   'ctrl-l': 'editor:select-line'
 
-'.workspace .editor:not(.mini)':
+'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
   'alt-ctrl-z': 'editor:checkout-head-revision'
   'ctrl-<': 'editor:scroll-to-cursor'

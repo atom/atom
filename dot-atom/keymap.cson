@@ -1,7 +1,7 @@
 # Your keymap
 #
-# Atom keymaps work similarly to stylesheets. Just as stylesheets use selectors
-# to apply styles to elements, Atom keymaps use selectors to associate
+# Atom keymaps work similarly to style sheets. Just as style sheets use
+# selectors to apply styles to elements, Atom keymaps use selectors to associate
 # keystrokes with events in specific contexts.
 #
 # You can create a new keybinding in this file by typing "key" and then hitting
@@ -9,10 +9,17 @@
 #
 # Here's an example taken from Atom's built-in keymap:
 #
-# '.editor':
+# 'atom-text-editor':
 #   'enter': 'editor:newline'
 #
-# '.workspace':
-#   'ctrl-P': 'core:move-up'
+# 'atom-workspace':
+#   'ctrl-shift-p': 'core:move-up'
 #   'ctrl-p': 'core:move-down'
 #
+# You can find more information about keymaps in these guides:
+# * https://atom.io/docs/latest/customizing-atom#customizing-key-bindings
+# * https://atom.io/docs/latest/advanced/keymaps
+#
+# This file uses CoffeeScript Object Notation (CSON).
+# If you are unfamiliar with CSON, you can read more about it here:
+# https://github.com/bevry/cson#what-is-cson

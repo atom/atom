@@ -1,24 +1,34 @@
-PaneContainerView = require '../src/pane-container-view'
+PaneContainer = require '../src/pane-container'
 PaneView = require '../src/pane-view'
 fs = require 'fs-plus'
-{$, View} = require 'atom'
+{Emitter, Disposable} = require 'event-kit'
+{$, View} = require '../src/space-pen-extensions'
 path = require 'path'
 temp = require 'temp'
 
 describe "PaneView", ->
-  [container, view1, view2, editor1, editor2, pane, paneModel] = []
+  [container, containerModel, view1, view2, editor1, editor2, pane, paneModel, deserializerDisposable] = []
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
     @content: ({id, text}) -> @div class: 'test-view', id: id, tabindex: -1, text
     initialize: ({@id, @text}) ->
+      @emitter = new Emitter
     serialize: -> { deserializer: 'TestView', @id, @text }
-    getUri: -> @id
+    getURI: -> @id
     isEqual: (other) -> other? and @id == other.id and @text == other.text
+    changeTitle: ->
+      @emitter.emit 'did-change-title', 'title'
+    onDidChangeTitle: (callback) ->
+      @emitter.on 'did-change-title', callback
+    onDidChangeModified: -> new Disposable(->)
 
   beforeEach ->
-    atom.deserializers.add(TestView)
-    container = new PaneContainerView
+    jasmine.snapshotDeprecations()
+
+    deserializerDisposable = atom.deserializers.add(TestView)
+    container = atom.views.getView(new PaneContainer).__spacePenView
+    containerModel = container.model
     view1 = new TestView(id: 'view-1', text: 'View 1')
     view2 = new TestView(id: 'view-2', text: 'View 2')
     waitsForPromise ->
@@ -29,15 +39,16 @@ describe "PaneView", ->
 
     runs ->
       pane = container.getRoot()
-      paneModel = pane.model
+      paneModel = pane.getModel()
       paneModel.addItems([view1, editor1, view2, editor2])
 
   afterEach ->
-    atom.deserializers.remove(TestView)
+    deserializerDisposable.dispose()
+    jasmine.restoreDeprecationsSnapshot()
 
   describe "when the active pane item changes", ->
     it "hides all item views except the active one", ->
-      expect(pane.activeItem).toBe view1
+      expect(pane.getActiveItem()).toBe view1
       expect(view1.css('display')).not.toBe 'none'
 
       pane.activateItem(view2)
@@ -48,7 +59,7 @@ describe "PaneView", ->
       itemChangedHandler = jasmine.createSpy("itemChangedHandler")
       container.on 'pane:active-item-changed', itemChangedHandler
 
-      expect(pane.activeItem).toBe view1
+      expect(pane.getActiveItem()).toBe view1
       paneModel.activateItem(view2)
       paneModel.activateItem(view2)
 
@@ -124,9 +135,9 @@ describe "PaneView", ->
     describe "when the destroyed item is a model", ->
       it "removes the associated view", ->
         paneModel.activateItem(editor1)
-        expect(pane.itemViews.find('.editor').length).toBe 1
+        expect(pane.itemViews.find('atom-text-editor').length).toBe 1
         pane.destroyItem(editor1)
-        expect(pane.itemViews.find('.editor').length).toBe 0
+        expect(pane.itemViews.find('atom-text-editor').length).toBe 0
 
   describe "when an item is moved within the same pane", ->
     it "emits a 'pane:item-moved' event with the item and the new index", ->
@@ -137,30 +148,63 @@ describe "PaneView", ->
 
   describe "when an item is moved to another pane", ->
     it "detaches the item's view rather than removing it", ->
+      container.attachToDom()
+      expect(view1.is(':visible')).toBe true
       paneModel2 = paneModel.splitRight()
       view1.data('preservative', 1234)
       paneModel.moveItemToPane(view1, paneModel2, 1)
       expect(view1.data('preservative')).toBe 1234
       paneModel2.activateItemAtIndex(1)
       expect(view1.data('preservative')).toBe 1234
+      expect(view1.is(':visible')).toBe true
 
   describe "when the title of the active item changes", ->
-    it "emits pane:active-item-title-changed", ->
-      activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
-      pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+    describe 'when there is no onDidChangeTitle method (deprecated)', ->
+      beforeEach ->
+        jasmine.snapshotDeprecations()
 
-      expect(pane.activeItem).toBe view1
+        view1.onDidChangeTitle = null
+        view2.onDidChangeTitle = null
 
-      view2.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+        pane.activateItem(view2)
+        pane.activateItem(view1)
 
-      view1.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-      activeItemTitleChangedHandler.reset()
+      afterEach ->
+        jasmine.restoreDeprecationsSnapshot()
 
-      pane.activateItem(view2)
-      view2.trigger 'title-changed'
-      expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+      it "emits pane:active-item-title-changed", ->
+        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
+        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+
+        expect(pane.getActiveItem()).toBe view1
+
+        view2.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+
+        view1.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+        activeItemTitleChangedHandler.reset()
+
+        pane.activateItem(view2)
+        view2.trigger 'title-changed'
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+
+    describe 'when there is a onDidChangeTitle method', ->
+      it "emits pane:active-item-title-changed", ->
+        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
+        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
+
+        expect(pane.getActiveItem()).toBe view1
+        view2.changeTitle()
+        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
+
+        view1.changeTitle()
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
+        activeItemTitleChangedHandler.reset()
+
+        pane.activateItem(view2)
+        view2.changeTitle()
+        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
 
   describe "when an unmodifed buffer's path is deleted", ->
     it "removes the pane item", ->
@@ -185,7 +229,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight() # Can't destroy the last pane, so we add another
-      pane2 = pane2Model._view
+      pane2 = atom.views.getView(pane2Model).__spacePenView
 
     it "triggers a 'pane:removed' event with the pane", ->
       removedHandler = jasmine.createSpy("removedHandler")
@@ -218,7 +262,7 @@ describe "PaneView", ->
 
     beforeEach ->
       pane2Model = paneModel.splitRight(items: [pane.copyActiveItem()])
-      pane2 = pane2Model._view
+      pane2 = atom.views.getView(pane2Model).__spacePenView
       expect(pane2Model.isActive()).toBe true
 
     it "adds or removes the .active class as appropriate", ->
@@ -246,7 +290,7 @@ describe "PaneView", ->
 
     it "transfers focus to the active view", ->
       focusHandler = jasmine.createSpy("focusHandler")
-      pane.activeItem.on 'focus', focusHandler
+      pane.getActiveItem().on 'focus', focusHandler
       pane.focus()
       expect(focusHandler).toHaveBeenCalled()
 
@@ -257,34 +301,35 @@ describe "PaneView", ->
       expect(paneModel.isActive()).toBe true
 
   describe "when a pane is split", ->
-    it "builds the appropriate pane-row and pane-column views", ->
+    it "builds the appropriateatom-pane-axis.horizontal and pane-column views", ->
       pane1 = pane
-      pane1Model = pane.model
+      pane1Model = pane.getModel()
       pane.activateItem(editor1)
 
       pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])
       pane3Model = pane2Model.splitDown(items: [pane2Model.copyActiveItem()])
       pane2 = pane2Model._view
-      pane3 = pane3Model._view
+      pane2 = atom.views.getView(pane2Model).__spacePenView
+      pane3 = atom.views.getView(pane3Model).__spacePenView
 
-      expect(container.find('> .pane-row > .pane').toArray()).toEqual [pane1[0]]
-      expect(container.find('> .pane-row > .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> atom-pane-axis.horizontal > atom-pane').toArray()).toEqual [pane1[0]]
+      expect(container.find('> atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
       pane1Model.destroy()
-      expect(container.find('> .pane-column > .pane').toArray()).toEqual [pane2[0], pane3[0]]
+      expect(container.find('> atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
 
   describe "serialization", ->
     it "focuses the pane after attach only if had focus when serialized", ->
       container.attachToDom()
       pane.focus()
 
-      container2 = new PaneContainerView(container.model.testSerialization())
+      container2 = atom.views.getView(container.model.testSerialization()).__spacePenView
       pane2 = container2.getRoot()
       container2.attachToDom()
       expect(pane2).toMatchSelector(':has(:focus)')
 
       $(document.activeElement).blur()
-      container3 = new PaneContainerView(container.model.testSerialization())
+      container3 = atom.views.getView(container.model.testSerialization()).__spacePenView
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')

@@ -1,30 +1,31 @@
 # Creating a Theme
 
-Atom's interface is rendered using HTML, and it's styled via [LESS] (a superset
-of CSS). Don't worry if you haven't heard of LESS before; it's just like CSS,
-but with a few handy extensions.
+Atom's interface is rendered using HTML, and it's styled via [Less] which is a
+superset of CSS. Don't worry if you haven't heard of Less before; it's just like
+CSS, but with a few handy extensions.
 
 Atom supports two types of themes: _UI_ and _syntax_.  UI themes style
 elements such as the tree view, the tabs, drop-down lists, and the status bar.
 Syntax themes style the code inside the editor.
 
 Themes can be installed and changed from the settings view which you can open
-by selecting the _Atom > Preferences..._ menu and navigating to the _Themes_
-section on the left hand side.
+by selecting the _Atom > Preferences..._ menu and navigating to the _Install_
+section and the _Themes_ section on the left hand side.
 
 ## Getting Started
 
 Themes are pretty straightforward but it's still helpful to be familiar with
 a few things before starting:
 
-* LESS is a superset of CSS, but it has some really handy features like
+* Less is a superset of CSS, but it has some really handy features like
   variables. If you aren't familiar with its syntax, take a few minutes
   to [familiarize yourself][less-tutorial].
 * You may also want to review the concept of a _[package.json]_, too. This file
   is used to help distribute your theme to Atom users.
 * Your theme's _package.json_ must contain a `"theme"` key with a value
   of `"ui"` or `"syntax"` for Atom to recognize and load it as a theme.
-* You can find existing themes to install or fork on [atom.io](atomio).
+* You can find existing themes to install or fork on
+  [atom.io][atomio-themes].
 
 ## Creating a Syntax Theme
 
@@ -42,10 +43,10 @@ _Motif_ theme listed in the _Syntax Theme_ drop-down. Select it from the menu to
 activate it, now when you open an editor you should see that your new
 _motif-syntax_ theme in action.
 
-Open up _stylesheets/colors.less_ to change the various colors variables which
+Open up _styles/colors.less_ to change the various colors variables which
 have been already been defined. For example, turn `@red` into `#f4c2c1`.
 
-Then open _stylesheets/base.less_ and modify the various selectors that have
+Then open _styles/base.less_ and modify the various selectors that have
 been already been defined. These selectors style different parts of code in the
 editor such as comments, strings and the line numbers in the gutter.
 
@@ -58,6 +59,8 @@ __Tip:__ You can avoid reloading to see changes you make by opening an atom
 window in dev mode. To open a Dev Mode Atom window run `atom --dev .` in the
 terminal, use `cmd-shift-o` or use the _View > Developer > Open in Dev Mode_
 menu. When you edit your theme, changes will instantly be reflected!
+
+> Note: It's advised to _not_ specify a `font-family` in your syntax theme because it will override the Font Family field in Atom's settings. If you still like to recommend a font that goes well with your theme, we recommend you do so in your README.
 
 ## Creating an Interface Theme
 
@@ -128,13 +131,13 @@ _styleguide_, or use the shortcut `cmd-ctrl-shift-g`.
 
 ![styleguide-img]
 
-[atomio]: http://atom.io/packages
-[less]: http://lesscss.org/
+[atomio-themes]: https://atom.io/themes
+[Less]: http://lesscss.org/
 [git]: http://git-scm.com/
 [atom]: https://atom.io/
 [package.json]: ./creating-a-package.html#package-json
 [less-tutorial]: https://speakerdeck.com/danmatthews/less-css
-[devtools-tutorial]: https://developers.google.com/chrome-developer-tools/docs/elements
+[devtools-tutorial]: https://developer.chrome.com/devtools/docs/dom-and-styles
 [ui-variables]: ./theme-variables.html
 [livereload]: https://github.com/atom/dev-live-reload
 [styleguide]: https://github.com/atom/styleguide

@@ -47,7 +47,7 @@ If not, there are a few things you should check before publishing:
 
 Before you publish a package it is a good idea to check ahead of time if
 a package with the same name has already been published to atom.io. You can do
-that by visiting `http://atom.io/packages/my-package` to see if the package
+that by visiting `https://atom.io/packages/my-package` to see if the package
 already exists. If it does, update your package's name to something that is
 available before proceeding.
 
@@ -73,7 +73,7 @@ and you only need to enter this information the first time you publish. The
 credentials are stored securely in your [keychain][keychain] once you login.
 
 :tada: Your package is now published and available on atom.io. Head on over to
-`http://atom.io/packages/my-package` to see your package's page.
+`https://atom.io/packages/my-package` to see your package's page.
 
 With `apm publish`, you can bump the version and publish by using
 ```sh
@@ -107,7 +107,7 @@ Use `patch` when you make a small change like a bug fix that does not add or rem
 [atomio]: https://atom.io
 [github]: https://github.com
 [git-tag]: http://git-scm.com/book/en/Git-Basics-Tagging
-[keychain]: http://en.wikipedia.org/wiki/Keychain_(Apple)
+[keychain]: https://en.wikipedia.org/wiki/Keychain_(Apple)
 [repo-guide]: http://guides.github.com/overviews/desktop
 [semver]: http://semver.org
 [your-first-package]: your-first-package.html
