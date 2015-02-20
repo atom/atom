@@ -35,9 +35,6 @@ describe "Project", ->
       atom.packages.serviceHub.provide(
         "atom.directory-provider", "0.1.0", directoryProvider)
 
-      expect(atom.project.directoryProviders.length).toBe 2
-      expect(atom.project.directoryProviders[0]).toBe directoryProvider
-
       tmp = temp.mkdirSync()
       atom.project.setPaths([tmp, remotePath])
       directories = atom.project.getDirectories()
@@ -74,9 +71,6 @@ describe "Project", ->
         directoryForURI: (uri) -> throw new Error("This should not be called.")
       atom.packages.serviceHub.provide(
         "atom.directory-provider", "0.1.0", directoryProvider)
-
-      expect(atom.project.directoryProviders.length).toBe 2
-      expect(atom.project.directoryProviders[0]).toBe directoryProvider
 
       tmp = temp.mkdirSync()
       atom.project.setPaths([tmp])
