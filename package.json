@@ -94,7 +94,7 @@
     "encoding-selector": "0.18.0",
     "exception-reporting": "0.24.0",
     "find-and-replace": "0.157.0",
-    "fuzzy-finder": "0.67.0",
+    "fuzzy-finder": "0.68.0",
     "git-diff": "0.52.0",
     "go-to-line": "0.30.0",
     "grammar-selector": "0.45.0",
