@@ -1,12 +1,12 @@
 # Upgrading Your Package
 
-Atom is rapidly approaching 1.0. Much of the effort leading up to the 1.0 has been cleaning up APIs in an attempt to future proof, and make a more pleasant experience developing packages.
+Atom is rapidly approaching 1.0. Much of the effort leading up to the 1.0 has been cleaning up APIs in an attempt to make developing packages future-proof and a more pleasant experience.
 
 This document will guide you through the large bits of upgrading your package to work with 1.0 APIs.
 
 ## TL;DR
 
-We've set deprecation messages and errors in strategic places to help make sure you don't miss anything. You should be able to get 95% of the way to an updated package just by fixing errors and deprecations. There are a couple of things you can do to get the full effect of all the errors and deprecations.
+We've set up deprecation messages and errors in strategic places to help make sure you don't miss anything. You should be able to get 95% of the way to an updated package just by fixing errors and deprecations. There are a couple of things you can do to gain visibility of all the errors and deprecations.
 
 ### Use atom-space-pen-views
 
@@ -44,7 +44,7 @@ So this:
 {$, TextEditorView, View, GitRepository} = require 'atom'
 ```
 
-Would be replaced by this:
+would be replaced by this:
 
 ```coffee
 # New way
@@ -84,7 +84,7 @@ Just run your specs, and all the deprecations will be displayed in yellow.
 
 ### Deprecation Cop
 
-Run an atom window in dev mode (`atom -d`) with your package loaded, and open Deprecation Cop (search for `deprecation` in the command palette). Deprecated methods will be appear in Deprecation Cop only after they have been called.
+Run an atom window in dev mode (`atom -d`) with your package loaded, and open Deprecation Cop (search for `deprecation` in the command palette). Deprecated methods will appear in Deprecation Cop only *after* they have been called.
 
 ![dep-cop](https://cloud.githubusercontent.com/assets/69169/5637914/6e702fa2-95b5-11e4-92cc-a236ddacee21.png)
 
@@ -160,7 +160,7 @@ The `afterAttach` and `beforeRemove` hooks have been replaced with
 
 `afterAttach` was called whenever the node was attached to another DOM node, even if that parent node wasn't present in the DOM. `afterAttach` also was called with a boolean indicating whether or not the element and its parents were on the DOM. Now the `attached` hook is _only_ called when the node and all of its parents are actually on the DOM, and is not called with a boolean.
 
-`beforeRemove` was only called when `$.fn.remove` was called, which was typically used when the node was completely removed from the DOM. The new `detached` hook is called whenever the DOM node is _detached_, which could happen if the node is being detached for reattachment later. In short, if `beforeRemove` is called the node is never coming back. With `detached` it might be attached again later.
+`beforeRemove` was only called when `$.fn.remove` was called, which was typically used when the node was being completely removed from the DOM. The new `detached` hook is called whenever the DOM node is _detached_, which could happen if the node is being detached for reattachment later. In short, if `beforeRemove` is called the node is never coming back. With `detached` it might be attached again later.
 
 ```coffee
 # Old way
@@ -198,6 +198,7 @@ All of the atom-specific methods available on the `TextEditorView` have been mov
 The `ScrollView` has very minor changes.
 
 You can no longer use `@off` to remove default behavior for `core:move-up`, `core:move-down`, etc.
+Instead, _dispose_ of it:
 
 ```coffee
 # Old way to turn off default behavior
@@ -258,9 +259,9 @@ class CommandPaletteView extends SelectListView
     @cancel()
 ```
 
-This attaches and detaches itself from the dom when toggled, canceling magically detaches it from the DOM, and it uses the classes `overlay` and `from-top`.
+This attaches and detaches itself from the DOM when toggled, cancelling magically detaches it from the DOM, and it uses the classes `overlay` and `from-top`.
 
-The new SelectListView no longer automatically detaches itself from the DOM when cancelled. It's up to you to implement whatever cancel beahavior you want. Using the new APIs to mimic the sematics of the old class, it should look like this:
+The new SelectListView no longer automatically detaches itself from the DOM when cancelled. It's up to you to implement whatever cancel behavior you want. Using the new APIs to mimic the semantics of the old class, it should look like this:
 
 ```coffee
 # New!
@@ -324,7 +325,7 @@ div = document.createElement('div')
 atom.workspace.addTopPanel(item: div)
 ```
 
-For actions that still require the view, such as dispatching commands or munging css classes, you'll access the view via the `atom.views.getView()` method. This will return a subclass of `HTMLElement` rather than a jQuery object or an instance of a deprecated view class (e.g. `WorkspaceView`).
+For actions that still require the view, such as dispatching commands or munging CSS classes, you'll access the view via the `atom.views.getView()` method. This will return a subclass of `HTMLElement` rather than a jQuery object or an instance of a deprecated view class (e.g. `WorkspaceView`).
 
 ```coffee
 # Old!
