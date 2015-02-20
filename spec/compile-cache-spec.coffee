@@ -22,7 +22,7 @@ describe "Compile Cache", ->
       expect(CoffeeCache.addPathToCache.callCount).toBe 1
       expect(babel.addPathToCache.callCount).toBe 0
 
-      CompileCache.addPathToCache(path.join(__dirname, 'fixtures', 'babel', 'double-quotes.js'))
+      CompileCache.addPathToCache(path.join(__dirname, 'fixtures', 'babel', 'babel-double-quotes.js'))
       expect(CSON.readFileSync.callCount).toBe 1
       expect(CoffeeCache.addPathToCache.callCount).toBe 1
       expect(babel.addPathToCache.callCount).toBe 1
