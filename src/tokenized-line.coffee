@@ -17,8 +17,8 @@ class TokenizedLine
     @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
     @bufferDelta = @buildBufferDelta()
-    @softWrapIndentTokens = @getSoftWrapIndentTokens()
-    @softWrapIndentDelta = @buildSoftWrapIndentDelta()
+    @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
+    @softWrapIndentationDelta = @buildSoftWrapIndentationDelta()
 
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
@@ -51,7 +51,7 @@ class TokenizedLine
       tokenStartColumn += token.screenDelta
 
     if @isColumnInsideSoftWrapIndentation(tokenStartColumn)
-      @softWrapIndentDelta
+      @softWrapIndentationDelta
     else if token.isAtomic and tokenStartColumn < column
       if skipAtomicTokens
         tokenStartColumn + token.screenDelta
@@ -124,7 +124,7 @@ class TokenizedLine
       leftTokens.push nextToken
 
     indentTokens = [0...@indentLevel].map =>
-      leftTokens[0].buildSoftWrapIndentToken(@tabLength)
+      leftTokens[0].buildSoftWrapIndentationToken(@tabLength)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
@@ -150,23 +150,23 @@ class TokenizedLine
     @lineEnding is null
 
   isColumnOutsideSoftWrapIndentation: (column) ->
-    return true if @softWrapIndentTokens.length == 0
+    return true if @softWrapIndentationTokens.length == 0
 
-    column > @softWrapIndentDelta
+    column > @softWrapIndentationDelta
 
   isColumnInsideSoftWrapIndentation: (column) ->
-    return false if @softWrapIndentTokens.length == 0
+    return false if @softWrapIndentationTokens.length == 0
 
-    column < @softWrapIndentDelta
+    column < @softWrapIndentationDelta
 
-  getSoftWrapIndentTokens: ->
-    _.select(@tokens, (token) -> token.isSoftWrapIndent)
+  getSoftWrapIndentationTokens: ->
+    _.select(@tokens, (token) -> token.isSoftWrapIndentation)
 
-  buildSoftWrapIndentDelta: ->
-    _.reduce @softWrapIndentTokens, ((acc, token) -> acc + token.screenDelta), 0
+  buildSoftWrapIndentationDelta: ->
+    _.reduce @softWrapIndentationTokens, ((acc, token) -> acc + token.screenDelta), 0
 
   hasOnlySoftWrapIndentation: ->
-    @tokens.length == @softWrapIndentTokens.length
+    @tokens.length == @softWrapIndentationTokens.length
 
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
@@ -222,7 +222,7 @@ class TokenizedLine
           changedText = true
       else
         if invisibles.space
-          if token.hasLeadingWhitespace() and not token.isSoftWrapIndent
+          if token.hasLeadingWhitespace() and not token.isSoftWrapIndentation
             token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
             token.hasInvisibleCharacters = true

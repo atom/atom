@@ -819,7 +819,7 @@ class DisplayBuffer extends Model
   # options - A hash with the following values:
   #           wrapBeyondNewlines: if `true`, continues wrapping past newlines
   #           wrapAtSoftNewlines: if `true`, continues wrapping past soft newlines
-  #           skipSoftWrapIndentation: if `true`, skips soft wrap indentation
+  #           skipSoftWrapIndentation: if `true`, skips soft wrap indentation without wrapping to the previous line
   #           screenLine: if `true`, indicates that you're using a line number, not a row number
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.

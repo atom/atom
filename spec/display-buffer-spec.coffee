@@ -116,9 +116,9 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[1].isHardTab).toBeTruthy()
 
       describe "when a line is wrapped", ->
-        it "correctly tokenizes soft wrap indent tokens", ->
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndent).toBeTruthy()
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndent).toBeTruthy()
+        it "correctly tokenizes soft wrap indentation tokens", ->
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
@@ -616,13 +616,13 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([3, 5], wrapBeyondNewlines: true)).toEqual [4, 0]
 
     describe "when skipSoftWrapIndentation is false (the default)", ->
-      it "clips positions to the beginning of the line", ->
+      it "wraps positions at the end of previous soft-wrapped line", ->
         expect(displayBuffer.clipScreenPosition([4, 0])).toEqual [3, 50]
         expect(displayBuffer.clipScreenPosition([4, 1])).toEqual [3, 50]
         expect(displayBuffer.clipScreenPosition([4, 3])).toEqual [3, 50]
 
     describe "when skipSoftWrapIndentation is true", ->
-      it "wraps positions at the end of previous soft-wrapped line", ->
+      it "clips positions to the beginning of the line", ->
         expect(displayBuffer.clipScreenPosition([4, 0], skipSoftWrapIndentation: true)).toEqual [4, 4]
         expect(displayBuffer.clipScreenPosition([4, 1], skipSoftWrapIndentation: true)).toEqual [4, 4]
         expect(displayBuffer.clipScreenPosition([4, 3], skipSoftWrapIndentation: true)).toEqual [4, 4]

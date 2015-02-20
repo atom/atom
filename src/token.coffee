@@ -21,7 +21,7 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndent}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndentation}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
@@ -144,13 +144,13 @@ class Token
       isHardTab: isHardTab
     )
 
-  buildSoftWrapIndentToken: (length) ->
+  buildSoftWrapIndentationToken: (length) ->
     new Token(
       value: _.multiplyString(" ", length),
       scopes: @scopes,
       bufferDelta: 0,
       isAtomic: true,
-      isSoftWrapIndent: true
+      isSoftWrapIndentation: true
     )
 
   isOnlyWhitespace: ->
