@@ -1,69 +1,74 @@
-React = require 'react-atom-fork'
-{div} = require 'reactionary-atom-fork'
-{extend, isEqualForProperties} = require 'underscore-plus'
-
 module.exports =
-ScrollbarComponent = React.createClass
-  displayName: 'ScrollbarComponent'
+class ScrollbarComponent
+  constructor: ({@presenter, @orientation, @onScroll}) ->
+    @domNode = document.createElement('div')
+    @domNode.classList.add "#{@orientation}-scrollbar"
+    @domNode.style['-webkit-transform'] = 'translateZ(0)' # See atom/atom#3559
+    @domNode.style.left = 0 if @orientation is 'horizontal'
 
-  render: ->
-    {presenter, orientation, className, useHardwareAcceleration} = @props
+    @contentNode = document.createElement('div')
+    @contentNode.classList.add "scrollbar-content"
+    @domNode.appendChild(@contentNode)
 
-    switch orientation
+    @domNode.addEventListener 'scroll', @onScrollCallback
+
+    @updateSync()
+
+  updateSync: ->
+    @oldState ?= {}
+    switch @orientation
       when 'vertical'
-        @newState = presenter.state.verticalScrollbar
+        @newState = @presenter.state.verticalScrollbar
+        @updateVertical()
       when 'horizontal'
-        @newState = presenter.state.horizontalScrollbar
+        @newState = @presenter.state.horizontalScrollbar
+        @updateHorizontal()
 
-    style = {}
+    if @newState.visible isnt @oldState.visible
+      if @newState.visible
+        @domNode.style.display = ''
+      else
+        @domNode.style.display = 'none'
+      @oldState.visible = @newState.visible
 
-    style.display = 'none' unless @newState.visible
-    style.transform = 'translateZ(0)' if useHardwareAcceleration # See atom/atom#3559
-    switch orientation
+  updateVertical: ->
+    if @newState.width isnt @oldState.width
+      @domNode.style.width = @newState.width + 'px'
+      @oldState.width = @newState.width
+
+    if @newState.bottom isnt @oldState.bottom
+      @domNode.style.bottom = @newState.bottom + 'px'
+      @oldState.bottom = @newState.bottom
+
+    if @newState.scrollHeight isnt @oldState.scrollHeight
+      @contentNode.style.height = @newState.scrollHeight + 'px'
+      @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.scrollTop isnt @oldState.scrollTop
+      @domNode.scrollTop = @newState.scrollTop
+      @oldState.scrollTop = @newState.scrollTop
+
+  updateHorizontal: ->
+    if @newState.height isnt @oldState.height
+      @domNode.style.height = @newState.height + 'px'
+      @oldState.height = @newState.height
+
+    if @newState.right isnt @oldState.right
+      @domNode.style.right = @newState.right + 'px'
+      @oldState.right = @newState.right
+
+    if @newState.scrollWidth isnt @oldState.scrollWidth
+      @contentNode.style.width = @newState.scrollWidth + 'px'
+      @oldState.scrollWidth = @newState.scrollWidth
+
+    if @newState.scrollLeft isnt @oldState.scrollLeft
+      @domNode.scrollLeft = @newState.scrollLeft
+      @oldState.scrollLeft = @newState.scrollLeft
+
+
+  onScrollCallback: =>
+    switch @orientation
       when 'vertical'
-        style.width = @newState.width
-        style.bottom = @newState.bottom
+        @onScroll(@domNode.scrollTop)
       when 'horizontal'
-        style.left = 0
-        style.right = @newState.right
-        style.height = @newState.height
-
-    div {className, style},
-      switch orientation
-        when 'vertical'
-          div className: 'scrollbar-content', style: {height: @newState.scrollHeight}
-        when 'horizontal'
-          div className: 'scrollbar-content', style: {width: @newState.scrollWidth}
-
-  componentDidMount: ->
-    {orientation} = @props
-
-    unless orientation is 'vertical' or orientation is 'horizontal'
-      throw new Error("Must specify an orientation property of 'vertical' or 'horizontal'")
-
-    @getDOMNode().addEventListener 'scroll', @onScroll
-
-  componentWillUnmount: ->
-    @getDOMNode().removeEventListener 'scroll', @onScroll
-
-  componentDidUpdate: ->
-    {orientation} = @props
-    node = @getDOMNode()
-
-    switch orientation
-      when 'vertical'
-        node.scrollTop = @newState.scrollTop
-      when 'horizontal'
-        node.scrollLeft = @newState.scrollLeft
-
-  onScroll: ->
-    {orientation, onScroll} = @props
-    node = @getDOMNode()
-
-    switch orientation
-      when 'vertical'
-        scrollTop = node.scrollTop
-        onScroll(scrollTop)
-      when 'horizontal'
-        scrollLeft = node.scrollLeft
-        onScroll(scrollLeft)
+        @onScroll(@domNode.scrollLeft)

@@ -46,12 +46,12 @@ describe "TextEditorElement", ->
         jasmine.attachToDOM(element)
 
         component = element.component
-        expect(component.isMounted()).toBe true
+        expect(component.mounted).toBe true
         element.remove()
-        expect(component.isMounted()).toBe false
+        expect(component.mounted).toBe false
 
         jasmine.attachToDOM(element)
-        expect(element.component.isMounted()).toBe true
+        expect(element.component.mounted).toBe true
 
     describe "when the editor.useShadowDOM config option is false", ->
       it "mounts the react component and unmounts when removed from the dom", ->
@@ -61,9 +61,9 @@ describe "TextEditorElement", ->
         jasmine.attachToDOM(element)
 
         component = element.component
-        expect(component.isMounted()).toBe true
+        expect(component.mounted).toBe true
         element.getModel().destroy()
-        expect(component.isMounted()).toBe false
+        expect(component.mounted).toBe false
 
   describe "focus and blur handling", ->
     describe "when the editor.useShadowDOM config option is true", ->

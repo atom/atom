@@ -1,62 +1,47 @@
 _ = require 'underscore-plus'
-React = require 'react-atom-fork'
-{div} = require 'reactionary-atom-fork'
-{isEqual, isEqualForProperties, multiplyString, toArray} = _
-Decoration = require './decoration'
-SubscriberMixin = require './subscriber-mixin'
 
 WrapperDiv = document.createElement('div')
 
 module.exports =
-GutterComponent = React.createClass
-  displayName: 'GutterComponent'
-  mixins: [SubscriberMixin]
-
-  maxLineNumberDigits: null
+class GutterComponent
   dummyLineNumberNode: null
-  measuredWidth: null
 
-  render: ->
-    {presenter} = @props
-    @newState = presenter.state.gutter
-    @oldState ?= {lineNumbers: {}}
-
-    {scrollHeight, backgroundColor} = @newState
-
-    div className: 'gutter',
-      div className: 'line-numbers', ref: 'lineNumbers', style:
-        height: scrollHeight
-        WebkitTransform: @getTransform()
-        backgroundColor: backgroundColor
-
-  getTransform: ->
-    {useHardwareAcceleration} = @props
-    {scrollTop} = @newState
-
-    if useHardwareAcceleration
-      "translate3d(0px, #{-scrollTop}px, 0px)"
-    else
-      "translate(0px, #{-scrollTop}px)"
-
-  componentWillMount: ->
+  constructor: ({@presenter, @onMouseDown, @editor}) ->
     @lineNumberNodesById = {}
 
-  componentDidMount: ->
-    {@maxLineNumberDigits} = @newState
-    @appendDummyLineNumber()
-    @updateLineNumbers()
+    @domNode = document.createElement('div')
+    @domNode.classList.add('gutter')
+    @lineNumbersNode = document.createElement('div')
+    @lineNumbersNode.classList.add('line-numbers')
+    @domNode.appendChild(@lineNumbersNode)
 
-    node = @getDOMNode()
-    node.addEventListener 'click', @onClick
-    node.addEventListener 'mousedown', @onMouseDown
+    @domNode.addEventListener 'click', @onClick
+    @domNode.addEventListener 'mousedown', @onMouseDown
 
-  componentDidUpdate: (oldProps) ->
-    {maxLineNumberDigits} = @newState
-    unless maxLineNumberDigits is @maxLineNumberDigits
-      @maxLineNumberDigits = maxLineNumberDigits
+    @updateSync()
+
+  updateSync: ->
+    @newState = @presenter.state.gutter
+    @oldState ?= {lineNumbers: {}}
+
+    @appendDummyLineNumber() unless @dummyLineNumberNode?
+
+    if @newState.scrollHeight isnt @oldState.scrollHeight
+      @lineNumbersNode.style.height = @newState.scrollHeight + 'px'
+      @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.scrollTop isnt @oldState.scrollTop
+      @lineNumbersNode.style['-webkit-transform'] = "translate3d(0px, #{-@newState.scrollTop}px, 0px)"
+      @oldState.scrollTop = @newState.scrollTop
+
+    if @newState.backgroundColor isnt @oldState.backgroundColor
+      @lineNumbersNode.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
+
+    if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
       node.remove() for id, node of @lineNumberNodesById
-      @oldState = {lineNumbers: {}}
+      @oldState = {maxLineNumberDigits: @newState.maxLineNumberDigits, lineNumbers: {}}
       @lineNumberNodesById = {}
 
     @updateLineNumbers()
@@ -66,7 +51,7 @@ GutterComponent = React.createClass
   appendDummyLineNumber: ->
     WrapperDiv.innerHTML = @buildLineNumberHTML({bufferRow: -1})
     @dummyLineNumberNode = WrapperDiv.children[0]
-    @refs.lineNumbers.getDOMNode().appendChild(@dummyLineNumberNode)
+    @lineNumbersNode.appendChild(@dummyLineNumberNode)
 
   updateDummyLineNumber: ->
     @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false)
@@ -87,9 +72,9 @@ GutterComponent = React.createClass
 
     if newLineNumberIds?
       WrapperDiv.innerHTML = newLineNumbersHTML
-      newLineNumberNodes = toArray(WrapperDiv.children)
+      newLineNumberNodes = _.toArray(WrapperDiv.children)
 
-      node = @refs.lineNumbers.getDOMNode()
+      node = @lineNumbersNode
       for id, i in newLineNumberIds
         lineNumberNode = newLineNumberNodes[i]
         @lineNumberNodesById[id] = lineNumberNode
@@ -120,7 +105,7 @@ GutterComponent = React.createClass
     else
       lineNumber = (bufferRow + 1).toString()
 
-    padding = multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
+    padding = _.multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
     iconHTML = '<div class="icon-right"></div>'
     padding + lineNumber + iconHTML
 
@@ -151,21 +136,20 @@ GutterComponent = React.createClass
         return @lineNumberNodesById[id]
     null
 
-  onMouseDown: (event) ->
+  onMouseDown: (event) =>
     {target} = event
     lineNumber = target.parentNode
 
     unless target.classList.contains('icon-right') and lineNumber.classList.contains('foldable')
-      @props.onMouseDown(event)
+      @onMouseDown(event)
 
-  onClick: (event) ->
-    {editor} = @props
+  onClick: (event) =>
     {target} = event
     lineNumber = target.parentNode
 
     if target.classList.contains('icon-right') and lineNumber.classList.contains('foldable')
       bufferRow = parseInt(lineNumber.getAttribute('data-buffer-row'))
       if lineNumber.classList.contains('folded')
-        editor.unfoldBufferRow(bufferRow)
+        @editor.unfoldBufferRow(bufferRow)
       else
-        editor.foldBufferRow(bufferRow)
+        @editor.foldBufferRow(bufferRow)

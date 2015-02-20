@@ -82,6 +82,7 @@ beforeEach ->
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
+  atom.views.clearDocumentRequests()
 
   atom.workspaceViewParentSelector = '#jasmine-content'
 
