@@ -129,12 +129,13 @@ describe "ViewRegistry", ->
       registry.readDocument -> events.push('read')
 
       advanceClock(registry.documentPollingInterval)
+      expect(events).toEqual []
 
       frameRequests[0]()
-      expect(events).toEqual ['write', 'read']
+      expect(events).toEqual ['write', 'read', 'poll']
 
       advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['write', 'read', 'poll']
+      expect(events).toEqual ['write', 'read', 'poll', 'poll']
 
   describe "::pollDocument(fn)", ->
     it "calls all registered reader functions on an interval until they are disabled via a returned disposable", ->

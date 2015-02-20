@@ -2473,7 +2473,8 @@ describe "TextEditorComponent", ->
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
       advanceClock(atom.views.documentPollingInterval)
-      nextAnimationFrame()
+      nextAnimationFrame() # won't poll until cursor blinks
+      nextAnimationFrame() # handle update requested by poll
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
     it "accounts for the scroll view's padding when determining the wrap location", ->
