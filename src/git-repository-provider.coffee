@@ -51,6 +51,14 @@ class GitRepositoryProvider
   # * {GitRepository} if the given directory has a Git repository.
   # * `null` if the given directory does not have a Git repository.
   repositoryForDirectorySync: (directory) ->
+    # Ensure that this method does not throw.
+    try
+      @repositoryForDirectorySyncInternal(directory)
+    catch e
+      # TODO: Log error.
+      null
+
+  repositoryForDirectorySyncInternal: (directory) ->
     # Only one GitRepository should be created for each .git folder. Therefore,
     # we must check directory and its parent directories to find the nearest
     # .git folder.
