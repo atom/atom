@@ -64,18 +64,16 @@ function bootstrap() {
 
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
-  var apmInstallCommand = npmPath + npmFlags + 'install';
+  var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
-  var dedupeNpmCommand = npmPath + npmFlags + 'dedupe';
 
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
     apmInstallCommand    += ' --loglevel error';
     moduleInstallCommand += ' --loglevel error';
     dedupeApmCommand     += ' --quiet';
-    dedupeNpmCommand     += ' --quiet';
     buildInstallOptions.ignoreStdout = true;
     apmInstallOptions.ignoreStdout = true;
   }
@@ -99,12 +97,6 @@ function bootstrap() {
     apmPath + ' clean' + apmFlags,
     moduleInstallCommand,
     dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
-    {
-      command: dedupeNpmCommand + ' request semver',
-      options: {
-        cwd: path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager')
-      }
-    },
   ];
 
   process.chdir(path.dirname(__dirname));

@@ -46,7 +46,7 @@ describe "TextEditorComponent", ->
 
       lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()
-      componentNode = component.getDOMNode()
+      componentNode = component.domNode
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
@@ -193,7 +193,8 @@ describe "TextEditorComponent", ->
       expect(linesNode.style.backgroundColor).toBe backgroundColor
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      advanceClock(component.domPollingInterval)
+
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
@@ -466,11 +467,6 @@ describe "TextEditorComponent", ->
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
   describe "gutter rendering", ->
-    [gutter] = []
-
-    beforeEach ->
-      {gutter} = component.refs
-
     it "renders the currently-visible line numbers", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
@@ -567,32 +563,32 @@ describe "TextEditorComponent", ->
 
       # favor gutter color if it's assigned
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
     it "hides or shows the gutter based on the '::isGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
-      expect(component.refs.gutter?).toBe true
+      expect(component.gutterComponent?).toBe true
 
       editor.setGutterVisible(false)
       nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe false
+      expect(componentNode.querySelector('.gutter')).toBeNull()
 
       atom.config.set("editor.showLineNumbers", false)
-      expect(nextAnimationFrame).toBe noAnimationFrame
+      nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe false
+      expect(componentNode.querySelector('.gutter')).toBeNull()
 
       editor.setGutterVisible(true)
-      expect(nextAnimationFrame).toBe noAnimationFrame
+      nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe false
+      expect(componentNode.querySelector('.gutter')).toBeNull()
 
       atom.config.set("editor.showLineNumbers", true)
       nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe true
+      expect(componentNode.querySelector('.gutter')).toBeDefined()
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
 
     describe "fold decorations", ->
@@ -706,13 +702,13 @@ describe "TextEditorComponent", ->
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
-      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
-      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
 
       wrapperView.on 'cursor:moved', cursorMovedListener = jasmine.createSpy('cursorMovedListener')
       cursor3.setScreenPosition([4, 11], autoscroll: false)
       nextAnimationFrame()
-      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
       expect(cursorMovedListener).toHaveBeenCalled()
 
       cursor3.destroy()
@@ -800,11 +796,11 @@ describe "TextEditorComponent", ->
 
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
@@ -813,8 +809,8 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      advanceClock(component.props.cursorBlinkResumeDelay)
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkResumeDelay)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
@@ -1501,12 +1497,14 @@ describe "TextEditorComponent", ->
       expect(inputNode.offsetLeft).toBe 0
 
       # In bounds and focused
-      inputNode.focus() # updates via state change
+      wrapperNode.focus() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - editor.getScrollTop()
       expect(inputNode.offsetLeft).toBe (4 * charWidth) - editor.getScrollLeft()
 
       # In bounds, not focused
       inputNode.blur() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
@@ -1518,6 +1516,7 @@ describe "TextEditorComponent", ->
 
       # Out of bounds, focused
       inputNode.focus() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
@@ -1839,9 +1838,11 @@ describe "TextEditorComponent", ->
     it "adds the 'is-focused' class to the editor when the hidden input is focused", ->
       expect(document.activeElement).toBe document.body
       inputNode.focus()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe true
       expect(wrapperView.hasClass('is-focused')).toBe true
       inputNode.blur()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe false
       expect(wrapperView.hasClass('is-focused')).toBe false
 
@@ -2351,11 +2352,11 @@ describe "TextEditorComponent", ->
         wrapperView.appendTo(hiddenParent)
 
         {component} = wrapperView
-        componentNode = component.getDOMNode()
+        componentNode = component.domNode
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
         hiddenParent.style.display = 'block'
-        advanceClock(component.domPollingInterval)
+        advanceClock(atom.views.documentPollingInterval)
 
         expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan 0
 
@@ -2465,14 +2466,15 @@ describe "TextEditorComponent", ->
       expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
 
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(componentNode.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
-      advanceClock(component.domPollingInterval)
-      nextAnimationFrame()
+      advanceClock(atom.views.documentPollingInterval)
+      nextAnimationFrame() # won't poll until cursor blinks
+      nextAnimationFrame() # handle update requested by poll
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
     it "accounts for the scroll view's padding when determining the wrap location", ->
@@ -2480,7 +2482,7 @@ describe "TextEditorComponent", ->
       scrollViewNode.style.paddingLeft = 20 + 'px'
       componentNode.style.width = 30 * charWidth + 'px'
 
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
 
       expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "
@@ -2558,7 +2560,7 @@ describe "TextEditorComponent", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
     it "does not have an opaque background on lines", ->
-      expect(component.refs.lines.getDOMNode().getAttribute('style')).not.toContain 'background-color'
+      expect(component.linesComponent.domNode.getAttribute('style')).not.toContain 'background-color'
 
     it "does not render invisible characters", ->
       atom.config.set('editor.invisibles', eol: 'E')

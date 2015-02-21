@@ -3,16 +3,14 @@ class OverlayManager
   constructor: (@container) ->
     @overlayNodesById = {}
 
-  render: (props) ->
-    {presenter} = props
-
+  render: (presenter) ->
     for decorationId, {pixelPosition, item} of presenter.state.content.overlays
       @renderOverlay(presenter, decorationId, item, pixelPosition)
 
     for id, overlayNode of @overlayNodesById
       unless presenter.state.content.overlays.hasOwnProperty(id)
-        overlayNode.remove()
         delete @overlayNodesById[id]
+        overlayNode.remove()
 
     return
 

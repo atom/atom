@@ -1,5 +1,5 @@
 ###
-Cache for source code transpiled by 6to5.
+Cache for source code transpiled by Babel.
 
 Inspired by https://github.com/atom/atom/blob/6b963a562f8d495fbebe6abdbafbc7caf705f2c3/src/coffee-cache.coffee.
 ###
@@ -7,7 +7,7 @@ Inspired by https://github.com/atom/atom/blob/6b963a562f8d495fbebe6abdbafbc7caf7
 crypto = require 'crypto'
 fs = require 'fs-plus'
 path = require 'path'
-to5 = null # Defer until used
+babel = null # Defer until used
 
 stats =
   hits: 0
@@ -17,11 +17,6 @@ defaultOptions =
   # The Chrome dev tools will show the original version of the file
   # when the source map is inlined.
   sourceMap: 'inline'
-
-  # Because Atom is currently packaged with a fork of React v0.11,
-  # it makes sense to use the --react-compat option so the React
-  # JSX transformer produces pre-v0.12 code.
-  reactCompat: true
 
   # Blacklisted features do not get transpiled. Features that are
   # natively supported in the target environment should be listed
@@ -33,13 +28,18 @@ defaultOptions =
   ]
 
   # Includes support for es7 features listed at:
-  # http://6to5.org/docs/usage/transformers/#es7-experimental-.
+  # http://babeljs.io/docs/usage/transformers/#es7-experimental-.
   experimental: true
 
   optional: [
     # Target a version of the regenerator runtime that
     # supports yield so the transpiled code is cleaner/smaller.
     'asyncToGenerator'
+
+    # Because Atom is currently packaged with a fork of React v0.11,
+    # it makes sense to use the reactCompat transform so the React
+    # JSX transformer produces pre-v0.12 code.
+    'reactCompat'
   ]
 
 ###
@@ -79,10 +79,10 @@ updateDigestForJsonValue = (shasum, value) ->
       shasum.update(',', 'utf8')
     shasum.update('}', 'utf8')
 
-create6to5VersionAndOptionsDigest = (version, options) ->
+createBabelVersionAndOptionsDigest = (version, options) ->
   shasum = crypto.createHash('sha1')
-  # Include the version of 6to5 in the hash.
-  shasum.update('6to5-core', 'utf8')
+  # Include the version of babel in the hash.
+  shasum.update('babel-core', 'utf8')
   shasum.update('\0', 'utf8')
   shasum.update(version, 'utf8')
   shasum.update('\0', 'utf8')
@@ -96,8 +96,8 @@ getCachePath = (sourceCode) ->
   digest = crypto.createHash('sha1').update(sourceCode, 'utf8').digest('hex')
 
   unless jsCacheDir?
-    to5Version = require('6to5-core/package.json').version
-    jsCacheDir = path.join(cacheDir, create6to5VersionAndOptionsDigest(to5Version, defaultOptions))
+    to5Version = require('babel-core/package.json').version
+    jsCacheDir = path.join(cacheDir, createBabelVersionAndOptionsDigest(to5Version, defaultOptions))
 
   path.join(jsCacheDir, "#{digest}.js")
 
@@ -109,7 +109,7 @@ getCachedJavaScript = (cachePath) ->
       return cachedJavaScript
   null
 
-# Returns the 6to5 options that should be used to transpile filePath.
+# Returns the babel options that should be used to transpile filePath.
 createOptions = (filePath) ->
   options = filename: filePath
   for key, value of defaultOptions
@@ -118,8 +118,8 @@ createOptions = (filePath) ->
 
 transpile = (sourceCode, filePath, cachePath) ->
   options = createOptions(filePath)
-  to5 ?= require '6to5-core'
-  js = to5.transform(sourceCode, options).code
+  babel ?= require 'babel-core'
+  js = babel.transform(sourceCode, options).code
   stats.misses++
 
   try
@@ -132,8 +132,10 @@ transpile = (sourceCode, filePath, cachePath) ->
 # either generated on the fly or pulled from cache.
 loadFile = (module, filePath) ->
   sourceCode = fs.readFileSync(filePath, 'utf8')
-  unless sourceCode.startsWith('"use 6to5"') or sourceCode.startsWith("'use 6to5'")
-    return module._compile(sourceCode, filePath)
+  return module._compile(sourceCode, filePath) unless sourceCode.startsWith('"use 6to5"') or
+    sourceCode.startsWith("'use 6to5'") or
+    sourceCode.startsWith('"use babel"') or
+    sourceCode.startsWith("'use babel'")
 
   cachePath = getCachePath(sourceCode)
   js = getCachedJavaScript(cachePath) ? transpile(sourceCode, filePath, cachePath)
@@ -158,7 +160,7 @@ module.exports =
   getCacheHits: -> stats.hits
 
   # Visible for testing.
-  create6to5VersionAndOptionsDigest: create6to5VersionAndOptionsDigest
+  createBabelVersionAndOptionsDigest: createBabelVersionAndOptionsDigest
 
   addPathToCache: (filePath) ->
     return if path.extname(filePath) isnt '.js'

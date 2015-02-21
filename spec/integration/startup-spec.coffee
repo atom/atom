@@ -86,7 +86,7 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(1, 5000)
 
     it "allows multiple project directories to be passed as separate arguments", ->
-      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+      runAtom [tempDirPath, otherTempDirPath, "--multi-folder"], {ATOM_HOME: AtomHome}, (client) ->
         client
           .waitForExist("atom-workspace", 5000)
           .then((exists) -> expect(exists).toBe true)
@@ -100,3 +100,51 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(1, 5000)
           .execute(-> atom.project.getPaths())
           .then(({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath]))
+
+    it "opens each path in its own window unless the --multi-folder flag is passed", ->
+      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+        projectPaths = []
+
+        client
+          .waitForWindowCount(2, 5000)
+          .windowHandles()
+          .then ({value: windowHandles}) ->
+            @window(windowHandles[0])
+              .execute(-> atom.project.getPaths())
+              .then ({value}) ->
+                expect(value).toHaveLength(1)
+                projectPaths.push(value[0])
+              .window(windowHandles[1])
+              .execute(-> atom.project.getPaths())
+              .then ({value}) ->
+                expect(value).toHaveLength(1)
+                projectPaths.push(value[0])
+              .then ->
+                expect(projectPaths.sort()).toEqual([tempDirPath, otherTempDirPath].sort())
+
+    it "opens the path in the current window if it doesn't have a project path yet", ->
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .startAnotherAtom([tempDirPath], ATOM_HOME: AtomHome)
+          .waitUntil((->
+            @title()
+              .then(({value}) -> value.indexOf(path.basename(tempDirPath)) >= 0)), 5000)
+          .waitForWindowCount(1, 5000)
+
+    it "always opens with a single untitled buffer when launched w/ no path", ->
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)
+
+      runAtom [], {ATOM_HOME: AtomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)
+
+          # Opening with no file paths always creates a new window, even if
+          # existing windows have no project paths.
+          .waitForNewWindow(->
+            @startAnotherAtom([], ATOM_HOME: AtomHome)
+          , 5000)

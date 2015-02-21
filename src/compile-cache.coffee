@@ -1,7 +1,7 @@
 path = require 'path'
 CSON = require 'season'
 CoffeeCache = require 'coffee-cash'
-to5 = require './6to5'
+babel = require './babel'
 
 # This file is required directly by apm so that files can be cached during
 # package install so that the first package load in Atom doesn't have to
@@ -15,7 +15,7 @@ exports.addPathToCache = (filePath, atomHome) ->
 
   CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'))
   CSON.setCacheDir(path.join(cacheDir, 'cson'))
-  to5.setCacheDirectory(path.join(cacheDir, 'js', '6to5'))
+  babel.setCacheDirectory(path.join(cacheDir, 'js', 'babel'))
 
   switch path.extname(filePath)
     when '.coffee'
@@ -23,4 +23,4 @@ exports.addPathToCache = (filePath, atomHome) ->
     when '.cson'
       CSON.readFileSync(filePath)
     when '.js'
-      to5.addPathToCache(filePath)
+      babel.addPathToCache(filePath)

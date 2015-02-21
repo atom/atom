@@ -1,6 +1,5 @@
 {Emitter} = require 'event-kit'
 {View, $, callRemoveHooks} = require 'space-pen'
-React = require 'react-atom-fork'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -61,7 +60,7 @@ class TextEditorElement extends HTMLElement
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
-    @mountComponent() unless @component?.isMounted()
+    @mountComponent() unless @component?
     @component.checkForVisibilityChange()
     if this is document.activeElement
       @focused()
@@ -105,7 +104,7 @@ class TextEditorElement extends HTMLElement
     ))
 
   mountComponent: ->
-    @componentDescriptor ?= TextEditorComponent(
+    @component = new TextEditorComponent(
       hostElement: this
       rootElement: @rootElement
       stylesElement: @stylesElement
@@ -113,27 +112,28 @@ class TextEditorElement extends HTMLElement
       lineOverdrawMargin: @lineOverdrawMargin
       useShadowDOM: @useShadowDOM
     )
-    @component = React.renderComponent(@componentDescriptor, @rootElement)
+    @rootElement.appendChild(@component.domNode)
 
     if @useShadowDOM
       @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
     else
-      inputNode = @component.refs.input.getDOMNode()
+      inputNode = @component.hiddenInputComponent.domNode
       inputNode.addEventListener 'focus', @focused.bind(this)
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
-    return unless @component?.isMounted()
     callRemoveHooks(this)
-    React.unmountComponentAtNode(@rootElement)
-    @component = null
+    if @component?
+      @component.destroy()
+      @component.domNode.remove()
+      @component = null
 
   focused: ->
     @component?.focused()
 
   blurred: (event) ->
     unless @useShadowDOM
-      if event.relatedTarget is @component?.refs.input?.getDOMNode()
+      if event.relatedTarget is @component.hiddenInputComponent.domNode
         event.stopImmediatePropagation()
         return
 

@@ -60,7 +60,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @version, @devMode, @safeMode, @socketPath} = options
+    {@resourcePath, @version, @devMode, @safeMode, @socketPath, @enableMultiFolderProject} = options
 
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
@@ -348,15 +348,24 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window}={}) ->
+    if pathsToOpen?.length > 1 and not @enableMultiFolderProject
+      for pathToOpen in pathsToOpen
+        @openPath({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, window})
+      return
+
     pathsToOpen = (fs.normalize(pathToOpen) for pathToOpen in pathsToOpen)
     locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
 
     unless pidToKillWhenClosed or newWindow
       existingWindow = @windowForPaths(pathsToOpen, devMode)
 
-    # Default to using the specified window or the last focused window
-    if pathsToOpen.every((pathToOpen) -> fs.statSyncNoException(pathToOpen).isFile?())
-      existingWindow ?= window ? @lastFocusedWindow
+      # Default to using the specified window or the last focused window
+      currentWindow = window ? @lastFocusedWindow
+      stats = (fs.statSyncNoException(pathToOpen) for pathToOpen in pathsToOpen)
+      existingWindow ?= currentWindow if (
+        stats.every((stat) -> stat.isFile?()) or
+        stats.some((stat) -> stat.isDirectory?()) and not currentWindow?.hasProjectPath()
+      )
 
     if existingWindow?
       openedWindow = existingWindow

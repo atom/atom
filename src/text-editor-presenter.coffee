@@ -14,7 +14,7 @@ class TextEditorPresenter
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
 
@@ -56,13 +56,18 @@ class TextEditorPresenter
       @updateLinesState()
       @updateGutterState()
       @updateLineNumbersState()
-    @disposables.add @model.onDidChangeGrammar(@updateContentState.bind(this))
+    @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
+      @updateScrollbarDimensions()
+      @updateScrollbarsState()
       @updateContentState()
       @updateDecorations()
       @updateLinesState()
+      @updateGutterState()
       @updateLineNumbersState()
+    @disposables.add @model.onDidChangeGutterVisible =>
+      @updateGutterState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
@@ -71,19 +76,41 @@ class TextEditorPresenter
     @observeCursor(cursor) for cursor in @model.getCursors()
 
   observeConfig: ->
-    @scrollPastEnd = atom.config.get('editor.scrollPastEnd')
+    configParams = {scope: @model.getRootScopeDescriptor()}
 
-    @disposables.add atom.config.onDidChange 'editor.showIndentGuide', scope: @model.getRootScopeDescriptor(), @updateContentState.bind(this)
-    @disposables.add atom.config.onDidChange 'editor.scrollPastEnd', scope: @model.getRootScopeDescriptor(), ({newValue}) =>
+    @scrollPastEnd = atom.config.get('editor.scrollPastEnd', configParams)
+    @showLineNumbers = atom.config.get('editor.showLineNumbers', configParams)
+    @showIndentGuide = atom.config.get('editor.showIndentGuide', configParams)
+
+    if @configDisposables?
+      @configDisposables?.dispose()
+      @disposables.remove(@configDisposables)
+
+    @configDisposables = new CompositeDisposable
+    @disposables.add(@configDisposables)
+
+    @configDisposables.add atom.config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
+      @showIndentGuide = newValue
+      @updateContentState()
+    @configDisposables.add atom.config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
       @scrollPastEnd = newValue
       @updateScrollHeight()
       @updateVerticalScrollState()
       @updateScrollbarsState()
+    @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
+      @showLineNumbers = newValue
+      @updateGutterState()
+
+  didChangeGrammar: ->
+    @observeConfig()
+    @updateContentState()
+    @updateGutterState()
 
   buildState: ->
     @state =
       horizontalScrollbar: {}
       verticalScrollbar: {}
+      hiddenInput: {}
       content:
         scrollingVertically: false
         blinkCursorsOff: false
@@ -100,10 +127,12 @@ class TextEditorPresenter
     @updateStartRow()
     @updateEndRow()
 
+    @updateFocusedState()
     @updateHeightState()
     @updateVerticalScrollState()
     @updateHorizontalScrollState()
     @updateScrollbarsState()
+    @updateHiddenInputState()
     @updateContentState()
     @updateDecorations()
     @updateLinesState()
@@ -111,6 +140,9 @@ class TextEditorPresenter
     @updateOverlaysState()
     @updateGutterState()
     @updateLineNumbersState()
+
+  updateFocusedState: ->
+    @state.focused = @focused
 
   updateHeightState: ->
     if @autoHeight
@@ -151,10 +183,29 @@ class TextEditorPresenter
 
     @emitter.emit 'did-update-state'
 
+  updateHiddenInputState: ->
+    return unless lastCursor = @model.getLastCursor()
+
+    {top, left, height, width} = @pixelRectForScreenRange(lastCursor.getScreenRange())
+
+    if @focused
+      top -= @scrollTop
+      left -= @scrollLeft
+      @state.hiddenInput.top = Math.max(Math.min(top, @clientHeight - height), 0)
+      @state.hiddenInput.left = Math.max(Math.min(left, @clientWidth - width), 0)
+    else
+      @state.hiddenInput.top = 0
+      @state.hiddenInput.left = 0
+
+    @state.hiddenInput.height = height
+    @state.hiddenInput.width = Math.max(width, 2)
+
+    @emitter.emit 'did-update-state'
+
   updateContentState: ->
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
-    @state.content.indentGuidesVisible = not @model.isMini() and atom.config.get('editor.showIndentGuide', scope: @model.getRootScopeDescriptor())
+    @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
     @emitter.emit 'did-update-state'
@@ -242,6 +293,7 @@ class TextEditorPresenter
     @emitter.emit "did-update-state"
 
   updateGutterState: ->
+    @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
     @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
     @state.gutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
       @gutterBackgroundColor
@@ -330,14 +382,14 @@ class TextEditorPresenter
       @updateScrollTop()
 
   updateContentDimensions: ->
-    return unless @lineHeight? and @baseCharacterWidth?
+    if @lineHeight?
+      oldContentHeight = @contentHeight
+      @contentHeight = @lineHeight * @model.getScreenLineCount()
 
-    oldContentHeight = @contentHeight
-    @contentHeight = @lineHeight * @model.getScreenLineCount()
-
-    oldContentWidth = @contentWidth
-    @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-    @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+    if @baseCharacterWidth?
+      oldContentWidth = @contentWidth
+      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+      @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()
@@ -395,12 +447,14 @@ class TextEditorPresenter
     clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
     horizontalScrollbarVisible =
-      @contentWidth > clientWidthWithoutVerticalScrollbar or
-        @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar
+      not @model.isMini() and
+        (@contentWidth > clientWidthWithoutVerticalScrollbar or
+         @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar)
 
     verticalScrollbarVisible =
-      @contentHeight > clientHeightWithoutHorizontalScrollbar or
-        @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar
+      not @model.isMini() and
+        (@contentHeight > clientHeightWithoutHorizontalScrollbar or
+         @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar)
 
     horizontalScrollbarHeight =
       if horizontalScrollbarVisible
@@ -444,16 +498,23 @@ class TextEditorPresenter
 
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
 
+  setFocused: (focused) ->
+    unless @focused is focused
+      @focused = focused
+      @updateFocusedState()
+      @updateHiddenInputState()
+
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
 
-    unless @scrollTop is scrollTop
+    unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
       @updateStartRow()
       @updateEndRow()
       @didStartScrolling()
       @updateVerticalScrollState()
+      @updateHiddenInputState()
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
@@ -478,11 +539,12 @@ class TextEditorPresenter
 
   setScrollLeft: (scrollLeft) ->
     scrollLeft = @constrainScrollLeft(scrollLeft)
-    unless @scrollLeft is scrollLeft
+    unless @scrollLeft is scrollLeft or Number.isNaN(scrollLeft)
       oldScrollLeft = @scrollLeft
       @scrollLeft = scrollLeft
       @model.setScrollLeft(scrollLeft)
       @updateHorizontalScrollState()
+      @updateHiddenInputState()
       @updateCursorsState() unless oldScrollLeft?
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
@@ -493,6 +555,7 @@ class TextEditorPresenter
       @updateScrollbarDimensions()
       @updateScrollbarsState()
       @updateVerticalScrollState()
+      @updateHorizontalScrollState()
       @updateCursorsState() unless oldHorizontalScrollbarHeight?
 
   setVerticalScrollbarWidth: (verticalScrollbarWidth) ->
@@ -502,6 +565,7 @@ class TextEditorPresenter
       @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
       @updateScrollbarDimensions()
       @updateScrollbarsState()
+      @updateVerticalScrollState()
       @updateHorizontalScrollState()
       @updateCursorsState() unless oldVerticalScrollbarWidth?
 
@@ -567,7 +631,10 @@ class TextEditorPresenter
       @updateStartRow()
       @updateEndRow()
       @updateHeightState()
+      @updateHorizontalScrollState()
       @updateVerticalScrollState()
+      @updateScrollbarsState()
+      @updateHiddenInputState()
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState()
@@ -613,6 +680,9 @@ class TextEditorPresenter
     @updateContentDimensions()
 
     @updateHorizontalScrollState()
+    @updateVerticalScrollState()
+    @updateScrollbarsState()
+    @updateHiddenInputState()
     @updateContentState()
     @updateDecorations()
     @updateLinesState()
@@ -621,6 +691,7 @@ class TextEditorPresenter
 
   clearScopedCharacterWidths: ->
     @characterWidthsByScope = {}
+    @model.clearScopedCharWidths()
 
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
@@ -875,6 +946,7 @@ class TextEditorPresenter
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
+      @updateHiddenInputState() if cursor.isLastCursor()
       @pauseCursorBlinking()
       @updateCursorsState()
 
@@ -884,6 +956,7 @@ class TextEditorPresenter
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
+      @updateHiddenInputState()
       @updateCursorsState()
 
     @disposables.add(didChangePositionDisposable)
@@ -892,6 +965,7 @@ class TextEditorPresenter
 
   didAddCursor: (cursor) ->
     @observeCursor(cursor)
+    @updateHiddenInputState()
     @pauseCursorBlinking()
     @updateCursorsState()
 

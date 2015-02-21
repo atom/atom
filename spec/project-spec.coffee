@@ -13,6 +13,104 @@ describe "Project", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
 
+  describe "constructor", ->
+    it "enables a custom DirectoryProvider to supersede the DefaultDirectoryProvider", ->
+      remotePath = "ssh://foreign-directory:8080/"
+      class DummyDirectory
+        constructor: (@path) ->
+        getPath: -> @path
+        getFile: -> existsSync: -> false
+        getSubdirectory: -> existsSync: -> false
+        isRoot: -> true
+        off: ->
+        contains: (filePath) -> filePath.startsWith(remotePath)
+
+      directoryProvider =
+        directoryForURISync: (uri) ->
+          if uri.startsWith("ssh://")
+            new DummyDirectory(uri)
+          else
+            null
+        directoryForURI: (uri) -> throw new Error("This should not be called.")
+      atom.packages.serviceHub.provide(
+        "atom.directory-provider", "0.1.0", directoryProvider)
+
+      tmp = temp.mkdirSync()
+      atom.project.setPaths([tmp, remotePath])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 2
+
+      localDirectory = directories[0]
+      expect(localDirectory.getPath()).toBe tmp
+      expect(localDirectory instanceof Directory).toBe true
+
+      dummyDirectory = directories[1]
+      expect(dummyDirectory.getPath()).toBe remotePath
+      expect(dummyDirectory instanceof DummyDirectory).toBe true
+
+      expect(atom.project.getPaths()).toEqual([tmp, remotePath])
+
+      # Make sure that DummyDirectory.contains() is honored.
+      remotePathSubdirectory = remotePath + "a/subdirectory"
+      atom.project.addPath(remotePathSubdirectory)
+      expect(atom.project.getDirectories().length).toBe 2
+
+      # Make sure that a new DummyDirectory that is not contained by the first
+      # DummyDirectory can be added.
+      otherRemotePath = "ssh://other-foreign-directory:8080/"
+      atom.project.addPath(otherRemotePath)
+      newDirectories = atom.project.getDirectories()
+      expect(newDirectories.length).toBe 3
+      otherDummyDirectory = newDirectories[2]
+      expect(otherDummyDirectory.getPath()).toBe otherRemotePath
+      expect(otherDummyDirectory instanceof DummyDirectory).toBe true
+
+    it "uses the default directory provider if no custom provider can handle the URI", ->
+      directoryProvider =
+        directoryForURISync: (uri) -> null
+        directoryForURI: (uri) -> throw new Error("This should not be called.")
+      atom.packages.serviceHub.provide(
+        "atom.directory-provider", "0.1.0", directoryProvider)
+
+      tmp = temp.mkdirSync()
+      atom.project.setPaths([tmp])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 1
+      expect(directories[0].getPath()).toBe tmp
+
+    it "tries to update repositories when a new RepositoryProvider is registered", ->
+      tmp = temp.mkdirSync('atom-project')
+      atom.project.setPaths([tmp])
+      expect(atom.project.getRepositories()).toEqual [null]
+      expect(atom.project.repositoryProviders.length).toEqual 1
+
+      # Register a new RepositoryProvider.
+      dummyRepository = destroy: ->
+      repositoryProvider =
+        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
+        repositoryForDirectorySync: (directory) -> dummyRepository
+      atom.packages.serviceHub.provide(
+        "atom.repository-provider", "0.1.0", repositoryProvider)
+
+      expect(atom.project.repositoryProviders.length).toBe 2
+      expect(atom.project.getRepositories()).toEqual [dummyRepository]
+
+    it "does not update @repositories if every path has a Repository", ->
+      repositories = atom.project.getRepositories()
+      expect(repositories.length).toEqual 1
+      [repository] = repositories
+      expect(repository).toBeTruthy()
+
+      # Register a new RepositoryProvider.
+      dummyRepository = destroy: ->
+      repositoryProvider =
+        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
+        repositoryForDirectorySync: (directory) -> dummyRepository
+      atom.packages.serviceHub.provide(
+        "atom.repository-provider", "0.1.0", repositoryProvider)
+
+      expect(atom.project.getRepositories()).toBe repositories
+
   describe "serialization", ->
     deserializedProject = null
 
@@ -296,9 +394,43 @@ describe "Project", ->
         expect(atom.project.getPaths()).toEqual([oldPath])
         expect(onDidChangePathsSpy).not.toHaveBeenCalled()
 
+  describe ".removePath(path)", ->
+    onDidChangePathsSpy = null
+
+    beforeEach ->
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths listener')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+    it "removes the directory and repository for the path", ->
+      result = atom.project.removePath(atom.project.getPaths()[0])
+      expect(atom.project.getDirectories()).toEqual([])
+      expect(atom.project.getRepositories()).toEqual([])
+      expect(atom.project.getPaths()).toEqual([])
+      expect(result).toBe true
+      expect(onDidChangePathsSpy).toHaveBeenCalled()
+
+    it "does nothing if the path is not one of the project's root paths", ->
+      originalPaths = atom.project.getPaths()
+      result = atom.project.removePath(originalPaths[0] + "xyz")
+      expect(result).toBe false
+      expect(atom.project.getPaths()).toEqual(originalPaths)
+      expect(onDidChangePathsSpy).not.toHaveBeenCalled()
+
+    it "doesn't destroy the repository if it is shared by another root directory", ->
+      atom.project.setPaths([__dirname, path.join(__dirname, "..", "src")])
+      atom.project.removePath(__dirname)
+      expect(atom.project.getPaths()).toEqual([path.join(__dirname, "..", "src")])
+      expect(atom.project.getRepositories()[0].isSubmodule("src")).toBe false
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
+      atom.project.addPath(temp.mkdirSync("another-path"))
+
       rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
+
+      rootPath = atom.project.getPaths()[1]
       childPath = path.join(rootPath, "some", "child", "directory")
       expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
 

@@ -8,9 +8,9 @@ Q = require 'q'
 {Model} = require 'theorist'
 {Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
+DefaultDirectoryProvider = require './default-directory-provider'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
-{Directory} = require 'pathwatcher'
 Grim = require 'grim'
 
 TextEditor = require './text-editor'
@@ -41,6 +41,14 @@ class Project extends Model
     @rootDirectories = []
     @repositories = []
 
+    @directoryProviders = [new DefaultDirectoryProvider()]
+    atom.packages.serviceHub.consume(
+      'atom.directory-provider',
+      '^0.1.0',
+      # New providers are added to the front of @directoryProviders because
+      # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
+      (provider) => @directoryProviders.unshift(provider))
+
     # Mapping from the real path of a {Directory} to a {Promise} that resolves
     # to either a {Repository} or null. Ideally, the {Directory} would be used
     # as the key; however, there can be multiple {Directory} objects created for
@@ -53,7 +61,15 @@ class Project extends Model
     atom.packages.serviceHub.consume(
       'atom.repository-provider',
       '^0.1.0',
-      (provider) => @repositoryProviders.push(provider))
+      (provider) =>
+        @repositoryProviders.push(provider)
+
+        # If a path in getPaths() does not have a corresponding Repository, try
+        # to assign one by running through setPaths() again now that
+        # @repositoryProviders has been updated.
+        if null in @repositories
+          @setPaths(@getPaths())
+      )
 
     @subscribeToBuffer(buffer) for buffer in @buffers
 
@@ -151,7 +167,7 @@ class Project extends Model
 
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
-  getPaths: -> rootDirectory.path for rootDirectory in @rootDirectories
+  getPaths: -> rootDirectory.getPath() for rootDirectory in @rootDirectories
   getPath: ->
     Grim.deprecate("Use ::getPaths instead")
     @getPaths()[0]
@@ -174,22 +190,22 @@ class Project extends Model
     Grim.deprecate("Use ::setPaths instead")
     @setPaths([path])
 
-  # Public: Add a path the project's list of root paths
+  # Public: Add a path to the project's list of root paths
   #
   # * `projectPath` {String} The path to the directory to add.
   addPath: (projectPath, options) ->
-    projectPath = path.normalize(projectPath)
+    for directory in @getDirectories()
+      # Apparently a Directory does not believe it can contain itself, so we
+      # must also check whether the paths match.
+      return if directory.contains(projectPath) or directory.getPath() is projectPath
 
-    directoryPath = if fs.isDirectorySync(projectPath)
-      projectPath
-    else
-      path.dirname(projectPath)
-
-    return if @getPaths().some (existingPath) ->
-      (directoryPath is existingPath) or
-      (directoryPath.indexOf(path.join(existingPath, path.sep)) is 0)
-
-    directory = new Directory(directoryPath)
+    directory = null
+    for provider in @directoryProviders
+      break if directory = provider.directoryForURISync?(projectPath)
+    if directory is null
+      # This should never happen because DefaultDirectoryProvider should always
+      # return a Directory.
+      throw new Error(projectPath + ' could not be resolved to a directory')
     @rootDirectories.push(directory)
 
     repo = null
@@ -200,6 +216,29 @@ class Project extends Model
     unless options?.emitEvent is false
       @emit "path-changed"
       @emitter.emit 'did-change-paths', @getPaths()
+
+  # Public: remove a path from the project's list of root paths.
+  #
+  # * `projectPath` {String} The path to remove.
+  removePath: (projectPath) ->
+    projectPath = path.normalize(projectPath)
+
+    indexToRemove = null
+    for directory, i in @rootDirectories
+      if directory.getPath() is projectPath
+        indexToRemove = i
+        break
+
+    if indexToRemove?
+      [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
+      [removedRepository] = @repositories.splice(indexToRemove, 1)
+      removedDirectory.off()
+      removedRepository?.destroy() unless removedRepository in @repositories
+      @emit "path-changed"
+      @emitter.emit "did-change-paths", @getPaths()
+      true
+    else
+      false
 
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
@@ -233,8 +272,8 @@ class Project extends Model
   relativize: (fullPath) ->
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     for rootDirectory in @rootDirectories
-      if (relativePath = rootDirectory.relativize(fullPath))?
-        return relativePath
+      relativePath = rootDirectory.relativize(fullPath)
+      return relativePath if relativePath isnt fullPath
     fullPath
 
   # Public: Determines whether the given path (real or symbolic) is inside the

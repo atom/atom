@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 {fork} = require 'child_process'
 {Emitter} = require 'emissary'
+Grim = require 'grim'
 
 # Extended: Run a node script in a separate process.
 #
@@ -87,6 +88,9 @@ class Task
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
     @on "task:error", -> console.error(arguments...)
+    @on "task:deprecations", (deprecations) ->
+      Grim.addSerializedDeprecation(deprecation) for deprecation in deprecations
+      return
     @on "task:completed", (args...) => @callback?(args...)
 
     @handleEvents()

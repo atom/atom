@@ -96,7 +96,7 @@ class Atom extends Model
         filename = 'spec'
       when 'editor'
         {initialPaths} = @getLoadSettings()
-        if initialPaths
+        if initialPaths?.length > 0
           sha1 = crypto.createHash('sha1').update(initialPaths.join("\n")).digest('hex')
           filename = "editor-#{sha1}"
 
@@ -803,7 +803,7 @@ class Atom extends Model
   # require completes.
   #
   # * `id` The {String} module name or path.
-  # * `globals` An optinal {Object} to set as globals during require.
+  # * `globals` An optional {Object} to set as globals during require.
   requireWithGlobals: (id, globals={}) ->
     existingGlobals = {}
     for key, value of globals

@@ -76,12 +76,13 @@ beforeEach ->
   $.fx.off = true
   documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
+  atom.packages.serviceHub = new ServiceHub
   atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
-  atom.packages.serviceHub = new ServiceHub
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
+  atom.views.clearDocumentRequests()
 
   atom.workspaceViewParentSelector = '#jasmine-content'
 

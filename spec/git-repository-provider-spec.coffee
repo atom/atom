@@ -1,11 +1,12 @@
 path = require 'path'
+fs = require 'fs-plus'
+temp = require 'temp'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 GitRepositoryProvider = require '../src/git-repository-provider'
 
 describe "GitRepositoryProvider", ->
   describe ".repositoryForDirectory(directory)", ->
-
     describe "when specified a Directory with a Git repository", ->
       it "returns a Promise that resolves to a GitRepository", ->
         waitsForPromise ->
@@ -37,6 +38,19 @@ describe "GitRepositoryProvider", ->
       it "returns a Promise that resolves to null", ->
         waitsForPromise ->
           provider = new GitRepositoryProvider atom.project
-          directory = new Directory '/tmp'
+          directory = new Directory temp.mkdirSync('dir')
+          provider.repositoryForDirectory(directory).then (result) ->
+            expect(result).toBe null
+
+    describe "when specified a Directory with an invalid Git repository", ->
+      it "returns a Promise that resolves to null", ->
+        waitsForPromise ->
+          provider = new GitRepositoryProvider atom.project
+          dirPath = temp.mkdirSync('dir')
+          fs.writeFileSync(path.join(dirPath, '.git', 'objects'), '')
+          fs.writeFileSync(path.join(dirPath, '.git', 'HEAD'), '')
+          fs.writeFileSync(path.join(dirPath, '.git', 'refs'), '')
+
+          directory = new Directory dirPath
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBe null

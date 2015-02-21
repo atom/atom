@@ -7,7 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
   * [Git](http://git-scm.com/)
-  * [Node.js](http://nodejs.org/download/) v0.10.x
+  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x)
   * [npm](https://www.npmjs.com/) v1.4.x (bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
@@ -18,6 +18,9 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+  * Make sure the command `node` is available after Node.js installation (some sytems install it as `nodejs`).
+  * Use `which node` to check if it is available.
+  * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
 
 ### Fedora / CentOS / RHEL
 

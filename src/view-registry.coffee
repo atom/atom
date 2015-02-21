@@ -42,9 +42,17 @@ Grim = require 'grim'
 # ```
 module.exports =
 class ViewRegistry
+  documentPollingInterval: 200
+  documentUpdateRequested: false
+  performDocumentPollAfterUpdate: false
+  pollIntervalHandle: null
+
   constructor: ->
     @views = new WeakMap
     @providers = []
+    @documentWriters = []
+    @documentReaders = []
+    @documentPollers = []
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -150,3 +158,53 @@ class ViewRegistry
 
   findProvider: (object) ->
     find @providers, ({modelConstructor}) -> object instanceof modelConstructor
+
+  updateDocument: (fn) ->
+    @documentWriters.push(fn)
+    @requestDocumentUpdate()
+    new Disposable =>
+      @documentWriters = @documentWriters.filter (writer) -> writer isnt fn
+
+  readDocument: (fn) ->
+    @documentReaders.push(fn)
+    @requestDocumentUpdate()
+    new Disposable =>
+      @documentReaders = @documentReaders.filter (reader) -> reader isnt fn
+
+  pollDocument: (fn) ->
+    @startPollingDocument() if @documentPollers.length is 0
+    @documentPollers.push(fn)
+    new Disposable =>
+      @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
+      @stopPollingDocument() if @documentPollers.length is 0
+
+  clearDocumentRequests: ->
+    @documentReaders = []
+    @documentWriters = []
+    @documentPollers = []
+    @documentUpdateRequested = false
+
+  requestDocumentUpdate: ->
+    unless @documentUpdateRequested
+      @documentUpdateRequested = true
+      requestAnimationFrame(@performDocumentUpdate)
+
+  performDocumentUpdate: =>
+    @documentUpdateRequested = false
+    writer() while writer = @documentWriters.shift()
+    reader() while reader = @documentReaders.shift()
+    @performDocumentPoll() if @performDocumentPollAfterUpdate
+
+  startPollingDocument: ->
+    @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
+
+  stopPollingDocument: ->
+    window.clearInterval(@pollIntervalHandle)
+
+  performDocumentPoll: =>
+    if @documentUpdateRequested
+      @performDocumentPollAfterUpdate = true
+    else
+      @performDocumentPollAfterUpdate = false
+      poller() for poller in @documentPollers
+      return
