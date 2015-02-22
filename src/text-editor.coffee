@@ -2206,11 +2206,18 @@ class TextEditor extends Model
       result = fn()
       @suppressSelectionMerging = false
 
+    findIntersectingSelection = (elements, selection) ->
+      return if elements.length == 0
+
+      otherSelection = _.last(elements)
+      exclusive = not selection.isEmpty() and not otherSelection.isEmpty()
+      intersects = otherSelection.intersectsWith(selection, exclusive)
+
+      return otherSelection if intersects
+
+
     reducer = (disjointSelections, selection) ->
-      intersectingSelection = _.find disjointSelections, (otherSelection) ->
-        exclusive = not selection.isEmpty() and not otherSelection.isEmpty()
-        intersects = otherSelection.intersectsWith(selection, exclusive)
-        intersects
+      intersectingSelection = findIntersectingSelection(disjointSelections, selection)
 
       if intersectingSelection?
         intersectingSelection.merge(selection, options)
@@ -2218,7 +2225,7 @@ class TextEditor extends Model
       else
         disjointSelections.concat([selection])
 
-    _.reduce(@getSelections(), reducer, [])
+    _.reduce(@getSelectionsOrderedByBufferPosition(), reducer, [])
 
   # Add a {Selection} based on the given {Marker}.
   #
