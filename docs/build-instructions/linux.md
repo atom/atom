@@ -18,7 +18,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
-  * Make sure the command `node` is available after Node.js installation (some sytems install it as `nodejs`).
+  * Make sure the command `node` is available after Node.js installation (some systems install it as `nodejs`).
   * Use `which node` to check if it is available.
   * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
 
@@ -74,7 +74,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currenty, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb
@@ -123,7 +123,7 @@ and restart Atom.  If Atom now works fine, you can make this setting permanent:
   echo 32768 | sudo tee -a /proc/sys/fs/inotify/max_user_watches
   ```
 
-See also https://github.com/atom/atom/issues/2082.
+See also [#2082](https://github.com/atom/atom/issues/2082).
 
 ### /usr/bin/env: node: No such file or directory
 
