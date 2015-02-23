@@ -55,7 +55,7 @@ class GitRepositoryProvider
     try
       @repositoryForDirectorySyncInternal(directory)
     catch e
-      # TODO: Log error.
+      console.warn "Error checking for Git repository for '#{directory.getPath()}'", e.stack
       null
 
   repositoryForDirectorySyncInternal: (directory) ->
