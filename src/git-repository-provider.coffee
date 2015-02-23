@@ -26,9 +26,9 @@ isValidGitDirectorySync = (directory) ->
   # To decide whether a directory has a valid .git folder, we use
   # the heuristic adopted by the valid_repository_path() function defined in
   # node_modules/git-utils/deps/libgit2/src/repository.c.
-  return directory.getSubdirectory('objects').existsSync?() and
-      directory.getFile('HEAD').existsSync?() and
-      directory.getSubdirectory('refs').existsSync?()
+  return directory.getSubdirectory('objects').existsSync() and
+      directory.getFile('HEAD').existsSync() and
+      directory.getSubdirectory('refs').existsSync()
 
 # Provider that conforms to the atom.repository-provider@0.1.0 service.
 module.exports =
