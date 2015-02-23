@@ -11,7 +11,7 @@ findGitDirectorySync = (directory) ->
   # can return cached values rather than always returning new objects:
   # getParent(), getFile(), getSubdirectory().
   gitDir = directory.getSubdirectory('.git')
-  if gitDir.existsSync() and isValidGitDirectorySync gitDir
+  if gitDir.existsSync?() and isValidGitDirectorySync gitDir
     gitDir
   else if directory.isRoot()
     return null
@@ -26,9 +26,9 @@ isValidGitDirectorySync = (directory) ->
   # To decide whether a directory has a valid .git folder, we use
   # the heuristic adopted by the valid_repository_path() function defined in
   # node_modules/git-utils/deps/libgit2/src/repository.c.
-  return directory.getSubdirectory('objects').existsSync() and
-      directory.getFile('HEAD').existsSync() and
-      directory.getSubdirectory('refs').existsSync()
+  return directory.getSubdirectory('objects').existsSync?() and
+      directory.getFile('HEAD').existsSync?() and
+      directory.getSubdirectory('refs').existsSync?()
 
 # Provider that conforms to the atom.repository-provider@0.1.0 service.
 module.exports =
@@ -51,13 +51,6 @@ class GitRepositoryProvider
   # * {GitRepository} if the given directory has a Git repository.
   # * `null` if the given directory does not have a Git repository.
   repositoryForDirectorySync: (directory) ->
-    # Ensure that this method does not throw.
-    try
-      @repositoryForDirectorySyncInternal(directory)
-    catch e
-      null
-
-  repositoryForDirectorySyncInternal: (directory) ->
     # Only one GitRepository should be created for each .git folder. Therefore,
     # we must check directory and its parent directories to find the nearest
     # .git folder.

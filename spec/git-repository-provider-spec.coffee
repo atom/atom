@@ -55,14 +55,15 @@ describe "GitRepositoryProvider", ->
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBe null
 
-    describe "when specified a Directory that throws an exception when explored", ->
-      it "catches the exception and returns null for the sync implementation", ->
+    describe "when specified a Directory without existsSync()", ->
+      it "returns null", ->
         provider = new GitRepositoryProvider atom.project
 
-        # Tolerate an implementation of Directory whose sync methods are unsupported.
-        subdirectory = existsSync: ->
-        spyOn(subdirectory, "existsSync").andThrow("sync method not supported")
-        directory = getSubdirectory: ->
+        # Tolerate an implementation of Directory that does not implement existsSync().
+        subdirectory = {}
+        directory =
+          getSubdirectory: ->
+          isRoot: -> true
         spyOn(directory, "getSubdirectory").andReturn(subdirectory)
 
         provider = new GitRepositoryProvider atom.project
@@ -70,13 +71,14 @@ describe "GitRepositoryProvider", ->
         expect(repo).toBe null
         expect(directory.getSubdirectory).toHaveBeenCalledWith(".git")
 
-      it "catches the exception and returns a Promise that resolves to null for the async implementation", ->
+      it "returns a Promise that resolves to null for the async implementation", ->
         provider = new GitRepositoryProvider atom.project
 
         # Tolerate an implementation of Directory whose sync methods are unsupported.
-        subdirectory = existsSync: ->
-        spyOn(subdirectory, "existsSync").andThrow("sync method not supported")
-        directory = getSubdirectory: ->
+        subdirectory = {}
+        directory =
+          getSubdirectory: ->
+          isRoot: -> true
         spyOn(directory, "getSubdirectory").andReturn(subdirectory)
 
         waitsForPromise ->
