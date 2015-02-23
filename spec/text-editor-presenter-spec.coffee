@@ -839,6 +839,11 @@ describe "TextEditorPresenter", ->
           expect(presenter.state.content.lines[oldLine3.id]).toBeUndefined()
           expect(presenter.state.content.lines[newLine3.id]).toBeDefined()
 
+        it "does not attempt to preserve lines corresponding to ::mouseWheelScreenRow if they have been deleted", ->
+          presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+          presenter.setMouseWheelScreenRow(10)
+          editor.setText('')
+
         describe "[lineId]", -> # line state objects
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
