@@ -2207,18 +2207,18 @@ class TextEditor extends Model
       @suppressSelectionMerging = false
 
     reducer = (disjointSelections, selection) ->
-      intersectingSelection = _.find disjointSelections, (otherSelection) ->
-        exclusive = not selection.isEmpty() and not otherSelection.isEmpty()
-        intersects = otherSelection.intersectsWith(selection, exclusive)
-        intersects
+      adjacentSelection = _.last(disjointSelections)
+      exclusive = not selection.isEmpty() and not adjacentSelection.isEmpty()
+      intersects = adjacentSelection.intersectsWith(selection, exclusive)
 
-      if intersectingSelection?
-        intersectingSelection.merge(selection, options)
+      if intersects
+        adjacentSelection.merge(selection, options)
         disjointSelections
       else
         disjointSelections.concat([selection])
 
-    _.reduce(@getSelections(), reducer, [])
+    [head, tail...] = @getSelectionsOrderedByBufferPosition()
+    _.reduce(tail, reducer, [head])
 
   # Add a {Selection} based on the given {Marker}.
   #
