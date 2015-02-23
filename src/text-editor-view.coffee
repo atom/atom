@@ -1,5 +1,4 @@
 {View, $} = require 'space-pen'
-React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
@@ -185,9 +184,6 @@ class TextEditorView extends View
     view.css('position', 'absolute')
     view.css('z-index', 1)
     @overlayer.append(view)
-
-  unmountComponent: ->
-    React.unmountComponentAtNode(@element) if @component.isMounted()
 
   splitLeft: ->
     deprecate """
