@@ -34,8 +34,7 @@ class PackageManager
     @emitter = new Emitter
     @packageDirPaths = []
     unless safeMode
-      if @devMode
-        @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
+      @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 
     @loadedPackages = {}
