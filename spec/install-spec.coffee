@@ -296,3 +296,14 @@ describe 'apm install', ->
 
         runs ->
           expect(console.error.mostRecentCall.args[0].length).toBeGreaterThan 0
+
+    describe 'when --check is specified', ->
+      it 'compiles a sample native module', ->
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', '--check'], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(callback.mostRecentCall.args[0]).toBeUndefined()
