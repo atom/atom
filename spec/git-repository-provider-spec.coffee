@@ -56,7 +56,9 @@ describe "GitRepositoryProvider", ->
             expect(result).toBe null
 
     describe "when specified a Directory without existsSync()", ->
-      it "returns null", ->
+      directory = null
+      provider = null
+      beforeEach ->
         provider = new GitRepositoryProvider atom.project
 
         # Tolerate an implementation of Directory that does not implement existsSync().
@@ -66,23 +68,13 @@ describe "GitRepositoryProvider", ->
           isRoot: -> true
         spyOn(directory, "getSubdirectory").andReturn(subdirectory)
 
-        provider = new GitRepositoryProvider atom.project
+      it "returns null", ->
         repo = provider.repositoryForDirectorySync(directory)
         expect(repo).toBe null
         expect(directory.getSubdirectory).toHaveBeenCalledWith(".git")
 
       it "returns a Promise that resolves to null for the async implementation", ->
-        provider = new GitRepositoryProvider atom.project
-
-        # Tolerate an implementation of Directory whose sync methods are unsupported.
-        subdirectory = {}
-        directory =
-          getSubdirectory: ->
-          isRoot: -> true
-        spyOn(directory, "getSubdirectory").andReturn(subdirectory)
-
         waitsForPromise ->
-          provider = new GitRepositoryProvider atom.project
           provider.repositoryForDirectory(directory).then (repo) ->
             expect(repo).toBe null
             expect(directory.getSubdirectory).toHaveBeenCalledWith(".git")
