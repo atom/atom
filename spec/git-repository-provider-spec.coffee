@@ -61,7 +61,7 @@ describe "GitRepositoryProvider", ->
       beforeEach ->
         provider = new GitRepositoryProvider atom.project
 
-        # Tolerate an implementation of Directory that does not implement existsSync().
+        # An implementation of Directory that does not implement existsSync().
         subdirectory = {}
         directory =
           getSubdirectory: ->
