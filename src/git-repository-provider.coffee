@@ -11,7 +11,7 @@ findGitDirectorySync = (directory) ->
   # can return cached values rather than always returning new objects:
   # getParent(), getFile(), getSubdirectory().
   gitDir = directory.getSubdirectory('.git')
-  if gitDir.existsSync() and isValidGitDirectorySync gitDir
+  if gitDir.existsSync?() and isValidGitDirectorySync gitDir
     gitDir
   else if directory.isRoot()
     return null

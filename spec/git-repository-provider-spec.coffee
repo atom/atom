@@ -54,3 +54,27 @@ describe "GitRepositoryProvider", ->
           directory = new Directory dirPath
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBe null
+
+    describe "when specified a Directory without existsSync()", ->
+      directory = null
+      provider = null
+      beforeEach ->
+        provider = new GitRepositoryProvider atom.project
+
+        # An implementation of Directory that does not implement existsSync().
+        subdirectory = {}
+        directory =
+          getSubdirectory: ->
+          isRoot: -> true
+        spyOn(directory, "getSubdirectory").andReturn(subdirectory)
+
+      it "returns null", ->
+        repo = provider.repositoryForDirectorySync(directory)
+        expect(repo).toBe null
+        expect(directory.getSubdirectory).toHaveBeenCalledWith(".git")
+
+      it "returns a Promise that resolves to null for the async implementation", ->
+        waitsForPromise ->
+          provider.repositoryForDirectory(directory).then (repo) ->
+            expect(repo).toBe null
+            expect(directory.getSubdirectory).toHaveBeenCalledWith(".git")
