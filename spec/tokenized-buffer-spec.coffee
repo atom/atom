@@ -318,6 +318,18 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].isAtomic).toBeFalsy()
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].value).toBe "  current "
 
+      it "does not tokenize whitespaces followed by combining characters as leading whitespace", ->
+        buffer.setText("    \u030b")
+        fullyTokenize(tokenizedBuffer)
+
+        {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
+        expect(tokens[0].value).toBe "  "
+        expect(tokens[0].hasLeadingWhitespace()).toBe true
+        expect(tokens[1].value).toBe " "
+        expect(tokens[1].hasLeadingWhitespace()).toBe true
+        expect(tokens[2].value).toBe " \u030b"
+        expect(tokens[2].hasLeadingWhitespace()).toBe false
+
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
       waitsForPromise ->

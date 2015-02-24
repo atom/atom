@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+{isPairedCharacter} = require './text-utils'
 
 NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/
@@ -147,6 +148,8 @@ class TokenizedLine
 
   markLeadingAndTrailingWhitespaceTokens: ->
     firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
+    if firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, firstNonWhitespaceIndex - 1)
+      firstNonWhitespaceIndex--
     firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
     @lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
     index = 0
