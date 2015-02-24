@@ -1804,8 +1804,16 @@ class TextEditor extends Model
     @emitter.emit 'did-remove-cursor', cursor
 
   moveCursors: (fn) ->
+    @emitter.emit "will-move-cursors"
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
+    @emitter.emit "did-move-cursors"
+
+  onWillMoveCursors: (callback) ->
+    @emitter.on "will-move-cursors", callback
+
+  onDidMoveCursors: (callback) ->
+    @emitter.on "did-move-cursors", callback
 
   cursorMoved: (event) ->
     @emit 'cursor-moved', event

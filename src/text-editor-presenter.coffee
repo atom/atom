@@ -44,11 +44,30 @@ class TextEditorPresenter
     @model.setHorizontalScrollbarHeight(@measuredHorizontalScrollbarHeight) if @measuredHorizontalScrollbarHeight?
 
   observeModel: ->
+    @disposables.add @model.onWillMoveCursors =>
+      @batchMode = true
+
+    @disposables.add @model.onDidMoveCursors =>
+      @batchMode = false
+
+      @updateStartRow()
+      @updateEndRow()
+      @updateHeightState()
+      @didStartScrolling()
+      @updateVerticalScrollState()
+      @updateHorizontalScrollState()
+      @updateScrollbarsState()
+      @updateContentState()
+      @updateDecorations()
+      @updateLinesState()
+      @updateGutterState()
+      @updateLineNumbersState()
+
     @disposables.add @model.onWillSelectMultiple =>
-      @multipleSelectionBatch = true
+      @batchMode = true
 
     @disposables.add @model.onDidSelectMultiple =>
-      @multipleSelectionBatch = false
+      @batchMode = false
 
       @updateStartRow()
       @updateEndRow()
@@ -64,7 +83,7 @@ class TextEditorPresenter
       @updateLineNumbersState()
 
     @disposables.add @model.onDidChange =>
-      return if @multipleSelectionBatch
+      return if @batchMode
 
       @updateContentDimensions()
       @updateEndRow()
@@ -537,7 +556,7 @@ class TextEditorPresenter
     unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
-      return if @multipleSelectionBatch
+      return if @batchMode
 
       @updateStartRow()
       @updateEndRow()
@@ -785,6 +804,8 @@ class TextEditorPresenter
     @disposables.add(decorationDisposables)
 
   decorationMarkerDidChange: (decoration, change) ->
+    return if @batchMode
+
     if decoration.isType('line') or decoration.isType('line-number')
       return if change.textChanged
 
@@ -813,7 +834,7 @@ class TextEditorPresenter
       @updateOverlaysState()
 
   didDestroyDecoration: (decoration) ->
-    return if @multipleSelectionBatch
+    return if @batchMode
 
     if decoration.isType('line') or decoration.isType('line-number')
       @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
@@ -835,7 +856,7 @@ class TextEditorPresenter
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
 
-    return if @multipleSelectionBatch
+    return if @batchMode
     if decoration.isType('line') or decoration.isType('line-number')
       @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @updateLinesState() if decoration.isType('line')
