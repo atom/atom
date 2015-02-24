@@ -259,15 +259,21 @@ class TextEditorPresenter
   updateCursorsState: ->
     @state.content.cursors = {}
 
-    return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
-
-    for cursor in @model.cursors # using property directly to avoid allocation
-      if cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
-        pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
-        pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
-        @state.content.cursors[cursor.id] = pixelRect
+    @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
 
     @emitter.emit 'did-update-state'
+
+
+  updateCursorState: (cursor, destroyOnly = false) ->
+    delete @state.content.cursors[cursor.id]
+
+    return if destroyOnly
+    return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
+    return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
+
+    pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
+    pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
+    @state.content.cursors[cursor.id] = pixelRect
 
   updateOverlaysState: ->
     return unless @hasPixelRectRequirements()
@@ -948,16 +954,17 @@ class TextEditorPresenter
     didChangePositionDisposable = cursor.onDidChangePosition =>
       @updateHiddenInputState() if cursor.isLastCursor()
       @pauseCursorBlinking()
-      @updateCursorsState()
+      @updateCursorState(cursor)
 
-    didChangeVisibilityDisposable = cursor.onDidChangeVisibility(@updateCursorsState.bind(this))
+    didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
+      @updateCursorState(cursor)
 
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
       @updateHiddenInputState()
-      @updateCursorsState()
+      @updateCursorState(cursor, true)
 
     @disposables.add(didChangePositionDisposable)
     @disposables.add(didChangeVisibilityDisposable)
@@ -967,7 +974,7 @@ class TextEditorPresenter
     @observeCursor(cursor)
     @updateHiddenInputState()
     @pauseCursorBlinking()
-    @updateCursorsState()
+    @updateCursorState(cursor)
 
   startBlinkingCursors: ->
     @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
