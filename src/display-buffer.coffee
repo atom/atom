@@ -1189,7 +1189,7 @@ class DisplayBuffer extends Model
       maxLengthCandidatesStartRow = 0
       maxLengthCandidates = @screenLines
     else
-      @longestScreenRow += screenDelta if endScreenRow < @longestScreenRow
+      @longestScreenRow += screenDelta if endScreenRow <= @longestScreenRow
       maxLengthCandidatesStartRow = startScreenRow
       maxLengthCandidates = newScreenLines
 
