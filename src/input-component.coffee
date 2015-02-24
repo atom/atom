@@ -5,7 +5,7 @@ class InputComponent
     @domNode.classList.add('hidden-input')
     @domNode.setAttribute('data-react-skip-selection-restoration', true)
     @domNode.style['-webkit-transform'] = 'translateZ(0)'
-    @domNode.addEventListener 'paste', (event) => event.preventDefault()
+    @domNode.addEventListener 'paste', (event) -> event.preventDefault()
     @updateSync()
 
   updateSync: ->
