@@ -53,30 +53,36 @@ buildAtomClient = (args, env) ->
         ((err) -> cb(err, succeeded)))
 
     .addCommand "waitForWindowCount", (count, timeout, cb) ->
-      @waitUntil(
-        (-> @windowHandles().then(({value}) -> value.length is count)),
-        timeout)
-      .then((result) -> expect(result).toBe(true))
-      .windowHandles(cb)
+      @waitUntil(->
+        @windowHandles().then ({value}) -> value.length is count
+      , timeout)
+        .then (result) -> expect(result).toBe(true)
+        .windowHandles(cb)
 
     .addCommand "waitForPaneItemCount", (count, timeout, cb) ->
-      @waitUntil((->
+      @waitUntil(->
         @execute(-> atom.workspace?.getActivePane()?.getItems().length)
-          .then(({value}) -> value is count)), timeout)
-      .then (result) ->
-        expect(result).toBe(true)
-        cb(null)
+          .then(({value}) -> value is count)
+      , timeout)
+        .then (result) ->
+          expect(result).toBe(true)
+          cb(null)
 
-    .addCommand("waitForNewWindow", (fn, timeout, done) ->
-      @windowHandles()
-      .then(({value}) ->
+    .addCommand "treeViewRootDirectories", (cb) ->
+      @execute(->
+        for element in document.querySelectorAll(".tree-view .project-root > .header .name")
+          element.dataset.path
+      , cb)
+
+    .addCommand "waitForNewWindow", (fn, timeout, done) ->
+      @windowHandles (err, {value: oldWindowHandles}) ->
         return done() unless isRunning
-        oldWindowHandles = value
-        @call(-> fn.call(this))
-        .waitForWindowCount(oldWindowHandles.length + 1, 5000)
-        .then(({value}) ->
-          [newWindowHandle] = difference(value, oldWindowHandles)
-          @window(newWindowHandle, done))))
+        @call(fn)
+          .waitForWindowCount(oldWindowHandles.length + 1, 5000)
+          .then ({value: newWindowHandles}) ->
+            [newWindowHandle] = difference(newWindowHandles, oldWindowHandles)
+            return done() unless newWindowHandle
+            @window(newWindowHandle, done)
 
     .addCommand "startAnotherAtom", (args, env, done) ->
       @call ->
