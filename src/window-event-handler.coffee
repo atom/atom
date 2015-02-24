@@ -18,9 +18,16 @@ class WindowEventHandler
     @subscribe ipc, 'message', (message, detail) ->
       switch message
         when 'open-locations'
+          needsProjectPaths = atom.project?.getPaths().length is 0
+
           for {pathToOpen, initialLine, initialColumn} in detail
-            if pathToOpen and (fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen)))
-              atom.project?.addPath(pathToOpen)
+            if pathToOpen? and needsProjectPaths
+              if fs.existsSync(pathToOpen)
+                atom.project.addPath(pathToOpen)
+              else
+                dirToOpen = path.dirname(pathToOpen)
+                if fs.existsSync(dirToOpen)
+                  atom.project.addPath(dirToOpen)
 
             unless fs.isDirectorySync(pathToOpen)
               atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
