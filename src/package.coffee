@@ -523,7 +523,7 @@ class Package
     if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
       # Bundled packages are always considered compatible
       @compatible = true
-    else if packageMain = @getMainModulePath()
+    else if @getMainModulePath()
       @incompatibleModules = @getIncompatibleNativeModules()
       @compatible = @incompatibleModules.length is 0
     else
