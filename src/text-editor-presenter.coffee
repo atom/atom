@@ -228,8 +228,8 @@ class TextEditorPresenter
       row++
 
     if @mouseWheelScreenRow?
-      preservedLine = @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)
-      visibleLineIds[preservedLine.id] = true
+      if preservedLine = @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)
+        visibleLineIds[preservedLine.id] = true
 
     for id, line of @state.content.lines
       unless visibleLineIds.hasOwnProperty(id)

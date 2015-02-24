@@ -19,7 +19,7 @@ Old Selector        | New Selector
 `.workspace`        | `atom-workspace`
 `.horizontal`       | `atom-workspace-axis.horizontal`
 `.vertical`         | `atom-workspace-axis.vertical`
-`.pane-container`   | `atom-pane-conatiner`
+`.pane-container`   | `atom-pane-container`
 `.pane`             | `atom-pane`
 `.tool-panel`       | `atom-panel`
 `.panel-top`        | `atom-panel.top`
