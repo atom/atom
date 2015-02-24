@@ -43,47 +43,36 @@ class TextEditorPresenter
     @model.setVerticalScrollbarWidth(@measuredVerticalScrollbarWidth) if @measuredVerticalScrollbarWidth?
     @model.setHorizontalScrollbarHeight(@measuredHorizontalScrollbarHeight) if @measuredHorizontalScrollbarHeight?
 
+  enterBatchMode: ->
+    @batchMode = true
+
+  isInBatchMode: ->
+    @batchMode == true
+
+  exitBatchMode: ->
+    @batchMode = false
+
+    @updateStartRow()
+    @updateEndRow()
+    @updateHeightState()
+    @didStartScrolling()
+    @updateVerticalScrollState()
+    @updateHorizontalScrollState()
+    @updateScrollbarsState()
+    @updateContentState()
+    @updateDecorations()
+    @updateLinesState()
+    @updateGutterState()
+    @updateLineNumbersState()
+
   observeModel: ->
-    @disposables.add @model.onWillMoveCursors =>
-      @batchMode = true
-
-    @disposables.add @model.onDidMoveCursors =>
-      @batchMode = false
-
-      @updateStartRow()
-      @updateEndRow()
-      @updateHeightState()
-      @didStartScrolling()
-      @updateVerticalScrollState()
-      @updateHorizontalScrollState()
-      @updateScrollbarsState()
-      @updateContentState()
-      @updateDecorations()
-      @updateLinesState()
-      @updateGutterState()
-      @updateLineNumbersState()
-
-    @disposables.add @model.onWillSelectMultiple =>
-      @batchMode = true
-
-    @disposables.add @model.onDidSelectMultiple =>
-      @batchMode = false
-
-      @updateStartRow()
-      @updateEndRow()
-      @updateHeightState()
-      @didStartScrolling()
-      @updateVerticalScrollState()
-      @updateHorizontalScrollState()
-      @updateScrollbarsState()
-      @updateContentState()
-      @updateDecorations()
-      @updateLinesState()
-      @updateGutterState()
-      @updateLineNumbersState()
+    @disposables.add @model.onWillMoveCursors => @enterBatchMode()
+    @disposables.add @model.onDidMoveCursors => @exitBatchMode()
+    @disposables.add @model.onWillSelectMultiple => @enterBatchMode()
+    @disposables.add @model.onDidSelectMultiple => @exitBatchMode()
 
     @disposables.add @model.onDidChange =>
-      return if @batchMode
+      return if @isInBatchMode()
 
       @updateContentDimensions()
       @updateEndRow()
@@ -556,7 +545,7 @@ class TextEditorPresenter
     unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
-      return if @batchMode
+      return if @isInBatchMode()
 
       @updateStartRow()
       @updateEndRow()
@@ -804,7 +793,7 @@ class TextEditorPresenter
     @disposables.add(decorationDisposables)
 
   decorationMarkerDidChange: (decoration, change) ->
-    return if @batchMode
+    return if @isInBatchMode()
 
     if decoration.isType('line') or decoration.isType('line-number')
       return if change.textChanged
@@ -834,7 +823,7 @@ class TextEditorPresenter
       @updateOverlaysState()
 
   didDestroyDecoration: (decoration) ->
-    return if @batchMode
+    return if @isInBatchMode()
 
     if decoration.isType('line') or decoration.isType('line-number')
       @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
@@ -856,7 +845,7 @@ class TextEditorPresenter
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
 
-    return if @batchMode
+    return if @isInBatchMode()
     if decoration.isType('line') or decoration.isType('line-number')
       @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @updateLinesState() if decoration.isType('line')
