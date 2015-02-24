@@ -44,7 +44,28 @@ class TextEditorPresenter
     @model.setHorizontalScrollbarHeight(@measuredHorizontalScrollbarHeight) if @measuredHorizontalScrollbarHeight?
 
   observeModel: ->
+    @disposables.add @model.onWillSelectMultiple =>
+      @multipleSelectionBatch = true
+
+    @disposables.add @model.onDidSelectMultiple =>
+      @multipleSelectionBatch = false
+
+      @updateStartRow()
+      @updateEndRow()
+      @updateHeightState()
+      @didStartScrolling()
+      @updateVerticalScrollState()
+      @updateHorizontalScrollState()
+      @updateScrollbarsState()
+      @updateContentState()
+      @updateDecorations()
+      @updateLinesState()
+      @updateGutterState()
+      @updateLineNumbersState()
+
     @disposables.add @model.onDidChange =>
+      return if @multipleSelectionBatch
+
       @updateContentDimensions()
       @updateEndRow()
       @updateHeightState()
@@ -516,6 +537,8 @@ class TextEditorPresenter
     unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
+      return if @multipleSelectionBatch
+
       @updateStartRow()
       @updateEndRow()
       @didStartScrolling()
@@ -790,6 +813,8 @@ class TextEditorPresenter
       @updateOverlaysState()
 
   didDestroyDecoration: (decoration) ->
+    return if @multipleSelectionBatch
+
     if decoration.isType('line') or decoration.isType('line-number')
       @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @updateLinesState() if decoration.isType('line')
@@ -810,6 +835,7 @@ class TextEditorPresenter
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
 
+    return if @multipleSelectionBatch
     if decoration.isType('line') or decoration.isType('line-number')
       @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @updateLinesState() if decoration.isType('line')

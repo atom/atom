@@ -92,9 +92,10 @@ class TextEditor extends Model
 
     @updateInvisibles()
 
-    for marker in @findMarkers(@getSelectionMarkerAttributes())
-      marker.setProperties(preserveFolds: true)
-      @addSelection(marker)
+    @addMultipleSelections =>
+      for marker in @findMarkers(@getSelectionMarkerAttributes())
+        marker.setProperties(preserveFolds: true)
+        @addSelection(marker)
 
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
@@ -987,23 +988,38 @@ class TextEditor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
+  addMultipleSelections: (fn) ->
+    @emitter.emit "will-select-multiple"
+    @suppressSelectionMerging = true
+    fn()
+    @suppressSelectionMerging = false
+    @mergeIntersectingSelections()
+    @emitter.emit "did-select-multiple"
+
+  onDidSelectMultiple: (callback) ->
+    @emitter.on "did-select-multiple", callback
+
+  onWillSelectMultiple: (callback) ->
+    @emitter.on "will-select-multiple", callback
+
   # Split multi-line selections into one selection per line.
   #
   # Operates on all selections. This method breaks apart all multi-line
   # selections to create multiple single-line selections that cumulatively cover
   # the same original area.
   splitSelectionsIntoLines: ->
-    for selection in @getSelections()
-      range = selection.getBufferRange()
-      continue if range.isSingleLine()
+    @addMultipleSelections =>
+      for selection in @getSelections()
+        range = selection.getBufferRange()
+        continue if range.isSingleLine()
 
-      selection.destroy()
-      {start, end} = range
-      @addSelectionForBufferRange([start, [start.row, Infinity]])
-      {row} = start
-      while ++row < end.row
-        @addSelectionForBufferRange([[row, 0], [row, Infinity]])
-      @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
+        selection.destroy()
+        {start, end} = range
+        @addSelectionForBufferRange([start, [start.row, Infinity]])
+        {row} = start
+        while ++row < end.row
+          @addSelectionForBufferRange([[row, 0], [row, Infinity]])
+        @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
 
   # Extended: For each selection, transpose the selected text.
   #
