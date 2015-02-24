@@ -870,8 +870,7 @@ class Workspace extends Model
       exclusions: atom.config.get('core.ignoredNames')
       follow: atom.config.get('core.followSymlinks')
 
-    # TODO: need to support all paths in @getPaths()
-    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths()[0], regex.source, searchOptions, ->
+    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths(), regex.source, searchOptions, ->
       deferred.resolve()
 
     task.on 'scan:result-found', (result) ->

@@ -1,13 +1,17 @@
+_ = require "underscore-plus"
+path = require "path"
+async = require "async"
 {PathSearcher, PathScanner, search} = require 'scandal'
 
-module.exports = (rootPath, regexSource, options) ->
+module.exports = (rootPaths, regexSource, options) ->
   callback = @async()
+
+  rootPath = rootPaths[0]
 
   PATHS_COUNTER_SEARCHED_CHUNK = 50
   pathsSearched = 0
 
   searcher = new PathSearcher()
-  scanner = new PathScanner(rootPath, options)
 
   searcher.on 'file-error', ({code, path, message}) ->
     emit('scan:file-error', {code, path, message})
@@ -15,14 +19,41 @@ module.exports = (rootPath, regexSource, options) ->
   searcher.on 'results-found', (result) ->
     emit('scan:result-found', result)
 
-  scanner.on 'path-found', ->
-    pathsSearched++
-    if pathsSearched % PATHS_COUNTER_SEARCHED_CHUNK == 0
-      emit('scan:paths-searched', pathsSearched)
-
   flags = "g"
   flags += "i" if options.ignoreCase
   regex = new RegExp(regexSource, flags)
-  search regex, scanner, searcher, ->
-    emit('scan:paths-searched', pathsSearched)
-    callback()
+
+  async.each(
+    rootPaths,
+    (rootPath, next) ->
+      options2 = _.extend {}, options,
+        inclusions: processPaths(rootPath, options.inclusions)
+        exclusions: processPaths(rootPath, options.exclusions)
+
+      scanner = new PathScanner(rootPath, options2)
+
+      scanner.on 'path-found', ->
+        pathsSearched++
+        if pathsSearched % PATHS_COUNTER_SEARCHED_CHUNK == 0
+          emit('scan:paths-searched', pathsSearched)
+
+      search regex, scanner, searcher, ->
+        emit('scan:paths-searched', pathsSearched)
+        next()
+    callback
+  )
+
+processPaths = (rootPath, paths) ->
+  return paths unless paths?.length > 0
+  rootPathBase = path.basename(rootPath)
+  results = []
+  for givenPath in paths
+    segments = givenPath.split(path.sep)
+    firstSegment = segments.shift()
+    results.push(givenPath)
+    if firstSegment is rootPathBase
+      if segments.length is 0
+        results.push(path.join("**", "*"))
+      else
+        results.push(path.join(segments...))
+  results
