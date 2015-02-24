@@ -277,10 +277,10 @@ class LinesComponent
       for id, lineState of @oldState.lines
         unless @measuredLines.has(id)
           lineNode = @lineNodesByLineId[id]
-          @measureCharactersInLine(lineState, lineNode)
+          @measureCharactersInLine(id, lineState, lineNode)
       return
 
-  measureCharactersInLine: (tokenizedLine, lineNode) ->
+  measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
     rangeForMeasurement = null
     iterator = null
     charIndex = 0
@@ -322,7 +322,7 @@ class LinesComponent
 
         charIndex += charLength
 
-    @measuredLines.add(tokenizedLine.id)
+    @measuredLines.add(lineId)
 
   clearScopedCharWidths: ->
     @measuredLines.clear()
