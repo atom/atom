@@ -11,15 +11,13 @@ fs.writeFileSync(path.join(AtomHome, 'config.cson'), fs.readFileSync(path.join(_
 runAtom = require("./helpers/start-atom")
 
 describe "Starting Atom", ->
-  [tempDirPath, tempFilePath, otherTempDirPath] = []
+  [tempDirPath, otherTempDirPath] = []
 
   beforeEach ->
     jasmine.useRealClock()
 
     tempDirPath = temp.mkdirSync("empty-dir")
     otherTempDirPath = temp.mkdirSync("another-temp-dir")
-    tempFilePath = path.join(tempDirPath, "an-existing-file")
-    fs.writeFileSync(tempFilePath, "This file was already here.")
 
   describe "opening a new file", ->
     it "opens the parent directory and creates an empty text editor", ->
@@ -39,14 +37,19 @@ describe "Starting Atom", ->
           .execute -> atom.workspace.getActiveTextEditor().getText()
           .then ({value}) -> expect(value).toBe "Hello!"
 
-  describe "opening a directory that is already open in an existing window", ->
-    it "reuses that existing window", ->
+  describe "when there is already a window open", ->
+    it "reuses that window when opening files, but not when opening directories", ->
+      tempFilePath = path.join(temp.mkdirSync("a-third-dir"), "a-file")
+      fs.writeFileSync(tempFilePath, "This file was already here.")
+
       runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: AtomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
           .waitForExist("atom-workspace", 5000)
           .waitForPaneItemCount(1, 5000)
 
+          # Opening another file reuses the same window and does not change the
+          # project paths.
           .startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome)
           .waitForPaneItemCount(2, 5000)
           .waitForWindowCount(1, 1000)
@@ -55,6 +58,7 @@ describe "Starting Atom", ->
           .execute -> atom.workspace.getActiveTextEditor().getText()
           .then ({value: text}) -> expect(text).toBe "This file was already here."
 
+          # Opening another directory creates a second window.
           .waitForNewWindow(->
             @startAnotherAtom([otherTempDirPath], ATOM_HOME: AtomHome)
           , 5000)
@@ -65,7 +69,7 @@ describe "Starting Atom", ->
 
   describe "reopening a directory that was previously opened", ->
     it "remembers the state of the window", ->
-      runAtom [otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+      runAtom [tempDirPath], {ATOM_HOME: AtomHome}, (client) ->
         client
           .waitForExist("atom-workspace", 5000)
           .waitForPaneItemCount(0, 3000)
@@ -73,24 +77,26 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(1, 3000)
           .execute -> atom.unloadEditorWindow()
 
-      runAtom [otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
+      runAtom [tempDirPath], {ATOM_HOME: AtomHome}, (client) ->
         client
           .waitForExist("atom-workspace", 5000)
           .waitForPaneItemCount(1, 5000)
 
   describe "opening multiple directories simultaneously", ->
     it "shows them all in the tree-view", ->
+      nestedDir = path.join(otherTempDirPath, "nested-dir")
+      fs.mkdirSync(nestedDir)
+
       runAtom [tempDirPath, otherTempDirPath, "--multi-folder"], {ATOM_HOME: AtomHome}, (client) ->
         client
           .waitForExist("atom-workspace", 5000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
 
-          # Opening a file in one of the directories reuses the same window
-          # and does not change the project paths.
-          .startAnotherAtom([tempFilePath], ATOM_HOME: AtomHome)
+          # Opening one of those directories again reuses the same window and
+          # does not change the project paths.
+          .startAnotherAtom([nestedDir], ATOM_HOME: AtomHome)
           .waitForExist("atom-workspace", 5000)
-          .waitForPaneItemCount(1, 5000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
 
