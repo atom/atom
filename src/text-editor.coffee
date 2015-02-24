@@ -12,6 +12,7 @@ DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
+{Directory} = require "pathwatcher"
 
 # Public: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -646,6 +647,14 @@ class TextEditor extends Model
       @isModified()
     else
       @isModified() and not @buffer.hasMultipleEditors()
+
+  checkoutHeadRevision: ->
+    if filePath = this.getPath()
+      atom.project.repositoryForDirectory(new Directory(path.dirname(filePath)))
+        .then (repository) =>
+          repository?.checkoutHeadForEditor(this)
+    else
+      Promise.resolve(false)
 
   ###
   Section: Reading Text
