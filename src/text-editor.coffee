@@ -1797,12 +1797,13 @@ class TextEditor extends Model
 
   # Merge cursors that have the same screen position
   mergeCursors: ->
-    [lastCursor, cursors...] = @getCursorsOrderedByBufferPosition()
-    lastBufferPosition = lastCursor.getBufferPosition()
-    for cursor in cursors
-      currentBufferPosition = cursor.getBufferPosition()
-      cursor.destroy() if lastBufferPosition.compare(currentBufferPosition) == 0
-      lastBufferPosition = currentBufferPosition
+    positions = {}
+    for cursor in @getCursors()
+      position = cursor.getBufferPosition().toString()
+      if positions.hasOwnProperty(position)
+        cursor.destroy()
+      else
+        positions[position] = true
 
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
