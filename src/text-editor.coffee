@@ -92,7 +92,7 @@ class TextEditor extends Model
 
     @updateInvisibles()
 
-    @addMultipleSelections =>
+    @batch => @mergeIntersectingSelections =>
       for marker in @findMarkers(@getSelectionMarkerAttributes())
         marker.setProperties(preserveFolds: true)
         @addSelection(marker)
@@ -835,7 +835,8 @@ class TextEditor extends Model
   #      argument will be a {Selection} and the second argument will be the
   #      {Number} index of that selection.
   mutateSelectedText: (fn) ->
-    @transact => fn(selection, index) for selection, index in @getSelections()
+    @mergeIntersectingSelections => @transact =>
+      fn(selection, index) for selection, index in @getSelections()
 
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
@@ -988,27 +989,13 @@ class TextEditor extends Model
       selection.insertText(fn(text))
       selection.setBufferRange(range)
 
-  addMultipleSelections: (fn) ->
-    @emitter.emit "will-select-multiple"
-    @suppressSelectionMerging = true
-    fn()
-    @suppressSelectionMerging = false
-    @mergeIntersectingSelections()
-    @emitter.emit "did-select-multiple"
-
-  onDidSelectMultiple: (callback) ->
-    @emitter.on "did-select-multiple", callback
-
-  onWillSelectMultiple: (callback) ->
-    @emitter.on "will-select-multiple", callback
-
   # Split multi-line selections into one selection per line.
   #
   # Operates on all selections. This method breaks apart all multi-line
   # selections to create multiple single-line selections that cumulatively cover
   # the same original area.
   splitSelectionsIntoLines: ->
-    @addMultipleSelections =>
+    @batch => @mergeIntersectingSelections =>
       for selection in @getSelections()
         range = selection.getBufferRange()
         continue if range.isSingleLine()
@@ -1156,7 +1143,19 @@ class TextEditor extends Model
   #   with a positive `groupingInterval` is committed while the previous transaction is
   #   still 'groupable', the two transactions are merged with respect to undo and redo.
   # * `fn` A {Function} to call inside the transaction.
-  transact: (groupingInterval, fn) -> @buffer.transact(groupingInterval, fn)
+  transact: (groupingInterval, fn) ->
+    @batch => @buffer.transact(groupingInterval, fn)
+
+  batch: (fn) ->
+    @emitter.emit "will-start-batch-operation"
+    fn()
+    @emitter.emit "did-finish-batch-operation"
+
+  onWillStartBatchOperation: (callback) ->
+    @emitter.on "will-start-batch-operation", callback
+
+  onDidFinishBatchOperation: (callback) ->
+    @emitter.on "did-finish-batch-operation", callback
 
   # Deprecated: Start an open-ended transaction.
   beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
@@ -1804,16 +1803,9 @@ class TextEditor extends Model
     @emitter.emit 'did-remove-cursor', cursor
 
   moveCursors: (fn) ->
-    @emitter.emit "will-move-cursors"
-    fn(cursor) for cursor in @getCursors()
-    @mergeCursors()
-    @emitter.emit "did-move-cursors"
-
-  onWillMoveCursors: (callback) ->
-    @emitter.on "will-move-cursors", callback
-
-  onDidMoveCursors: (callback) ->
-    @emitter.on "did-move-cursors", callback
+    @batch => @mergeIntersectingSelections =>
+      fn(cursor) for cursor in @getCursors()
+      @mergeCursors()
 
   cursorMoved: (event) ->
     @emit 'cursor-moved', event
@@ -2210,13 +2202,13 @@ class TextEditor extends Model
 
   # Calls the given function with each selection, then merges selections
   expandSelectionsForward: (fn) ->
-    @mergeIntersectingSelections =>
+    @batch => @mergeIntersectingSelections =>
       fn(selection) for selection in @getSelections()
 
   # Calls the given function with each selection, then merges selections in the
   # reversed orientation
   expandSelectionsBackward: (fn) ->
-    @mergeIntersectingSelections reversed: true, =>
+    @batch => @mergeIntersectingSelections reversed: true, =>
       fn(selection) for selection in @getSelections()
 
   finalizeSelections: ->

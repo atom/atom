@@ -52,24 +52,11 @@ class TextEditorPresenter
   exitBatchMode: ->
     @batchMode = false
 
-    @updateStartRow()
-    @updateEndRow()
-    @updateHeightState()
-    @didStartScrolling()
-    @updateVerticalScrollState()
-    @updateHorizontalScrollState()
-    @updateScrollbarsState()
-    @updateContentState()
-    @updateDecorations()
-    @updateLinesState()
-    @updateGutterState()
-    @updateLineNumbersState()
+    @updateState()
 
   observeModel: ->
-    @disposables.add @model.onWillMoveCursors => @enterBatchMode()
-    @disposables.add @model.onDidMoveCursors => @exitBatchMode()
-    @disposables.add @model.onWillSelectMultiple => @enterBatchMode()
-    @disposables.add @model.onDidSelectMultiple => @exitBatchMode()
+    @disposables.add @model.onWillStartBatchOperation => @enterBatchMode()
+    @disposables.add @model.onDidFinishBatchOperation => @exitBatchMode()
 
     @disposables.add @model.onDidChange =>
       return if @isInBatchMode()
