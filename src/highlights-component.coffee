@@ -1,4 +1,5 @@
 RegionStyleProperties = ['top', 'left', 'right', 'width', 'height']
+SpaceRegex = /\s+/
 
 module.exports =
 class HighlightsComponent
@@ -44,8 +45,17 @@ class HighlightsComponent
 
     # update class
     if newHighlightState.class isnt oldHighlightState.class
-      highlightNode.classList.remove(oldHighlightState.class) if oldHighlightState.class?
-      highlightNode.classList.add(newHighlightState.class)
+      if oldHighlightState.class?
+        if SpaceRegex.test(oldHighlightState.class)
+          highlightNode.classList.remove(oldHighlightState.class.split(SpaceRegex)...)
+        else
+          highlightNode.classList.remove(oldHighlightState.class)
+
+      if SpaceRegex.test(newHighlightState.class)
+        highlightNode.classList.add(newHighlightState.class.split(SpaceRegex)...)
+      else
+        highlightNode.classList.add(newHighlightState.class)
+
       oldHighlightState.class = newHighlightState.class
 
     @updateHighlightRegions(id, newHighlightState)

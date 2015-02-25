@@ -1171,6 +1171,14 @@ describe "TextEditorComponent", ->
       regions = componentNode.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
 
+    it "allows multiple space-delimited decoration classes", ->
+      decoration.setProperties(type: 'highlight', class: 'foo bar')
+      nextAnimationFrame()
+      expect(componentNode.querySelectorAll('.foo.bar').length).toBe 1
+      decoration.setProperties(type: 'highlight', class: 'bar baz')
+      nextAnimationFrame()
+      expect(componentNode.querySelectorAll('.bar.baz').length).toBe 1
+
     it "renders classes on the regions directly if 'deprecatedRegionClass' option is defined", ->
       decoration = editor.decorateMarker(marker, type: 'highlight', class: 'test-highlight', deprecatedRegionClass: 'test-highlight-region')
       nextAnimationFrame()
