@@ -157,7 +157,7 @@ class Package
       @activateConfig()
       @activateStylesheets()
       if @requireMainModule()
-        @mainModule.activate(atom.packages.getPackageState(@name) ? {})
+        @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
     catch e

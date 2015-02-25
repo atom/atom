@@ -220,6 +220,17 @@ describe "PackageManager", ->
         expect(console.error).not.toHaveBeenCalled()
         expect(console.warn).not.toHaveBeenCalled()
 
+    describe "when the package does not export an activate function", ->
+      it "activates the package and does not throw an exception or log a warning", ->
+        spyOn(console, "warn")
+        expect(-> atom.packages.activatePackage('package-with-no-activate')).not.toThrow()
+
+        waitsFor ->
+          atom.packages.isPackageActive('package-with-no-activate')
+
+        runs ->
+          expect(console.warn).not.toHaveBeenCalled()
+
     it "passes the activate method the package's previously serialized state if it exists", ->
       pack = null
       waitsForPromise ->
