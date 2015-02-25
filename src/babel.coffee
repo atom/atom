@@ -128,10 +128,6 @@ transpile = (sourceCode, filePath, cachePath) ->
 
   js
 
-isRoot = (filePath) ->
-  parts = path.parse(filePath)
-  parts.root == filePath
-
 # Function that obeys the contract of an entry in the require.extensions map.
 # Returns the transpiled version of the JavaScript code at filePath, which is
 # either generated on the fly or pulled from cache.
