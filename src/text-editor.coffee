@@ -92,7 +92,7 @@ class TextEditor extends Model
 
     @updateInvisibles()
 
-    @batch => @mergeIntersectingSelections =>
+    @batch =>
       for marker in @findMarkers(@getSelectionMarkerAttributes())
         marker.setProperties(preserveFolds: true)
         @addSelection(marker)
@@ -835,8 +835,7 @@ class TextEditor extends Model
   #      argument will be a {Selection} and the second argument will be the
   #      {Number} index of that selection.
   mutateSelectedText: (fn) ->
-    @mergeIntersectingSelections => @transact =>
-      fn(selection, index) for selection, index in @getSelections()
+    @transact => fn(selection, index) for selection, index in @getSelections()
 
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
@@ -995,7 +994,7 @@ class TextEditor extends Model
   # selections to create multiple single-line selections that cumulatively cover
   # the same original area.
   splitSelectionsIntoLines: ->
-    @batch => @mergeIntersectingSelections =>
+    @batch =>
       for selection in @getSelections()
         range = selection.getBufferRange()
         continue if range.isSingleLine()
@@ -1803,7 +1802,7 @@ class TextEditor extends Model
     @emitter.emit 'did-remove-cursor', cursor
 
   moveCursors: (fn) ->
-    @batch => @mergeIntersectingSelections =>
+    @batch =>
       fn(cursor) for cursor in @getCursors()
       @mergeCursors()
 
