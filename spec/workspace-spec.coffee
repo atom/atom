@@ -854,6 +854,64 @@ describe "Workspace", ->
         runs ->
           expect(results).toHaveLength 0
 
+      describe "when the project has multiple root directories", ->
+        [dir1, dir2, file1, file2] = []
+
+        beforeEach ->
+          [dir1] = atom.project.getPaths()
+          file1 = path.join(dir1, "a-dir", "oh-git")
+
+          dir2 = temp.mkdirSync("a-second-dir")
+          aDir2 = path.join(dir2, "a-dir")
+          file2 = path.join(aDir2, "a-file")
+          fs.mkdirSync(aDir2)
+          fs.writeFileSync(file2, "ccc aaaa")
+
+          atom.project.addPath(dir2)
+
+        it "searches matching files in all of the project's root directories", ->
+          resultPaths = []
+          waitsForPromise ->
+            atom.workspace.scan /aaaa/, ({filePath}) ->
+              resultPaths.push(filePath)
+
+          runs ->
+            expect(resultPaths.sort()).toEqual([file1, file2].sort())
+
+        describe "when an inclusion path starts with the basename of a root directory", ->
+          it "interprets the inclusion path as starting from that directory", ->
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: ["dir"], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file1])
+
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: [path.join("dir", "a-dir")], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file1])
+
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: [path.basename(dir2)], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file2])
+
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: [path.join(path.basename(dir2), "a-dir")], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file2])
+
   describe "::replace(regex, replacementText, paths, iterator)", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
 

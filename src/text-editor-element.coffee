@@ -337,7 +337,7 @@ atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUn
   'editor:newline-below': -> @insertNewlineBelow()
   'editor:newline-above': -> @insertNewlineAbove()
   'editor:toggle-line-comments': -> @toggleLineCommentsInSelection()
-  'editor:checkout-head-revision': -> atom.project.getRepositories()[0]?.checkoutHeadForEditor(this)
+  'editor:checkout-head-revision': -> @checkoutHeadRevision()
   'editor:move-line-up': -> @moveLineUp()
   'editor:move-line-down': -> @moveLineDown()
   'editor:duplicate-lines': -> @duplicateLines()

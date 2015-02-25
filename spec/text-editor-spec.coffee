@@ -4018,3 +4018,25 @@ describe "TextEditor", ->
       editor.setPlaceholderText('OK')
       expect(handler).toHaveBeenCalledWith 'OK'
       expect(editor.getPlaceholderText()).toBe 'OK'
+
+  describe ".checkoutHeadRevision()", ->
+    it "reverts to the version of its file checked into the project repository", ->
+      atom.config.set("editor.confirmCheckoutHeadRevision", false)
+
+      editor.setCursorBufferPosition([0, 0])
+      editor.insertText("---\n")
+      expect(editor.lineTextForBufferRow(0)).toBe "---"
+
+      waitsForPromise ->
+        editor.checkoutHeadRevision()
+
+      runs ->
+        expect(editor.lineTextForBufferRow(0)).toBe "var quicksort = function () {"
+
+    describe "when there's no repository for the editor's file", ->
+      it "doesn't do anything", ->
+        editor = new TextEditor({})
+        editor.setText("stuff")
+        editor.checkoutHeadRevision()
+
+        waitsForPromise -> editor.checkoutHeadRevision()
