@@ -40,7 +40,7 @@ describe "Babel transpiler support", ->
       expect(grim.getDeprecationsLength()).toBe 0
 
   describe "when a .js file starts with 'use 6to5';", ->
-    it "transpiles it using babel and adds a deprecation", ->
+    it "transpiles it using babel and adds a pragma deprecation", ->
       expect(grim.getDeprecationsLength()).toBe 0
       transpiled = require('./fixtures/babel/6to5-single-quotes.js')
       expect(transpiled(3)).toBe 4
@@ -53,7 +53,7 @@ describe "Babel transpiler support", ->
       expect(grim.getDeprecationsLength()).toBe 0
 
   describe 'when a .js file starts with "use 6to5";', ->
-    it "transpiles it using babel", ->
+    it "transpiles it using babel and adds a pragma deprecation", ->
       expect(grim.getDeprecationsLength()).toBe 0
       transpiled = require('./fixtures/babel/6to5-double-quotes.js')
       expect(transpiled(3)).toBe 4
