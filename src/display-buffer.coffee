@@ -819,11 +819,12 @@ class DisplayBuffer extends Model
   # options - A hash with the following values:
   #           wrapBeyondNewlines: if `true`, continues wrapping past newlines
   #           wrapAtSoftNewlines: if `true`, continues wrapping past soft newlines
+  #           skipSoftWrapIndentation: if `true`, skips soft wrap indentation without wrapping to the previous line
   #           screenLine: if `true`, indicates that you're using a line number, not a row number
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
+    { wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation } = options
     { row, column } = Point.fromObject(screenPosition)
 
     if row < 0
@@ -841,37 +842,21 @@ class DisplayBuffer extends Model
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
       if wrapAtSoftNewlines
         row++
-        column = 0
+        column = @screenLines[row].clipScreenColumn(0)
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
+    else if screenLine.isColumnInsideSoftWrapIndentation(column)
+      if skipSoftWrapIndentation
+        column = screenLine.clipScreenColumn(0)
+      else
+        row--
+        column = @screenLines[row].getMaxScreenColumn() - 1
     else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
       row++
       column = 0
     else
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
-
-  # Given a line, finds the point where it would wrap.
-  #
-  # line - The {String} to check
-  # softWrapColumn - The {Number} where you want soft wrapping to occur
-  #
-  # Returns a {Number} representing the `line` position where the wrap would take place.
-  # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @isSoftWrapped()
-    return unless line.length > softWrapColumn
-
-    if /\s/.test(line[softWrapColumn])
-      # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.length]
-        return column if /\S/.test(line[column])
-      return line.length
-    else
-      # search backward for the start of the word on the boundary
-      for column in [softWrapColumn..0]
-        return column + 1 if /\s/.test(line[column])
-      return softWrapColumn
 
   # Calculates a {Range} representing the start of the {TextBuffer} until the end.
   #
@@ -1157,10 +1142,12 @@ class DisplayBuffer extends Model
         bufferRow += foldedRowCount
       else
         softWraps = 0
-        while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
-          [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-          screenLines.push(wrappedLine)
-          softWraps++
+        if @isSoftWrapped()
+          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
+            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+            break if wrappedLine.hasOnlySoftWrapIndentation()
+            screenLines.push(wrappedLine)
+            softWraps++
         screenLines.push(tokenizedLine)
 
         if softWraps > 0

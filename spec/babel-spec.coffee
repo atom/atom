@@ -1,7 +1,14 @@
 babel = require '../src/babel'
 crypto = require 'crypto'
+grim = require 'grim'
 
 describe "Babel transpiler support", ->
+  beforeEach ->
+    jasmine.snapshotDeprecations()
+
+  afterEach ->
+    jasmine.restoreDeprecationsSnapshot()
+
   describe "::createBabelVersionAndOptionsDigest", ->
     it "returns a digest for the library version and specified options", ->
       defaultOptions =
@@ -30,21 +37,27 @@ describe "Babel transpiler support", ->
     it "transpiles it using babel", ->
       transpiled = require('./fixtures/babel/babel-single-quotes.js')
       expect(transpiled(3)).toBe 4
+      expect(grim.getDeprecationsLength()).toBe 0
 
   describe "when a .js file starts with 'use 6to5';", ->
-    it "transpiles it using 6to5", ->
+    it "transpiles it using babel and adds a pragma deprecation", ->
+      expect(grim.getDeprecationsLength()).toBe 0
       transpiled = require('./fixtures/babel/6to5-single-quotes.js')
       expect(transpiled(3)).toBe 4
+      expect(grim.getDeprecationsLength()).toBe 1
 
   describe 'when a .js file starts with "use babel";', ->
     it "transpiles it using babel", ->
       transpiled = require('./fixtures/babel/babel-double-quotes.js')
       expect(transpiled(3)).toBe 4
+      expect(grim.getDeprecationsLength()).toBe 0
 
   describe 'when a .js file starts with "use 6to5";', ->
-    it "transpiles it using babel", ->
+    it "transpiles it using babel and adds a pragma deprecation", ->
+      expect(grim.getDeprecationsLength()).toBe 0
       transpiled = require('./fixtures/babel/6to5-double-quotes.js')
       expect(transpiled(3)).toBe 4
+      expect(grim.getDeprecationsLength()).toBe 1
 
   describe "when a .js file does not start with 'use 6to6';", ->
     it "does not transpile it using babel", ->

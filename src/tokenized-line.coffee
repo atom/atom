@@ -18,6 +18,8 @@ class TokenizedLine
     @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
     @bufferDelta = @buildBufferDelta()
+    @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
+    @softWrapIndentationDelta = @buildSoftWrapIndentationDelta()
 
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
@@ -49,7 +51,9 @@ class TokenizedLine
       break if tokenStartColumn + token.screenDelta > column
       tokenStartColumn += token.screenDelta
 
-    if token.isAtomic and tokenStartColumn < column
+    if @isColumnInsideSoftWrapIndentation(tokenStartColumn)
+      @softWrapIndentationDelta
+    else if token.isAtomic and tokenStartColumn < column
       if skipAtomicTokens
         tokenStartColumn + token.screenDelta
       else
@@ -85,6 +89,46 @@ class TokenizedLine
   getMaxBufferColumn: ->
     @startBufferColumn + @bufferDelta
 
+  # Given a boundary column, finds the point where this line would wrap.
+  #
+  # maxColumn - The {Number} where you want soft wrapping to occur
+  #
+  # Returns a {Number} representing the `line` position where the wrap would take place.
+  # Returns `null` if a wrap wouldn't occur.
+  findWrapColumn: (maxColumn) ->
+    return unless @text.length > maxColumn
+
+    if /\s/.test(@text[maxColumn])
+       # search forward for the start of a word past the boundary
+      for column in [maxColumn..@text.length]
+        return column if /\S/.test(@text[column])
+
+      return @text.length
+    else
+      # search backward for the start of the word on the boundary
+      for column in [maxColumn..0] when @isColumnOutsideSoftWrapIndentation(column)
+        return column + 1 if /\s/.test(@text[column])
+
+      return maxColumn
+
+  # Calculates how many trailing spaces in this line's indentation cannot fit in a single tab.
+  #
+  # Returns a {Number} representing the odd indentation spaces in this line.
+  getOddIndentationSpaces: ->
+    oddIndentLevel = @indentLevel - Math.floor(@indentLevel)
+    Math.round(@tabLength * oddIndentLevel)
+
+  buildSoftWrapIndentationTokens: (token) ->
+    indentTokens = [0...Math.floor(@indentLevel)].map =>
+      token.buildSoftWrapIndentationToken(@tabLength)
+
+    if @getOddIndentationSpaces()
+      indentTokens.concat(
+        token.buildSoftWrapIndentationToken @getOddIndentationSpaces()
+      )
+    else
+      indentTokens
+
   softWrapAt: (column) ->
     return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
 
@@ -98,24 +142,49 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
+    indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0])
+
     leftFragment = new TokenizedLine(
       tokens: leftTokens
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
       invisibles: @invisibles
-      lineEnding: null
+      lineEnding: null,
+      indentLevel: @indentLevel,
+      tabLength: @tabLength
     )
     rightFragment = new TokenizedLine(
-      tokens: rightTokens
+      tokens: indentationTokens.concat(rightTokens)
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       invisibles: @invisibles
-      lineEnding: @lineEnding
+      lineEnding: @lineEnding,
+      indentLevel: @indentLevel,
+      tabLength: @tabLength
     )
     [leftFragment, rightFragment]
 
   isSoftWrapped: ->
     @lineEnding is null
+
+  isColumnOutsideSoftWrapIndentation: (column) ->
+    return true if @softWrapIndentationTokens.length == 0
+
+    column > @softWrapIndentationDelta
+
+  isColumnInsideSoftWrapIndentation: (column) ->
+    return false if @softWrapIndentationTokens.length == 0
+
+    column < @softWrapIndentationDelta
+
+  getSoftWrapIndentationTokens: ->
+    _.select(@tokens, (token) -> token.isSoftWrapIndentation)
+
+  buildSoftWrapIndentationDelta: ->
+    _.reduce @softWrapIndentationTokens, ((acc, token) -> acc + token.screenDelta), 0
+
+  hasOnlySoftWrapIndentation: ->
+    @tokens.length == @softWrapIndentationTokens.length
 
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
@@ -173,7 +242,7 @@ class TokenizedLine
           changedText = true
       else
         if invisibles.space
-          if token.hasLeadingWhitespace()
+          if token.hasLeadingWhitespace() and not token.isSoftWrapIndentation
             token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
             token.hasInvisibleCharacters = true
