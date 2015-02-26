@@ -73,7 +73,7 @@ class Atom extends Model
   # Loads and returns the serialized state corresponding to this window
   # if it exists; otherwise returns undefined.
   @loadState: (mode) ->
-    statePath = @getStatePath(mode)
+    statePath = @getStatePath(@getLoadSettings().initialPaths, mode)
 
     if fs.existsSync(statePath)
       try
@@ -90,14 +90,13 @@ class Atom extends Model
 
   # Returns the path where the state for the current window will be
   # located if it exists.
-  @getStatePath: (mode) ->
+  @getStatePath: (paths, mode) ->
     switch mode
       when 'spec'
         filename = 'spec'
       when 'editor'
-        {initialPaths} = @getLoadSettings()
-        if initialPaths?.length > 0
-          sha1 = crypto.createHash('sha1').update(initialPaths.join("\n")).digest('hex')
+        if paths?.length > 0
+          sha1 = crypto.createHash('sha1').update(paths.join("\n")).digest('hex')
           filename = "editor-#{sha1}"
 
     if filename
@@ -773,7 +772,7 @@ class Atom extends Model
 
   saveSync: ->
     stateString = JSON.stringify(@state)
-    if statePath = @constructor.getStatePath(@mode)
+    if statePath = @constructor.getStatePath(@project?.getPaths(), @mode)
       fs.writeFileSync(statePath, stateString, 'utf8')
     else
       @getCurrentWindow().loadSettings.windowState = stateString
