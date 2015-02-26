@@ -1136,15 +1136,29 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 0).width).toBe 10
 
       describe ".cursorsVisible", ->
-        it "alternates between true and false twice per ::cursorBlinkPeriod", ->
+        it "alternates between true and false twice per ::cursorBlinkPeriod when the editor is focused", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
-          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
+          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay, focused: true})
 
           expect(presenter.state.content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
           expect(presenter.state.content.cursorsVisible).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
+          expect(presenter.state.content.cursorsVisible).toBe true
+          expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
+          expect(presenter.state.content.cursorsVisible).toBe false
+          expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
+          expect(presenter.state.content.cursorsVisible).toBe true
+
+          expectStateUpdate presenter, -> presenter.setFocused(false)
+          expect(presenter.state.content.cursorsVisible).toBe false
+          advanceClock(cursorBlinkPeriod / 2)
+          expect(presenter.state.content.cursorsVisible).toBe false
+          advanceClock(cursorBlinkPeriod / 2)
+          expect(presenter.state.content.cursorsVisible).toBe false
+
+          expectStateUpdate presenter, -> presenter.setFocused(true)
           expect(presenter.state.content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
           expect(presenter.state.content.cursorsVisible).toBe false
@@ -1152,7 +1166,7 @@ describe "TextEditorPresenter", ->
         it "stops alternating for ::cursorBlinkResumeDelay when a cursor moves or a cursor is added", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
-          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
+          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay, focused: true})
 
           expect(presenter.state.content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
