@@ -149,6 +149,6 @@ describe "the `atom` global", ->
       atom1 = Atom.loadOrCreate("editor")
       expect(atom1.state.stuff).toBeUndefined()
 
-      loadSettings.initialPaths = [dir1, dir2]
+      loadSettings.initialPaths = [dir2, dir1]
       atom2 = Atom.loadOrCreate("editor")
       expect(atom2.state.stuff).toBe("cool")

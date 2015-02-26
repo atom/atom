@@ -96,7 +96,7 @@ class Atom extends Model
         filename = 'spec'
       when 'editor'
         if paths?.length > 0
-          sha1 = crypto.createHash('sha1').update(paths.join("\n")).digest('hex')
+          sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
           filename = "editor-#{sha1}"
 
     if filename
