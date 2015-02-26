@@ -266,9 +266,6 @@ class Project extends Model
       else
         undefined
 
-  # Public: Make the given path relative to a project directory.
-  #
-  # * `fullPath` {String} full path
   relativize: (fullPath) ->
     @relativizePath(fullPath)[1]
 
