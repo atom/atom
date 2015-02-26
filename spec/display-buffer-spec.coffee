@@ -80,6 +80,14 @@ describe "DisplayBuffer", ->
           atom.config.set('editor.softWrapAtPreferredLineLength', false)
           expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '    return '
 
+      describe "when editor width is negative", ->
+        it "does not hang while wrapping", ->
+          displayBuffer.setDefaultCharWidth(1)
+          displayBuffer.setWidth(-1)
+
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe "  "
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe "  var sort = function(items) {"
+
       describe "when the line is shorter than the max line length", ->
         it "renders the line unchanged", ->
           expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe buffer.lineForRow(0)
