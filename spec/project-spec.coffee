@@ -438,22 +438,22 @@ describe "Project", ->
       randomPath = path.join("some", "random", "path")
       expect(atom.project.relativize(randomPath)).toBe randomPath
 
-  describe ".splitPath(path)", ->
+  describe ".relativizePath(path)", ->
     it "returns the root path that contains the given path, and the path relativized to that root path", ->
       atom.project.addPath(temp.mkdirSync("another-path"))
 
       rootPath = atom.project.getPaths()[0]
       childPath = path.join(rootPath, "some", "child", "directory")
-      expect(atom.project.splitPath(childPath)).toEqual [rootPath, path.join("some", "child", "directory")]
+      expect(atom.project.relativizePath(childPath)).toEqual [rootPath, path.join("some", "child", "directory")]
 
       rootPath = atom.project.getPaths()[1]
       childPath = path.join(rootPath, "some", "child", "directory")
-      expect(atom.project.splitPath(childPath)).toEqual [rootPath, path.join("some", "child", "directory")]
+      expect(atom.project.relativizePath(childPath)).toEqual [rootPath, path.join("some", "child", "directory")]
 
     describe "when the given path isn't inside of any of the project's path", ->
       it "returns null for the root path, and the given path unchanged", ->
         randomPath = path.join("some", "random", "path")
-        expect(atom.project.splitPath(randomPath)).toEqual [null, randomPath]
+        expect(atom.project.relativizePath(randomPath)).toEqual [null, randomPath]
 
   describe ".contains(path)", ->
     it "returns whether or not the given path is in one of the root directories", ->

@@ -270,7 +270,7 @@ class Project extends Model
   #
   # * `fullPath` {String} full path
   relativize: (fullPath) ->
-    @splitPath(fullPath)[1]
+    @relativizePath(fullPath)[1]
 
   # Public: Get the path to the project directory that contains the given path,
   # and the relative path from that project directory to the given path.
@@ -282,7 +282,7 @@ class Project extends Model
   #   given path, or `null` if none is found.
   # * `relativePath` {String} The relative path from the project directory to
   #   the given path.
-  splitPath: (fullPath) ->
+  relativizePath: (fullPath) ->
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     for rootDirectory in @rootDirectories
       relativePath = rootDirectory.relativize(fullPath)
