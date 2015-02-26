@@ -1146,9 +1146,13 @@ class TextEditor extends Model
     @batch => @buffer.transact(groupingInterval, fn)
 
   batch: (fn) ->
-    @emitter.emit "will-start-batch-operation"
-    fn()
-    @emitter.emit "did-finish-batch-operation"
+    @batchCount++
+    @emitter.emit "will-start-batch-operation" if @batchCount == 1
+    value = fn()
+    @emitter.emit "did-finish-batch-operation" if @batchCount == 1
+    @batchCount--
+
+    value
 
   onWillStartBatchOperation: (callback) ->
     @emitter.on "will-start-batch-operation", callback
