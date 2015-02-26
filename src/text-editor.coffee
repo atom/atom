@@ -836,7 +836,8 @@ class TextEditor extends Model
   #      argument will be a {Selection} and the second argument will be the
   #      {Number} index of that selection.
   mutateSelectedText: (fn) ->
-    @transact => fn(selection, index) for selection, index in @getSelections()
+    @mergeIntersectingSelections =>
+      @transact => fn(selection, index) for selection, index in @getSelections()
 
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
@@ -2248,6 +2249,7 @@ class TextEditor extends Model
 
     [head, tail...] = @getSelectionsOrderedByBufferPosition()
     _.reduce(tail, reducer, [head])
+    return result if fn?
 
   # Add a {Selection} based on the given {Marker}.
   #
