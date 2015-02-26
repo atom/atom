@@ -113,7 +113,7 @@ class TextEditorPresenter
       hiddenInput: {}
       content:
         scrollingVertically: false
-        blinkCursorsOff: false
+        cursorsVisible: true
         lines: {}
         highlights: {}
         overlays: {}
@@ -983,11 +983,11 @@ class TextEditorPresenter
     clearInterval(@toggleCursorBlinkHandle)
 
   toggleCursorBlink: ->
-    @state.content.blinkCursorsOff = not @state.content.blinkCursorsOff
+    @state.content.cursorsVisible = not @state.content.cursorsVisible
     @emitter.emit 'did-update-state'
 
   pauseCursorBlinking: ->
-    @state.content.blinkCursorsOff = false
+    @state.content.cursorsVisible = true
     @stopBlinkingCursors()
     @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
     @startBlinkingCursorsAfterDelay()

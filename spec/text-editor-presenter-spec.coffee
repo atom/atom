@@ -1135,49 +1135,49 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(explicitHeight: 20, scrollTop: 0)
           expect(stateForCursor(presenter, 0).width).toBe 10
 
-      describe ".blinkCursorsOff", ->
+      describe ".cursorsVisible", ->
         it "alternates between true and false twice per ::cursorBlinkPeriod", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
           presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
 
-          expect(presenter.state.content.blinkCursorsOff).toBe false
+          expect(presenter.state.content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.state.content.blinkCursorsOff).toBe true
+          expect(presenter.state.content.cursorsVisible).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.state.content.blinkCursorsOff).toBe false
+          expect(presenter.state.content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.state.content.blinkCursorsOff).toBe true
+          expect(presenter.state.content.cursorsVisible).toBe false
 
         it "stops alternating for ::cursorBlinkResumeDelay when a cursor moves or a cursor is added", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
           presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
 
-          expect(presenter.state.content.blinkCursorsOff).toBe false
+          expect(presenter.state.content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.state.content.blinkCursorsOff).toBe true
+          expect(presenter.state.content.cursorsVisible).toBe false
 
           expectStateUpdate presenter, -> editor.moveRight()
-          expect(presenter.state.content.blinkCursorsOff).toBe false
+          expect(presenter.state.content.cursorsVisible).toBe true
 
           expectStateUpdate presenter, ->
             advanceClock(cursorBlinkResumeDelay)
             advanceClock(cursorBlinkPeriod / 2)
 
-          expect(presenter.state.content.blinkCursorsOff).toBe true
+          expect(presenter.state.content.cursorsVisible).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.state.content.blinkCursorsOff).toBe false
+          expect(presenter.state.content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.state.content.blinkCursorsOff).toBe true
+          expect(presenter.state.content.cursorsVisible).toBe false
 
           expectStateUpdate presenter, -> editor.addCursorAtBufferPosition([1, 0])
-          expect(presenter.state.content.blinkCursorsOff).toBe false
+          expect(presenter.state.content.cursorsVisible).toBe true
 
           expectStateUpdate presenter, ->
             advanceClock(cursorBlinkResumeDelay)
             advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.state.content.blinkCursorsOff).toBe true
+          expect(presenter.state.content.cursorsVisible).toBe false
 
       describe ".highlights", ->
         stateForHighlight = (presenter, decoration) ->

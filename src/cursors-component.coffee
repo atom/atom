@@ -13,12 +13,12 @@ class CursorsComponent
     @oldState ?= {cursors: {}}
 
     # update blink class
-    if newState.blinkCursorsOff isnt @oldState.blinkCursorsOff
-      if newState.blinkCursorsOff
-        @domNode.classList.add 'blink-off'
-      else
+    if newState.cursorsVisible isnt @oldState.cursorsVisible
+      if newState.cursorsVisible
         @domNode.classList.remove 'blink-off'
-      @oldState.blinkCursorsOff = newState.blinkCursorsOff
+      else
+        @domNode.classList.add 'blink-off'
+      @oldState.cursorsVisible = newState.cursorsVisible
 
     # remove cursors
     for id of @oldState.cursors
