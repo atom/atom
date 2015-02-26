@@ -85,6 +85,7 @@ class TextEditor extends Model
     @cursors = []
     @selections = []
 
+    @batchCount = 0
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
     @buffer = @displayBuffer.buffer
@@ -994,7 +995,7 @@ class TextEditor extends Model
   # selections to create multiple single-line selections that cumulatively cover
   # the same original area.
   splitSelectionsIntoLines: ->
-    @batch =>
+    @batch => @mergeIntersectingSelections =>
       for selection in @getSelections()
         range = selection.getBufferRange()
         continue if range.isSingleLine()
