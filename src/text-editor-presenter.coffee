@@ -31,8 +31,12 @@ class TextEditorPresenter
   destroy: ->
     @disposables.dispose()
 
-  onDidUpdateState: (callback) ->
-    @emitter.on 'did-update-state', callback
+  # Calls your `callback` when some changes in the model occurred and the current state needs to be updated.
+  onNeedsUpdate: (callback) ->
+    @emitter.on 'needs-update', callback
+
+  needsUpdate: ->
+    @emitter.emit "needs-update" unless @updating
 
   transferMeasurementsToModel: ->
     @model.setHeight(@explicitHeight) if @explicitHeight?
@@ -44,12 +48,12 @@ class TextEditorPresenter
     @model.setVerticalScrollbarWidth(@measuredVerticalScrollbarWidth) if @measuredVerticalScrollbarWidth?
     @model.setHorizontalScrollbarHeight(@measuredHorizontalScrollbarHeight) if @measuredHorizontalScrollbarHeight?
 
-  needsRefresh: ->
-    @emitter.emit "did-update-state" unless @updating
-
+  # Determines whether {TextEditorPresenter} is currently batching changes.
+  # Returns a {Boolean}, `true` if is collecting changes, `false` if is applying them.
   isBatching: ->
     @updating == false
 
+  # Updates the state, applying only those changes that occurred between this call and a previous call to this method.
   update: ->
     @updating = true
 
@@ -187,7 +191,7 @@ class TextEditorPresenter
     else
       @state.focused = @focused
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateHeightState: ->
     if @isBatching()
@@ -198,7 +202,7 @@ class TextEditorPresenter
       else
         @state.height = null
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateVerticalScrollState: ->
     if @isBatching()
@@ -212,7 +216,7 @@ class TextEditorPresenter
       @state.gutter.scrollTop = @scrollTop
       @state.verticalScrollbar.scrollTop = @scrollTop
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateHorizontalScrollState: ->
     if @isBatching()
@@ -224,7 +228,7 @@ class TextEditorPresenter
       @state.content.scrollLeft = @scrollLeft
       @state.horizontalScrollbar.scrollLeft = @scrollLeft
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateScrollbarsState: ->
     if @isBatching()
@@ -238,7 +242,7 @@ class TextEditorPresenter
       @state.verticalScrollbar.width = @measuredVerticalScrollbarWidth
       @state.verticalScrollbar.bottom = @horizontalScrollbarHeight
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateHiddenInputState: ->
     if @isBatching()
@@ -260,7 +264,7 @@ class TextEditorPresenter
       @state.hiddenInput.height = height
       @state.hiddenInput.width = Math.max(width, 2)
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateContentState: ->
     if @isBatching()
@@ -272,7 +276,7 @@ class TextEditorPresenter
       @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
       @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateLinesState: ->
     if @isBatching()
@@ -302,7 +306,7 @@ class TextEditorPresenter
         unless visibleLineIds.hasOwnProperty(id)
           delete @state.content.lines[id]
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateLineState: (row, line) ->
     lineState = @state.content.lines[line.id]
@@ -330,7 +334,7 @@ class TextEditorPresenter
       @state.content.cursors = {}
       @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateCursorState: (cursor, destroyOnly = false) ->
     delete @state.content.cursors[cursor.id]
@@ -343,7 +347,7 @@ class TextEditorPresenter
     pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
     @state.content.cursors[cursor.id] = pixelRect
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateOverlaysState: ->
     if @isBatching()
@@ -369,7 +373,7 @@ class TextEditorPresenter
       for id of @state.content.overlays
         delete @state.content.overlays[id] unless visibleDecorationIds[id]
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateGutterState: ->
     if @isBatching()
@@ -382,7 +386,7 @@ class TextEditorPresenter
       else
         @backgroundColor
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateLineNumbersState: ->
     if @isBatching()
@@ -430,7 +434,7 @@ class TextEditorPresenter
       for id of @state.gutter.lineNumbers
         delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
-    @needsRefresh()
+    @needsUpdate()
 
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
@@ -620,7 +624,7 @@ class TextEditorPresenter
       @stoppedScrollingTimeoutId = null
     @stoppedScrollingTimeoutId = setTimeout(@didStopScrolling.bind(this), @stoppedScrollingDelay)
     @state.content.scrollingVertically = true
-    @needsRefresh()
+    @needsUpdate()
 
   didStopScrolling: ->
     @state.content.scrollingVertically = false
@@ -629,7 +633,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateLineNumbersState()
     else
-      @needsRefresh()
+      @needsUpdate()
 
   setScrollLeft: (scrollLeft) ->
     scrollLeft = @constrainScrollLeft(scrollLeft)
@@ -893,7 +897,7 @@ class TextEditorPresenter
       decorationState.flashCount++
       decorationState.flashClass = flash.class
       decorationState.flashDuration = flash.duration
-      @needsRefresh()
+      @needsUpdate()
 
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
@@ -930,7 +934,7 @@ class TextEditorPresenter
         unless visibleHighlights[id]
           delete @state.content.highlights[id]
 
-      @needsRefresh()
+      @needsUpdate()
 
 
   removeFromLineDecorationCaches: (decoration, range) ->
@@ -971,7 +975,7 @@ class TextEditorPresenter
 
     if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
       delete @state.content.highlights[decoration.id]
-      @needsRefresh()
+      @needsUpdate()
       return
 
     if range.start.row < @startRow
@@ -983,7 +987,7 @@ class TextEditorPresenter
 
     if range.isEmpty()
       delete @state.content.highlights[decoration.id]
-      @needsRefresh()
+      @needsUpdate()
       return
 
     highlightState = @state.content.highlights[decoration.id] ?= {
@@ -994,7 +998,7 @@ class TextEditorPresenter
     highlightState.class = properties.class
     highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
     highlightState.regions = @buildHighlightRegions(range)
-    @needsRefresh()
+    @needsUpdate()
 
     true
 
@@ -1081,10 +1085,10 @@ class TextEditorPresenter
 
   toggleCursorBlink: ->
     @state.content.cursorsVisible = not @state.content.cursorsVisible
-    @needsRefresh()
+    @needsUpdate()
 
   pauseCursorBlinking: ->
     @stopBlinkingCursors(true)
     @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
     @startBlinkingCursorsAfterDelay()
-    @needsRefresh()
+    @needsUpdate()
