@@ -103,8 +103,6 @@ class TextEditorComponent
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
 
   updateSync: ->
-    @presenter.exitBatchMode()
-
     @oldState ?= {}
     @newState = @presenter.state
 
@@ -150,8 +148,6 @@ class TextEditorComponent
       @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
       @hostElement.__spacePenView.trigger 'editor:display-updated'
 
-    @presenter.enterBatchMode()
-
   readAfterUpdateSync: =>
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
 
@@ -183,7 +179,9 @@ class TextEditorComponent
       @updateSync()
     else unless @updateRequested
       @updateRequested = true
+      @presenter.enterBatchMode()
       atom.views.updateDocument =>
+        @presenter.exitBatchMode()
         @updateRequested = false
         @updateSync() if @editor.isAlive()
       atom.views.readDocument(@readAfterUpdateSync)

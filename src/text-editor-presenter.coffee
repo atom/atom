@@ -26,7 +26,6 @@ class TextEditorPresenter
     @observeConfig()
     @buildState()
     @startBlinkingCursors() if @focused
-    @enterBatchMode()
 
   destroy: ->
     @disposables.dispose()
@@ -191,125 +190,125 @@ class TextEditorPresenter
   updateFocusedState: ->
     if @isInBatchMode()
       @shouldUpdateFocusedState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      @state.focused = @focused
 
-    @state.focused = @focused
+    @emitter.emit "did-update-state"
 
   updateHeightState: ->
     if @isInBatchMode()
       @shouldUpdateHeightState = true
-      @emitter.emit "did-update-state"
-      return
-
-    if @autoHeight
-      @state.height = @contentHeight
     else
-      @state.height = null
+      if @autoHeight
+        @state.height = @contentHeight
+      else
+        @state.height = null
+
+    @emitter.emit "did-update-state"
 
   updateVerticalScrollState: ->
     if @isInBatchMode()
       @shouldUpdateVerticalScrollState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      @state.content.scrollHeight = @scrollHeight
+      @state.gutter.scrollHeight = @scrollHeight
+      @state.verticalScrollbar.scrollHeight = @scrollHeight
 
-    @state.content.scrollHeight = @scrollHeight
-    @state.gutter.scrollHeight = @scrollHeight
-    @state.verticalScrollbar.scrollHeight = @scrollHeight
+      @state.content.scrollTop = @scrollTop
+      @state.gutter.scrollTop = @scrollTop
+      @state.verticalScrollbar.scrollTop = @scrollTop
 
-    @state.content.scrollTop = @scrollTop
-    @state.gutter.scrollTop = @scrollTop
-    @state.verticalScrollbar.scrollTop = @scrollTop
+    @emitter.emit "did-update-state"
 
   updateHorizontalScrollState: ->
     if @isInBatchMode()
       @shouldUpdateHorizontalScrollState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      @state.content.scrollWidth = @scrollWidth
+      @state.horizontalScrollbar.scrollWidth = @scrollWidth
 
-    @state.content.scrollWidth = @scrollWidth
-    @state.horizontalScrollbar.scrollWidth = @scrollWidth
+      @state.content.scrollLeft = @scrollLeft
+      @state.horizontalScrollbar.scrollLeft = @scrollLeft
 
-    @state.content.scrollLeft = @scrollLeft
-    @state.horizontalScrollbar.scrollLeft = @scrollLeft
+    @emitter.emit "did-update-state"
 
   updateScrollbarsState: ->
     if @isInBatchMode()
       @shouldUpdateScrollbarsState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      @state.horizontalScrollbar.visible = @horizontalScrollbarHeight > 0
+      @state.horizontalScrollbar.height = @measuredHorizontalScrollbarHeight
+      @state.horizontalScrollbar.right = @verticalScrollbarWidth
 
-    @state.horizontalScrollbar.visible = @horizontalScrollbarHeight > 0
-    @state.horizontalScrollbar.height = @measuredHorizontalScrollbarHeight
-    @state.horizontalScrollbar.right = @verticalScrollbarWidth
+      @state.verticalScrollbar.visible = @verticalScrollbarWidth > 0
+      @state.verticalScrollbar.width = @measuredVerticalScrollbarWidth
+      @state.verticalScrollbar.bottom = @horizontalScrollbarHeight
 
-    @state.verticalScrollbar.visible = @verticalScrollbarWidth > 0
-    @state.verticalScrollbar.width = @measuredVerticalScrollbarWidth
-    @state.verticalScrollbar.bottom = @horizontalScrollbarHeight
+    @emitter.emit "did-update-state"
 
   updateHiddenInputState: ->
     if @isInBatchMode()
       @shouldUpdateHiddenInputState = true
-      @emitter.emit "did-update-state"
-      return
-
-    return unless lastCursor = @model.getLastCursor()
-
-    {top, left, height, width} = @pixelRectForScreenRange(lastCursor.getScreenRange())
-
-    if @focused
-      top -= @scrollTop
-      left -= @scrollLeft
-      @state.hiddenInput.top = Math.max(Math.min(top, @clientHeight - height), 0)
-      @state.hiddenInput.left = Math.max(Math.min(left, @clientWidth - width), 0)
     else
-      @state.hiddenInput.top = 0
-      @state.hiddenInput.left = 0
+      return unless lastCursor = @model.getLastCursor()
 
-    @state.hiddenInput.height = height
-    @state.hiddenInput.width = Math.max(width, 2)
+      {top, left, height, width} = @pixelRectForScreenRange(lastCursor.getScreenRange())
+
+      if @focused
+        top -= @scrollTop
+        left -= @scrollLeft
+        @state.hiddenInput.top = Math.max(Math.min(top, @clientHeight - height), 0)
+        @state.hiddenInput.left = Math.max(Math.min(left, @clientWidth - width), 0)
+      else
+        @state.hiddenInput.top = 0
+        @state.hiddenInput.left = 0
+
+      @state.hiddenInput.height = height
+      @state.hiddenInput.width = Math.max(width, 2)
+
+    @emitter.emit "did-update-state"
 
   updateContentState: ->
     if @isInBatchMode()
       @shouldUpdateContentState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      @state.content.scrollWidth = @scrollWidth
+      @state.content.scrollLeft = @scrollLeft
+      @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
+      @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
+      @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
-    @state.content.scrollWidth = @scrollWidth
-    @state.content.scrollLeft = @scrollLeft
-    @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
-    @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
-    @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
+    @emitter.emit "did-update-state"
 
   updateLinesState: ->
     if @isInBatchMode()
       @shouldUpdateLinesState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      return unless @startRow? and @endRow? and @lineHeight?
 
-    return unless @startRow? and @endRow? and @lineHeight?
+      visibleLineIds = {}
+      row = @startRow
+      while row < @endRow
+        line = @model.tokenizedLineForScreenRow(row)
+        unless line?
+          throw new Error("No line exists for row #{row}. Last screen row: #{@model.getLastScreenRow()}")
 
-    visibleLineIds = {}
-    row = @startRow
-    while row < @endRow
-      line = @model.tokenizedLineForScreenRow(row)
-      unless line?
-        throw new Error("No line exists for row #{row}. Last screen row: #{@model.getLastScreenRow()}")
+        visibleLineIds[line.id] = true
+        if @state.content.lines.hasOwnProperty(line.id)
+          @updateLineState(row, line)
+        else
+          @buildLineState(row, line)
+        row++
 
-      visibleLineIds[line.id] = true
-      if @state.content.lines.hasOwnProperty(line.id)
-        @updateLineState(row, line)
-      else
-        @buildLineState(row, line)
-      row++
+      if @mouseWheelScreenRow?
+        if preservedLine = @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)
+          visibleLineIds[preservedLine.id] = true
 
-    if @mouseWheelScreenRow?
-      if preservedLine = @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)
-        visibleLineIds[preservedLine.id] = true
+      for id, line of @state.content.lines
+        unless visibleLineIds.hasOwnProperty(id)
+          delete @state.content.lines[id]
 
-    for id, line of @state.content.lines
-      unless visibleLineIds.hasOwnProperty(id)
-        delete @state.content.lines[id]
+    @emitter.emit "did-update-state"
 
   updateLineState: (row, line) ->
     lineState = @state.content.lines[line.id]
@@ -333,140 +332,140 @@ class TextEditorPresenter
   updateCursorsState: ->
     if @isInBatchMode()
       @shouldUpdateCursorsState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      @state.content.cursors = {}
 
-    @state.content.cursors = {}
+      @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
 
-    @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
-
+    @emitter.emit "did-update-state"
 
   updateCursorState: (cursor, destroyOnly = false) ->
     if @isInBatchMode()
       @shouldUpdateCursorsState = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      delete @state.content.cursors[cursor.id]
 
-    delete @state.content.cursors[cursor.id]
+      return if destroyOnly
+      return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
+      return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
 
-    return if destroyOnly
-    return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
-    return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
+      pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
+      pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
+      @state.content.cursors[cursor.id] = pixelRect
 
-    pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
-    pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
-    @state.content.cursors[cursor.id] = pixelRect
+    @emitter.emit "did-update-state"
 
   updateOverlaysState: ->
     if @isInBatchMode()
       @shouldUpdateOverlaysState = true
-      @emitter.emit "did-update-state"
-      return
 
-    return unless @hasPixelRectRequirements()
+    else
+      return unless @hasPixelRectRequirements()
 
-    visibleDecorationIds = {}
+      visibleDecorationIds = {}
 
-    for decoration in @model.getOverlayDecorations()
-      continue unless decoration.getMarker().isValid()
+      for decoration in @model.getOverlayDecorations()
+        continue unless decoration.getMarker().isValid()
 
-      {item, position} = decoration.getProperties()
-      if position is 'tail'
-        screenPosition = decoration.getMarker().getTailScreenPosition()
-      else
-        screenPosition = decoration.getMarker().getHeadScreenPosition()
+        {item, position} = decoration.getProperties()
+        if position is 'tail'
+          screenPosition = decoration.getMarker().getTailScreenPosition()
+        else
+          screenPosition = decoration.getMarker().getHeadScreenPosition()
 
-      @state.content.overlays[decoration.id] ?= {item}
-      @state.content.overlays[decoration.id].pixelPosition = @pixelPositionForScreenPosition(screenPosition)
-      visibleDecorationIds[decoration.id] = true
+        @state.content.overlays[decoration.id] ?= {item}
+        @state.content.overlays[decoration.id].pixelPosition = @pixelPositionForScreenPosition(screenPosition)
+        visibleDecorationIds[decoration.id] = true
 
-    for id of @state.content.overlays
-      delete @state.content.overlays[id] unless visibleDecorationIds[id]
+      for id of @state.content.overlays
+        delete @state.content.overlays[id] unless visibleDecorationIds[id]
+
+    @emitter.emit "did-update-state"
 
   updateGutterState: ->
     if @isInBatchMode()
       @shouldUpdateGutterState = true
-      @emitter.emit "did-update-state"
-      return
-
-    @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
-    @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
-    @state.gutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
-      @gutterBackgroundColor
     else
-      @backgroundColor
+      @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
+      @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
+      @state.gutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
+        @gutterBackgroundColor
+      else
+        @backgroundColor
+
+    @emitter.emit "did-update-state"
 
   updateLineNumbersState: ->
     if @isInBatchMode()
       @shouldUpdateLineNumbersState = true
-      @emitter.emit "did-update-state"
-      return
-
-    return unless @startRow? and @endRow? and @lineHeight?
-
-    visibleLineNumberIds = {}
-
-    if @startRow > 0
-      rowBeforeStartRow = @startRow - 1
-      lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
-      wrapCount = rowBeforeStartRow - @model.screenRowForBufferRow(lastBufferRow)
     else
-      lastBufferRow = null
-      wrapCount = 0
+      return unless @startRow? and @endRow? and @lineHeight?
 
-    if @endRow > @startRow
-      for bufferRow, i in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
-        if bufferRow is lastBufferRow
-          wrapCount++
-          id = bufferRow + '-' + wrapCount
-          softWrapped = true
-        else
-          id = bufferRow
-          wrapCount = 0
-          lastBufferRow = bufferRow
-          softWrapped = false
+      visibleLineNumberIds = {}
 
-        screenRow = @startRow + i
-        top = screenRow * @lineHeight
-        decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-        foldable = @model.isFoldableAtScreenRow(screenRow)
+      if @startRow > 0
+        rowBeforeStartRow = @startRow - 1
+        lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
+        wrapCount = rowBeforeStartRow - @model.screenRowForBufferRow(lastBufferRow)
+      else
+        lastBufferRow = null
+        wrapCount = 0
 
-        @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+      if @endRow > @startRow
+        for bufferRow, i in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
+          if bufferRow is lastBufferRow
+            wrapCount++
+            id = bufferRow + '-' + wrapCount
+            softWrapped = true
+          else
+            id = bufferRow
+            wrapCount = 0
+            lastBufferRow = bufferRow
+            softWrapped = false
+
+          screenRow = @startRow + i
+          top = screenRow * @lineHeight
+          decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+          foldable = @model.isFoldableAtScreenRow(screenRow)
+
+          @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+          visibleLineNumberIds[id] = true
+
+      if @mouseWheelScreenRow?
+        bufferRow = @model.bufferRowForScreenRow(@mouseWheelScreenRow)
+        wrapCount = @mouseWheelScreenRow - @model.screenRowForBufferRow(bufferRow)
+        id = bufferRow
+        id += '-' + wrapCount if wrapCount > 0
         visibleLineNumberIds[id] = true
 
-    if @mouseWheelScreenRow?
-      bufferRow = @model.bufferRowForScreenRow(@mouseWheelScreenRow)
-      wrapCount = @mouseWheelScreenRow - @model.screenRowForBufferRow(bufferRow)
-      id = bufferRow
-      id += '-' + wrapCount if wrapCount > 0
-      visibleLineNumberIds[id] = true
+      for id of @state.gutter.lineNumbers
+        delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
-    for id of @state.gutter.lineNumbers
-      delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
+    @emitter.emit "did-update-state"
 
   updateStartRow: ->
     if @isInBatchMode()
       @shouldUpdateStartRow = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      return unless @scrollTop? and @lineHeight?
 
-    return unless @scrollTop? and @lineHeight?
+      startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
+      @startRow = Math.max(0, startRow)
 
-    startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
-    @startRow = Math.max(0, startRow)
+    @emitter.emit "did-update-state"
 
   updateEndRow: ->
     if @isInBatchMode()
       @shouldUpdateEndRow = true
-      @emitter.emit "did-update-state"
-      return
-
-    return unless @scrollTop? and @lineHeight? and @height?
+    else
+      return unless @scrollTop? and @lineHeight? and @height?
 
     startRow = Math.max(0, Math.floor(@scrollTop / @lineHeight))
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
+
+    @emitter.emit "did-update-state"
 
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
@@ -492,26 +491,26 @@ class TextEditorPresenter
   updateContentDimensions: ->
     if @isInBatchMode()
       @shouldUpdateContentDimensions = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      if @lineHeight?
+        oldContentHeight = @contentHeight
+        @contentHeight = @lineHeight * @model.getScreenLineCount()
 
-    if @lineHeight?
-      oldContentHeight = @contentHeight
-      @contentHeight = @lineHeight * @model.getScreenLineCount()
+      if @baseCharacterWidth?
+        oldContentWidth = @contentWidth
+        @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+        @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
-    if @baseCharacterWidth?
-      oldContentWidth = @contentWidth
-      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
-      @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+      if @contentHeight isnt oldContentHeight
+        @updateHeight()
+        @updateScrollbarDimensions()
+        @updateScrollHeight()
 
-    if @contentHeight isnt oldContentHeight
-      @updateHeight()
-      @updateScrollbarDimensions()
-      @updateScrollHeight()
+      if @contentWidth isnt oldContentWidth
+        @updateScrollbarDimensions()
+        @updateScrollWidth()
 
-    if @contentWidth isnt oldContentWidth
-      @updateScrollbarDimensions()
-      @updateScrollWidth()
+    @emitter.emit "did-update-state"
 
   updateClientHeight: ->
     return unless @height? and @horizontalScrollbarHeight?
@@ -552,47 +551,47 @@ class TextEditorPresenter
   updateScrollbarDimensions: ->
     if @isInBatchMode()
       @shouldUpdateScrollbarDimensions = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      return unless @contentFrameWidth? and @height?
+      return unless @measuredVerticalScrollbarWidth? and @measuredHorizontalScrollbarHeight?
+      return unless @contentWidth? and @contentHeight?
 
-    return unless @contentFrameWidth? and @height?
-    return unless @measuredVerticalScrollbarWidth? and @measuredHorizontalScrollbarHeight?
-    return unless @contentWidth? and @contentHeight?
+      clientWidthWithoutVerticalScrollbar = @contentFrameWidth
+      clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @measuredVerticalScrollbarWidth
+      clientHeightWithoutHorizontalScrollbar = @height
+      clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
-    clientWidthWithoutVerticalScrollbar = @contentFrameWidth
-    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @measuredVerticalScrollbarWidth
-    clientHeightWithoutHorizontalScrollbar = @height
-    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @measuredHorizontalScrollbarHeight
+      horizontalScrollbarVisible =
+        not @model.isMini() and
+          (@contentWidth > clientWidthWithoutVerticalScrollbar or
+           @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar)
 
-    horizontalScrollbarVisible =
-      not @model.isMini() and
-        (@contentWidth > clientWidthWithoutVerticalScrollbar or
-         @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar)
+      verticalScrollbarVisible =
+        not @model.isMini() and
+          (@contentHeight > clientHeightWithoutHorizontalScrollbar or
+           @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar)
 
-    verticalScrollbarVisible =
-      not @model.isMini() and
-        (@contentHeight > clientHeightWithoutHorizontalScrollbar or
-         @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar)
+      horizontalScrollbarHeight =
+        if horizontalScrollbarVisible
+          @measuredHorizontalScrollbarHeight
+        else
+          0
 
-    horizontalScrollbarHeight =
-      if horizontalScrollbarVisible
-        @measuredHorizontalScrollbarHeight
-      else
-        0
+      verticalScrollbarWidth =
+        if verticalScrollbarVisible
+          @measuredVerticalScrollbarWidth
+        else
+          0
 
-    verticalScrollbarWidth =
-      if verticalScrollbarVisible
-        @measuredVerticalScrollbarWidth
-      else
-        0
+      unless @horizontalScrollbarHeight is horizontalScrollbarHeight
+        @horizontalScrollbarHeight = horizontalScrollbarHeight
+        @updateClientHeight()
 
-    unless @horizontalScrollbarHeight is horizontalScrollbarHeight
-      @horizontalScrollbarHeight = horizontalScrollbarHeight
-      @updateClientHeight()
+      unless @verticalScrollbarWidth is verticalScrollbarWidth
+        @verticalScrollbarWidth = verticalScrollbarWidth
+        @updateClientWidth()
 
-    unless @verticalScrollbarWidth is verticalScrollbarWidth
-      @verticalScrollbarWidth = verticalScrollbarWidth
-      @updateClientWidth()
+    @emitter.emit "did-update-state"
 
   lineDecorationClassesForRow: (row) ->
     return null if @model.isMini()
@@ -938,27 +937,27 @@ class TextEditorPresenter
   updateDecorations: ->
     if @isInBatchMode()
       @shouldUpdateDecorations = true
-      @emitter.emit "did-update-state"
-      return
+    else
+      @lineDecorationsByScreenRow = {}
+      @lineNumberDecorationsByScreenRow = {}
+      @highlightDecorationsById = {}
 
-    @lineDecorationsByScreenRow = {}
-    @lineNumberDecorationsByScreenRow = {}
-    @highlightDecorationsById = {}
+      visibleHighlights = {}
+      return unless 0 <= @startRow <= @endRow <= Infinity
 
-    visibleHighlights = {}
-    return unless 0 <= @startRow <= @endRow <= Infinity
+      for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
+        range = @model.getMarker(markerId).getScreenRange()
+        for decoration in decorations
+          if decoration.isType('line') or decoration.isType('line-number')
+            @addToLineDecorationCaches(decoration, range)
+          else if decoration.isType('highlight')
+            visibleHighlights[decoration.id] = @updateHighlightState(decoration)
 
-    for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
-      range = @model.getMarker(markerId).getScreenRange()
-      for decoration in decorations
-        if decoration.isType('line') or decoration.isType('line-number')
-          @addToLineDecorationCaches(decoration, range)
-        else if decoration.isType('highlight')
-          visibleHighlights[decoration.id] = @updateHighlightState(decoration)
+      for id of @state.content.highlights
+        unless visibleHighlights[id]
+          delete @state.content.highlights[id]
 
-    for id of @state.content.highlights
-      unless visibleHighlights[id]
-        delete @state.content.highlights[id]
+    @emitter.emit "did-update-state"
 
   removeFromLineDecorationCaches: (decoration, range) ->
     for row in [range.start.row..range.end.row] by 1
@@ -990,37 +989,40 @@ class TextEditorPresenter
         @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
 
   updateHighlightState: (decoration) ->
-    return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
+    if @isInBatchMode()
+      @shouldUpdateDecorations = true
+    else
+      return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
 
-    properties = decoration.getProperties()
-    marker = decoration.getMarker()
-    range = marker.getScreenRange()
+      properties = decoration.getProperties()
+      marker = decoration.getMarker()
+      range = marker.getScreenRange()
 
-    if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
-      delete @state.content.highlights[decoration.id]
-      @emitter.emit 'did-update-state'
-      return
+      if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
+        delete @state.content.highlights[decoration.id]
+        @emitter.emit 'did-update-state'
+        return
 
-    if range.start.row < @startRow
-      range.start.row = @startRow
-      range.start.column = 0
-    if range.end.row >= @endRow
-      range.end.row = @endRow
-      range.end.column = 0
+      if range.start.row < @startRow
+        range.start.row = @startRow
+        range.start.column = 0
+      if range.end.row >= @endRow
+        range.end.row = @endRow
+        range.end.column = 0
 
-    if range.isEmpty()
-      delete @state.content.highlights[decoration.id]
-      @emitter.emit 'did-update-state'
-      return
+      if range.isEmpty()
+        delete @state.content.highlights[decoration.id]
+        @emitter.emit 'did-update-state'
+        return
 
-    highlightState = @state.content.highlights[decoration.id] ?= {
-      flashCount: 0
-      flashDuration: null
-      flashClass: null
-    }
-    highlightState.class = properties.class
-    highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
-    highlightState.regions = @buildHighlightRegions(range)
+      highlightState = @state.content.highlights[decoration.id] ?= {
+        flashCount: 0
+        flashDuration: null
+        flashClass: null
+      }
+      highlightState.class = properties.class
+      highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
+      highlightState.regions = @buildHighlightRegions(range)
 
     @emitter.emit 'did-update-state'
     true
