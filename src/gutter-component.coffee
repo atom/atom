@@ -124,10 +124,10 @@ class GutterComponent
       oldLineNumberState.top = newLineNumberState.top
       oldLineNumberState.screenRow = newLineNumberState.screenRow
 
-  buildLineNumberClassName: ({bufferRow, foldable, decorationClasses}) ->
+  buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
     className = "line-number line-number-#{bufferRow}"
     className += " " + decorationClasses.join(' ') if decorationClasses?
-    className += " foldable" if foldable
+    className += " foldable" if foldable and not softWrapped
     className
 
   lineNumberNodeForScreenRow: (screenRow) ->
