@@ -25,7 +25,7 @@ class TextEditorPresenter
     @observeModel()
     @observeConfig()
     @buildState()
-    @startBlinkingCursors()
+    @startBlinkingCursors() if @focused
 
   destroy: ->
     @disposables.dispose()
@@ -113,7 +113,7 @@ class TextEditorPresenter
       hiddenInput: {}
       content:
         scrollingVertically: false
-        blinkCursorsOff: false
+        cursorsVisible: false
         lines: {}
         highlights: {}
         overlays: {}
@@ -507,6 +507,10 @@ class TextEditorPresenter
   setFocused: (focused) ->
     unless @focused is focused
       @focused = focused
+      if @focused
+        @startBlinkingCursors()
+      else
+        @stopBlinkingCursors(false)
       @updateFocusedState()
       @updateHiddenInputState()
 
@@ -977,18 +981,22 @@ class TextEditorPresenter
     @updateCursorState(cursor)
 
   startBlinkingCursors: ->
-    @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
+    unless @toggleCursorBlinkHandle
+      @state.content.cursorsVisible = true
+      @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
 
-  stopBlinkingCursors: ->
-    clearInterval(@toggleCursorBlinkHandle)
+  stopBlinkingCursors: (visible) ->
+    if @toggleCursorBlinkHandle
+      @state.content.cursorsVisible = visible
+      clearInterval(@toggleCursorBlinkHandle)
+      @toggleCursorBlinkHandle = null
 
   toggleCursorBlink: ->
-    @state.content.blinkCursorsOff = not @state.content.blinkCursorsOff
+    @state.content.cursorsVisible = not @state.content.cursorsVisible
     @emitter.emit 'did-update-state'
 
   pauseCursorBlinking: ->
-    @state.content.blinkCursorsOff = false
-    @stopBlinkingCursors()
+    @stopBlinkingCursors(true)
     @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
     @startBlinkingCursorsAfterDelay()
     @emitter.emit 'did-update-state'

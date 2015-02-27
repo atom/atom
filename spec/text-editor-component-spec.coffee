@@ -794,6 +794,8 @@ describe "TextEditorComponent", ->
     it "blinks cursors when they aren't moving", ->
       cursorsNode = componentNode.querySelector('.cursors')
 
+      wrapperNode.focus()
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       advanceClock(component.cursorBlinkPeriod / 2)
@@ -2481,8 +2483,7 @@ describe "TextEditorComponent", ->
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
       advanceClock(atom.views.documentPollingInterval)
-      nextAnimationFrame() # won't poll until cursor blinks
-      nextAnimationFrame() # handle update requested by poll
+      nextAnimationFrame()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
     it "accounts for the scroll view's padding when determining the wrap location", ->
