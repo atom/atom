@@ -21,7 +21,10 @@ class DefaultDirectoryProvider
     else
       path.dirname(projectPath)
 
-    new Directory(directoryPath)
+    if fs.isDirectorySync(projectPath)
+      return new Directory(directoryPath)
+    else
+      return null
 
   # Public: Create a Directory that corresponds to the specified URI.
   #
