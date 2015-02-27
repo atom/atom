@@ -458,7 +458,7 @@ class DisplayBuffer extends Model
     width = @width ? @getScrollWidth()
     width -= @getVerticalScrollbarWidth()
     if width? and @defaultCharWidth > 0
-      Math.floor(width / @defaultCharWidth)
+      Math.max(0, Math.floor(width / @defaultCharWidth))
     else
       @editorWidthInChars
 

@@ -22,6 +22,7 @@ class AutoUpdateManager
       # https://github.com/Squirrel/Squirrel.Windows/issues/132
       @feedUrl = 'https://atom.io/api/updates'
     else
+      @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
       @feedUrl = "https://atom.io/api/updates?version=#{@version}"
 
     process.nextTick => @setupAutoUpdater()
@@ -89,7 +90,7 @@ class AutoUpdateManager
     dialog.showMessageBox
       type: 'info'
       buttons: ['OK']
-      icon: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
+      icon: @iconPath
       message: 'No update available.'
       title: 'No Update Available'
       detail: "Version #{@version} is the latest version."
@@ -100,7 +101,7 @@ class AutoUpdateManager
     dialog.showMessageBox
       type: 'warning'
       buttons: ['OK']
-      icon: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
+      icon: @iconPath
       message: 'There was an error checking for updates.'
       title: 'Update Error'
       detail: message

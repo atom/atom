@@ -266,15 +266,25 @@ class Project extends Model
       else
         undefined
 
-  # Public: Make the given path relative to the project directory.
-  #
-  # * `fullPath` {String} full path
   relativize: (fullPath) ->
+    @relativizePath(fullPath)[1]
+
+  # Public: Get the path to the project directory that contains the given path,
+  # and the relative path from that project directory to the given path.
+  #
+  # * `fullPath` {String} An absolute path.
+  #
+  # Returns an {Array} with two elements:
+  # * `projectPath` The {String} path to the project directory that contains the
+  #   given path, or `null` if none is found.
+  # * `relativePath` {String} The relative path from the project directory to
+  #   the given path.
+  relativizePath: (fullPath) ->
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     for rootDirectory in @rootDirectories
       relativePath = rootDirectory.relativize(fullPath)
-      return relativePath if relativePath isnt fullPath
-    fullPath
+      return [rootDirectory.getPath(), relativePath] unless relativePath is fullPath
+    [null, fullPath]
 
   # Public: Determines whether the given path (real or symbolic) is inside the
   # project's directory.
