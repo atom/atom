@@ -103,6 +103,8 @@ class TextEditorComponent
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
 
   updateSync: ->
+    @presenter.applyChanges()
+
     @oldState ?= {}
     @newState = @presenter.state
 
@@ -179,9 +181,7 @@ class TextEditorComponent
       @updateSync()
     else unless @updateRequested
       @updateRequested = true
-      @presenter.enterBatchMode()
       atom.views.updateDocument =>
-        @presenter.exitBatchMode()
         @updateRequested = false
         @updateSync() if @editor.isAlive()
       atom.views.readDocument(@readAfterUpdateSync)
