@@ -36,7 +36,7 @@ class TextEditorPresenter
     @emitter.on 'needs-update', callback
 
   needsUpdate: ->
-    @emitter.emit "needs-update" unless @updating
+    @emitter.emit "needs-update" if @isBatching()
 
   transferMeasurementsToModel: ->
     @model.setHeight(@explicitHeight) if @explicitHeight?
@@ -442,7 +442,6 @@ class TextEditorPresenter
     startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
     @startRow = Math.max(0, startRow)
 
-
   updateEndRow: ->
     return unless @scrollTop? and @lineHeight? and @height?
 
@@ -450,7 +449,6 @@ class TextEditorPresenter
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
-
 
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
@@ -491,7 +489,6 @@ class TextEditorPresenter
     if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
       @updateScrollWidth()
-
 
   updateClientHeight: ->
     return unless @height? and @horizontalScrollbarHeight?
