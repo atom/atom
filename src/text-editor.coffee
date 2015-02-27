@@ -85,7 +85,6 @@ class TextEditor extends Model
     @cursors = []
     @selections = []
 
-    @batchCount = 0
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
     @buffer = @displayBuffer.buffer
@@ -93,10 +92,9 @@ class TextEditor extends Model
 
     @updateInvisibles()
 
-    @batch =>
-      for marker in @findMarkers(@getSelectionMarkerAttributes())
-        marker.setProperties(preserveFolds: true)
-        @addSelection(marker)
+    for marker in @findMarkers(@getSelectionMarkerAttributes())
+      marker.setProperties(preserveFolds: true)
+      @addSelection(marker)
 
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
@@ -996,7 +994,7 @@ class TextEditor extends Model
   # selections to create multiple single-line selections that cumulatively cover
   # the same original area.
   splitSelectionsIntoLines: ->
-    @batch => @mergeIntersectingSelections =>
+    @mergeIntersectingSelections =>
       for selection in @getSelections()
         range = selection.getBufferRange()
         continue if range.isSingleLine()
@@ -1145,22 +1143,7 @@ class TextEditor extends Model
   #   still 'groupable', the two transactions are merged with respect to undo and redo.
   # * `fn` A {Function} to call inside the transaction.
   transact: (groupingInterval, fn) ->
-    @batch => @buffer.transact(groupingInterval, fn)
-
-  batch: (fn) ->
-    @batchCount++
-    @emitter.emit "will-start-batch-operation" if @batchCount == 1
-    value = fn()
-    @emitter.emit "did-finish-batch-operation" if @batchCount == 1
-    @batchCount--
-
-    value
-
-  onWillStartBatchOperation: (callback) ->
-    @emitter.on "will-start-batch-operation", callback
-
-  onDidFinishBatchOperation: (callback) ->
-    @emitter.on "did-finish-batch-operation", callback
+    @buffer.transact(groupingInterval, fn)
 
   # Deprecated: Start an open-ended transaction.
   beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
@@ -1808,9 +1791,8 @@ class TextEditor extends Model
     @emitter.emit 'did-remove-cursor', cursor
 
   moveCursors: (fn) ->
-    @batch =>
-      fn(cursor) for cursor in @getCursors()
-      @mergeCursors()
+    fn(cursor) for cursor in @getCursors()
+    @mergeCursors()
 
   cursorMoved: (event) ->
     @emit 'cursor-moved', event
@@ -2207,13 +2189,13 @@ class TextEditor extends Model
 
   # Calls the given function with each selection, then merges selections
   expandSelectionsForward: (fn) ->
-    @batch => @mergeIntersectingSelections =>
+    @mergeIntersectingSelections =>
       fn(selection) for selection in @getSelections()
 
   # Calls the given function with each selection, then merges selections in the
   # reversed orientation
   expandSelectionsBackward: (fn) ->
-    @batch => @mergeIntersectingSelections reversed: true, =>
+    @mergeIntersectingSelections reversed: true, =>
       fn(selection) for selection in @getSelections()
 
   finalizeSelections: ->
