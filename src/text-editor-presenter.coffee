@@ -26,7 +26,7 @@ class TextEditorPresenter
     @observeConfig()
     @buildState()
     @startBlinkingCursors() if @focused
-    @applyingChanges = false
+    @updating = false
 
   destroy: ->
     @disposables.dispose()
@@ -45,13 +45,13 @@ class TextEditorPresenter
     @model.setHorizontalScrollbarHeight(@measuredHorizontalScrollbarHeight) if @measuredHorizontalScrollbarHeight?
 
   needsRefresh: ->
-    @emitter.emit "did-update-state" unless @applyingChanges
+    @emitter.emit "did-update-state" unless @updating
 
   isBatching: ->
-    @applyingChanges == false
+    @updating == false
 
-  applyChanges: ->
-    @applyingChanges = true
+  update: ->
+    @updating = true
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -81,7 +81,7 @@ class TextEditorPresenter
     @shouldUpdateGutterState = false
     @shouldUpdateLineNumbersState = false
 
-    @applyingChanges = false
+    @updating = false
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
@@ -184,26 +184,25 @@ class TextEditorPresenter
   updateFocusedState: ->
     if @isBatching()
       @shouldUpdateFocusedState = true
-      @needsRefresh()
     else
       @state.focused = @focused
 
+    @needsRefresh()
 
   updateHeightState: ->
     if @isBatching()
       @shouldUpdateHeightState = true
-      @needsRefresh()
     else
       if @autoHeight
         @state.height = @contentHeight
       else
         @state.height = null
 
+    @needsRefresh()
 
   updateVerticalScrollState: ->
     if @isBatching()
       @shouldUpdateVerticalScrollState = true
-      @needsRefresh()
     else
       @state.content.scrollHeight = @scrollHeight
       @state.gutter.scrollHeight = @scrollHeight
@@ -213,11 +212,11 @@ class TextEditorPresenter
       @state.gutter.scrollTop = @scrollTop
       @state.verticalScrollbar.scrollTop = @scrollTop
 
+    @needsRefresh()
 
   updateHorizontalScrollState: ->
     if @isBatching()
       @shouldUpdateHorizontalScrollState = true
-      @needsRefresh()
     else
       @state.content.scrollWidth = @scrollWidth
       @state.horizontalScrollbar.scrollWidth = @scrollWidth
@@ -225,11 +224,11 @@ class TextEditorPresenter
       @state.content.scrollLeft = @scrollLeft
       @state.horizontalScrollbar.scrollLeft = @scrollLeft
 
+    @needsRefresh()
 
   updateScrollbarsState: ->
     if @isBatching()
       @shouldUpdateScrollbarsState = true
-      @needsRefresh()
     else
       @state.horizontalScrollbar.visible = @horizontalScrollbarHeight > 0
       @state.horizontalScrollbar.height = @measuredHorizontalScrollbarHeight
@@ -239,11 +238,11 @@ class TextEditorPresenter
       @state.verticalScrollbar.width = @measuredVerticalScrollbarWidth
       @state.verticalScrollbar.bottom = @horizontalScrollbarHeight
 
+    @needsRefresh()
 
   updateHiddenInputState: ->
     if @isBatching()
       @shouldUpdateHiddenInputState = true
-      @needsRefresh()
     else
       return unless lastCursor = @model.getLastCursor()
 
@@ -261,10 +260,11 @@ class TextEditorPresenter
       @state.hiddenInput.height = height
       @state.hiddenInput.width = Math.max(width, 2)
 
+    @needsRefresh()
+
   updateContentState: ->
     if @isBatching()
       @shouldUpdateContentState = true
-      @needsRefresh()
     else
       @state.content.scrollWidth = @scrollWidth
       @state.content.scrollLeft = @scrollLeft
@@ -272,11 +272,11 @@ class TextEditorPresenter
       @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
       @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
+    @needsRefresh()
 
   updateLinesState: ->
     if @isBatching()
       @shouldUpdateLinesState = true
-      @needsRefresh()
     else
       return unless @startRow? and @endRow? and @lineHeight?
 
@@ -302,6 +302,7 @@ class TextEditorPresenter
         unless visibleLineIds.hasOwnProperty(id)
           delete @state.content.lines[id]
 
+    @needsRefresh()
 
   updateLineState: (row, line) ->
     lineState = @state.content.lines[line.id]
@@ -325,32 +326,28 @@ class TextEditorPresenter
   updateCursorsState: ->
     if @isBatching()
       @shouldUpdateCursorsState = true
-      @needsRefresh()
     else
       @state.content.cursors = {}
-
       @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
 
+    @needsRefresh()
+
   updateCursorState: (cursor, destroyOnly = false) ->
-    if @isBatching()
-      @shouldUpdateCursorsState = true
-      @needsRefresh()
-    else
-      delete @state.content.cursors[cursor.id]
+    delete @state.content.cursors[cursor.id]
 
-      return if destroyOnly
-      return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
-      return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
+    return if destroyOnly
+    return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
+    return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
 
-      pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
-      pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
-      @state.content.cursors[cursor.id] = pixelRect
+    pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
+    pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
+    @state.content.cursors[cursor.id] = pixelRect
 
+    @needsRefresh()
 
   updateOverlaysState: ->
     if @isBatching()
       @shouldUpdateOverlaysState = true
-      @needsRefresh()
     else
       return unless @hasPixelRectRequirements()
 
@@ -372,11 +369,11 @@ class TextEditorPresenter
       for id of @state.content.overlays
         delete @state.content.overlays[id] unless visibleDecorationIds[id]
 
+    @needsRefresh()
 
   updateGutterState: ->
     if @isBatching()
       @shouldUpdateGutterState = true
-      @needsRefresh()
     else
       @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
       @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
@@ -385,11 +382,11 @@ class TextEditorPresenter
       else
         @backgroundColor
 
+    @needsRefresh()
 
   updateLineNumbersState: ->
     if @isBatching()
       @shouldUpdateLineNumbersState = true
-      @needsRefresh()
     else
       return unless @startRow? and @endRow? and @lineHeight?
 
@@ -433,6 +430,7 @@ class TextEditorPresenter
       for id of @state.gutter.lineNumbers
         delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
+    @needsRefresh()
 
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
@@ -912,7 +910,6 @@ class TextEditorPresenter
   updateDecorations: ->
     if @isBatching()
       @shouldUpdateDecorations = true
-      @needsRefresh()
     else
       @lineDecorationsByScreenRow = {}
       @lineNumberDecorationsByScreenRow = {}
@@ -932,6 +929,8 @@ class TextEditorPresenter
       for id of @state.content.highlights
         unless visibleHighlights[id]
           delete @state.content.highlights[id]
+
+      @needsRefresh()
 
 
   removeFromLineDecorationCaches: (decoration, range) ->

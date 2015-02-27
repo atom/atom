@@ -103,7 +103,7 @@ class TextEditorComponent
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
 
   updateSync: ->
-    @presenter.applyChanges()
+    @presenter.update()
 
     @oldState ?= {}
     @newState = @presenter.state
