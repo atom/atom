@@ -8,7 +8,7 @@ TextEditorPresenter = require '../src/text-editor-presenter'
 describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
-  describe "::state", ->
+  describe "::getState()", ->
     [buffer, editor] = []
 
     beforeEach ->
@@ -43,13 +43,22 @@ describe "TextEditorPresenter", ->
       for key, value of expected
         expect(actual[key]).toEqual value
 
-    expectStateUpdate = (presenter, fn) ->
+    expectStateUpdatedToBe = (value, presenter, fn) ->
       updatedState = false
       disposable = presenter.onDidUpdateState ->
         updatedState = true
         disposable.dispose()
       fn()
-      expect(updatedState).toBe true
+      expect(updatedState).toBe(value)
+
+    expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
+
+    expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
+
+    describe "during state retrieval", ->
+      it "does not trigger onDidUpdateState events", ->
+        presenter = buildPresenter()
+        expectNoStateUpdate presenter, -> presenter.getState()
 
     describe ".horizontalScrollbar", ->
       describe ".visible", ->
