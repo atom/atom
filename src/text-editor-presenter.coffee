@@ -51,7 +51,7 @@ class TextEditorPresenter
   # Private: Determines whether {TextEditorPresenter} is currently batching changes.
   # Returns a {Boolean}, `true` if is collecting changes, `false` if is applying them.
   isBatching: ->
-    @updating == false
+    @updating is false
 
   # Private: Executes `fn` if `isBatching()` is false, otherwise sets `@[flagName]` to `true` for later processing. In either cases, it calls `emitDidUpdateState`.
   # * `flagName` {String} name of a property of this presenter
