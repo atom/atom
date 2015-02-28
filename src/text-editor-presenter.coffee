@@ -53,8 +53,7 @@ class TextEditorPresenter
   isBatching: ->
     @updating == false
 
-  # Updates the state, applying only those changes that occurred between this call and a previous call to this method.
-  update: ->
+  getState: ->
     @updating = true
 
     @updateFocusedState() if @shouldUpdateFocusedState
@@ -86,6 +85,8 @@ class TextEditorPresenter
     @shouldUpdateLineNumbersState = false
 
     @updating = false
+
+    @state
 
   observeModel: ->
     @disposables.add @model.onDidChange =>

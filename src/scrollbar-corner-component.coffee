@@ -1,20 +1,18 @@
 module.exports =
 class ScrollbarCornerComponent
-  constructor: (@presenter) ->
+  constructor: () ->
     @domNode = document.createElement('div')
     @domNode.classList.add('scrollbar-corner')
 
     @contentNode = document.createElement('div')
     @domNode.appendChild(@contentNode)
 
-    @updateSync()
-
-  updateSync: ->
+  updateSync: (state) ->
     @oldState ?= {}
     @newState ?= {}
 
-    newHorizontalState = @presenter.state.horizontalScrollbar
-    newVerticalState = @presenter.state.verticalScrollbar
+    newHorizontalState = state.horizontalScrollbar
+    newVerticalState = state.verticalScrollbar
     @newState.visible = newHorizontalState.visible and newVerticalState.visible
     @newState.height = newHorizontalState.height
     @newState.width = newVerticalState.width

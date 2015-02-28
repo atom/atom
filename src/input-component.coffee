@@ -1,16 +1,15 @@
 module.exports =
 class InputComponent
-  constructor: (@presenter) ->
+  constructor: ->
     @domNode = document.createElement('input')
     @domNode.classList.add('hidden-input')
     @domNode.setAttribute('data-react-skip-selection-restoration', true)
     @domNode.style['-webkit-transform'] = 'translateZ(0)'
     @domNode.addEventListener 'paste', (event) -> event.preventDefault()
-    @updateSync()
 
-  updateSync: ->
+  updateSync: (state) ->
     @oldState ?= {}
-    newState = @presenter.state.hiddenInput
+    newState = state.hiddenInput
 
     if newState.top isnt @oldState.top
       @domNode.style.top = newState.top + 'px'

@@ -1,6 +1,6 @@
 module.exports =
 class ScrollbarComponent
-  constructor: ({@presenter, @orientation, @onScroll}) ->
+  constructor: ({@orientation, @onScroll}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add "#{@orientation}-scrollbar"
     @domNode.style['-webkit-transform'] = 'translateZ(0)' # See atom/atom#3559
@@ -12,16 +12,14 @@ class ScrollbarComponent
 
     @domNode.addEventListener 'scroll', @onScrollCallback
 
-    @updateSync()
-
-  updateSync: ->
+  updateSync: (state) ->
     @oldState ?= {}
     switch @orientation
       when 'vertical'
-        @newState = @presenter.state.verticalScrollbar
+        @newState = state.verticalScrollbar
         @updateVertical()
       when 'horizontal'
-        @newState = @presenter.state.horizontalScrollbar
+        @newState = state.horizontalScrollbar
         @updateHorizontal()
 
     if @newState.visible isnt @oldState.visible
