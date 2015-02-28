@@ -64,21 +64,21 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @mountGutterComponent() if @presenter.state.gutter.visible
+    @mountGutterComponent() if @presenter.getState().gutter.visible
 
-    @hiddenInputComponent = new InputComponent(@presenter)
+    @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.domNode)
 
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM})
     @scrollViewNode.appendChild(@linesComponent.domNode)
 
-    @horizontalScrollbarComponent = new ScrollbarComponent({@presenter, orientation: 'horizontal', onScroll: @onHorizontalScroll})
+    @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
     @scrollViewNode.appendChild(@horizontalScrollbarComponent.domNode)
 
-    @verticalScrollbarComponent = new ScrollbarComponent({@presenter, orientation: 'vertical', onScroll: @onVerticalScroll})
+    @verticalScrollbarComponent = new ScrollbarComponent({orientation: 'vertical', onScroll: @onVerticalScroll})
     @domNode.appendChild(@verticalScrollbarComponent.domNode)
 
-    @scrollbarCornerComponent = new ScrollbarCornerComponent(@presenter)
+    @scrollbarCornerComponent = new ScrollbarCornerComponent
     @domNode.appendChild(@scrollbarCornerComponent.domNode)
 
     @observeEditor()
@@ -104,7 +104,7 @@ class TextEditorComponent
 
   updateSync: ->
     @oldState ?= {}
-    @newState = @presenter.state
+    @newState = @presenter.getState()
 
     cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
@@ -128,18 +128,18 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
-    if @presenter.state.gutter.visible
+    if @newState.gutter.visible
       @mountGutterComponent() unless @gutterComponent?
-      @gutterComponent.updateSync()
+      @gutterComponent.updateSync(@newState)
     else
       @gutterComponent?.domNode?.remove()
       @gutterComponent = null
 
-    @hiddenInputComponent.updateSync()
-    @linesComponent.updateSync()
-    @horizontalScrollbarComponent.updateSync()
-    @verticalScrollbarComponent.updateSync()
-    @scrollbarCornerComponent.updateSync()
+    @hiddenInputComponent.updateSync(@newState)
+    @linesComponent.updateSync(@newState)
+    @horizontalScrollbarComponent.updateSync(@newState)
+    @verticalScrollbarComponent.updateSync(@newState)
+    @scrollbarCornerComponent.updateSync(@newState)
 
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
@@ -152,7 +152,7 @@ class TextEditorComponent
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
 
   mountGutterComponent: ->
-    @gutterComponent = new GutterComponent({@presenter, @editor, onMouseDown: @onGutterMouseDown})
+    @gutterComponent = new GutterComponent({@editor, onMouseDown: @onGutterMouseDown})
     @domNode.insertBefore(@gutterComponent.domNode, @domNode.firstChild)
 
   becameVisible: ->

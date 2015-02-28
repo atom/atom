@@ -2,14 +2,13 @@ module.exports =
 class CursorsComponent
   oldState: null
 
-  constructor: (@presenter) ->
+  constructor: ->
     @cursorNodesById = {}
     @domNode = document.createElement('div')
     @domNode.classList.add('cursors')
-    @updateSync()
 
-  updateSync: ->
-    newState = @presenter.state.content
+  updateSync: (state) ->
+    newState = state.content
     @oldState ?= {cursors: {}}
 
     # update blink class
