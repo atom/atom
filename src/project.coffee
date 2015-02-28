@@ -205,7 +205,7 @@ class Project extends Model
       break if directory = provider.directoryForURISync?(projectPath)
     if directory is null
       # DefaultDirectoryProvider doesn't handle specific directory protocols
-      # Atom Packages may use packageDirectoryPaths to add thier own paths later.
+      # Atom Packages may use packageDirectoryPaths to add their own paths later.
       @packageRootDirectoryPaths.push(projectPath)
       return
     else
