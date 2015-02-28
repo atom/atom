@@ -637,6 +637,18 @@ describe "TextEditorComponent", ->
           nextAnimationFrame()
           expect(lineNumberHasClass(5, 'folded')).toBe false
 
+        describe "when soft wrapping is enabled", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            nextAnimationFrame()
+            componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
+            component.measureHeightAndWidth()
+            nextAnimationFrame()
+
+          it "doesn't add the foldable class for soft-wrapped lines", ->
+            expect(lineNumberHasClass(0, 'foldable')).toBe true
+            expect(lineNumberHasClass(1, 'foldable')).toBe false
+
       describe "mouse interactions with fold indicators", ->
         [gutterNode] = []
 
