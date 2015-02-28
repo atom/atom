@@ -567,7 +567,6 @@ class TextEditorPresenter
       @verticalScrollbarWidth = verticalScrollbarWidth
       @updateClientWidth()
 
-
   lineDecorationClassesForRow: (row) ->
     return null if @model.isMini()
 
