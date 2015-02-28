@@ -404,29 +404,33 @@ class TextEditorComponent
 
   onGutterClick: (event) =>
     clickedRow = @screenPositionForMouseEvent(event).row
+    clickedBufferRow = @editor.bufferRowForScreenRow(clickedRow)
 
-    @editor.setSelectedScreenRange([[clickedRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
+    @editor.setSelectedBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
 
     @handleDragUntilMouseUp event, (screenPosition) =>
       dragRow = screenPosition.row
-      if dragRow < clickedRow # dragging up
-        @editor.setSelectedScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
+      dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
+      if dragBufferRow < clickedBufferRow # dragging up
+        @editor.setSelectedBufferRange([[dragBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
       else
-        @editor.setSelectedScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
+        @editor.setSelectedBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], preserveFolds: true)
 
   onGutterMetaClick: (event) =>
     clickedRow = @screenPositionForMouseEvent(event).row
+    clickedBufferRow = @editor.bufferRowForScreenRow(clickedRow)
 
-    bufferRange = @editor.bufferRangeForScreenRange([[clickedRow, 0], [clickedRow + 1, 0]])
+    bufferRange = new Range([clickedBufferRow, 0], [clickedBufferRow + 1, 0])
     rowSelection = @editor.addSelectionForBufferRange(bufferRange, preserveFolds: true)
 
     @handleDragUntilMouseUp event, (screenPosition) =>
       dragRow = screenPosition.row
+      dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
 
-      if dragRow < clickedRow # dragging up
-        rowSelection.setScreenRange([[dragRow, 0], [clickedRow + 1, 0]], preserveFolds: true)
+      if dragBufferRow < clickedBufferRow # dragging up
+        rowSelection.setBufferRange([[dragBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
       else
-        rowSelection.setScreenRange([[clickedRow, 0], [dragRow + 1, 0]], preserveFolds: true)
+        rowSelection.setBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], preserveFolds: true)
 
       # After updating the selected screen range, merge overlapping selections
       @editor.mergeIntersectingSelections(preserveFolds: true)
@@ -439,19 +443,23 @@ class TextEditorComponent
 
   onGutterShiftClick: (event) =>
     clickedRow = @screenPositionForMouseEvent(event).row
+    clickedBufferRow = @editor.bufferRowForScreenRow(clickedRow)
     tailPosition = @editor.getLastSelection().getTailScreenPosition()
+    tailBufferPosition = @editor.bufferPositionForScreenPosition(tailPosition)
 
     if clickedRow < tailPosition.row
-      @editor.selectToScreenPosition([clickedRow, 0])
+      @editor.selectToBufferPosition([clickedBufferRow, 0])
     else
-      @editor.selectToScreenPosition([clickedRow + 1, 0])
+      @editor.selectToBufferPosition([clickedBufferRow + 1, 0])
 
     @handleDragUntilMouseUp event, (screenPosition) =>
       dragRow = screenPosition.row
+      dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
       if dragRow < tailPosition.row # dragging up
-        @editor.setSelectedScreenRange([[dragRow, 0], tailPosition], preserveFolds: true)
+        @editor.setSelectedBufferRange([[dragBufferRow, 0], tailBufferPosition], preserveFolds: true)
       else
-        @editor.setSelectedScreenRange([tailPosition, [dragRow + 1, 0]], preserveFolds: true)
+        @editor.setSelectedBufferRange([tailBufferPosition, [dragBufferRow + 1, 0]], preserveFolds: true)
+
 
   onStylesheetsChanged: (styleElement) =>
     return unless @performedInitialMeasurement
