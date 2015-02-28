@@ -52,7 +52,7 @@ class TextEditorComponent
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
 
-    @presenter.onNeedsUpdate(@requestUpdate)
+    @presenter.onDidUpdateState(@requestUpdate)
 
     @domNode = document.createElement('div')
     if @useShadowDOM

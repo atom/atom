@@ -45,7 +45,7 @@ describe "TextEditorPresenter", ->
 
     expectStateUpdate = (presenter, fn) ->
       updatedState = false
-      disposable = presenter.onNeedsUpdate ->
+      disposable = presenter.onDidUpdateState ->
         updatedState = true
         disposable.dispose()
       fn()
@@ -586,7 +586,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.indentGuidesVisible).toBe false
 
           stateUpdated = false
-          presenter.onNeedsUpdate -> stateUpdated = true
+          presenter.onDidUpdateState -> stateUpdated = true
 
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
@@ -2013,7 +2013,7 @@ describe "TextEditorPresenter", ->
           atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
           expect(presenter.getState().gutter.visible).toBe true
           stateUpdated = false
-          presenter.onNeedsUpdate -> stateUpdated = true
+          presenter.onDidUpdateState -> stateUpdated = true
 
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
