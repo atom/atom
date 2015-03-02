@@ -39,7 +39,6 @@ class Project extends Model
     @emitter = new Emitter
     @buffers ?= []
     @rootDirectories = []
-    @packageRootDirectoryPaths = []
     @repositories = []
 
     @directoryProviders = [new DefaultDirectoryProvider()]
@@ -204,12 +203,10 @@ class Project extends Model
     for provider in @directoryProviders
       break if directory = provider.directoryForURISync?(projectPath)
     if directory is null
-      # DefaultDirectoryProvider doesn't handle specific directory protocols
-      # Atom Packages may use packageDirectoryPaths to add their own paths later.
-      @packageRootDirectoryPaths.push(projectPath)
-      return
-    else
-      @rootDirectories.push(directory)
+      # This should never happen because DefaultDirectoryProvider should always
+      # return a Directory.
+      throw new Error(projectPath + ' could not be resolved to a directory')
+    @rootDirectories.push(directory)
 
     repo = null
     for provider in @repositoryProviders

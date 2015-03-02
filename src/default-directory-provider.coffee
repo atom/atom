@@ -16,15 +16,12 @@ class DefaultDirectoryProvider
   directoryForURISync: (uri) ->
     projectPath = path.normalize(uri)
 
-    directoryPath = if fs.isDirectorySync(projectPath)
-      projectPath
-    else
+    directoryPath = if !fs.isDirectorySync(projectPath) and fs.isDirectorySync(path.dirname(projectPath))
       path.dirname(projectPath)
-
-    if fs.isDirectorySync(projectPath)
-      return new Directory(directoryPath)
     else
-      return null
+      projectPath
+
+    new Directory(directoryPath)
 
   # Public: Create a Directory that corresponds to the specified URI.
   #

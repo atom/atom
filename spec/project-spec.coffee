@@ -78,6 +78,20 @@ describe "Project", ->
       expect(directories.length).toBe 1
       expect(directories[0].getPath()).toBe tmp
 
+    it "gets the parent directory from the default directory provider if it's a local directory", ->
+      tmp = temp.mkdirSync()
+      atom.project.setPaths([path.join(tmp, "not-existing")])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 1
+      expect(directories[0].getPath()).toBe tmp
+
+    it "only normalizes the directory path if it isn't on the local filesystem", ->
+      nonLocalFsDirectory = "custom_proto://abc/def"
+      atom.project.setPaths([nonLocalFsDirectory])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 1
+      expect(directories[0].getPath()).toBe path.normalize(nonLocalFsDirectory)
+
     it "tries to update repositories when a new RepositoryProvider is registered", ->
       tmp = temp.mkdirSync('atom-project')
       atom.project.setPaths([tmp])
