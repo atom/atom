@@ -1,6 +1,6 @@
 module.exports =
 class ScrollbarCornerComponent
-  constructor: () ->
+  constructor: ->
     @domNode = document.createElement('div')
     @domNode.classList.add('scrollbar-corner')
 
