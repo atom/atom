@@ -53,7 +53,7 @@ class Project extends Model
     # to either a {Repository} or null. Ideally, the {Directory} would be used
     # as the key; however, there can be multiple {Directory} objects created for
     # the same real path, so it is not a good key.
-    @repositoryPromisesByPath = new Map();
+    @repositoryPromisesByPath = new Map()
 
     # Note that the GitRepositoryProvider is registered synchronously so that
     # it is available immediately on startup.
