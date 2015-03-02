@@ -93,6 +93,12 @@
   'ctrl-end': 'core:move-to-bottom'
   'ctrl-shift-home': 'core:select-to-top'
   'ctrl-shift-end': 'core:select-to-bottom'
+  'alt-left': 'editor:move-to-previous-subword-boundary'
+  'alt-right': 'editor:move-to-next-subword-boundary'
+  'alt-shift-left': 'editor:select-to-previous-subword-boundary'
+  'alt-shift-right': 'editor:select-to-next-subword-boundary'
+  'alt-backspace': 'editor:delete-to-beginning-of-subword'
+  'alt-delete': 'editor:delete-to-end-of-subword'
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'
