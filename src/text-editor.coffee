@@ -1084,6 +1084,18 @@ class TextEditor extends Model
     @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
 
   # Extended: For each selection, if the selection is empty, delete all characters
+  # of the containing subword following the cursor. Otherwise delete the selected
+  # text.
+  deleteToBeginningOfSubword: ->
+    @mutateSelectedText (selection) -> selection.deleteToBeginningOfSubword()
+
+  # Extended: For each selection, if the selection is empty, delete all characters
+  # of the containing subword following the cursor. Otherwise delete the selected
+  # text.
+  deleteToEndOfSubword: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfSubword()
+
+  # Extended: For each selection, if the selection is empty, delete all characters
   # of the containing line that precede the cursor. Otherwise delete the
   # selected text.
   deleteToBeginningOfLine: ->
@@ -1733,6 +1745,14 @@ class TextEditor extends Model
     deprecate("Use TextEditor::moveToNextWordBoundary() instead")
     @moveToNextWordBoundary()
 
+  # Extended: Move every cursor to the previous subword boundary.
+  moveToPreviousSubwordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToPreviousSubwordBoundary()
+
+  # Extended: Move every cursor to the next subword boundary.
+  moveToNextSubwordBoundary: ->
+    @moveCursors (cursor) -> cursor.moveToNextSubwordBoundary()
+
   # Extended: Move every cursor to the beginning of the next paragraph.
   moveToBeginningOfNextParagraph: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfNextParagraph()
@@ -2060,6 +2080,20 @@ class TextEditor extends Model
   # word while preserving the selection's tail position.
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) -> selection.selectToEndOfWord()
+
+  # Extended: For each selection, move its cursor to the preceding subword
+  # boundary while maintaining the selection's tail position.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToPreviousSubwordBoundary: ->
+    @expandSelectionsBackward (selection) -> selection.selectToPreviousSubwordBoundary()
+
+  # Extended: For each selection, move its cursor to the next subword boundary
+  # while maintaining the selection's tail position.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToNextSubwordBoundary: ->
+    @expandSelectionsForward (selection) -> selection.selectToNextSubwordBoundary()
 
   # Essential: For each cursor, select the containing line.
   #

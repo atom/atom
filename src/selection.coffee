@@ -291,6 +291,14 @@ class Selection extends Model
   selectToNextWordBoundary: ->
     @modifySelection => @cursor.moveToNextWordBoundary()
 
+  # Public: Selects text to the previous subword boundary.
+  selectToPreviousSubwordBoundary: ->
+    @modifySelection => @cursor.moveToPreviousSubwordBoundary()
+
+  # Public: Selects text to the next subword boundary.
+  selectToNextSubwordBoundary: ->
+    @modifySelection => @cursor.moveToNextSubwordBoundary()
+
   # Public: Selects all the text from the current cursor position to the
   # beginning of the next paragraph.
   selectToBeginningOfNextParagraph: ->
@@ -452,6 +460,18 @@ class Selection extends Model
   # selection to the end of the current word if nothing is selected.
   deleteToEndOfWord: ->
     @selectToEndOfWord() if @isEmpty()
+    @deleteSelectedText()
+
+  # Public: Removes the selection or all characters from the start of the
+  # selection to the end of the current word if nothing is selected.
+  deleteToBeginningOfSubword: ->
+    @selectToPreviousSubwordBoundary() if @isEmpty()
+    @deleteSelectedText()
+
+  # Public: Removes the selection or all characters from the start of the
+  # selection to the end of the current word if nothing is selected.
+  deleteToEndOfSubword: ->
+    @selectToNextSubwordBoundary() if @isEmpty()
     @deleteSelectedText()
 
   # Public: Removes only the selected text.
