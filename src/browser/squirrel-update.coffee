@@ -88,7 +88,8 @@ getPath = (callback) ->
   spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
     if error?
       if error.code is 1
-        # Don't overwrite path when reading value is disabled
+        # FIXME Don't overwrite path when reading value is disabled
+        # https://github.com/atom/atom/issues/5092
         if stdout.indexOf('ERROR: Registry editing has been disabled by your administrator.') isnt -1
           return callback(error)
 
@@ -110,6 +111,8 @@ getPath = (callback) ->
       if isAscii(pathEnv)
         callback(null, pathEnv)
       else
+        # FIXME Don't corrupt non-ASCII PATH values
+        # https://github.com/atom/atom/issues/5063
         callback(new Error('PATH contains non-ASCII values'))
     else
       callback(new Error('Registry query for PATH failed'))
