@@ -2,6 +2,7 @@
 {specificity} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
+{isSelectorValid} = require './selector-parser'
 
 SequenceCount = 0
 SpecificityCache = {}
@@ -87,7 +88,7 @@ class CommandRegistry
       return disposable
 
     if typeof target is 'string'
-      unless @isSelectorValid(target)
+      unless isSelectorValid(target)
         throw new Error("'#{target}' is not a valid selector")
       @addSelectorBasedListener(target, commandName, callback)
     else
@@ -236,20 +237,6 @@ class CommandRegistry
     unless @registeredCommands[commandName]
       window.addEventListener(commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
-
-  isSelectorValid: (selector) ->
-    @selectorCache ?= {}
-    cachedValue = @selectorCache[selector]
-    return cachedValue if cachedValue?
-
-    @testElement ?= document.createElement('div')
-    try
-      @testElement.webkitMatchesSelector(selector)
-      @selectorCache[selector] = true
-      true
-    catch selectorError
-      @selectorCache[selector] = false
-      false
 
 class SelectorBasedListener
   constructor: (@selector, @callback) ->
