@@ -274,7 +274,6 @@ class Project extends Model
       return if directory.contains(projectPath) or directory.getPath() is projectPath
 
     directory = null
-    hostPackageForProvider = null
     for provider in @directoryProviders
       break if directory = provider.directoryForURISync?(projectPath)
     if directory is null
