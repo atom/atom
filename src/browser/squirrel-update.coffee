@@ -76,6 +76,13 @@ installContextMenu = (callback) ->
     installMenu directoryKeyPath, '%1', ->
       installMenu(backgroundKeyPath, '%V', callback)
 
+isAscii = (text) ->
+  index = 0
+  while index < text.length
+    return false if text.charCodeAt(index) > 127
+    index++
+  true
+
 # Get the user's PATH environment variable registry value.
 getPath = (callback) ->
   spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
@@ -100,7 +107,10 @@ getPath = (callback) ->
     segments = lines[lines.length - 1]?.split('    ')
     if segments[1] is 'Path' and segments.length >= 3
       pathEnv = segments?[3..].join('    ')
-      callback(null, pathEnv)
+      if isAscii(pathEnv)
+        callback(null, pathEnv)
+      else
+        callback(new Error('PATH contains non-ASCII values'))
     else
       callback(new Error('Registry query for PATH failed'))
 
