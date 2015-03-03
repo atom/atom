@@ -85,56 +85,22 @@ class Project extends Model
         # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
         @directoryProviders.unshift(provider)
 
-        # See if any of the paths in @pathsToRestoreForDirectoryProviderPackage
-        # should be restored by the new DirectoryProvider.
+        # See if any of the paths in @dynamicRootPathsToRestore should be
+        # restored by the new DirectoryProvider.
         for projectPath in @dynamicRootPathsToRestore
-          # TODO(mbolin): Currently, tryToRestorePathAsync() considers every
-          # element in @directoryProviders, but it should only have to consider
-          # the provider that was just added. If this simplification were made,
-          # then @findFirstAsyncValue() could be removed.
-          @tryToRestorePathAsync(projectPath)
+          # Use the async API of DirectoryProvider to give the provider the
+          # flexibility to determine whether it can restore a Directory from
+          # the path from the previous session. If so, add the corresponding
+          # path as a root folder via @addPath, which will exercise the
+          # sync API of the DirectoryProvider. Ideally, the provider should
+          # be implemented such that the async method will cache the result
+          # so it is available when the sync method is invoked.
+          provider.directoryForURI(projectPath).then (restoredDirectory) =>
+            if restoredDirectory
+              indexToRemove = @dynamicRootPathsToRestore.indexOf(projectPath)
+              @dynamicRootPathsToRestore.splice(indexToRemove, 1)
+              @addPath(projectPath)
     )
-
-  # * `projectPath` {String} member of @dynamicRootPathsToRestore.
-  tryToRestorePathAsync: (projectPath) ->
-    Project.findFirstAsyncValue(@directoryProviders, (provider) ->
-      # Use the async API of DirectoryProvider to give the provider the
-      # flexibility to determine whether it can restore a Directory from
-      # the path from the previous session. If so, add the corresponding
-      # path as a root folder via @addPath, which will exercise the
-      # sync API of the DirectoryProvider. Ideally, the provider should
-      # be implemented such that the async method will cache the result
-      # so it is available when the sync method is invoked.
-      provider.directoryForURI(projectPath)
-    ).then (restoredDirectory) =>
-      if restoredDirectory
-        indexToRemove = @dynamicRootPathsToRestore.indexOf(projectPath)
-        @dynamicRootPathsToRestore.splice(indexToRemove, 1)
-        @addPath(projectPath)
-
-  # Applies an async function to each value in an array until it finds one that
-  # resolves to a non-null value.
-  # * `array` {Array} values to inspect
-  # * `transform` {Function} that takes an element of `array` and returns a Promise
-  #
-  # Returns a Promise that resolves to either the first non-null resolution
-  # value from a Promise created by applying the transform or null.
-  @findFirstAsyncValue: (array, transform) ->
-    # Create a local copy of the array so its length cannot change over the
-    # course of this async function.
-    array = [].concat(array)
-    new Promise (resolve, reject) ->
-      len = array.length
-      looper = (index) ->
-        if index < len
-          transform(array[index]).then (result) ->
-            if result isnt null
-              resolve(result)
-            else
-              looper(index + 1)
-        else
-          resolve(null)
-      looper(0)
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
