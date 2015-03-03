@@ -5,6 +5,14 @@ path = require 'path'
 module.exports =
 class DefaultDirectoryProvider
 
+  # Public: Identify the Atom package that must be activated to load this
+  # provider.
+  #
+  # Returns:
+  # * {String} name of the Atom package.
+  # * `null` if this provider is loaded automatically by Atom core.
+  getHostPackage: () -> null
+
   # Public: Create a Directory that corresponds to the specified URI.
   #
   # * `uri` {String} The path to the directory to add. This is guaranteed not to

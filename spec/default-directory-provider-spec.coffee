@@ -3,6 +3,11 @@ path = require "path"
 temp = require "temp"
 
 describe "DefaultDirectoryProvider", ->
+  describe ".getHostPackage", ->
+    it "returns null", ->
+      provider = new DefaultDirectoryProvider()
+      expect(provider.getHostPackage()).toBe null
+
   describe ".directoryForURISync(uri)", ->
     it "returns a Directory with a path that matches the uri", ->
       provider = new DefaultDirectoryProvider()
