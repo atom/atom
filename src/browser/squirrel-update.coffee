@@ -81,6 +81,10 @@ getPath = (callback) ->
   spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
     if error?
       if error.code is 1
+        # Don't overwrite path when reading value is disabled
+        if stdout.indexOf('ERROR: Registry editing has been disabled by your administrator.') isnt -1
+          return callback(error)
+
         # The query failed so the Path does not exist yet in the registry
         return callback(null, '')
       else
