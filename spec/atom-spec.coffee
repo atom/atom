@@ -155,14 +155,8 @@ describe "the `atom` global", ->
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
-      oldPaths = null
-
       beforeEach ->
-        oldPaths = atom.project.getPaths()
-        atom.project.setPaths([])
-
-      afterEach ->
-        atom.project.setPaths(oldPaths)
+        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: [])
 
       it "opens an empty buffer", ->
         spyOn(atom.workspace, 'open')
@@ -180,18 +174,9 @@ describe "the `atom` global", ->
 
     describe "when the project has a path", ->
       beforeEach ->
+        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: ['something'])
         spyOn(atom.workspace, 'open')
 
       it "does not open an empty buffer", ->
-        atom.openInitialEmptyEditorIfNecessary()
-        expect(atom.workspace.open).not.toHaveBeenCalled()
-
-    describe "when there is already a buffer open", ->
-      beforeEach ->
-        waitsForPromise ->
-          atom.workspace.open()
-
-      it "does not open an empty buffer", ->
-        spyOn(atom.workspace, 'open')
         atom.openInitialEmptyEditorIfNecessary()
         expect(atom.workspace.open).not.toHaveBeenCalled()
