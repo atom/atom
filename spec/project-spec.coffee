@@ -33,7 +33,7 @@ describe "Project", ->
             null
         directoryForURI: (uri) -> throw new Error("This should not be called.")
       atom.packages.serviceHub.provide(
-        "atom.directory-provider", "0.2.0", directoryProvider)
+        "atom.directory-provider", "0.1.0", directoryProvider)
 
       tmp = temp.mkdirSync()
       atom.project.setPaths([tmp, remotePath])
@@ -70,7 +70,7 @@ describe "Project", ->
         directoryForURISync: (uri) -> null
         directoryForURI: (uri) -> throw new Error("This should not be called.")
       atom.packages.serviceHub.provide(
-        "atom.directory-provider", "0.2.0", directoryProvider)
+        "atom.directory-provider", "0.1.0", directoryProvider)
 
       tmp = temp.mkdirSync()
       atom.project.setPaths([tmp])

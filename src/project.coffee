@@ -38,22 +38,12 @@ class Project extends Model
   constructor: ({path, paths, @buffers, dynamicRootPaths}={}) ->
     @emitter = new Emitter
     @buffers ?= []
-    dynamicRootPaths ?= []
+    @dynamicRootPathsToRestore = dynamicRootPaths ? []
     @rootDirectories = []
-    @rootDirectoryProviderPackages = [] # Each item is either a string or null.
+    # Keys are members of @getPaths(); values are booleans indicating whether
+    # each path's Directory was created by DefaultDirectoryProvider.
+    @isCreatedByDefaultDirectoryProviderForPath = {}
     @repositories = []
-
-    # Keys are Atom package names; values are arrays of paths for root folders.
-    @pathsToRestoreForDirectoryProviderPackage = {}
-
-    # If this project is being deserialized, then every path that was built by a
-    # DirectoryProvider other than the DefaultDirectoryProvider needs to be sure
-    # that its host package is activated and that it tries to restore the
-    # Directory for the corresponding path upon being activated.
-    for dynamicRootPath in dynamicRootPaths
-      {hostPackage, rootFolderPath} = dynamicRootPath
-      pathsToRestore = @pathsToRestoreForDirectoryProviderPackage[hostPackage] ?= []
-      pathsToRestore.push(rootFolderPath)
 
     # Mapping from the real path of a {Directory} to a {Promise} that resolves
     # to either a {Repository} or null. Ideally, the {Directory} would be used
@@ -89,42 +79,62 @@ class Project extends Model
     # DirectoryProvider.
     atom.packages.serviceHub.consume(
       'atom.directory-provider',
-      '^0.2.0',
+      '^0.1.0',
       (provider) =>
         # New providers are added to the front of @directoryProviders because
         # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
         @directoryProviders.unshift(provider)
 
         # See if any of the paths in @pathsToRestoreForDirectoryProviderPackage
-        # should be restored by the DirectoryProvider.
-        if hostPackage = provider.getHostPackage()
-          pathsToRestore = @pathsToRestoreForDirectoryProviderPackage[hostPackage]
-          if pathsToRestore
-            delete @pathsToRestoreForDirectoryProviderPackage[hostPackage]
-            # Must use forEach rather than for/in or else every callback passed
-            # to then() will use the last value assigned to pathToRestore.
-            pathsToRestore.forEach (pathToRestore) =>
-              # Use the async API of DirectoryProvider to give the provider the
-              # flexibility to determine whether it can restore a Directory from
-              # the path from the previous session. If so, add the corresponding
-              # path as a root folder via @addPath, which will exercise the
-              # sync API of the DirectoryProvider. Ideally, the provider should
-              # be implemented such that the async method will cache the result
-              # so it is available when the sync method is invoked.
-              provider.directoryForURI(pathToRestore).then(
-                (restoredDirectory) => @addPath(pathToRestore) if restoredDirectory)
+        # should be restored by the new DirectoryProvider.
+        for projectPath in @dynamicRootPathsToRestore
+          # TODO(mbolin): Currently, tryToRestorePathAsync() considers every
+          # element in @directoryProviders, but it should only have to consider
+          # the provider that was just added. If this simplification were made,
+          # then @findFirstAsyncValue() could be removed.
+          @tryToRestorePathAsync(projectPath)
     )
 
-    # Because atom.project is not assigned yet, schedule the packages for
-    # activation in the near future.
-    if dynamicRootPaths.length
-      setTimeout(() =>
-        for hostPackage of @pathsToRestoreForDirectoryProviderPackage
-          # activateNow() must be used instead of activate() to force activation
-          # for packages that have activation commands.
-          atom.packages.enablePackage(hostPackage).activateNow()
-      0)
+  # * `projectPath` {String} member of @dynamicRootPathsToRestore.
+  tryToRestorePathAsync: (projectPath) ->
+    Project.findFirstAsyncValue(@directoryProviders, (provider) ->
+      # Use the async API of DirectoryProvider to give the provider the
+      # flexibility to determine whether it can restore a Directory from
+      # the path from the previous session. If so, add the corresponding
+      # path as a root folder via @addPath, which will exercise the
+      # sync API of the DirectoryProvider. Ideally, the provider should
+      # be implemented such that the async method will cache the result
+      # so it is available when the sync method is invoked.
+      provider.directoryForURI(projectPath)
+    ).then (restoredDirectory) =>
+      if restoredDirectory
+        indexToRemove = @dynamicRootPathsToRestore.indexOf(projectPath)
+        @dynamicRootPathsToRestore.splice(indexToRemove, 1)
+        @addPath(projectPath)
 
+  # Applies an async function to each value in an array until it finds one that
+  # resolves to a non-null value.
+  # * `array` {Array} values to inspect
+  # * `transform` {Function} that takes an element of `array` and returns a Promise
+  #
+  # Returns a Promise that resolves to either the first non-null resolution
+  # value from a Promise created by applying the transform or null.
+  @findFirstAsyncValue: (array, transform) ->
+    # Create a local copy of the array so its length cannot change over the
+    # course of this async function.
+    array = [].concat(array)
+    new Promise (resolve, reject) ->
+      len = array.length
+      looper = (index) ->
+        if index < len
+          transform(array[index]).then (result) ->
+            if result isnt null
+              resolve(result)
+            else
+              looper(index + 1)
+        else
+          resolve(null)
+      looper(0)
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
@@ -138,17 +148,16 @@ class Project extends Model
   ###
 
   getLocalPaths: ->
-    @getPaths().filter((path, index) => !@rootDirectoryProviderPackages[index])
+    @getPaths().filter((path) => @isCreatedByDefaultDirectoryProviderForPath[path])
 
   serializeParams: ->
     dynamicRootPaths = []
     localRootPaths = []
-    for rootFolderPath, index in @getPaths()
-      hostPackage = @rootDirectoryProviderPackages[index]
-      if hostPackage
-        dynamicRootPaths.push({hostPackage, rootFolderPath})
+    for projectPath in @getPaths()
+      if @isCreatedByDefaultDirectoryProviderForPath[projectPath]
+        localRootPaths.push(projectPath)
       else
-        localRootPaths.push(rootFolderPath)
+        dynamicRootPaths.push(projectPath)
 
     return {
       paths: localRootPaths
@@ -243,7 +252,7 @@ class Project extends Model
     rootDirectory.off() for rootDirectory in @rootDirectories
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
-    @rootDirectoryProviderPackages = []
+    @isCreatedByDefaultDirectoryProviderForPath = {}
     @repositories = []
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
@@ -267,15 +276,14 @@ class Project extends Model
     directory = null
     hostPackageForProvider = null
     for provider in @directoryProviders
-      if directory = provider.directoryForURISync?(projectPath)
-        hostPackageForProvider = provider.getHostPackage()
-        break
+      break if directory = provider.directoryForURISync?(projectPath)
     if directory is null
       # This should never happen because DefaultDirectoryProvider should always
       # return a Directory.
       throw new Error(projectPath + ' could not be resolved to a directory')
     @rootDirectories.push(directory)
-    @rootDirectoryProviderPackages.push(hostPackageForProvider)
+    @isCreatedByDefaultDirectoryProviderForPath[projectPath] =
+        provider instanceof DefaultDirectoryProvider
 
     repo = null
     for provider in @repositoryProviders
@@ -300,7 +308,7 @@ class Project extends Model
 
     if indexToRemove?
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
-      @rootDirectoryProviderPackages.splice(indexToRemove, 1)
+      delete @isCreatedByDefaultDirectoryProviderForPath[projectPath]
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedDirectory.off()
       removedRepository?.destroy() unless removedRepository in @repositories
