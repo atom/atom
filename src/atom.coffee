@@ -605,6 +605,8 @@ class Atom extends Model
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
+    @openInitialEmptyEditorIfNecessary()
+
     maximize = dimensions?.maximized and process.platform isnt 'darwin'
     @displayWindow({maximize})
 
@@ -628,6 +630,10 @@ class Atom extends Model
     @project = null
 
     @windowEventHandler?.unsubscribe()
+
+  openInitialEmptyEditorIfNecessary: ->
+    if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
+      @workspace.open(null, {isInitialEmptyEditor: true})
 
   ###
   Section: Messaging the User
