@@ -161,7 +161,7 @@ describe "the `atom` global", ->
       it "opens an empty buffer", ->
         spyOn(atom.workspace, 'open')
         atom.openInitialEmptyEditorIfNecessary()
-        expect(atom.workspace.open).toHaveBeenCalledWith(null, {isInitialEmptyEditor: true})
+        expect(atom.workspace.open).toHaveBeenCalledWith(null)
 
       describe "when there is already a buffer open", ->
         beforeEach ->

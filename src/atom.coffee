@@ -633,7 +633,7 @@ class Atom extends Model
 
   openInitialEmptyEditorIfNecessary: ->
     if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
-      @workspace.open(null, {isInitialEmptyEditor: true})
+      @workspace.open(null)
 
   ###
   Section: Messaging the User
