@@ -73,7 +73,8 @@ class AtomWindow
     @browserWindow.loadUrl @getUrl(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
-    @openLocations(locationsToOpen) unless @isSpecWindow()
+    hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
+    @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
   getUrl: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
