@@ -146,7 +146,10 @@ class Package
       @measure 'activateTime', =>
         @activateResources()
         if @hasActivationCommands()
-          @subscribeToActivationCommands()
+          try
+            @subscribeToActivationCommands()
+          catch e
+            console.warn "Failed to subscribe to activation commands for package '#{@name}'", e.stack
         else
           @activateNow()
 

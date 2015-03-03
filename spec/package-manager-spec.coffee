@@ -212,6 +212,11 @@ describe "PackageManager", ->
           runs ->
             expect(mainModule.activate.callCount).toBe 1
 
+        it "logs a warning when the activation commands are invalid", ->
+          spyOn(console, 'warn')
+          expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
+          expect(console.warn.callCount).toBe(1)
+
     describe "when the package has no main module", ->
       it "does not throw an exception", ->
         spyOn(console, "error")
