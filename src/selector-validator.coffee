@@ -10,7 +10,9 @@ exports.isSelectorValid = (selector) ->
 
   testElement ?= document.createElement('div')
   try
-    testElement.webkitMatchesSelector(selector)
+    # querySelector appears to be faster than webkitMatchesSelector
+    # http://jsperf.com/query-vs-matches
+    testElement.querySelector(selector)
     selectorCache[selector] = true
     true
   catch selectorError
