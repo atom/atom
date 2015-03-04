@@ -547,5 +547,4 @@ class Package
       detail = error.message
       stack = error.stack ? error
 
-    console.trace()
     atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
