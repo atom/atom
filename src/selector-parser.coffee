@@ -17,7 +17,7 @@ exports.isSelectorValid = (selector) ->
     selectorCache[selector] = false
     false
 
-# Parse the given selector and throw an error if it is invalid
+# Parse the given CSS selector and throw an error if it is invalid.
 exports.validateSelector = (selector) ->
   return if exports.isSelectorValid(selector)
 
