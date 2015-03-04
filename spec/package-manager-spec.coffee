@@ -213,9 +213,11 @@ describe "PackageManager", ->
             expect(mainModule.activate.callCount).toBe 1
 
         it "logs a warning when the activation commands are invalid", ->
-          spyOn(console, 'warn')
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification(addErrorHandler)
           expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
-          expect(console.warn.callCount).toBe(1)
+          expect(addErrorHandler.callCount).toBe 1
+          expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-activation-commands package")
 
     describe "when the package has no main module", ->
       it "does not throw an exception", ->
@@ -262,11 +264,14 @@ describe "PackageManager", ->
       runs -> expect(activatedPackage.name).toBe 'package-with-main'
 
     describe "when the package throws an error while loading", ->
-      it "logs a warning instead of throwing an exception", ->
+      fit "adds a notification instead of throwing an exception", ->
         atom.config.set("core.disabledPackages", [])
-        spyOn(console, "warn")
+        addErrorHandler = jasmine.createSpy()
+        atom.notifications.onDidAddNotification(addErrorHandler)
         expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
-        expect(console.warn).toHaveBeenCalled()
+        expect(addErrorHandler.callCount).toBe 2
+        expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
+        expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to activate the package-that-throws-an-exception package")
 
     describe "when the package is not found", ->
       it "rejects the promise", ->
