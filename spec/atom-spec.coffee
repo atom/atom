@@ -3,6 +3,8 @@ Exec = require('child_process').exec
 path = require 'path'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
+_ = require "underscore-plus"
+temp = require "temp"
 
 describe "the `atom` global", ->
   describe 'window sizing methods', ->
@@ -124,3 +126,57 @@ describe "the `atom` global", ->
           line: 2
           column: 3
           originalError: error
+
+  describe "saving and loading", ->
+    afterEach -> atom.mode = "spec"
+
+    it "selects the state based on the current project paths", ->
+      Atom = atom.constructor
+      [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
+
+      loadSettings = _.extend Atom.getLoadSettings(),
+        initialPaths: [dir1]
+        windowState: null
+
+      spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
+      spyOn(Atom, 'getStorageDirPath').andReturn(temp.mkdirSync("storage-dir-"))
+
+      atom.mode = "editor"
+      atom.state.stuff = "cool"
+      atom.project.setPaths([dir1, dir2])
+      atom.saveSync.originalValue.call(atom)
+
+      atom1 = Atom.loadOrCreate("editor")
+      expect(atom1.state.stuff).toBeUndefined()
+
+      loadSettings.initialPaths = [dir2, dir1]
+      atom2 = Atom.loadOrCreate("editor")
+      expect(atom2.state.stuff).toBe("cool")
+
+  describe "openInitialEmptyEditorIfNecessary", ->
+    describe "when there are no paths set", ->
+      beforeEach ->
+        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: [])
+
+      it "opens an empty buffer", ->
+        spyOn(atom.workspace, 'open')
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).toHaveBeenCalledWith(null)
+
+      describe "when there is already a buffer open", ->
+        beforeEach ->
+          waitsForPromise -> atom.workspace.open()
+
+        it "does not open an empty buffer", ->
+          spyOn(atom.workspace, 'open')
+          atom.openInitialEmptyEditorIfNecessary()
+          expect(atom.workspace.open).not.toHaveBeenCalled()
+
+    describe "when the project has a path", ->
+      beforeEach ->
+        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: ['something'])
+        spyOn(atom.workspace, 'open')
+
+      it "does not open an empty buffer", ->
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).not.toHaveBeenCalled()

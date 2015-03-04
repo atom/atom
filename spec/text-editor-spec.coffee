@@ -287,7 +287,7 @@ describe "TextEditor", ->
 
         it "positions the cursor at the buffer position that corresponds to the given screen position", ->
           editor.setCursorScreenPosition([9, 0])
-          expect(editor.getCursorBufferPosition()).toEqual [8, 11]
+          expect(editor.getCursorBufferPosition()).toEqual [8, 10]
 
     describe ".moveUp()", ->
       it "moves the cursor up", ->
@@ -334,6 +334,17 @@ describe "TextEditor", ->
         expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
 
+      describe "when the cursor was moved down from the beginning of an indented soft-wrapped line", ->
+        it "moves to the beginning of the previous line", ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(50)
+
+          editor.setCursorScreenPosition([3, 0])
+          editor.moveDown()
+          editor.moveDown()
+          editor.moveUp()
+          expect(editor.getCursorScreenPosition()).toEqual [4, 4]
+
     describe ".moveDown()", ->
       it "moves the cursor down", ->
         editor.setCursorScreenPosition([2, 2])
@@ -374,6 +385,16 @@ describe "TextEditor", ->
           editor.moveDown()
           editor.moveUp()
           expect(editor.getCursorScreenPosition().column).toBe 0
+
+      describe "when the cursor is at the beginning of an indented soft-wrapped line", ->
+        it "moves to the beginning of the line's continuation on the next screen row", ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(50)
+
+          editor.setCursorScreenPosition([3, 0])
+          editor.moveDown()
+          expect(editor.getCursorScreenPosition()).toEqual [4, 4]
+
 
       describe "when there is a selection", ->
         beforeEach ->
@@ -431,6 +452,16 @@ describe "TextEditor", ->
             editor.setCursorScreenPosition([11, 0])
             editor.moveLeft()
             expect(editor.getCursorScreenPosition()).toEqual [10, 0]
+
+        describe "when line is wrapped and follow previous line indentation", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            editor.setEditorWidthInChars(50)
+
+          it "wraps to the end of the previous line", ->
+            editor.setCursorScreenPosition([4, 4])
+            editor.moveLeft()
+            expect(editor.getCursorScreenPosition()).toEqual [3, 50]
 
         describe "when the cursor is on the first line", ->
           it "remains in the same position (0,0)", ->
@@ -628,11 +659,11 @@ describe "TextEditor", ->
           editor.moveToFirstCharacterOfLine()
           [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getScreenPosition()).toEqual [2,0]
-          expect(cursor2.getScreenPosition()).toEqual [8,4]
+          expect(cursor2.getScreenPosition()).toEqual [8,2]
 
           editor.moveToFirstCharacterOfLine()
           expect(cursor1.getScreenPosition()).toEqual [2,0]
-          expect(cursor2.getScreenPosition()).toEqual [8,0]
+          expect(cursor2.getScreenPosition()).toEqual [8,2]
 
       describe "when soft wrap is off", ->
         it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->

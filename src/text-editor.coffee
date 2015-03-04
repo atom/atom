@@ -834,7 +834,8 @@ class TextEditor extends Model
   #      argument will be a {Selection} and the second argument will be the
   #      {Number} index of that selection.
   mutateSelectedText: (fn) ->
-    @transact => fn(selection, index) for selection, index in @getSelections()
+    @mergeIntersectingSelections =>
+      @transact => fn(selection, index) for selection, index in @getSelections()
 
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
@@ -993,17 +994,18 @@ class TextEditor extends Model
   # selections to create multiple single-line selections that cumulatively cover
   # the same original area.
   splitSelectionsIntoLines: ->
-    for selection in @getSelections()
-      range = selection.getBufferRange()
-      continue if range.isSingleLine()
+    @mergeIntersectingSelections =>
+      for selection in @getSelections()
+        range = selection.getBufferRange()
+        continue if range.isSingleLine()
 
-      selection.destroy()
-      {start, end} = range
-      @addSelectionForBufferRange([start, [start.row, Infinity]])
-      {row} = start
-      while ++row < end.row
-        @addSelectionForBufferRange([[row, 0], [row, Infinity]])
-      @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
+        selection.destroy()
+        {start, end} = range
+        @addSelectionForBufferRange([start, [start.row, Infinity]])
+        {row} = start
+        while ++row < end.row
+          @addSelectionForBufferRange([[row, 0], [row, Infinity]])
+        @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
 
   # Extended: For each selection, transpose the selected text.
   #
@@ -1140,7 +1142,8 @@ class TextEditor extends Model
   #   with a positive `groupingInterval` is committed while the previous transaction is
   #   still 'groupable', the two transactions are merged with respect to undo and redo.
   # * `fn` A {Function} to call inside the transaction.
-  transact: (groupingInterval, fn) -> @buffer.transact(groupingInterval, fn)
+  transact: (groupingInterval, fn) ->
+    @buffer.transact(groupingInterval, fn)
 
   # Deprecated: Start an open-ended transaction.
   beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
@@ -2228,6 +2231,7 @@ class TextEditor extends Model
 
     [head, tail...] = @getSelectionsOrderedByBufferPosition()
     _.reduce(tail, reducer, [head])
+    return result if fn?
 
   # Add a {Selection} based on the given {Marker}.
   #

@@ -76,11 +76,23 @@ installContextMenu = (callback) ->
     installMenu directoryKeyPath, '%1', ->
       installMenu(backgroundKeyPath, '%V', callback)
 
+isAscii = (text) ->
+  index = 0
+  while index < text.length
+    return false if text.charCodeAt(index) > 127
+    index++
+  true
+
 # Get the user's PATH environment variable registry value.
 getPath = (callback) ->
   spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
     if error?
       if error.code is 1
+        # FIXME Don't overwrite path when reading value is disabled
+        # https://github.com/atom/atom/issues/5092
+        if stdout.indexOf('ERROR: Registry editing has been disabled by your administrator.') isnt -1
+          return callback(error)
+
         # The query failed so the Path does not exist yet in the registry
         return callback(null, '')
       else
@@ -96,7 +108,12 @@ getPath = (callback) ->
     segments = lines[lines.length - 1]?.split('    ')
     if segments[1] is 'Path' and segments.length >= 3
       pathEnv = segments?[3..].join('    ')
-      callback(null, pathEnv)
+      if isAscii(pathEnv)
+        callback(null, pathEnv)
+      else
+        # FIXME Don't corrupt non-ASCII PATH values
+        # https://github.com/atom/atom/issues/5063
+        callback(new Error('PATH contains non-ASCII values'))
     else
       callback(new Error('Registry query for PATH failed'))
 

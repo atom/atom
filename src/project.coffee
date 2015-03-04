@@ -53,7 +53,7 @@ class Project extends Model
     # to either a {Repository} or null. Ideally, the {Directory} would be used
     # as the key; however, there can be multiple {Directory} objects created for
     # the same real path, so it is not a good key.
-    @repositoryPromisesByPath = new Map();
+    @repositoryPromisesByPath = new Map()
 
     # Note that the GitRepositoryProvider is registered synchronously so that
     # it is available immediately on startup.
@@ -221,7 +221,9 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to remove.
   removePath: (projectPath) ->
-    projectPath = path.normalize(projectPath)
+    # The projectPath may be a URI, in which case it should not be normalized.
+    unless projectPath in @getPaths()
+      projectPath = path.normalize(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories
@@ -266,15 +268,25 @@ class Project extends Model
       else
         undefined
 
-  # Public: Make the given path relative to the project directory.
-  #
-  # * `fullPath` {String} full path
   relativize: (fullPath) ->
+    @relativizePath(fullPath)[1]
+
+  # Public: Get the path to the project directory that contains the given path,
+  # and the relative path from that project directory to the given path.
+  #
+  # * `fullPath` {String} An absolute path.
+  #
+  # Returns an {Array} with two elements:
+  # * `projectPath` The {String} path to the project directory that contains the
+  #   given path, or `null` if none is found.
+  # * `relativePath` {String} The relative path from the project directory to
+  #   the given path.
+  relativizePath: (fullPath) ->
     return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     for rootDirectory in @rootDirectories
       relativePath = rootDirectory.relativize(fullPath)
-      return relativePath if relativePath isnt fullPath
-    fullPath
+      return [rootDirectory.getPath(), relativePath] unless relativePath is fullPath
+    [null, fullPath]
 
   # Public: Determines whether the given path (real or symbolic) is inside the
   # project's directory.

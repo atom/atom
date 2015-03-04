@@ -5,7 +5,7 @@ module.exports =
 class HighlightsComponent
   oldState: null
 
-  constructor: (@presenter) ->
+  constructor: ->
     @highlightNodesById = {}
     @regionNodesByHighlightId = {}
 
@@ -17,8 +17,8 @@ class HighlightsComponent
       insertionPoint.setAttribute('select', '.underlayer')
       @domNode.appendChild(insertionPoint)
 
-  updateSync: ->
-    newState = @presenter.state.content.highlights
+  updateSync: (state) ->
+    newState = state.content.highlights
     @oldState ?= {}
 
     # remove highlights
