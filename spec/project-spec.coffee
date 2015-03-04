@@ -436,6 +436,23 @@ describe "Project", ->
       expect(atom.project.getPaths()).toEqual([path.join(__dirname, "..", "src")])
       expect(atom.project.getRepositories()[0].isSubmodule("src")).toBe false
 
+    it "removes a path that is represented as a URI", ->
+      ftpURI = "ftp://example.com/some/folder"
+      directoryProvider =
+        directoryForURISync: (uri) ->
+          # Dummy implementation of Directory for which GitRepositoryProvider
+          # will not try to create a GitRepository.
+          getPath: -> ftpURI
+          getSubdirectory: -> {}
+          isRoot: -> true
+          off: ->
+      atom.packages.serviceHub.provide(
+        "atom.directory-provider", "0.1.0", directoryProvider)
+      atom.project.setPaths([ftpURI])
+      expect(atom.project.getPaths()).toEqual [ftpURI]
+      atom.project.removePath(ftpURI)
+      expect(atom.project.getPaths()).toEqual []
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
       atom.project.addPath(temp.mkdirSync("another-path"))
