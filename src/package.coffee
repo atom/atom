@@ -302,7 +302,9 @@ class Package
     loadGrammar = (grammarPath, callback) =>
       atom.grammars.readGrammar grammarPath, (error, grammar) =>
         if error?
-          console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
+          detail = "#{error.message} in #{grammarPath}"
+          stack += "#{error.stack}\n  at #{grammarPath}:1:1"
+          atom.notifications.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
         else
           grammar.packageName = @name
           @grammars.push(grammar)
