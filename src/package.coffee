@@ -321,7 +321,9 @@ class Package
     loadSettingsFile = (settingsPath, callback) =>
       ScopedProperties.load settingsPath, (error, settings) =>
         if error?
-          console.warn("Failed to load package settings: #{settingsPath}", error.stack ? error)
+          detail = "#{error.message} in #{settingsPath}"
+          stack += "#{error.stack}\n  at #{settingsPath}:1:1"
+          atom.notifications.addFatalError("Failed to load the #{@name} package settings", {stack, detail, dismissable: true})
         else
           @settings.push(settings)
           settings.activate() if @settingsActivated
