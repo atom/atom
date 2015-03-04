@@ -264,7 +264,7 @@ describe "PackageManager", ->
       runs -> expect(activatedPackage.name).toBe 'package-with-main'
 
     describe "when the package throws an error while loading", ->
-      fit "adds a notification instead of throwing an exception", ->
+      it "adds a notification instead of throwing an exception", ->
         atom.config.set("core.disabledPackages", [])
         addErrorHandler = jasmine.createSpy()
         atom.notifications.onDidAddNotification(addErrorHandler)
