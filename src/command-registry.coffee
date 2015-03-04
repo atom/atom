@@ -2,7 +2,7 @@
 {specificity} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
-{validateSelector} = require './selector-parser'
+{validateSelector} = require './selector-validator'
 
 SequenceCount = 0
 SpecificityCache = {}

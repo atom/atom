@@ -8,7 +8,7 @@ fs = require 'fs-plus'
 {Disposable} = require 'event-kit'
 Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
-{validateSelector} = require './selector-parser'
+{validateSelector} = require './selector-validator'
 
 SpecificityCache = {}
 
