@@ -143,18 +143,14 @@ class Package
     unless @activationDeferred?
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
-        @activateResources()
-        if @hasActivationCommands()
-          try
+        try
+          @activateResources()
+          if @hasActivationCommands()
             @subscribeToActivationCommands()
-          catch error
-            if error.code is 'EBADSELECTOR'
-              metadataPath = path.join(@path, 'package.json')
-              error.message += " in #{metadataPath}"
-              error.stack += "\n  at #{metadataPath}:1:1"
-            @handleError("Failed to activate the #{@name} package", error)
-        else
-          @activateNow()
+          else
+            @activateNow()
+        catch error
+          @handleError("Failed to activate the #{@name} package", error)
 
     Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
 
@@ -206,7 +202,16 @@ class Package
   activateResources: ->
     @activationDisposables = new CompositeDisposable
     @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
-    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus when map['context-menu']?
+
+    for [menuPath, map] in @menus when map['context-menu']?
+      try
+        @activationDisposables.add(atom.contextMenu.add(map['context-menu']))
+      catch error
+        if error.code is 'EBADSELECTOR'
+          error.message += " in #{menuPath}"
+          error.stack += "\n  at #{menuPath}:1:1"
+        throw error
+
     @activationDisposables.add(atom.menu.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
 
     unless @grammarsActivated
@@ -417,7 +422,15 @@ class Package
         do (selector, command) =>
           # Add dummy command so it appears in menu.
           # The real command will be registered on package activation
-          @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          try
+            @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          catch error
+            if error.code is 'EBADSELECTOR'
+              metadataPath = path.join(@path, 'package.json')
+              error.message += " in #{metadataPath}"
+              error.stack += "\n  at #{metadataPath}:1:1"
+            throw error
+
           @activationCommandSubscriptions.add atom.commands.onWillDispatch (event) =>
             return unless event.type is command
             currentTarget = event.target

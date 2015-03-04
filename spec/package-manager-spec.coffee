@@ -2,7 +2,7 @@
 Package = require '../src/package'
 {Disposable} = require 'atom'
 
-fdescribe "PackageManager", ->
+describe "PackageManager", ->
   workspaceElement = null
 
   beforeEach ->
@@ -212,12 +212,19 @@ fdescribe "PackageManager", ->
           runs ->
             expect(mainModule.activate.callCount).toBe 1
 
-        it "logs a warning when the activation commands are invalid", ->
+        it "adds a notification when the activation commands are invalid", ->
           addErrorHandler = jasmine.createSpy()
           atom.notifications.onDidAddNotification(addErrorHandler)
           expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
           expect(addErrorHandler.callCount).toBe 1
           expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-activation-commands package")
+
+        it "adds a notification when the context menu is invalid", ->
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification(addErrorHandler)
+          expect(-> atom.packages.activatePackage('package-with-invalid-context-menu')).not.toThrow()
+          expect(addErrorHandler.callCount).toBe 1
+          expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-context-menu package")
 
     describe "when the package has no main module", ->
       it "does not throw an exception", ->
