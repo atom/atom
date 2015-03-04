@@ -117,7 +117,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateGutterState()
       @updateLineNumbersState()
-    @disposables.add @model.onDidChangeGutterVisible =>
+    @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @updateGutterState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
@@ -364,7 +364,7 @@ class TextEditorPresenter
     return
 
   updateGutterState: -> @batch "shouldUpdateGutterState", ->
-    @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
+    @state.gutter.visible = not @model.isMini() and (@model.isLineNumberGutterVisible() ? true) and @showLineNumbers
     @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
     @state.gutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
       @gutterBackgroundColor

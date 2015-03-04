@@ -73,7 +73,7 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @gutterVisible}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @lineNumberGutterVisible}) ->
     super
 
     @emitter = new Emitter
@@ -488,16 +488,16 @@ class TextEditor extends Model
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
 
-  setGutterVisible: (gutterVisible) ->
-    unless gutterVisible is @gutterVisible
-      @gutterVisible = gutterVisible
-      @emitter.emit 'did-change-gutter-visible', @gutterVisible
-    @gutterVisible
+  setLineNumberGutterVisible: (lineNumberGutterVisible) ->
+    unless lineNumberGutterVisible is @lineNumberGutterVisible
+      @lineNumberGutterVisible = lineNumberGutterVisible
+      @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutterVisible
+    @lineNumberGutterVisible
 
-  isGutterVisible: -> @gutterVisible ? true
+  isLineNumberGutterVisible: -> @lineNumberGutterVisible ? true
 
-  onDidChangeGutterVisible: (callback) ->
-    @emitter.on 'did-change-gutter-visible', callback
+  onDidChangeLineNumberGutterVisible: (callback) ->
+    @emitter.on 'did-change-line-number-gutter-visible', callback
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.

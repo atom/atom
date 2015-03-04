@@ -100,7 +100,7 @@ class TextEditorElement extends HTMLElement
       tabLength: 2
       softTabs: true
       mini: @hasAttribute('mini')
-      gutterVisible: not @hasAttribute('gutter-hidden')
+      lineNumberGutterVisible: not @hasAttribute('gutter-hidden')
       placeholderText: @getAttribute('placeholder-text')
     ))
 
