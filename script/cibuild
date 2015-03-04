@@ -31,8 +31,15 @@ function readEnvironmentVariables() {
 }
 
 function removeNodeModules() {
+  var fsPlus;
   try {
-    require('fs-plus').removeSync(path.resolve(__dirname, '..', 'node_modules'));
+    fsPlus = require('fs-plus');
+  } catch (error) {
+    return;
+  }
+
+  try {
+    fsPlus.removeSync(path.resolve(__dirname, '..', 'node_modules'));
   } catch (error) {
     console.error(error.message);
     process.exit(1);
