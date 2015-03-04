@@ -303,7 +303,7 @@ class Package
       atom.grammars.readGrammar grammarPath, (error, grammar) =>
         if error?
           detail = "#{error.message} in #{grammarPath}"
-          stack += "#{error.stack}\n  at #{grammarPath}:1:1"
+          stack = "#{error.stack}\n  at #{grammarPath}:1:1"
           atom.notifications.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
         else
           grammar.packageName = @name

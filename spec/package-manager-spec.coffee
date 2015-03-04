@@ -226,6 +226,19 @@ describe "PackageManager", ->
           expect(addErrorHandler.callCount).toBe 1
           expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-context-menu package")
 
+        it "adds a notification when the grammar is invalid", ->
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification(addErrorHandler)
+
+          expect(-> atom.packages.activatePackage('package-with-invalid-grammar')).not.toThrow()
+
+          waitsFor ->
+            addErrorHandler.callCount > 0
+
+          runs ->
+            expect(addErrorHandler.callCount).toBe 1
+            expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load a package-with-invalid-grammar package grammar")
+
     describe "when the package has no main module", ->
       it "does not throw an exception", ->
         spyOn(console, "error")
