@@ -429,4 +429,4 @@ class PackageManager
     detail = error.message + " in #{metadataPath}"
     stack = error.stack + "\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
-    atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
+    atom.notifications.addError(message, {stack, detail, dismissable: true})
