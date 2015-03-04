@@ -424,7 +424,7 @@ class PackageManager
     delete @activePackages[pack.name]
     @emitter.emit 'did-deactivate-package', pack
 
-  handleMetadataError: (error, packagePath)->
+  handleMetadataError: (error, packagePath) ->
     metadataPath = path.join(packagePath, 'package.json')
     detail = error.message + " in #{metadataPath}"
     stack = error.stack + "\n  at #{metadataPath}:1:1"
