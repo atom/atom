@@ -151,7 +151,7 @@ class Package
             if error.code is 'EBADSELECTOR'
               metadataPath = path.join(@path, 'package.json')
               error.message += " in #{metadataPath}"
-            error.stack += "\n  at #{metadataPath}:1:1"
+              error.stack += "\n  at #{metadataPath}:1:1"
             @handleError("Failed to activate the #{@name} package", error)
         else
           @activateNow()
