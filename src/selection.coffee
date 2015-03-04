@@ -251,7 +251,8 @@ class Selection extends Model
 
   # Public: Selects all the text in the buffer.
   selectAll: ->
-    @setBufferRange(@editor.buffer.getRange(), autoscroll: false)
+    @editor.unfoldAll()
+    @setBufferRange(@editor.buffer.getRange(), autoscroll: false, preserveFolds: true)
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the line.
