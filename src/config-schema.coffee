@@ -190,6 +190,11 @@ module.exports =
         type: 'boolean'
         default: process.platform isnt 'darwin'
         description: 'Increase/decrease the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
+      enableFolding:
+        type: 'boolean'
+        default: true
+        title: 'Enable Folding'
+        description: 'Enable folding in editors to hide sections of text.'
 
 if process.platform in ['win32', 'linux']
   module.exports.core.properties.autoHideMenuBar =

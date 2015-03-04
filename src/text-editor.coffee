@@ -108,6 +108,8 @@ class TextEditor extends Model
 
     @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
+    @updateEnableFolding()
+
     @subscribe @$scrollTop, (scrollTop) =>
       @emit 'scroll-top-changed', scrollTop
       @emitter.emit 'did-change-scroll-top', scrollTop
@@ -173,6 +175,7 @@ class TextEditor extends Model
 
     subscriptions.add atom.config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, => @updateInvisibles()
     subscriptions.add atom.config.onDidChange 'editor.invisibles', scope: scopeDescriptor, => @updateInvisibles()
+    subscriptions.add atom.config.onDidChange 'editor.enableFolding', scope: scopeDescriptor, => @updateEnableFolding()
 
   getViewClass: ->
     require './text-editor-view'
@@ -2723,6 +2726,7 @@ class TextEditor extends Model
   # Returns a {Boolean}.
   isFoldableAtBufferRow: (bufferRow) ->
     # @languageMode.isFoldableAtBufferRow(bufferRow)
+    return false if atom.config.get("editor.enableFolding") is false
     @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)?.foldable ? false
 
   # Extended: Determine whether the given row in screen coordinates is foldable.
@@ -2733,6 +2737,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtScreenRow: (screenRow) ->
+    return false if atom.config.get("editor.enableFolding") is false
     bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
     @isFoldableAtBufferRow(bufferRow)
 
@@ -2879,6 +2884,26 @@ class TextEditor extends Model
       @displayBuffer.setInvisibles(atom.config.get('editor.invisibles', scope: @getRootScopeDescriptor()))
     else
       @displayBuffer.setInvisibles(null)
+
+  # Flattens the given menu template into an single Array.
+  #
+  # template - An object describing the menu item.
+  #
+  # Returns an Array of native menu items.
+  flattenMenuTemplate: (template) ->
+    items = []
+    for item in template
+      items.push(item)
+      items = items.concat(@flattenMenuTemplate(item.submenu)) if item.submenu
+    items
+
+  updateEnableFolding: ->
+    enableFolding = atom.config.get("editor.enableFolding", scope: @getRootScopeDescriptor())
+    @unfoldAll() if not enableFolding
+    for index, item of @flattenMenuTemplate(atom.menu.template)
+      if item.label is "Folding"
+        item.enabled = enableFolding
+        atom.menu.update()
 
   ###
   Section: Event Handlers
