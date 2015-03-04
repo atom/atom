@@ -344,11 +344,7 @@ class PackageManager
       try
         metadata = Package.loadMetadata(packagePath) ? {}
       catch error
-        metadataPath = path.join(packagePath, 'package.json')
-        detail = error.message + " in #{metadataPath}"
-        stack = error.stack + "\n  at #{metadataPath}:1:1"
-        message = "Failed to load the #{path.basename(packagePath)} package"
-        atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
+        @handleMetadataError(error, packagePath)
         return null
 
       if metadata.theme
@@ -427,3 +423,10 @@ class PackageManager
     pack.deactivate()
     delete @activePackages[pack.name]
     @emitter.emit 'did-deactivate-package', pack
+
+  handleMetadataError: (error, packagePath)->
+    metadataPath = path.join(packagePath, 'package.json')
+    detail = error.message + " in #{metadataPath}"
+    stack = error.stack + "\n  at #{metadataPath}:1:1"
+    message = "Failed to load the #{path.basename(packagePath)} package"
+    atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
