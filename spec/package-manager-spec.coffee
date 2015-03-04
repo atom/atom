@@ -2,7 +2,7 @@
 Package = require '../src/package'
 {Disposable} = require 'atom'
 
-describe "PackageManager", ->
+fdescribe "PackageManager", ->
   workspaceElement = null
 
   beforeEach ->
@@ -269,9 +269,8 @@ describe "PackageManager", ->
         addErrorHandler = jasmine.createSpy()
         atom.notifications.onDidAddNotification(addErrorHandler)
         expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
-        expect(addErrorHandler.callCount).toBe 2
+        expect(addErrorHandler.callCount).toBe 1
         expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
-        expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to activate the package-that-throws-an-exception package")
 
     describe "when the package is not found", ->
       it "rejects the promise", ->

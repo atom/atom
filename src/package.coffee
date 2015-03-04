@@ -376,7 +376,7 @@ class Package
     @activateStylesheets()
 
   requireMainModule: ->
-    return @mainModule if @mainModule?
+    return @mainModule if @mainModuleRequired
     unless @isCompatible()
       console.warn """
         Failed to require the main module of '#{@name}' because it requires an incompatible native module.
@@ -384,7 +384,9 @@ class Package
       """
       return
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
+    if fs.isFileSync(mainModulePath)
+      @mainModuleRequired = true
+      @mainModule = require(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
