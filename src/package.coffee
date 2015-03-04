@@ -229,6 +229,7 @@ class Package
     for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
         @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
+    return
 
   loadKeymaps: ->
     if @bundledPackage and packagesCache[@name]?
