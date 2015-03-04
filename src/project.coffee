@@ -221,7 +221,9 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to remove.
   removePath: (projectPath) ->
-    projectPath = path.normalize(projectPath)
+    # The projectPath may be a URI, in which case it should not be normalized.
+    unless projectPath in @getPaths()
+      projectPath = path.normalize(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories
