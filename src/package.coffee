@@ -126,9 +126,8 @@ class Package
         @loadStylesheets()
         @settingsPromise = @loadSettings()
         @requireMainModule() unless @hasActivationCommands()
-
       catch error
-        console.warn "Failed to load package named '#{@name}'", error.stack ? error
+        @handleError("Failed to load the #{@name} package", error)
     this
 
   reset: ->
@@ -144,11 +143,14 @@ class Package
     unless @activationDeferred?
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
-        @activateResources()
-        if @hasActivationCommands()
-          @subscribeToActivationCommands()
-        else
-          @activateNow()
+        try
+          @activateResources()
+          if @hasActivationCommands()
+            @subscribeToActivationCommands()
+          else
+            @activateNow()
+        catch error
+          @handleError("Failed to activate the #{@name} package", error)
 
     Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
 
@@ -160,8 +162,8 @@ class Package
         @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
-    catch e
-      console.warn "Failed to activate package named '#{@name}'", e.stack
+    catch error
+      @handleError("Failed to activate the #{@name} package", error)
 
     @activationDeferred?.resolve()
 
@@ -200,7 +202,16 @@ class Package
   activateResources: ->
     @activationDisposables = new CompositeDisposable
     @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
-    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus when map['context-menu']?
+
+    for [menuPath, map] in @menus when map['context-menu']?
+      try
+        @activationDisposables.add(atom.contextMenu.add(map['context-menu']))
+      catch error
+        if error.code is 'EBADSELECTOR'
+          error.message += " in #{menuPath}"
+          error.stack += "\n  at #{menuPath}:1:1"
+        throw error
+
     @activationDisposables.add(atom.menu.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
 
     unless @grammarsActivated
@@ -218,6 +229,7 @@ class Package
     for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
         @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
+    return
 
   loadKeymaps: ->
     if @bundledPackage and packagesCache[@name]?
@@ -290,7 +302,9 @@ class Package
     loadGrammar = (grammarPath, callback) =>
       atom.grammars.readGrammar grammarPath, (error, grammar) =>
         if error?
-          console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
+          detail = "#{error.message} in #{grammarPath}"
+          stack = "#{error.stack}\n  at #{grammarPath}:1:1"
+          atom.notifications.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
         else
           grammar.packageName = @name
           @grammars.push(grammar)
@@ -309,7 +323,9 @@ class Package
     loadSettingsFile = (settingsPath, callback) =>
       ScopedProperties.load settingsPath, (error, settings) =>
         if error?
-          console.warn("Failed to load package settings: #{settingsPath}", error.stack ? error)
+          detail = "#{error.message} in #{settingsPath}"
+          stack = "#{error.stack}\n  at #{settingsPath}:1:1"
+          atom.notifications.addFatalError("Failed to load the #{@name} package settings", {stack, detail, dismissable: true})
         else
           @settings.push(settings)
           settings.activate() if @settingsActivated
@@ -370,7 +386,7 @@ class Package
     @activateStylesheets()
 
   requireMainModule: ->
-    return @mainModule if @mainModule?
+    return @mainModule if @mainModuleRequired
     unless @isCompatible()
       console.warn """
         Failed to require the main module of '#{@name}' because it requires an incompatible native module.
@@ -378,7 +394,9 @@ class Package
       """
       return
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
+    if fs.isFileSync(mainModulePath)
+      @mainModuleRequired = true
+      @mainModule = require(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
@@ -409,7 +427,15 @@ class Package
         do (selector, command) =>
           # Add dummy command so it appears in menu.
           # The real command will be registered on package activation
-          @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          try
+            @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          catch error
+            if error.code is 'EBADSELECTOR'
+              metadataPath = path.join(@path, 'package.json')
+              error.message += " in #{metadataPath}"
+              error.stack += "\n  at #{metadataPath}:1:1"
+            throw error
+
           @activationCommandSubscriptions.add atom.commands.onWillDispatch (event) =>
             return unless event.type is command
             currentTarget = event.target
@@ -528,3 +554,17 @@ class Package
       @compatible = @incompatibleModules.length is 0
     else
       @compatible = true
+
+  handleError: (message, error) ->
+    if error.filename and error.location and (error instanceof SyntaxError)
+      location = "#{error.filename}:#{error.location.first_line + 1}:#{error.location.first_column + 1}"
+      detail = "#{error.message} in #{location}"
+      stack = """
+        SyntaxError: #{error.message}
+          at #{location}
+      """
+    else
+      detail = error.message
+      stack = error.stack ? error
+
+    atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
