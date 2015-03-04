@@ -8,7 +8,7 @@ fs = require 'fs-plus'
 {Disposable} = require 'event-kit'
 Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
-{isSelectorValid} = require './selector-parser'
+{validateSelector} = require './selector-parser'
 
 SpecificityCache = {}
 
@@ -124,8 +124,7 @@ class ContextMenuManager
     addedItemSets = []
 
     for selector, items of itemsBySelector
-      unless isSelectorValid(selector)
-        throw new Error("'#{selector}' is not a valid selector")
+      validateSelector(selector)
 
       itemSet = new ContextMenuItemSet(selector, items)
       addedItemSets.push(itemSet)
