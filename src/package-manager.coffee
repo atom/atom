@@ -426,7 +426,7 @@ class PackageManager
 
   handleMetadataError: (error, packagePath) ->
     metadataPath = path.join(packagePath, 'package.json')
-    detail = error.message + " in #{metadataPath}"
-    stack = error.stack + "\n  at #{metadataPath}:1:1"
+    detail = "#{error.message} in #{metadataPath}"
+    stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
     atom.notifications.addError(message, {stack, detail, dismissable: true})
