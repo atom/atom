@@ -126,9 +126,8 @@ class Package
         @loadStylesheets()
         @settingsPromise = @loadSettings()
         @requireMainModule() unless @hasActivationCommands()
-
       catch error
-        console.warn "Failed to load package named '#{@name}'", error.stack ? error
+        @handleError("Failed to load the #{@name} package", error)
     this
 
   reset: ->
@@ -148,8 +147,12 @@ class Package
         if @hasActivationCommands()
           try
             @subscribeToActivationCommands()
-          catch e
-            console.warn "Failed to subscribe to activation commands for package '#{@name}'", e.stack
+          catch error
+            if error.code is 'EBADSELECTOR'
+              metadataPath = path.join(@path, 'package.json')
+              error.message += " in #{metadataPath}"
+            error.stack += "\n  at #{metadataPath}:1:1"
+            @handleError("Failed to activate the #{@name} package", error)
         else
           @activateNow()
 
@@ -163,8 +166,8 @@ class Package
         @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
-    catch e
-      console.warn "Failed to activate package named '#{@name}'", e.stack
+    catch error
+      @handleError("Failed to activate the #{@name} package", error)
 
     @activationDeferred?.resolve()
 
@@ -531,3 +534,18 @@ class Package
       @compatible = @incompatibleModules.length is 0
     else
       @compatible = true
+
+  handleError: (message, error) ->
+    if error.filename and error.location and (error instanceof SyntaxError)
+      location = "#{error.filename}:#{error.location.first_line + 1}:#{error.location.first_column + 1}"
+      detail = "#{error.message} in #{location}"
+      stack = """
+        SyntaxError: #{error.message}
+          at #{location}
+      """
+    else
+      detail = error.message
+      stack = error.stack ? error
+
+    console.trace()
+    atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
