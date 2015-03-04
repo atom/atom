@@ -18,7 +18,6 @@ describe "PackageManager", ->
       expect(pack.metadata.name).toBe "package-with-index"
 
     it "returns the package if it has an invalid keymap", ->
-      spyOn(console, 'warn')
       pack = atom.packages.loadPackage("package-with-broken-keymap")
       expect(pack instanceof Package).toBe true
       expect(pack.metadata.name).toBe "package-with-broken-keymap"
@@ -30,10 +29,11 @@ describe "PackageManager", ->
       expect(pack.stylesheets.length).toBe 0
 
     it "returns null if the package has an invalid package.json", ->
-      spyOn(console, 'warn')
+      addErrorHandler = jasmine.createSpy()
+      atom.notifications.onDidAddNotification(addErrorHandler)
       expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
-      expect(console.warn.callCount).toBe(1)
-      expect(console.warn.argsForCall[0][0]).toContain("Failed to load package.json")
+      expect(addErrorHandler.callCount).toBe 1
+      expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-broken-package-json package")
 
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')

@@ -343,16 +343,22 @@ class PackageManager
 
       try
         metadata = Package.loadMetadata(packagePath) ? {}
-        if metadata.theme
-          pack = new ThemePackage(packagePath, metadata)
-        else
-          pack = new Package(packagePath, metadata)
-        pack.load()
-        @loadedPackages[pack.name] = pack
-        @emitter.emit 'did-load-package', pack
-        return pack
       catch error
-        console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error
+        metadataPath = path.join(packagePath, 'package.json')
+        detail = error.message + " in #{metadataPath}"
+        stack = error.stack + "\n  at #{metadataPath}:1:1"
+        message = "Failed to load the #{path.basename(packagePath)} package"
+        atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
+        return null
+
+      if metadata.theme
+        pack = new ThemePackage(packagePath, metadata)
+      else
+        pack = new Package(packagePath, metadata)
+      pack.load()
+      @loadedPackages[pack.name] = pack
+      @emitter.emit 'did-load-package', pack
+      return pack
     else
       console.warn "Could not resolve '#{nameOrPath}' to a package path"
     null
