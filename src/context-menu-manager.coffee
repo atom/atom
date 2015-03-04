@@ -125,7 +125,6 @@ class ContextMenuManager
 
     for selector, items of itemsBySelector
       validateSelector(selector)
-
       itemSet = new ContextMenuItemSet(selector, items)
       addedItemSets.push(itemSet)
       @itemSets.push(itemSet)
