@@ -1,13 +1,8 @@
 selectorCache = null
 testElement = null
 
-exports.validateSelector = (selector) ->
-  return if exports.isSelectorValid(selector)
-
-  error = new Error("'#{selector}' is not a valid selector")
-  error.code = 'EBADSELECTOR'
-  throw error
-
+# Parses CSS selectors and memoizes their validity so each selector will only
+# be parsed once.
 exports.isSelectorValid = (selector) ->
   selectorCache ?= {}
   cachedValue = selectorCache[selector]
@@ -21,3 +16,11 @@ exports.isSelectorValid = (selector) ->
   catch selectorError
     selectorCache[selector] = false
     false
+
+# Parse the given selector and throw an error if it is invalid
+exports.validateSelector = (selector) ->
+  return if exports.isSelectorValid(selector)
+
+  error = new Error("'#{selector}' is not a valid selector")
+  error.code = 'EBADSELECTOR'
+  throw error
