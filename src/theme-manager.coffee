@@ -2,7 +2,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 EmitterMixin = require('emissary').Emitter
-{Emitter, Disposable} = require 'event-kit'
+{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 Q = require 'q'
@@ -241,7 +241,8 @@ class ThemeManager
       throw new Error("Could not find a file at path '#{stylesheetPath}'")
 
   unwatchUserStylesheet: ->
-    @userStylesheetFile?.off()
+    @userStylsheetSubscriptions?.dispose()
+    @userStylsheetSubscriptions = null
     @userStylesheetFile = null
     @userStyleSheetDisposable?.dispose()
     @userStyleSheetDisposable = null
@@ -254,7 +255,11 @@ class ThemeManager
 
     try
       @userStylesheetFile = new File(userStylesheetPath)
-      @userStylesheetFile.on 'contents-changed moved removed', => @loadUserStylesheet()
+      @userStylsheetSubscriptions = new CompositeDisposable()
+      reloadStylesheet = => @loadUserStylesheet()
+      @userStylsheetSubscriptions.add(@userStylesheetPath.onDidChange(reloadStylesheet))
+      @userStylsheetSubscriptions.add(@userStylesheetPath.onDidRename(reloadStylesheet))
+      @userStylsheetSubscriptions.add(@userStylesheetPath.onDidDelete(reloadStylesheet))
     catch error
       message = """
         Unable to watch path: `#{path.basename(userStylesheetPath)}`. Make sure
