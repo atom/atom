@@ -61,34 +61,35 @@ class AtomWindow
           pathToOpen
 
     loadSettings.initialPaths.sort()
-    @projectPaths = loadSettings.initialPaths
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', =>
       @emit 'window:loaded'
       @loaded = true
 
-    @browserWindow.on 'project-path-changed', (@projectPaths) =>
-
-    @browserWindow.loadUrl @getUrl(loadSettings)
+    @setLoadSettings(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  getUrl: (loadSettingsObj) ->
+  setLoadSettings: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
     # be quite large.
     loadSettings = _.clone(loadSettingsObj)
     delete loadSettings['windowState']
 
-    url.format
+    @browserWindow.loadUrl url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
-      query: {loadSettings: JSON.stringify(loadSettings)}
+      hash: encodeURIComponent(JSON.stringify(loadSettings))
 
-  hasProjectPath: -> @projectPaths?.length > 0
+  getLoadSettings: ->
+    hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
+    JSON.parse(decodeURIComponent(hash))
+
+  hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
 
   setupContextMenu: ->
     ContextMenu = null
@@ -103,7 +104,7 @@ class AtomWindow
     true
 
   containsPath: (pathToCheck) ->
-    @projectPaths.some (projectPath) ->
+    @getLoadSettings().initialPaths?.some (projectPath) ->
       if not projectPath
         false
       else if not pathToCheck

@@ -14,8 +14,7 @@ window.onload = function() {
       cacheDir = path.join(cacheDir, 'root');
     }
 
-    // Skip "?loadSettings=".
-    var rawLoadSettings = decodeURIComponent(location.search.substr(14));
+    var rawLoadSettings = decodeURIComponent(location.hash.substr(1));
     var loadSettings;
     try {
       loadSettings = JSON.parse(rawLoadSettings);
