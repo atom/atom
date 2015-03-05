@@ -109,6 +109,12 @@ class Project extends Model
   Section: Event Subscription
   ###
 
+  # Public: Invoke the given callback when the project paths change.
+  #
+  # * `callback` {Function} to be called after the project paths change.
+  #    * `projectPaths` An {Array} of {String} project paths.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
 
