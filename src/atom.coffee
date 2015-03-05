@@ -118,7 +118,7 @@ class Atom extends Model
 
   # Returns the load settings hash associated with the current window.
   @getLoadSettings: ->
-    @loadSettings ?= JSON.parse(decodeURIComponent(location.search.substr(14)))
+    @loadSettings ?= JSON.parse(decodeURIComponent(location.hash.substr(1)))
     cloned = _.deepClone(@loadSettings)
     # The loadSettings.windowState could be large, request it only when needed.
     cloned.__defineGetter__ 'windowState', =>

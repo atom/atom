@@ -86,7 +86,7 @@ class AtomWindow
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
-      query: {loadSettings: JSON.stringify(loadSettings)}
+      hash: encodeURIComponent(JSON.stringify(loadSettings))
 
   hasProjectPath: -> @projectPaths?.length > 0
 
