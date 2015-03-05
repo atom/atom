@@ -127,6 +127,11 @@ class Atom extends Model
       @getCurrentWindow().loadSettings.windowState = value
     cloned
 
+  @updateLoadSetting: (key, value) ->
+    @getLoadSettings()
+    @loadSettings[key] = value
+    location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
+
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
@@ -751,10 +756,8 @@ class Atom extends Model
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
-    onProjectPathChanged = =>
-      ipc.send('window-command', 'project-path-changed', @project.getPaths())
-    @subscribe @project.onDidChangePaths(onProjectPathChanged)
-    onProjectPathChanged()
+    @subscribe @project.onDidChangePaths =>
+      @constructor.updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
     app = remote.require('app')
