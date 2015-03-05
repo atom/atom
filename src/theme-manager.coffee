@@ -257,9 +257,9 @@ class ThemeManager
       @userStylesheetFile = new File(userStylesheetPath)
       @userStylsheetSubscriptions = new CompositeDisposable()
       reloadStylesheet = => @loadUserStylesheet()
-      @userStylsheetSubscriptions.add(@userStylesheetPath.onDidChange(reloadStylesheet))
-      @userStylsheetSubscriptions.add(@userStylesheetPath.onDidRename(reloadStylesheet))
-      @userStylsheetSubscriptions.add(@userStylesheetPath.onDidDelete(reloadStylesheet))
+      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidChange(reloadStylesheet))
+      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidRename(reloadStylesheet))
+      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidDelete(reloadStylesheet))
     catch error
       message = """
         Unable to watch path: `#{path.basename(userStylesheetPath)}`. Make sure
