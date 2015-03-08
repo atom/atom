@@ -66,6 +66,7 @@
     "temp": "0.8.1",
     "text-buffer": "^4.1.5",
     "theorist": "^1.0.2",
+    "typescript": "^1.4.1",
     "underscore-plus": "^1.6.6"
   },
   "packageDependencies": {
