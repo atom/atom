@@ -10,8 +10,6 @@ class PaneResizeHandleView extends View
 
   attached: ->
     @isHorizontal = @parent().hasClass("horizontal")
-    @prevPane = @prev()
-    @nextPane = @next()
 
   detached: ->
 
@@ -23,8 +21,8 @@ class PaneResizeHandleView extends View
 
   resizeToFitContent: ->
     # clear flex-grow css style of both pane
-    @prevPane.css('flexGrow', '')
-    @nextPane.css('flexGrow', '')
+    @prev().css('flexGrow', '')
+    @next().css('flexGrow', '')
 
   resizeStarted: (e)->
     e.stopPropagation()
@@ -39,10 +37,10 @@ class PaneResizeHandleView extends View
     parseFloat element.css('flexGrow')
 
   setFlexGrow: (prevSize, nextSize) ->
-    flexGrow = @getFlexGrow(@prevPane) + @getFlexGrow(@nextPane)
+    flexGrow = @getFlexGrow(@prev()) + @getFlexGrow(@next())
     flexGrows = @calcRatio(prevSize, nextSize, flexGrow)
-    @prevPane.css('flexGrow', flexGrows[0].toString())
-    @nextPane.css('flexGrow', flexGrows[1].toString())
+    @prev().css('flexGrow', flexGrows[0].toString())
+    @next().css('flexGrow', flexGrows[1].toString())
 
   fixInRange: (val, minValue, maxValue) ->
     Math.min(Math.max(val, minValue), maxValue)
@@ -51,16 +49,16 @@ class PaneResizeHandleView extends View
     return @resizeStopped() unless which is 1
 
     if @isHorizontal
-      totalWidth = @prevPane.outerWidth() + @nextPane.outerWidth()
+      totalWidth = @prev().outerWidth() + @next().outerWidth()
       #get the left and right width after move the resize view
-      leftWidth = @fixInRange(pageX - @prevPane.offset().left, 0, totalWidth)
+      leftWidth = @fixInRange(pageX - @prev().offset().left, 0, totalWidth)
       rightWidth = totalWidth - leftWidth
       # set the flex grow by the ratio of left width and right width
       # to change pane width
       @setFlexGrow(leftWidth, rightWidth)
     else
-      totalHeight = @prevPane.outerHeight() + @nextPane.outerHeight()
-      topHeight = @fixInRange(pageY - @prevPane.offset().top, 0, totalHeight)
+      totalHeight = @prev().outerHeight() + @next().outerHeight()
+      topHeight = @fixInRange(pageY - @prev().offset().top, 0, totalHeight)
       bottomHeight = totalHeight - topHeight
       @setFlexGrow(topHeight, bottomHeight)
 
