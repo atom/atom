@@ -56,6 +56,17 @@ describe "TextEditorComponent", ->
   afterEach ->
     contentNode.style.width = ''
 
+  describe "async updates", ->
+    it "handles corrupted state gracefully", ->
+      # trigger state updates, e.g. presenter.updateLinesState
+      editor.insertNewline()
+
+      # simulate state corruption
+      component.presenter.startRow = -1
+      component.presenter.endRow = 9999
+
+      expect(nextAnimationFrame).not.toThrow()
+
   describe "line rendering", ->
     it "renders the currently-visible lines plus the overdraw margin", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'

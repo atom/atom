@@ -61,6 +61,7 @@ class TextEditorPresenter
       @[flagName] = true
     else
       fn.apply(this)
+      @[flagName] = false
 
     @emitDidUpdateState()
 
@@ -68,6 +69,11 @@ class TextEditorPresenter
   # Returns a state {Object}, useful for rendering to screen.
   getState: ->
     @updating = true
+
+    @updateContentDimensions()
+    @updateScrollbarDimensions()
+    @updateStartRow()
+    @updateEndRow()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -82,20 +88,6 @@ class TextEditorPresenter
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateGutterState() if @shouldUpdateGutterState
     @updateLineNumbersState() if @shouldUpdateLineNumbersState
-
-    @shouldUpdateFocusedState = false
-    @shouldUpdateHeightState = false
-    @shouldUpdateVerticalScrollState = false
-    @shouldUpdateHorizontalScrollState = false
-    @shouldUpdateScrollbarsState = false
-    @shouldUpdateHiddenInputState = false
-    @shouldUpdateContentState = false
-    @shouldUpdateDecorations = false
-    @shouldUpdateLinesState = false
-    @shouldUpdateCursorsState = false
-    @shouldUpdateOverlaysState = false
-    @shouldUpdateGutterState = false
-    @shouldUpdateLineNumbersState = false
 
     @updating = false
 
