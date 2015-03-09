@@ -70,6 +70,7 @@ class TextEditorPresenter
   getState: ->
     @updating = true
 
+    # Always update these to avoid state corruption
     @updateContentDimensions()
     @updateScrollbarDimensions()
     @updateStartRow()
