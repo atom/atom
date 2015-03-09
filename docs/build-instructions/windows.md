@@ -78,6 +78,7 @@ If none of this works, do install Github for Windows and use its Git shell. Make
     ```
     $env:GYP_MSVS_VERSION=2013
     ```
+  * If you are using Visual Studio 2013 and the build fails with some other error message this environment variable might still be required.
 
 * Other `node-gyp` errors on first build attempt, even though the right node and python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.
