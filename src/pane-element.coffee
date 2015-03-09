@@ -1,6 +1,7 @@
 {CompositeDisposable} = require 'event-kit'
 {$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
 PaneView = require './pane-view'
+_ = require 'underscore-plus'
 
 class PaneElement extends HTMLElement
   attached: false
@@ -37,8 +38,21 @@ class PaneElement extends HTMLElement
     handleBlur = (event) =>
       @model.blur() unless @contains(event.relatedTarget)
 
+    handleDragOver = (event) =>
+      event.preventDefault()
+      event.stopPropagation()
+
+    handleDrop = (event) =>
+      event.preventDefault()
+      event.stopPropagation()
+      @getModel().activate()
+      pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
+      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+
     @addEventListener 'focus', handleFocus, true
     @addEventListener 'blur', handleBlur, true
+    @addEventListener 'dragover', handleDragOver
+    @addEventListener 'drop', handleDrop
 
   createSpacePenShim: ->
     @__spacePenView = new PaneView(this)

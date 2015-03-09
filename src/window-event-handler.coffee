@@ -1,6 +1,5 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
-_ = require 'underscore-plus'
 {Disposable} = require 'event-kit'
 ipc = require 'ipc'
 shell = require 'shell'
@@ -134,12 +133,11 @@ class WindowEventHandler
   onDrop: (event) ->
     event.preventDefault()
     event.stopPropagation()
-    pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
-    atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
   onDragOver: (event) ->
     event.preventDefault()
     event.stopPropagation()
+    event.dataTransfer.dropEffect = 'none'
 
   openLink: ({target, currentTarget}) ->
     location = target?.getAttribute('href') or currentTarget?.getAttribute('href')
