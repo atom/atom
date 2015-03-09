@@ -54,6 +54,7 @@ class Cursor extends Model
       @emitter.emit 'did-destroy'
       @emitter.dispose()
     @needsAutoscroll = true
+    @autoscrollEnabled = true
 
   destroy: ->
     @marker.destroy()
@@ -669,7 +670,14 @@ class Cursor extends Model
     {row, column} = @getScreenPosition()
     new Range(new Point(row, column), new Point(row, column + 1))
 
-  autoscroll: (options) ->
+  autoscroll: (options, fn) ->
+    return unless @autoscrollEnabled
+
+    if fn?
+      @autoscrollEnabled = false
+      fn()
+      @autoscrollEnabled = true
+
     @editor.scrollToScreenRange(@getScreenRange(), options)
 
   getBeginningOfNextParagraphBufferPosition: ->
