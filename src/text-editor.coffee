@@ -2776,8 +2776,11 @@ class TextEditor extends Model
 
   # Remove any {Fold}s found that intersect the given buffer row.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
-    for row in [bufferRange.start.row..bufferRange.end.row]
-      @unfoldBufferRow(row)
+    @unfoldBufferRow(bufferRange.start.row)
+    @unfoldBufferRow(bufferRange.end.row)
+
+    for row in [bufferRange.end.row..bufferRange.start.row]
+      fold.destroy() for fold in @displayBuffer.foldsStartingAtBufferRow(row)
 
   # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
   largestFoldContainingBufferRow: (bufferRow) ->
