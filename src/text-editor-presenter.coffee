@@ -416,7 +416,7 @@ class TextEditorPresenter
       @scrollHeight = scrollHeight
       @updateScrollTop()
 
-  updateContentDimensions: ->
+  updateContentDimensions: -> @batch "shouldUpdateContentDimensions", ->
     if @lineHeight?
       oldContentHeight = @contentHeight
       @contentHeight = @lineHeight * @model.getScreenLineCount()
