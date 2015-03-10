@@ -27,6 +27,9 @@ The `.zip` version will not automatically update.
 Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install
 the latest version of Atom.
 
+Using [scoop](http://scoop.sh/)? Run `scoop bucket add extras` to add extra repository, then to install
+run `scoop install atom` for install Atom.
+
 ### Debian Linux (Ubuntu)
 
 Currently only a 64-bit version is available.
