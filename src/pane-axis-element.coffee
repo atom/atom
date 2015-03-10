@@ -1,6 +1,6 @@
 {CompositeDisposable} = require 'event-kit'
 {callAttachHooks} = require './space-pen-extensions'
-PaneResizeHandleView = require './pane-resize-handle-view'
+PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
   createdCallback: ->
@@ -24,7 +24,7 @@ class PaneAxisElement extends HTMLElement
     this
 
   isPaneResizeHandleElement: (element) ->
-    element?.classList.contains('pane-resize-handle')
+    element?.nodeName.toLowerCase() is 'atom-pane-resize-handle'
 
   childAdded: ({child, index}) ->
     view = atom.views.getView(child)
@@ -33,16 +33,14 @@ class PaneAxisElement extends HTMLElement
     prevElement = view.previousSibling
     # if previous element is not pane resize element, then insert new resize element
     if prevElement? and not @isPaneResizeHandleElement(prevElement)
-      resizeView = new PaneResizeHandleView()
-      resizeView.initialize()
-      @insertBefore(resizeView[0], view)
+      resizeHandle = document.createElement('atom-pane-resize-handle')
+      @insertBefore(resizeHandle, view)
 
     nextElement = view.nextSibling
     # if next element isnot resize element, then insert new resize element
     if nextElement? and not @isPaneResizeHandleElement(nextElement)
-      resizeView = new PaneResizeHandleView()
-      resizeView.initialize()
-      @insertBefore(resizeView[0], nextElement)
+      resizeHandle = document.createElement('atom-pane-resize-handle')
+      @insertBefore(resizeHandle, nextElement)
 
     callAttachHooks(view) # for backward compatibility with SpacePen views
 
@@ -50,7 +48,7 @@ class PaneAxisElement extends HTMLElement
     view = atom.views.getView(child)
     siblingView = view.previousSibling
     # make sure next sibling view is pane resize view
-    if siblingView?.classList.contains('pane-resize-handle')
+    if siblingView? and @isPaneResizeHandleElement(siblingView)
       siblingView.remove()
     view.remove()
 
