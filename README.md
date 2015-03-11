@@ -7,6 +7,13 @@ Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https:/
 Visit [issue #3684](https://github.com/atom/atom/issues/3684) to learn more
 about the Atom 1.0 roadmap.
 
+## Documentation
+
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
+
+The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
+
+
 ## Installing
 
 ### OS X
@@ -55,7 +62,3 @@ repeat these steps to upgrade to future releases.
 * [OS X](docs/build-instructions/os-x.md)
 * [FreeBSD](docs/build-instructions/freebsd.md)
 * [Windows](docs/build-instructions/windows.md)
-
-## Developing
-
-Check out the [guides](https://atom.io/docs/latest) and the [API reference](https://atom.io/docs/api).
