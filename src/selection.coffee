@@ -100,7 +100,7 @@ class Selection extends Model
     bufferRange = Range.fromObject(bufferRange)
     @needsAutoscroll = options.autoscroll
     options.reversed ?= @isReversed()
-    @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
+    @editor.destroyFoldsContainingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
@@ -251,8 +251,7 @@ class Selection extends Model
 
   # Public: Selects all the text in the buffer.
   selectAll: ->
-    @editor.unfoldAll()
-    @setBufferRange(@editor.buffer.getRange(), autoscroll: false, preserveFolds: true)
+    @setBufferRange(@editor.buffer.getRange(), autoscroll: false)
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the line.

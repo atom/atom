@@ -2241,7 +2241,7 @@ class TextEditor extends Model
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
     unless marker.getProperties().preserveFolds
-      @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
+      @destroyFoldsContainingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editor: this, marker, cursor}, options))
     @selections.push(selection)
@@ -2776,11 +2776,14 @@ class TextEditor extends Model
 
   # Remove any {Fold}s found that intersect the given buffer row.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
-    @unfoldBufferRow(bufferRange.start.row)
-    @unfoldBufferRow(bufferRange.end.row)
+    @destroyFoldsContainingBufferRange(bufferRange)
 
     for row in [bufferRange.end.row..bufferRange.start.row]
       fold.destroy() for fold in @displayBuffer.foldsStartingAtBufferRow(row)
+
+  destroyFoldsContainingBufferRange: (bufferRange) ->
+    @unfoldBufferRow(bufferRange.start.row)
+    @unfoldBufferRow(bufferRange.end.row)
 
   # {Delegates to: DisplayBuffer.largestFoldContainingBufferRow}
   largestFoldContainingBufferRow: (bufferRow) ->
