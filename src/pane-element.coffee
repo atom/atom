@@ -1,7 +1,6 @@
 {CompositeDisposable} = require 'event-kit'
 {$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
 PaneView = require './pane-view'
-_ = require 'underscore-plus'
 
 class PaneElement extends HTMLElement
   attached: false
@@ -46,7 +45,7 @@ class PaneElement extends HTMLElement
       event.preventDefault()
       event.stopPropagation()
       @getModel().activate()
-      pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
+      pathsToOpen = Array::map.call event.dataTransfer.files, (file) -> file.path
       atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
     @addEventListener 'focus', handleFocus, true
