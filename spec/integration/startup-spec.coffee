@@ -87,7 +87,7 @@ describe "Starting Atom", ->
       nestedDir = path.join(otherTempDirPath, "nested-dir")
       fs.mkdirSync(nestedDir)
 
-      runAtom [tempDirPath, otherTempDirPath, "--multi-folder"], {ATOM_HOME: AtomHome}, (client) ->
+      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
         client
           .waitForExist("atom-workspace", 5000)
           .treeViewRootDirectories()
@@ -99,31 +99,6 @@ describe "Starting Atom", ->
           .waitForExist("atom-workspace", 5000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
-
-    it "opens each path in its own window unless the --multi-folder flag is passed", ->
-      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: AtomHome}, (client) ->
-        treeViewDirs = []
-
-        client
-          .waitForExist("atom-workspace", 5000)
-          .waitForWindowCount(2, 10000)
-          .then ({value: windowHandles}) ->
-
-            @window(windowHandles[0])
-              .waitForExist("atom-workspace")
-              .treeViewRootDirectories()
-              .then ({value}) ->
-                expect(value).toHaveLength(1)
-                treeViewDirs.push(value[0])
-
-              .window(windowHandles[1])
-              .waitForExist("atom-workspace")
-              .treeViewRootDirectories()
-              .then ({value}) ->
-                expect(value).toHaveLength(1)
-                treeViewDirs.push(value[0])
-              .then ->
-                expect(treeViewDirs.sort()).toEqual([tempDirPath, otherTempDirPath].sort())
 
   describe "when there is an existing window with no project path", ->
     describe "opening a directory", ->

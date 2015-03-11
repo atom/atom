@@ -53,7 +53,7 @@ class Project extends Model
     # to either a {Repository} or null. Ideally, the {Directory} would be used
     # as the key; however, there can be multiple {Directory} objects created for
     # the same real path, so it is not a good key.
-    @repositoryPromisesByPath = new Map();
+    @repositoryPromisesByPath = new Map()
 
     # Note that the GitRepositoryProvider is registered synchronously so that
     # it is available immediately on startup.
@@ -109,6 +109,12 @@ class Project extends Model
   Section: Event Subscription
   ###
 
+  # Public: Invoke the given callback when the project paths change.
+  #
+  # * `callback` {Function} to be called after the project paths change.
+  #    * `projectPaths` An {Array} of {String} project paths.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
 
@@ -221,7 +227,9 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to remove.
   removePath: (projectPath) ->
-    projectPath = path.normalize(projectPath)
+    # The projectPath may be a URI, in which case it should not be normalized.
+    unless projectPath in @getPaths()
+      projectPath = path.normalize(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories

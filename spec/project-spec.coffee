@@ -78,6 +78,20 @@ describe "Project", ->
       expect(directories.length).toBe 1
       expect(directories[0].getPath()).toBe tmp
 
+    it "gets the parent directory from the default directory provider if it's a local directory", ->
+      tmp = temp.mkdirSync()
+      atom.project.setPaths([path.join(tmp, "not-existing")])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 1
+      expect(directories[0].getPath()).toBe tmp
+
+    it "only normalizes the directory path if it isn't on the local filesystem", ->
+      nonLocalFsDirectory = "custom_proto://abc/def"
+      atom.project.setPaths([nonLocalFsDirectory])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 1
+      expect(directories[0].getPath()).toBe path.normalize(nonLocalFsDirectory)
+
     it "tries to update repositories when a new RepositoryProvider is registered", ->
       tmp = temp.mkdirSync('atom-project')
       atom.project.setPaths([tmp])
@@ -421,6 +435,23 @@ describe "Project", ->
       atom.project.removePath(__dirname)
       expect(atom.project.getPaths()).toEqual([path.join(__dirname, "..", "src")])
       expect(atom.project.getRepositories()[0].isSubmodule("src")).toBe false
+
+    it "removes a path that is represented as a URI", ->
+      ftpURI = "ftp://example.com/some/folder"
+      directoryProvider =
+        directoryForURISync: (uri) ->
+          # Dummy implementation of Directory for which GitRepositoryProvider
+          # will not try to create a GitRepository.
+          getPath: -> ftpURI
+          getSubdirectory: -> {}
+          isRoot: -> true
+          off: ->
+      atom.packages.serviceHub.provide(
+        "atom.directory-provider", "0.1.0", directoryProvider)
+      atom.project.setPaths([ftpURI])
+      expect(atom.project.getPaths()).toEqual [ftpURI]
+      atom.project.removePath(ftpURI)
+      expect(atom.project.getPaths()).toEqual []
 
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->

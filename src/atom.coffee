@@ -118,7 +118,7 @@ class Atom extends Model
 
   # Returns the load settings hash associated with the current window.
   @getLoadSettings: ->
-    @loadSettings ?= JSON.parse(decodeURIComponent(location.search.substr(14)))
+    @loadSettings ?= JSON.parse(decodeURIComponent(location.hash.substr(1)))
     cloned = _.deepClone(@loadSettings)
     # The loadSettings.windowState could be large, request it only when needed.
     cloned.__defineGetter__ 'windowState', =>
@@ -126,6 +126,11 @@ class Atom extends Model
     cloned.__defineSetter__ 'windowState', (value) =>
       @getCurrentWindow().loadSettings.windowState = value
     cloned
+
+  @updateLoadSetting: (key, value) ->
+    @getLoadSettings()
+    @loadSettings[key] = value
+    location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
 
   @getCurrentWindow: ->
     remote.getCurrentWindow()
@@ -605,6 +610,8 @@ class Atom extends Model
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
+    @openInitialEmptyEditorIfNecessary()
+
     maximize = dimensions?.maximized and process.platform isnt 'darwin'
     @displayWindow({maximize})
 
@@ -628,6 +635,10 @@ class Atom extends Model
     @project = null
 
     @windowEventHandler?.unsubscribe()
+
+  openInitialEmptyEditorIfNecessary: ->
+    if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
+      @workspace.open(null)
 
   ###
   Section: Messaging the User
@@ -745,10 +756,8 @@ class Atom extends Model
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
-    onProjectPathChanged = =>
-      ipc.send('window-command', 'project-path-changed', @project.getPaths())
-    @subscribe @project.onDidChangePaths(onProjectPathChanged)
-    onProjectPathChanged()
+    @subscribe @project.onDidChangePaths =>
+      @constructor.updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
     app = remote.require('app')

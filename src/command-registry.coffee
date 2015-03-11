@@ -2,6 +2,7 @@
 {specificity} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
+{validateSelector} = require './selector-validator'
 
 SequenceCount = 0
 SpecificityCache = {}
@@ -87,6 +88,7 @@ class CommandRegistry
       return disposable
 
     if typeof target is 'string'
+      validateSelector(target)
       @addSelectorBasedListener(target, commandName, callback)
     else
       @addInlineListener(target, commandName, callback)

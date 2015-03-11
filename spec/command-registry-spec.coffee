@@ -148,6 +148,16 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
       expect(calls).toEqual []
 
+  describe "::add(selector, commandName, callback)", ->
+    it "throws an error when called with an invalid selector", ->
+      badSelector = '<>'
+      addError = null
+      try
+        registry.add badSelector, 'foo:bar', ->
+      catch error
+        addError = error
+      expect(addError.message).toContain(badSelector)
+
   describe "::findCommands({target})", ->
     it "returns commands that can be invoked on the target or its ancestors", ->
       registry.add '.parent', 'namespace:command-1', ->

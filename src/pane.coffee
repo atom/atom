@@ -683,6 +683,8 @@ class Pane extends Model
       atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
     else if error.code is 'EROFS' and error.path?
       atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
+    else if error.code is 'ENOSPC' and error.path?
+      atom.notifications.addWarning("Unable to save file: No space left on device '#{error.path}'")
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")

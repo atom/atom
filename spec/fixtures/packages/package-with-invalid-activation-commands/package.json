@@ -1,0 +1,9 @@
+{
+  "name": "package-with-invalid-selectors",
+  "version": "1.0.0",
+  "activationCommands": {
+    "<>": [
+      "foo:bar"
+    ]
+  }
+}
