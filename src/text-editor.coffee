@@ -2774,13 +2774,14 @@ class TextEditor extends Model
   destroyFoldWithId: (id) ->
     @displayBuffer.destroyFoldWithId(id)
 
-  # Remove any {Fold}s found that intersect the given buffer row.
+  # Remove any {Fold}s found that intersect the given buffer range.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     @destroyFoldsContainingBufferRange(bufferRange)
 
     for row in [bufferRange.end.row..bufferRange.start.row]
       fold.destroy() for fold in @displayBuffer.foldsStartingAtBufferRow(row)
 
+  # Remove any {Fold}s found that contain the given buffer range.
   destroyFoldsContainingBufferRange: (bufferRange) ->
     @unfoldBufferRow(bufferRange.start.row)
     @unfoldBufferRow(bufferRange.end.row)
