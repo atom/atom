@@ -39,7 +39,7 @@ many packages and themes that are stored in other repos under the
 [atom-light-ui](https://github.com/atom/atom-light-ui).
 
 For more information on how to work with Atom's official packages, see
-[Contributing to Atom Packages](https://atom.io/docs/latest/contributing-to-packages.html)
+[Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md)
 
 ## Pull Requests
 
