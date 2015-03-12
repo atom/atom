@@ -524,6 +524,34 @@ class TextEditor extends Model
   gutterWithName: (name) ->
     @gutterContainer.gutterWithName name
 
+  # Calls your `callback` when a {Gutter} is added to the editor.
+  # Immediately calls your callback for each existing gutter.
+  #
+  # * `callback` {Function}
+  #   * `gutter` {Gutter} that currently exists/was added.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeGutters: (callback) ->
+    @gutterContainer.observeGutters callback
+
+  # Calls your `callback` when a {Gutter} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `gutter` {Gutter} that was added.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddGutter: (callback) ->
+    @gutterContainer.onDidAddGutter callback
+
+  # Calls your `callback` when a {Gutter} is removed from the editor.
+  #
+  # * `callback` {Function}
+  #   * `name` The name of the {Gutter} that was removed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidRemoveGutter: (callback) ->
+    @gutterContainer.onDidRemoveGutter callback
+
   # Set the number of characters that can be displayed horizontally in the
   # editor.
   #

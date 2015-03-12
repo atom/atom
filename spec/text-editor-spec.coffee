@@ -4296,3 +4296,77 @@ describe "TextEditor", ->
         class: 'test-class'
       expect(gutterDecorations.length).toBe 1
       expect(gutterDecorations[0]).toBe decoration
+
+  describe '::observeGutters', ->
+    [payloads, callback] = []
+
+    beforeEach ->
+      payloads = []
+      callback = (payload) ->
+        payloads.push(payload)
+
+    it 'calls the callback immediately with each existing gutter, and with each added gutter after that.', ->
+      lineNumberGutter = editor.gutterWithName('line-number')
+      editor.observeGutters(callback)
+      expect(payloads).toEqual [lineNumberGutter]
+      gutter1 = editor.addGutter({name: 'test-gutter-1'})
+      expect(payloads).toEqual [lineNumberGutter, gutter1]
+      gutter2 = editor.addGutter({name: 'test-gutter-2'})
+      expect(payloads).toEqual [lineNumberGutter, gutter1, gutter2]
+
+    it 'does not call the callback when a gutter is removed.', ->
+      gutter = editor.addGutter({name: 'test-gutter'})
+      editor.observeGutters(callback)
+      payloads = []
+      gutter.destroy()
+      expect(payloads).toEqual []
+
+    it 'does not call the callback after the subscription has been disposed.', ->
+      subscription = editor.observeGutters(callback)
+      payloads = []
+      subscription.dispose()
+      editor.addGutter({name: 'test-gutter'})
+      expect(payloads).toEqual []
+
+  describe '::onDidAddGutter', ->
+    [payloads, callback] = []
+
+    beforeEach ->
+      payloads = []
+      callback = (payload) ->
+        payloads.push(payload)
+
+    it 'calls the callback with each newly-added gutter, but not with existing gutters.', ->
+      editor.onDidAddGutter(callback)
+      expect(payloads).toEqual []
+      gutter = editor.addGutter({name: 'test-gutter'})
+      expect(payloads).toEqual [gutter]
+
+    it 'does not call the callback after the subscription has been disposed.', ->
+      subscription = editor.onDidAddGutter(callback)
+      payloads = []
+      subscription.dispose()
+      editor.addGutter({name: 'test-gutter'})
+      expect(payloads).toEqual []
+
+  describe '::onDidRemoveGutter', ->
+    [payloads, callback] = []
+
+    beforeEach ->
+      payloads = []
+      callback = (payload) ->
+        payloads.push(payload)
+
+    it 'calls the callback when a gutter is removed.', ->
+      gutter = editor.addGutter({name: 'test-gutter'})
+      editor.onDidRemoveGutter(callback)
+      expect(payloads).toEqual []
+      gutter.destroy()
+      expect(payloads).toEqual ['test-gutter']
+
+    it 'does not call the callback after the subscription has been disposed.', ->
+      gutter = editor.addGutter({name: 'test-gutter'})
+      subscription = editor.onDidRemoveGutter(callback)
+      subscription.dispose()
+      gutter.destroy()
+      expect(payloads).toEqual []

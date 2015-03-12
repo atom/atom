@@ -46,6 +46,7 @@ class GutterContainer
         break
     if !inserted
       @gutters.push newGutter
+    @emitter.emit 'did-add-gutter', newGutter
     return newGutter
 
   getGutters: ->
@@ -60,7 +61,16 @@ class GutterContainer
   Section: Event Subscription
   ###
 
-  # @param callback: function( nameOfRemovedGutter )
+  # See {TextEditor::observeGutters} for details.
+  observeGutters: (callback) ->
+    callback(gutter) for gutter in @getGutters()
+    @onDidAddGutter callback
+
+  # See {TextEditor::onDidAddGutter} for details.
+  onDidAddGutter: (callback) ->
+    @emitter.on 'did-add-gutter', callback
+
+  # See {TextEditor::onDidRemoveGutter} for details.
   onDidRemoveGutter: (callback) ->
     @emitter.on 'did-remove-gutter', callback
 
