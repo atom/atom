@@ -6,6 +6,6 @@
 # the root workspace element.
 
 # For more detailed documentation see
-# https://atom.io/docs/latest/advanced/keymaps
+# https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 'atom-workspace':
   'ctrl-alt-o': '__package-name__:toggle'
