@@ -1260,6 +1260,7 @@ describe "DisplayBuffer", ->
 
     it "includes partially visible rows in the interval", ->
       displayBuffer.setScrollTop(5)
+
       expect(displayBuffer.getVisibleRowRange()).toEqual [0, 10]
 
     it "returns an empty interval when lineHeight is 0", ->
