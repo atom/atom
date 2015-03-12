@@ -1267,3 +1267,8 @@ describe "DisplayBuffer", ->
       displayBuffer.setLineHeightInPixels(0)
 
       expect(displayBuffer.getVisibleRowRange()).toEqual [0, 0]
+
+    it "ends at last buffer row even if there's more space available", ->
+      displayBuffer.setScrollTop(60)
+
+      expect(displayBuffer.getVisibleRowRange()).toEqual [6, 13]
