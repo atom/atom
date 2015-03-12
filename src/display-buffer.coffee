@@ -351,7 +351,7 @@ class DisplayBuffer extends Model
   getVisibleRowRange: ->
     return [0, 0] unless @getLineHeightInPixels() > 0
 
-    heightInLines = Math.ceil(@getHeight() / @getLineHeightInPixels()) + 1
+    heightInLines = Math.ceil(@getHeight() / @getLineHeightInPixels())
     startRow = Math.floor(@getScrollTop() / @getLineHeightInPixels())
     endRow = Math.min(@getLineCount(), startRow + heightInLines)
 
