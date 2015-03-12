@@ -176,7 +176,7 @@ class Package
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
       else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
         deprecate """Use a config schema instead. See the configuration section
-        of https://atom.io/docs/latest/creating-a-package and
+        of https://atom.io/docs/latest/hacking-atom-package-word-count and
         https://atom.io/docs/api/latest/Config for more details"""
         atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
