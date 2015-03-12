@@ -348,7 +348,7 @@ class DisplayBuffer extends Model
   getScrollWidth: ->
     @scrollWidth
 
-  # Returns an {Array} of two numbers representing a closed interval of visible rows.
+  # Returns an {Array} of two numbers representing the first and the last visible rows.
   getVisibleRowRange: ->
     return [0, 0] unless @getLineHeightInPixels() > 0
 

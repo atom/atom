@@ -1253,17 +1253,17 @@ describe "DisplayBuffer", ->
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setHeight(100)
 
-    it "returns a closed interval of visible rows", ->
+    it "returns the first and the last visible rows", ->
       displayBuffer.setScrollTop(0)
 
       expect(displayBuffer.getVisibleRowRange()).toEqual [0, 9]
 
-    it "includes partially visible rows in the interval", ->
+    it "includes partially visible rows in the range", ->
       displayBuffer.setScrollTop(5)
 
       expect(displayBuffer.getVisibleRowRange()).toEqual [0, 10]
 
-    it "returns an empty interval when lineHeight is 0", ->
+    it "returns an empty range when lineHeight is 0", ->
       displayBuffer.setLineHeightInPixels(0)
 
       expect(displayBuffer.getVisibleRowRange()).toEqual [0, 0]
