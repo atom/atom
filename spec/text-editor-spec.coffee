@@ -1623,7 +1623,31 @@ describe "TextEditor", ->
             [[6, 22], [6, 28]]
           ]
 
+        it "selects also soft-wrapped lines", ->
+          editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(10)
+          editor.setEditorWidthInChars(40)
+
+          editor.setSelectedScreenRange([[6, 20], [6, 25]])
+          editor.addSelectionBelow()
+          expect(editor.getSelectedScreenRanges()).toEqual [
+            [[6, 20], [6, 25]]
+            [[7, 20], [7, 25]]
+          ]
+
       describe "when the selection is empty", ->
+        it "does not skip soft-wrapped lines shorter than the current column", ->
+          editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(10)
+          editor.setEditorWidthInChars(40)
+
+          editor.setCursorScreenPosition([6, 44])
+          editor.addSelectionBelow()
+          expect(editor.getSelectedScreenRanges()).toEqual [
+            [[6, 44], [6, 44]]
+            [[7, 26], [7, 26]]
+          ]
+
         it "does not skip lines that are shorter than the current column", ->
           editor.setCursorBufferPosition([3, 36])
           editor.addSelectionBelow()
@@ -1687,7 +1711,31 @@ describe "TextEditor", ->
             [[3, 22], [3, 38]]
           ]
 
+        it "selects also soft-wrapped lines", ->
+          editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(10)
+          editor.setEditorWidthInChars(40)
+
+          editor.setSelectedScreenRange([[7, 20], [7, 25]])
+          editor.addSelectionAbove()
+          expect(editor.getSelectedScreenRanges()).toEqual [
+            [[7, 20], [7, 25]]
+            [[6, 20], [6, 25]]
+          ]
+
       describe "when the selection is empty", ->
+        it "does not skip soft-wrapped lines shorter than the current column", ->
+          editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(10)
+          editor.setEditorWidthInChars(40)
+
+          editor.setCursorScreenPosition([6, 44])
+          editor.addSelectionAbove()
+          expect(editor.getSelectedScreenRanges()).toEqual [
+            [[6, 44], [6, 44]]
+            [[5, 30], [5, 30]]
+          ]
+
         it "does not skip lines that are shorter than the current column", ->
           editor.setCursorBufferPosition([6, 36])
           editor.addSelectionAbove()
