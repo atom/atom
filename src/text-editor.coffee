@@ -1275,6 +1275,14 @@ class TextEditor extends Model
   # Returns a {Point}.
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
 
+  # Extended: Clip the start and end of the given range to valid positions on screen.
+  # See {::clipScreenPosition} for more information.
+  #
+  # * `range` The {Range} to clip.
+  # * `options` (optional) See {::clipScreenPosition} `options`.
+  # Returns a {Range}.
+  clipScreenRange: (range, options) -> @displayBuffer.clipScreenRange(range, options)
+
   ###
   Section: Decorations
   ###

@@ -183,7 +183,7 @@ class Selection extends Model
 
   # Public: Clears the selection, moving the marker to the head.
   clear: ->
-    @marker.setProperties(goalBufferRange: null)
+    @marker.setProperties(goalBufferRange: null, goalScreenRange: null)
     @marker.clearTail() unless @retainSelection
     @finalize()
 
@@ -657,38 +657,38 @@ class Selection extends Model
 
   # Public: Moves the selection down one row.
   addSelectionBelow: ->
-    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
+    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
     nextRow = range.end.row + 1
 
-    for row in [nextRow..@editor.getLastBufferRow()]
+    for row in [nextRow..@editor.getLastScreenRow()]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editor.clipBufferRange(range)
+      clippedRange = @editor.clipScreenRange(range)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
+      @editor.addSelectionForScreenRange(range, goalScreenRange: range)
       break
 
   # Public: Moves the selection up one row.
   addSelectionAbove: ->
-    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
+    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
     previousRow = range.end.row - 1
 
     for row in [previousRow..0]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editor.clipBufferRange(range)
+      clippedRange = @editor.clipScreenRange(range)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
+      @editor.addSelectionForScreenRange(range, goalScreenRange: range)
       break
 
   # Public: Combines the given selection into this selection and then destroys
@@ -767,3 +767,7 @@ class Selection extends Model
   getGoalBufferRange: ->
     if goalBufferRange = @marker.getProperties().goalBufferRange
       Range.fromObject(goalBufferRange)
+
+  getGoalScreenRange: ->
+    if goalScreenRange = @marker.getProperties().goalScreenRange
+      Range.fromObject(goalScreenRange)
