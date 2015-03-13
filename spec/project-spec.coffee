@@ -486,6 +486,11 @@ describe "Project", ->
         randomPath = path.join("some", "random", "path")
         expect(atom.project.relativizePath(randomPath)).toEqual [null, randomPath]
 
+    describe "when the given path is a URL", ->
+      it "returns null for the root path, and the given path unchanged", ->
+        url = "http://the-path"
+        expect(atom.project.relativizePath(url)).toEqual [null, url]
+
   describe ".contains(path)", ->
     it "returns whether or not the given path is in one of the root directories", ->
       rootPath = atom.project.getPaths()[0]
