@@ -663,14 +663,14 @@ class Selection extends Model
     for row in [nextRow..@editor.getLastScreenRow()]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editor.clipScreenRange(range)
+      clippedRange = @editor.clipScreenRange(range, skipSoftWrapIndentation: true)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForScreenRange(range, goalScreenRange: range)
+      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
       break
 
   # Public: Moves the selection up one row.
@@ -681,14 +681,14 @@ class Selection extends Model
     for row in [previousRow..0]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editor.clipScreenRange(range)
+      clippedRange = @editor.clipScreenRange(range, skipSoftWrapIndentation: true)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForScreenRange(range, goalScreenRange: range)
+      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
       break
 
   # Public: Combines the given selection into this selection and then destroys

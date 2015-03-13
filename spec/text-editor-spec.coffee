@@ -1649,17 +1649,29 @@ describe "TextEditor", ->
             ]
 
       describe "when the selection is empty", ->
-        it "does not skip soft-wrapped lines shorter than the current column", ->
-          editor.setSoftWrapped(true)
-          editor.setDefaultCharWidth(10)
-          editor.setEditorWidthInChars(40)
+        describe "when lines are soft-wrapped", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(10)
+            editor.setEditorWidthInChars(40)
 
-          editor.setCursorScreenPosition([6, 44])
-          editor.addSelectionBelow()
-          expect(editor.getSelectedScreenRanges()).toEqual [
-            [[6, 44], [6, 44]]
-            [[7, 26], [7, 26]]
-          ]
+          it "skips soft-wrap indentation tokens", ->
+            editor.setCursorScreenPosition([6, 2])
+            editor.addSelectionBelow()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[6, 2], [6, 2]]
+              [[7, 6], [7, 6]]
+            ]
+
+          it "does not skip them if they're shorter than the current column", ->
+            editor.setCursorScreenPosition([6, 44])
+            editor.addSelectionBelow()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[6, 44], [6, 44]]
+              [[7, 26], [7, 26]]
+            ]
 
         it "does not skip lines that are shorter than the current column", ->
           editor.setCursorBufferPosition([3, 36])
@@ -1750,17 +1762,29 @@ describe "TextEditor", ->
             ]
 
       describe "when the selection is empty", ->
-        it "does not skip soft-wrapped lines shorter than the current column", ->
-          editor.setSoftWrapped(true)
-          editor.setDefaultCharWidth(10)
-          editor.setEditorWidthInChars(40)
+        describe "when lines are soft-wrapped", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(10)
+            editor.setEditorWidthInChars(40)
 
-          editor.setCursorScreenPosition([6, 44])
-          editor.addSelectionAbove()
-          expect(editor.getSelectedScreenRanges()).toEqual [
-            [[6, 44], [6, 44]]
-            [[5, 30], [5, 30]]
-          ]
+          it "skips soft-wrap indentation tokens", ->
+            editor.setCursorScreenPosition([8, 0])
+            editor.addSelectionAbove()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[8, 0], [8, 0]]
+              [[7, 6], [7, 6]]
+            ]
+
+          it "does not skip them if they're shorter than the current column", ->
+            editor.setCursorScreenPosition([6, 44])
+            editor.addSelectionAbove()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[6, 44], [6, 44]]
+              [[5, 30], [5, 30]]
+            ]
 
         it "does not skip lines that are shorter than the current column", ->
           editor.setCursorBufferPosition([6, 36])
