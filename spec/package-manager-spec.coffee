@@ -522,6 +522,7 @@ describe "PackageManager", ->
           atom.packages.activatePackage("package-with-provided-services")
 
         runs ->
+          expect(consumerModule.consumeFirstServiceV3.callCount).toBe(1)
           expect(consumerModule.consumeFirstServiceV3).toHaveBeenCalledWith('first-service-v3')
           expect(consumerModule.consumeFirstServiceV4).toHaveBeenCalledWith('first-service-v4')
           expect(consumerModule.consumeSecondService).toHaveBeenCalledWith('second-service')

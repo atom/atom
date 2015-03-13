@@ -223,8 +223,10 @@ class Package
 
   activateServices: ->
     for name, {versions} of @metadata.providedServices
+      servicesByVersion = {}
       for version, methodName of versions
-        @activationDisposables.add atom.packages.serviceHub.provide(name, version, @mainModule[methodName]())
+        servicesByVersion[version] = @mainModule[methodName]()
+      @activationDisposables.add atom.packages.serviceHub.provide(name, servicesByVersion)
 
     for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
