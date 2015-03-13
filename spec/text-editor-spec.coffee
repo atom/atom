@@ -1635,6 +1635,19 @@ describe "TextEditor", ->
             [[7, 20], [7, 25]]
           ]
 
+        it "takes atomic tokens into account", ->
+          waitsForPromise ->
+            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+
+          runs ->
+            editor.setSelectedBufferRange([[2, 1], [2, 3]])
+            editor.addSelectionBelow()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [
+              [[2, 1], [2, 3]]
+              [[3, 1], [3, 2]]
+            ]
+
       describe "when the selection is empty", ->
         it "does not skip soft-wrapped lines shorter than the current column", ->
           editor.setSoftWrapped(true)
@@ -1722,6 +1735,19 @@ describe "TextEditor", ->
             [[7, 20], [7, 25]]
             [[6, 20], [6, 25]]
           ]
+
+        it "takes atomic tokens into account", ->
+          waitsForPromise ->
+            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+
+          runs ->
+            editor.setSelectedBufferRange([[3, 1], [3, 2]])
+            editor.addSelectionAbove()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [
+              [[3, 1], [3, 2]]
+              [[2, 1], [2, 3]]
+            ]
 
       describe "when the selection is empty", ->
         it "does not skip soft-wrapped lines shorter than the current column", ->
