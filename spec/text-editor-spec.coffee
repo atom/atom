@@ -1505,9 +1505,12 @@ describe "TextEditor", ->
         editor.setSelectedScreenRanges([[[6, 2], [6, 4]]])
         expect(editor.getSelectedScreenRanges()).toEqual [[[6, 2], [6, 4]]]
 
-      it "merges intersecting selections and unfolds the fold", ->
-        editor.setSelectedScreenRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
-        expect(editor.getSelectedScreenRanges()).toEqual [[[2, 2], [8, 5]]]
+      it "merges intersecting selections and unfolds the fold which contain them", ->
+        editor.foldBufferRow(0)
+
+        # Use buffer ranges because only the first line is on screen
+        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
+        expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
 
       it "recyles existing selection instances", ->
         selection = editor.getLastSelection()
