@@ -225,5 +225,6 @@
     {label: 'Split Down', command: 'pane:split-down'}
     {label: 'Split Left', command: 'pane:split-left'}
     {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]
