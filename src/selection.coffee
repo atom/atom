@@ -695,7 +695,7 @@ class Selection extends Model
   # the given selection.
   #
   # * `otherSelection` A {Selection} to merge with.
-  # * `options` (optional) {Object} options matching those found in {::setScreenRange}.
+  # * `options` (optional) {Object} options matching those found in {::setBufferRange}.
   merge: (otherSelection, options) ->
     myGoalScreenRange = @getGoalScreenRange()
     otherGoalScreenRange = otherSelection.getGoalScreenRange()
@@ -705,7 +705,7 @@ class Selection extends Model
     else
       options.goalScreenRange = myGoalScreenRange ? otherGoalScreenRange
 
-    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     otherSelection.destroy()
 
   ###
