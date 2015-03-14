@@ -1456,8 +1456,8 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[5, 5], [6, 6]]]
 
       it "merges intersecting selections", ->
-        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
-        expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
+        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 4]]])
+        expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 4]]]
 
       it "does not merge non-empty adjacent selections", ->
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 3], [5, 5]]])

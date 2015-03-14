@@ -183,7 +183,7 @@ class Selection extends Model
 
   # Public: Clears the selection, moving the marker to the head.
   clear: ->
-    @marker.setProperties(goalBufferRange: null, goalScreenRange: null)
+    @marker.setProperties(goalScreenRange: null)
     @marker.clearTail() unless @retainSelection
     @finalize()
 
@@ -695,15 +695,17 @@ class Selection extends Model
   # the given selection.
   #
   # * `otherSelection` A {Selection} to merge with.
-  # * `options` (optional) {Object} options matching those found in {::setBufferRange}.
+  # * `options` (optional) {Object} options matching those found in {::setScreenRange}.
   merge: (otherSelection, options) ->
-    myGoalBufferRange = @getGoalBufferRange()
-    otherGoalBufferRange = otherSelection.getGoalBufferRange()
-    if myGoalBufferRange? and otherGoalBufferRange?
-      options.goalBufferRange = myGoalBufferRange.union(otherGoalBufferRange)
+    myGoalScreenRange = @getGoalScreenRange()
+    otherGoalScreenRange = otherSelection.getGoalScreenRange()
+
+    if myGoalScreenRange? and otherGoalScreenRange?
+      options.goalScreenRange = myGoalScreenRange.union(otherGoalScreenRange)
     else
-      options.goalBufferRange = myGoalBufferRange ? otherGoalBufferRange
-    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
+      options.goalScreenRange = myGoalScreenRange ? otherGoalScreenRange
+
+    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
     otherSelection.destroy()
 
   ###
@@ -763,10 +765,6 @@ class Selection extends Model
   # Returns a {Point} representing the new tail position.
   plantTail: ->
     @marker.plantTail()
-
-  getGoalBufferRange: ->
-    if goalBufferRange = @marker.getProperties().goalBufferRange
-      Range.fromObject(goalBufferRange)
 
   getGoalScreenRange: ->
     if goalScreenRange = @marker.getProperties().goalScreenRange
