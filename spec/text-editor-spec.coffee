@@ -1623,16 +1623,15 @@ describe "TextEditor", ->
             [[6, 22], [6, 28]]
           ]
 
-        it "selects also soft-wrapped lines", ->
+        it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
-          editor.setDefaultCharWidth(10)
           editor.setEditorWidthInChars(40)
 
-          editor.setSelectedScreenRange([[6, 20], [6, 25]])
+          editor.setSelectedScreenRange([[3, 10], [3, 15]])
           editor.addSelectionBelow()
           expect(editor.getSelectedScreenRanges()).toEqual [
-            [[6, 20], [6, 25]]
-            [[7, 20], [7, 25]]
+            [[3, 10], [3, 15]]
+            [[4, 10], [4, 15]]
           ]
 
         it "takes atomic tokens into account", ->
@@ -1652,25 +1651,24 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
-            editor.setDefaultCharWidth(10)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
-            editor.setCursorScreenPosition([6, 2])
+            editor.setCursorScreenPosition([3, 0])
             editor.addSelectionBelow()
 
             expect(editor.getSelectedScreenRanges()).toEqual [
-              [[6, 2], [6, 2]]
-              [[7, 6], [7, 6]]
+              [[3, 0], [3, 0]]
+              [[4, 4], [4, 4]]
             ]
 
           it "does not skip them if they're shorter than the current column", ->
-            editor.setCursorScreenPosition([6, 44])
+            editor.setCursorScreenPosition([3, 37])
             editor.addSelectionBelow()
 
             expect(editor.getSelectedScreenRanges()).toEqual [
-              [[6, 44], [6, 44]]
-              [[7, 26], [7, 26]]
+              [[3, 37], [3, 37]]
+              [[4, 26], [4, 26]]
             ]
 
         it "does not skip lines that are shorter than the current column", ->
@@ -1736,16 +1734,15 @@ describe "TextEditor", ->
             [[3, 22], [3, 38]]
           ]
 
-        it "selects also soft-wrapped lines", ->
+        it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
-          editor.setDefaultCharWidth(10)
           editor.setEditorWidthInChars(40)
 
-          editor.setSelectedScreenRange([[7, 20], [7, 25]])
+          editor.setSelectedScreenRange([[4, 10], [4, 15]])
           editor.addSelectionAbove()
           expect(editor.getSelectedScreenRanges()).toEqual [
-            [[7, 20], [7, 25]]
-            [[6, 20], [6, 25]]
+            [[4, 10], [4, 15]]
+            [[3, 10], [3, 15]]
           ]
 
         it "takes atomic tokens into account", ->
@@ -1765,25 +1762,24 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
-            editor.setDefaultCharWidth(10)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
-            editor.setCursorScreenPosition([8, 0])
+            editor.setCursorScreenPosition([5, 0])
             editor.addSelectionAbove()
 
             expect(editor.getSelectedScreenRanges()).toEqual [
-              [[8, 0], [8, 0]]
-              [[7, 6], [7, 6]]
+              [[5, 0], [5, 0]]
+              [[4, 4], [4, 4]]
             ]
 
           it "does not skip them if they're shorter than the current column", ->
-            editor.setCursorScreenPosition([6, 44])
+            editor.setCursorScreenPosition([5, 29])
             editor.addSelectionAbove()
 
             expect(editor.getSelectedScreenRanges()).toEqual [
-              [[6, 44], [6, 44]]
-              [[5, 30], [5, 30]]
+              [[5, 29], [5, 29]]
+              [[4, 26], [4, 26]]
             ]
 
         it "does not skip lines that are shorter than the current column", ->
