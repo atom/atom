@@ -49,7 +49,7 @@ class Gutter
   #   * `item` (optional) A model {Object} with a corresponding view registered,
   #     or an {HTMLElement}.
   decorateMarker: (marker, options) ->
-    @gutterContainer.addGutterDecoration this, marker, options
+    @gutterContainer.addGutterDecoration(this, marker, options)
 
   # Calls your `callback` when the {Gutter}'s' visibility changes.
   #

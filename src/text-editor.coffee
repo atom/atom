@@ -114,7 +114,7 @@ class TextEditor extends Model
       @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
-    @gutterContainer = new GutterContainer this
+    @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
       name: 'line-number'
       priority: 0
@@ -514,7 +514,7 @@ class TextEditor extends Model
   # Public: Creates and returns a {Gutter}.
   # See {GutterContainer::addGutter} for more details.
   addGutter: (options) ->
-    @gutterContainer.addGutter options
+    @gutterContainer.addGutter(options)
 
   # Public: Returns the {Array} of all gutters on this editor.
   getGutters: ->
@@ -522,7 +522,7 @@ class TextEditor extends Model
 
   # Public: Returns the {Gutter} with the given name, or null if it doesn't exist.
   gutterWithName: (name) ->
-    @gutterContainer.gutterWithName name
+    @gutterContainer.gutterWithName(name)
 
   # Calls your `callback` when a {Gutter} is added to the editor.
   # Immediately calls your callback for each existing gutter.

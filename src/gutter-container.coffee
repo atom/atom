@@ -31,10 +31,10 @@ class GutterContainer
     options = options ? {}
     gutterName = options.name
     if gutterName == null
-      throw new Error 'A name is required to create a gutter.'
-    if @gutterWithName gutterName
-      throw new Error 'Tried to create a gutter with a name that is already in use.'
-    newGutter = new Gutter this, options
+      throw new Error('A name is required to create a gutter.')
+    if @gutterWithName(gutterName)
+      throw new Error('Tried to create a gutter with a name that is already in use.')
+    newGutter = new Gutter(this, options)
 
     inserted = false
     # Insert the gutter into the gutters array, sorted in ascending order by 'priority'.
@@ -81,7 +81,7 @@ class GutterContainer
   # Processes the destruction of the gutter. Throws an error if this gutter is
   # not within this gutterContainer.
   removeGutter: (gutter) ->
-    index = @gutters.indexOf gutter
+    index = @gutters.indexOf(gutter)
     if index > -1
       @gutters.splice(index, 1)
       @unsubscribe gutter
@@ -97,4 +97,4 @@ class GutterContainer
     else
       options.type = 'gutter'
     options.gutterName = gutter.name
-    @textEditor.decorateMarker marker, options
+    @textEditor.decorateMarker(marker, options)
