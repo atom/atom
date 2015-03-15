@@ -487,7 +487,7 @@ class Selection extends Model
   #
   # If there selection spans more than one line, all the lines are joined together.
   joinLines: ->
-    @cursor.autoscroll {}, =>
+    @cursor.autoscroll =>
       selectedRange = @getBufferRange()
       if selectedRange.isEmpty()
         return if selectedRange.start.row is @editor.buffer.getLastRow()

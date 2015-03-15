@@ -673,6 +673,10 @@ class Cursor extends Model
   autoscroll: (options, fn) ->
     return unless @autoscrollEnabled
 
+    if typeof options is "function"
+      fn = options
+      options = fn
+
     if fn?
       @autoscrollEnabled = false
       fn()
