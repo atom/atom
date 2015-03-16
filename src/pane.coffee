@@ -343,7 +343,7 @@ class Pane extends Model
 
     if typeof item.onDidDestroy is 'function'
       @subscriptions.add item.onDidDestroy => @removeItem(item, true)
-    if typeof item.on is 'function'
+    else if typeof item.on is 'function'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
     @items.splice(index, 0, item)
