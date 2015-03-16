@@ -33,8 +33,6 @@ class Command
     args.unshift(script)
     @spawn(process.execPath, args, remaining...)
 
-  showHelp: (argv) -> @parseOptions?(argv)?.showHelp()
-
   packageNamesFromArgv: (argv) ->
     @sanitizePackageNames(argv._)
 

@@ -26,8 +26,6 @@ class Rebuild extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   run: ({callback}) ->
     config.loadNpm (error, npm) =>
       install = new Install()
