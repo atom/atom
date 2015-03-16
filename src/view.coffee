@@ -61,8 +61,8 @@ class View extends Command
         callback(error)
       else if response.statusCode is 200
         @getLatestCompatibleVersion body, options, (version) ->
-          {readme, downloads, stargazers_count} = body
-          metadata = body.versions?[version] ? {}
+          {name, readme, downloads, stargazers_count} = body
+          metadata = body.versions?[version] ? {name}
           pack = _.extend({}, metadata, {readme, downloads, stargazers_count})
           callback(null, pack)
       else
