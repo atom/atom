@@ -457,6 +457,10 @@ class TextEditor extends Model
   onDidChangeScrollLeft: (callback) ->
     @emitter.on 'did-change-scroll-left', callback
 
+  # TODO Remove once the tabs package no longer uses .on subscriptions
+  onDidChangeIcon: (callback) ->
+    @emitter.on 'did-change-icon', callback
+
   on: (eventName) ->
     switch eventName
       when 'title-changed'
