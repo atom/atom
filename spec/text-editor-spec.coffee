@@ -1626,7 +1626,54 @@ describe "TextEditor", ->
             [[6, 22], [6, 28]]
           ]
 
+        it "can add selections to soft-wrapped line segments", ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(40)
+
+          editor.setSelectedScreenRange([[3, 10], [3, 15]])
+          editor.addSelectionBelow()
+          expect(editor.getSelectedScreenRanges()).toEqual [
+            [[3, 10], [3, 15]]
+            [[4, 10], [4, 15]]
+          ]
+
+        it "takes atomic tokens into account", ->
+          waitsForPromise ->
+            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+
+          runs ->
+            editor.setSelectedBufferRange([[2, 1], [2, 3]])
+            editor.addSelectionBelow()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [
+              [[2, 1], [2, 3]]
+              [[3, 1], [3, 2]]
+            ]
+
       describe "when the selection is empty", ->
+        describe "when lines are soft-wrapped", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            editor.setEditorWidthInChars(40)
+
+          it "skips soft-wrap indentation tokens", ->
+            editor.setCursorScreenPosition([3, 0])
+            editor.addSelectionBelow()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[3, 0], [3, 0]]
+              [[4, 4], [4, 4]]
+            ]
+
+          it "does not skip them if they're shorter than the current column", ->
+            editor.setCursorScreenPosition([3, 37])
+            editor.addSelectionBelow()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[3, 37], [3, 37]]
+              [[4, 26], [4, 26]]
+            ]
+
         it "does not skip lines that are shorter than the current column", ->
           editor.setCursorBufferPosition([3, 36])
           editor.addSelectionBelow()
@@ -1690,7 +1737,54 @@ describe "TextEditor", ->
             [[3, 22], [3, 38]]
           ]
 
+        it "can add selections to soft-wrapped line segments", ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(40)
+
+          editor.setSelectedScreenRange([[4, 10], [4, 15]])
+          editor.addSelectionAbove()
+          expect(editor.getSelectedScreenRanges()).toEqual [
+            [[4, 10], [4, 15]]
+            [[3, 10], [3, 15]]
+          ]
+
+        it "takes atomic tokens into account", ->
+          waitsForPromise ->
+            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+
+          runs ->
+            editor.setSelectedBufferRange([[3, 1], [3, 2]])
+            editor.addSelectionAbove()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [
+              [[3, 1], [3, 2]]
+              [[2, 1], [2, 3]]
+            ]
+
       describe "when the selection is empty", ->
+        describe "when lines are soft-wrapped", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            editor.setEditorWidthInChars(40)
+
+          it "skips soft-wrap indentation tokens", ->
+            editor.setCursorScreenPosition([5, 0])
+            editor.addSelectionAbove()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[5, 0], [5, 0]]
+              [[4, 4], [4, 4]]
+            ]
+
+          it "does not skip them if they're shorter than the current column", ->
+            editor.setCursorScreenPosition([5, 29])
+            editor.addSelectionAbove()
+
+            expect(editor.getSelectedScreenRanges()).toEqual [
+              [[5, 29], [5, 29]]
+              [[4, 26], [4, 26]]
+            ]
+
         it "does not skip lines that are shorter than the current column", ->
           editor.setCursorBufferPosition([6, 36])
           editor.addSelectionAbove()
