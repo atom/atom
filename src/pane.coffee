@@ -250,6 +250,10 @@ class Pane extends Model
 
   getPanes: -> [this]
 
+  unsubscribeFromItem: (item) ->
+    @itemSubscriptions.get(item)?.dispose()
+    @itemSubscriptions.delete(item)
+
   ###
   Section: Items
   ###
@@ -372,9 +376,7 @@ class Pane extends Model
 
     if typeof item.on is 'function'
       @unsubscribe item
-
-    @itemSubscriptions.get(item)?.dispose()
-    @itemSubscriptions.delete(item)
+    @unsubscribeFromItem(item)
 
     if item is @activeItem
       if @items.length is 1
@@ -585,10 +587,7 @@ class Pane extends Model
     @container.activateNextPane() if @isActive()
     @emitter.emit 'did-destroy'
     @emitter.dispose()
-    for item in @items.slice()
-      @itemSubscriptions.get(item)?.dispose()
-      @itemSubscriptions.delete(item)
-      item.destroy?()
+    item.destroy?() for item in @items.slice()
     @container?.didDestroyPane(pane: this)
 
   ###
