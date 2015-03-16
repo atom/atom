@@ -19,14 +19,19 @@ class Rebuild extends Command
     options = optimist(argv)
     options.usage """
 
-      Usage: apm rebuild
+      Usage: apm rebuild [<name> [<name> ...]]
 
-      Rebuild all the modules currently installed in the node_modules folder
+      Rebuild the given modules currently installed in the node_modules folder
       in the current working directory.
+
+      All the modules will be rebuilt if no module names are specified.
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
-  run: ({callback}) ->
+  run: (options) ->
+    {callback} = options
+    options = @parseOptions(options.commandArgs)
+
     config.loadNpm (error, npm) =>
       install = new Install()
       install.npm = npm
@@ -38,6 +43,8 @@ class Rebuild extends Command
         rebuildArgs = ['rebuild']
         rebuildArgs.push("--target=#{config.getNodeVersion()}")
         rebuildArgs.push("--arch=#{config.getNodeArch()}")
+        rebuildArgs = rebuildArgs.concat(options.argv._)
+
         env = _.extend({}, process.env, HOME: @atomNodeDirectory)
         env.USERPROFILE = env.HOME if config.isWin32()
 

@@ -37,12 +37,25 @@ describe 'apm rebuild', ->
   afterEach ->
     server.close()
 
-  it "rebuilds all modules", ->
+  it "rebuilds all modules when no module names are specified", ->
     packageToRebuild = temp.mkdirSync('apm-test-package-')
     fs.writeFileSync(path.join(packageToRebuild, 'package.json'), JSON.stringify(name: 'test', version: '1.0.0'))
     process.chdir(packageToRebuild)
     callback = jasmine.createSpy('callback')
     apm.run(['rebuild'], callback)
+
+    waitsFor 'waiting for rebuild to complete', 600000, ->
+      callback.callCount is 1
+
+    runs ->
+      expect(callback.mostRecentCall.args[0]).toBeUndefined()
+
+  it "rebuilds the specified modules", ->
+    packageToRebuild = temp.mkdirSync('apm-test-package-')
+    fs.writeFileSync(path.join(packageToRebuild, 'package.json'), JSON.stringify(name: 'test', version: '1.0.0'))
+    process.chdir(packageToRebuild)
+    callback = jasmine.createSpy('callback')
+    apm.run(['rebuild', 'foo'], callback)
 
     waitsFor 'waiting for rebuild to complete', 600000, ->
       callback.callCount is 1
