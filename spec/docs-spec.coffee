@@ -72,7 +72,6 @@ describe 'apm docs', ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[0][0]).toContain 'https://github.com/atom/wrap-guide'
 
-
   it "opens the package URL", ->
     spyOn(Docs.prototype, 'openRepositoryUrl')
     callback = jasmine.createSpy('callback')
