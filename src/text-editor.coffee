@@ -512,6 +512,9 @@ class TextEditor extends Model
       when 'scroll-left-changed'
         deprecate("Use TextEditor::onDidChangeScrollLeft instead")
 
+      else
+        deprecate("TextEditor::on is deprecated. Use documented event subscription methods instead.")
+
     EmitterMixin::on.apply(this, arguments)
 
   # Retrieves the current {TextBuffer}.
