@@ -102,4 +102,11 @@ module.exports =
 
   setupApmRcFile: ->
     try
-      fs.writeFileSync(@getGlobalConfigPath(), "cache = #{@getCacheDirectory()}\n")
+      fs.writeFileSync @getGlobalConfigPath(), """
+        ; This file is auto-generated and should not be edited since any
+        ; modifications will be lost the next time any apm command is run.
+        ;
+        ; You should instead edit your .apmrc config located in ~/.atom/.apmrc
+        cache = #{@getCacheDirectory()}
+
+      """
