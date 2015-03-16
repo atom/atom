@@ -96,7 +96,8 @@ class GitRepository
       @subscriptions.add new Disposable(-> window.removeEventListener 'focus', onWindowFocus)
 
     if @project?
-      @subscriptions.add @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
+      @project.getBuffers().forEach (buffer) => @subscribeToBuffer(buffer)
+      @subscriptions.add @project.onDidAddBuffer (buffer) => @subscribeToBuffer(buffer)
 
   # Public: Destroy this {GitRepository} object.
   #

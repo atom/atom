@@ -118,6 +118,9 @@ class Project extends Model
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
 
+  onDidAddBuffer: (callback) ->
+    @emitter.on 'did-add-buffer', callback
+
   on: (eventName) ->
     if eventName is 'path-changed'
       Grim.deprecate("Use Project::onDidChangePaths instead")
@@ -436,6 +439,7 @@ class Project extends Model
     @buffers.splice(index, 0, buffer)
     @subscribeToBuffer(buffer)
     @emit 'buffer-created', buffer
+    @emitter.emit 'did-add-buffer', buffer
     buffer
 
   # Removes a {TextBuffer} association from the project.
