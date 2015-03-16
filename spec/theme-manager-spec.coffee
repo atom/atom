@@ -129,6 +129,7 @@ describe "ThemeManager", ->
         expect(importPaths[0]).toContain 'atom-dark-ui'
 
     it 'adds theme-* classes to the workspace for each active theme', ->
+      atom.config.set('core.themes', ['atom-dark-ui', 'atom-dark-syntax'])
       workspaceElement = atom.views.getView(atom.workspace)
       themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
 
