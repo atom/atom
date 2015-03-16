@@ -2,6 +2,6 @@
   'fontSize': 16
 'core':
   'themes': [
-    'atom-dark-ui'
-    'atom-dark-syntax'
+    'one-dark-ui'
+    'one-dark-syntax'
   ]
