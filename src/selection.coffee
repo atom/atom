@@ -67,6 +67,8 @@ class Selection extends Model
         Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
       when 'destroyed'
         Grim.deprecate("Use Selection::onDidDestroy instead.")
+      else
+        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
 
     super
 
