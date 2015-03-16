@@ -121,6 +121,8 @@ class Project extends Model
   on: (eventName) ->
     if eventName is 'path-changed'
       Grim.deprecate("Use Project::onDidChangePaths instead")
+    else
+      Grim.deprecate("Project::on is deprecated. Use documented event subscription methods instead.")
     super
 
   ###
