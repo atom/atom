@@ -1,6 +1,6 @@
 {find, compact, extend, last} = require 'underscore-plus'
 {Model} = require 'theorist'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 Grim = require 'grim'
 PaneAxis = require './pane-axis'
@@ -34,6 +34,7 @@ class Pane extends Model
     super
 
     @emitter = new Emitter
+    @subscriptions = new CompositeDisposable
     @items = []
 
     @addItems(compact(params?.items ? []))
@@ -340,6 +341,8 @@ class Pane extends Model
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
+    if typeof item.onDidDestroy is 'function'
+      @subscriptions.add item.onDidDestroy => @removeItem(item, true)
     if typeof item.on is 'function'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
@@ -579,6 +582,7 @@ class Pane extends Model
     @container.activateNextPane() if @isActive()
     @emitter.emit 'did-destroy'
     @emitter.dispose()
+    @subscriptions.dispose()
     item.destroy?() for item in @items.slice()
     @container?.didDestroyPane(pane: this)
 
