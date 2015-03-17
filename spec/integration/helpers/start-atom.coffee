@@ -9,7 +9,7 @@ webdriverio = require "../../../build/node_modules/webdriverio"
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
 ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'atom-shell', 'chromedriver', 'chromedriver')
-SocketPath = path.join(temp.mkdirSync("socket-dir"), "atom.sock")
+SocketPath = path.join(temp.mkdirSync("socket-dir"), "atom_#{process.env['USER']}.sock")
 ChromedriverPort = 9515
 
 buildAtomClient = (args, env) ->

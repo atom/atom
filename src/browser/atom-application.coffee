@@ -18,7 +18,7 @@ DefaultSocketPath =
   if process.platform is 'win32'
     '\\\\.\\pipe\\atom-sock'
   else
-    path.join(os.tmpdir(), 'atom.sock')
+    path.join(os.tmpdir(), "atom_#{process.env.USER}.sock")
 
 # The application's singleton class.
 #
