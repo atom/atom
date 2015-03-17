@@ -128,6 +128,12 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
 
+        it "correctly tokenizes hanging indentation spaces", ->
+          atom.config.set("editor.softWrapHangingIndentationSpaces", 3)
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[2].isSoftWrapIndentation).toBeTruthy()
+
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
         describe "when whitespace is added after the max line length", ->
