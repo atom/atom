@@ -457,6 +457,10 @@ class TextEditor extends Model
   onDidChangeScrollLeft: (callback) ->
     @emitter.on 'did-change-scroll-left', callback
 
+  # TODO Remove once the tabs package no longer uses .on subscriptions
+  onDidChangeIcon: (callback) ->
+    @emitter.on 'did-change-icon', callback
+
   on: (eventName) ->
     switch eventName
       when 'title-changed'
@@ -511,6 +515,9 @@ class TextEditor extends Model
         deprecate("Use TextEditor::onDidChangeScrollTop instead")
       when 'scroll-left-changed'
         deprecate("Use TextEditor::onDidChangeScrollLeft instead")
+
+      else
+        deprecate("TextEditor::on is deprecated. Use documented event subscription methods instead.")
 
     EmitterMixin::on.apply(this, arguments)
 

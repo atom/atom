@@ -34,6 +34,7 @@ class Pane extends Model
     super
 
     @emitter = new Emitter
+    @itemSubscriptions = new WeakMap
     @items = []
 
     @addItems(compact(params?.items ? []))
@@ -249,6 +250,10 @@ class Pane extends Model
 
   getPanes: -> [this]
 
+  unsubscribeFromItem: (item) ->
+    @itemSubscriptions.get(item)?.dispose()
+    @itemSubscriptions.delete(item)
+
   ###
   Section: Items
   ###
@@ -340,7 +345,9 @@ class Pane extends Model
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
-    if typeof item.on is 'function'
+    if typeof item.onDidDestroy is 'function'
+      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, true)
+    else if typeof item.on is 'function'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
     @items.splice(index, 0, item)
@@ -369,6 +376,7 @@ class Pane extends Model
 
     if typeof item.on is 'function'
       @unsubscribe item
+    @unsubscribeFromItem(item)
 
     if item is @activeItem
       if @items.length is 1
