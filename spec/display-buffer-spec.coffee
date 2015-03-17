@@ -128,8 +128,15 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
 
+      describe "when editor.softWrapHangingIndentationSpaces is set", ->
+        beforeEach ->
+          atom.config.set('editor.softWrapHangingIndentationSpaces', 3)
+
+        it "further indents wrapped lines", ->
+          expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe "       sort(left).concat(pivot).concat(sort(right)"
+          expect(displayBuffer.tokenizedLineForScreenRow(12).text).toBe "       );"
+
         it "correctly tokenizes hanging indentation spaces", ->
-          atom.config.set("editor.softWrapHangingIndentationSpaces", 3)
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[2].isSoftWrapIndentation).toBeTruthy()
