@@ -89,7 +89,7 @@ class TextEditorPresenter
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
     @updateLineNumbersState() if @shouldUpdateLineNumbersState
-
+    @updateCustomGutterState() if @shouldUpdateCustomGutterState
     @updating = false
 
     @state
@@ -106,6 +106,7 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateLineNumberGutterState()
+      @updateCustomGutterState()
       @updateLineNumbersState()
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
@@ -116,15 +117,18 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateLineNumberGutterState()
+      @updateCustomGutterState()
       @updateLineNumbersState()
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @updateLineNumberGutterState()
+      @updateCustomGutterState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
     @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
+    @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
     return
 
   observeConfig: ->
@@ -152,11 +156,13 @@ class TextEditorPresenter
     @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
       @showLineNumbers = newValue
       @updateLineNumberGutterState()
+      @updateCustomGutterState()
 
   didChangeGrammar: ->
     @observeConfig()
     @updateContentState()
     @updateLineNumberGutterState()
+    @updateCustomGutterState()
 
   buildState: ->
     @state =
@@ -171,6 +177,9 @@ class TextEditorPresenter
         overlays: {}
       lineNumberGutter:
         lineNumbers: {}
+      gutters:
+        sortedDescriptions: []
+        # TODO (jssln) decorations
     @updateState()
 
   updateState: ->
@@ -191,6 +200,7 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateOverlaysState()
     @updateLineNumberGutterState()
+    @updateCustomGutterState()
     @updateLineNumbersState()
 
   updateFocusedState: -> @batch "shouldUpdateFocusedState", ->
@@ -370,6 +380,29 @@ class TextEditorPresenter
       @gutterBackgroundColor
     else
       @backgroundColor
+
+  didAddGutter: (gutter) ->
+    gutterDisposables = new CompositeDisposable
+    gutterDisposables.add gutter.onDidChangeVisible =>
+      @updateCustomGutterState()
+    gutterDisposables.add gutter.onDidDestroy =>
+      @disposables.remove(gutterDisposables)
+      gutterDisposables.dispose()
+      @updateCustomGutterState()
+    @disposables.add(gutterDisposables)
+    @updateCustomGutterState()
+
+  updateCustomGutterState: ->
+    @batch "shouldUpdateCustomGutterState", ->
+      @state.gutters.sortedDescriptions = []
+      if @model.isMini()
+        return
+      for gutter in @model.getGutters()
+        isVisible = gutter.isVisible()
+        if gutter.name is 'line-number'
+          isVisible = isVisible && @showLineNumbers
+        if isVisible
+          @state.gutters.sortedDescriptions.push({name: gutter.name})
 
   updateLineNumbersState: -> @batch "shouldUpdateLineNumbersState", ->
     return unless @startRow? and @endRow? and @lineHeight?
@@ -709,11 +742,13 @@ class TextEditorPresenter
       @backgroundColor = backgroundColor
       @updateContentState()
       @updateLineNumberGutterState()
+      @updateCustomGutterState()
 
   setGutterBackgroundColor: (gutterBackgroundColor) ->
     unless @gutterBackgroundColor is gutterBackgroundColor
       @gutterBackgroundColor = gutterBackgroundColor
       @updateLineNumberGutterState()
+      @updateCustomGutterState()
 
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
