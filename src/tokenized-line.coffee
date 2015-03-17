@@ -118,18 +118,23 @@ class TokenizedLine
     oddIndentLevel = @indentLevel - Math.floor(@indentLevel)
     Math.round(@tabLength * oddIndentLevel)
 
-  buildSoftWrapIndentationTokens: (token) ->
+  buildSoftWrapIndentationTokens: (token, hangingIndentationSpaces) ->
     indentTokens = [0...Math.floor(@indentLevel)].map =>
       token.buildSoftWrapIndentationToken(@tabLength)
 
     if @getOddIndentationSpaces()
-      indentTokens.concat(
-        token.buildSoftWrapIndentationToken @getOddIndentationSpaces()
+      indentTokens.push(
+        token.buildSoftWrapIndentationToken(@getOddIndentationSpaces())
       )
-    else
-      indentTokens
 
-  softWrapAt: (column) ->
+    if hangingIndentationSpaces
+      indentTokens.push(
+        token.buildSoftWrapIndentationToken(hangingIndentationSpaces)
+      )
+
+    indentTokens
+
+  softWrapAt: (column, {hangingIndentationSpaces}) ->
     return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
 
     rightTokens = new Array(@tokens...)
@@ -142,7 +147,7 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0])
+    indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0], hangingIndentationSpaces)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens

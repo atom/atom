@@ -69,10 +69,15 @@ class DisplayBuffer extends Model
       scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
       softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
       softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      softWrapHangingIndentationSpaces: atom.config.get('editor.softWrapHangingIndentationSpaces', scope: scopeDescriptor)
       preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
 
     subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrap = newValue
+      @updateWrappedScreenLines()
+
+    subscriptions.add atom.config.onDidChange 'editor.softWrapHangingIndentationSpaces', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrapHangingIndentationSpaces = newValue
       @updateWrappedScreenLines()
 
     subscriptions.add atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
@@ -1157,7 +1162,10 @@ class DisplayBuffer extends Model
         softWraps = 0
         if @isSoftWrapped()
           while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
-            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
+              wrapScreenColumn,
+              hangingIndentationSpaces: @configSettings.softWrapHangingIndentationSpaces
+            )
             break if wrappedLine.hasOnlySoftWrapIndentation()
             screenLines.push(wrappedLine)
             softWraps++
