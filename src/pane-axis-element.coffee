@@ -13,6 +13,7 @@ class PaneAxisElement extends HTMLElement
     @subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
     @subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
     @subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))
+    @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
 
     @childAdded({child, index}) for child, index in @model.getChildren()
 
@@ -57,6 +58,8 @@ class PaneAxisElement extends HTMLElement
     @childRemoved({child: oldChild, index})
     @childAdded({child: newChild, index})
     focusedElement?.focus() if document.activeElement is document.body
+
+  flexScaleChanged: (flexScale) -> @style.flexGrow = flexScale
 
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)

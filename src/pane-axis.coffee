@@ -12,13 +12,14 @@ class PaneAxis extends Model
   container: null
   orientation: null
 
-  constructor: ({@container, @orientation, children}) ->
+  constructor: ({@container, @orientation, children, flexScale}) ->
     @emitter = new Emitter
     @subscriptionsByChild = new WeakMap
     @subscriptions = new CompositeDisposable
     @children = []
     if children?
       @addChild(child) for child in children
+    @flexScale = flexScale ? 1
 
   deserializeParams: (params) ->
     {container} = params
@@ -28,6 +29,13 @@ class PaneAxis extends Model
   serializeParams: ->
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
+    flexScale: @flexScale
+
+  getFlexScale: -> @flexScale
+
+  setFlexScale: (@flexScale) ->
+    @emitter.emit 'did-change-flex-scale', @flexScale
+    @flexScale
 
   getParent: -> @parent
 
@@ -58,6 +66,13 @@ class PaneAxis extends Model
 
   onDidDestroy: (fn) ->
     @emitter.on 'did-destroy', fn
+
+  onDidChangeFlexScale: (fn) ->
+    @emitter.on 'did-change-flex-scale', fn
+
+  observeFlexScale: (fn) ->
+    fn(@flexScale)
+    @onDidChangeFlexScale(fn)
 
   addChild: (child, index=@children.length) ->
     child.setParent(this)

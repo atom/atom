@@ -1,7 +1,6 @@
 {CompositeDisposable} = require 'event-kit'
 {$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
 PaneView = require './pane-view'
-_ = require 'underscore-plus'
 
 class PaneElement extends HTMLElement
   attached: false
@@ -46,7 +45,7 @@ class PaneElement extends HTMLElement
       event.preventDefault()
       event.stopPropagation()
       @getModel().activate()
-      pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
+      pathsToOpen = Array::map.call event.dataTransfer.files, (file) -> file.path
       atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
     @addEventListener 'focus', handleFocus, true
@@ -63,6 +62,7 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
+    @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
     @__spacePenView.setModel(@model)
     this
 
@@ -115,6 +115,9 @@ class PaneElement extends HTMLElement
 
   paneDestroyed: ->
     @subscriptions.dispose()
+
+  flexScaleChanged: (flexScale) ->
+    @style.flexGrow = flexScale
 
   getActiveView: -> atom.views.getView(@model.getActiveItem())
 

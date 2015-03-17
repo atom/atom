@@ -29,14 +29,13 @@ class PaneResizeHandleElement extends HTMLElement
     allRatio = ratio1 + ratio2
     [total * ratio1 / allRatio, total * ratio2 / allRatio]
 
-  getFlexGrow: (element) ->
-    parseFloat window.getComputedStyle(element).flexGrow
-
   setFlexGrow: (prevSize, nextSize) ->
-    flexGrow = @getFlexGrow(@previousSibling) + @getFlexGrow(@nextSibling)
-    flexGrows = @calcRatio(prevSize, nextSize, flexGrow)
-    @previousSibling.style.flexGrow = flexGrows[0]
-    @nextSibling.style.flexGrow = flexGrows[1]
+    @prevModel = @previousSibling.getModel()
+    @nextModel = @nextSibling.getModel()
+    totalScale = @prevModel.getFlexScale() + @nextModel.getFlexScale()
+    flexGrows = @calcRatio(prevSize, nextSize, totalScale)
+    @prevModel.setFlexScale flexGrows[0]
+    @nextModel.setFlexScale flexGrows[1]
 
   fixInRange: (val, minValue, maxValue) ->
     Math.min(Math.max(val, minValue), maxValue)

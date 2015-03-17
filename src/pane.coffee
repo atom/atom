@@ -20,6 +20,7 @@ class Pane extends Model
     container: undefined
     activeItem: undefined
     focused: false
+    flexScale: 1
 
   # Public: Only one pane is considered *active* at a time. A pane is activated
   # when it is focused, and when focus returns to the pane container after
@@ -38,6 +39,7 @@ class Pane extends Model
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
+    @setFlexScale(params?.flexScale ? 1)
 
   # Called by the Serializable mixin during serialization.
   serializeParams: ->
@@ -50,6 +52,7 @@ class Pane extends Model
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemURI: activeItemURI
     focused: @focused
+    flexScale: @flexScale
 
   # Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
@@ -76,9 +79,35 @@ class Pane extends Model
       @container = container
       container.didAddPane({pane: this})
 
+  setFlexScale: (@flexScale) ->
+    @emitter.emit 'did-change-flex-scale', @flexScale
+    @flexScale
+
+  getFlexScale: -> @flexScale
   ###
   Section: Event Subscription
   ###
+
+  # Public: Invoke the given callback when the pane resize
+  #
+  # the callback will be invoked when pane's flexScale property changes
+  #
+  # * `callback` {Function} to be called when the pane is resized
+  #
+  # Returns a {Disposable} on which '.dispose()' can be called to unsubscribe.
+  onDidChangeFlexScale: (callback) ->
+    @emitter.on 'did-change-flex-scale', callback
+
+  # Public: Invoke the given callback with all current and future items.
+  #
+  # * `callback` {Function} to be called with current and future items.
+  #   * `item` An item that is present in {::getItems} at the time of
+  #     subscription or that is added at some later time.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeFlexScale: (callback) ->
+    callback(@flexScale)
+    @onDidChangeFlexScale(callback)
 
   # Public: Invoke the given callback when the pane is activated.
   #
