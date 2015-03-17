@@ -138,6 +138,7 @@ class TokenizedBuffer extends Model
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
+    return if @grammar is @grammar.registry.nullGrammar
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
