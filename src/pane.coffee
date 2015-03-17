@@ -661,7 +661,8 @@ class Pane extends Model
       params.items.push(@copyActiveItem())
 
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
+      @setFlexScale(1)
 
     newPane = new @constructor(params)
     switch side
