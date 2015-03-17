@@ -90,7 +90,7 @@
     "bracket-matcher": "0.72.0",
     "command-palette": "0.34.0",
     "deprecation-cop": "0.37.0",
-    "dev-live-reload": "0.44.0",
+    "dev-live-reload": "0.45.0",
     "encoding-selector": "0.19.0",
     "exception-reporting": "0.24.0",
     "feedback": "0.34.0",
