@@ -13,8 +13,8 @@ class PaneResizeHandleElement extends HTMLElement
 
   resizeToFitContent: ->
     # clear flex-grow css style of both pane
-    @previousSibling.style.flexGrow = ''
-    @nextSibling.style.flexGrow = ''
+    @previousSibling.model.setFlexScale(1)
+    @nextSibling.model.setFlexScale(1)
 
   resizeStarted: (e)->
     e.stopPropagation()
@@ -30,8 +30,8 @@ class PaneResizeHandleElement extends HTMLElement
     [total * ratio1 / allRatio, total * ratio2 / allRatio]
 
   setFlexGrow: (prevSize, nextSize) ->
-    @prevModel = @previousSibling.getModel()
-    @nextModel = @nextSibling.getModel()
+    @prevModel = @previousSibling.model
+    @nextModel = @nextSibling.model
     totalScale = @prevModel.getFlexScale() + @nextModel.getFlexScale()
     flexGrows = @calcRatio(prevSize, nextSize, totalScale)
     @prevModel.setFlexScale flexGrows[0]

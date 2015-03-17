@@ -83,6 +83,16 @@ class PaneAxis extends Model
     @children.splice(index, 0, child)
     @emitter.emit 'did-add-child', {child, index}
 
+  adjustFlexScale: ->
+    # get current total flex scale of children
+    total = 0
+    total += child.getFlexScale() for child in @children
+
+    needTotal = @children.length
+    # set every child's flex scale by the ratio
+    for child in @children
+      child.setFlexScale(needTotal * child.getFlexScale() / total)
+
   removeChild: (child, replacing=false) ->
     index = @children.indexOf(child)
     throw new Error("Removing non-existent child") if index is -1
@@ -90,6 +100,7 @@ class PaneAxis extends Model
     @unsubscribeFromChild(child)
 
     @children.splice(index, 1)
+    @adjustFlexScale()
     @emitter.emit 'did-remove-child', {child, index}
     @reparentLastChild() if not replacing and @children.length < 2
 
@@ -113,7 +124,9 @@ class PaneAxis extends Model
     @addChild(newChild, index + 1)
 
   reparentLastChild: ->
-    @parent.replaceChild(this, @children[0])
+    lastChild = @children[0]
+    lastChild.setFlexScale(@flexScale)
+    @parent.replaceChild(this, lastChild)
     @destroy()
 
   subscribeToChild: (child) ->
