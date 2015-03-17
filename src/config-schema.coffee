@@ -149,6 +149,9 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
+      softWrapHangingIndentationSpaces:
+        type: 'integer'
+        default: 0
       scrollSensitivity:
         type: 'integer'
         default: 40
