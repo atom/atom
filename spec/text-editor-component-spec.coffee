@@ -579,7 +579,7 @@ describe "TextEditorComponent", ->
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
     it "hides or shows the gutter based on the '::isLineNumberGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
-      expect(component.gutterComponent?).toBe true
+      expect(component.gutterContainerComponent.getLineNumberGutterComponent()?).toBe true
 
       editor.setLineNumberGutterVisible(false)
       nextAnimationFrame()

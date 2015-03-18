@@ -6,7 +6,7 @@ grim = require 'grim'
 ipc = require 'ipc'
 
 TextEditorPresenter = require './text-editor-presenter'
-LineNumberGutterComponent = require './line-number-gutter-component'
+GutterContainerComponent = require './gutter-container-component'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
@@ -70,7 +70,7 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @mountGutterComponent() if @presenter.getState().lineNumberGutter.visible
+    @mountGutterContainerComponent() if @presenter.getState().gutters.sortedDescriptions.length
 
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.domNode)
@@ -134,12 +134,12 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
-    if @newState.lineNumberGutter.visible
-      @mountGutterComponent() unless @gutterComponent?
-      @gutterComponent.updateSync(@newState)
+    if @newState.gutters.sortedDescriptions.length
+      @mountGutterContainerComponent() unless @gutterContainerComponent?
+      @gutterContainerComponent.updateSync(@newState)
     else
-      @gutterComponent?.domNode?.remove()
-      @gutterComponent = null
+      @gutterContainerComponent?.domNode?.remove()
+      @gutterContainerComponent = null
 
     @hiddenInputComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
@@ -161,9 +161,9 @@ class TextEditorComponent
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
     @overlayManager?.measureOverlays()
 
-  mountGutterComponent: ->
-    @gutterComponent = new LineNumberGutterComponent({@editor, onMouseDown: @onGutterMouseDown})
-    @domNode.insertBefore(@gutterComponent.domNode, @domNode.firstChild)
+  mountGutterContainerComponent: ->
+    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown})
+    @domNode.insertBefore(@gutterContainerComponent.domNode, @domNode.firstChild)
 
   becameVisible: ->
     @updatesPaused = true
@@ -401,7 +401,7 @@ class TextEditorComponent
     @handleDragUntilMouseUp event, (screenPosition) =>
       @editor.selectToScreenPosition(screenPosition)
 
-  onGutterMouseDown: (event) =>
+  onLineNumberGutterMouseDown: (event) =>
     return unless event.button is 0 # only handle the left mouse button
 
     {shiftKey, metaKey, ctrlKey} = event
@@ -644,8 +644,9 @@ class TextEditorComponent
 
     @presenter.setBackgroundColor(backgroundColor)
 
-    if @gutterComponent?
-      gutterBackgroundColor = getComputedStyle(@gutterComponent.domNode).backgroundColor
+    lineNumberGutter = @gutterContainerComponent?.getLineNumberGutterComponent()
+    if lineNumberGutter
+      gutterBackgroundColor = getComputedStyle(lineNumberGutter.domNode).backgroundColor
       @presenter.setGutterBackgroundColor(gutterBackgroundColor)
 
   measureLineHeightAndDefaultCharWidth: ->
@@ -722,7 +723,7 @@ class TextEditorComponent
 
   lineNodeForScreenRow: (screenRow) -> @linesComponent.lineNodeForScreenRow(screenRow)
 
-  lineNumberNodeForScreenRow: (screenRow) -> @gutterComponent.lineNumberNodeForScreenRow(screenRow)
+  lineNumberNodeForScreenRow: (screenRow) -> @gutterContainerComponent.getLineNumberGutterComponent().lineNumberNodeForScreenRow(screenRow)
 
   screenRowForNode: (node) ->
     while node?
