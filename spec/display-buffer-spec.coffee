@@ -124,9 +124,16 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[1].isHardTab).toBeTruthy()
 
       describe "when a line is wrapped", ->
-        it "correctly tokenizes soft wrap indentation tokens", ->
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
+        it "breaks soft-wrap indentation into a token for each indentation level to support indent guides", ->
+          tokenizedLine = displayBuffer.tokenizedLineForScreenRow(4)
+
+          expect(tokenizedLine.tokens[0].value).toBe("  ")
+          expect(tokenizedLine.tokens[0].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[1].value).toBe("  ")
+          expect(tokenizedLine.tokens[1].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[2].isSoftWrapIndentation).toBeFalsy()
 
       describe "when editor.softWrapHangingIndent is set", ->
         beforeEach ->
@@ -137,11 +144,22 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe "       sort(left).concat(pivot).concat(sort(right)"
           expect(displayBuffer.tokenizedLineForScreenRow(12).text).toBe "       );"
 
-        it "correctly tokenizes hanging indentation spaces", ->
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[2].isSoftWrapIndentation).toBeTruthy()
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[3].isSoftWrapIndentation).toBeTruthy()
+        it "includes hanging indent when breaking soft-wrap indentation into tokens", ->
+          tokenizedLine = displayBuffer.tokenizedLineForScreenRow(4)
+
+          expect(tokenizedLine.tokens[0].value).toBe("  ")
+          expect(tokenizedLine.tokens[0].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[1].value).toBe("  ")
+          expect(tokenizedLine.tokens[1].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[2].value).toBe("  ") # hanging indent
+          expect(tokenizedLine.tokens[2].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[3].value).toBe(" ") # odd space
+          expect(tokenizedLine.tokens[3].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[4].isSoftWrapIndentation).toBeFalsy()
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
