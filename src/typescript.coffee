@@ -14,7 +14,7 @@ stats =
   misses: 0
 
 defaultOptions =
-  target: 1
+  target: 1 # ES5
   module: 'commonjs'
   sourceMap: true
 
