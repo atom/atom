@@ -149,7 +149,7 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
-      softWrapHangingIndentationSpaces:
+      softWrapHangingIndent:
         type: 'integer'
         default: 0
         minimum: 0
