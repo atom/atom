@@ -133,6 +133,7 @@ describe "DisplayBuffer", ->
           atom.config.set('editor.softWrapHangingIndent', 3)
 
         it "further indents wrapped lines", ->
+          expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe "    return "
           expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe "       sort(left).concat(pivot).concat(sort(right)"
           expect(displayBuffer.tokenizedLineForScreenRow(12).text).toBe "       );"
 
