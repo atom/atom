@@ -114,7 +114,7 @@ class TokenizedLine
   # For a given `indentLevel`, calculates how many trailing spaces cannot fit in a single tab.
   #
   # indentLevel - {Number}
-  # Returns a {Number} representing the odd indentation spaces for `indentLevel`.
+  # Returns a {Number} representing the odd indentation spaces in `indentLevel`.
   oddIndentationSpacesForIndentLevel: (indentLevel) ->
     oddIndentLevel = indentLevel - Math.floor(indentLevel)
     Math.round(@tabLength * oddIndentLevel)
