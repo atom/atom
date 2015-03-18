@@ -6,7 +6,7 @@ module.exports =
 class GutterComponent
   dummyLineNumberNode: null
 
-  constructor: ({@presenter, @onMouseDown, @editor}) ->
+  constructor: ({@onMouseDown, @editor}) ->
     @lineNumberNodesById = {}
 
     @domNode = document.createElement('div')
