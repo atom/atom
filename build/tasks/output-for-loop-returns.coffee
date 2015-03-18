@@ -12,7 +12,7 @@ module.exports = (grunt) ->
       js = grunt.file.read(jsPath)
       method = null
       for line, index in js.split('\n')
-        [match, className, methodName] = /^\s*([a-zA-Z]+)\.prototype\.([a-zA-Z]+)\s*=\s*function\(/.exec(line) ? []
+        [match, className, methodName] = /^\s*([a-zA-Z]+)\.(?:prototype\.)?([a-zA-Z]+)\s*=\s*function\(/.exec(line) ? []
         if className and methodName
           method = "#{className}::#{methodName}"
         else
