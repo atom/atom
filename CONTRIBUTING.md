@@ -48,7 +48,7 @@ For more information on how to work with Atom's official packages, see
   [JavaScript](https://github.com/styleguide/javascript),
   and [CSS](https://github.com/styleguide/css) styleguides.
 * Include thoughtfully-worded, well-structured
-  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `script/grunt run-specs` target with atom closed.
+  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`.
 * Document new code based on the
   [Documentation Styleguide](#documentation-styleguide)
 * End files with a newline.
