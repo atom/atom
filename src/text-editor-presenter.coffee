@@ -124,6 +124,7 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
+    return
 
   observeConfig: ->
     configParams = {scope: @model.getRootScopeDescriptor()}
@@ -273,6 +274,7 @@ class TextEditorPresenter
     for id, line of @state.content.lines
       unless visibleLineIds.hasOwnProperty(id)
         delete @state.content.lines[id]
+    return
 
   updateLineState: (row, line) ->
     lineState = @state.content.lines[line.id]
@@ -296,6 +298,7 @@ class TextEditorPresenter
   updateCursorsState: -> @batch "shouldUpdateCursorsState", ->
     @state.content.cursors = {}
     @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
+    return
 
   updateCursorState: (cursor, destroyOnly = false) ->
     delete @state.content.cursors[cursor.id]
@@ -330,6 +333,8 @@ class TextEditorPresenter
 
     for id of @state.content.overlays
       delete @state.content.overlays[id] unless visibleDecorationIds[id]
+
+    return
 
   updateGutterState: -> @batch "shouldUpdateGutterState", ->
     @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
@@ -381,6 +386,8 @@ class TextEditorPresenter
 
     for id of @state.gutter.lineNumbers
       delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
+
+    return
 
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
@@ -873,11 +880,13 @@ class TextEditorPresenter
       unless visibleHighlights[id]
         delete @state.content.highlights[id]
 
+    return
 
   removeFromLineDecorationCaches: (decoration, range) ->
     for row in [range.start.row..range.end.row] by 1
       delete @lineDecorationsByScreenRow[row]?[decoration.id]
       delete @lineNumberDecorationsByScreenRow[row]?[decoration.id]
+    return
 
   addToLineDecorationCaches: (decoration, range) ->
     marker = decoration.getMarker()
@@ -902,6 +911,8 @@ class TextEditorPresenter
       if decoration.isType('line-number')
         @lineNumberDecorationsByScreenRow[row] ?= {}
         @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
+
+    return
 
   updateHighlightState: (decoration) ->
     return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
