@@ -132,10 +132,8 @@ class TokenizedLine
     else
       indentTokens
 
-  softWrapAt: (column, options = {}) ->
+  softWrapAt: (column, hangingIndent) ->
     return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
-
-    {hangingIndent} = options
 
     rightTokens = new Array(@tokens...)
     leftTokens = []
