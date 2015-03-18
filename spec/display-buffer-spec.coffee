@@ -140,6 +140,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[2].isSoftWrapIndentation).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[3].isSoftWrapIndentation).toBeTruthy()
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
