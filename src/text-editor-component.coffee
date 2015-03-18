@@ -6,7 +6,7 @@ grim = require 'grim'
 ipc = require 'ipc'
 
 TextEditorPresenter = require './text-editor-presenter'
-GutterComponent = require './gutter-component'
+LineNumberGutterComponent = require './line-number-gutter-component'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
@@ -162,7 +162,7 @@ class TextEditorComponent
     @overlayManager?.measureOverlays()
 
   mountGutterComponent: ->
-    @gutterComponent = new GutterComponent({@editor, onMouseDown: @onGutterMouseDown})
+    @gutterComponent = new LineNumberGutterComponent({@editor, onMouseDown: @onGutterMouseDown})
     @domNode.insertBefore(@gutterComponent.domNode, @domNode.firstChild)
 
   becameVisible: ->

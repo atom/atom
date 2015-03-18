@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 WrapperDiv = document.createElement('div')
 
 module.exports =
-class GutterComponent
+class LineNumberGutterComponent
   dummyLineNumberNode: null
 
   constructor: ({@onMouseDown, @editor}) ->
