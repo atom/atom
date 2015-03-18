@@ -301,6 +301,7 @@ class Config
     for typeName, functions of filters
       for name, enforcerFunction of functions
         @addSchemaEnforcer(typeName, enforcerFunction)
+    return
 
   @executeSchemaEnforcers: (keyPath, value, schema) ->
     error = null
@@ -898,6 +899,7 @@ class Config
     @transact =>
       @settings = {}
       @set(key, value, save: false) for key, value of newSettings
+      return
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
@@ -958,6 +960,7 @@ class Config
         @setRawDefault(keyPath, defaults)
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+    return
 
   deepClone: (object) ->
     if object instanceof Color

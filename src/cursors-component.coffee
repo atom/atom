@@ -35,6 +35,8 @@ class CursorsComponent
         @domNode.appendChild(cursorNode)
       @updateCursorNode(id, cursorState)
 
+    return
+
   updateCursorNode: (id, newCursorState) ->
     cursorNode = @cursorNodesById[id]
     oldCursorState = (@oldState.cursors[id] ?= {})

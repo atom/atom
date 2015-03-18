@@ -238,12 +238,14 @@ class Package
       @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
+    return
 
   loadMenus: ->
     if @bundledPackage and packagesCache[@name]?
       @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
     else
       @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
+    return
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
@@ -447,6 +449,7 @@ class Package
                 @activateNow()
                 break
               currentTarget = currentTarget.parentElement
+    return
 
   getActivationCommands: ->
     return @activationCommands if @activationCommands?
@@ -505,6 +508,7 @@ class Package
         for modulePath in fs.listSync(nodeModulesPath)
           nativeModulePaths.push(modulePath) if @isNativeModule(modulePath)
           traversePath(path.join(modulePath, 'node_modules'))
+      return
 
     traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths

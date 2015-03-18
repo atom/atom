@@ -132,6 +132,7 @@ class ContextMenuManager
     new Disposable =>
       for itemSet in addedItemSets
         @itemSets.splice(@itemSets.indexOf(itemSet), 1)
+      return
 
   templateForElement: (target) ->
     @templateForEvent({target})
