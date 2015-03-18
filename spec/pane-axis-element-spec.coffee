@@ -1,58 +1,46 @@
 PaneAxisElement = require '../src/pane-axis-element'
+PaneAxis = require '../src/pane-axis.coffee'
 
-describe "PaneResizeHandleElement", ->
+fdescribe "PaneResizeHandleElement", ->
   describe "add and remove", ->
-    class TestItemElement extends HTMLElement
-      createdCallback: ->
-        @classList.add('test-root')
+    [paneAxisElement, paneAxis] = []
 
-    TestItemElement = document.registerElement 'atom-test-item-element', prototype: TestItemElement.prototype
-
-    [paneAxis, model, Model] = []
     beforeEach ->
-      # This is a dummy item to prevent panes from being empty on deserialization
-      class Model
-        @newChild: -> document.createElement('atom-test-item-element')
-        add: (child, index) -> @addCallback({child, index})
-        remove: (child) -> @removeCallback {child}
-        replace: (index, oldChild, newChild) ->
-          @replaceCallback {index, oldChild, newChild}
-        onDidAddChild: (@addCallback) ->
-        onDidRemoveChild: (@removeCallback) ->
-        onDidReplaceChild: (@replaceCallback) ->
-        getOrientation: -> 'horizontal'
-        getChildren: -> []
+      paneAxisElement = document.createElement('atom-pane-axis')
+      paneAxis = new PaneAxis({})
+      paneAxisElement.initialize(paneAxis)
+      document.querySelector('#jasmine-content').appendChild(paneAxisElement)
 
-      paneAxis = document.createElement('atom-pane-axis')
-      model = new Model
-      paneAxis.initialize(model)
-      document.querySelector('#jasmine-content').appendChild(paneAxis)
+    it "inserts draggable resize elements between pane axis children", ->
+      expect(paneAxisElement).toBeTruthy()
+      modelChildren = (new PaneAxis({}) for i in [1..5])
+      paneAxis.addChild(modelChildren[0])
+      paneAxis.addChild(modelChildren[1])
 
-    it "should insert the correct postion in one pane axis", ->
-      expect(paneAxis).toBeTruthy()
-      modelChildren = (Model.newChild() for i in [1..5])
-      model.add(modelChildren[0])
-      model.add(modelChildren[1])
+      expectPaneAxisElement = (index) ->
+        child = paneAxisElement.children[index]
+        expect(child.nodeName.toLowerCase()).toBe('atom-pane-axis')
 
-      expect(paneAxis.children[0]).toBe(modelChildren[0])
-      expect(paneAxis.children[2]).toBe(modelChildren[1])
-      expectTestItemElement = (index) ->
-        child = paneAxis.children[index]
-        expect(child.nodeName.toLowerCase()).toBe('atom-test-item-element')
       expectResizeElement = (index) ->
-        expect(paneAxis.isPaneResizeHandleElement(paneAxis.children[index])).toBe(true)
-      expectResizeElement(1)
+        child = paneAxisElement.children[index]
+        expect(paneAxisElement.isPaneResizeHandleElement(child)).toBe(true)
 
-      model.add(modelChildren[2])
-      model.add(modelChildren[3])
-      expectTestItemElement(i) for i in [0, 2, 4, 6]
+      expect(paneAxisElement.children[0].model).toBe(modelChildren[0])
+      expectResizeElement(1)
+      expect(paneAxisElement.children[2].model).toBe(modelChildren[1])
+
+      paneAxis.addChild(modelChildren[2])
+      paneAxis.addChild(modelChildren[3])
+      expectPaneAxisElement(i) for i in [0, 2, 4, 6]
       expectResizeElement(i) for i in [1, 3, 5]
 
-      model.remove(modelChildren[2])
+      # test removeChild
+      paneAxis.removeChild(modelChildren[2])
       # modelChildren[3] replace modelChildren[2]
-      expect(paneAxis.children[4]).toBe(modelChildren[3])
+      expect(paneAxisElement.children[4].model).toBe(modelChildren[3])
       expectResizeElement(i) for i in [1, 3]
 
-      model.replace(0, modelChildren[0], modelChildren[4])
-      expect(paneAxis.children[0]).toBe(modelChildren[4])
+      # test replaceChild
+      paneAxis.replaceChild(modelChildren[0], modelChildren[4])
+      expect(paneAxisElement.children[0].model).toBe(modelChildren[4])
       expectResizeElement(i) for i in [1, 3]
