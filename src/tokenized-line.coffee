@@ -111,26 +111,16 @@ class TokenizedLine
 
       return maxColumn
 
-  # For a given `indentLevel`, calculates how many trailing spaces cannot fit in a single tab.
-  #
-  # indentLevel - {Number}
-  # Returns a {Number} representing the odd indentation spaces in `indentLevel`.
-  oddIndentationSpacesForIndentLevel: (indentLevel) ->
-    oddIndentLevel = indentLevel - Math.floor(indentLevel)
-    Math.round(@tabLength * oddIndentLevel)
-
   buildSoftWrapIndentationTokens: (token, hangingIndent) ->
-    hangingIndentLevel = hangingIndent / @tabLength
-    indentLevel = @indentLevel + hangingIndentLevel
-    indentTokens = [0...Math.floor(indentLevel)].map =>
-      token.buildSoftWrapIndentationToken(@tabLength)
+    totalIndentSpaces = (@indentLevel * @tabLength) + hangingIndent
+    indentTokens = []
+    while totalIndentSpaces > 0
+      tokenLength = Math.min(@tabLength, totalIndentSpaces)
+      indentToken = token.buildSoftWrapIndentationToken(tokenLength)
+      indentTokens.push(indentToken)
+      totalIndentSpaces -= tokenLength
 
-    if oddIndentationSpaces = @oddIndentationSpacesForIndentLevel(indentLevel)
-      indentTokens.concat(
-        token.buildSoftWrapIndentationToken(oddIndentationSpaces)
-      )
-    else
-      indentTokens
+    indentTokens
 
   softWrapAt: (column, hangingIndent) ->
     return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
