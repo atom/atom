@@ -149,6 +149,10 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
+      softWrapHangingIndent:
+        type: 'integer'
+        default: 0
+        minimum: 0
       scrollSensitivity:
         type: 'integer'
         default: 40

@@ -111,25 +111,18 @@ class TokenizedLine
 
       return maxColumn
 
-  # Calculates how many trailing spaces in this line's indentation cannot fit in a single tab.
-  #
-  # Returns a {Number} representing the odd indentation spaces in this line.
-  getOddIndentationSpaces: ->
-    oddIndentLevel = @indentLevel - Math.floor(@indentLevel)
-    Math.round(@tabLength * oddIndentLevel)
+  buildSoftWrapIndentationTokens: (token, hangingIndent) ->
+    totalIndentSpaces = (@indentLevel * @tabLength) + hangingIndent
+    indentTokens = []
+    while totalIndentSpaces > 0
+      tokenLength = Math.min(@tabLength, totalIndentSpaces)
+      indentToken = token.buildSoftWrapIndentationToken(tokenLength)
+      indentTokens.push(indentToken)
+      totalIndentSpaces -= tokenLength
 
-  buildSoftWrapIndentationTokens: (token) ->
-    indentTokens = [0...Math.floor(@indentLevel)].map =>
-      token.buildSoftWrapIndentationToken(@tabLength)
+    indentTokens
 
-    if @getOddIndentationSpaces()
-      indentTokens.concat(
-        token.buildSoftWrapIndentationToken @getOddIndentationSpaces()
-      )
-    else
-      indentTokens
-
-  softWrapAt: (column) ->
+  softWrapAt: (column, hangingIndent) ->
     return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
 
     rightTokens = new Array(@tokens...)
@@ -142,7 +135,7 @@ class TokenizedLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0])
+    indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0], hangingIndent)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
