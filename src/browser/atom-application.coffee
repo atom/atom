@@ -388,11 +388,13 @@ class AtomApplication
   # Kill all processes associated with opened windows.
   killAllProcesses: ->
     @killProcess(pid) for pid of @pidsToOpenWindows
+    return
 
   # Kill process associated with the given opened window.
   killProcessForWindow: (openedWindow) ->
     for pid, trackedWindow of @pidsToOpenWindows
       @killProcess(pid) if trackedWindow is openedWindow
+    return
 
   # Kill the process with the given pid.
   killProcess: (pid) ->
