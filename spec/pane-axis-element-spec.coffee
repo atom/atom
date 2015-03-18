@@ -1,7 +1,7 @@
 PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis.coffee'
 
-fdescribe "PaneResizeHandleElement", ->
+describe "PaneResizeHandleElement", ->
   describe "add and remove", ->
     [paneAxisElement, paneAxis] = []
 
