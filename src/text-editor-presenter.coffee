@@ -87,7 +87,7 @@ class TextEditorPresenter
     @updateLinesState() if @shouldUpdateLinesState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
-    @updateGutterState() if @shouldUpdateGutterState
+    @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
     @updateLineNumbersState() if @shouldUpdateLineNumbersState
 
     @updating = false
@@ -105,7 +105,7 @@ class TextEditorPresenter
       @updateContentState()
       @updateDecorations()
       @updateLinesState()
-      @updateGutterState()
+      @updateLineNumberGutterState()
       @updateLineNumbersState()
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
@@ -115,10 +115,10 @@ class TextEditorPresenter
       @updateContentState()
       @updateDecorations()
       @updateLinesState()
-      @updateGutterState()
+      @updateLineNumberGutterState()
       @updateLineNumbersState()
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
-      @updateGutterState()
+      @updateLineNumberGutterState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
@@ -151,12 +151,12 @@ class TextEditorPresenter
       @updateScrollbarsState()
     @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
       @showLineNumbers = newValue
-      @updateGutterState()
+      @updateLineNumberGutterState()
 
   didChangeGrammar: ->
     @observeConfig()
     @updateContentState()
-    @updateGutterState()
+    @updateLineNumberGutterState()
 
   buildState: ->
     @state =
@@ -190,7 +190,7 @@ class TextEditorPresenter
     @updateLinesState()
     @updateCursorsState()
     @updateOverlaysState()
-    @updateGutterState()
+    @updateLineNumberGutterState()
     @updateLineNumbersState()
 
   updateFocusedState: -> @batch "shouldUpdateFocusedState", ->
@@ -363,7 +363,7 @@ class TextEditorPresenter
 
     return
 
-  updateGutterState: -> @batch "shouldUpdateGutterState", ->
+  updateLineNumberGutterState: -> @batch "shouldUpdateLineNumberGutterState", ->
     @state.gutter.visible = not @model.isMini() and (@model.isLineNumberGutterVisible() ? true) and @showLineNumbers
     @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
     @state.gutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
@@ -708,12 +708,12 @@ class TextEditorPresenter
     unless @backgroundColor is backgroundColor
       @backgroundColor = backgroundColor
       @updateContentState()
-      @updateGutterState()
+      @updateLineNumberGutterState()
 
   setGutterBackgroundColor: (gutterBackgroundColor) ->
     unless @gutterBackgroundColor is gutterBackgroundColor
       @gutterBackgroundColor = gutterBackgroundColor
-      @updateGutterState()
+      @updateLineNumberGutterState()
 
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
