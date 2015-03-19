@@ -1,6 +1,6 @@
 module.exports =
 class __PackageName__View
-  constructor: (serializeState) ->
+  constructor: (serializedState) ->
     # Create root element
     @element = document.createElement('div')
     @element.classList.add('__package-name__')
