@@ -844,7 +844,6 @@ class TextEditor extends Model
     @mergeIntersectingSelections =>
       @transact =>
         fn(selection, index) for selection, index in @getSelections()
-        return
 
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
