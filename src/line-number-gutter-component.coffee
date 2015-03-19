@@ -6,7 +6,7 @@ module.exports =
 class LineNumberGutterComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor}) ->
+  constructor: ({@onMouseDown, @editor, @name}) ->
     @lineNumberNodesById = {}
 
     @domNode = document.createElement('div')
@@ -17,6 +17,9 @@ class LineNumberGutterComponent
 
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
+
+  getName: ->
+    @name
 
   updateSync: (state) ->
     @newState = state.lineNumberGutter
