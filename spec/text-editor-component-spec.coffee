@@ -1937,14 +1937,14 @@ describe "TextEditorComponent", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(11), metaKey: true))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(11), metaKey: true))
-            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[10, 0], [20, 0]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[10, 0], [19, 0]]]
 
           it "merges overlapping selections", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(17), metaKey: true))
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(9), metaKey: true))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(9), metaKey: true))
-            expect(editor.getSelectedScreenRanges()).toEqual [[[5, 0], [20, 0]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[5, 0], [19, 0]]]
 
       describe "when the gutter is shift-clicked and dragged", ->
         describe "when the shift-click is below the existing selection's tail", ->
