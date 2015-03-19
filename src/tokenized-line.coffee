@@ -106,7 +106,7 @@ class TokenizedLine
       return @text.length
     else
       # search backward for the start of the word on the boundary
-      for column in [maxColumn..0] when @isColumnOutsideSoftWrapIndentation(column)
+      for column in [maxColumn..0] when @isColumnOutsideIndentation(column)
         return column + 1 if /\s/.test(@text[column])
 
       return maxColumn
@@ -127,12 +127,13 @@ class TokenizedLine
 
     rightTokens = new Array(@tokens...)
     leftTokens = []
-    leftTextLength = 0
-    while leftTextLength < column
-      if leftTextLength + rightTokens[0].value.length > column
-        rightTokens[0..0] = rightTokens[0].splitAt(column - leftTextLength)
+    leftScreenColumn = 0
+
+    while leftScreenColumn < column
+      if leftScreenColumn + rightTokens[0].screenDelta > column
+        rightTokens[0..0] = rightTokens[0].splitAt(column - leftScreenColumn)
       nextToken = rightTokens.shift()
-      leftTextLength += nextToken.value.length
+      leftScreenColumn += nextToken.screenDelta
       leftTokens.push nextToken
 
     indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0], hangingIndent)
@@ -159,6 +160,9 @@ class TokenizedLine
 
   isSoftWrapped: ->
     @lineEnding is null
+
+  isColumnOutsideIndentation: (column) ->
+    column >= @firstNonWhitespaceIndex and @isColumnOutsideSoftWrapIndentation(column)
 
   isColumnOutsideSoftWrapIndentation: (column) ->
     return true if @softWrapIndentationTokens.length == 0
@@ -209,15 +213,15 @@ class TokenizedLine
     outputTokens
 
   markLeadingAndTrailingWhitespaceTokens: ->
-    firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
-    if firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, firstNonWhitespaceIndex - 1)
-      firstNonWhitespaceIndex--
+    @firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
+    if @firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, @firstNonWhitespaceIndex - 1)
+      @firstNonWhitespaceIndex--
     firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
     @lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
     index = 0
     for token in @tokens
-      if index < firstNonWhitespaceIndex
-        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, firstNonWhitespaceIndex - index)
+      if index < @firstNonWhitespaceIndex
+        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, @firstNonWhitespaceIndex - index)
       # Only the *last* segment of a soft-wrapped line can have trailing whitespace
       if @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
         token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
