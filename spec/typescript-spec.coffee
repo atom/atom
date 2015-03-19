@@ -2,12 +2,6 @@ typescript = require '../src/typescript'
 crypto = require 'crypto'
 
 describe "TypeScript transpiler support", ->
-  beforeEach ->
-    jasmine.snapshotDeprecations()
-
-  afterEach ->
-    jasmine.restoreDeprecationsSnapshot()
-
   describe "::createTypeScriptVersionAndOptionsDigest", ->
     it "returns a digest for the library version and specified options", ->
       defaultOptions =
@@ -20,7 +14,7 @@ describe "TypeScript transpiler support", ->
       shasum.update('\0', 'utf8')
       shasum.update(version, 'utf8')
       shasum.update('\0', 'utf8')
-      shasum.update('{"target": 1,"module": "commonjs","sourceMap": true,}')
+      shasum.update(JSON.stringify(defaultOptions))
       expectedDigest = shasum.digest('hex')
 
       observedDigest = typescript.createTypeScriptVersionAndOptionsDigest(version, defaultOptions)

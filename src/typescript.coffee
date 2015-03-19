@@ -18,43 +18,6 @@ defaultOptions =
   module: 'commonjs'
   sourceMap: true
 
-###
-shasum - Hash with an update() method.
-value - Must be a value that could be returned by JSON.parse().
-###
-updateDigestForJsonValue = (shasum, value) ->
-  # Implmentation is similar to that of pretty-printing a JSON object, except:
-  # * Strings are not escaped.
-  # * No effort is made to avoid trailing commas.
-  # These shortcuts should not affect the correctness of this function.
-  type = typeof value
-  if type is 'string'
-    shasum.update('"', 'utf8')
-    shasum.update(value, 'utf8')
-    shasum.update('"', 'utf8')
-  else if type in ['boolean', 'number']
-    shasum.update(value.toString(), 'utf8')
-  else if value is null
-    shasum.update('null', 'utf8')
-  else if Array.isArray value
-    shasum.update('[', 'utf8')
-    for item in value
-      updateDigestForJsonValue(shasum, item)
-      shasum.update(',', 'utf8')
-    shasum.update(']', 'utf8')
-  else
-    # value must be an object: be sure to sort the keys.
-    keys = Object.keys value
-    keys.sort()
-
-    shasum.update('{', 'utf8')
-    for key in keys
-      updateDigestForJsonValue(shasum, key)
-      shasum.update(': ', 'utf8')
-      updateDigestForJsonValue(shasum, value[key])
-      shasum.update(',', 'utf8')
-    shasum.update('}', 'utf8')
-
 createTypeScriptVersionAndOptionsDigest = (version, options) ->
   shasum = crypto.createHash('sha1')
   # Include the version of typescript in the hash.
@@ -62,7 +25,7 @@ createTypeScriptVersionAndOptionsDigest = (version, options) ->
   shasum.update('\0', 'utf8')
   shasum.update(version, 'utf8')
   shasum.update('\0', 'utf8')
-  updateDigestForJsonValue(shasum, options)
+  shasum.update(JSON.stringify(options))
   shasum.digest('hex')
 
 cacheDir = null
@@ -72,8 +35,8 @@ getCachePath = (sourceCode) ->
   digest = crypto.createHash('sha1').update(sourceCode, 'utf8').digest('hex')
 
   unless jsCacheDir?
-    tsVersion = require('typescript/package.json').version
-    jsCacheDir = path.join(cacheDir, createTypeScriptVersionAndOptionsDigest(tsVersion, defaultOptions))
+    tssVersion = require('typescript-simple/package.json').version
+    jsCacheDir = path.join(cacheDir, createTypeScriptVersionAndOptionsDigest(tssVersion, defaultOptions))
 
   path.join(jsCacheDir, "#{digest}.js")
 
@@ -94,7 +57,7 @@ createOptions = (filePath) ->
 
 transpile = (sourceCode, filePath, cachePath) ->
   options = createOptions(filePath)
-  tss ?= new (require './typescript-transpile').TypeScriptSimple(options, false)
+  tss ?= new (require 'typescript-simple').TypeScriptSimple(options, false)
   js = tss.compile(sourceCode, filePath)
   stats.misses++
 
