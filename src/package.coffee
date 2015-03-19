@@ -449,6 +449,7 @@ class Package
                 @activateNow()
                 break
               currentTarget = currentTarget.parentElement
+            return
     return
 
   getActivationCommands: ->
