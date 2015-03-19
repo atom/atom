@@ -1,6 +1,7 @@
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
+Decoration = require './decoration'
 
 module.exports =
 class TextEditorPresenter
@@ -90,6 +91,7 @@ class TextEditorPresenter
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
     @updateLineNumbersState() if @shouldUpdateLineNumbersState
     @updateCustomGutterState() if @shouldUpdateCustomGutterState
+    @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
     @updating = false
 
     @state
@@ -106,8 +108,9 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateLineNumberGutterState()
-      @updateCustomGutterState()
       @updateLineNumbersState()
+      @updateCustomGutterState()
+      @updateCustomGutterDecorationState()
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
@@ -117,8 +120,9 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateLineNumberGutterState()
-      @updateCustomGutterState()
       @updateLineNumbersState()
+      @updateCustomGutterState()
+      @updateCustomGutterDecorationState()
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @updateLineNumberGutterState()
       @updateCustomGutterState()
@@ -179,7 +183,7 @@ class TextEditorPresenter
         lineNumbers: {}
       gutters:
         sortedDescriptions: []
-        # TODO (jssln) decorations
+        customDecorations: {}
     @updateState()
 
   updateState: ->
@@ -200,8 +204,9 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateOverlaysState()
     @updateLineNumberGutterState()
-    @updateCustomGutterState()
     @updateLineNumbersState()
+    @updateCustomGutterState()
+    @updateCustomGutterDecorationState()
 
   updateFocusedState: -> @batch "shouldUpdateFocusedState", ->
     @state.focused = @focused
@@ -374,9 +379,11 @@ class TextEditorPresenter
     return
 
   updateLineNumberGutterState: -> @batch "shouldUpdateLineNumberGutterState", ->
-    @state.lineNumberGutter.visible = not @model.isMini() and (@model.isLineNumberGutterVisible() ? true) and @showLineNumbers
     @state.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
-    @state.lineNumberGutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
+    @state.lineNumberGutter.backgroundColor = @getGutterBackgroundColor()
+
+  getGutterBackgroundColor: ->
+    if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
       @gutterBackgroundColor
     else
       @backgroundColor
@@ -391,9 +398,13 @@ class TextEditorPresenter
       @updateCustomGutterState()
     @disposables.add(gutterDisposables)
     @updateCustomGutterState()
+    @updateCustomGutterDecorationState()
 
   updateCustomGutterState: ->
     @batch "shouldUpdateCustomGutterState", ->
+      # For now, just match the background color of the line-number gutter.
+      # TODO: Allow gutters to have different background colors. (?)
+      @state.gutters.backgroundColor = @getGutterBackgroundColor()
       @state.gutters.sortedDescriptions = []
       if @model.isMini()
         return
@@ -403,6 +414,41 @@ class TextEditorPresenter
           isVisible = isVisible && @showLineNumbers
         if isVisible
           @state.gutters.sortedDescriptions.push({name: gutter.name})
+
+  # Updates the decoration state for the gutter with the given gutterName.
+  # @state.gutters.customDecorations is an {Object}, with the form:
+  #   * gutterName : {
+  #     decoration.id : {
+  #       top: # of pixels from top
+  #       height: # of pixels height of this decoration
+  #       item (optional): HTMLElement or space-pen View
+  #       class (optional): {String} class
+  #     }
+  #   }
+  updateCustomGutterDecorationState: () ->
+    @batch 'shouldUpdateCustomGutterDecorationState', =>
+      return unless @startRow? and @endRow? and @lineHeight?
+
+      for gutter in @model.getGutters()
+        gutterName = gutter.name
+        @state.gutters.customDecorations[gutterName] ?= {}
+        gutterState = @state.gutters.customDecorations[gutterName]
+        visibleDecorationIds = {}
+
+        relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
+        return if !relevantDecorations
+
+        relevantDecorations.forEach (decoration) =>
+          visibleDecorationIds[decoration.id] = true
+          decorationRange = decoration.getMarker().getScreenRange()
+          gutterState[decoration.id] =
+            top: @lineHeight * decorationRange.start.row
+            height: @lineHeight * decorationRange.getRowCount()
+            item: decoration.getProperties().item
+            class: decoration.getProperties().class
+
+        for decorationId of gutterState
+          delete gutterState[decorationId] unless visibleDecorationIds[decorationId]
 
   updateLineNumbersState: -> @batch "shouldUpdateLineNumbersState", ->
     return unless @startRow? and @endRow? and @lineHeight?
@@ -597,6 +643,19 @@ class TextEditorPresenter
       decorationClasses.push(decoration.getProperties().class)
     decorationClasses
 
+  # TODO (jssln) This needs tests.
+  # Returns a {Set} of {Decoration}s on the given custom gutter from startRow to endRow (inclusive).
+  customGutterDecorationsInRange: (gutterName, startRow, endRow) ->
+    return null if @model.isMini() or gutterName is 'line-number'
+
+    decorations = new Set
+    return decorations if !@customGutterDecorationsByGutterNameAndScreenRow[gutterName]
+
+    for bufferRow in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
+      for id, decoration of @customGutterDecorationsByGutterNameAndScreenRow[gutterName][bufferRow]
+        decorations.add(decoration)
+    decorations
+
   getCursorBlinkPeriod: -> @cursorBlinkPeriod
 
   getCursorBlinkResumeDelay: -> @cursorBlinkResumeDelay
@@ -626,6 +685,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateCursorsState()
       @updateLineNumbersState()
+      @updateCustomGutterDecorationState()
       @updateOverlaysState()
 
   didStartScrolling: ->
@@ -642,6 +702,7 @@ class TextEditorPresenter
       @mouseWheelScreenRow = null
       @updateLinesState()
       @updateLineNumbersState()
+      @updateCustomGutterDecorationState()
     else
       @emitDidUpdateState()
 
@@ -694,6 +755,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateCursorsState()
       @updateLineNumbersState()
+      @updateCustomGutterDecorationState()
 
   updateHeight: ->
     height = @explicitHeight ? @contentHeight
@@ -768,6 +830,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateCursorsState()
       @updateLineNumbersState()
+      @updateCustomGutterDecorationState()
       @updateOverlaysState()
 
   setMouseWheelScreenRow: (mouseWheelScreenRow) ->
@@ -879,8 +942,8 @@ class TextEditorPresenter
     decorationDisposables = new CompositeDisposable
     decorationDisposables.add decoration.getMarker().onDidChange(@decorationMarkerDidChange.bind(this, decoration))
     if decoration.isType('highlight')
-      decorationDisposables.add decoration.onDidChangeProperties(@updateHighlightState.bind(this, decoration))
       decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
+    decorationDisposables.add decoration.onDidChangeProperties(@decorationPropertiesDidChange.bind(this, decoration))
     decorationDisposables.add decoration.onDidDestroy =>
       @disposables.remove(decorationDisposables)
       decorationDisposables.dispose()
@@ -888,7 +951,7 @@ class TextEditorPresenter
     @disposables.add(decorationDisposables)
 
   decorationMarkerDidChange: (decoration, change) ->
-    if decoration.isType('line') or decoration.isType('line-number')
+    if decoration.isType('line') or decoration.isType('gutter')
       return if change.textChanged
 
       intersectsVisibleRowRange = false
@@ -905,7 +968,10 @@ class TextEditorPresenter
 
       if intersectsVisibleRowRange
         @updateLinesState() if decoration.isType('line')
-        @updateLineNumbersState() if decoration.isType('line-number')
+        if decoration.isType('line-number')
+          @updateLineNumbersState()
+        else if decoration.isType('gutter')
+          @updateCustomGutterDecorationState()
 
     if decoration.isType('highlight')
       return if change.textChanged
@@ -915,11 +981,34 @@ class TextEditorPresenter
     if decoration.isType('overlay')
       @updateOverlaysState()
 
+  decorationPropertiesDidChange: (decoration, event) ->
+    {oldProperties} = event
+    if decoration.isType('line') or decoration.isType('gutter')
+      @removeDecorationInfoFromLineDecorationCaches(
+        decoration.id,
+        oldProperties,
+        decoration.getMarker().getScreenRange())
+      @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
+      if decoration.isType('line') or Decoration.isType(oldProperties, 'line')
+        @updateLinesState()
+      if decoration.isType('line-number') or Decoration.isType(oldProperties, 'line-number')
+        @updateLineNumbersState()
+      if (decoration.isType('gutter') and !decoration.isType('line-number')) or
+      (Decoration.isType(oldProperties, 'gutter') and !Decoration.isType(oldProperties, 'line-number'))
+        @updateCustomGutterDecorationState()
+    else if decoration.isType('overlay')
+      @updateOverlaysState()
+    else if decoration.isType('highlight')
+      @updateHighlightState(decoration, event)
+
   didDestroyDecoration: (decoration) ->
-    if decoration.isType('line') or decoration.isType('line-number')
+    if decoration.isType('line') or decoration.isType('gutter')
       @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @updateLinesState() if decoration.isType('line')
-      @updateLineNumbersState() if decoration.isType('line-number')
+      if decoration.isType('line-number')
+        @updateLineNumbersState()
+      else if decoration.isType('gutter')
+        @updateCustomGutterDecorationState(decoration.getProperties().gutterName)
     if decoration.isType('highlight')
       @updateHighlightState(decoration)
     if decoration.isType('overlay')
@@ -936,10 +1025,13 @@ class TextEditorPresenter
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
 
-    if decoration.isType('line') or decoration.isType('line-number')
+    if decoration.isType('line') or decoration.isType('gutter')
       @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @updateLinesState() if decoration.isType('line')
-      @updateLineNumbersState() if decoration.isType('line-number')
+      if decoration.isType('line-number')
+        @updateLineNumbersState()
+      else if decoration.isType('gutter')
+        @updateCustomGutterDecorationState()
     else if decoration.isType('highlight')
       @updateHighlightState(decoration)
     else if decoration.isType('overlay')
@@ -948,6 +1040,7 @@ class TextEditorPresenter
   updateDecorations: -> @batch "shouldUpdateDecorations", ->
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
+    @customGutterDecorationsByGutterNameAndScreenRow = {}
     @highlightDecorationsById = {}
 
     visibleHighlights = {}
@@ -956,7 +1049,7 @@ class TextEditorPresenter
     for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
       range = @model.getMarker(markerId).getScreenRange()
       for decoration in decorations
-        if decoration.isType('line') or decoration.isType('line-number')
+        if decoration.isType('line') or decoration.isType('gutter')
           @addToLineDecorationCaches(decoration, range)
         else if decoration.isType('highlight')
           visibleHighlights[decoration.id] = @updateHighlightState(decoration)
@@ -968,9 +1061,14 @@ class TextEditorPresenter
     return
 
   removeFromLineDecorationCaches: (decoration, range) ->
+    @removeDecorationInfoFromLineDecorationCaches(decoration.id, decoration.getProperties(), range)
+
+  removeDecorationInfoFromLineDecorationCaches: (decorationId, decorationProperties, range) ->
+    gutterName = decorationProperties.gutterName
     for row in [range.start.row..range.end.row] by 1
-      delete @lineDecorationsByScreenRow[row]?[decoration.id]
-      delete @lineNumberDecorationsByScreenRow[row]?[decoration.id]
+      delete @lineDecorationsByScreenRow[row]?[decorationId]
+      delete @lineNumberDecorationsByScreenRow[row]?[decorationId]
+      delete @customGutterDecorationsByGutterNameAndScreenRow[gutterName]?[row]?[decorationId] if gutterName
     return
 
   addToLineDecorationCaches: (decoration, range) ->
@@ -996,6 +1094,11 @@ class TextEditorPresenter
       if decoration.isType('line-number')
         @lineNumberDecorationsByScreenRow[row] ?= {}
         @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
+      else if decoration.isType('gutter')
+        gutterName = decoration.getProperties().gutterName
+        @customGutterDecorationsByGutterNameAndScreenRow[gutterName] ?= {}
+        @customGutterDecorationsByGutterNameAndScreenRow[gutterName][row] ?= {}
+        @customGutterDecorationsByGutterNameAndScreenRow[gutterName][row][decoration.id] = decoration
 
     return
 

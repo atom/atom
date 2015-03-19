@@ -2164,42 +2164,6 @@ describe "TextEditorPresenter", ->
             editor.undo()
             expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe false
 
-      describe ".visible", ->
-        it "is true iff the editor isn't mini, ::isLineNumberGutterVisible is true on the editor, and 'editor.showLineNumbers' is enabled in config", ->
-          presenter = buildPresenter()
-
-          expect(editor.isLineNumberGutterVisible()).toBe true
-          expect(presenter.getState().lineNumberGutter.visible).toBe true
-
-          expectStateUpdate presenter, -> editor.setMini(true)
-          expect(presenter.getState().lineNumberGutter.visible).toBe false
-
-          expectStateUpdate presenter, -> editor.setMini(false)
-          expect(presenter.getState().lineNumberGutter.visible).toBe true
-
-          expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
-          expect(presenter.getState().lineNumberGutter.visible).toBe false
-
-          expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
-          expect(presenter.getState().lineNumberGutter.visible).toBe true
-
-          expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
-          expect(presenter.getState().lineNumberGutter.visible).toBe false
-
-        it "updates when the editor's grammar changes", ->
-          presenter = buildPresenter()
-
-          atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
-          expect(presenter.getState().lineNumberGutter.visible).toBe true
-          stateUpdated = false
-          presenter.onDidUpdateState -> stateUpdated = true
-
-          waitsForPromise -> atom.packages.activatePackage('language-javascript')
-
-          runs ->
-            expect(stateUpdated).toBe true
-            expect(presenter.getState().lineNumberGutter.visible).toBe false
-
     describe ".height", ->
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null, autoHeight: true)
@@ -2225,6 +2189,77 @@ describe "TextEditorPresenter", ->
         expect(presenter.getState().focused).toBe true
         expectStateUpdate presenter, -> presenter.setFocused(false)
         expect(presenter.getState().focused).toBe false
+
+    describe ".gutters", ->
+      describe ".sortedDescriptions", ->
+        gutterDescriptionWithName = (presenter, name) ->
+          for gutterDesc in presenter.getState().gutters.sortedDescriptions
+            return gutterDesc if gutterDesc.name is name
+          undefined
+
+        describe "the line-number gutter", ->
+          it "is present iff the editor isn't mini, ::isLineNumberGutterVisible is true on the editor, and 'editor.showLineNumbers' is enabled in config", ->
+            presenter = buildPresenter()
+
+            expect(editor.isLineNumberGutterVisible()).toBe true
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeDefined()
+
+            expectStateUpdate presenter, -> editor.setMini(true)
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeUndefined()
+
+            expectStateUpdate presenter, -> editor.setMini(false)
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeDefined()
+
+            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeUndefined()
+
+            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeDefined()
+
+            expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeUndefined()
+
+          it "gets updated when the editor's grammar changes", ->
+            presenter = buildPresenter()
+
+            atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeDefined()
+            stateUpdated = false
+            presenter.onDidUpdateState -> stateUpdated = true
+
+            waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+            runs ->
+              expect(stateUpdated).toBe true
+              expect(gutterDescriptionWithName(presenter, 'line-number')).toBeUndefined()
+
+        it "updates when gutters are added to the editor model, and keeps the gutters sorted by priority", ->
+          presenter = buildPresenter()
+          editor.addGutter({name: 'test-gutter-1', priority: -100, visible: true})
+          editor.addGutter({name: 'test-gutter-2', priority: 100, visible: false})
+          expectedState = [
+            {name: 'test-gutter-1'},
+            {name: 'line-number'},
+          ]
+          expect(presenter.getState().gutters.sortedDescriptions).toEqual expectedState
+
+        it "updates when the visibility of a gutter changes", ->
+          presenter = buildPresenter()
+          gutter = editor.addGutter({name: 'test-gutter', visible: true})
+          expect(gutterDescriptionWithName(presenter, 'test-gutter')).toBeDefined()
+          gutter.hide()
+          expect(gutterDescriptionWithName(presenter, 'test-gutter')).toBeUndefined()
+
+        it "updates when a gutter is removed", ->
+          presenter = buildPresenter()
+          gutter = editor.addGutter({name: 'test-gutter', visible: true})
+          expect(gutterDescriptionWithName(presenter, 'test-gutter')).toBeDefined()
+          gutter.destroy()
+          expect(gutterDescriptionWithName(presenter, 'test-gutter')).toBeUndefined()
+
+      describe ".customDecorations", ->
+        # TODO (jssln)
+        null
 
   # disabled until we fix an issue with display buffer markers not updating when
   # they are moved on screen but not in the buffer
