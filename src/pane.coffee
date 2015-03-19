@@ -440,10 +440,12 @@ class Pane extends Model
   # Public: Destroy all items.
   destroyItems: ->
     @destroyItem(item) for item in @getItems()
+    return
 
   # Public: Destroy all items except for the active item.
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
+    return
 
   promptToSaveItem: (item, options={}) ->
     return true unless item.shouldPromptToSave?(options)
@@ -518,6 +520,7 @@ class Pane extends Model
   # Public: Save all items.
   saveItems: ->
     @saveItem(item) for item in @getItems()
+    return
 
   # Public: Return the first item that matches the given URI or undefined if
   # none exists.

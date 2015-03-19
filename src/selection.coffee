@@ -538,6 +538,7 @@ class Selection extends Model
     for row in [start..end]
       if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
         buffer.delete [[row, 0], [row, matchLength]]
+    return
 
   # Public: Sets the indentation level of all selected rows to values suggested
   # by the relevant grammars.
@@ -620,6 +621,7 @@ class Selection extends Model
         currentIndentLevel = @editor.indentLevelForLine(lines[i])
         indentLevel = Math.max(0, currentIndentLevel + indentAdjustment)
         lines[i] = line.replace(/^[\t ]+/, @editor.buildIndentString(indentLevel))
+    return
 
   # Indent the current line(s).
   #
@@ -651,6 +653,7 @@ class Selection extends Model
     [start, end] = @getBufferRowRange()
     for row in [start..end]
       @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
+    return
 
   ###
   Section: Managing multiple selections
@@ -674,6 +677,8 @@ class Selection extends Model
       @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
       break
 
+    return
+
   # Public: Moves the selection up one row.
   addSelectionAbove: ->
     range = (@getGoalScreenRange() ? @getScreenRange()).copy()
@@ -691,6 +696,8 @@ class Selection extends Model
 
       @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
       break
+
+    return
 
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.

@@ -394,6 +394,7 @@ class PackageManager
       for pack in packages
         promise = @activatePackage(pack.name)
         promises.push(promise) unless pack.hasActivationCommands()
+      return
     @observeDisabledPackages()
     promises
 
@@ -413,6 +414,7 @@ class PackageManager
   deactivatePackages: ->
     atom.config.transact =>
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
+      return
     @unobserveDisabledPackages()
 
   # Deactivate the package with the given name

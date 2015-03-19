@@ -197,6 +197,7 @@ class TokenizedBuffer extends Model
 
   validateRow: (row) ->
     @invalidRows.shift() while @invalidRows[0] <= row
+    return
 
   invalidateRow: (row) ->
     @invalidRows.push(row)
@@ -468,3 +469,4 @@ class TokenizedBuffer extends Model
     for row in [start..end]
       line = @tokenizedLineForRow(row).text
       console.log row, line, line.length
+    return

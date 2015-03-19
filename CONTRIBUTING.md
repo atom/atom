@@ -104,6 +104,9 @@ For more information on how to work with Atom's official packages, see
   should be lower-case:
   * `getURI` instead of `getUri`
   * `uriToOpen` instead of `URIToOpen`
+* Use `slice()` to copy an array
+* Add an explicit `return` when your function ends with a `for`/`while` loop and
+  you don't want it to return a collected array.
 
 ## Documentation Styleguide
 

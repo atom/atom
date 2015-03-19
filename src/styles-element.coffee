@@ -46,6 +46,7 @@ class StylesElement extends HTMLElement
     @styleElementRemoved(child) for child in Array::slice.call(@children)
     @context = @getAttribute('context')
     @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
+    return
 
   styleElementAdded: (styleElement) ->
     return unless @styleElementMatchesContext(styleElement)

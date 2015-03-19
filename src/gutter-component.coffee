@@ -84,6 +84,8 @@ class GutterComponent
         delete @lineNumberNodesById[id]
         delete @oldState.lineNumbers[id]
 
+    return
+
   buildLineNumberHTML: (lineNumberState) ->
     {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
     if screenRow?

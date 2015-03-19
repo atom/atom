@@ -89,6 +89,7 @@ class LinesComponent
 
   removeLineNodes: ->
     @removeLineNode(id) for id of @oldState.lines
+    return
 
   removeLineNode: (id) ->
     @lineNodesByLineId[id].remove()
@@ -125,6 +126,8 @@ class LinesComponent
       lineNode = newLineNodes[i]
       @lineNodesByLineId[id] = lineNode
       @domNode.appendChild(lineNode)
+
+    return
 
   buildLineHTML: (id) ->
     {scrollWidth} = @newState

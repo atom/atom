@@ -396,6 +396,7 @@ class Marker
       for event in deferredChangeEvents
         @emit 'changed', event
         @emitter.emit 'did-change', event
+    return
 
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)

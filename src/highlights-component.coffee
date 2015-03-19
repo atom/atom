@@ -39,6 +39,8 @@ class HighlightsComponent
         @domNode.appendChild(highlightNode)
       @updateHighlightNode(id, highlightState)
 
+    return
+
   updateHighlightNode: (id, newHighlightState) ->
     highlightNode = @highlightNodesById[id]
     oldHighlightState = (@oldState[id] ?= {regions: [], flashCount: 0})
@@ -91,6 +93,8 @@ class HighlightsComponent
             regionNode.style[property] = newRegionState[property] + 'px'
           else
             regionNode.style[property] = ''
+
+    return
 
   flashHighlightNodeIfRequested: (id, newHighlightState) ->
     oldHighlightState = @oldState[id]

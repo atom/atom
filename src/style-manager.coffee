@@ -152,6 +152,8 @@ class StyleManager
     for styleElement in styleElementsToRestore
       @addStyleElement(styleElement) unless styleElement in existingStyleElements
 
+    return
+
   ###
   Section: Paths
   ###

@@ -220,6 +220,7 @@ class TokenizedLine
       if @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
         token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
       index += token.value.length
+    return
 
   substituteInvisibleCharacters: ->
     invisibles = @invisibles
@@ -306,6 +307,8 @@ class TokenizedLine
     # Push onto common prefix until scopeStack equals desiredScopeDescriptor
     for j in [i...desiredScopeDescriptor.length]
       scopeStack.push(new Scope(desiredScopeDescriptor[j]))
+
+    return
 
 class Scope
   constructor: (@scope) ->
