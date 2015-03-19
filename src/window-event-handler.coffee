@@ -32,6 +32,8 @@ class WindowEventHandler
             unless fs.isDirectorySync(pathToOpen)
               atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
+          return
+
         when 'update-available'
           atom.updateAvailable(detail)
 
@@ -156,6 +158,7 @@ class WindowEventHandler
       continue unless tabIndex >= 0
 
       callback(element, tabIndex)
+    return
 
   focusNext: =>
     focusedTabIndex = parseInt($(':focus').attr('tabindex')) or -Infinity
