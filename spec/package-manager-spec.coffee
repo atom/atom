@@ -547,6 +547,21 @@ describe "PackageManager", ->
           expect(consumerModule.consumeFirstServiceV4).not.toHaveBeenCalled()
           expect(consumerModule.consumeSecondService).not.toHaveBeenCalled()
 
+      it "ignores provided and consumed services that do not exist", ->
+        addErrorHandler = jasmine.createSpy()
+        atom.notifications.onDidAddNotification(addErrorHandler)
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-missing-consumed-services")
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-missing-provided-services")
+
+        runs ->
+          expect(atom.packages.isPackageActive("package-with-missing-consumed-services")).toBe true
+          expect(atom.packages.isPackageActive("package-with-missing-provided-services")).toBe true
+          expect(addErrorHandler.callCount).toBe 0
+
   describe "::deactivatePackage(id)", ->
     afterEach ->
       atom.packages.unloadPackages()

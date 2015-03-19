@@ -225,12 +225,14 @@ class Package
     for name, {versions} of @metadata.providedServices
       servicesByVersion = {}
       for version, methodName of versions
-        servicesByVersion[version] = @mainModule[methodName]()
+        if typeof @mainModule[methodName] is 'function'
+          servicesByVersion[version] = @mainModule[methodName]()
       @activationDisposables.add atom.packages.serviceHub.provide(name, servicesByVersion)
 
     for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
-        @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
+        if typeof @mainModule[methodName] is 'function'
+          @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
     return
 
   loadKeymaps: ->
