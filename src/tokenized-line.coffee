@@ -11,6 +11,7 @@ module.exports =
 class TokenizedLine
   endOfLineInvisibles: null
   lineIsWhitespaceOnly: false
+  firstNonWhitespaceIndex: 0
   foldable: false
 
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
@@ -162,12 +163,7 @@ class TokenizedLine
     @lineEnding is null
 
   isColumnOutsideIndentation: (column) ->
-    column >= @firstNonWhitespaceIndex and @isColumnOutsideSoftWrapIndentation(column)
-
-  isColumnOutsideSoftWrapIndentation: (column) ->
-    return true if @softWrapIndentationTokens.length == 0
-
-    column > @softWrapIndentationDelta
+    column >= @firstNonWhitespaceIndex
 
   isColumnInsideSoftWrapIndentation: (column) ->
     return false if @softWrapIndentationTokens.length == 0
