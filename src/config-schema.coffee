@@ -28,7 +28,7 @@ module.exports =
           type: 'string'
       themes:
         type: 'array'
-        default: ['atom-dark-ui', 'atom-dark-syntax']
+        default: ['one-dark-ui', 'one-dark-syntax']
         items:
           type: 'string'
       projectHome:
@@ -149,6 +149,10 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
+      softWrapHangingIndent:
+        type: 'integer'
+        default: 0
+        minimum: 0
       scrollSensitivity:
         type: 'integer'
         default: 40

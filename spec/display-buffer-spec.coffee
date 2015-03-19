@@ -115,6 +115,24 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
           expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe '    right = [];'
 
+      describe "when the only whitespace characters are at the beginning of the line", ->
+        beforeEach ->
+          displayBuffer.setEditorWidthInChars(10)
+
+        it "wraps the line at the max length when indented with tabs", ->
+          buffer.setTextInRange([[0, 0], [1, 0]], '\t\tabcdefghijklmnopqrstuvwxyz')
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '    abcdef'
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe '    ghijkl'
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '    mnopqr'
+
+        it "wraps the line at the max length when indented with spaces", ->
+          buffer.setTextInRange([[0, 0], [1, 0]], '    abcdefghijklmnopqrstuvwxyz')
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '    abcdef'
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe '    ghijkl'
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '    mnopqr'
+
       describe "when there are hard tabs", ->
         beforeEach ->
           buffer.setText(buffer.getText().replace(new RegExp('  ', 'g'), '\t'))
@@ -124,9 +142,42 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[1].isHardTab).toBeTruthy()
 
       describe "when a line is wrapped", ->
-        it "correctly tokenizes soft wrap indentation tokens", ->
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[0].isSoftWrapIndentation).toBeTruthy()
-          expect(displayBuffer.tokenizedLineForScreenRow(4).tokens[1].isSoftWrapIndentation).toBeTruthy()
+        it "breaks soft-wrap indentation into a token for each indentation level to support indent guides", ->
+          tokenizedLine = displayBuffer.tokenizedLineForScreenRow(4)
+
+          expect(tokenizedLine.tokens[0].value).toBe("  ")
+          expect(tokenizedLine.tokens[0].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[1].value).toBe("  ")
+          expect(tokenizedLine.tokens[1].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[2].isSoftWrapIndentation).toBeFalsy()
+
+      describe "when editor.softWrapHangingIndent is set", ->
+        beforeEach ->
+          atom.config.set('editor.softWrapHangingIndent', 3)
+
+        it "further indents wrapped lines", ->
+          expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe "    return "
+          expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe "       sort(left).concat(pivot).concat(sort(right)"
+          expect(displayBuffer.tokenizedLineForScreenRow(12).text).toBe "       );"
+
+        it "includes hanging indent when breaking soft-wrap indentation into tokens", ->
+          tokenizedLine = displayBuffer.tokenizedLineForScreenRow(4)
+
+          expect(tokenizedLine.tokens[0].value).toBe("  ")
+          expect(tokenizedLine.tokens[0].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[1].value).toBe("  ")
+          expect(tokenizedLine.tokens[1].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[2].value).toBe("  ") # hanging indent
+          expect(tokenizedLine.tokens[2].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[3].value).toBe(" ") # odd space
+          expect(tokenizedLine.tokens[3].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[4].isSoftWrapIndentation).toBeFalsy()
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->

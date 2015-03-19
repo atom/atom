@@ -69,10 +69,15 @@ class DisplayBuffer extends Model
       scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
       softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
       softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      softWrapHangingIndent: atom.config.get('editor.softWrapHangingIndent', scope: scopeDescriptor)
       preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
 
     subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrap = newValue
+      @updateWrappedScreenLines()
+
+    subscriptions.add atom.config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrapHangingIndent = newValue
       @updateWrappedScreenLines()
 
     subscriptions.add atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
@@ -859,6 +864,18 @@ class DisplayBuffer extends Model
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
+  # Clip the start and end of the given range to valid positions on screen.
+  # See {::clipScreenPosition} for more information.
+  #
+  # * `range` The {Range} to clip.
+  # * `options` (optional) See {::clipScreenPosition} `options`.
+  # Returns a {Range}.
+  clipScreenRange: (range, options) ->
+    start = @clipScreenPosition(range.start, options)
+    end = @clipScreenPosition(range.end, options)
+
+    new Range(start, end)
+
   # Calculates a {Range} representing the start of the {TextBuffer} until the end.
   #
   # Returns a {Range}.
@@ -1145,7 +1162,10 @@ class DisplayBuffer extends Model
         softWraps = 0
         if @isSoftWrapped()
           while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
-            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
+              wrapScreenColumn,
+              @configSettings.softWrapHangingIndent
+            )
             break if wrappedLine.hasOnlySoftWrapIndentation()
             screenLines.push(wrappedLine)
             softWraps++

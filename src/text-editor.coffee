@@ -457,6 +457,10 @@ class TextEditor extends Model
   onDidChangeScrollLeft: (callback) ->
     @emitter.on 'did-change-scroll-left', callback
 
+  # TODO Remove once the tabs package no longer uses .on subscriptions
+  onDidChangeIcon: (callback) ->
+    @emitter.on 'did-change-icon', callback
+
   on: (eventName) ->
     switch eventName
       when 'title-changed'
@@ -511,6 +515,9 @@ class TextEditor extends Model
         deprecate("Use TextEditor::onDidChangeScrollTop instead")
       when 'scroll-left-changed'
         deprecate("Use TextEditor::onDidChangeScrollLeft instead")
+
+      else
+        deprecate("TextEditor::on is deprecated. Use documented event subscription methods instead.")
 
     EmitterMixin::on.apply(this, arguments)
 
@@ -1274,6 +1281,14 @@ class TextEditor extends Model
   #
   # Returns a {Point}.
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
+
+  # Extended: Clip the start and end of the given range to valid positions on screen.
+  # See {::clipScreenPosition} for more information.
+  #
+  # * `range` The {Range} to clip.
+  # * `options` (optional) See {::clipScreenPosition} `options`.
+  # Returns a {Range}.
+  clipScreenRange: (range, options) -> @displayBuffer.clipScreenRange(range, options)
 
   ###
   Section: Decorations
