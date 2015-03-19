@@ -3,7 +3,7 @@ randomWords = require 'random-words'
 TextBuffer = require 'text-buffer'
 TextEditor = require '../src/text-editor'
 
-describe "TextEditor", ->
+fdescribe "TextEditor", ->
   [editor, tokenizedBuffer, buffer, steps, previousSteps] = []
 
   softWrapColumn = 80
@@ -94,7 +94,7 @@ describe "TextEditor", ->
   softWrapLine = (tokenizedLine) ->
     wrappedLines = []
     while tokenizedLine.text.length > softWrapColumn and wrapScreenColumn = findWrapColumn(tokenizedLine.text)
-      [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
+      [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn, 0)
       wrappedLines.push(wrappedLine)
     wrappedLines.push(tokenizedLine)
     wrappedLines
