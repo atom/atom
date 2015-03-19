@@ -27,7 +27,7 @@ class Config extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
   run: (options) ->
-    {callback, cwd} = options
+    {callback} = options
     options = @parseOptions(options.commandArgs)
 
     configArgs = ['--globalconfig', apm.getGlobalConfigPath(), '--userconfig', apm.getUserConfigPath(), 'config']

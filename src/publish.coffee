@@ -46,8 +46,6 @@ class Publish extends Command
     options.alias('t', 'tag').string('tag').describe('tag', 'Specify a tag to publish')
     options.alias('r', 'rename').string('rename').describe('rename', 'Specify a new name for the package')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   # Create a new version and tag use the `npm version` command.
   #
   # version  - The new version or version increment.

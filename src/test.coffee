@@ -23,8 +23,6 @@ class Test extends Command
     options.alias('h', 'help').describe('help', 'Print this usage message')
     options.alias('p', 'path').string('path').describe('path', 'Path to atom command')
 
-  showHelp: (argv) -> @parseOptions(argv).showHelp()
-
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)

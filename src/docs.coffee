@@ -31,7 +31,7 @@ class Docs extends View
       callback("Missing required package name")
       return
 
-    @getPackage packageName, (error, pack) =>
+    @getPackage packageName, options, (error, pack) =>
       return callback(error) if error?
 
       if repository = @getRepository(pack)

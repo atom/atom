@@ -19,11 +19,25 @@
     }
   },
   "versions": {
-    "0.4.0": {
+    "0.14.0": {
       "name": "wrap-guide",
-      "version": "0.4.0",
+      "version": "0.14.0",
       "main": "./lib/wrap-guide-view",
-      "description": "Display a vertical line at the 80th character in the editor.\n\nThis packages uses the config value of `editor.preferredLineLength` when set."
+      "description": "new version",
+      "repository": "https://github.com/atom/wrap-guide",
+      "engines": {
+        "atom": ">=2.0"
+      }
+    },
+    "0.3.0": {
+      "name": "wrap-guide",
+      "version": "0.3.0",
+      "main": "./lib/wrap-guide-view",
+      "description": "old version",
+      "repository": "https://github.com/atom2/wrap-guide",
+      "engines": {
+        "atom": ">=1.0"
+      }
     }
   }
 }

@@ -78,6 +78,16 @@ parseOptions = (args=[]) ->
     break
   options
 
+showHelp = (options) ->
+  return unless options?
+
+  help = options.help()
+  if help.indexOf('Options:') >= 0
+    help += "\n  Prefix an option with `no-` to set it to false such as --no-color to disable"
+    help += "\n  colored output."
+
+  console.error(help)
+
 printVersions = (args, callback) ->
   apmVersion =  require('../package.json').version ? ''
   npmVersion = require('npm/package.json').version ? ''
@@ -176,9 +186,9 @@ module.exports =
       printVersions(args, options.callback)
     else if args.help
       if Command = commands[options.command]
-        new Command().showHelp(options.command)
+        showHelp(new Command().parseOptions?(options.command))
       else
-        options.showHelp()
+        showHelp(options)
     else if command
       if command is 'help'
         if Command = commands[options.commandArgs]
