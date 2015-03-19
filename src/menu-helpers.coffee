@@ -17,6 +17,8 @@ merge = (menu, item, itemSpecificity=Infinity) ->
   else unless item.type is 'separator' and _.last(menu)?.type is 'separator'
     menu.push(item)
 
+  return
+
 unmerge = (menu, item) ->
   matchingItemIndex = findMatchingItemIndex(menu, item)
   matchingItem = menu[matchingItemIndex] unless matchingItemIndex is - 1
