@@ -419,7 +419,7 @@ class Project extends Model
   # Deprecated: delegate
   registerOpener: (opener) ->
     deprecate("Use Workspace::addOpener instead")
-    atom.workspace.registerOpener(opener)
+    atom.workspace.addOpener(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
@@ -428,10 +428,10 @@ class Project extends Model
 
   # Deprecated: delegate
   eachEditor: (callback) ->
-    deprecate("Use Workspace::eachEditor instead")
-    atom.workspace.eachEditor(callback)
+    deprecate("Use Workspace::observeTextEditors instead")
+    atom.workspace.observeTextEditors(callback)
 
   # Deprecated: delegate
   getEditors: ->
-    deprecate("Use Workspace::getEditors instead")
-    atom.workspace.getEditors()
+    deprecate("Use Workspace::getTextEditors instead")
+    atom.workspace.getTextEditors()
