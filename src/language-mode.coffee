@@ -194,7 +194,7 @@ class LanguageMode
   # Right now, a paragraph is a block of text bounded by and empty line or a
   # block of text that is not the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
-    return unless /\w/.test(@editor.lineTextForBufferRow(bufferRow))
+    return unless /\S/.test(@editor.lineTextForBufferRow(bufferRow))
 
     if @isLineCommentedAtBufferRow(bufferRow)
       isOriginalRowComment = true
@@ -207,14 +207,14 @@ class LanguageMode
     startRow = bufferRow
     while startRow > firstRow
       break if @isLineCommentedAtBufferRow(startRow - 1) isnt isOriginalRowComment
-      break unless /\w/.test(@editor.lineTextForBufferRow(startRow - 1))
+      break unless /\S/.test(@editor.lineTextForBufferRow(startRow - 1))
       startRow--
 
     endRow = bufferRow
     lastRow = @editor.getLastBufferRow()
     while endRow < lastRow
       break if @isLineCommentedAtBufferRow(endRow + 1) isnt isOriginalRowComment
-      break unless /\w/.test(@editor.lineTextForBufferRow(endRow + 1))
+      break unless /\S/.test(@editor.lineTextForBufferRow(endRow + 1))
       endRow++
 
     new Range([startRow, 0], [endRow, @editor.lineTextForBufferRow(endRow).length])
