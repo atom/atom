@@ -130,7 +130,7 @@ class WindowEventHandler
     bindCommandToAction('core:select-all', 'selectAll:')
 
   onKeydown: (event) ->
-    atom.keymaps.handleKeyboardEvent(event)
+    _.defer -> atom.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
 
   onDrop: (event) ->
