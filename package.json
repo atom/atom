@@ -33,7 +33,7 @@
     "emissary": "^1.3.3",
     "event-kit": "^1.0.3",
     "first-mate": "^3.0.0",
-    "fs-plus": "^2.5",
+    "fs-plus": "^2.6",
     "fstream": "0.1.24",
     "fuzzaldrin": "^2.1",
     "git-utils": "^3.0.0",
