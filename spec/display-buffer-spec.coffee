@@ -739,6 +739,17 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.screenPositionForBufferPosition([0, 0])).toEqual [0, 0]
       expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, tabLength]
 
+    it "clips to the edge closest to the given position when it's inside a soft tab", ->
+      tabLength = 4
+      displayBuffer.setTabLength(tabLength)
+
+      buffer.insert([0, 0], '    ')
+      expect(displayBuffer.screenPositionForBufferPosition([0, 0])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 2])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 3])).toEqual [0, 4]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 4])).toEqual [0, 4]
+
   describe "position translation in the presence of hard tabs", ->
     it "correctly translates positions on either side of a tab", ->
       buffer.setText('\t')
