@@ -169,6 +169,12 @@ class GitRepository
   Section: Repository Details
   ###
 
+  # Public: A {String} indicating the type of version control system used by
+  # this repository.
+  #
+  # Returns `"git"`.
+  getType: -> 'git'
+
   # Public: Returns the {String} path of the repository.
   getPath: ->
     @path ?= fs.absolute(@getRepo().getPath())
