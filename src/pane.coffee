@@ -457,13 +457,20 @@ class Pane extends Model
     else
       return true
 
+    currentActiveItem = @activeItem
+    @activateItem item
     chosen = atom.confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
+    
+    @activateItem currentActiveItem if chosen isnt 0
 
     switch chosen
-      when 0 then @saveItem(item, -> true)
+      when 0 
+        saved = @saveItem(item, -> true)
+        @activateItem currentActiveItem
+        saved
       when 1 then false
       when 2 then true
 
