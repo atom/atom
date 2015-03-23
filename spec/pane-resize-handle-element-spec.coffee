@@ -1,6 +1,4 @@
 PaneContainer = require '../src/pane-container'
-PaneAxisElement = require '../src/pane-axis-element'
-PaneAxis = require '../src/pane-axis.coffee'
 
 describe "PaneResizeHandleElement", ->
   describe "resize", ->
@@ -9,7 +7,6 @@ describe "PaneResizeHandleElement", ->
     beforeEach ->
       container = new PaneContainer
       containerElement = atom.views.getView(container);
-      containerElement.style.minHeight = 100
       document.querySelector('#jasmine-content').appendChild(containerElement)
 
       resizeElementMove = (resizeElement, clientX, clientY) ->
@@ -76,7 +73,6 @@ describe "PaneResizeHandleElement", ->
       downPane = downLeftPane.getParent()
 
       horizontalResizeElements = containerElement.querySelectorAll('atom-pane-resize-handle.horizontal')
-      verticalResizeElement = containerElement.querySelector('atom-pane-resize-handle.vertical')
       expect(horizontalResizeElements.length).toBe(2)
 
       expectCloseTo = (element, scale) ->
