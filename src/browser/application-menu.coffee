@@ -82,7 +82,8 @@ class ApplicationMenu
   #          window specific items.
   enableWindowSpecificItems: (enable) ->
     for item in @flattenMenuItems(@menu)
-      item.enabled = enable if item.metadata?['windowSpecific']
+      item.enabled = enable if item.metadata?.windowSpecific
+    return
 
   # Replaces VERSION with the current version.
   substituteVersion: (template) ->
@@ -145,7 +146,7 @@ class ApplicationMenu
       if item.command
         item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
         item.click = -> global.atomApplication.sendCommand(item.command)
-        item.metadata['windowSpecific'] = true unless /^application:/.test(item.command)
+        item.metadata.windowSpecific = true unless /^application:/.test(item.command)
       @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
 

@@ -110,6 +110,7 @@ class Workspace extends Model
       packageNames.push(packageName)
       for scopeName in includedGrammarScopes ? []
         addGrammar(atom.grammars.grammarForScopeName(scopeName))
+      return
 
     editors = @getTextEditors()
     addGrammar(editor.getGrammar()) for editor in editors

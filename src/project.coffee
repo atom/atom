@@ -83,6 +83,7 @@ class Project extends Model
 
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
+    return
 
   ###
   Section: Serialization

@@ -104,11 +104,13 @@ class LanguageMode
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
       @editor.createFold(startRow, endRow)
+    return
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
     for row in [@buffer.getLastRow()..0]
       fold.destroy() for fold in @editor.displayBuffer.foldsStartingAtBufferRow(row)
+    return
 
   # Fold all comment and code blocks at a given indentLevel
   #
@@ -122,6 +124,7 @@ class LanguageMode
       # assumption: startRow will always be the min indent level for the entire range
       if @editor.indentationForBufferRow(startRow) == indentLevel
         @editor.createFold(startRow, endRow)
+    return
 
   # Given a buffer row, creates a fold at it.
   #
@@ -276,6 +279,7 @@ class LanguageMode
   # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
     @autoIndentBufferRow(row) for row in [startRow..endRow]
+    return
 
   # Given a buffer row, this indents it.
   #

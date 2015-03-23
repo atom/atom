@@ -538,6 +538,7 @@ class DisplayBuffer extends Model
   # bufferRow - The buffer row {Number} to check against
   unfoldBufferRow: (bufferRow) ->
     fold.destroy() for fold in @foldsContainingBufferRow(bufferRow)
+    return
 
   # Given a buffer row, this returns the largest fold that starts there.
   #
@@ -1082,6 +1083,7 @@ class DisplayBuffer extends Model
 
   pauseMarkerChangeEvents: ->
     marker.pauseChangeEvents() for marker in @getMarkers()
+    return
 
   resumeMarkerChangeEvents: ->
     marker.resumeChangeEvents() for marker in @getMarkers()
@@ -1091,6 +1093,7 @@ class DisplayBuffer extends Model
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
       marker.notifyObservers(textChanged: false)
+    return
 
   destroyed: ->
     marker.unsubscribe() for id, marker of @markers
@@ -1102,6 +1105,7 @@ class DisplayBuffer extends Model
     for row in [start..end]
       line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
+    return
 
   getRootScopeDescriptor: ->
     @tokenizedBuffer.rootScopeDescriptor

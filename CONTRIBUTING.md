@@ -48,7 +48,7 @@ For more information on how to work with Atom's official packages, see
   [JavaScript](https://github.com/styleguide/javascript),
   and [CSS](https://github.com/styleguide/css) styleguides.
 * Include thoughtfully-worded, well-structured
-  [Jasmine](http://jasmine.github.io/) specs.
+  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`.
 * Document new code based on the
   [Documentation Styleguide](#documentation-styleguide)
 * End files with a newline.
@@ -104,6 +104,9 @@ For more information on how to work with Atom's official packages, see
   should be lower-case:
   * `getURI` instead of `getUri`
   * `uriToOpen` instead of `URIToOpen`
+* Use `slice()` to copy an array
+* Add an explicit `return` when your function ends with a `for`/`while` loop and
+  you don't want it to return a collected array.
 
 ## Documentation Styleguide
 

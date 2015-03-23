@@ -50,6 +50,7 @@ class CommandRegistry
   destroy: ->
     for commandName of @registeredCommands
       window.removeEventListener(commandName, @handleCommandEvent, true)
+    return
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -187,6 +188,7 @@ class CommandRegistry
     @selectorBasedListenersByCommandName = {}
     for commandName, listeners of snapshot
       @selectorBasedListenersByCommandName[commandName] = listeners.slice()
+    return
 
   handleCommandEvent: (originalEvent) =>
     propagationStopped = false

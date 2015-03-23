@@ -825,6 +825,7 @@ class Atom extends Model
         delete window[key]
       else
         window[key] = value
+    return
 
   onUpdateAvailable: (callback) ->
     @emitter.on 'update-available', callback

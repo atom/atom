@@ -65,6 +65,7 @@ class AutoUpdateManager
     return unless @releaseVersion?
     for atomWindow in windows
       atomWindow.sendMessage('update-available', {@releaseVersion})
+    return
 
   setState: (state) ->
     return if @state is state

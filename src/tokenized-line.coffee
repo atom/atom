@@ -11,6 +11,7 @@ module.exports =
 class TokenizedLine
   endOfLineInvisibles: null
   lineIsWhitespaceOnly: false
+  firstNonWhitespaceIndex: 0
   foldable: false
 
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
@@ -96,6 +97,7 @@ class TokenizedLine
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
   findWrapColumn: (maxColumn) ->
+    return unless maxColumn?
     return unless @text.length > maxColumn
 
     if /\s/.test(@text[maxColumn])
@@ -106,7 +108,7 @@ class TokenizedLine
       return @text.length
     else
       # search backward for the start of the word on the boundary
-      for column in [maxColumn..0] when @isColumnOutsideSoftWrapIndentation(column)
+      for column in [maxColumn..@firstNonWhitespaceIndex]
         return column + 1 if /\s/.test(@text[column])
 
       return maxColumn
@@ -127,12 +129,13 @@ class TokenizedLine
 
     rightTokens = new Array(@tokens...)
     leftTokens = []
-    leftTextLength = 0
-    while leftTextLength < column
-      if leftTextLength + rightTokens[0].value.length > column
-        rightTokens[0..0] = rightTokens[0].splitAt(column - leftTextLength)
+    leftScreenColumn = 0
+
+    while leftScreenColumn < column
+      if leftScreenColumn + rightTokens[0].screenDelta > column
+        rightTokens[0..0] = rightTokens[0].splitAt(column - leftScreenColumn)
       nextToken = rightTokens.shift()
-      leftTextLength += nextToken.value.length
+      leftScreenColumn += nextToken.screenDelta
       leftTokens.push nextToken
 
     indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0], hangingIndent)
@@ -159,11 +162,6 @@ class TokenizedLine
 
   isSoftWrapped: ->
     @lineEnding is null
-
-  isColumnOutsideSoftWrapIndentation: (column) ->
-    return true if @softWrapIndentationTokens.length == 0
-
-    column > @softWrapIndentationDelta
 
   isColumnInsideSoftWrapIndentation: (column) ->
     return false if @softWrapIndentationTokens.length == 0
@@ -209,19 +207,20 @@ class TokenizedLine
     outputTokens
 
   markLeadingAndTrailingWhitespaceTokens: ->
-    firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
-    if firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, firstNonWhitespaceIndex - 1)
-      firstNonWhitespaceIndex--
+    @firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
+    if @firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, @firstNonWhitespaceIndex - 1)
+      @firstNonWhitespaceIndex--
     firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
     @lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
     index = 0
     for token in @tokens
-      if index < firstNonWhitespaceIndex
-        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, firstNonWhitespaceIndex - index)
+      if index < @firstNonWhitespaceIndex
+        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, @firstNonWhitespaceIndex - index)
       # Only the *last* segment of a soft-wrapped line can have trailing whitespace
       if @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
         token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
       index += token.value.length
+    return
 
   substituteInvisibleCharacters: ->
     invisibles = @invisibles
@@ -308,6 +307,8 @@ class TokenizedLine
     # Push onto common prefix until scopeStack equals desiredScopeDescriptor
     for j in [i...desiredScopeDescriptor.length]
       scopeStack.push(new Scope(desiredScopeDescriptor[j]))
+
+    return
 
 class Scope
   constructor: (@scope) ->

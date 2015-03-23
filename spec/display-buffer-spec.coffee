@@ -115,6 +115,24 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
           expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe '    right = [];'
 
+      describe "when the only whitespace characters are at the beginning of the line", ->
+        beforeEach ->
+          displayBuffer.setEditorWidthInChars(10)
+
+        it "wraps the line at the max length when indented with tabs", ->
+          buffer.setTextInRange([[0, 0], [1, 0]], '\t\tabcdefghijklmnopqrstuvwxyz')
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '    abcdef'
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe '    ghijkl'
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '    mnopqr'
+
+        it "wraps the line at the max length when indented with spaces", ->
+          buffer.setTextInRange([[0, 0], [1, 0]], '    abcdefghijklmnopqrstuvwxyz')
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '    abcdef'
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe '    ghijkl'
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '    mnopqr'
+
       describe "when there are hard tabs", ->
         beforeEach ->
           buffer.setText(buffer.getText().replace(new RegExp('  ', 'g'), '\t'))
