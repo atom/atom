@@ -92,3 +92,40 @@ describe "PaneResizeHandleElement", ->
       newWidth = getElementWidth(horizontalResizeElements[1].previousSibling) / 2
       resizeElementMove(horizontalResizeElements[1], newWidth)
       expectPaneScale(1, 1, 0.5, 1.5, 0.5, 1.5)
+
+    it "transform the flex scale when dynamically split or close panes in the same direction", ->
+      leftPane = container.getActivePane()
+      middlePane = leftPane.splitRight()
+      rightPane = middlePane.splitRight()
+
+      expectPaneScale = (leftScale, middleScale, rightScale) ->
+        paneScales = [[leftPane, leftScale], [middlePane, middleScale], [rightPane, rightScale]];
+        expect(e[0].getFlexScale()).toBeCloseTo(e[1], 0.1) for e in paneScales
+
+      resizeElement = containerElement.querySelector('atom-pane-resize-handle')
+      resizeElementMove(resizeElement, getElementWidth(atom.views.getView(leftPane)) / 2)
+      expectPaneScale(0.5, 1.5, 1)
+
+      leftPane.close()
+      expect(middlePane.getFlexScale()).toBeCloseTo(1.2, 0.1)
+      expect(rightPane.getFlexScale()).toBeCloseTo(0.8, 0.1)
+
+      rightPane.close() # when close the same direction pane, the flexScale will recorver
+      expect(middlePane.getFlexScale()).toBeCloseTo(1, 0.1)
+
+    it "change the flex scale when dynamically split or close panes in orthogonal direction", ->
+      leftPane = container.getActivePane()
+      rightPane = leftPane.splitRight()
+
+      resizeElement = containerElement.querySelector('atom-pane-resize-handle')
+      resizeElementMove(resizeElement, getElementWidth(resizeElement.previousSibling) / 2)
+      expect(leftPane.getFlexScale()).toBeCloseTo(0.5, 0.1)
+
+      downPane = leftPane.splitDown()   # dynamically split pane, pane's flexScale will become to 1
+      expect(leftPane.getFlexScale()).toBeCloseTo(1, 0.1)
+      expect(leftPane.getParent().getFlexScale()).toBeCloseTo(0.5, 0.1)
+
+      downPane.close() # dynamically close pane, the pane's flexscale will recorver to origin value
+      expect(leftPane.getFlexScale()).toBeCloseTo(0.5, 0.1)
+
+
