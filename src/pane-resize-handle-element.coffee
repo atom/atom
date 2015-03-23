@@ -10,6 +10,7 @@ class PaneResizeHandleElement extends HTMLElement
 
   attachedCallback: ->
     @isHorizontal = @parentElement.classList.contains("horizontal")
+    @classList.add if @isHorizontal then 'horizontal' else 'vertical'
 
   resizeToFitContent: ->
     # clear flex-grow css style of both pane
