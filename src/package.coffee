@@ -572,6 +572,14 @@ class Package
         SyntaxError: #{error.message}
           at #{location}
       """
+    else if error.type and error.filename and error.column? and error.line?
+      # Less errors
+      location = "#{error.filename}:#{error.line}:#{error.column}"
+      detail = "#{error.message} in #{location}"
+      stack = """
+        Error: #{error.message}
+          at #{location}
+      """
     else
       detail = error.message
       stack = error.stack ? error
