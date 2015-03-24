@@ -318,6 +318,7 @@ class ThemeManager
       else
         @lessCache.read(lessStylesheetPath)
     catch error
+      error.less = true
       if error.line?
         # Adjust line numbers for import fallbacks
         error.line -= 2 if importFallbackVariables

@@ -572,12 +572,12 @@ class Package
         SyntaxError: #{error.message}
           at #{location}
       """
-    else if error.type and error.filename and error.column? and error.line?
+    else if error.less and error.filename and error.column? and error.line?
       # Less errors
       location = "#{error.filename}:#{error.line}:#{error.column}"
       detail = "#{error.message} in #{location}"
       stack = """
-        Error: #{error.message}
+        LessError: #{error.message}
           at #{location}
       """
     else
