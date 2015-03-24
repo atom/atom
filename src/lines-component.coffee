@@ -270,8 +270,19 @@ class LinesComponent
   remeasureCharacterWidths: ->
     return unless @presenter.baseCharacterWidth
 
-    @clearScopedCharWidths()
-    @measureCharactersInNewLines()
+    @measureCharactersInVisibleLines()
+
+  measureCharactersInVisibleLines: ->
+    for id, state of @oldState.lines
+      lineNode   = @lineNodesByLineId[id]
+      characters = lineNode.querySelectorAll("span.char")
+      charWidths = []
+
+      for character in characters
+        charWidth = character.getBoundingClientRect().width
+        charWidths.push(charWidth)
+
+      @presenter.setCharWidthsForLineId(id, charWidths)
 
   measureCharactersInNewLines: ->
     @presenter.batchCharacterMeasurement =>

@@ -2986,15 +2986,16 @@ class TextEditor extends Model
 
   batchCharacterMeasurement: (fn) -> @displayBuffer.batchCharacterMeasurement(fn)
 
-  getScopedCharWidth: (scopeNames, char) -> @displayBuffer.getScopedCharWidth(scopeNames, char)
-  setScopedCharWidth: (scopeNames, char, width) -> @displayBuffer.setScopedCharWidth(scopeNames, char, width)
-
-  getScopedCharWidths: (scopeNames) -> @displayBuffer.getScopedCharWidths(scopeNames)
-
   clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()
 
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
   setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
+
+  setCharWidthsForLineId: (lineId, charWidths) ->
+    @displayBuffer.setCharWidthsForLineId(lineId, charWidths)
+
+  getCharWidthForLine: (line, index) ->
+    @displayBuffer.getCharWidthForLine(line, index)
 
   setHeight: (height) -> @displayBuffer.setHeight(height)
   getHeight: -> @displayBuffer.getHeight()

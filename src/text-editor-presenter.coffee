@@ -699,28 +699,14 @@ class TextEditorPresenter
       @model.setDefaultCharWidth(baseCharacterWidth)
       @characterWidthsChanged()
 
-  getScopedCharacterWidth: (scopeNames, char) ->
-    @getScopedCharacterWidths(scopeNames)[char]
-
-  getScopedCharacterWidths: (scopeNames) ->
-    scope = @characterWidthsByScope
-    for scopeName in scopeNames
-      scope[scopeName] ?= {}
-      scope = scope[scopeName]
-    scope.characterWidths ?= {}
-    scope.characterWidths
-
   batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @scopedCharacterWidthsChangeCount
     @batchingCharacterMeasurement = true
     @model.batchCharacterMeasurement(fn)
     @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
+    @characterWidthsChanged()
 
-  setScopedCharacterWidth: (scopeNames, character, width) ->
-    @getScopedCharacterWidths(scopeNames)[character] = width
-    @model.setScopedCharWidth(scopeNames, character, width)
-    @scopedCharacterWidthsChangeCount++
+  setCharWidthsForLineId: (lineId, charWidths) ->
+    @model.setCharWidthsForLineId(lineId, charWidths)
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
@@ -736,10 +722,6 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateOverlaysState()
 
-  clearScopedCharacterWidths: ->
-    @characterWidthsByScope = {}
-    @model.clearScopedCharWidths()
-
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
@@ -749,14 +731,15 @@ class TextEditorPresenter
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
-    baseCharacterWidth = @baseCharacterWidth
+
+    tokenizedLine = @model.tokenizedLineForScreenRow(targetRow)
 
     top = targetRow * @lineHeight
     left = 0
     column = 0
-    for token in @model.tokenizedLineForScreenRow(targetRow).tokens
-      characterWidths = @getScopedCharacterWidths(token.scopes)
+    index = 0
 
+    for token in tokenizedLine.tokens
       valueIndex = 0
       while valueIndex < token.value.length
         if token.hasPairedCharacter
@@ -769,9 +752,10 @@ class TextEditorPresenter
           valueIndex++
 
         return {top, left} if column is targetColumn
-
-        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
+        left += @model.getCharWidthForLine(tokenizedLine, index) unless char is '\0'
         column += charLength
+        index++
+
     {top, left}
 
   hasPixelRectRequirements: ->
