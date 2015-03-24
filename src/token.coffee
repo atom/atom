@@ -220,10 +220,18 @@ class Token
 
     str = str.slice(startIndex, endIndex) if startIndex > 0 or endIndex < strLength
     result = ""
-    result += @escapeChar(char) for char in str
+    for char, i in str
+      if skipNextChar
+        skipNextChar = false
+        continue
+
+      nextChar = ""
+      nextChar = str[i + 1] if textUtils.isPairedCharacter(str, i)
+      result += @escapeChar(char + nextChar)
+
     result
 
-  escapeChar: (char) =>
+  escapeChar: (char) ->
     escapedChar = switch char
       when '&' then '&amp;'
       when '"' then '&quot;'
