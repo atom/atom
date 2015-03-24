@@ -164,12 +164,13 @@ class Token
 
   getValueAsHtml: ({hasIndentGuide}) ->
     if @isHardTab
+      hardTabValue = @escapeString(@value, 0, @value.length)
       classes = 'hard-tab'
       classes += ' leading-whitespace' if @hasLeadingWhitespace()
       classes += ' trailing-whitespace' if @hasTrailingWhitespace()
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if @hasInvisibleCharacters
-      html = "<span class='#{classes}'>#{@escapeString(@value)}</span>"
+      html = "<span class='#{classes}'>#{hardTabValue}</span>"
     else
       startIndex = 0
       endIndex = @value.length
@@ -179,6 +180,7 @@ class Token
 
       if @hasLeadingWhitespace()
         leadingWhitespace = @value.substring(0, @firstNonWhitespaceIndex)
+        leadingWhitespace = @escapeString(leadingWhitespace, 0, leadingWhitespace.length)
 
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
@@ -190,6 +192,7 @@ class Token
       if @hasTrailingWhitespace()
         tokenIsOnlyWhitespace = @firstTrailingWhitespaceIndex is 0
         trailingWhitespace = @value.substring(@firstTrailingWhitespaceIndex)
+        trailingWhitespace = @escapeString(trailingWhitespace, 0, trailingWhitespace.length)
 
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace() and tokenIsOnlyWhitespace
