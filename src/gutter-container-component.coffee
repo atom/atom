@@ -1,3 +1,4 @@
+CustomGutterComponent = require './custom-gutter-component'
 LineNumberGutterComponent = require './line-number-gutter-component'
 
 # The GutterContainerComponent manages the GutterComponents of a particular
@@ -13,6 +14,7 @@ class GutterContainerComponent
 
     @domNode = document.createElement('div')
     @domNode.classList.add('gutter-container')
+    @domNode.style.display = 'flex';
 
   getDomNode: ->
     @domNode
@@ -34,8 +36,7 @@ class GutterContainerComponent
           gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, name: gutter.name})
           @lineNumberGutterComponent = gutterComponent
         else
-          # TODO (jessicalin) Implement non-line-number gutters.
-          continue
+          gutterComponent = new CustomGutterComponent({name: gutter.name})
       newGutterComponents.push(gutterComponent)
       newGutterComponentsByGutterName[gutter.name] = gutterComponent
 
