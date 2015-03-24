@@ -68,6 +68,13 @@ describe "TextEditorComponent", ->
       expect(nextAnimationFrame).not.toThrow()
 
   describe "line rendering", ->
+    it "wraps each character with a <span> element", ->
+      referenceText = editor.lineTextForScreenRow(0)
+      renderedText  = componentNode.querySelectorAll(".line span.char")
+
+      for char, i in referenceText
+        expect(renderedText[i].textContent).toBe(referenceText[i])
+
     it "renders the currently-visible lines plus the overdraw margin", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()

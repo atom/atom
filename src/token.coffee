@@ -202,7 +202,9 @@ class Token
       html = leadingHtml
       if @value.length > MaxTokenLength
         while startIndex < endIndex
-          html += "<span>" + @escapeString(@value, startIndex, startIndex + MaxTokenLength) + "</span>"
+          html += "<span>"
+          html += @escapeString(@value, startIndex, startIndex + MaxTokenLength)
+          html += "</span>"
           startIndex += MaxTokenLength
       else
         html += @escapeString(@value, startIndex, endIndex)
@@ -217,16 +219,20 @@ class Token
     endIndex ?= strLength
 
     str = str.slice(startIndex, endIndex) if startIndex > 0 or endIndex < strLength
-    str.replace(EscapeRegex, @escapeStringReplace)
+    result = ""
+    result += @escapeChar(char) for char in str
+    result
 
-  escapeStringReplace: (match) ->
-    switch match
+  escapeChar: (char) =>
+    escapedChar = switch char
       when '&' then '&amp;'
       when '"' then '&quot;'
       when "'" then '&#39;'
       when '<' then '&lt;'
       when '>' then '&gt;'
-      else match
+      else char
+
+    "<span class='char'>#{escapedChar}</span>"
 
   hasLeadingWhitespace: ->
     @firstNonWhitespaceIndex? and @firstNonWhitespaceIndex > 0
