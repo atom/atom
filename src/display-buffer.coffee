@@ -642,6 +642,7 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
+    index = 0
 
     for token in tokenizedLine.tokens
       valueIndex = 0
@@ -656,7 +657,7 @@ class DisplayBuffer extends Model
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left += @getCharWidthForRow(targetRow, column) unless char is '\0'
+        left += @getCharWidthForRow(targetRow, index++) unless char is '\0'
         column += charLength
 
     {top, left}
@@ -674,6 +675,7 @@ class DisplayBuffer extends Model
 
     left = 0
     column = 0
+    index = 0
 
     for token in tokenizedLine.tokens
       valueIndex = 0
@@ -687,7 +689,7 @@ class DisplayBuffer extends Model
           charLength = 1
           valueIndex++
 
-        charWidth = @getCharWidthForRow(row, column)
+        charWidth = @getCharWidthForRow(row, index++)
         break if targetLeft <= left + (charWidth / 2)
         left += charWidth
         column += charLength
