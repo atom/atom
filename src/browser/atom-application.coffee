@@ -503,9 +503,9 @@ class AtomApplication
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
   #   :window - An {AtomWindow} to use for opening a selected file path.
-  promptForPathToOpen: (type, {devMode, safeMode, window}) ->
+  promptForPathToOpen: (type, {devMode, safeMode, apiPreviewMode, window}) ->
     @promptForPath type, (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode, window})
+      @openPaths({pathsToOpen, devMode, safeMode, apiPreviewMode, window})
 
   promptForPath: (type, callback) ->
     properties =
