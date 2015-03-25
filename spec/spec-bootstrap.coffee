@@ -8,11 +8,8 @@ atom.getCurrentWindow().show() unless atom.getLoadSettings().exitWhenDone
 
 try
   document.title = "Spec Suite"
-  {runSpecSuite, runSpecSuiteV2} = require './jasmine-helper'
-  if atom.getLoadSettings().useJasmine2
-    runSpecSuiteV2('./spec-suite', atom.getLoadSettings().logFile)
-  else
-    runSpecSuite('./spec-suite', atom.getLoadSettings().logFile)
+  {runSpecSuite} = require './jasmine-helper'
+  runSpecSuite('./spec-suite', atom.getLoadSettings().logFile, atom.getLoadSettings().useJasmine2)
 catch error
   if atom?.getLoadSettings().exitWhenDone
     console.error(error.stack ? error)
