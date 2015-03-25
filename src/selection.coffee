@@ -63,18 +63,6 @@ class Selection extends Model
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
-  on: (eventName) ->
-    switch eventName
-      when 'screen-range-changed'
-        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
-      when 'destroyed'
-        Grim.deprecate("Use Selection::onDidDestroy instead.")
-      else
-        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
-
   ###
   Section: Managing the selection range
   ###
@@ -415,16 +403,6 @@ class Selection extends Model
   backspace: ->
     @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
-
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  backspaceToBeginningOfWord: ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  backspaceToBeginningOfLine: ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
 
   # Public: Removes from the start of the selection to the beginning of the
   # current word if the selection is empty otherwise it deletes the selection.
@@ -789,3 +767,25 @@ class Selection extends Model
   getGoalScreenRange: ->
     if goalScreenRange = @marker.getProperties().goalScreenRange
       Range.fromObject(goalScreenRange)
+
+if Grim.includeDeprecations
+  Selection::on = (eventName) ->
+    switch eventName
+      when 'screen-range-changed'
+        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
+      when 'destroyed'
+        Grim.deprecate("Use Selection::onDidDestroy instead.")
+      else
+        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
+
+    super
+
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  Selection::backspaceToBeginningOfWord = ->
+    deprecate("Use Selection::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  Selection::backspaceToBeginningOfLine = ->
+    deprecate("Use Selection::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()
