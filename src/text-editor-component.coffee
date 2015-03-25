@@ -747,16 +747,6 @@ class TextEditorComponent
   setShowIndentGuide: (showIndentGuide) ->
     atom.config.set("editor.showIndentGuide", showIndentGuide)
 
-  # Deprecated
-  setInvisibles: (invisibles={}) ->
-    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
-    atom.config.set('editor.invisibles', invisibles)
-
-  # Deprecated
-  setShowInvisibles: (showInvisibles) ->
-    grim.deprecate "Use config.set('editor.showInvisibles', showInvisibles) instead"
-    atom.config.set('editor.showInvisibles', showInvisibles)
-
   setScrollSensitivity: (scrollSensitivity) =>
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
@@ -789,3 +779,14 @@ class TextEditorComponent
   updateParentViewMiniClass: ->
     @hostElement.classList.toggle('mini', @editor.isMini())
     @rootElement.classList.toggle('mini', @editor.isMini())
+
+if grim.includeDeprecations
+  # Deprecated
+  TextEditorComponent::setInvisibles = (invisibles={}) ->
+    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
+    atom.config.set('editor.invisibles', invisibles)
+
+  # Deprecated
+  TextEditorComponent::setShowInvisibles = (showInvisibles) ->
+    grim.deprecate "Use config.set('editor.showInvisibles', showInvisibles) instead"
+    atom.config.set('editor.showInvisibles', showInvisibles)
