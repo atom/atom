@@ -275,6 +275,8 @@ class LinesComponent
   measureCharactersInVisibleLines: ->
     @presenter.batchCharacterMeasurement =>
       for id, lineState of @oldState.lines
+        continue unless @presenter.hasVisibleRow(lineState.screenRow)
+
         lineNode = @lineNodesByLineId[id]
         @measureCharactersInLine(id, lineState, lineNode)
       return

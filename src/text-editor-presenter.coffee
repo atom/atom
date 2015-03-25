@@ -1021,3 +1021,6 @@ class TextEditorPresenter
     @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
     @startBlinkingCursorsAfterDelay()
     @emitDidUpdateState()
+
+  hasVisibleRow: (row) ->
+    @startRow <= row <= @endRow
