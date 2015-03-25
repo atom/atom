@@ -248,7 +248,7 @@ class LinesComponent
 
     if newLineState.top isnt oldLineState.top
       lineNode.style.top = newLineState.top + 'px'
-      oldLineState.top = newLineState.cop
+      oldLineState.top = newLineState.top
 
     if newLineState.screenRow isnt oldLineState.screenRow
       lineNode.dataset.screenRow = newLineState.screenRow
