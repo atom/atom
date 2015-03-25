@@ -136,6 +136,7 @@ atom.commands.add 'atom-workspace',
   'application:open-folder': -> ipc.send('command', 'application:open-folder')
   'application:open-dev': -> ipc.send('command', 'application:open-dev')
   'application:open-safe': -> ipc.send('command', 'application:open-safe')
+  'application:open-api-preview': -> ipc.send('command', 'application:open-api-preview')
   'application:minimize': -> ipc.send('command', 'application:minimize')
   'application:zoom': -> ipc.send('command', 'application:zoom')
   'application:bring-all-windows-to-front': -> ipc.send('command', 'application:bring-all-windows-to-front')
