@@ -158,9 +158,6 @@ class TextEditorComponent
       @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
       @hostElement.__spacePenView.trigger 'editor:display-updated'
 
-  readAfterUpdateSync: =>
-    @linesComponent.measureCharactersInVisibleLines() if @isVisible() and not @newState.content.scrollingVertically
-
   mountGutterComponent: ->
     @gutterComponent = new GutterComponent({@editor, onMouseDown: @onGutterMouseDown})
     @domNode.insertBefore(@gutterComponent.domNode, @domNode.firstChild)
@@ -192,7 +189,6 @@ class TextEditorComponent
       atom.views.updateDocument =>
         @updateRequested = false
         @updateSync() if @editor.isAlive()
-      atom.views.readDocument(@readAfterUpdateSync)
 
   canUpdate: ->
     @mounted and @editor.isAlive()
