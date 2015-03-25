@@ -159,6 +159,7 @@ class AtomApplication
     @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
     @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
     @on 'application:open-api-preview', -> @promptForPathToOpen('all', apiPreviewMode: true)
+    @on 'application:open-dev-api-preview', -> @promptForPathToOpen('all', {apiPreviewMode: true, devMode: true})
     @on 'application:inspect', ({x,y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
