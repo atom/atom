@@ -342,15 +342,19 @@ class Atom extends Model
 
   # Public: Is the current window in development mode?
   inDevMode: ->
-    @getLoadSettings().devMode
+    @devMode ?= @getLoadSettings().devMode
 
   # Public: Is the current window in safe mode?
   inSafeMode: ->
-    @getLoadSettings().safeMode
+    @safeMode ?= @getLoadSettings().safeMode
 
   # Public: Is the current window running specs?
   inSpecMode: ->
-    @getLoadSettings().isSpec
+    @specMode ?= @getLoadSettings().isSpec
+
+  # Is the current window in 1.0 API preview mode?
+  inApiPreviewMode: ->
+    @apiPreviewMode ?= @getLoadSettings().apiPreviewMode
 
   # Public: Get the version of the Atom application.
   #
