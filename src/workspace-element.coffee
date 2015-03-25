@@ -113,15 +113,17 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
   runPackageSpecs: ->
-    [projectPath] = atom.project.getPaths()
-    ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
+    if activePath = @getModel().getActivePaneItem()?.getPath?()
+      [projectPath] = atom.project.relativizePath(activePath)
+    projectPath ?= atom.project.getPaths()[0]
+    if projectPath
+      ipc.send('run-package-specs', path.join(projectPath, 'spec'))
 
 atom.commands.add 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
   'window:decrease-font-size': -> @getModel().decreaseFontSize()
   'window:reset-font-size': -> @getModel().resetFontSize()
   'application:about': -> ipc.send('command', 'application:about')
-  'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
   'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
   'application:show-settings': -> ipc.send('command', 'application:show-settings')
   'application:quit': -> ipc.send('command', 'application:quit')

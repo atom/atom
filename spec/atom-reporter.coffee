@@ -5,9 +5,101 @@ _ = require 'underscore-plus'
 grim = require 'grim'
 marked = require 'marked'
 
+module.exports =
+class AtomReporter
+  constructor: ->
+    @view = new SpecResultsView
+    @rootSuiteDescription = null
+
+  ###
+  Section: Jasmine 1.3 API
+  ###
+
+  reportRunnerStarting: (runner) ->
+    @view.start(runner.specs().length)
+
+  reportRunnerResults: (runner) ->
+    @view.finish()
+
+  reportSpecResults: (spec) ->
+    specData = @getSpecDataV1(spec)
+    @reportSuiteRunning(spec.suite, specData.failures.length > 0)
+    @view.markSpecCompleted(spec.suite.id, specData)
+    @view.addDeprecations()
+    @view.updateStatusView()
+
+  reportSuiteRunning: (suite, hasFailure) ->
+    if suite.parentSuite
+      @reportSuiteRunning(suite.parentSuite, hasFailure)
+    else
+      @view.setRootDescription(suite.description)
+    @view.addSuiteView(suite.parentSuite?.id, suite) if hasFailure
+
+  ###
+  Section: Jasmine 2.0 API
+  ###
+
+  jasmineStarted: ({totalSpecsDefined}) ->
+    @view.start(totalSpecsDefined)
+    @suiteStack = []
+
+  jasmineDone: ->
+    @view.finish()
+
+  suiteStarted: (suite) ->
+    @view.setRootDescription(suite.description) if @suiteStack.length is 0
+    @suiteStack.push(suite)
+
+  suiteDone: (suite) ->
+    @suiteStack.pop()
+
+  specDone: (spec) ->
+    specData = @getSpecDataV2(spec)
+    if specData.failures.length > 0
+      parentSuite = null
+      for suite in @suiteStack
+        @view.addSuiteView(parentSuite?.id, suite)
+        parentSuite = suite
+
+    @view.markSpecCompleted(@suiteStack[@suiteStack.length - 1]?.id, specData)
+    @view.addDeprecations()
+    @view.updateStatusView()
+
+  ###
+  Section: Private
+  ###
+
+  getSpecDataV1: (spec) ->
+    results = spec.results()
+    {
+      fullName: spec.getFullName()
+      description: spec.description
+      passed: results.passed()
+      skipped: results.skipped
+      failures: for item in results.getItems() when not item.passed()
+        {
+          message: item.message
+          stack: item.trace.stack
+        }
+    }
+
+  getSpecDataV2: (spec) ->
+    {
+      fullName: spec.fullName
+      description: spec.description
+      passed: spec.failedExpectations.length is 0
+      skipped: spec.pendingReason isnt ""
+      failures: for expectation in spec.failedExpectations
+        {
+          message: expectation.message
+          stack: expectation.stack
+        }
+    }
+
 sourceMaps = {}
-formatStackTrace = (spec, message='', stackTrace) ->
+formatStackTrace = (message='', stackTrace) ->
   return stackTrace unless stackTrace
+  {specDirectory} = atom.getLoadSettings()
 
   jasminePattern = /^\s*at\s+.*\(?.*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
   firstJasmineLinePattern = /^\s*at [/\\].*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
@@ -29,13 +121,12 @@ formatStackTrace = (spec, message='', stackTrace) ->
     line = "at #{prefixMatch[1]}" if prefixMatch
 
     # Relativize locations to spec directory
-    lines[index] = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ')
+    lines[index] = line.replace("at #{specDirectory}#{path.sep}", 'at ')
 
   lines = lines.map (line) -> line.trim()
   lines.join('\n').trim()
 
-module.exports =
-class AtomReporter extends View
+class SpecResultsView extends View
   @content: ->
     @div class: 'spec-reporter', =>
       @div class: 'padded pull-right', =>
@@ -43,12 +134,6 @@ class AtomReporter extends View
       @div outlet: 'coreArea', class: 'symbol-area', =>
         @div outlet: 'coreHeader', class: 'symbol-header'
         @ul outlet: 'coreSummary', class: 'symbol-summary list-unstyled'
-      @div outlet: 'bundledArea', class: 'symbol-area', =>
-        @div outlet: 'bundledHeader', class: 'symbol-header'
-        @ul outlet: 'bundledSummary', class: 'symbol-summary list-unstyled'
-      @div outlet: 'userArea', class: 'symbol-area', =>
-        @div outlet: 'userHeader', class: 'symbol-header'
-        @ul outlet: 'userSummary', class: 'symbol-summary list-unstyled'
       @div outlet: "status", class: 'status alert alert-info', =>
         @div outlet: "time", class: 'time'
         @div outlet: "specCount", class: 'spec-count'
@@ -70,20 +155,20 @@ class AtomReporter extends View
   deprecationCount: 0
   @timeoutId: 0
 
-  reportRunnerStarting: (runner) ->
+  start: (totalSpecCount) ->
     @handleEvents()
     @startedAt = Date.now()
-    specs = runner.specs()
-    @totalSpecCount = specs.length
-    @addSpecs(specs)
-    $(document.body).append this
+    @totalSpecCount = totalSpecCount
+    @addSpecs()
+    $(document.body).append(this)
 
     @on 'click', '.stack-trace', ->
       $(this).toggleClass('expanded')
 
-    @reloadButton.on 'click', -> require('ipc').send('call-window-method', 'restart')
+    @reloadButton.on 'click', ->
+      require('ipc').send('call-window-method', 'restart')
 
-  reportRunnerResults: (runner) ->
+  finish: ->
     @updateSpecCounts()
     @status.addClass('alert-success').removeClass('alert-info') if @failedCount is 0
     if @failedCount is 1
@@ -91,18 +176,7 @@ class AtomReporter extends View
     else
       @message.text "#{@failedCount} failures"
 
-  reportSuiteResults: (suite) ->
-
-  reportSpecResults: (spec) ->
-    @completeSpecCount++
-    spec.endedAt = Date.now()
-    @specComplete(spec)
-    @updateStatusView(spec)
-
-  reportSpecStarting: (spec) ->
-    @specStarted(spec)
-
-  addDeprecations: (spec) ->
+  addDeprecations: ->
     deprecations = grim.getDeprecations()
     @deprecationCount += deprecations.length
     @deprecations.show() if @deprecationCount > 0
@@ -123,7 +197,7 @@ class AtomReporter extends View
                 "  at #{location}"
               else
                 "  at #{functionName} (#{location})"
-            @pre class: 'stack-trace padded', formatStackTrace(spec, deprecation.message, fullStack.join('\n'))
+            @pre class: 'stack-trace padded', formatStackTrace(deprecation.message, fullStack.join('\n'))
     grim.clearDeprecations()
 
   handleEvents: ->
@@ -148,100 +222,63 @@ class AtomReporter extends View
       specCount = "#{@completeSpecCount}/#{@totalSpecCount}"
     @specCount[0].textContent = specCount
 
-  updateStatusView: (spec) ->
+  setRootDescription: (description) ->
+    @message.text(description)
+
+  updateStatusView: ->
     if @failedCount > 0
       @status.addClass('alert-danger').removeClass('alert-info')
 
     @updateSpecCounts()
-
-    rootSuite = spec.suite
-    rootSuite = rootSuite.parentSuite while rootSuite.parentSuite
-    @message.text rootSuite.description
-
-    time = "#{Math.round((spec.endedAt - @startedAt) / 10)}"
+    time = "#{Math.round((Date.now() - @startedAt) / 10)}"
     time = "0#{time}" if time.length < 3
     @time[0].textContent = "#{time[0...-2]}.#{time[-2..]}s"
 
-  addSpecs: (specs) ->
-    coreSpecs = 0
-    bundledPackageSpecs = 0
-    userPackageSpecs = 0
-    for spec in specs
-      symbol = $$ -> @li id: "spec-summary-#{spec.id}", class: "spec-summary pending"
-      switch spec.specType
-        when 'core'
-          coreSpecs++
-          @coreSummary.append symbol
-        when 'bundled'
-          bundledPackageSpecs++
-          @bundledSummary.append symbol
-        when 'user'
-          userPackageSpecs++
-          @userSummary.append symbol
+  addSpecs: ->
+    for i in [0...@totalSpecCount] by 1
+      @coreSummary.append($$ -> @li class: "spec-summary pending")
 
-    if coreSpecs > 0
-      @coreHeader.text("Core Specs (#{coreSpecs})")
-    else
-      @coreArea.hide()
-    if bundledPackageSpecs > 0
-      @bundledHeader.text("Bundled Package Specs (#{bundledPackageSpecs})")
-    else
-      @bundledArea.hide()
-    if userPackageSpecs > 0
-      if coreSpecs is 0 and bundledPackageSpecs is 0
-        # Package specs being run, show a more descriptive label
-        {specDirectory} = specs[0]
-        packageFolderName = path.basename(path.dirname(specDirectory))
-        packageName = _.undasherize(_.uncamelcase(packageFolderName))
-        @userHeader.text("#{packageName} Specs")
-      else
-        @userHeader.text("User Package Specs (#{userPackageSpecs})")
-    else
-      @userArea.hide()
+    {specDirectory} = atom.getLoadSettings()
+    packageFolderName = path.basename(path.dirname(specDirectory))
+    packageName = _.undasherize(_.uncamelcase(packageFolderName))
+    @coreHeader.text("#{packageName} Specs")
 
-  specStarted: (spec) ->
-    @runningSpecCount++
+  addSuiteView: (parentSuiteId, suite) ->
+    unless @getSuiteView(suite.id).length > 0
+      unless (parentView = @getSuiteView(parentSuiteId)).length > 0
+        parentView = @results
+      parentView.append(new SuiteResultView(suite))
 
-  specComplete: (spec) ->
-    specSummaryElement = $("#spec-summary-#{spec.id}")
-    specSummaryElement.removeClass('pending')
-    specSummaryElement.setTooltip(title: spec.getFullName(), container: '.spec-reporter')
+  markSpecCompleted: (parentSuiteId, spec) ->
+    specSummaryElement = @coreSummary[0].children[@completeSpecCount++]
+    specSummaryElement.classList.remove('pending')
+    $(specSummaryElement).setTooltip(
+      title: spec.fullName
+      container: '.spec-reporter'
+    )
 
-    results = spec.results()
-    if results.skipped
-      specSummaryElement.addClass("skipped")
+    if spec.skipped
+      specSummaryElement.classList.add("skipped")
       @skippedCount++
-    else if results.passed()
-      specSummaryElement.addClass("passed")
+    else if spec.passed
+      specSummaryElement.classList.add("passed")
       @passedCount++
     else
-      specSummaryElement.addClass("failed")
-
-      specView = new SpecResultView(spec)
-      specView.attach()
+      specSummaryElement.classList.add("failed")
       @failedCount++
-    @addDeprecations(spec)
+      @getSuiteView(parentSuiteId).append(new SpecResultView(spec))
+
+  getSuiteView: (id) ->
+    @find("#suite-view-#{id}")
 
 class SuiteResultView extends View
   @content: ->
     @div class: 'suite', =>
       @div outlet: 'description', class: 'description'
 
-  initialize: (@suite) ->
-    @attr('id', "suite-view-#{@suite.id}")
-    @description.text(@suite.description)
-
-  attach: ->
-    (@parentSuiteView() or $('.results')).append this
-
-  parentSuiteView: ->
-    return unless @suite.parentSuite
-
-    if not suiteView = $("#suite-view-#{@suite.parentSuite.id}").view()
-      suiteView = new SuiteResultView(@suite.parentSuite)
-      suiteView.attach()
-
-    suiteView
+  initialize: ({id, description}) ->
+    @attr('id', "suite-view-#{id}")
+    @description.text(description)
 
 class SpecResultView extends View
   @content: ->
@@ -250,25 +287,13 @@ class SpecResultView extends View
       @div outlet: 'description', class: 'description'
       @div outlet: 'specFailures', class: 'spec-failures'
 
-  initialize: (@spec) ->
-    @addClass("spec-view-#{@spec.id}")
-
-    description = @spec.description
+  initialize: ({description, failures}) ->
     description = "it #{description}" if description.indexOf('it ') isnt 0
     @description.text(description)
 
-    for result in @spec.results().getItems() when not result.passed()
-      stackTrace = formatStackTrace(@spec, result.message, result.trace.stack)
+    for failure in failures
+      stackTrace = formatStackTrace(failure.message, failure.stack)
       @specFailures.append $$ ->
-        @div result.message, class: 'result-message fail'
+        @div failure.message, class: 'result-message fail'
         @pre stackTrace, class: 'stack-trace padded' if stackTrace
-
-  attach: ->
-    @parentSuiteView().append this
-
-  parentSuiteView: ->
-    if not suiteView = $("#suite-view-#{@spec.suite.id}").view()
-      suiteView = new SuiteResultView(@spec.suite)
-      suiteView.attach()
-
-    suiteView
+    return

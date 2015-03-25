@@ -147,7 +147,6 @@ class AtomApplication
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
 
-    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
@@ -234,7 +233,7 @@ class AtomApplication
       @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, specDirectory) =>
-      @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
+      @runSpecs({resourcePath: global.devResourcePath, specDirectory, exitWhenDone: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -458,7 +457,11 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
+
+    packageMetadata = JSON.parse(fs.readFileSync(path.join(specDirectory, "..", "package.json"), 'utf8'))
+    useJasmine2 = packageMetadata['use-jasmine-2']
+
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode, useJasmine2})
 
   runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try

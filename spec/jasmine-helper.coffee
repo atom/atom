@@ -1,9 +1,42 @@
 fs = require 'fs'
 
+module.exports.runSpecSuiteV2 = (specSuite, logFile) ->
+  jasmineRequire = require("jasmine-core")
+  window.jasmine = jasmineRequire.core(jasmineRequire)
+  jasmineInterface = jasmineRequire.interface(jasmine, jasmine.getEnv())
+  window[key] = value for key, value of jasmineInterface
+
+  atom.initialize()
+  atom.themes.loadBaseStylesheets()
+  atom.themes.requireStylesheet '../static/jasmine'
+
+  if atom.getLoadSettings().exitWhenDone
+    ConsoleReporter = require("jasmine-core/lib/console/console").ConsoleReporter()
+    reporter = new ConsoleReporter(
+      print: (content) -> process.stdout.write(content)
+      onComplete: (passed) ->
+        atom.exit(if passed then 0 else 1)
+    )
+  else
+    AtomReporter = require './atom-reporter'
+    reporter = new AtomReporter()
+
+  require specSuite
+
+  jasmineEnv = jasmine.getEnv()
+  jasmineEnv.addReporter(reporter)
+
+  jasmineContent = document.createElement("div")
+  jasmineContent.id = "jasmine-content"
+  document.body.appendChild(jasmineContent)
+
+  jasmineEnv.execute()
+
 module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   window[key] = value for key, value of require '../vendor/jasmine'
 
   {TerminalReporter} = require 'jasmine-tagged'
+  require './spec-helper'
 
   disableFocusMethods() if process.env.JANKY_SHA1
 
