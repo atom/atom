@@ -46,7 +46,7 @@ class LinesComponent
     else
       @overlayManager = new OverlayManager(@presenter, @domNode)
 
-  preUpdateSync: (state) ->
+  preMeasureUpdateSync: (state) ->
     @newState = state.content
     @oldState ?= {lines:{}}
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
@@ -54,7 +54,7 @@ class LinesComponent
 
     @measureCharactersInVisibleLines(false)
 
-  postUpdateSync: (state) ->
+  postMeasureUpdateSync: (state) ->
     @newState = state.content
     @oldState ?= {lines: {}}
 

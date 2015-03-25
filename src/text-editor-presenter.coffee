@@ -64,9 +64,7 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  # Public: Gets this presenter's state, updating it just in time before returning from this function.
-  # Returns a state {Object}, useful for rendering to screen.
-  getState: (invalidateEverything = false) ->
+  getPreMeasureState: ->
     @updating = true
 
     @updateContentDimensions()
@@ -74,23 +72,37 @@ class TextEditorPresenter
     @updateStartRow()
     @updateEndRow()
 
-    @updateFocusedState() if @shouldUpdateFocusedState or invalidateEverything
-    @updateHeightState() if @shouldUpdateHeightState or invalidateEverything
-    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState or invalidateEverything
-    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState or invalidateEverything
-    @updateScrollbarsState() if @shouldUpdateScrollbarsState or invalidateEverything
-    @updateHiddenInputState() if @shouldUpdateHiddenInputState or invalidateEverything
-    @updateContentState() if @shouldUpdateContentState or invalidateEverything
-    @updateDecorations() if @shouldUpdateDecorations or invalidateEverything
-    @updateLinesState() if @shouldUpdateLinesState or invalidateEverything
-    @updateCursorsState() if @shouldUpdateCursorsState or invalidateEverything
-    @updateOverlaysState() if @shouldUpdateOverlaysState or invalidateEverything
-    @updateGutterState() if @shouldUpdateGutterState or invalidateEverything
-    @updateLineNumbersState() if @shouldUpdateLineNumbersState or invalidateEverything
+    @updateLinesState() if @shouldUpdateLinesState
 
     @updating = false
 
     @state
+
+  getPostMeasureState: ->
+    @updating = true
+
+    @updateFocusedState() if @shouldUpdateFocusedState
+    @updateHeightState() if @shouldUpdateHeightState
+    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
+    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
+    @updateScrollbarsState() if @shouldUpdateScrollbarsState
+    @updateHiddenInputState() if @shouldUpdateHiddenInputState
+    @updateContentState() if @shouldUpdateContentState
+    @updateDecorations() if @shouldUpdateDecorations
+    @updateCursorsState() if @shouldUpdateCursorsState
+    @updateOverlaysState() if @shouldUpdateOverlaysState
+    @updateGutterState() if @shouldUpdateGutterState
+    @updateLineNumbersState() if @shouldUpdateLineNumbersState
+
+    @updating = false
+
+    @state
+
+  # Public: Gets this presenter's state, updating it just in time before returning from this function.
+  # Returns a state {Object}, useful for rendering to screen.
+  getState: ->
+    @getPreMeasureState()
+    @getPostMeasureState()
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
