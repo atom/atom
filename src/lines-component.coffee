@@ -20,7 +20,6 @@ class LinesComponent
   placeholderTextDiv: null
 
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
-    @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
@@ -47,7 +46,15 @@ class LinesComponent
     else
       @overlayManager = new OverlayManager(@presenter, @domNode)
 
-  updateSync: (state) ->
+  preUpdateSync: (state) ->
+    @newState = state.content
+    @oldState ?= {lines:{}}
+    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
+    @updateLineNodes()
+
+    @measureCharactersInVisibleLines(false)
+
+  postUpdateSync: (state) ->
     @newState = state.content
     @oldState ?= {lines: {}}
 
@@ -71,9 +78,6 @@ class LinesComponent
         @placeholderTextDiv.classList.add('placeholder-text')
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
-
-    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
-    @updateLineNodes()
 
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'
@@ -272,8 +276,14 @@ class LinesComponent
 
     @measureCharactersInVisibleLines()
 
-  measureCharactersInVisibleLines: ->
-    @presenter.batchCharacterMeasurement =>
+  measureCharactersInVisibleLines: (batch = true) ->
+    if batch
+      @presenter.batchCharacterMeasurement =>
+        for id, lineState of @newState.lines
+          lineNode = @lineNodesByLineId[id]
+          @measureCharactersInLine(id, lineState, lineNode)
+        return
+    else
       for id, lineState of @newState.lines
         lineNode = @lineNodesByLineId[id]
         @measureCharactersInLine(id, lineState, lineNode)

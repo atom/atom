@@ -136,7 +136,53 @@ class TextEditorComponent
       @gutterComponent = null
 
     @hiddenInputComponent.updateSync(@newState)
-    @linesComponent.updateSync(@newState)
+    @linesComponent.preUpdateSync(@newState)
+    @horizontalScrollbarComponent.updateSync(@newState)
+    @verticalScrollbarComponent.updateSync(@newState)
+    @scrollbarCornerComponent.updateSync(@newState)
+
+    if @editor.isAlive()
+      @updateParentViewFocusedClassIfNeeded()
+      @updateParentViewMiniClass()
+      @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
+      @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
+      @hostElement.__spacePenView.trigger 'editor:display-updated'
+
+  postUpdateSync: ->
+    @oldState ?= {}
+    @newState = @presenter.getState(true)
+
+    cursorMoved = @cursorMoved
+    selectionChanged = @selectionChanged
+    @cursorMoved = false
+    @selectionChanged = false
+
+    if @editor.getLastSelection()? and !@editor.getLastSelection().isEmpty()
+      @domNode.classList.add('has-selection')
+    else
+      @domNode.classList.remove('has-selection')
+
+    if @newState.focused isnt @oldState.focused
+      @domNode.classList.toggle('is-focused', @newState.focused)
+
+    @performedInitialMeasurement = false if @editor.isDestroyed()
+
+    if @performedInitialMeasurement
+      if @newState.height isnt @oldState.height
+        if @newState.height?
+          @domNode.style.height = @newState.height + 'px'
+        else
+          @domNode.style.height = ''
+
+    if @newState.gutter.visible
+      @mountGutterComponent() unless @gutterComponent?
+      @gutterComponent.updateSync(@newState)
+    else
+      @gutterComponent?.domNode?.remove()
+      @gutterComponent = null
+
+    @hiddenInputComponent.updateSync(@newState)
+    @linesComponent.postUpdateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
@@ -182,6 +228,7 @@ class TextEditorComponent
       atom.views.updateDocument =>
         @updateRequested = false
         @updateSync() if @editor.isAlive()
+        @postUpdateSync() if @editor.isAlive()
       atom.views.readDocument(@readAfterUpdateSync)
 
   canUpdate: ->

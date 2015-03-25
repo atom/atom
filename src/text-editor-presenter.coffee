@@ -66,7 +66,7 @@ class TextEditorPresenter
 
   # Public: Gets this presenter's state, updating it just in time before returning from this function.
   # Returns a state {Object}, useful for rendering to screen.
-  getState: ->
+  getState: (invalidateEverything = false) ->
     @updating = true
 
     @updateContentDimensions()
@@ -74,19 +74,19 @@ class TextEditorPresenter
     @updateStartRow()
     @updateEndRow()
 
-    @updateFocusedState() if @shouldUpdateFocusedState
-    @updateHeightState() if @shouldUpdateHeightState
-    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
-    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
-    @updateScrollbarsState() if @shouldUpdateScrollbarsState
-    @updateHiddenInputState() if @shouldUpdateHiddenInputState
-    @updateContentState() if @shouldUpdateContentState
-    @updateDecorations() if @shouldUpdateDecorations
-    @updateLinesState() if @shouldUpdateLinesState
-    @updateCursorsState() if @shouldUpdateCursorsState
-    @updateOverlaysState() if @shouldUpdateOverlaysState
-    @updateGutterState() if @shouldUpdateGutterState
-    @updateLineNumbersState() if @shouldUpdateLineNumbersState
+    @updateFocusedState() if @shouldUpdateFocusedState or invalidateEverything
+    @updateHeightState() if @shouldUpdateHeightState or invalidateEverything
+    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState or invalidateEverything
+    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState or invalidateEverything
+    @updateScrollbarsState() if @shouldUpdateScrollbarsState or invalidateEverything
+    @updateHiddenInputState() if @shouldUpdateHiddenInputState or invalidateEverything
+    @updateContentState() if @shouldUpdateContentState or invalidateEverything
+    @updateDecorations() if @shouldUpdateDecorations or invalidateEverything
+    @updateLinesState() if @shouldUpdateLinesState or invalidateEverything
+    @updateCursorsState() if @shouldUpdateCursorsState or invalidateEverything
+    @updateOverlaysState() if @shouldUpdateOverlaysState or invalidateEverything
+    @updateGutterState() if @shouldUpdateGutterState or invalidateEverything
+    @updateLineNumbersState() if @shouldUpdateLineNumbersState or invalidateEverything
 
     @updating = false
 
