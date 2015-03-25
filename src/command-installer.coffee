@@ -36,7 +36,7 @@ module.exports =
         message: "Failed to install shell commands"
         detailedMessage: error.message
 
-    resourcePath = atom.getLoadSettings().resourcePath
+    resourcePath = process.resourcesPath
     @installAtomCommand resourcePath, true, (error) =>
       if error?
         showErrorDialog(error)
