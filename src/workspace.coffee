@@ -112,7 +112,7 @@ class Workspace extends Model
     _.uniq(packageNames)
 
   editorAdded: (editor) ->
-    @emit 'editor-created', editor
+    @emit 'editor-created', editor if includeDeprecations
 
   installShellCommands: ->
     require('./command-installer').installShellCommandsInteractively()
@@ -446,7 +446,7 @@ class Workspace extends Model
         if options.initialLine? or options.initialColumn?
           item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
         index = pane.getActiveItemIndex()
-        @emit "uri-opened"
+        @emit "uri-opened" if includeDeprecations
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
 
