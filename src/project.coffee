@@ -4,7 +4,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
-{deprecate} = require 'grim'
+{includeDeprecations, deprecate} = require 'grim'
 {Model} = require 'theorist'
 {Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
@@ -24,12 +24,6 @@ module.exports =
 class Project extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
-
-  @pathForRepositoryUrl: (repoUrl) ->
-    deprecate '::pathForRepositoryUrl will be removed. Please remove from your code.'
-    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
-    repoName = repoName.replace(/\.git$/, '')
-    path.join(atom.config.get('core.projectHome'), repoName)
 
   ###
   Section: Construction and Destruction
@@ -73,8 +67,10 @@ class Project extends Model
 
     @subscribeToBuffer(buffer) for buffer in @buffers
 
-    Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor") if path?
-    paths ?= _.compact([path])
+    if Grim.includeDeprecations and path?
+      Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor")
+      paths ?= _.compact([path])
+
     @setPaths(paths)
 
   destroyed: ->
@@ -122,13 +118,6 @@ class Project extends Model
   onDidAddBuffer: (callback) ->
     @emitter.on 'did-add-buffer', callback
 
-  on: (eventName) ->
-    if eventName is 'path-changed'
-      Grim.deprecate("Use Project::onDidChangePaths instead")
-    else
-      Grim.deprecate("Project::on is deprecated. Use documented event subscription methods instead.")
-    super
-
   ###
   Section: Accessing the git repository
   ###
@@ -144,9 +133,6 @@ class Project extends Model
   #     project.repositoryForDirectory.bind(project)))
   # ```
   getRepositories: -> @repositories
-  getRepo: ->
-    Grim.deprecate("Use ::getRepositories instead")
-    @getRepositories()[0]
 
   # Public: Get the repository for a given directory asynchronously.
   #
@@ -180,9 +166,6 @@ class Project extends Model
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
   getPaths: -> rootDirectory.getPath() for rootDirectory in @rootDirectories
-  getPath: ->
-    Grim.deprecate("Use ::getPaths instead")
-    @getPaths()[0]
 
   # Public: Set the paths of the project's directories.
   #
@@ -197,10 +180,6 @@ class Project extends Model
 
     @emit "path-changed"
     @emitter.emit 'did-change-paths', projectPaths
-
-  setPath: (path) ->
-    Grim.deprecate("Use ::setPaths instead")
-    @setPaths([path])
 
   # Public: Add a path to the project's list of root paths
   #
@@ -257,13 +236,6 @@ class Project extends Model
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
     @rootDirectories
-  getRootDirectory: ->
-    Grim.deprecate("Use ::getDirectories instead")
-    @getDirectories()[0]
-
-  resolve: (uri) ->
-    Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
-    @resolvePath(uri)
 
   resolvePath: (uri) ->
     return unless uri
@@ -330,18 +302,6 @@ class Project extends Model
     @rootDirectories.some (dir) -> dir.contains(pathToCheck)
 
   ###
-  Section: Searching and Replacing
-  ###
-
-  scan: (regex, options={}, iterator) ->
-    Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
-    atom.workspace.scan(regex, options, iterator)
-
-  replace: (regex, replacementText, filePaths, iterator) ->
-    Grim.deprecate("Use atom.workspace.replace instead of atom.project.replace")
-    atom.workspace.replace(regex, replacementText, filePaths, iterator)
-
-  ###
   Section: Private
   ###
 
@@ -364,12 +324,6 @@ class Project extends Model
 
     @bufferForPath(filePath).then (buffer) =>
       @buildEditorForBuffer(buffer, options)
-
-  # Deprecated
-  openSync: (filePath, options={}) ->
-    deprecate("Use Project::open instead")
-    filePath = @resolvePath(filePath)
-    @buildEditorForBuffer(@bufferForPathSync(filePath), options)
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -479,22 +433,65 @@ class Project extends Model
         detail: error.message
         dismissable: true
 
-  # Deprecated: delegate
-  registerOpener: (opener) ->
+if includeDeprecations
+  Project.pathForRepositoryUrl = (repoUrl) ->
+    deprecate '::pathForRepositoryUrl will be removed. Please remove from your code.'
+    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
+    repoName = repoName.replace(/\.git$/, '')
+    path.join(atom.config.get('core.projectHome'), repoName)
+
+  Project::registerOpener = (opener) ->
     deprecate("Use Workspace::addOpener instead")
     atom.workspace.addOpener(opener)
 
-  # Deprecated: delegate
-  unregisterOpener: (opener) ->
+  Project::unregisterOpener = (opener) ->
     deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
     atom.workspace.unregisterOpener(opener)
 
-  # Deprecated: delegate
-  eachEditor: (callback) ->
+  Project::eachEditor = (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
     atom.workspace.observeTextEditors(callback)
 
-  # Deprecated: delegate
-  getEditors: ->
+  Project::getEditors = ->
     deprecate("Use Workspace::getTextEditors instead")
     atom.workspace.getTextEditors()
+
+  Project::on = (eventName) ->
+    if eventName is 'path-changed'
+      Grim.deprecate("Use Project::onDidChangePaths instead")
+    else
+      Grim.deprecate("Project::on is deprecated. Use documented event subscription methods instead.")
+    super
+
+  Project::getRepo = ->
+    Grim.deprecate("Use ::getRepositories instead")
+    @getRepositories()[0]
+
+  Project::getPath = ->
+    Grim.deprecate("Use ::getPaths instead")
+    @getPaths()[0]
+
+  Project::setPath = (path) ->
+    Grim.deprecate("Use ::setPaths instead")
+    @setPaths([path])
+
+  Project::getRootDirectory = ->
+    Grim.deprecate("Use ::getDirectories instead")
+    @getDirectories()[0]
+
+  Project::resolve = (uri) ->
+    Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
+    @resolvePath(uri)
+
+  Project::scan = (regex, options={}, iterator) ->
+    Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
+    atom.workspace.scan(regex, options, iterator)
+
+  Project::replace = (regex, replacementText, filePaths, iterator) ->
+    Grim.deprecate("Use atom.workspace.replace instead of atom.project.replace")
+    atom.workspace.replace(regex, replacementText, filePaths, iterator)
+
+  Project::openSync = (filePath, options={}) ->
+    deprecate("Use Project::open instead")
+    filePath = @resolvePath(filePath)
+    @buildEditorForBuffer(@bufferForPathSync(filePath), options)
