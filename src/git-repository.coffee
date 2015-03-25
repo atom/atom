@@ -313,7 +313,7 @@ class GitRepository
     else
       delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
-      @emit 'status-changed', path, pathStatus
+      @emit 'status-changed', path, pathStatus if includeDeprecations
       @emitter.emit 'did-change-status', {path, pathStatus}
 
     pathStatus
@@ -474,7 +474,7 @@ class GitRepository
         submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
       unless statusesUnchanged
-        @emit 'statuses-changed'
+        @emit 'statuses-changed' if includeDeprecations
         @emitter.emit 'did-change-statuses'
 
 if includeDeprecations
