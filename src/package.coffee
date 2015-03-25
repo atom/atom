@@ -356,7 +356,7 @@ class Package
         @mainModule?.deactivate?()
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
-    @emit 'deactivated'
+    @emit 'deactivated' if includeDeprecations
     @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
