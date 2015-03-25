@@ -42,6 +42,7 @@ class DisplayBuffer extends Model
     super
 
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
 
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
@@ -50,10 +51,10 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @subscribe @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
-    @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
-    @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
-    @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
+    @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
+    @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
+    @disposables.add @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
+    @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
@@ -907,7 +908,7 @@ class DisplayBuffer extends Model
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
-    @subscribe decoration.onDidDestroy => @removeDecoration(decoration)
+    @disposables.add decoration.onDidDestroy => @removeDecoration(decoration)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
@@ -1086,7 +1087,7 @@ class DisplayBuffer extends Model
   destroyed: ->
     marker.disposables.dispose() for id, marker of @markers
     @scopedConfigSubscriptions.dispose()
-    @unsubscribe()
+    @disposables.dispose()
     @tokenizedBuffer.destroy()
 
   logLines: (start=0, end=@getLastRow()) ->
