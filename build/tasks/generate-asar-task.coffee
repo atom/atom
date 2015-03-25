@@ -13,7 +13,7 @@ module.exports = (grunt) ->
       grunt.log.error 'The app has to be built before generating asar archive.'
       return done(false)
 
-    asar.createPackage appDir, path.resolve(appDir, '..', 'app.asar'), (err) ->
+    asar.createPackageWithOptions appDir, path.resolve(appDir, '..', 'app.asar'), {unpack: '*.node'}, (err) ->
       return done(err) if err?
       rm appDir
       done()
