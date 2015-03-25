@@ -37,7 +37,6 @@ class DisplayBuffer extends Model
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  scopedCharacterWidthsChangeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
@@ -46,7 +45,6 @@ class DisplayBuffer extends Model
 
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
-    @charWidthsByScope = {}
     @charWidthsByRow = {}
     @markers = {}
     @foldsByMarkerId = {}
@@ -311,16 +309,10 @@ class DisplayBuffer extends Model
   getCursorWidth: -> 1
 
   batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @scopedCharacterWidthsChangeCount
     @batchingCharacterMeasurement = true
     fn()
     @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
-
-  setScopedCharWidth: (scopeNames, char, width) ->
-    @getScopedCharWidths(scopeNames)[char] = width
-    @scopedCharacterWidthsChangeCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
+    @characterWidthsChanged()
 
   setCharWidthsForRow: (row, charWidths) ->
     @charWidthsByRow[row] = charWidths
@@ -331,11 +323,8 @@ class DisplayBuffer extends Model
 
   characterWidthsChanged: ->
     @computeScrollWidth()
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount
-    @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
-
-  clearScopedCharWidths: ->
-    @charWidthsByScope = {}
+    @emit 'character-widths-changed'
+    @emitter.emit 'did-change-character-widths'
 
   getScrollHeight: ->
     lineHeight = @getLineHeightInPixels()

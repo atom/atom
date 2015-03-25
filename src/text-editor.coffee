@@ -2986,8 +2986,6 @@ class TextEditor extends Model
 
   batchCharacterMeasurement: (fn) -> @displayBuffer.batchCharacterMeasurement(fn)
 
-  clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()
-
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
   setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
 
