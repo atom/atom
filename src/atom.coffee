@@ -6,7 +6,7 @@ remote = require 'remote'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{deprecate} = require 'grim'
+{deprecate, includeDeprecations} = require 'grim'
 {Emitter} = require 'event-kit'
 {Model} = require 'theorist'
 fs = require 'fs-plus'
@@ -34,35 +34,36 @@ class Atom extends Model
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
 
-    workspaceViewDeprecationMessage = """
-      atom.workspaceView is no longer available.
-      In most cases you will not need the view. See the Workspace docs for
-      alternatives: https://atom.io/docs/api/latest/Workspace.
-      If you do need the view, please use `atom.views.getView(atom.workspace)`,
-      which returns an HTMLElement.
-    """
+    if includeDeprecations
+      workspaceViewDeprecationMessage = """
+        atom.workspaceView is no longer available.
+        In most cases you will not need the view. See the Workspace docs for
+        alternatives: https://atom.io/docs/api/latest/Workspace.
+        If you do need the view, please use `atom.views.getView(atom.workspace)`,
+        which returns an HTMLElement.
+      """
 
-    serviceHubDeprecationMessage = """
-      atom.services is no longer available. To register service providers and
-      consumers, use the `providedServices` and `consumedServices` fields in
-      your package's package.json.
-    """
+      serviceHubDeprecationMessage = """
+        atom.services is no longer available. To register service providers and
+        consumers, use the `providedServices` and `consumedServices` fields in
+        your package's package.json.
+      """
 
-    Object.defineProperty atom, 'workspaceView',
-      get: ->
-        deprecate(workspaceViewDeprecationMessage)
-        atom.__workspaceView
-      set: (newValue) ->
-        deprecate(workspaceViewDeprecationMessage)
-        atom.__workspaceView = newValue
+      Object.defineProperty atom, 'workspaceView',
+        get: ->
+          deprecate(workspaceViewDeprecationMessage)
+          atom.__workspaceView
+        set: (newValue) ->
+          deprecate(workspaceViewDeprecationMessage)
+          atom.__workspaceView = newValue
 
-    Object.defineProperty atom, 'services',
-      get: ->
-        deprecate(serviceHubDeprecationMessage)
-        atom.packages.serviceHub
-      set: (newValue) ->
-        deprecate(serviceHubDeprecationMessage)
-        atom.packages.serviceHub = newValue
+      Object.defineProperty atom, 'services',
+        get: ->
+          deprecate(serviceHubDeprecationMessage)
+          atom.packages.serviceHub
+        set: (newValue) ->
+          deprecate(serviceHubDeprecationMessage)
+          atom.packages.serviceHub = newValue
 
     atom
 
@@ -263,7 +264,10 @@ class Atom extends Model
 
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
-    @keymap = @keymaps # Deprecated
+
+    if includeDeprecations
+      @keymap = @keymaps # Deprecated
+
     @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
     @notifications = new NotificationManager
@@ -279,9 +283,10 @@ class Atom extends Model
 
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
 
-    Object.defineProperty this, 'syntax', get: ->
-      deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
-      @grammars
+    if includeDeprecations
+      Object.defineProperty this, 'syntax', get: ->
+        deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
+        @grammars
 
     @subscribe @packages.onDidActivateInitialPackages => @watchThemes()
 
@@ -351,10 +356,6 @@ class Atom extends Model
   # Public: Is the current window running specs?
   inSpecMode: ->
     @specMode ?= @getLoadSettings().isSpec
-
-  # Is the current window in 1.0 API preview mode?
-  inApiPreviewMode: ->
-    @apiPreviewMode ?= @getLoadSettings().apiPreviewMode
 
   # Public: Get the version of the Atom application.
   #
@@ -831,17 +832,18 @@ class Atom extends Model
   updateAvailable: (details) ->
     @emitter.emit 'update-available', details
 
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClass: ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClasses: ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
   setAutoHideMenuBar: (autoHide) ->
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
     ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)
+
+if includeDeprecations
+  # Deprecated: Callers should be converted to use atom.deserializers
+  Atom::registerRepresentationClass = ->
+    deprecate("Callers should be converted to use atom.deserializers")
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  Atom::registerRepresentationClasses = ->
+    deprecate("Callers should be converted to use atom.deserializers")

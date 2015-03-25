@@ -34,6 +34,8 @@ window.onload = function() {
     ModuleCache.register(loadSettings);
     ModuleCache.add(loadSettings.resourcePath);
 
+    require('grim').includeDeprecations = !loadSettings.apiPreviewMode;
+
     // Start the crash reporter before anything else.
     require('crash-reporter').start({
       productName: 'Atom',
