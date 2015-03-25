@@ -7,7 +7,7 @@ shell = require 'shell'
 
 _ = require 'underscore-plus'
 {deprecate, includeDeprecations} = require 'grim'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Model} = require 'theorist'
 fs = require 'fs-plus'
 {convertStackTrace, convertLine} = require 'coffeestack'
@@ -198,6 +198,7 @@ class Atom extends Model
   # Call .loadOrCreate instead
   constructor: (@state) ->
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
     {@mode} = @state
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
@@ -232,7 +233,9 @@ class Atom extends Model
       @emit 'uncaught-error', arguments...
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
-    @unsubscribe()
+    @disposables?.dispose()
+    @disposables = new CompositeDisposable
+
     @setBodyPlatformClass()
 
     @loadTime = null
@@ -288,7 +291,7 @@ class Atom extends Model
         deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
         @grammars
 
-    @subscribe @packages.onDidActivateInitialPackages => @watchThemes()
+    @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
 
     Project = require './project'
     TextBuffer = require 'text-buffer'
@@ -605,7 +608,7 @@ class Atom extends Model
     @requireUserInitScript() unless safeMode
 
     @menu.update()
-    @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
+    @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
@@ -755,7 +758,7 @@ class Atom extends Model
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
-    @subscribe @project.onDidChangePaths =>
+    @disposables.add @project.onDidChangePaths =>
       @constructor.updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
