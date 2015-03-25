@@ -1,7 +1,6 @@
 {basename, join} = require 'path'
 
 _ = require 'underscore-plus'
-EmitterMixin = require('emissary').Emitter
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
@@ -43,8 +42,6 @@ Task = require './task'
 # ```
 module.exports =
 class GitRepository
-  EmitterMixin.includeInto(this)
-
   @exists: (path) ->
     if git = @open(path)
       git.destroy()
@@ -481,6 +478,9 @@ class GitRepository
         @emitter.emit 'did-change-statuses'
 
 if includeDeprecations
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(GitRepository)
+
   GitRepository::on = (eventName) ->
     switch eventName
       when 'status-changed'
