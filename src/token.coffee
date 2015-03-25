@@ -164,13 +164,12 @@ class Token
 
   getValueAsHtml: ({hasIndentGuide}) ->
     if @isHardTab
-      hardTabValue = @escapeString(@value, 0, @value.length)
       classes = 'hard-tab'
       classes += ' leading-whitespace' if @hasLeadingWhitespace()
       classes += ' trailing-whitespace' if @hasTrailingWhitespace()
       classes += ' indent-guide' if hasIndentGuide
       classes += ' invisible-character' if @hasInvisibleCharacters
-      html = "<span class='#{classes}'>#{hardTabValue}</span>"
+      html = "<span class='#{classes}'>#{@escapeString(@value)}</span>"
     else
       startIndex = 0
       endIndex = @value.length
@@ -180,7 +179,6 @@ class Token
 
       if @hasLeadingWhitespace()
         leadingWhitespace = @value.substring(0, @firstNonWhitespaceIndex)
-        leadingWhitespace = @escapeString(leadingWhitespace, 0, leadingWhitespace.length)
 
         classes = 'leading-whitespace'
         classes += ' indent-guide' if hasIndentGuide
@@ -192,7 +190,6 @@ class Token
       if @hasTrailingWhitespace()
         tokenIsOnlyWhitespace = @firstTrailingWhitespaceIndex is 0
         trailingWhitespace = @value.substring(@firstTrailingWhitespaceIndex)
-        trailingWhitespace = @escapeString(trailingWhitespace, 0, trailingWhitespace.length)
 
         classes = 'trailing-whitespace'
         classes += ' indent-guide' if hasIndentGuide and not @hasLeadingWhitespace() and tokenIsOnlyWhitespace
@@ -205,9 +202,7 @@ class Token
       html = leadingHtml
       if @value.length > MaxTokenLength
         while startIndex < endIndex
-          html += "<span>"
-          html += @escapeString(@value, startIndex, startIndex + MaxTokenLength)
-          html += "</span>"
+          html += "<span>" + @escapeString(@value, startIndex, startIndex + MaxTokenLength) + "</span>"
           startIndex += MaxTokenLength
       else
         html += @escapeString(@value, startIndex, endIndex)
@@ -222,28 +217,16 @@ class Token
     endIndex ?= strLength
 
     str = str.slice(startIndex, endIndex) if startIndex > 0 or endIndex < strLength
-    result = ""
-    for char, i in str
-      if skipNextChar
-        skipNextChar = false
-        continue
+    str.replace(EscapeRegex, @escapeStringReplace)
 
-      nextChar = ""
-      nextChar = str[i + 1] if textUtils.isPairedCharacter(str, i)
-      result += @escapeChar(char + nextChar)
-
-    result
-
-  escapeChar: (char) ->
-    escapedChar = switch char
+  escapeStringReplace: (match) ->
+    switch match
       when '&' then '&amp;'
       when '"' then '&quot;'
       when "'" then '&#39;'
       when '<' then '&lt;'
       when '>' then '&gt;'
-      else char
-
-    "<span class='char'>#{escapedChar}</span>"
+      else match
 
   hasLeadingWhitespace: ->
     @firstNonWhitespaceIndex? and @firstNonWhitespaceIndex > 0
