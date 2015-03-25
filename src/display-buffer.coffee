@@ -1084,7 +1084,7 @@ class DisplayBuffer extends Model
     return
 
   destroyed: ->
-    marker.unsubscribe() for id, marker of @markers
+    marker.disposables.dispose() for id, marker of @markers
     @scopedConfigSubscriptions.dispose()
     @unsubscribe()
     @tokenizedBuffer.destroy()
