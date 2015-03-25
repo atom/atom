@@ -459,7 +459,9 @@ class AtomApplication
     safeMode ?= false
 
     packageMetadata = JSON.parse(fs.readFileSync(path.join(specDirectory, "..", "package.json"), 'utf8'))
-    useJasmine2 = packageMetadata['use-jasmine-2']
+    if jasmineEngineVersion = packageMetadata.engines?['atom-jasmine']
+      semver = require 'semver'
+      useJasmine2 = semver.satisfies('2.2.0', jasmineEngineVersion)
 
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode, useJasmine2})
 
