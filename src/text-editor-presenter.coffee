@@ -74,6 +74,7 @@ class TextEditorPresenter
 
     shouldUpdateDecorations = @shouldUpdateDecorations
 
+    @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
     @updateLinesState() if @shouldUpdateLinesState
 
@@ -91,7 +92,6 @@ class TextEditorPresenter
     @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
     @updateScrollbarsState() if @shouldUpdateScrollbarsState
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
-    @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
