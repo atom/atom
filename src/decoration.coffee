@@ -66,7 +66,7 @@ class Decoration
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
-    @emit 'destroyed'
+    @emit 'destroyed' if Grim.includeDeprecations
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -137,7 +137,7 @@ class Decoration
     oldProperties = @properties
     @properties = newProperties
     @properties.id = @id
-    @emit 'updated', {oldParams: oldProperties, newParams: newProperties}
+    @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecations
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -157,7 +157,7 @@ class Decoration
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
-    @emit 'flash'
+    @emit 'flash' if Grim.includeDeprecations
     @emitter.emit 'did-flash'
 
   consumeNextFlash: ->
