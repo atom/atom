@@ -30,7 +30,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
 
           if grim.getDeprecationsLength() > 0
             grim.logDeprecations()
-            return atom.exit(1) if runner.results().failedCount is 0
+            return atom.exit(1)
 
         if runner.results().failedCount > 0
           atom.exit(1)
