@@ -13,6 +13,10 @@ configureRequest = (requestOptions, callback) ->
   loadNpm ->
     requestOptions.proxy ?= npm.config.get('https-proxy') or npm.config.get('proxy')
     requestOptions.strictSSL ?= npm.config.get('strict-ssl')
+
+    # Bump request timeout on CI to 30 minutes
+    requestOptions.timeout = 30 * 60 * 1000 if process.env.JANKY_SHA1
+
     userAgent = npm.config.get('user-agent') ? "AtomApm/#{require('../package.json').version}"
     requestOptions.headers ?= {}
     requestOptions.headers['User-Agent'] ?= userAgent
