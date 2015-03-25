@@ -1,6 +1,6 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 Grim = require 'grim'
 
 # Essential: Represents a buffer annotation that remains logically stationary
@@ -57,6 +57,7 @@ class Marker
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
     @id = @bufferMarker.id
     @oldHeadBufferPosition = @getHeadBufferPosition()
     @oldHeadScreenPosition = @getHeadScreenPosition()
@@ -64,14 +65,14 @@ class Marker
     @oldTailScreenPosition = @getTailScreenPosition()
     @wasValid = @isValid()
 
-    @subscribe @bufferMarker.onDidDestroy => @destroyed()
-    @subscribe @bufferMarker.onDidChange (event) => @notifyObservers(event)
+    @disposables.add @bufferMarker.onDidDestroy => @destroyed()
+    @disposables.add @bufferMarker.onDidChange (event) => @notifyObservers(event)
 
   # Essential: Destroys the marker, causing it to emit the 'destroyed' event. Once
   # destroyed, a marker cannot be restored by undo/redo operations.
   destroy: ->
     @bufferMarker.destroy()
-    @unsubscribe()
+    @disposables.dispose()
 
   # Essential: Creates and returns a new {Marker} with the same properties as this
   # marker.
@@ -375,10 +376,8 @@ class Marker
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
 
 if Grim.includeDeprecations
-  {Subscriber} = require 'emissary'
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Marker)
-  Subscriber.includeInto(Marker)
 
   Marker::on = (eventName) ->
     switch eventName
