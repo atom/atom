@@ -30,7 +30,6 @@ nextId = -> idCounter++
 # the marker.
 module.exports =
 class Decoration
-  EmitterMixin.includeInto(this)
 
   # Private: Check if the `decorationProperties.type` matches `type`
   #
@@ -123,9 +122,6 @@ class Decoration
   # Essential: Returns the {Decoration}'s properties.
   getProperties: ->
     @properties
-  getParams: ->
-    Grim.deprecate 'Use Decoration::getProperties instead'
-    @getProperties()
 
   # Essential: Update the marker with new Properties. Allows you to change the decoration's class.
   #
@@ -143,9 +139,6 @@ class Decoration
     @properties.id = @id
     @emit 'updated', {oldParams: oldProperties, newParams: newProperties}
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
-  update: (newProperties) ->
-    Grim.deprecate 'Use Decoration::setProperties instead'
-    @setProperties(newProperties)
 
   ###
   Section: Private methods
@@ -171,7 +164,10 @@ class Decoration
     return @flashQueue.shift() if @flashQueue?.length > 0
     null
 
-  on: (eventName) ->
+if Grim.includeDeprecations
+  EmitterMixin.includeInto(Decoration)
+
+  Decoration::on = (eventName) ->
     switch eventName
       when 'updated'
         Grim.deprecate 'Use Decoration::onDidChangeProperties instead'
@@ -183,3 +179,11 @@ class Decoration
         Grim.deprecate 'Decoration::on is deprecated. Use event subscription methods instead.'
 
     EmitterMixin::on.apply(this, arguments)
+
+  Decoration::getParams = ->
+    Grim.deprecate 'Use Decoration::getProperties instead'
+    @getProperties()
+
+  Decoration::update = -> (newProperties) ->
+    Grim.deprecate 'Use Decoration::setProperties instead'
+    @setProperties(newProperties)
