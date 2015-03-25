@@ -581,9 +581,9 @@ class Atom extends Model
     {resourcePath, safeMode} = @getLoadSettings()
 
     CommandInstaller = require './command-installer'
-    CommandInstaller.installAtomCommand resourcePath, false, (error) ->
+    CommandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
-    CommandInstaller.installApmCommand resourcePath, false, (error) ->
+    CommandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
     dimensions = @restoreWindowDimensions()
