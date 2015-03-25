@@ -318,8 +318,5 @@ class LinesComponent
         charWidths.push(charWidth)
         charIndex += charLength
 
-    @presenter.setCharWidthsForLineId(lineId, charWidths)
-
-  clearScopedCharWidths: ->
-    @measuredLines.clear()
-    @presenter.clearScopedCharacterWidths()
+    if charWidths.length isnt 0
+      @presenter.setCharWidthsForRow(tokenizedLine.screenRow, charWidths)

@@ -47,7 +47,7 @@ class DisplayBuffer extends Model
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
-    @charWidthsForLineId = {}
+    @charWidthsByRow = {}
     @markers = {}
     @foldsByMarkerId = {}
     @decorationsById = {}
@@ -322,12 +322,11 @@ class DisplayBuffer extends Model
     @scopedCharacterWidthsChangeCount++
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
-  setCharWidthsForLineId: (lineId, charWidths) ->
-    @charWidthsForLineId[lineId] = charWidths
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
+  setCharWidthsForRow: (row, charWidths) ->
+    @charWidthsByRow[row] = charWidths
 
-  getCharWidthForLine: (line, index) ->
-    charWidths = @charWidthsForLineId[line.id] ? []
+  getCharWidthForRow: (row, index) ->
+    charWidths = @charWidthsByRow[row] ? []
     charWidths[index] ? @getDefaultCharWidth()
 
   characterWidthsChanged: ->
@@ -654,7 +653,6 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    index = 0
 
     for token in tokenizedLine.tokens
       valueIndex = 0
@@ -669,9 +667,8 @@ class DisplayBuffer extends Model
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left += @getCharWidthForLine(tokenizedLine, index) unless char is '\0'
+        left += @getCharWidthForRow(targetRow, column) unless char is '\0'
         column += charLength
-        index++
 
     {top, left}
 
@@ -688,7 +685,6 @@ class DisplayBuffer extends Model
 
     left = 0
     column = 0
-    index = 0
 
     for token in tokenizedLine.tokens
       valueIndex = 0
@@ -702,11 +698,10 @@ class DisplayBuffer extends Model
           charLength = 1
           valueIndex++
 
-        charWidth = @getCharWidthForLine(tokenizedLine, index)
+        charWidth = @getCharWidthForRow(row, column)
         break if targetLeft <= left + (charWidth / 2)
         left += charWidth
         column += charLength
-        index++
 
     new Point(row, column)
 
