@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-{deprecate} = require 'grim'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
