@@ -1057,6 +1057,14 @@ class TextEditor extends Model
   deleteToBeginningOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
 
+  # Similar to above, but deletes back to the previous word boundary
+  deleteToPreviousWordBoundary: ->
+    @mutateSelectedText (selection) -> selection.deleteToPreviousWordBoundary()
+
+  # Similar to above, but deletes up to the next word boundary
+  deleteToNextWordBoundary: ->
+    @mutateSelectedText (selection) -> selection.deleteToNextWordBoundary()
+
   # Extended: For each selection, if the selection is empty, delete all characters
   # of the containing line that precede the cursor. Otherwise delete the
   # selected text.
