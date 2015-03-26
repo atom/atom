@@ -57,7 +57,9 @@ createOptions = (filePath) ->
 
 transpile = (sourceCode, filePath, cachePath) ->
   options = createOptions(filePath)
-  tss ?= new (require 'typescript-simple').TypeScriptSimple(options, false)
+  unless tss?
+    {TypeScriptSimple} = require 'typescript-simple'
+    tss = new TypeScriptSimple(options, false)
   js = tss.compile(sourceCode, filePath)
   stats.misses++
 
