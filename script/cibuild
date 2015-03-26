@@ -48,7 +48,7 @@ function removeNodeModules() {
 
 readEnvironmentVariables();
 removeNodeModules();
-cp.safeExec.bind(global, 'npm install npm', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
+cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
   cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
     if (error)
       process.exit(1);
