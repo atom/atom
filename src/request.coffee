@@ -32,6 +32,9 @@ module.exports =
             retryCount--
             tryRequest()
           else
+            if error?.message and requestOptions.retries?
+              error.message += " (#{requestOptions.retries + 1} attempts)"
+
             callback(error, response, body)
       tryRequest()
 
