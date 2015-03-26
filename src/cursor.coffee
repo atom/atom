@@ -15,7 +15,6 @@ class Cursor extends Model
   bufferPosition: null
   goalColumn: null
   visible: true
-  needsAutoscroll: null
 
   # Instantiated by a {TextEditor}
   constructor: ({@editor, @marker, id}) ->
@@ -30,9 +29,7 @@ class Cursor extends Model
       {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
-      # Supports old editor view
-      @needsAutoscroll ?= @isLastCursor() and !textChanged
-      @autoscroll() if @editor.manageScrollPosition and @isLastCursor() and textChanged
+      @autoscroll() if @isLastCursor() and textChanged
 
       @goalColumn = null
 
@@ -53,7 +50,6 @@ class Cursor extends Model
       @emit 'destroyed'
       @emitter.emit 'did-destroy'
       @emitter.dispose()
-    @needsAutoscroll = true
 
   destroy: ->
     @marker.destroy()
@@ -600,7 +596,6 @@ class Cursor extends Model
   setVisible: (visible) ->
     if @visible != visible
       @visible = visible
-      @needsAutoscroll ?= true if @visible and @isLastCursor()
       @emit 'visibility-changed', @visible
       @emitter.emit 'did-change-visibility', @visible
 
@@ -628,7 +623,6 @@ class Cursor extends Model
 
   # Public: Prevents this cursor from causing scrolling.
   clearAutoscroll: ->
-    @needsAutoscroll = null
 
   # Public: Deselects the current selection.
   clearSelection: ->
@@ -656,11 +650,8 @@ class Cursor extends Model
 
   changePosition: (options, fn) ->
     @clearSelection()
-    @needsAutoscroll = options.autoscroll ? @isLastCursor()
     fn()
-    if @needsAutoscroll
-      @emit 'autoscrolled' # Support legacy editor
-      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition # Support react editor view
+    @autoscroll() if options.autoscroll ? @isLastCursor()
 
   getPixelRect: ->
     @editor.pixelRectForScreenRange(@getScreenRange())

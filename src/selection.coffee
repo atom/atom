@@ -14,7 +14,6 @@ class Selection extends Model
   editor: null
   initialScreenRange: null
   wordwise: false
-  needsAutoscroll: null
 
   constructor: ({@cursor, @marker, @editor, id}) ->
     @emitter = new Emitter
@@ -100,15 +99,13 @@ class Selection extends Model
   #   * `autoscroll` if `true`, the {TextEditor} scrolls to the new selection.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
-    @needsAutoscroll = options.autoscroll
     options.reversed ?= @isReversed()
     @editor.destroyFoldsContainingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
-      @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
-      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
+      @autoscroll() if options.autoscroll
       @decoration.flash('flash', @editor.selectionFlashDuration) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
@@ -359,7 +356,6 @@ class Selection extends Model
     @editor.unfoldBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
-    @cursor.needsAutoscroll = @cursor.isLastCursor()
 
     autoIndentFirstLine = false
     precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
@@ -758,7 +754,6 @@ class Selection extends Model
     @editor.scrollToScreenRange(@getScreenRange())
 
   clearAutoscroll: ->
-    @needsAutoscroll = null
 
   modifySelection: (fn) ->
     @retainSelection = true

@@ -921,7 +921,6 @@ describe "TextEditor", ->
 
     describe "autoscroll", ->
       beforeEach ->
-        editor.manageScrollPosition = true
         editor.setVerticalScrollMargin(2)
         editor.setHorizontalScrollMargin(2)
         editor.setLineHeightInPixels(10)
@@ -1254,7 +1253,6 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRange()).toEqual [[0,0], [2,0]]
 
       it "autoscrolls to the selection", ->
-        editor.manageScrollPosition = true
         editor.setLineHeightInPixels(10)
         editor.setDefaultCharWidth(10)
         editor.setHeight(50)
@@ -1523,10 +1521,9 @@ describe "TextEditor", ->
     describe ".setSelectedBufferRange(range)", ->
       describe "when the 'autoscroll' option is true", ->
         it "autoscrolls to the selection", ->
-          editor.manageScrollPosition = true
           editor.setLineHeightInPixels(10)
           editor.setDefaultCharWidth(10)
-          editor.setHeight(50)
+          editor.setHeight(70)
           editor.setWidth(50)
           editor.setHorizontalScrollbarHeight(0)
 
@@ -1560,8 +1557,6 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 0]], [[3, 4], [5, 6]]]
 
       it "autoscrolls to the added selection if needed", ->
-        editor.manageScrollPosition = true
-
         editor.setLineHeightInPixels(10)
         editor.setDefaultCharWidth(10)
         editor.setHeight(50)
@@ -1922,7 +1917,6 @@ describe "TextEditor", ->
             expect(cursor2.getBufferPosition()).toEqual [2, 7]
 
           it "autoscrolls to the last cursor", ->
-            editor.manageScrollPosition = true
             editor.setCursorScreenPosition([1, 2])
             editor.addCursorAtScreenPosition([10, 4])
             editor.setLineHeightInPixels(10)
@@ -4072,8 +4066,6 @@ describe "TextEditor", ->
 
   describe ".pageUp/Down()", ->
     it "scrolls one screen height up or down and moves the cursor one page length", ->
-      editor.manageScrollPosition = true
-
       editor.setLineHeightInPixels(10)
       editor.setHeight(50)
       expect(editor.getScrollHeight()).toBe 130
@@ -4097,8 +4089,6 @@ describe "TextEditor", ->
 
   describe ".selectPageUp/Down()", ->
     it "selects one screen height of text up or down", ->
-      editor.manageScrollPosition = true
-
       editor.setLineHeightInPixels(10)
       editor.setHeight(50)
       expect(editor.getScrollHeight()).toBe 130

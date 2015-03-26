@@ -22,7 +22,6 @@ class DisplayBuffer extends Model
   Serializable.includeInto(this)
 
   @properties
-    manageScrollPosition: false
     softWrapped: null
     editorWidthInChars: null
     lineHeightInPixels: null
@@ -268,10 +267,7 @@ class DisplayBuffer extends Model
 
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
-    if @manageScrollPosition
-      @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
-    else
-      @scrollTop = Math.round(scrollTop)
+    @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
 
   getMaxScrollTop: ->
     @getScrollHeight() - @getClientHeight()
@@ -283,11 +279,7 @@ class DisplayBuffer extends Model
 
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
-    if @manageScrollPosition
-      @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
-      @scrollLeft
-    else
-      @scrollLeft = Math.round(scrollLeft)
+    @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
 
   getMaxScrollLeft: ->
     @getScrollWidth() - @getClientWidth()
@@ -1113,7 +1105,7 @@ class DisplayBuffer extends Model
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
-    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if @manageScrollPosition and delta < 0
+    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]

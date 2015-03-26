@@ -48,7 +48,6 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.getLineCount()).toBe 100 + originalLineCount
 
     it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setHeight(50)
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setScrollTop(80)
@@ -287,7 +286,6 @@ describe "DisplayBuffer", ->
     it "sets ::scrollLeft to 0 and keeps it there when soft wrapping is enabled", ->
       displayBuffer.setDefaultCharWidth(10)
       displayBuffer.setWidth(85)
-      displayBuffer.manageScrollPosition = true
 
       displayBuffer.setSoftWrapped(false)
       displayBuffer.setScrollLeft(Infinity)
@@ -1174,7 +1172,6 @@ describe "DisplayBuffer", ->
 
   describe "::setScrollTop", ->
     beforeEach ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
 
     it "disallows negative values", ->
@@ -1196,7 +1193,6 @@ describe "DisplayBuffer", ->
     describe "when editor.scrollPastEnd is false", ->
       beforeEach ->
         atom.config.set("editor.scrollPastEnd", false)
-        displayBuffer.manageScrollPosition = true
         displayBuffer.setLineHeightInPixels(10)
 
       it "does not add the height of the view to the scroll height", ->
@@ -1209,7 +1205,6 @@ describe "DisplayBuffer", ->
     describe "when editor.scrollPastEnd is true", ->
       beforeEach ->
         atom.config.set("editor.scrollPastEnd", true)
-        displayBuffer.manageScrollPosition = true
         displayBuffer.setLineHeightInPixels(10)
 
       it "adds the height of the view to the scroll height", ->
@@ -1221,7 +1216,6 @@ describe "DisplayBuffer", ->
 
   describe "::setScrollLeft", ->
     beforeEach ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
 
@@ -1242,7 +1236,6 @@ describe "DisplayBuffer", ->
 
   describe "::scrollToScreenPosition(position, [options])", ->
     beforeEach ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
       displayBuffer.setHorizontalScrollbarHeight(0)
@@ -1320,6 +1313,7 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.getVisibleRowRange()).toEqual [0, 0]
 
     it "ends at last buffer row even if there's more space available", ->
+      displayBuffer.setHeight(150)
       displayBuffer.setScrollTop(60)
 
-      expect(displayBuffer.getVisibleRowRange()).toEqual [6, 13]
+      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 13]

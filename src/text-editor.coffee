@@ -76,7 +76,7 @@ class TextEditor extends Model
 
   @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
-    'manageScrollPosition', toProperty: 'displayBuffer'
+    toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @gutterVisible}) ->
     super
@@ -1132,12 +1132,10 @@ class TextEditor extends Model
 
   # Essential: Undo the last change.
   undo: ->
-    @getLastCursor().needsAutoscroll = true
     @buffer.undo(this)
 
   # Essential: Redo the last change.
   redo: ->
-    @getLastCursor().needsAutoscroll = true
     @buffer.redo(this)
 
   # Extended: Batch multiple operations as a single undo/redo step.
@@ -1950,7 +1948,7 @@ class TextEditor extends Model
   addSelectionForBufferRange: (bufferRange, options={}) ->
     @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
     selection = @getLastSelection()
-    selection.autoscroll() if @manageScrollPosition
+    selection.autoscroll()
     selection
 
   # Essential: Add a selection for the given range in screen coordinates.
@@ -1964,7 +1962,7 @@ class TextEditor extends Model
   addSelectionForScreenRange: (screenRange, options={}) ->
     @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
     selection = @getLastSelection()
-    selection.autoscroll() if @manageScrollPosition
+    selection.autoscroll()
     selection
 
   # Essential: Select from the current cursor position to the given position in
