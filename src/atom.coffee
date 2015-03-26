@@ -8,7 +8,6 @@ shell = require 'shell'
 _ = require 'underscore-plus'
 {deprecate, includeDeprecations} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
-{Model} = require 'theorist'
 fs = require 'fs-plus'
 {convertStackTrace, convertLine} = require 'coffeestack'
 
@@ -16,13 +15,16 @@ fs = require 'fs-plus'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 
-SuperClass = if includeDeprecations then Model else Object
+if includeDeprecations
+  {Model} = require 'theorist'
+else
+  Model = require './model'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
 module.exports =
-class Atom extends SuperClass
+class Atom extends Model
   @version: 1  # Increment this when the serialization format changes
 
   # Load or create the Atom environment in the given mode.
