@@ -2,7 +2,7 @@
 # DESCRIPTION:    Image to build Atom and create a .rpm file
 
 # Base docker image
-FROM fedora:20
+FROM fedora:21
 
 # Install dependencies
 RUN yum install -y \
