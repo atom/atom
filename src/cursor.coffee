@@ -1,8 +1,8 @@
 {Point, Range} = require 'text-buffer'
-{Model} = require 'theorist'
 {Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
 Grim = require 'grim'
+Model = require './model'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.

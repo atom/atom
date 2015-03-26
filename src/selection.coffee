@@ -1,8 +1,8 @@
 {Point, Range} = require 'text-buffer'
-{Model} = require 'theorist'
 {pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
+Model = require './model'
 
 NonWhitespaceRegExp = /\S/
 
@@ -27,7 +27,7 @@ class Selection extends Model
       unless @editor.isDestroyed()
         @destroyed = true
         @editor.removeSelection(this)
-        @emit 'destroyed'
+        @emit 'destroyed' if Grim.includeDeprecations
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
@@ -732,7 +732,7 @@ class Selection extends Model
       newScreenRange: @getScreenRange()
       selection: this
 
-    @emit 'screen-range-changed', @getScreenRange() # old event
+    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecations
     @emitter.emit 'did-change-range'
     @editor.selectionRangeChanged(eventObject)
 

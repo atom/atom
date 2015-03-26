@@ -5,7 +5,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
 {includeDeprecations, deprecate} = require 'grim'
-{Model} = require 'theorist'
 {Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
 DefaultDirectoryProvider = require './default-directory-provider'
@@ -13,6 +12,7 @@ Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 Grim = require 'grim'
 
+Model = require './model'
 TextEditor = require './text-editor'
 Task = require './task'
 GitRepositoryProvider = require './git-repository-provider'
@@ -178,7 +178,7 @@ class Project extends Model
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
-    @emit "path-changed"
+    @emit "path-changed" if includeDeprecations
     @emitter.emit 'did-change-paths', projectPaths
 
   # Public: Add a path to the project's list of root paths
@@ -205,7 +205,7 @@ class Project extends Model
     @repositories.push(repo ? null)
 
     unless options?.emitEvent is false
-      @emit "path-changed"
+      @emit "path-changed" if includeDeprecations
       @emitter.emit 'did-change-paths', @getPaths()
 
   # Public: remove a path from the project's list of root paths.
@@ -227,7 +227,7 @@ class Project extends Model
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedDirectory.off()
       removedRepository?.destroy() unless removedRepository in @repositories
-      @emit "path-changed"
+      @emit "path-changed" if includeDeprecations
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
@@ -393,7 +393,7 @@ class Project extends Model
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
     @subscribeToBuffer(buffer)
-    @emit 'buffer-created', buffer
+    @emit 'buffer-created', buffer if includeDeprecations
     @emitter.emit 'did-add-buffer', buffer
     buffer
 
