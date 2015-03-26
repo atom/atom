@@ -12,11 +12,9 @@ RUN yum install -y \
     glibc-devel \
     git-core \
     libgnome-keyring-devel \
-    rpmdevtools
-
-# Install node
-RUN curl -sL https://rpm.nodesource.com/setup | bash -
-RUN yum install -y nodejs
+    rpmdevtools \
+    nodejs \
+    npm
 
 ADD . /atom
 WORKDIR /atom
