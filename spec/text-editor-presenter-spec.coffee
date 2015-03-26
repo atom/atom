@@ -144,7 +144,7 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
           expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 15 * maxLineLength + 1
 
-        it "updates when the scoped character widths change", ->
+        it "updates according to charWidthsForRow", ->
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
           runs ->
@@ -152,7 +152,10 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+
+            editor.setCharWidthsForRow(6, [20, 20])
+            editor.setScrollLeft(1) # triggers a state update
+
             expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
@@ -383,7 +386,8 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
             expect(presenter.getState().hiddenInput.width).toBe 15
 
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            presenter.setCharWidthsForRow(3, [15, 15, 15, 15, 15, 15, 20])
+            editor.setScrollLeft(1) # triggers a state update
             expect(presenter.getState().hiddenInput.width).toBe 20
 
         it "is 2px at the end of lines", ->
@@ -466,7 +470,7 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
           expect(presenter.getState().content.scrollWidth).toBe 15 * maxLineLength + 1
 
-        it "updates when the scoped character widths change", ->
+        it "updates according to charWidthsForRow", ->
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
 
           runs ->
@@ -474,7 +478,10 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+
+            editor.setCharWidthsForRow(6, [20, 20])
+            editor.setScrollLeft(1) # triggers a state update
+
             expect(presenter.getState().content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
@@ -1084,7 +1091,7 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
           expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 20, width: 20, height: 10}
 
-        it "updates when scoped character widths change", ->
+        it "updates according to charWidthsForRow", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-javascript')
 
@@ -1092,10 +1099,12 @@ describe "TextEditorPresenter", ->
             editor.setCursorBufferPosition([1, 4])
             presenter = buildPresenter(explicitHeight: 20)
 
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+            presenter.setCharWidthsForRow(1, [10, 10, 20])
+            presenter.setScrollTop(1) # triggers a state update
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
 
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            presenter.setCharWidthsForRow(1, [10, 10, 20, 10, 20])
+            presenter.setScrollTop(0) # triggers a state update
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
         it "updates when cursors are added, moved, hidden, shown, or destroyed", ->
@@ -1385,7 +1394,7 @@ describe "TextEditorPresenter", ->
             regions: [{top: 2 * 10, left: 2 * 20, width: 2 * 20, height: 10}]
           }
 
-        it "updates when scoped character widths change", ->
+        it "updates according to charWidthsForRow", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-javascript')
 
@@ -1399,7 +1408,9 @@ describe "TextEditorPresenter", ->
             expectValues stateForSelection(presenter, 0), {
               regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
             }
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'keyword.control.js'], 'i', 20)
+
+            editor.setCharWidthsForRow(2, [10, 10, 10, 10, 20])
+            editor.setScrollTop(1) # triggers a state update
             expectValues stateForSelection(presenter, 0), {
               regions: [{top: 2 * 10, left: 4 * 10, width: 20 + 10, height: 10}]
             }

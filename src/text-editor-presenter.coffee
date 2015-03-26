@@ -721,6 +721,7 @@ class TextEditorPresenter
     unless @baseCharacterWidth is baseCharacterWidth
       @baseCharacterWidth = baseCharacterWidth
       @model.setDefaultCharWidth(baseCharacterWidth)
+      @characterWidthsDidChange = true
       @characterWidthsChanged()
 
   batchCharacterMeasurement: (fn) ->
