@@ -243,7 +243,9 @@ class Install extends Command
       json: true
     request.get requestSettings, (error, response, body={}) ->
       if error?
-        callback("Request for package information failed: #{error.message}")
+        message = "Request for package information failed: #{error.message}"
+        message += " (#{error.code})" if error.code
+        callback(message)
       else if response.statusCode isnt 200
         message = request.getErrorMessage(response, body)
         callback("Request for package information failed: #{message}")
