@@ -1240,9 +1240,13 @@ describe "DisplayBuffer", ->
       displayBuffer.setDefaultCharWidth(10)
       displayBuffer.setHorizontalScrollbarHeight(0)
       displayBuffer.setHeight(50)
-      displayBuffer.setWidth(50)
+      displayBuffer.setWidth(150)
 
     it "sets the scroll top and scroll left so the given screen position is in view", ->
+      displayBuffer.scrollToScreenPosition([8, 20])
+      expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
+      expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
+
       displayBuffer.scrollToScreenPosition([8, 20])
       expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
       expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10

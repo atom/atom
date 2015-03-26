@@ -351,11 +351,11 @@ describe "TextEditorPresenter", ->
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
 
           expectStateUpdate presenter, -> editor.setCursorBufferPosition([11, 43])
-          expectValues presenter.getState().hiddenInput, {top: 50 - 10, left: 300 - 10}
+          expectValues presenter.getState().hiddenInput, {top: 11 * 10 - editor.getScrollTop(), left: 43 * 10 - editor.getScrollLeft()}
 
           newCursor = null
           expectStateUpdate presenter, -> newCursor = editor.addCursorAtBufferPosition([6, 10])
-          expectValues presenter.getState().hiddenInput, {top: (6 * 10) - 40, left: (10 * 10) - 70}
+          expectValues presenter.getState().hiddenInput, {top: (6 * 10) - editor.getScrollTop(), left: (10 * 10) - editor.getScrollLeft()}
 
           expectStateUpdate presenter, -> newCursor.destroy()
           expectValues presenter.getState().hiddenInput, {top: 50 - 10, left: 300 - 10}

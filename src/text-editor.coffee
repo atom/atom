@@ -1947,9 +1947,7 @@ class TextEditor extends Model
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
     @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
-    selection = @getLastSelection()
-    selection.autoscroll()
-    selection
+    @getLastSelection()
 
   # Essential: Add a selection for the given range in screen coordinates.
   #
@@ -1961,9 +1959,7 @@ class TextEditor extends Model
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
     @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
-    selection = @getLastSelection()
-    selection.autoscroll()
-    selection
+    @getLastSelection()
 
   # Essential: Select from the current cursor position to the given position in
   # buffer coordinates.
@@ -2269,11 +2265,14 @@ class TextEditor extends Model
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections(preserveFolds: marker.getProperties().preserveFolds)
+
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)
+          selection.autoscroll()
           return selection
     else
+      selection.autoscroll()
       @emit 'selection-added', selection
       @emitter.emit 'did-add-selection', selection
       selection

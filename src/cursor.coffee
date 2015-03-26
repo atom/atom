@@ -29,8 +29,6 @@ class Cursor extends Model
       {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
 
-      @autoscroll() if @isLastCursor() and textChanged
-
       @goalColumn = null
 
       movedEvent =
@@ -651,7 +649,7 @@ class Cursor extends Model
   changePosition: (options, fn) ->
     @clearSelection()
     fn()
-    @autoscroll() if options.autoscroll ? @isLastCursor()
+    @autoscroll() if options.autoscroll
 
   getPixelRect: ->
     @editor.pixelRectForScreenRange(@getScreenRange())

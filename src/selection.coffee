@@ -733,6 +733,12 @@ class Selection extends Model
     {oldHeadBufferPosition, oldTailBufferPosition} = e
     {oldHeadScreenPosition, oldTailScreenPosition} = e
 
+    if this is @editor.getLastSelection()
+      if @marker.hasTail()
+        @autoscroll()
+      else
+        @cursor.autoscroll()
+
     eventObject =
       oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition)
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition)
@@ -751,7 +757,7 @@ class Selection extends Model
       @linewise = false
 
   autoscroll: ->
-    @editor.scrollToScreenRange(@getScreenRange())
+    @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
 
   clearAutoscroll: ->
 
