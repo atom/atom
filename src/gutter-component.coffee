@@ -19,7 +19,7 @@ class GutterComponent
     @domNode.addEventListener 'mousedown', @onMouseDown
 
   updateSync: (state) ->
-    @newState = state.gutter
+    @newState = state.lineNumberGutter
     @oldState ?= {lineNumbers: {}}
 
     @appendDummyLineNumber() unless @dummyLineNumberNode?

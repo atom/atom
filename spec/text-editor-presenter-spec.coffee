@@ -1766,107 +1766,106 @@ describe "TextEditorPresenter", ->
                 pixelPosition: {top: 10, left: 0}
               }
 
-
-    describe ".gutter", ->
+    describe ".lineNumberGutter", ->
       describe ".scrollHeight", ->
         it "is initialized based on ::lineHeight, the number of lines, and ::explicitHeight", ->
           presenter = buildPresenter()
-          expect(presenter.getState().gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe editor.getScreenLineCount() * 10
 
           presenter = buildPresenter(explicitHeight: 500)
-          expect(presenter.getState().gutter.scrollHeight).toBe 500
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe 500
 
         it "updates when the ::lineHeight changes", ->
           presenter = buildPresenter()
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
-          expect(presenter.getState().gutter.scrollHeight).toBe editor.getScreenLineCount() * 20
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe editor.getScreenLineCount() * 20
 
         it "updates when the line count changes", ->
           presenter = buildPresenter()
           expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
-          expect(presenter.getState().gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe editor.getScreenLineCount() * 10
 
         it "updates when ::explicitHeight changes", ->
           presenter = buildPresenter()
           expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
-          expect(presenter.getState().gutter.scrollHeight).toBe 500
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe 500
 
         it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutter.scrollHeight).toBe presenter.contentHeight
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe presenter.contentHeight
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-          expect(presenter.getState().gutter.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().gutter.scrollHeight).toBe presenter.contentHeight
+          expect(presenter.getState().lineNumberGutter.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 20)
-          expect(presenter.getState().gutter.scrollTop).toBe 10
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
-          expect(presenter.getState().gutter.scrollTop).toBe 50
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe 50
 
         it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
-          expect(presenter.getState().gutter.scrollTop).toBe scrollTopBefore
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe scrollTopBefore
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
-          expect(presenter.getState().gutter.scrollTop).toBe 0
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe 0
 
         it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
           atom.config.set("editor.scrollPastEnd", true)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+          expect(presenter.getState().lineNumberGutter.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".backgroundColor", ->
         it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
           presenter = buildPresenter(backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(0, 255, 0, 0)"
+          expect(presenter.getState().lineNumberGutter.backgroundColor).toBe "rgba(0, 255, 0, 0)"
 
           expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 255, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+          expect(presenter.getState().lineNumberGutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
 
           expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(255, 0, 0, 0)"
+          expect(presenter.getState().lineNumberGutter.backgroundColor).toBe "rgba(255, 0, 0, 0)"
 
           expectStateUpdate presenter, -> presenter.setBackgroundColor("rgba(0, 0, 255, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+          expect(presenter.getState().lineNumberGutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
 
       describe ".maxLineNumberDigits", ->
         it "is set to the number of digits used by the greatest line number", ->
           presenter = buildPresenter()
           expect(editor.getLastBufferRow()).toBe 12
-          expect(presenter.getState().gutter.maxLineNumberDigits).toBe 2
+          expect(presenter.getState().lineNumberGutter.maxLineNumberDigits).toBe 2
 
           editor.setText("1\n2\n3")
-          expect(presenter.getState().gutter.maxLineNumberDigits).toBe 1
+          expect(presenter.getState().lineNumberGutter.maxLineNumberDigits).toBe 1
 
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
@@ -1878,7 +1877,7 @@ describe "TextEditorPresenter", ->
           else
             key = bufferRow
 
-          presenter.getState().gutter.lineNumbers[key]
+          presenter.getState().lineNumberGutter.lineNumbers[key]
 
         it "contains states for line numbers that are visible on screen, plus and minus the overdraw margin", ->
           editor.foldBufferRow(4)
@@ -2170,28 +2169,28 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter()
 
           expect(editor.isLineNumberGutterVisible()).toBe true
-          expect(presenter.getState().gutter.visible).toBe true
+          expect(presenter.getState().lineNumberGutter.visible).toBe true
 
           expectStateUpdate presenter, -> editor.setMini(true)
-          expect(presenter.getState().gutter.visible).toBe false
+          expect(presenter.getState().lineNumberGutter.visible).toBe false
 
           expectStateUpdate presenter, -> editor.setMini(false)
-          expect(presenter.getState().gutter.visible).toBe true
+          expect(presenter.getState().lineNumberGutter.visible).toBe true
 
           expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
-          expect(presenter.getState().gutter.visible).toBe false
+          expect(presenter.getState().lineNumberGutter.visible).toBe false
 
           expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
-          expect(presenter.getState().gutter.visible).toBe true
+          expect(presenter.getState().lineNumberGutter.visible).toBe true
 
           expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
-          expect(presenter.getState().gutter.visible).toBe false
+          expect(presenter.getState().lineNumberGutter.visible).toBe false
 
         it "updates when the editor's grammar changes", ->
           presenter = buildPresenter()
 
           atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
-          expect(presenter.getState().gutter.visible).toBe true
+          expect(presenter.getState().lineNumberGutter.visible).toBe true
           stateUpdated = false
           presenter.onDidUpdateState -> stateUpdated = true
 
@@ -2199,7 +2198,7 @@ describe "TextEditorPresenter", ->
 
           runs ->
             expect(stateUpdated).toBe true
-            expect(presenter.getState().gutter.visible).toBe false
+            expect(presenter.getState().lineNumberGutter.visible).toBe false
 
     describe ".height", ->
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->

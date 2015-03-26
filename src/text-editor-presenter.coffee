@@ -169,7 +169,7 @@ class TextEditorPresenter
         lines: {}
         highlights: {}
         overlays: {}
-      gutter:
+      lineNumberGutter:
         lineNumbers: {}
     @updateState()
 
@@ -204,11 +204,11 @@ class TextEditorPresenter
 
   updateVerticalScrollState: -> @batch "shouldUpdateVerticalScrollState", ->
     @state.content.scrollHeight = @scrollHeight
-    @state.gutter.scrollHeight = @scrollHeight
+    @state.lineNumberGutter.scrollHeight = @scrollHeight
     @state.verticalScrollbar.scrollHeight = @scrollHeight
 
     @state.content.scrollTop = @scrollTop
-    @state.gutter.scrollTop = @scrollTop
+    @state.lineNumberGutter.scrollTop = @scrollTop
     @state.verticalScrollbar.scrollTop = @scrollTop
 
   updateHorizontalScrollState: -> @batch "shouldUpdateHorizontalScrollState", ->
@@ -364,9 +364,9 @@ class TextEditorPresenter
     return
 
   updateLineNumberGutterState: -> @batch "shouldUpdateLineNumberGutterState", ->
-    @state.gutter.visible = not @model.isMini() and (@model.isLineNumberGutterVisible() ? true) and @showLineNumbers
-    @state.gutter.maxLineNumberDigits = @model.getLineCount().toString().length
-    @state.gutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
+    @state.lineNumberGutter.visible = not @model.isMini() and (@model.isLineNumberGutterVisible() ? true) and @showLineNumbers
+    @state.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
+    @state.lineNumberGutter.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
       @gutterBackgroundColor
     else
       @backgroundColor
@@ -401,7 +401,7 @@ class TextEditorPresenter
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        @state.gutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        @state.lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
 
     if @mouseWheelScreenRow?
@@ -411,8 +411,8 @@ class TextEditorPresenter
       id += '-' + wrapCount if wrapCount > 0
       visibleLineNumberIds[id] = true
 
-    for id of @state.gutter.lineNumbers
-      delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
+    for id of @state.lineNumberGutter.lineNumbers
+      delete @state.lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
 

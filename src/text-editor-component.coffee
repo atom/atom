@@ -70,7 +70,7 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @mountGutterComponent() if @presenter.getState().gutter.visible
+    @mountGutterComponent() if @presenter.getState().lineNumberGutter.visible
 
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.domNode)
@@ -134,7 +134,7 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
-    if @newState.gutter.visible
+    if @newState.lineNumberGutter.visible
       @mountGutterComponent() unless @gutterComponent?
       @gutterComponent.updateSync(@newState)
     else
