@@ -13,6 +13,8 @@ class Model
 
   @resetNextInstanceId: -> nextInstanceId = 1
 
+  alive: true
+
   constructor: (params) ->
     @assignId(params?.id)
 
