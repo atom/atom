@@ -110,7 +110,7 @@ class TextEditorComponent
     @oldState ?= {}
     @newState = @presenter.getPreMeasureState()
 
-    shouldMeasure = @isVisible() and not @newState.content.scrollingVertically
+    shouldMeasure = @isVisible()
     @linesComponent.preMeasureUpdateSync(@newState, shouldMeasure)
 
   postMeasureUpdateSync: ->

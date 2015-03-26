@@ -48,7 +48,9 @@ class LinesComponent
 
   preMeasureUpdateSync: (state, shouldMeasure) ->
     @newState = state.content
-    @oldState ?= {lines:{}}
+    @oldState ?= {lines: {}}
+    @changedLines = {}
+
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
 
@@ -96,9 +98,12 @@ class LinesComponent
     return
 
   removeLineNode: (id) ->
+    screenRow = @screenRowsByLineId[id]
+    @changedLines[screenRow] = true
+
     @lineNodesByLineId[id].remove()
     delete @lineNodesByLineId[id]
-    delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
+    delete @lineIdsByScreenRow[screenRow]
     delete @screenRowsByLineId[id]
     delete @oldState.lines[id]
 
@@ -114,6 +119,8 @@ class LinesComponent
       if @oldState.lines.hasOwnProperty(id)
         @updateLineNode(id)
       else
+        @changedLines[lineState.screenRow] = true
+
         newLineIds ?= []
         newLinesHTML ?= ""
         newLineIds.push(id)
@@ -233,6 +240,7 @@ class LinesComponent
     lineNode = @lineNodesByLineId[id]
 
     if @newState.scrollWidth isnt @oldState.scrollWidth
+      @changedLines[newLineState.screenRow] = true
       lineNode.style.width = @newState.scrollWidth + 'px'
 
     newDecorationClasses = newLineState.decorationClasses
@@ -241,20 +249,24 @@ class LinesComponent
     if oldDecorationClasses?
       for decorationClass in oldDecorationClasses
         unless newDecorationClasses? and decorationClass in newDecorationClasses
+          @changedLines[newLineState.screenRow] = true
           lineNode.classList.remove(decorationClass)
 
     if newDecorationClasses?
       for decorationClass in newDecorationClasses
         unless oldDecorationClasses? and decorationClass in oldDecorationClasses
+          @changedLines[newLineState.screenRow] = true
           lineNode.classList.add(decorationClass)
 
     oldLineState.decorationClasses = newLineState.decorationClasses
 
     if newLineState.top isnt oldLineState.top
+      @changedLines[newLineState.screenRow] = true
       lineNode.style.top = newLineState.top + 'px'
       oldLineState.top = newLineState.top
 
     if newLineState.screenRow isnt oldLineState.screenRow
+      @changedLines[newLineState.screenRow] = true
       lineNode.dataset.screenRow = newLineState.screenRow
       oldLineState.screenRow = newLineState.screenRow
       @lineIdsByScreenRow[newLineState.screenRow] = id
@@ -280,7 +292,7 @@ class LinesComponent
     fn = =>
       for id, lineState of @newState.lines
         lineNode = @lineNodesByLineId[id]
-        @measureCharactersInLine(id, lineState, lineNode)
+        @measureCharactersInLine(id, lineState, lineNode) if @changedLines.hasOwnProperty(lineState.screenRow)
       return
 
     if batch
