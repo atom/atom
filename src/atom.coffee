@@ -10,15 +10,10 @@ _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {convertStackTrace, convertLine} = require 'coffeestack'
-
+Model = require './model'
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
-
-if includeDeprecations
-  {Model} = require 'theorist'
-else
-  Model = require './model'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
