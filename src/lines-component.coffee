@@ -277,9 +277,13 @@ class LinesComponent
     @measureCharactersInVisibleLines()
 
   measureCharactersInVisibleLines: (batch = true) ->
-    batchFn = (fn) => fn()
-    batchFn = (fn) => @presenter.batchCharacterMeasurement(fn) if batch
-    batchFn =>
+    if batch
+      @presenter.batchCharacterMeasurement =>
+        for id, lineState of @newState.lines
+          lineNode = @lineNodesByLineId[id]
+          @measureCharactersInLine(id, lineState, lineNode)
+        return
+    else
       for id, lineState of @newState.lines
         lineNode = @lineNodesByLineId[id]
         @measureCharactersInLine(id, lineState, lineNode)

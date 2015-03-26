@@ -315,10 +315,9 @@ class TextEditorPresenter
     @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
     return
 
-  updateCursorState: (cursor, destroyOnly = false) ->
+  updateCursorState: (cursor) ->
     delete @state.content.cursors[cursor.id]
 
-    return if destroyOnly
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
     return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
 
@@ -995,17 +994,17 @@ class TextEditorPresenter
     didChangePositionDisposable = cursor.onDidChangePosition =>
       @updateHiddenInputState() if cursor.isLastCursor()
       @pauseCursorBlinking()
-      @updateCursorState(cursor)
+      @updateCursorsState()
 
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
-      @updateCursorState(cursor)
+      @updateCursorsState()
 
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
       @updateHiddenInputState()
-      @updateCursorState(cursor, true)
+      @updateCursorsState()
 
     @disposables.add(didChangePositionDisposable)
     @disposables.add(didChangeVisibilityDisposable)
@@ -1015,7 +1014,7 @@ class TextEditorPresenter
     @observeCursor(cursor)
     @updateHiddenInputState()
     @pauseCursorBlinking()
-    @updateCursorState(cursor)
+    @updateCursorsState()
 
   startBlinkingCursors: ->
     unless @toggleCursorBlinkHandle
