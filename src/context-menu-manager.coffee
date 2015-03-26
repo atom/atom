@@ -1,6 +1,4 @@
-{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-remote = require 'remote'
 path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
@@ -189,7 +187,7 @@ class ContextMenuManager
     menuTemplate = @templateForEvent(event)
 
     return unless menuTemplate?.length > 0
-    remote.getCurrentWindow().emit('context-menu', menuTemplate)
+    atom.getCurrentWindow().emit('context-menu', menuTemplate)
     return
 
   clear: ->

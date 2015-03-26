@@ -1,4 +1,3 @@
-{Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 Grim = require 'grim'

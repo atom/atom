@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-EmitterMixin = require('emissary').Emitter
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
@@ -165,6 +164,7 @@ class Decoration
     null
 
 if Grim.includeDeprecations
+  EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Decoration)
 
   Decoration::on = (eventName) ->

@@ -5,7 +5,6 @@ Serializable = require 'serializable'
 Grim = require 'grim'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
-PaneView = null
 
 # Extended: A container for presenting content in the center of the workspace.
 # Panes can contain multiple items, one of which is *active* at a given time.

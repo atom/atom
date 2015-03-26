@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-EmitterMixin = require('emissary').Emitter
 Serializable = require 'serializable'
 {Model} = require 'theorist'
 {CompositeDisposable, Emitter} = require 'event-kit'
@@ -1229,6 +1228,8 @@ class DisplayBuffer extends Model
     @foldsByMarkerId[marker.id]
 
 if Grim.includeDeprecations
+  EmitterMixin = require('emissary').Emitter
+
   DisplayBuffer::on = (eventName) ->
     switch eventName
       when 'changed'
