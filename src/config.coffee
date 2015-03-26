@@ -377,10 +377,10 @@ class Config
         Pass a `scope` in an options hash as the third argument instead.
       """
       [scopeDescriptor, keyPath, callback] = arguments
-    else if Grim.includeDeprecations and arguments.length is 3 and (_.isString(arguments[0]) and _.isObject(arguments[1]))
+    else if arguments.length is 3 and (_.isString(arguments[0]) and _.isObject(arguments[1]))
       [keyPath, options, callback] = arguments
       scopeDescriptor = options.scope
-      if options.callNow?
+      if Grim.includeDeprecations and options.callNow?
         Grim.deprecate """
           Config::observe no longer takes a `callNow` option. Use ::onDidChange instead.
           Note that ::onDidChange passes its callback different arguments.
