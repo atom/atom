@@ -25,7 +25,15 @@ configureRequest = (requestOptions, callback) ->
 module.exports =
   get: (requestOptions, callback) ->
     configureRequest requestOptions, ->
-      request.get(requestOptions, callback)
+      retryCount = requestOptions.retries ? 0
+      tryRequest = ->
+        request.get requestOptions, (error, response, body) ->
+          if error?.code is 'ETIMEDOUT' and retryCount > 0
+            retryCount--
+            tryRequest()
+          else
+            callback(error, response, body)
+      tryRequest()
 
   del: (requestOptions, callback) ->
     configureRequest requestOptions, ->

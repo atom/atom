@@ -242,6 +242,7 @@ class Install extends Command
     requestSettings =
       url: "#{config.getAtomPackagesUrl()}/#{packageName}"
       json: true
+      retries: 4
     request.get requestSettings, (error, response, body={}) ->
       if error?
         message = "Request for package information failed: #{error.message}"
