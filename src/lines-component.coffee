@@ -54,9 +54,7 @@ class LinesComponent
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
 
-    if shouldMeasure
-      @measureCharactersInVisibleLines(false)
-      @presenter.markCharWidthsAsValid()
+    @measureCharactersInVisibleLines(false) if shouldMeasure
 
   postMeasureUpdateSync: (state) ->
     @newState = state.content

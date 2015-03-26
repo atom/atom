@@ -122,7 +122,6 @@ class TextEditorPresenter
       @updateLinesState()
       @updateGutterState()
       @updateLineNumbersState()
-      @invalidateCharWidths()
     @disposables.add @model.onDidChangeCharacterWidths =>
       @characterWidthsDidChange = true
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
@@ -210,12 +209,6 @@ class TextEditorPresenter
     @updateOverlaysState()
     @updateGutterState()
     @updateLineNumbersState()
-
-  invalidateCharWidths: ->
-    @state.content.hasInvalidCharWidths = true
-
-  markCharWidthsAsValid: ->
-    @state.content.hasInvalidCharWidths = false
 
   updateFocusedState: -> @batch "shouldUpdateFocusedState", ->
     @state.focused = @focused
