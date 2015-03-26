@@ -488,47 +488,48 @@ class Selection extends Model
   #
   # If there selection spans more than one line, all the lines are joined together.
   joinLines: ->
-    selectedRange = @getBufferRange()
-    if selectedRange.isEmpty()
-      return if selectedRange.start.row is @editor.buffer.getLastRow()
-    else
-      joinMarker = @editor.markBufferRange(selectedRange, invalidationStrategy: 'never')
+    @cursor.autoscroll =>
+      selectedRange = @getBufferRange()
+      if selectedRange.isEmpty()
+        return if selectedRange.start.row is @editor.buffer.getLastRow()
+      else
+        joinMarker = @editor.markBufferRange(selectedRange, invalidationStrategy: 'never')
 
-    rowCount = Math.max(1, selectedRange.getRowCount() - 1)
-    for row in [0...rowCount]
-      @cursor.setBufferPosition([selectedRange.start.row])
-      @cursor.moveToEndOfLine()
+      rowCount = Math.max(1, selectedRange.getRowCount() - 1)
+      for row in [0...rowCount]
+        @cursor.setBufferPosition([selectedRange.start.row])
+        @cursor.moveToEndOfLine()
 
-      # Remove trailing whitespace from the current line
-      scanRange = @cursor.getCurrentLineBufferRange()
-      trailingWhitespaceRange = null
-      @editor.scanInBufferRange /[ \t]+$/, scanRange, ({range}) ->
-        trailingWhitespaceRange = range
-      if trailingWhitespaceRange?
-        @setBufferRange(trailingWhitespaceRange)
+        # Remove trailing whitespace from the current line
+        scanRange = @cursor.getCurrentLineBufferRange()
+        trailingWhitespaceRange = null
+        @editor.scanInBufferRange /[ \t]+$/, scanRange, ({range}) ->
+          trailingWhitespaceRange = range
+        if trailingWhitespaceRange?
+          @setBufferRange(trailingWhitespaceRange)
+          @deleteSelectedText()
+
+        currentRow = selectedRange.start.row
+        nextRow = currentRow + 1
+        insertSpace = nextRow <= @editor.buffer.getLastRow() and
+                      @editor.buffer.lineLengthForRow(nextRow) > 0 and
+                      @editor.buffer.lineLengthForRow(currentRow) > 0
+        @insertText(' ') if insertSpace
+
+        @cursor.moveToEndOfLine()
+
+        # Remove leading whitespace from the line below
+        @modifySelection =>
+          @cursor.moveRight()
+          @cursor.moveToFirstCharacterOfLine()
         @deleteSelectedText()
 
-      currentRow = selectedRange.start.row
-      nextRow = currentRow + 1
-      insertSpace = nextRow <= @editor.buffer.getLastRow() and
-                    @editor.buffer.lineLengthForRow(nextRow) > 0 and
-                    @editor.buffer.lineLengthForRow(currentRow) > 0
-      @insertText(' ') if insertSpace
+        @cursor.moveLeft() if insertSpace
 
-      @cursor.moveToEndOfLine()
-
-      # Remove leading whitespace from the line below
-      @modifySelection =>
-        @cursor.moveRight()
-        @cursor.moveToFirstCharacterOfLine()
-      @deleteSelectedText()
-
-      @cursor.moveLeft() if insertSpace
-
-    if joinMarker?
-      newSelectedRange = joinMarker.getBufferRange()
-      @setBufferRange(newSelectedRange)
-      joinMarker.destroy()
+      if joinMarker?
+        newSelectedRange = joinMarker.getBufferRange()
+        @setBufferRange(newSelectedRange)
+        joinMarker.destroy()
 
   # Public: Removes one level of indent from the currently selected rows.
   outdentSelectedRows: ->

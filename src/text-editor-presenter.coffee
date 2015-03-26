@@ -70,6 +70,7 @@ class TextEditorPresenter
   getState: ->
     @updating = true
 
+    # Always update these to avoid state corruption
     @updateContentDimensions()
     @updateScrollbarDimensions()
     @updateStartRow()
@@ -158,6 +159,7 @@ class TextEditorPresenter
     @updateGutterState()
 
   buildState: ->
+    @flashes = {}
     @state =
       horizontalScrollbar: {}
       verticalScrollbar: {}
@@ -300,10 +302,7 @@ class TextEditorPresenter
     @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
     return
 
-  updateCursorState: (cursor, destroyOnly = false) ->
-    delete @state.content.cursors[cursor.id]
-
-    return if destroyOnly
+  updateCursorState: (cursor) ->
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
     return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
 
@@ -794,7 +793,7 @@ class TextEditorPresenter
     decorationDisposables = new CompositeDisposable
     decorationDisposables.add decoration.getMarker().onDidChange(@decorationMarkerDidChange.bind(this, decoration))
     if decoration.isType('highlight')
-      decorationDisposables.add decoration.onDidChangeProperties(@updateHighlightState.bind(this, decoration))
+      decorationDisposables.add decoration.onDidChangeProperties => @updateDecorations()
       decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
     decorationDisposables.add decoration.onDidDestroy =>
       @disposables.remove(decorationDisposables)
@@ -825,7 +824,7 @@ class TextEditorPresenter
     if decoration.isType('highlight')
       return if change.textChanged
 
-      @updateHighlightState(decoration)
+      @updateDecorations()
 
     if decoration.isType('overlay')
       @updateOverlaysState()
@@ -836,17 +835,22 @@ class TextEditorPresenter
       @updateLinesState() if decoration.isType('line')
       @updateLineNumbersState() if decoration.isType('line-number')
     if decoration.isType('highlight')
-      @updateHighlightState(decoration)
+      @updateDecorations()
     if decoration.isType('overlay')
       @updateOverlaysState()
 
   highlightDidFlash: (decoration) ->
     flash = decoration.consumeNextFlash()
-    if decorationState = @state.content.highlights[decoration.id]
-      decorationState.flashCount++
-      decorationState.flashClass = flash.class
-      decorationState.flashDuration = flash.duration
-      @emitDidUpdateState()
+
+    @flashes[decoration.id] ?=
+      flashCount: 0
+      flashClass: ""
+      flashDuration: 0
+    @flashes[decoration.id].flashCount++
+    @flashes[decoration.id].flashClass = flash.class
+    @flashes[decoration.id].flashDuration = flash.duration
+
+    @updateDecorations()
 
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
@@ -856,7 +860,7 @@ class TextEditorPresenter
       @updateLinesState() if decoration.isType('line')
       @updateLineNumbersState() if decoration.isType('line-number')
     else if decoration.isType('highlight')
-      @updateHighlightState(decoration)
+      @updateDecorations()
     else if decoration.isType('overlay')
       @updateOverlaysState()
 
@@ -879,6 +883,7 @@ class TextEditorPresenter
     for id of @state.content.highlights
       unless visibleHighlights[id]
         delete @state.content.highlights[id]
+        delete @flashes[id]
 
     return
 
@@ -921,9 +926,8 @@ class TextEditorPresenter
     marker = decoration.getMarker()
     range = marker.getScreenRange()
 
-    if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
+    if not marker.isValid() or range.isEmpty()
       delete @state.content.highlights[decoration.id]
-      @emitDidUpdateState()
       return
 
     if range.start.row < @startRow
@@ -935,7 +939,6 @@ class TextEditorPresenter
 
     if range.isEmpty()
       delete @state.content.highlights[decoration.id]
-      @emitDidUpdateState()
       return
 
     highlightState = @state.content.highlights[decoration.id] ?= {
@@ -943,10 +946,14 @@ class TextEditorPresenter
       flashDuration: null
       flashClass: null
     }
+    flash = @flashes[decoration.id]
+
+    highlightState.flashCount = flash?.flashCount
+    highlightState.flashDuration = flash?.flashDuration
+    highlightState.flashClass = flash?.flashClass
     highlightState.class = properties.class
     highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
     highlightState.regions = @buildHighlightRegions(range)
-    @emitDidUpdateState()
 
     true
 
@@ -998,17 +1005,17 @@ class TextEditorPresenter
     didChangePositionDisposable = cursor.onDidChangePosition =>
       @updateHiddenInputState() if cursor.isLastCursor()
       @pauseCursorBlinking()
-      @updateCursorState(cursor)
+      @updateCursorsState()
 
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
-      @updateCursorState(cursor)
+      @updateCursorsState()
 
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
       @updateHiddenInputState()
-      @updateCursorState(cursor, true)
+      @updateCursorsState()
 
     @disposables.add(didChangePositionDisposable)
     @disposables.add(didChangeVisibilityDisposable)
@@ -1018,7 +1025,7 @@ class TextEditorPresenter
     @observeCursor(cursor)
     @updateHiddenInputState()
     @pauseCursorBlinking()
-    @updateCursorState(cursor)
+    @updateCursorsState()
 
   startBlinkingCursors: ->
     unless @toggleCursorBlinkHandle
