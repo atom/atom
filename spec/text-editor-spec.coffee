@@ -970,9 +970,8 @@ describe "TextEditor", ->
 
       it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
         editor.setScrollRight(editor.getScrollWidth())
-        editor.setCursorScreenPosition([6, 62])
-
         expect(editor.getScrollRight()).toBe editor.getScrollWidth()
+        editor.setCursorScreenPosition([6, 62], autoscroll: false)
 
         editor.moveLeft()
         expect(editor.getScrollLeft()).toBe 59 * 10
@@ -996,13 +995,21 @@ describe "TextEditor", ->
       it "honors the autoscroll option on cursor and selection manipulation methods", ->
         expect(editor.getScrollTop()).toBe 0
         editor.addCursorAtScreenPosition([11, 11], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.addCursorAtBufferPosition([11, 11], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.setCursorScreenPosition([11, 11], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.setCursorBufferPosition([11, 11], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.addSelectionForBufferRange([[11, 11], [11, 11]], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.addSelectionForScreenRange([[11, 11], [11, 12]], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.setSelectedBufferRange([[11, 0], [11, 1]], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.setSelectedScreenRange([[11, 0], [11, 6]], autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
         editor.clearSelections(autoscroll: false)
         expect(editor.getScrollTop()).toBe 0
 

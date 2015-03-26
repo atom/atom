@@ -1,6 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
-{pick} = require 'underscore-plus'
+{pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
@@ -33,6 +33,9 @@ class Selection extends Model
 
   destroy: ->
     @marker.destroy()
+
+  isLastSelection: ->
+    this is @editor.getLastSelection()
 
   ###
   Section: Event Subscription
@@ -107,10 +110,8 @@ class Selection extends Model
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
-      @editor.suppressAutoscroll = true if options.autoscroll is false
       @marker.setBufferRange(bufferRange, options)
-      @editor.suppressAutoscroll = false if options.autoscroll is false
-      @autoscroll() if options?.autoscroll is true
+      @autoscroll() if options?.autoscroll ? @isLastSelection()
       @decoration.flash('flash', @editor.selectionFlashDuration) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
@@ -192,11 +193,9 @@ class Selection extends Model
   #     range. Defaults to `true` if this is the most recently added selection,
   #     `false` otherwise.
   clear: (options) ->
-    @editor.suppressAutoscroll = true if options?.autoscroll is false
     @marker.setProperties(goalScreenRange: null)
     @marker.clearTail() unless @retainSelection
-    @editor.suppressAutoscroll = false if options?.autoscroll is false
-    @autoscroll() if options?.autoscroll is true
+    @autoscroll() if options?.autoscroll ? @isLastSelection()
     @finalize()
 
   # Public: Selects the text from the current cursor position to a given screen
@@ -406,6 +405,8 @@ class Selection extends Model
         @editor.setIndentationForBufferRow(newBufferRange.end.row, currentIndentation)
     else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
+
+    @autoscroll() if @isLastSelection()
 
     newBufferRange
 
@@ -722,7 +723,7 @@ class Selection extends Model
     else
       options.goalScreenRange = myGoalScreenRange ? otherGoalScreenRange
 
-    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), _.extend(autoscroll: false, options))
     otherSelection.destroy()
 
   ###
@@ -746,12 +747,6 @@ class Selection extends Model
     {oldHeadBufferPosition, oldTailBufferPosition} = e
     {oldHeadScreenPosition, oldTailScreenPosition} = e
 
-    if this is @editor.getLastSelection()
-      if @marker.hasTail()
-        @autoscroll()
-      else
-        @cursor.autoscroll()
-
     eventObject =
       oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition)
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition)
@@ -770,8 +765,10 @@ class Selection extends Model
       @linewise = false
 
   autoscroll: ->
-    unless @editor.suppressAutoscroll
+    if @marker.hasTail()
       @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
+    else
+      @cursor.autoscroll()
 
   clearAutoscroll: ->
 

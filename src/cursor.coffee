@@ -624,8 +624,8 @@ class Cursor extends Model
   clearAutoscroll: ->
 
   # Public: Deselects the current selection.
-  clearSelection: ->
-    @selection?.clear()
+  clearSelection: (options) ->
+    @selection?.clear(options)
 
   # Public: Get the RegExp used by the cursor to determine what a "word" is.
   #
@@ -648,13 +648,9 @@ class Cursor extends Model
   ###
 
   changePosition: (options, fn) ->
-    @clearSelection()
-    @editor.suppressAutoscroll = true if options.autoscroll is false
-    try
-      fn()
-    finally
-      @editor.suppressAutoscroll = false if options?.autoscroll is false
-    @autoscroll() if options.autoscroll is true
+    @clearSelection(options)
+    fn()
+    @autoscroll() if options.autoscroll ? @isLastCursor()
 
   getPixelRect: ->
     @editor.pixelRectForScreenRange(@getScreenRange())
@@ -664,8 +660,7 @@ class Cursor extends Model
     new Range(new Point(row, column), new Point(row, column + 1))
 
   autoscroll: (options) ->
-    unless @editor.suppressAutoscroll
-      @editor.scrollToScreenRange(@getScreenRange(), options)
+    @editor.scrollToScreenRange(@getScreenRange(), options)
 
   getBeginningOfNextParagraphBufferPosition: ->
     start = @getBufferPosition()

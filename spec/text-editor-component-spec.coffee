@@ -1524,7 +1524,7 @@ describe "TextEditorComponent", ->
       expect(inputNode.offsetLeft).toBe 0
 
       # In bounds, not focused
-      editor.setCursorBufferPosition([5, 4])
+      editor.setCursorBufferPosition([5, 4], autoscroll: false)
       nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
@@ -1542,7 +1542,7 @@ describe "TextEditorComponent", ->
       expect(inputNode.offsetLeft).toBe 0
 
       # Out of bounds, not focused
-      editor.setCursorBufferPosition([1, 2])
+      editor.setCursorBufferPosition([1, 2], autoscroll: false)
       nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
