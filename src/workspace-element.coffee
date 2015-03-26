@@ -16,10 +16,10 @@ class WorkspaceElement extends HTMLElement
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecations
 
   attachedCallback: ->
-    callAttachHooks(this)
+    callAttachHooks(this) if Grim.includeDeprecations
     @focus()
 
   detachedCallback: ->
@@ -82,7 +82,7 @@ class WorkspaceElement extends HTMLElement
 
     @appendChild(@panelContainers.modal)
 
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecations
     this
 
   getModel: -> @model

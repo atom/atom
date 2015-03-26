@@ -721,7 +721,9 @@ class Atom extends Model
 
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
-    WorkspaceView = require './workspace-view'
+
+    if includeDeprecations
+      WorkspaceView = require './workspace-view'
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace

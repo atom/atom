@@ -152,9 +152,10 @@ class TextEditorComponent
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
-      @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
-      @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
-      @hostElement.__spacePenView.trigger 'editor:display-updated'
+      if grim.includeDeprecations
+        @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
+        @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
+        @hostElement.__spacePenView.trigger 'editor:display-updated'
 
   readAfterUpdateSync: =>
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
