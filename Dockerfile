@@ -16,5 +16,7 @@ RUN yum install -y \
     nodejs \
     npm
 
+RUN npm install -g npm@1.4.28
+
 ADD . /atom
 WORKDIR /atom
