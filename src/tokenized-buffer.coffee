@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
 {Model} = require 'theorist'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 Serializable = require 'serializable'
 TokenizedLine = require './tokenized-line'
@@ -24,14 +24,18 @@ class TokenizedBuffer extends Model
 
   constructor: ({@buffer, @tabLength, @invisibles}) ->
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
 
-    @subscribe atom.grammars.onDidAddGrammar(@grammarAddedOrUpdated)
-    @subscribe atom.grammars.onDidUpdateGrammar(@grammarAddedOrUpdated)
+    @disposables.add atom.grammars.onDidAddGrammar(@grammarAddedOrUpdated)
+    @disposables.add atom.grammars.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
-    @subscribe @buffer.preemptDidChange (e) => @handleBufferChange(e)
-    @subscribe @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
+    @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
+    @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
     @reloadGrammar()
+
+  destroyed: ->
+    @disposables.dispose()
 
   serializeParams: ->
     bufferPath: @buffer.getPath()
@@ -64,11 +68,14 @@ class TokenizedBuffer extends Model
 
   setGrammar: (grammar, score) ->
     return if grammar is @grammar
-    @unsubscribe(@grammar) if @grammar
+
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
     @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
-    @subscribe @grammar.onDidUpdate => @retokenizeLines()
+
+    @grammarUpdateDisposable?.dispose()
+    @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
+    @disposables.add(@grammarUpdateDisposable)
 
     @configSettings = tabLength: atom.config.get('editor.tabLength', scope: @rootScopeDescriptor)
 
@@ -76,7 +83,7 @@ class TokenizedBuffer extends Model
     @grammarTabLengthSubscription = atom.config.onDidChange 'editor.tabLength', scope: @rootScopeDescriptor, ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
-    @subscribe @grammarTabLengthSubscription
+    @disposables.add(@grammarTabLengthSubscription)
 
     @retokenizeLines()
 
