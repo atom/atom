@@ -8,6 +8,7 @@ class TextEditorPresenter
   startBlinkingCursorsAfterDelay: null
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
+  characterWidthsDidChange: false
 
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft} = params
@@ -121,6 +122,8 @@ class TextEditorPresenter
       @updateLinesState()
       @updateGutterState()
       @updateLineNumbersState()
+    @disposables.add @model.onDidChangeCharacterWidths =>
+      @characterWidthsDidChange = true
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
@@ -723,6 +726,9 @@ class TextEditorPresenter
     @model.setCharWidthsForRow(row, charWidths)
 
   characterWidthsChanged: ->
+    return unless @characterWidthsDidChange
+    @characterWidthsDidChange = false
+
     @updateContentDimensions()
 
     @updateHorizontalScrollState()
