@@ -16,11 +16,13 @@ fs = require 'fs-plus'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 
+SuperClass = if includeDeprecations then Model else Object
+
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
 module.exports =
-class Atom extends Model
+class Atom extends SuperClass
   @version: 1  # Increment this when the serialization format changes
 
   # Load or create the Atom environment in the given mode.
@@ -230,7 +232,7 @@ class Atom extends Model
         @openDevTools()
         @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
 
-      @emit 'uncaught-error', arguments...
+      @emit 'uncaught-error', arguments... if includeDeprecations
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @disposables?.dispose()
