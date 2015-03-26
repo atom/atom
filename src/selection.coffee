@@ -95,8 +95,11 @@ class Selection extends Model
   #
   # * `screenRange` The new {Range} to select.
   # * `options` (optional) {Object} with the keys:
-  #   * `preserveFolds` if `true`, the fold settings are preserved after the selection moves.
-  #   * `autoscroll` if `true`, the {TextEditor} scrolls to the new selection.
+  #   * `preserveFolds` if `true`, the fold settings are preserved after the
+  #     selection moves.
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     range. Defaults to `true` if this is the most recently added selection,
+  #     `false` otherwise.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     options.reversed ?= @isReversed()
@@ -104,8 +107,10 @@ class Selection extends Model
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
+      @editor.suppressAutoscroll = true if options.autoscroll is false
       @marker.setBufferRange(bufferRange, options)
-      @autoscroll() if options.autoscroll
+      @editor.suppressAutoscroll = false if options.autoscroll is false
+      @autoscroll() if options?.autoscroll is true
       @decoration.flash('flash', @editor.selectionFlashDuration) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
@@ -181,9 +186,17 @@ class Selection extends Model
   ###
 
   # Public: Clears the selection, moving the marker to the head.
-  clear: ->
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     range. Defaults to `true` if this is the most recently added selection,
+  #     `false` otherwise.
+  clear: (options) ->
+    @editor.suppressAutoscroll = true if options?.autoscroll is false
     @marker.setProperties(goalScreenRange: null)
     @marker.clearTail() unless @retainSelection
+    @editor.suppressAutoscroll = false if options?.autoscroll is false
+    @autoscroll() if options?.autoscroll is true
     @finalize()
 
   # Public: Selects the text from the current cursor position to a given screen
@@ -757,7 +770,8 @@ class Selection extends Model
       @linewise = false
 
   autoscroll: ->
-    @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
+    unless @editor.suppressAutoscroll
+      @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
 
   clearAutoscroll: ->
 

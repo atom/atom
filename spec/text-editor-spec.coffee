@@ -993,6 +993,30 @@ describe "TextEditor", ->
         editor.undo()
         expect(editor.getScrollTop()).toBe 0
 
+      it "honors the autoscroll option on cursor and selection manipulation methods", ->
+        expect(editor.getScrollTop()).toBe 0
+        editor.addCursorAtScreenPosition([11, 11], autoscroll: false)
+        editor.addCursorAtBufferPosition([11, 11], autoscroll: false)
+        editor.setCursorScreenPosition([11, 11], autoscroll: false)
+        editor.setCursorBufferPosition([11, 11], autoscroll: false)
+        editor.addSelectionForBufferRange([[11, 11], [11, 11]], autoscroll: false)
+        editor.addSelectionForScreenRange([[11, 11], [11, 12]], autoscroll: false)
+        editor.setSelectedBufferRange([[11, 0], [11, 1]], autoscroll: false)
+        editor.setSelectedScreenRange([[11, 0], [11, 6]], autoscroll: false)
+        editor.clearSelections(autoscroll: false)
+        expect(editor.getScrollTop()).toBe 0
+
+        editor.addSelectionForScreenRange([[0, 0], [0, 4]])
+
+        editor.getCursors()[0].setScreenPosition([11, 11], autoscroll: true)
+        expect(editor.getScrollTop()).toBeGreaterThan 0
+        editor.getCursors()[0].setBufferPosition([0, 0], autoscroll: true)
+        expect(editor.getScrollTop()).toBe 0
+        editor.getSelections()[0].setScreenRange([[11, 0], [11, 4]], autoscroll: true)
+        expect(editor.getScrollTop()).toBeGreaterThan 0
+        editor.getSelections()[0].setBufferRange([[0, 0], [0, 4]], autoscroll: true)
+        expect(editor.getScrollTop()).toBe 0
+
     describe '.logCursorScope()', ->
       beforeEach ->
         spyOn(atom.notifications, 'addInfo')

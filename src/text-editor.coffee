@@ -69,6 +69,7 @@ class TextEditor extends Model
   suppressSelectionMerging: false
   updateBatchDepth: 0
   selectionFlashDuration: 500
+  suppressAutoscroll: false
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
@@ -1606,8 +1607,10 @@ class TextEditor extends Model
   # * `bufferPosition` A {Point} or {Array} of `[row, column]`
   #
   # Returns a {Cursor}.
-  addCursorAtBufferPosition: (bufferPosition) ->
+  addCursorAtBufferPosition: (bufferPosition, options) ->
+    @suppressAutoscroll = true if options?.autoscroll is false
     @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @suppressAutoscroll = false if options?.autoscroll is false
     @getLastSelection().cursor
 
   # Essential: Add a cursor at the position in screen coordinates.
@@ -1615,8 +1618,10 @@ class TextEditor extends Model
   # * `screenPosition` A {Point} or {Array} of `[row, column]`
   #
   # Returns a {Cursor}.
-  addCursorAtScreenPosition: (screenPosition) ->
+  addCursorAtScreenPosition: (screenPosition, options) ->
+    @suppressAutoscroll = true if options?.autoscroll is false
     @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @suppressAutoscroll = false if options?.autoscroll is false
     @getLastSelection().cursor
 
   # Essential: Returns {Boolean} indicating whether or not there are multiple cursors.
@@ -1946,7 +1951,9 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
+    @suppressAutoscroll = true if options.autoscroll is false
     @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @suppressAutoscroll = false if options.autoscroll is false
     @getLastSelection()
 
   # Essential: Add a selection for the given range in screen coordinates.
@@ -1958,7 +1965,9 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
+    @suppressAutoscroll = true if options.autoscroll is false
     @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @suppressAutoscroll = false if options.autoscroll is false
     @getLastSelection()
 
   # Essential: Select from the current cursor position to the given position in
@@ -2272,7 +2281,7 @@ class TextEditor extends Model
           selection.autoscroll()
           return selection
     else
-      selection.autoscroll()
+      selection.autoscroll() unless options.autoscroll is false
       @emit 'selection-added', selection
       @emitter.emit 'did-add-selection', selection
       selection
@@ -2285,9 +2294,9 @@ class TextEditor extends Model
 
   # Reduce one or more selections to a single empty selection based on the most
   # recently added cursor.
-  clearSelections: ->
+  clearSelections: (options) ->
     @consolidateSelections()
-    @getLastSelection().clear()
+    @getLastSelection().clear(options)
 
   # Reduce multiple selections to the most recently added selection.
   consolidateSelections: ->

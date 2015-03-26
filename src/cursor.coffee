@@ -122,8 +122,9 @@ class Cursor extends Model
   #
   # * `bufferPosition` {Array} of two numbers: the buffer row, and the buffer column.
   # * `options` (optional) {Object} with the following keys:
-  #   * `autoscroll` A Boolean which, if `true`, scrolls the {TextEditor} to wherever
-  #     the cursor moves to.
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     position. Defaults to `true` if this is the most recently added cursor,
+  #     `false` otherwise.
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
       @marker.setHeadBufferPosition(bufferPosition, options)
@@ -648,8 +649,12 @@ class Cursor extends Model
 
   changePosition: (options, fn) ->
     @clearSelection()
-    fn()
-    @autoscroll() if options.autoscroll
+    @editor.suppressAutoscroll = true if options.autoscroll is false
+    try
+      fn()
+    finally
+      @editor.suppressAutoscroll = false if options?.autoscroll is false
+    @autoscroll() if options.autoscroll is true
 
   getPixelRect: ->
     @editor.pixelRectForScreenRange(@getScreenRange())
@@ -659,7 +664,8 @@ class Cursor extends Model
     new Range(new Point(row, column), new Point(row, column + 1))
 
   autoscroll: (options) ->
-    @editor.scrollToScreenRange(@getScreenRange(), options)
+    unless @editor.suppressAutoscroll
+      @editor.scrollToScreenRange(@getScreenRange(), options)
 
   getBeginningOfNextParagraphBufferPosition: ->
     start = @getBufferPosition()

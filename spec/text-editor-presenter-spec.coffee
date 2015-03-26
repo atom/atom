@@ -1417,33 +1417,33 @@ describe "TextEditorPresenter", ->
           expect(stateForSelection(presenter, 1)).toBeUndefined()
 
           # moving into view
-          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]])
+          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
           expectValues stateForSelection(presenter, 1), {
             regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
           }
 
           # becoming empty
-          expectStateUpdate presenter, -> editor.getSelections()[1].clear()
+          expectStateUpdate presenter, -> editor.getSelections()[1].clear(autoscroll: false)
           expect(stateForSelection(presenter, 1)).toBeUndefined()
 
           # becoming non-empty
-          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]])
+          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
           expectValues stateForSelection(presenter, 1), {
             regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
           }
 
           # moving out of view
-          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]])
+          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]], autoscroll: false)
           expect(stateForSelection(presenter, 1)).toBeUndefined()
 
           # adding
-          expectStateUpdate presenter, -> editor.addSelectionForBufferRange([[1, 4], [1, 6]])
+          expectStateUpdate presenter, -> editor.addSelectionForBufferRange([[1, 4], [1, 6]], autoscroll: false)
           expectValues stateForSelection(presenter, 2), {
             regions: [{top: 1 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
           }
 
           # moving added selection
-          expectStateUpdate presenter, -> editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]])
+          expectStateUpdate presenter, -> editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
           expectValues stateForSelection(presenter, 2), {
             regions: [{top: 1 * 10, left: 4 * 10, width: 4 * 10, height: 10}]
           }
