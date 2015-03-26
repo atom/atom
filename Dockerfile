@@ -16,7 +16,7 @@ RUN yum install -y \
     nodejs \
     npm
 
-RUN npm install -g npm@1.4.28
+RUN npm install -g npm@1.4.28 --loglevel error
 
 ADD . /atom
 WORKDIR /atom
