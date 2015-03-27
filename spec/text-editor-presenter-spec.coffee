@@ -6,55 +6,55 @@ TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 
 describe "TextEditorPresenter", ->
+  [buffer, editor] = []
+
+  beforeEach ->
+    # These *should* be mocked in the spec helper, but changing that now would break packages :-(
+    spyOn(window, "setInterval").andCallFake window.fakeSetInterval
+    spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
+
+    buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
+    editor = new TextEditor({buffer})
+    waitsForPromise -> buffer.load()
+
+  afterEach ->
+    editor.destroy()
+    buffer.destroy()
+
+  buildPresenter = (params={}) ->
+    _.defaults params,
+      model: editor
+      explicitHeight: 130
+      contentFrameWidth: 500
+      lineHeight: 10
+      baseCharacterWidth: 10
+      horizontalScrollbarHeight: 10
+      verticalScrollbarWidth: 10
+      scrollTop: 0
+      scrollLeft: 0
+      lineOverdrawMargin: 0
+
+    new TextEditorPresenter(params)
+
+  expectValues = (actual, expected) ->
+    for key, value of expected
+      expect(actual[key]).toEqual value
+
+  expectStateUpdatedToBe = (value, presenter, fn) ->
+    updatedState = false
+    disposable = presenter.onDidUpdateState ->
+      updatedState = true
+      disposable.dispose()
+    fn()
+    expect(updatedState).toBe(value)
+
+  expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
+
+  expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
+
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->
-    [buffer, editor] = []
-
-    beforeEach ->
-      # These *should* be mocked in the spec helper, but changing that now would break packages :-(
-      spyOn(window, "setInterval").andCallFake window.fakeSetInterval
-      spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
-
-      buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
-      editor = new TextEditor({buffer})
-      waitsForPromise -> buffer.load()
-
-    afterEach ->
-      editor.destroy()
-      buffer.destroy()
-
-    buildPresenter = (params={}) ->
-      _.defaults params,
-        model: editor
-        explicitHeight: 130
-        contentFrameWidth: 500
-        lineHeight: 10
-        baseCharacterWidth: 10
-        horizontalScrollbarHeight: 10
-        verticalScrollbarWidth: 10
-        scrollTop: 0
-        scrollLeft: 0
-        lineOverdrawMargin: 0
-
-      new TextEditorPresenter(params)
-
-    expectValues = (actual, expected) ->
-      for key, value of expected
-        expect(actual[key]).toEqual value
-
-    expectStateUpdatedToBe = (value, presenter, fn) ->
-      updatedState = false
-      disposable = presenter.onDidUpdateState ->
-        updatedState = true
-        disposable.dispose()
-      fn()
-      expect(updatedState).toBe(value)
-
-    expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
-
-    expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
-
     describe "during state retrieval", ->
       it "does not trigger onDidUpdateState events", ->
         presenter = buildPresenter()
@@ -654,66 +654,6 @@ describe "TextEditorPresenter", ->
 
           expectStateUpdate presenter, -> editor.setPlaceholderText("new-placeholder-text")
           expect(presenter.getState().content.placeholderText).toBe "new-placeholder-text"
-
-      describe ".changedLines", ->
-        hasChangedLine = (presenter, state, screenRow) ->
-          lineId = presenter.model.tokenizedLineForScreenRow(screenRow).id
-          changedLine = state.content.changedLines[lineId]
-          actualLine = state.content.lines[lineId]
-
-          changedLine? and actualLine? and _.isEqual(changedLine, actualLine)
-
-        it "contains states for lines that have changed since the last update", ->
-          presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-
-          presenter.setScrollTop(50)
-          state = presenter.getPreMeasureState()
-          expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
-
-          state = presenter.getPreMeasureState()
-          expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
-
-          presenter.setScrollTop(51)
-          state = presenter.getPreMeasureState()
-          expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
-
-          presenter.setScrollTop(0)
-          state = presenter.getPreMeasureState()
-          expect(hasChangedLine(presenter, state, 0)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 1)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 2)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 3)).toBeTruthy()
-
-        it "doesn't mark lines as changed during mouse scrolling", ->
-          presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-
-          presenter.setMouseWheelScreenRow(6)
-          presenter.setScrollTop(50)
-
-          state = presenter.getPreMeasureState()
-          expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
-          expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
-
-          presenter.didStopScrolling()
-          state = presenter.getPreMeasureState()
-          expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
-          expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
 
       describe ".lines", ->
         lineStateForScreenRow = (presenter, screenRow) ->
@@ -2126,6 +2066,67 @@ describe "TextEditorPresenter", ->
         expect(presenter.getState().focused).toBe true
         expectStateUpdate presenter, -> presenter.setFocused(false)
         expect(presenter.getState().focused).toBe false
+
+  describe "::getPreMeasureState()", ->
+    describe ".changedLines", ->
+      hasChangedLine = (presenter, state, screenRow) ->
+        lineId = presenter.model.tokenizedLineForScreenRow(screenRow).id
+        changedLine = state.content.changedLines[lineId]
+        actualLine = state.content.lines[lineId]
+
+        changedLine? and actualLine? and _.isEqual(changedLine, actualLine)
+
+      it "contains states for lines that have changed since the last update", ->
+        presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+
+        presenter.setScrollTop(50)
+        state = presenter.getPreMeasureState()
+        expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
+
+        state = presenter.getPreMeasureState()
+        expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
+
+        presenter.setScrollTop(51)
+        state = presenter.getPreMeasureState()
+        expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
+
+        presenter.setScrollTop(0)
+        state = presenter.getPreMeasureState()
+        expect(hasChangedLine(presenter, state, 0)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 1)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 2)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 3)).toBeTruthy()
+
+      it "doesn't mark lines as changed during mouse scrolling", ->
+        presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+
+        presenter.setMouseWheelScreenRow(6)
+        presenter.setScrollTop(50)
+
+        state = presenter.getPreMeasureState()
+        expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
+        expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
+
+        presenter.didStopScrolling()
+        state = presenter.getPreMeasureState()
+        expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
+        expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
 
   # disabled until we fix an issue with display buffer markers not updating when
   # they are moved on screen but not in the buffer
