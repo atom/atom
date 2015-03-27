@@ -76,7 +76,7 @@ class TextEditor extends Model
 
   @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
-    'manageScrollPosition', toProperty: 'displayBuffer'
+    toProperty: 'displayBuffer'
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @gutterVisible}) ->
     super
@@ -1132,13 +1132,13 @@ class TextEditor extends Model
 
   # Essential: Undo the last change.
   undo: ->
-    @getLastCursor().needsAutoscroll = true
-    @buffer.undo(this)
+    @buffer.undo()
+    @getLastSelection().autoscroll()
 
   # Essential: Redo the last change.
   redo: ->
-    @getLastCursor().needsAutoscroll = true
     @buffer.redo(this)
+    @getLastSelection().autoscroll()
 
   # Extended: Batch multiple operations as a single undo/redo step.
   #
@@ -1608,8 +1608,9 @@ class TextEditor extends Model
   # * `bufferPosition` A {Point} or {Array} of `[row, column]`
   #
   # Returns a {Cursor}.
-  addCursorAtBufferPosition: (bufferPosition) ->
+  addCursorAtBufferPosition: (bufferPosition, options) ->
     @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
   # Essential: Add a cursor at the position in screen coordinates.
@@ -1617,8 +1618,9 @@ class TextEditor extends Model
   # * `screenPosition` A {Point} or {Array} of `[row, column]`
   #
   # Returns a {Cursor}.
-  addCursorAtScreenPosition: (screenPosition) ->
+  addCursorAtScreenPosition: (screenPosition, options) ->
     @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
   # Essential: Returns {Boolean} indicating whether or not there are multiple cursors.
@@ -1949,9 +1951,8 @@ class TextEditor extends Model
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
     @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
-    selection = @getLastSelection()
-    selection.autoscroll() if @manageScrollPosition
-    selection
+    @getLastSelection().autoscroll() unless options.autoscroll is false
+    @getLastSelection()
 
   # Essential: Add a selection for the given range in screen coordinates.
   #
@@ -1963,9 +1964,8 @@ class TextEditor extends Model
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
     @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
-    selection = @getLastSelection()
-    selection.autoscroll() if @manageScrollPosition
-    selection
+    @getLastSelection().autoscroll() unless options.autoscroll is false
+    @getLastSelection()
 
   # Essential: Select from the current cursor position to the given position in
   # buffer coordinates.
@@ -2271,6 +2271,7 @@ class TextEditor extends Model
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections(preserveFolds: marker.getProperties().preserveFolds)
+
     if selection.destroyed
       for selection in @getSelections()
         if selection.intersectsBufferRange(selectionBufferRange)
@@ -2288,9 +2289,9 @@ class TextEditor extends Model
 
   # Reduce one or more selections to a single empty selection based on the most
   # recently added cursor.
-  clearSelections: ->
+  clearSelections: (options) ->
     @consolidateSelections()
-    @getLastSelection().clear()
+    @getLastSelection().clear(options)
 
   # Reduce multiple selections to the most recently added selection.
   consolidateSelections: ->

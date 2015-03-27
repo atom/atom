@@ -46,7 +46,7 @@ module.exports = (grunt) ->
         strings =
           CompanyName: 'GitHub, Inc.'
           FileDescription: 'Atom'
-          LegalCopyright: 'Copyright (C) 2014 GitHub, Inc. All rights reserved'
+          LegalCopyright: 'Copyright (C) 2015 GitHub, Inc. All rights reserved'
           ProductName: 'Atom'
           ProductVersion: version
 
