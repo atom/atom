@@ -184,6 +184,7 @@ class TextEditorPresenter
         scrollingVertically: false
         cursorsVisible: false
         lines: {}
+        changedLines: {}
         highlights: {}
         overlays: {}
       gutter:
@@ -300,8 +301,10 @@ class TextEditorPresenter
     lineState.top = row * @lineHeight
     lineState.decorationClasses = @lineDecorationClassesForRow(row)
 
+    @state.content.changedLines[line.id] = lineState
+
   buildLineState: (row, line) ->
-    @state.content.lines[line.id] =
+    @state.content.changedLines[line.id] = @state.content.lines[line.id] =
       screenRow: row
       text: line.text
       tokens: line.tokens
