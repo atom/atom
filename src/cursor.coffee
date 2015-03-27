@@ -648,7 +648,7 @@ class Cursor extends Model
   ###
 
   changePosition: (options, fn) ->
-    @clearSelection(options)
+    @clearSelection(autoscroll: false)
     fn()
     @autoscroll() if options.autoscroll ? @isLastCursor()
 
