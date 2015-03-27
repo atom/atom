@@ -39,7 +39,6 @@ class TextEditorComponent
     @lineOverdrawMargin = lineOverdrawMargin if lineOverdrawMargin?
     @disposables = new CompositeDisposable
 
-    @editor.manageScrollPosition = true
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 

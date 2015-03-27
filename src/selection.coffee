@@ -1,6 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {Model} = require 'theorist'
-{pick} = require 'underscore-plus'
+{pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
@@ -14,7 +14,6 @@ class Selection extends Model
   editor: null
   initialScreenRange: null
   wordwise: false
-  needsAutoscroll: null
 
   constructor: ({@cursor, @marker, @editor, id}) ->
     @emitter = new Emitter
@@ -34,6 +33,9 @@ class Selection extends Model
 
   destroy: ->
     @marker.destroy()
+
+  isLastSelection: ->
+    this is @editor.getLastSelection()
 
   ###
   Section: Event Subscription
@@ -96,19 +98,20 @@ class Selection extends Model
   #
   # * `screenRange` The new {Range} to select.
   # * `options` (optional) {Object} with the keys:
-  #   * `preserveFolds` if `true`, the fold settings are preserved after the selection moves.
-  #   * `autoscroll` if `true`, the {TextEditor} scrolls to the new selection.
+  #   * `preserveFolds` if `true`, the fold settings are preserved after the
+  #     selection moves.
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     range. Defaults to `true` if this is the most recently added selection,
+  #     `false` otherwise.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
-    @needsAutoscroll = options.autoscroll
     options.reversed ?= @isReversed()
     @editor.destroyFoldsContainingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
-      @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
-      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
+      @autoscroll() if options?.autoscroll ? @isLastSelection()
       @decoration.flash('flash', @editor.selectionFlashDuration) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
@@ -184,9 +187,15 @@ class Selection extends Model
   ###
 
   # Public: Clears the selection, moving the marker to the head.
-  clear: ->
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     range. Defaults to `true` if this is the most recently added selection,
+  #     `false` otherwise.
+  clear: (options) ->
     @marker.setProperties(goalScreenRange: null)
     @marker.clearTail() unless @retainSelection
+    @autoscroll() if options?.autoscroll ? @isLastSelection()
     @finalize()
 
   # Public: Selects the text from the current cursor position to a given screen
@@ -359,7 +368,6 @@ class Selection extends Model
     @editor.unfoldBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
-    @cursor.needsAutoscroll = @cursor.isLastCursor()
 
     autoIndentFirstLine = false
     precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
@@ -397,6 +405,8 @@ class Selection extends Model
         @editor.setIndentationForBufferRow(newBufferRange.end.row, currentIndentation)
     else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
+
+    @autoscroll() if @isLastSelection()
 
     newBufferRange
 
@@ -713,7 +723,7 @@ class Selection extends Model
     else
       options.goalScreenRange = myGoalScreenRange ? otherGoalScreenRange
 
-    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), _.extend(autoscroll: false, options))
     otherSelection.destroy()
 
   ###
@@ -755,10 +765,12 @@ class Selection extends Model
       @linewise = false
 
   autoscroll: ->
-    @editor.scrollToScreenRange(@getScreenRange())
+    if @marker.hasTail()
+      @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
+    else
+      @cursor.autoscroll()
 
   clearAutoscroll: ->
-    @needsAutoscroll = null
 
   modifySelection: (fn) ->
     @retainSelection = true

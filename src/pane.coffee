@@ -686,7 +686,7 @@ class Pane extends Model
     true
 
   handleSaveError: (error) ->
-    if error.message.endsWith('is a directory')
+    if error.code is 'EISDIR' or error.message.endsWith('is a directory')
       atom.notifications.addWarning("Unable to save file: #{error.message}")
     else if error.code is 'EACCES' and error.path?
       atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
