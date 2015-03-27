@@ -15,8 +15,8 @@ describe "DefaultDirectoryProvider", ->
       provider = new DefaultDirectoryProvider()
       tmp = temp.mkdirSync()
       nonNormalizedPath = tmp + path.sep +  ".." + path.sep + path.basename(tmp)
-      expect(tmp.contains("..")).toBe false
-      expect(nonNormalizedPath.contains("..")).toBe true
+      expect(tmp.includes("..")).toBe false
+      expect(nonNormalizedPath.includes("..")).toBe true
 
       directory = provider.directoryForURISync(nonNormalizedPath)
       expect(directory.getPath()).toEqual tmp

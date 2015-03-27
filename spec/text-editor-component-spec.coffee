@@ -693,7 +693,7 @@ describe "TextEditorComponent", ->
   describe "cursor rendering", ->
     it "renders the currently visible cursors", ->
       cursor1 = editor.getLastCursor()
-      cursor1.setScreenPosition([0, 5])
+      cursor1.setScreenPosition([0, 5], autoscroll: false)
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
@@ -706,8 +706,8 @@ describe "TextEditorComponent", ->
       expect(cursorNodes[0].offsetWidth).toBe charWidth
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{5 * charWidth}px, #{0 * lineHeightInPixels}px)"
 
-      cursor2 = editor.addCursorAtScreenPosition([8, 11])
-      cursor3 = editor.addCursorAtScreenPosition([4, 10])
+      cursor2 = editor.addCursorAtScreenPosition([8, 11], autoscroll: false)
+      cursor3 = editor.addCursorAtScreenPosition([4, 10], autoscroll: false)
       nextAnimationFrame()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -1524,7 +1524,7 @@ describe "TextEditorComponent", ->
       expect(inputNode.offsetLeft).toBe 0
 
       # In bounds, not focused
-      editor.setCursorBufferPosition([5, 4])
+      editor.setCursorBufferPosition([5, 4], autoscroll: false)
       nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
@@ -1542,7 +1542,7 @@ describe "TextEditorComponent", ->
       expect(inputNode.offsetLeft).toBe 0
 
       # Out of bounds, not focused
-      editor.setCursorBufferPosition([1, 2])
+      editor.setCursorBufferPosition([1, 2], autoscroll: false)
       nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
