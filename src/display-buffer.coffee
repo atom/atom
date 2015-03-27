@@ -36,7 +36,7 @@ class DisplayBuffer extends Model
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  characterWidthsDidChange: false
+  characterWidthsChanged: false
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
@@ -315,23 +315,23 @@ class DisplayBuffer extends Model
     @batchingCharacterMeasurement = true
     fn()
     @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if @characterWidthsDidChange
+    @handleCharacterWidthsChanged() if @characterWidthsChanged
 
   setCharWidthsForRow: (row, charWidths) ->
     hasSameWidths = _.isEqual(charWidths, @charWidthsByRow[row])
     return if hasSameWidths
 
     @charWidthsByRow[row] = charWidths
-    @characterWidthsDidChange = true
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
+    @characterWidthsChanged = true
+    @handleCharacterWidthsChanged() unless @batchingCharacterMeasurement
 
   getCharWidthForRow: (row, index) ->
     charWidths = @charWidthsByRow[row] ? []
     charWidths[index] ? @getDefaultCharWidth()
 
-  characterWidthsChanged: ->
-    return unless @characterWidthsDidChange
-    @characterWidthsDidChange = false
+  handleCharacterWidthsChanged: ->
+    return unless @characterWidthsChanged
+    @characterWidthsChanged = false
 
     @computeScrollWidth()
     @emit 'character-widths-changed'

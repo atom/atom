@@ -125,7 +125,7 @@ class TextEditorPresenter
       @updateGutterState()
       @updateLineNumbersState()
     @disposables.add @model.onDidChangeCharacterWidths =>
-      @characterWidthsDidChange = true
+      @characterWidthsChanged = true
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
@@ -727,21 +727,21 @@ class TextEditorPresenter
     unless @baseCharacterWidth is baseCharacterWidth
       @baseCharacterWidth = baseCharacterWidth
       @model.setDefaultCharWidth(baseCharacterWidth)
-      @characterWidthsDidChange = true
-      @characterWidthsChanged()
+      @characterWidthsChanged = true
+      @handleCharacterWidthsChanged()
 
   batchCharacterMeasurement: (fn) ->
     @batchingCharacterMeasurement = true
     @model.batchCharacterMeasurement(fn)
     @batchingCharacterMeasurement = false
-    @characterWidthsChanged()
+    @handleCharacterWidthsChanged()
 
   setCharWidthsForRow: (row, charWidths) ->
     @model.setCharWidthsForRow(row, charWidths)
 
-  characterWidthsChanged: ->
-    return unless @characterWidthsDidChange
-    @characterWidthsDidChange = false
+  handleCharacterWidthsChanged: ->
+    return unless @characterWidthsChanged
+    @characterWidthsChanged = false
 
     @updateContentDimensions()
 
