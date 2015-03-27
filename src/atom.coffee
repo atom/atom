@@ -207,12 +207,6 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    # Disable deprecations unless in dev mode or spec mode so that regular
-    # editor performance isn't impacted by generating stack traces for
-    # deprecated calls.
-    unless @inDevMode() or @inSpecMode()
-      require('grim').deprecate = ->
-
     sourceMapCache = {}
 
     window.onerror = =>
