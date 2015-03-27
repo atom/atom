@@ -655,6 +655,66 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.setPlaceholderText("new-placeholder-text")
           expect(presenter.getState().content.placeholderText).toBe "new-placeholder-text"
 
+      describe ".changedLines", ->
+        hasChangedLine = (presenter, state, screenRow) ->
+          lineId = presenter.model.tokenizedLineForScreenRow(screenRow).id
+          changedLine = state.content.changedLines[lineId]
+          actualLine = state.content.lines[lineId]
+
+          changedLine? and actualLine? and _.isEqual(changedLine, actualLine)
+
+        it "contains states for lines that have changed since the last update", ->
+          presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+
+          presenter.setScrollTop(50)
+          state = presenter.getPreMeasureState()
+          expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
+
+          state = presenter.getPreMeasureState()
+          expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
+
+          presenter.setScrollTop(51)
+          state = presenter.getPreMeasureState()
+          expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
+
+          presenter.setScrollTop(0)
+          state = presenter.getPreMeasureState()
+          expect(hasChangedLine(presenter, state, 0)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 1)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 2)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 3)).toBeTruthy()
+
+        it "doesn't mark lines as changed during mouse scrolling", ->
+          presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+
+          presenter.setMouseWheelScreenRow(6)
+          presenter.setScrollTop(50)
+
+          state = presenter.getPreMeasureState()
+          expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
+          expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
+
+          presenter.didStopScrolling()
+          state = presenter.getPreMeasureState()
+          expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
+          expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
+
       describe ".lines", ->
         lineStateForScreenRow = (presenter, screenRow) ->
           presenter.getState().content.lines[presenter.model.tokenizedLineForScreenRow(screenRow).id]

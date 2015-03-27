@@ -68,6 +68,8 @@ class TextEditorPresenter
   getPreMeasureState: ->
     @updating = true
 
+    @state.content.changedLines = {}
+
     @updateContentDimensions()
     @updateScrollbarDimensions()
     @updateStartRow()
@@ -176,6 +178,7 @@ class TextEditorPresenter
     @updateGutterState()
 
   buildState: ->
+    @linesToChangeOnUpdate = {}
     @state =
       horizontalScrollbar: {}
       verticalScrollbar: {}
@@ -185,7 +188,6 @@ class TextEditorPresenter
         cursorsVisible: false
         lines: {}
         changedLines: {}
-        willChangeLines: {}
         highlights: {}
         overlays: {}
       gutter:
@@ -274,7 +276,6 @@ class TextEditorPresenter
     return unless @startRow? and @endRow? and @lineHeight?
 
     visibleLineIds = {}
-    @state.content.changedLines = {}
     row = @startRow
     while row < @endRow
       line = @model.tokenizedLineForScreenRow(row)
@@ -303,9 +304,9 @@ class TextEditorPresenter
     lineState.top = row * @lineHeight
     lineState.decorationClasses = @lineDecorationClassesForRow(row)
 
-    if @state.content.willChangeLines[line.id] and not @mouseWheelScreenRow?
+    if @linesToChangeOnUpdate[line.id] and not @mouseWheelScreenRow?
       @state.content.changedLines[line.id] = @state.content.lines[line.id]
-      delete @state.content.willChangeLines[line.id]
+      delete @linesToChangeOnUpdate[line.id]
 
   buildLineState: (row, line) ->
     @state.content.lines[line.id] =
@@ -321,7 +322,7 @@ class TextEditorPresenter
       decorationClasses: @lineDecorationClassesForRow(row)
 
     if @mouseWheelScreenRow?
-      @state.content.willChangeLines[line.id] = @state.content.lines[line.id]
+      @linesToChangeOnUpdate[line.id] = true
     else
       @state.content.changedLines[line.id] = @state.content.lines[line.id]
 
