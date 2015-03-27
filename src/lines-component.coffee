@@ -53,7 +53,8 @@ class LinesComponent
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
 
-    @measureCharactersInVisibleLines(false) if shouldMeasure
+    if shouldMeasure
+      @measureCharactersInLines(@newState.changedLines, false)
 
   postMeasureUpdateSync: (state) ->
     @newState = state.content
@@ -277,11 +278,11 @@ class LinesComponent
   remeasureCharacterWidths: ->
     return unless @presenter.baseCharacterWidth
 
-    @measureCharactersInVisibleLines()
+    @measureCharactersInLines(@newState.lines)
 
-  measureCharactersInVisibleLines: (batch = true) ->
+  measureCharactersInLines: (lines, batch = true) ->
     fn = =>
-      for id, lineState of @newState.changedLines
+      for id, lineState of lines
         lineNode = @lineNodesByLineId[id]
         @measureCharactersInLine(id, lineState, lineNode) if lineNode?
       return

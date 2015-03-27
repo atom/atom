@@ -185,6 +185,7 @@ class TextEditorPresenter
         cursorsVisible: false
         lines: {}
         changedLines: {}
+        willChangeLines: {}
         highlights: {}
         overlays: {}
       gutter:
@@ -273,6 +274,7 @@ class TextEditorPresenter
     return unless @startRow? and @endRow? and @lineHeight?
 
     visibleLineIds = {}
+    @state.content.changedLines = {}
     row = @startRow
     while row < @endRow
       line = @model.tokenizedLineForScreenRow(row)
@@ -301,10 +303,12 @@ class TextEditorPresenter
     lineState.top = row * @lineHeight
     lineState.decorationClasses = @lineDecorationClassesForRow(row)
 
-    @state.content.changedLines[line.id] = lineState
+    if @state.content.willChangeLines[line.id] and not @mouseWheelScreenRow?
+      @state.content.changedLines[line.id] = @state.content.lines[line.id]
+      delete @state.content.willChangeLines[line.id]
 
   buildLineState: (row, line) ->
-    @state.content.changedLines[line.id] = @state.content.lines[line.id] =
+    @state.content.lines[line.id] =
       screenRow: row
       text: line.text
       tokens: line.tokens
@@ -315,6 +319,11 @@ class TextEditorPresenter
       fold: line.fold
       top: row * @lineHeight
       decorationClasses: @lineDecorationClassesForRow(row)
+
+    if @mouseWheelScreenRow?
+      @state.content.willChangeLines[line.id] = @state.content.lines[line.id]
+    else
+      @state.content.changedLines[line.id] = @state.content.lines[line.id]
 
   updateCursorsState: -> @batch "shouldUpdateCursorsState", ->
     @state.content.cursors = {}
