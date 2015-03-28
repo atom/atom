@@ -992,6 +992,13 @@ describe "TextEditor", ->
         editor.undo()
         expect(editor.getScrollTop()).toBe 0
 
+      it "doesn't scroll when the cursor moves into the visible area", ->
+        editor.setCursorBufferPosition([0, 0])
+        editor.setScrollTop(40)
+        expect(editor.getVisibleRowRange()).toEqual([4, 9])
+        editor.setCursorBufferPosition([6, 0])
+        expect(editor.getScrollTop()).toBe 40
+
       it "honors the autoscroll option on cursor and selection manipulation methods", ->
         expect(editor.getScrollTop()).toBe 0
         editor.addCursorAtScreenPosition([11, 11], autoscroll: false)
