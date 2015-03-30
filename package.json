@@ -20,7 +20,7 @@
   "atomShellVersion": "0.22.2",
   "dependencies": {
     "async": "0.2.6",
-    "atom-keymap": "^4",
+    "atom-keymap": "^5",
     "atom-space-pen-views": "^2.0.4",
     "babel-core": "^4.0.2",
     "bootstrap": "git+https://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
