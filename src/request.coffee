@@ -28,7 +28,7 @@ module.exports =
       retryCount = requestOptions.retries ? 0
       tryRequest = ->
         request.get requestOptions, (error, response, body) ->
-          if error?.code is 'ETIMEDOUT' and retryCount > 0
+          if retryCount > 0 and error?.code in ['ETIMEDOUT', 'ECONNRESET']
             retryCount--
             tryRequest()
           else
