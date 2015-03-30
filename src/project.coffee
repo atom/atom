@@ -8,14 +8,14 @@ Q = require 'q'
 {Model} = require 'theorist'
 {Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
+DefaultDirectoryProvider = require './default-directory-provider'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
-{Directory} = require 'pathwatcher'
 Grim = require 'grim'
 
 TextEditor = require './text-editor'
 Task = require './task'
-GitRepository = require './git-repository'
+GitRepositoryProvider = require './git-repository-provider'
 
 # Extended: Represents a project that's opened in Atom.
 #
@@ -38,6 +38,38 @@ class Project extends Model
   constructor: ({path, paths, @buffers}={}) ->
     @emitter = new Emitter
     @buffers ?= []
+    @rootDirectories = []
+    @repositories = []
+
+    @directoryProviders = [new DefaultDirectoryProvider()]
+    atom.packages.serviceHub.consume(
+      'atom.directory-provider',
+      '^0.1.0',
+      # New providers are added to the front of @directoryProviders because
+      # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
+      (provider) => @directoryProviders.unshift(provider))
+
+    # Mapping from the real path of a {Directory} to a {Promise} that resolves
+    # to either a {Repository} or null. Ideally, the {Directory} would be used
+    # as the key; however, there can be multiple {Directory} objects created for
+    # the same real path, so it is not a good key.
+    @repositoryPromisesByPath = new Map()
+
+    # Note that the GitRepositoryProvider is registered synchronously so that
+    # it is available immediately on startup.
+    @repositoryProviders = [new GitRepositoryProvider(this)]
+    atom.packages.serviceHub.consume(
+      'atom.repository-provider',
+      '^0.1.0',
+      (provider) =>
+        @repositoryProviders.push(provider)
+
+        # If a path in getPaths() does not have a corresponding Repository, try
+        # to assign one by running through setPaths() again now that
+        # @repositoryProviders has been updated.
+        if null in @repositories
+          @setPaths(@getPaths())
+      )
 
     @subscribeToBuffer(buffer) for buffer in @buffers
 
@@ -47,15 +79,11 @@ class Project extends Model
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
-    @destroyRepo()
-
-  destroyRepo: ->
-    if @repo?
-      @repo.destroy()
-      @repo = null
+    @setPaths([])
 
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
+    return
 
   ###
   Section: Serialization
@@ -82,12 +110,23 @@ class Project extends Model
   Section: Event Subscription
   ###
 
+  # Public: Invoke the given callback when the project paths change.
+  #
+  # * `callback` {Function} to be called after the project paths change.
+  #    * `projectPaths` An {Array} of {String} project paths.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
+
+  onDidAddBuffer: (callback) ->
+    @emitter.on 'did-add-buffer', callback
 
   on: (eventName) ->
     if eventName is 'path-changed'
       Grim.deprecate("Use Project::onDidChangePaths instead")
+    else
+      Grim.deprecate("Project::on is deprecated. Use documented event subscription methods instead.")
     super
 
   ###
@@ -96,54 +135,131 @@ class Project extends Model
 
   # Public: Get an {Array} of {GitRepository}s associated with the project's
   # directories.
-  getRepositories: -> _.compact([@repo])
+  #
+  # This method will be removed in 2.0 because it does synchronous I/O.
+  # Prefer the following, which evaluates to a {Promise} that resolves to an
+  # {Array} of {Repository} objects:
+  # ```
+  # Promise.all(project.getDirectories().map(
+  #     project.repositoryForDirectory.bind(project)))
+  # ```
+  getRepositories: -> @repositories
   getRepo: ->
     Grim.deprecate("Use ::getRepositories instead")
-    @repo
+    @getRepositories()[0]
+
+  # Public: Get the repository for a given directory asynchronously.
+  #
+  # * `directory` {Directory} for which to get a {Repository}.
+  #
+  # Returns a {Promise} that resolves with either:
+  # * {Repository} if a repository can be created for the given directory
+  # * `null` if no repository can be created for the given directory.
+  repositoryForDirectory: (directory) ->
+    pathForDirectory = directory.getRealPathSync()
+    promise = @repositoryPromisesByPath.get(pathForDirectory)
+    unless promise
+      promises = @repositoryProviders.map (provider) ->
+        provider.repositoryForDirectory(directory)
+      promise = Promise.all(promises).then (repositories) =>
+        repo = _.find(repositories, (repo) -> repo?) ? null
+
+        # If no repository is found, remove the entry in for the directory in
+        # @repositoryPromisesByPath in case some other RepositoryProvider is
+        # registered in the future that could supply a Repository for the
+        # directory.
+        @repositoryPromisesByPath.delete(pathForDirectory) unless repo?
+        repo
+      @repositoryPromisesByPath.set(pathForDirectory, promise)
+    promise
 
   ###
   Section: Managing Paths
   ###
 
-
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
-  getPaths: -> _.compact([@rootDirectory?.path])
+  getPaths: -> rootDirectory.getPath() for rootDirectory in @rootDirectories
   getPath: ->
     Grim.deprecate("Use ::getPaths instead")
-    @rootDirectory?.path
+    @getPaths()[0]
 
   # Public: Set the paths of the project's directories.
   #
   # * `projectPaths` {Array} of {String} paths.
   setPaths: (projectPaths) ->
-    [projectPath] = projectPaths
-    projectPath = path.normalize(projectPath) if projectPath
-    @path = projectPath
-    @rootDirectory?.off()
+    rootDirectory.off() for rootDirectory in @rootDirectories
+    repository?.destroy() for repository in @repositories
+    @rootDirectories = []
+    @repositories = []
 
-    @destroyRepo()
-    if projectPath?
-      directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
-      @rootDirectory = new Directory(directory)
-      if @repo = GitRepository.open(directory, project: this)
-        @repo.refreshIndex()
-        @repo.refreshStatus()
-    else
-      @rootDirectory = null
+    @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
     @emit "path-changed"
     @emitter.emit 'did-change-paths', projectPaths
+
   setPath: (path) ->
     Grim.deprecate("Use ::setPaths instead")
     @setPaths([path])
 
+  # Public: Add a path to the project's list of root paths
+  #
+  # * `projectPath` {String} The path to the directory to add.
+  addPath: (projectPath, options) ->
+    for directory in @getDirectories()
+      # Apparently a Directory does not believe it can contain itself, so we
+      # must also check whether the paths match.
+      return if directory.contains(projectPath) or directory.getPath() is projectPath
+
+    directory = null
+    for provider in @directoryProviders
+      break if directory = provider.directoryForURISync?(projectPath)
+    if directory is null
+      # This should never happen because DefaultDirectoryProvider should always
+      # return a Directory.
+      throw new Error(projectPath + ' could not be resolved to a directory')
+    @rootDirectories.push(directory)
+
+    repo = null
+    for provider in @repositoryProviders
+      break if repo = provider.repositoryForDirectorySync?(directory)
+    @repositories.push(repo ? null)
+
+    unless options?.emitEvent is false
+      @emit "path-changed"
+      @emitter.emit 'did-change-paths', @getPaths()
+
+  # Public: remove a path from the project's list of root paths.
+  #
+  # * `projectPath` {String} The path to remove.
+  removePath: (projectPath) ->
+    # The projectPath may be a URI, in which case it should not be normalized.
+    unless projectPath in @getPaths()
+      projectPath = path.normalize(projectPath)
+
+    indexToRemove = null
+    for directory, i in @rootDirectories
+      if directory.getPath() is projectPath
+        indexToRemove = i
+        break
+
+    if indexToRemove?
+      [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
+      [removedRepository] = @repositories.splice(indexToRemove, 1)
+      removedDirectory.off()
+      removedRepository?.destroy() unless removedRepository in @repositories
+      @emit "path-changed"
+      @emitter.emit "did-change-paths", @getPaths()
+      true
+    else
+      false
+
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
-    [@rootDirectory]
+    @rootDirectories
   getRootDirectory: ->
     Grim.deprecate("Use ::getDirectories instead")
-    @rootDirectory
+    @getDirectories()[0]
 
   resolve: (uri) ->
     Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
@@ -157,17 +273,31 @@ class Project extends Model
     else
       if fs.isAbsolute(uri)
         path.normalize(fs.absolute(uri))
+
+      # TODO: what should we do here when there are multiple directories?
       else if projectPath = @getPaths()[0]
         path.normalize(fs.absolute(path.join(projectPath, uri)))
       else
         undefined
 
-  # Public: Make the given path relative to the project directory.
-  #
-  # * `fullPath` {String} full path
   relativize: (fullPath) ->
-    return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
-    @rootDirectory?.relativize(fullPath) ? fullPath
+    @relativizePath(fullPath)[1]
+
+  # Public: Get the path to the project directory that contains the given path,
+  # and the relative path from that project directory to the given path.
+  #
+  # * `fullPath` {String} An absolute path.
+  #
+  # Returns an {Array} with two elements:
+  # * `projectPath` The {String} path to the project directory that contains the
+  #   given path, or `null` if none is found.
+  # * `relativePath` {String} The relative path from the project directory to
+  #   the given path.
+  relativizePath: (fullPath) ->
+    for rootDirectory in @rootDirectories
+      relativePath = rootDirectory.relativize(fullPath)
+      return [rootDirectory.getPath(), relativePath] unless relativePath is fullPath
+    [null, fullPath]
 
   # Public: Determines whether the given path (real or symbolic) is inside the
   # project's directory.
@@ -197,7 +327,7 @@ class Project extends Model
   #
   # Returns whether the path is inside the project's root directory.
   contains: (pathToCheck) ->
-    @rootDirectory?.contains(pathToCheck) ? false
+    @rootDirectories.some (dir) -> dir.contains(pathToCheck)
 
   ###
   Section: Searching and Replacing
@@ -310,6 +440,7 @@ class Project extends Model
     @buffers.splice(index, 0, buffer)
     @subscribeToBuffer(buffer)
     @emit 'buffer-created', buffer
+    @emitter.emit 'did-add-buffer', buffer
     buffer
 
   # Removes a {TextBuffer} association from the project.
@@ -351,7 +482,7 @@ class Project extends Model
   # Deprecated: delegate
   registerOpener: (opener) ->
     deprecate("Use Workspace::addOpener instead")
-    atom.workspace.registerOpener(opener)
+    atom.workspace.addOpener(opener)
 
   # Deprecated: delegate
   unregisterOpener: (opener) ->
@@ -360,10 +491,10 @@ class Project extends Model
 
   # Deprecated: delegate
   eachEditor: (callback) ->
-    deprecate("Use Workspace::eachEditor instead")
-    atom.workspace.eachEditor(callback)
+    deprecate("Use Workspace::observeTextEditors instead")
+    atom.workspace.observeTextEditors(callback)
 
   # Deprecated: delegate
   getEditors: ->
-    deprecate("Use Workspace::getEditors instead")
-    atom.workspace.getEditors()
+    deprecate("Use Workspace::getTextEditors instead")
+    atom.workspace.getTextEditors()

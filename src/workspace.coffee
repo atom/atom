@@ -66,16 +66,16 @@ class Workspace extends Model
 
     @subscribeToActiveItem()
 
-    @addOpener (filePath) =>
+    @addOpener (filePath) ->
       switch filePath
         when 'atom://.atom/stylesheet'
-          @open(atom.styles.getUserStyleSheetPath())
+          atom.project.open(atom.styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @open(atom.keymaps.getUserKeymapPath())
+          atom.project.open(atom.keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @open(atom.config.getUserConfigPath())
+          atom.project.open(atom.config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @open(atom.getUserInitScriptPath())
+          atom.project.open(atom.getUserInitScriptPath())
 
     atom.views.addViewProvider Workspace, (model) ->
       new WorkspaceElement().initialize(model)
@@ -110,6 +110,7 @@ class Workspace extends Model
       packageNames.push(packageName)
       for scopeName in includedGrammarScopes ? []
         addGrammar(atom.grammars.grammarForScopeName(scopeName))
+      return
 
     editors = @getTextEditors()
     addGrammar(editor.getGrammar()) for editor in editors
@@ -159,16 +160,24 @@ class Workspace extends Model
   # open.
   updateWindowTitle: =>
     appName = 'Atom'
-    if projectPath = atom.project?.getPaths()[0]
-      if item = @getActivePaneItem()
-        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath} - #{appName}"
-        atom.setRepresentedFilename(item.getPath?() ? projectPath)
-      else
-        document.title = "#{projectPath} - #{appName}"
-        atom.setRepresentedFilename(projectPath)
+    projectPaths = atom.project?.getPaths() ? []
+    if item = @getActivePaneItem()
+      itemPath = item.getPath?()
+      itemTitle = item.getTitle?()
+      projectPath = _.find projectPaths, (projectPath) ->
+        itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
+    itemTitle ?= "untitled"
+    projectPath ?= projectPaths[0]
+
+    if item? and projectPath?
+      document.title = "#{itemTitle} - #{projectPath} - #{appName}"
+      atom.setRepresentedFilename(itemPath ? projectPath)
+    else if projectPath?
+      document.title = "#{projectPath} - #{appName}"
+      atom.setRepresentedFilename(projectPath)
     else
-      document.title = "untitled - #{appName}"
-      atom.setRepresentedFilename('')
+      document.title = "#{itemTitle} - #{appName}"
+      atom.setRepresentedFilename("")
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.
@@ -870,8 +879,7 @@ class Workspace extends Model
       exclusions: atom.config.get('core.ignoredNames')
       follow: atom.config.get('core.followSymlinks')
 
-    # TODO: need to support all paths in @getPaths()
-    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths()[0], regex.source, searchOptions, ->
+    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths(), regex.source, searchOptions, ->
       deferred.resolve()
 
     task.on 'scan:result-found', (result) ->

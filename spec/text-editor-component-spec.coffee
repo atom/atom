@@ -46,7 +46,7 @@ describe "TextEditorComponent", ->
 
       lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()
-      componentNode = component.getDOMNode()
+      componentNode = component.domNode
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
@@ -55,6 +55,17 @@ describe "TextEditorComponent", ->
 
   afterEach ->
     contentNode.style.width = ''
+
+  describe "async updates", ->
+    it "handles corrupted state gracefully", ->
+      # trigger state updates, e.g. presenter.updateLinesState
+      editor.insertNewline()
+
+      # simulate state corruption
+      component.presenter.startRow = -1
+      component.presenter.endRow = 9999
+
+      expect(nextAnimationFrame).not.toThrow()
 
   describe "line rendering", ->
     it "renders the currently-visible lines plus the overdraw margin", ->
@@ -193,7 +204,8 @@ describe "TextEditorComponent", ->
       expect(linesNode.style.backgroundColor).toBe backgroundColor
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      advanceClock(component.domPollingInterval)
+
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
@@ -466,11 +478,6 @@ describe "TextEditorComponent", ->
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
   describe "gutter rendering", ->
-    [gutter] = []
-
-    beforeEach ->
-      {gutter} = component.refs
-
     it "renders the currently-visible line numbers", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureHeightAndWidth()
@@ -567,32 +574,32 @@ describe "TextEditorComponent", ->
 
       # favor gutter color if it's assigned
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
     it "hides or shows the gutter based on the '::isGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
-      expect(component.refs.gutter?).toBe true
+      expect(component.gutterComponent?).toBe true
 
       editor.setGutterVisible(false)
       nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe false
+      expect(componentNode.querySelector('.gutter')).toBeNull()
 
       atom.config.set("editor.showLineNumbers", false)
-      expect(nextAnimationFrame).toBe noAnimationFrame
+      nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe false
+      expect(componentNode.querySelector('.gutter')).toBeNull()
 
       editor.setGutterVisible(true)
-      expect(nextAnimationFrame).toBe noAnimationFrame
+      nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe false
+      expect(componentNode.querySelector('.gutter')).toBeNull()
 
       atom.config.set("editor.showLineNumbers", true)
       nextAnimationFrame()
 
-      expect(component.refs.gutter?).toBe true
+      expect(componentNode.querySelector('.gutter')).toBeDefined()
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
 
     describe "fold decorations", ->
@@ -641,6 +648,18 @@ describe "TextEditorComponent", ->
           nextAnimationFrame()
           expect(lineNumberHasClass(5, 'folded')).toBe false
 
+        describe "when soft wrapping is enabled", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            nextAnimationFrame()
+            componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
+            component.measureHeightAndWidth()
+            nextAnimationFrame()
+
+          it "doesn't add the foldable class for soft-wrapped lines", ->
+            expect(lineNumberHasClass(0, 'foldable')).toBe true
+            expect(lineNumberHasClass(1, 'foldable')).toBe false
+
       describe "mouse interactions with fold indicators", ->
         [gutterNode] = []
 
@@ -674,7 +693,7 @@ describe "TextEditorComponent", ->
   describe "cursor rendering", ->
     it "renders the currently visible cursors", ->
       cursor1 = editor.getLastCursor()
-      cursor1.setScreenPosition([0, 5])
+      cursor1.setScreenPosition([0, 5], autoscroll: false)
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
@@ -687,8 +706,8 @@ describe "TextEditorComponent", ->
       expect(cursorNodes[0].offsetWidth).toBe charWidth
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{5 * charWidth}px, #{0 * lineHeightInPixels}px)"
 
-      cursor2 = editor.addCursorAtScreenPosition([8, 11])
-      cursor3 = editor.addCursorAtScreenPosition([4, 10])
+      cursor2 = editor.addCursorAtScreenPosition([8, 11], autoscroll: false)
+      cursor3 = editor.addCursorAtScreenPosition([4, 10], autoscroll: false)
       nextAnimationFrame()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -706,13 +725,13 @@ describe "TextEditorComponent", ->
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe 2
-      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
-      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
 
       wrapperView.on 'cursor:moved', cursorMovedListener = jasmine.createSpy('cursorMovedListener')
       cursor3.setScreenPosition([4, 11], autoscroll: false)
       nextAnimationFrame()
-      expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
+      expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
       expect(cursorMovedListener).toHaveBeenCalled()
 
       cursor3.destroy()
@@ -798,13 +817,15 @@ describe "TextEditorComponent", ->
     it "blinks cursors when they aren't moving", ->
       cursorsNode = componentNode.querySelector('.cursors')
 
+      wrapperNode.focus()
+      nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
@@ -813,8 +834,8 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe false
 
-      advanceClock(component.props.cursorBlinkResumeDelay)
-      advanceClock(component.props.cursorBlinkPeriod / 2)
+      advanceClock(component.cursorBlinkResumeDelay)
+      advanceClock(component.cursorBlinkPeriod / 2)
       nextAnimationFrame()
       expect(cursorsNode.classList.contains('blink-off')).toBe true
 
@@ -1119,7 +1140,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       # Should not be rendering range containing the marker
-      expect(component.presenter.computeEndRow()).toBeLessThan 9
+      expect(component.presenter.endRow).toBeLessThan 9
 
       regions = componentNode.querySelectorAll('.some-highlight .region')
 
@@ -1174,6 +1195,14 @@ describe "TextEditorComponent", ->
       expect(marker.isValid()).toBe true
       regions = componentNode.querySelectorAll('.test-highlight .region')
       expect(regions.length).toBe 2
+
+    it "allows multiple space-delimited decoration classes", ->
+      decoration.setProperties(type: 'highlight', class: 'foo bar')
+      nextAnimationFrame()
+      expect(componentNode.querySelectorAll('.foo.bar').length).toBe 1
+      decoration.setProperties(type: 'highlight', class: 'bar baz')
+      nextAnimationFrame()
+      expect(componentNode.querySelectorAll('.bar.baz').length).toBe 1
 
     it "renders classes on the regions directly if 'deprecatedRegionClass' option is defined", ->
       decoration = editor.decorateMarker(marker, type: 'highlight', class: 'test-highlight', deprecatedRegionClass: 'test-highlight-region')
@@ -1495,29 +1524,32 @@ describe "TextEditorComponent", ->
       expect(inputNode.offsetLeft).toBe 0
 
       # In bounds, not focused
-      editor.setCursorBufferPosition([5, 4])
+      editor.setCursorBufferPosition([5, 4], autoscroll: false)
       nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
       # In bounds and focused
-      inputNode.focus() # updates via state change
+      wrapperNode.focus() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - editor.getScrollTop()
       expect(inputNode.offsetLeft).toBe (4 * charWidth) - editor.getScrollLeft()
 
       # In bounds, not focused
       inputNode.blur() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
       # Out of bounds, not focused
-      editor.setCursorBufferPosition([1, 2])
+      editor.setCursorBufferPosition([1, 2], autoscroll: false)
       nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
       # Out of bounds, focused
       inputNode.focus() # updates via state change
+      nextAnimationFrame()
       expect(inputNode.offsetTop).toBe 0
       expect(inputNode.offsetLeft).toBe 0
 
@@ -1824,6 +1856,135 @@ describe "TextEditorComponent", ->
             nextAnimationFrame()
             expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [9, 0]]
 
+    describe "when soft wrap is enabled", ->
+      beforeEach ->
+        gutterNode = componentNode.querySelector('.gutter')
+
+        editor.setSoftWrapped(true)
+        nextAnimationFrame()
+        componentNode.style.width = 21 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
+        component.measureHeightAndWidth()
+        nextAnimationFrame()
+
+      describe "when the gutter is clicked", ->
+        it "selects the clicked buffer row", ->
+          gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1)))
+          expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [2, 0]]
+
+      describe "when the gutter is meta-clicked", ->
+        it "creates a new selection for the clicked buffer row", ->
+          editor.setSelectedScreenRange([[1, 0], [1, 2]])
+
+          gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2), metaKey: true))
+          expect(editor.getSelectedScreenRanges()).toEqual [[[1, 0], [1, 2]], [[2, 0], [5, 0]]]
+
+          gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(7), metaKey: true))
+          expect(editor.getSelectedScreenRanges()).toEqual [[[1, 0], [1, 2]], [[2, 0], [5, 0]], [[5, 0], [10, 0]]]
+
+      describe "when the gutter is shift-clicked", ->
+        beforeEach ->
+          editor.setSelectedScreenRange([[7, 4], [7, 6]])
+
+        describe "when the clicked row is before the current selection's tail", ->
+          it "selects to the beginning of the clicked buffer row", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1), shiftKey: true))
+            expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [7, 4]]
+
+        describe "when the clicked row is after the current selection's tail", ->
+          it "selects to the beginning of the buffer row following the clicked buffer row", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(11), shiftKey: true))
+            expect(editor.getSelectedScreenRange()).toEqual [[7, 4], [16, 0]]
+
+      describe "when the gutter is clicked and dragged", ->
+        describe "when dragging downward", ->
+          it "selects the buffer rows between the start and end of the drag", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1)))
+            gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
+            nextAnimationFrame()
+            gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(6)))
+            expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [10, 0]]
+
+        describe "when dragging upward", ->
+          it "selects the buffer rows between the start and end of the drag", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(6)))
+            gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(1)))
+            nextAnimationFrame()
+            gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(1)))
+            expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [10, 0]]
+
+      describe "when the gutter is meta-clicked and dragged", ->
+        beforeEach ->
+          editor.setSelectedScreenRange([[7, 4], [7, 6]])
+
+        describe "when dragging downward", ->
+          it "selects the buffer rows between the start and end of the drag", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1), metaKey: true))
+            gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(3), metaKey: true))
+            nextAnimationFrame()
+            gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(3), metaKey: true))
+            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[0, 0], [5, 0]]]
+
+          it "merges overlapping selections", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1), metaKey: true))
+            gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(7), metaKey: true))
+            nextAnimationFrame()
+            gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(7), metaKey: true))
+            expect(editor.getSelectedScreenRanges()).toEqual [[[0, 0], [10, 0]]]
+
+        describe "when dragging upward", ->
+          it "selects the buffer rows between the start and end of the drag", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(17), metaKey: true))
+            gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(11), metaKey: true))
+            nextAnimationFrame()
+            gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(11), metaKey: true))
+            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[10, 0], [19, 0]]]
+
+          it "merges overlapping selections", ->
+            gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(17), metaKey: true))
+            gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(9), metaKey: true))
+            nextAnimationFrame()
+            gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(9), metaKey: true))
+            expect(editor.getSelectedScreenRanges()).toEqual [[[5, 0], [19, 0]]]
+
+      describe "when the gutter is shift-clicked and dragged", ->
+        describe "when the shift-click is below the existing selection's tail", ->
+          describe "when dragging downward", ->
+            it "selects the buffer rows between the existing selection's tail and the end of the drag", ->
+              editor.setSelectedScreenRange([[1, 4], [1, 7]])
+              gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(7), shiftKey: true))
+
+              gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(11)))
+              nextAnimationFrame()
+              expect(editor.getSelectedScreenRange()).toEqual [[1, 4], [16, 0]]
+
+          describe "when dragging upward", ->
+            it "selects the buffer rows between the end of the drag and the tail of the existing selection", ->
+              editor.setSelectedScreenRange([[1, 4], [1, 7]])
+              gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(11), shiftKey: true))
+
+              gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(7)))
+              nextAnimationFrame()
+              expect(editor.getSelectedScreenRange()).toEqual [[1, 4], [10, 0]]
+
+        describe "when the shift-click is above the existing selection's tail", ->
+          describe "when dragging upward", ->
+            it "selects the buffer rows between the end of the drag and the tail of the existing selection", ->
+              editor.setSelectedScreenRange([[7, 4], [7, 6]])
+              gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(3), shiftKey: true))
+
+              gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(1)))
+              nextAnimationFrame()
+              expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [7, 4]]
+
+          describe "when dragging downward", ->
+            it "selects the buffer rows between the existing selection's tail and the end of the drag", ->
+              editor.setSelectedScreenRange([[7, 4], [7, 6]])
+              gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1), shiftKey: true))
+
+              gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(3)))
+              nextAnimationFrame()
+              expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [7, 4]]
+
   describe "focus handling", ->
     inputNode = null
 
@@ -1839,9 +2000,11 @@ describe "TextEditorComponent", ->
     it "adds the 'is-focused' class to the editor when the hidden input is focused", ->
       expect(document.activeElement).toBe document.body
       inputNode.focus()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe true
       expect(wrapperView.hasClass('is-focused')).toBe true
       inputNode.blur()
+      nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe false
       expect(wrapperView.hasClass('is-focused')).toBe false
 
@@ -2351,11 +2514,11 @@ describe "TextEditorComponent", ->
         wrapperView.appendTo(hiddenParent)
 
         {component} = wrapperView
-        componentNode = component.getDOMNode()
+        componentNode = component.domNode
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
         hiddenParent.style.display = 'block'
-        advanceClock(component.domPollingInterval)
+        advanceClock(atom.views.documentPollingInterval)
 
         expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan 0
 
@@ -2465,13 +2628,13 @@ describe "TextEditorComponent", ->
       expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
 
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(componentNode.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
@@ -2480,7 +2643,7 @@ describe "TextEditorComponent", ->
       scrollViewNode.style.paddingLeft = 20 + 'px'
       componentNode.style.width = 30 * charWidth + 'px'
 
-      advanceClock(component.domPollingInterval)
+      advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
 
       expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "
@@ -2558,7 +2721,7 @@ describe "TextEditorComponent", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
     it "does not have an opaque background on lines", ->
-      expect(component.refs.lines.getDOMNode().getAttribute('style')).not.toContain 'background-color'
+      expect(component.linesComponent.domNode.getAttribute('style')).not.toContain 'background-color'
 
     it "does not render invisible characters", ->
       atom.config.set('editor.invisibles', eol: 'E')

@@ -34,6 +34,7 @@ class Pane extends Model
     super
 
     @emitter = new Emitter
+    @itemSubscriptions = new WeakMap
     @items = []
 
     @addItems(compact(params?.items ? []))
@@ -249,6 +250,10 @@ class Pane extends Model
 
   getPanes: -> [this]
 
+  unsubscribeFromItem: (item) ->
+    @itemSubscriptions.get(item)?.dispose()
+    @itemSubscriptions.delete(item)
+
   ###
   Section: Items
   ###
@@ -340,7 +345,9 @@ class Pane extends Model
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     return if item in @items
 
-    if typeof item.on is 'function'
+    if typeof item.onDidDestroy is 'function'
+      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, true)
+    else if typeof item.on is 'function'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
     @items.splice(index, 0, item)
@@ -369,6 +376,7 @@ class Pane extends Model
 
     if typeof item.on is 'function'
       @unsubscribe item
+    @unsubscribeFromItem(item)
 
     if item is @activeItem
       if @items.length is 1
@@ -432,10 +440,12 @@ class Pane extends Model
   # Public: Destroy all items.
   destroyItems: ->
     @destroyItem(item) for item in @getItems()
+    return
 
   # Public: Destroy all items except for the active item.
   destroyInactiveItems: ->
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
+    return
 
   promptToSaveItem: (item, options={}) ->
     return true unless item.shouldPromptToSave?(options)
@@ -510,6 +520,7 @@ class Pane extends Model
   # Public: Save all items.
   saveItems: ->
     @saveItem(item) for item in @getItems()
+    return
 
   # Public: Return the first item that matches the given URI or undefined if
   # none exists.
@@ -675,14 +686,16 @@ class Pane extends Model
     true
 
   handleSaveError: (error) ->
-    if error.message.endsWith('is a directory')
+    if error.code is 'EISDIR' or error.message.endsWith('is a directory')
       atom.notifications.addWarning("Unable to save file: #{error.message}")
     else if error.code is 'EACCES' and error.path?
       atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
-    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN'] and error.path?
+    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST'] and error.path?
       atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
     else if error.code is 'EROFS' and error.path?
       atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
+    else if error.code is 'ENOSPC' and error.path?
+      atom.notifications.addWarning("Unable to save file: No space left on device '#{error.path}'")
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")

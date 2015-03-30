@@ -2,6 +2,7 @@
 {specificity} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
+{validateSelector} = require './selector-validator'
 
 SequenceCount = 0
 SpecificityCache = {}
@@ -49,6 +50,7 @@ class CommandRegistry
   destroy: ->
     for commandName of @registeredCommands
       window.removeEventListener(commandName, @handleCommandEvent, true)
+    return
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -87,6 +89,7 @@ class CommandRegistry
       return disposable
 
     if typeof target is 'string'
+      validateSelector(target)
       @addSelectorBasedListener(target, commandName, callback)
     else
       @addInlineListener(target, commandName, callback)
@@ -185,6 +188,7 @@ class CommandRegistry
     @selectorBasedListenersByCommandName = {}
     for commandName, listeners of snapshot
       @selectorBasedListenersByCommandName[commandName] = listeners.slice()
+    return
 
   handleCommandEvent: (originalEvent) =>
     propagationStopped = false

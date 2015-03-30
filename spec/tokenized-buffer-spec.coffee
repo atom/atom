@@ -318,6 +318,18 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].isAtomic).toBeFalsy()
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].value).toBe "  current "
 
+      it "does not tokenize whitespaces followed by combining characters as leading whitespace", ->
+        buffer.setText("    \u030b")
+        fullyTokenize(tokenizedBuffer)
+
+        {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
+        expect(tokens[0].value).toBe "  "
+        expect(tokens[0].hasLeadingWhitespace()).toBe true
+        expect(tokens[1].value).toBe " "
+        expect(tokens[1].hasLeadingWhitespace()).toBe true
+        expect(tokens[2].value).toBe " \u030b"
+        expect(tokens[2].hasLeadingWhitespace()).toBe false
+
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
       waitsForPromise ->
@@ -866,3 +878,25 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenizedLineForRow(6).foldable).toBe true
       expect(tokenizedBuffer.tokenizedLineForRow(7).foldable).toBe false
       expect(tokenizedBuffer.tokenizedLineForRow(8).foldable).toBe false
+
+  describe "when the buffer is configured with the null grammar", ->
+    it "uses the placeholder tokens and does not actually tokenize using the grammar", ->
+      spyOn(atom.grammars.nullGrammar, 'tokenizeLine').andCallThrough()
+      buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
+      buffer.setText('a\nb\nc')
+
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizeCallback = jasmine.createSpy('onDidTokenize')
+      tokenizedBuffer.onDidTokenize(tokenizeCallback)
+
+      fullyTokenize(tokenizedBuffer)
+
+      expect(tokenizeCallback.callCount).toBe 1
+      expect(atom.grammars.nullGrammar.tokenizeLine.callCount).toBe 0
+
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0].value).toBe 'a'
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].value).toBe 'b'
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].value).toBe 'c'

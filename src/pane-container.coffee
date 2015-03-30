@@ -151,6 +151,7 @@ class PaneContainer extends Model
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
+    return
 
   confirmClose: (options) ->
     allSaved = true
@@ -186,6 +187,7 @@ class PaneContainer extends Model
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
+    return
 
   willDestroyPaneItem: (event) ->
     @emitter.emit 'will-destroy-pane-item', event

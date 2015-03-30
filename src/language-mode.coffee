@@ -2,6 +2,7 @@
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 {Emitter, Subscriber} = require 'emissary'
+ScopeDescriptor = require './scope-descriptor'
 
 module.exports =
 class LanguageMode
@@ -103,11 +104,13 @@ class LanguageMode
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
       @editor.createFold(startRow, endRow)
+    return
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
     for row in [@buffer.getLastRow()..0]
       fold.destroy() for fold in @editor.displayBuffer.foldsStartingAtBufferRow(row)
+    return
 
   # Fold all comment and code blocks at a given indentLevel
   #
@@ -121,6 +124,7 @@ class LanguageMode
       # assumption: startRow will always be the min indent level for the entire range
       if @editor.indentationForBufferRow(startRow) == indentLevel
         @editor.createFold(startRow, endRow)
+    return
 
   # Given a buffer row, creates a fold at it.
   #
@@ -228,11 +232,20 @@ class LanguageMode
   #
   # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow, options) ->
+    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+
+  suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
+    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+
+  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
+    scopes = tokenizedLine.tokens[0].scopes
+    scopeDescriptor = new ScopeDescriptor({scopes})
+
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
-    currentLine = @buffer.lineForRow(bufferRow)
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
@@ -245,7 +258,7 @@ class LanguageMode
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(tokenizedLine.text)
 
     Math.max(desiredIndentLevel, 0)
 
@@ -266,6 +279,7 @@ class LanguageMode
   # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
     @autoIndentBufferRow(row) for row in [startRow..endRow]
+    return
 
   # Given a buffer row, this indents it.
   #

@@ -343,16 +343,18 @@ class PackageManager
 
       try
         metadata = Package.loadMetadata(packagePath) ? {}
-        if metadata.theme
-          pack = new ThemePackage(packagePath, metadata)
-        else
-          pack = new Package(packagePath, metadata)
-        pack.load()
-        @loadedPackages[pack.name] = pack
-        @emitter.emit 'did-load-package', pack
-        return pack
       catch error
-        console.warn "Failed to load package.json '#{path.basename(packagePath)}'", error.stack ? error
+        @handleMetadataError(error, packagePath)
+        return null
+
+      if metadata.theme
+        pack = new ThemePackage(packagePath, metadata)
+      else
+        pack = new Package(packagePath, metadata)
+      pack.load()
+      @loadedPackages[pack.name] = pack
+      @emitter.emit 'did-load-package', pack
+      return pack
     else
       console.warn "Could not resolve '#{nameOrPath}' to a package path"
     null
@@ -392,6 +394,7 @@ class PackageManager
       for pack in packages
         promise = @activatePackage(pack.name)
         promises.push(promise) unless pack.hasActivationCommands()
+      return
     @observeDisabledPackages()
     promises
 
@@ -411,6 +414,7 @@ class PackageManager
   deactivatePackages: ->
     atom.config.transact =>
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
+      return
     @unobserveDisabledPackages()
 
   # Deactivate the package with the given name
@@ -421,3 +425,10 @@ class PackageManager
     pack.deactivate()
     delete @activePackages[pack.name]
     @emitter.emit 'did-deactivate-package', pack
+
+  handleMetadataError: (error, packagePath) ->
+    metadataPath = path.join(packagePath, 'package.json')
+    detail = "#{error.message} in #{metadataPath}"
+    stack = "#{error.stack}\n  at #{metadataPath}:1:1"
+    message = "Failed to load the #{path.basename(packagePath)} package"
+    atom.notifications.addError(message, {stack, detail, dismissable: true})

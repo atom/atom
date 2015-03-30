@@ -78,7 +78,7 @@ ScopeDescriptor = require './scope-descriptor'
 #   # ...
 # ```
 #
-# See [Creating a Package](https://atom.io/docs/latest/creating-a-package) for
+# See [package docs](https://atom.io/docs/latest/hacking-atom-package-word-count) for
 # more info.
 #
 # ## Config Schemas
@@ -301,6 +301,7 @@ class Config
     for typeName, functions of filters
       for name, enforcerFunction of functions
         @addSchemaEnforcer(typeName, enforcerFunction)
+    return
 
   @executeSchemaEnforcers: (keyPath, value, schema) ->
     error = null
@@ -360,7 +361,7 @@ class Config
   #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
@@ -403,7 +404,7 @@ class Config
   #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
@@ -487,7 +488,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}
-  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
   #     for more information.
   #
   # Returns the value from Atom's default settings, the user's configuration
@@ -568,7 +569,7 @@ class Config
   #   setting to the default value.
   # * `options` (optional) {Object}
   #   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #     See [the scopes docs](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
   #     for more information.
   #   * `source` (optional) {String} The name of a file with which the setting
   #     is associated. Defaults to the user's config file.
@@ -898,6 +899,7 @@ class Config
     @transact =>
       @settings = {}
       @set(key, value, save: false) for key, value of newSettings
+      return
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
@@ -958,6 +960,7 @@ class Config
         @setRawDefault(keyPath, defaults)
       catch e
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
+    return
 
   deepClone: (object) ->
     if object instanceof Color

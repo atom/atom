@@ -18,7 +18,6 @@ describe "PackageManager", ->
       expect(pack.metadata.name).toBe "package-with-index"
 
     it "returns the package if it has an invalid keymap", ->
-      spyOn(console, 'warn')
       pack = atom.packages.loadPackage("package-with-broken-keymap")
       expect(pack instanceof Package).toBe true
       expect(pack.metadata.name).toBe "package-with-broken-keymap"
@@ -30,10 +29,11 @@ describe "PackageManager", ->
       expect(pack.stylesheets.length).toBe 0
 
     it "returns null if the package has an invalid package.json", ->
-      spyOn(console, 'warn')
+      addErrorHandler = jasmine.createSpy()
+      atom.notifications.onDidAddNotification(addErrorHandler)
       expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
-      expect(console.warn.callCount).toBe(1)
-      expect(console.warn.argsForCall[0][0]).toContain("Failed to load package.json")
+      expect(addErrorHandler.callCount).toBe 1
+      expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-broken-package-json package")
 
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')
@@ -212,6 +212,46 @@ describe "PackageManager", ->
           runs ->
             expect(mainModule.activate.callCount).toBe 1
 
+        it "adds a notification when the activation commands are invalid", ->
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification(addErrorHandler)
+          expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
+          expect(addErrorHandler.callCount).toBe 1
+          expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-activation-commands package")
+
+        it "adds a notification when the context menu is invalid", ->
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification(addErrorHandler)
+          expect(-> atom.packages.activatePackage('package-with-invalid-context-menu')).not.toThrow()
+          expect(addErrorHandler.callCount).toBe 1
+          expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-context-menu package")
+
+        it "adds a notification when the grammar is invalid", ->
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification(addErrorHandler)
+
+          expect(-> atom.packages.activatePackage('package-with-invalid-grammar')).not.toThrow()
+
+          waitsFor ->
+            addErrorHandler.callCount > 0
+
+          runs ->
+            expect(addErrorHandler.callCount).toBe 1
+            expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load a package-with-invalid-grammar package grammar")
+
+        it "adds a notification when the settings are invalid", ->
+          addErrorHandler = jasmine.createSpy()
+          atom.notifications.onDidAddNotification(addErrorHandler)
+
+          expect(-> atom.packages.activatePackage('package-with-invalid-settings')).not.toThrow()
+
+          waitsFor ->
+            addErrorHandler.callCount > 0
+
+          runs ->
+            expect(addErrorHandler.callCount).toBe 1
+            expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-invalid-settings package settings")
+
     describe "when the package has no main module", ->
       it "does not throw an exception", ->
         spyOn(console, "error")
@@ -219,6 +259,17 @@ describe "PackageManager", ->
         expect(-> atom.packages.activatePackage('package-without-module')).not.toThrow()
         expect(console.error).not.toHaveBeenCalled()
         expect(console.warn).not.toHaveBeenCalled()
+
+    describe "when the package does not export an activate function", ->
+      it "activates the package and does not throw an exception or log a warning", ->
+        spyOn(console, "warn")
+        expect(-> atom.packages.activatePackage('package-with-no-activate')).not.toThrow()
+
+        waitsFor ->
+          atom.packages.isPackageActive('package-with-no-activate')
+
+        runs ->
+          expect(console.warn).not.toHaveBeenCalled()
 
     it "passes the activate method the package's previously serialized state if it exists", ->
       pack = null
@@ -246,11 +297,13 @@ describe "PackageManager", ->
       runs -> expect(activatedPackage.name).toBe 'package-with-main'
 
     describe "when the package throws an error while loading", ->
-      it "logs a warning instead of throwing an exception", ->
+      it "adds a notification instead of throwing an exception", ->
         atom.config.set("core.disabledPackages", [])
-        spyOn(console, "warn")
+        addErrorHandler = jasmine.createSpy()
+        atom.notifications.onDidAddNotification(addErrorHandler)
         expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
-        expect(console.warn).toHaveBeenCalled()
+        expect(addErrorHandler.callCount).toBe 1
+        expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
 
     describe "when the package is not found", ->
       it "rejects the promise", ->
@@ -469,6 +522,7 @@ describe "PackageManager", ->
           atom.packages.activatePackage("package-with-provided-services")
 
         runs ->
+          expect(consumerModule.consumeFirstServiceV3.callCount).toBe(1)
           expect(consumerModule.consumeFirstServiceV3).toHaveBeenCalledWith('first-service-v3')
           expect(consumerModule.consumeFirstServiceV4).toHaveBeenCalledWith('first-service-v4')
           expect(consumerModule.consumeSecondService).toHaveBeenCalledWith('second-service')
@@ -492,6 +546,21 @@ describe "PackageManager", ->
           expect(consumerModule.consumeFirstServiceV3).not.toHaveBeenCalled()
           expect(consumerModule.consumeFirstServiceV4).not.toHaveBeenCalled()
           expect(consumerModule.consumeSecondService).not.toHaveBeenCalled()
+
+      it "ignores provided and consumed services that do not exist", ->
+        addErrorHandler = jasmine.createSpy()
+        atom.notifications.onDidAddNotification(addErrorHandler)
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-missing-consumed-services")
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-missing-provided-services")
+
+        runs ->
+          expect(atom.packages.isPackageActive("package-with-missing-consumed-services")).toBe true
+          expect(atom.packages.isPackageActive("package-with-missing-provided-services")).toBe true
+          expect(addErrorHandler.callCount).toBe 0
 
   describe "::deactivatePackage(id)", ->
     afterEach ->

@@ -1,5 +1,4 @@
 {View, $} = require 'space-pen'
-React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
@@ -126,7 +125,7 @@ class TextEditorView extends View
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
-  Object.defineProperty @::, 'isFocused', get: -> document.activeElement is @element or document.activeElement is @element.component?.refs.input.getDOMNode()
+  Object.defineProperty @::, 'isFocused', get: -> document.activeElement is @element or document.activeElement is @element.component?.hiddenInputComponent?.domNode
   Object.defineProperty @::, 'mini', get: -> @model?.isMini()
   Object.defineProperty @::, 'component', get: -> @element?.component
 
@@ -185,9 +184,6 @@ class TextEditorView extends View
     view.css('position', 'absolute')
     view.css('z-index', 1)
     @overlayer.append(view)
-
-  unmountComponent: ->
-    React.unmountComponentAtNode(@element) if @component.isMounted()
 
   splitLeft: ->
     deprecate """

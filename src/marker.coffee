@@ -124,6 +124,8 @@ class Marker
         Grim.deprecate("Use Marker::onDidChange instead")
       when 'destroyed'
         Grim.deprecate("Use Marker::onDidDestroy instead")
+      else
+        Grim.deprecate("Marker::on is deprecated. Use documented event subscription methods instead.")
 
     EmitterMixin::on.apply(this, arguments)
 
@@ -284,7 +286,6 @@ class Marker
   # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setHeadScreenPosition: (screenPosition, properties) ->
-    screenPosition = @displayBuffer.clipScreenPosition(screenPosition, properties)
     @setHeadBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, properties))
 
   # Extended: Retrieves the buffer position of the marker's tail.
@@ -311,7 +312,6 @@ class Marker
   # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setTailScreenPosition: (screenPosition, options) ->
-    screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
     @setTailBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, options))
 
   # Extended: Returns a {Boolean} indicating whether the marker has a tail.
@@ -394,6 +394,7 @@ class Marker
       for event in deferredChangeEvents
         @emit 'changed', event
         @emitter.emit 'did-change', event
+    return
 
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)

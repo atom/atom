@@ -15,7 +15,6 @@ class Cursor extends Model
   bufferPosition: null
   goalColumn: null
   visible: true
-  needsAutoscroll: null
 
   # Instantiated by a {TextEditor}
   constructor: ({@editor, @marker, id}) ->
@@ -29,10 +28,6 @@ class Cursor extends Model
       {oldHeadBufferPosition, newHeadBufferPosition} = e
       {textChanged} = e
       return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
-
-      # Supports old editor view
-      @needsAutoscroll ?= @isLastCursor() and !textChanged
-      @autoscroll() if @editor.manageScrollPosition and @isLastCursor() and textChanged
 
       @goalColumn = null
 
@@ -53,7 +48,6 @@ class Cursor extends Model
       @emit 'destroyed'
       @emitter.emit 'did-destroy'
       @emitter.dispose()
-    @needsAutoscroll = true
 
   destroy: ->
     @marker.destroy()
@@ -128,8 +122,9 @@ class Cursor extends Model
   #
   # * `bufferPosition` {Array} of two numbers: the buffer row, and the buffer column.
   # * `options` (optional) {Object} with the following keys:
-  #   * `autoscroll` A Boolean which, if `true`, scrolls the {TextEditor} to wherever
-  #     the cursor moves to.
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     position. Defaults to `true` if this is the most recently added cursor,
+  #     `false` otherwise.
   setBufferPosition: (bufferPosition, options={}) ->
     @changePosition options, =>
       @marker.setHeadBufferPosition(bufferPosition, options)
@@ -271,7 +266,7 @@ class Cursor extends Model
       { row, column } = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row - rowCount, column: column})
+    @setScreenPosition({row: row - rowCount, column: column}, skipSoftWrapIndentation: true)
     @goalColumn = column
 
   # Public: Moves the cursor down one screen row.
@@ -288,7 +283,7 @@ class Cursor extends Model
       { row, column } = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row + rowCount, column: column})
+    @setScreenPosition({row: row + rowCount, column: column}, skipSoftWrapIndentation: true)
     @goalColumn = column
 
   # Public: Moves the cursor left one screen column.
@@ -310,7 +305,7 @@ class Cursor extends Model
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column})
+      @setScreenPosition({row, column}, clip: 'backward')
 
   # Public: Moves the cursor right one screen column.
   #
@@ -337,7 +332,7 @@ class Cursor extends Model
         columnsRemainingInLine = rowLength
 
       column = column + columnCount
-      @setScreenPosition({row, column}, skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      @setScreenPosition({row, column}, clip: 'forward', wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
@@ -359,19 +354,21 @@ class Cursor extends Model
   # line.
   moveToFirstCharacterOfLine: ->
     screenRow = @getScreenRow()
-    lineBufferRange = @editor.bufferRangeForScreenRange([[screenRow, 0], [screenRow, Infinity]])
+    screenLineStart = @editor.clipScreenPosition([screenRow, 0], skipSoftWrapIndentation: true)
+    screenLineEnd = [screenRow, Infinity]
+    screenLineBufferRange = @editor.bufferRangeForScreenRange([screenLineStart, screenLineEnd])
 
     firstCharacterColumn = null
-    @editor.scanInBufferRange /\S/, lineBufferRange, ({range, stop}) ->
+    @editor.scanInBufferRange /\S/, screenLineBufferRange, ({range, stop}) ->
       firstCharacterColumn = range.start.column
       stop()
 
     if firstCharacterColumn? and firstCharacterColumn isnt @getBufferColumn()
       targetBufferColumn = firstCharacterColumn
     else
-      targetBufferColumn = lineBufferRange.start.column
+      targetBufferColumn = screenLineBufferRange.start.column
 
-    @setBufferPosition([lineBufferRange.start.row, targetBufferColumn])
+    @setBufferPosition([screenLineBufferRange.start.row, targetBufferColumn])
 
   # Public: Moves the cursor to the end of the line.
   moveToEndOfScreenLine: ->
@@ -598,7 +595,6 @@ class Cursor extends Model
   setVisible: (visible) ->
     if @visible != visible
       @visible = visible
-      @needsAutoscroll ?= true if @visible and @isLastCursor()
       @emit 'visibility-changed', @visible
       @emitter.emit 'did-change-visibility', @visible
 
@@ -626,11 +622,10 @@ class Cursor extends Model
 
   # Public: Prevents this cursor from causing scrolling.
   clearAutoscroll: ->
-    @needsAutoscroll = null
 
   # Public: Deselects the current selection.
-  clearSelection: ->
-    @selection?.clear()
+  clearSelection: (options) ->
+    @selection?.clear(options)
 
   # Public: Get the RegExp used by the cursor to determine what a "word" is.
   #
@@ -653,12 +648,9 @@ class Cursor extends Model
   ###
 
   changePosition: (options, fn) ->
-    @clearSelection()
-    @needsAutoscroll = options.autoscroll ? @isLastCursor()
+    @clearSelection(autoscroll: false)
     fn()
-    if @needsAutoscroll
-      @emit 'autoscrolled' # Support legacy editor
-      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition # Support react editor view
+    @autoscroll() if options.autoscroll ? @isLastCursor()
 
   getPixelRect: ->
     @editor.pixelRectForScreenRange(@getScreenRange())

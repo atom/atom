@@ -17,15 +17,22 @@ class WindowEventHandler
 
     @subscribe ipc, 'message', (message, detail) ->
       switch message
-        when 'open-path'
-          {pathToOpen, initialLine, initialColumn} = detail
+        when 'open-locations'
+          needsProjectPaths = atom.project?.getPaths().length is 0
 
-          unless atom.project?.getPaths().length
-            if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
-              atom.project?.setPaths([pathToOpen])
+          for {pathToOpen, initialLine, initialColumn} in detail
+            if pathToOpen? and needsProjectPaths
+              if fs.existsSync(pathToOpen)
+                atom.project.addPath(pathToOpen)
+              else
+                dirToOpen = path.dirname(pathToOpen)
+                if fs.existsSync(dirToOpen)
+                  atom.project.addPath(dirToOpen)
 
-          unless fs.isDirectorySync(pathToOpen)
-            atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+            unless fs.isDirectorySync(pathToOpen)
+              atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+
+          return
 
         when 'update-available'
           atom.updateAvailable(detail)
@@ -151,6 +158,7 @@ class WindowEventHandler
       continue unless tabIndex >= 0
 
       callback(element, tabIndex)
+    return
 
   focusNext: =>
     focusedTabIndex = parseInt($(':focus').attr('tabindex')) or -Infinity

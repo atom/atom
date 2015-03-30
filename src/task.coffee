@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 {fork} = require 'child_process'
 {Emitter} = require 'emissary'
+Grim = require 'grim'
 
 # Extended: Run a node script in a separate process.
 #
@@ -65,12 +66,15 @@ class Task
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file that
   #   exports a single {Function} to execute.
   constructor: (taskPath) ->
-    coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}').register();"
-    coffeeScriptRequire = "require('#{require.resolve('coffee-script')}').register();"
+    coffeeCacheRequire = "require('#{require.resolve('coffee-cash')}')"
+    coffeeCachePath = require('coffee-cash').getCacheDirectory()
+    coffeeStackRequire = "require('#{require.resolve('coffeestack')}')"
+    stackCachePath = require('coffeestack').getCacheDirectory()
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
-      #{coffeeScriptRequire}
-      #{coffeeCacheRequire}
+      #{coffeeCacheRequire}.setCacheDirectory('#{coffeeCachePath}');
+      #{coffeeCacheRequire}.register();
+      #{coffeeStackRequire}.setCacheDirectory('#{stackCachePath}');
       #{taskBootstrapRequire}
     """
     bootstrap = bootstrap.replace(/\\/g, "\\\\")
@@ -84,6 +88,9 @@ class Task
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
     @on "task:error", -> console.error(arguments...)
+    @on "task:deprecations", (deprecations) ->
+      Grim.addSerializedDeprecation(deprecation) for deprecation in deprecations
+      return
     @on "task:completed", (args...) => @callback?(args...)
 
     @handleEvents()

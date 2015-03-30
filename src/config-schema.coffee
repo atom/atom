@@ -9,7 +9,7 @@ module.exports =
     properties:
       ignoredNames:
         type: 'array'
-        default: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
+        default: [".git", ".hg", ".svn", ".DS_Store", "._*", "Thumbs.db"]
         items:
           type: 'string'
       excludeVcsIgnoredPaths:
@@ -28,7 +28,7 @@ module.exports =
           type: 'string'
       themes:
         type: 'array'
-        default: ['atom-dark-ui', 'atom-dark-syntax']
+        default: ['one-dark-ui', 'one-dark-syntax']
         items:
           type: 'string'
       projectHome:
@@ -149,6 +149,10 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
+      softWrapHangingIndent:
+        type: 'integer'
+        default: 0
+        minimum: 0
       scrollSensitivity:
         type: 'integer'
         default: 40
@@ -162,10 +166,6 @@ module.exports =
         default: 300
         minimum: 0
         description: 'Time interval in milliseconds within which operations will be grouped together in the undo history'
-      useHardwareAcceleration:
-        type: 'boolean'
-        default: true
-        description: 'Disabling will improve editor font rendering but reduce scrolling performance.'
       useShadowDOM:
         type: 'boolean'
         default: true

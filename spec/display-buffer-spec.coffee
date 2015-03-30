@@ -48,7 +48,6 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.getLineCount()).toBe 100 + originalLineCount
 
     it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setHeight(50)
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setScrollTop(80)
@@ -75,10 +74,18 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '    return '
 
           atom.config.set('editor.preferredLineLength', 5)
-          expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe 'funct'
+          expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '  fun'
 
           atom.config.set('editor.softWrapAtPreferredLineLength', false)
           expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '    return '
+
+      describe "when editor width is negative", ->
+        it "does not hang while wrapping", ->
+          displayBuffer.setDefaultCharWidth(1)
+          displayBuffer.setWidth(-1)
+
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe "  "
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe "  var sort = function(items) {"
 
       describe "when the line is shorter than the max line length", ->
         it "renders the line unchanged", ->
@@ -92,7 +99,7 @@ describe "DisplayBuffer", ->
         describe "when there is whitespace before the boundary", ->
           it "wraps the line at the end of the first whitespace preceding the boundary", ->
             expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '    return '
-            expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
+            expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe '    sort(left).concat(pivot).concat(sort(right));'
 
         describe "when there is no whitespace before the boundary", ->
           it "wraps the line exactly at the boundary since there's no more graceful place to wrap it", ->
@@ -105,7 +112,25 @@ describe "DisplayBuffer", ->
       describe "when there is a whitespace character at the max length boundary", ->
         it "wraps the line at the first non-whitespace character following the boundary", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
-          expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe 'right = [];'
+          expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe '    right = [];'
+
+      describe "when the only whitespace characters are at the beginning of the line", ->
+        beforeEach ->
+          displayBuffer.setEditorWidthInChars(10)
+
+        it "wraps the line at the max length when indented with tabs", ->
+          buffer.setTextInRange([[0, 0], [1, 0]], '\t\tabcdefghijklmnopqrstuvwxyz')
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '    abcdef'
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe '    ghijkl'
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '    mnopqr'
+
+        it "wraps the line at the max length when indented with spaces", ->
+          buffer.setTextInRange([[0, 0], [1, 0]], '    abcdefghijklmnopqrstuvwxyz')
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '    abcdef'
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe '    ghijkl'
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '    mnopqr'
 
       describe "when there are hard tabs", ->
         beforeEach ->
@@ -114,6 +139,44 @@ describe "DisplayBuffer", ->
         it "correctly tokenizes the hard tabs", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[0].isHardTab).toBeTruthy()
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[1].isHardTab).toBeTruthy()
+
+      describe "when a line is wrapped", ->
+        it "breaks soft-wrap indentation into a token for each indentation level to support indent guides", ->
+          tokenizedLine = displayBuffer.tokenizedLineForScreenRow(4)
+
+          expect(tokenizedLine.tokens[0].value).toBe("  ")
+          expect(tokenizedLine.tokens[0].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[1].value).toBe("  ")
+          expect(tokenizedLine.tokens[1].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[2].isSoftWrapIndentation).toBeFalsy()
+
+      describe "when editor.softWrapHangingIndent is set", ->
+        beforeEach ->
+          atom.config.set('editor.softWrapHangingIndent', 3)
+
+        it "further indents wrapped lines", ->
+          expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe "    return "
+          expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe "       sort(left).concat(pivot).concat(sort(right)"
+          expect(displayBuffer.tokenizedLineForScreenRow(12).text).toBe "       );"
+
+        it "includes hanging indent when breaking soft-wrap indentation into tokens", ->
+          tokenizedLine = displayBuffer.tokenizedLineForScreenRow(4)
+
+          expect(tokenizedLine.tokens[0].value).toBe("  ")
+          expect(tokenizedLine.tokens[0].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[1].value).toBe("  ")
+          expect(tokenizedLine.tokens[1].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[2].value).toBe("  ") # hanging indent
+          expect(tokenizedLine.tokens[2].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[3].value).toBe(" ") # odd space
+          expect(tokenizedLine.tokens[3].isSoftWrapIndentation).toBeTruthy()
+
+          expect(tokenizedLine.tokens[4].isSoftWrapIndentation).toBeFalsy()
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
@@ -138,8 +201,8 @@ describe "DisplayBuffer", ->
           it "rewraps the line and emits a change event", ->
             buffer.insert([6, 28], '1234567890')
             expect(displayBuffer.tokenizedLineForScreenRow(7).text).toBe '      current < pivot ? '
-            expect(displayBuffer.tokenizedLineForScreenRow(8).text).toBe 'left1234567890.push(current) : '
-            expect(displayBuffer.tokenizedLineForScreenRow(9).text).toBe 'right.push(current);'
+            expect(displayBuffer.tokenizedLineForScreenRow(8).text).toBe '      left1234567890.push(current) : '
+            expect(displayBuffer.tokenizedLineForScreenRow(9).text).toBe '      right.push(current);'
             expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '    }'
 
             expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 8, screenDelta: 1, bufferDelta: 0)
@@ -148,7 +211,7 @@ describe "DisplayBuffer", ->
         it "inserts / updates wrapped lines and emits a change event", ->
           buffer.insert([6, 21], '1234567890 abcdefghij 1234567890\nabcdefghij')
           expect(displayBuffer.tokenizedLineForScreenRow(7).text).toBe '      current < pivot1234567890 abcdefghij '
-          expect(displayBuffer.tokenizedLineForScreenRow(8).text).toBe '1234567890'
+          expect(displayBuffer.tokenizedLineForScreenRow(8).text).toBe '      1234567890'
           expect(displayBuffer.tokenizedLineForScreenRow(9).text).toBe 'abcdefghij ? left.push(current) : '
           expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe 'right.push(current);'
 
@@ -159,7 +222,7 @@ describe "DisplayBuffer", ->
           buffer.setTextInRange([[3, 21], [7, 5]], ';')
           expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe '    var pivot = items;'
           expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe '    return '
-          expect(displayBuffer.tokenizedLineForScreenRow(5).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
+          expect(displayBuffer.tokenizedLineForScreenRow(5).text).toBe '    sort(left).concat(pivot).concat(sort(right));'
           expect(displayBuffer.tokenizedLineForScreenRow(6).text).toBe '  };'
 
           expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 9, screenDelta: -6, bufferDelta: -4)
@@ -191,10 +254,10 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([3, 5])).toEqual([3, 5])
         expect(displayBuffer.screenPositionForBufferPosition([3, 50])).toEqual([3, 50])
         expect(displayBuffer.screenPositionForBufferPosition([3, 51])).toEqual([3, 50])
-        expect(displayBuffer.bufferPositionForScreenPosition([4, 0])).toEqual([3, 51])
+        expect(displayBuffer.bufferPositionForScreenPosition([4, 0])).toEqual([3, 50])
         expect(displayBuffer.bufferPositionForScreenPosition([3, 50])).toEqual([3, 50])
-        expect(displayBuffer.screenPositionForBufferPosition([3, 62])).toEqual([4, 11])
-        expect(displayBuffer.bufferPositionForScreenPosition([4, 11])).toEqual([3, 62])
+        expect(displayBuffer.screenPositionForBufferPosition([3, 62])).toEqual([4, 15])
+        expect(displayBuffer.bufferPositionForScreenPosition([4, 11])).toEqual([3, 58])
 
         # following a wrapped line
         expect(displayBuffer.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
@@ -209,9 +272,9 @@ describe "DisplayBuffer", ->
     describe ".setEditorWidthInChars(length)", ->
       it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
         displayBuffer.setEditorWidthInChars(40)
-        expect(tokensText displayBuffer.tokenizedLineForScreenRow(4).tokens).toBe 'left = [], right = [];'
+        expect(tokensText displayBuffer.tokenizedLineForScreenRow(4).tokens).toBe '    left = [], right = [];'
         expect(tokensText displayBuffer.tokenizedLineForScreenRow(5).tokens).toBe '    while(items.length > 0) {'
-        expect(tokensText displayBuffer.tokenizedLineForScreenRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
+        expect(tokensText displayBuffer.tokenizedLineForScreenRow(12).tokens).toBe '    sort(left).concat(pivot).concat(sort'
         expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 15, screenDelta: 3, bufferDelta: 0)
 
       it "only allows positive widths to be assigned", ->
@@ -222,8 +285,7 @@ describe "DisplayBuffer", ->
 
     it "sets ::scrollLeft to 0 and keeps it there when soft wrapping is enabled", ->
       displayBuffer.setDefaultCharWidth(10)
-      displayBuffer.setWidth(50)
-      displayBuffer.manageScrollPosition = true
+      displayBuffer.setWidth(85)
 
       displayBuffer.setSoftWrapped(false)
       displayBuffer.setScrollLeft(Infinity)
@@ -576,8 +638,11 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.outermostFoldsInBufferRowRange(3, 18)).toEqual [fold1, fold3, fold5]
         expect(displayBuffer.outermostFoldsInBufferRowRange(5, 16)).toEqual [fold3]
 
-  describe "::clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
+  describe "::clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, clip: 'closest')", ->
     beforeEach ->
+      tabLength = 4
+
+      displayBuffer.setTabLength(tabLength)
       displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
 
@@ -597,8 +662,8 @@ describe "DisplayBuffer", ->
     describe "when wrapBeyondNewlines is false (the default)", ->
       it "wraps positions beyond the end of hard newlines to the end of the line", ->
         expect(displayBuffer.clipScreenPosition([1, 10000])).toEqual [1, 30]
-        expect(displayBuffer.clipScreenPosition([4, 30])).toEqual [4, 11]
-        expect(displayBuffer.clipScreenPosition([4, 1000])).toEqual [4, 11]
+        expect(displayBuffer.clipScreenPosition([4, 30])).toEqual [4, 15]
+        expect(displayBuffer.clipScreenPosition([4, 1000])).toEqual [4, 15]
 
     describe "when wrapBeyondNewlines is true", ->
       it "wraps positions past the end of hard newlines to the next line", ->
@@ -610,6 +675,18 @@ describe "DisplayBuffer", ->
         displayBuffer.createFold(3, 5)
         expect(displayBuffer.clipScreenPosition([3, 5], wrapBeyondNewlines: true)).toEqual [4, 0]
 
+    describe "when skipSoftWrapIndentation is false (the default)", ->
+      it "wraps positions at the end of previous soft-wrapped line", ->
+        expect(displayBuffer.clipScreenPosition([4, 0])).toEqual [3, 50]
+        expect(displayBuffer.clipScreenPosition([4, 1])).toEqual [3, 50]
+        expect(displayBuffer.clipScreenPosition([4, 3])).toEqual [3, 50]
+
+    describe "when skipSoftWrapIndentation is true", ->
+      it "clips positions to the beginning of the line", ->
+        expect(displayBuffer.clipScreenPosition([4, 0], skipSoftWrapIndentation: true)).toEqual [4, 4]
+        expect(displayBuffer.clipScreenPosition([4, 1], skipSoftWrapIndentation: true)).toEqual [4, 4]
+        expect(displayBuffer.clipScreenPosition([4, 3], skipSoftWrapIndentation: true)).toEqual [4, 4]
+
     describe "when wrapAtSoftNewlines is false (the default)", ->
       it "clips positions at the end of soft-wrapped lines to the character preceding the end of the line", ->
         expect(displayBuffer.clipScreenPosition([3, 50])).toEqual [3, 50]
@@ -620,23 +697,32 @@ describe "DisplayBuffer", ->
     describe "when wrapAtSoftNewlines is true", ->
       it "wraps positions at the end of soft-wrapped lines to the next screen line", ->
         expect(displayBuffer.clipScreenPosition([3, 50], wrapAtSoftNewlines: true)).toEqual [3, 50]
-        expect(displayBuffer.clipScreenPosition([3, 51], wrapAtSoftNewlines: true)).toEqual [4, 0]
-        expect(displayBuffer.clipScreenPosition([3, 58], wrapAtSoftNewlines: true)).toEqual [4, 0]
-        expect(displayBuffer.clipScreenPosition([3, 1000], wrapAtSoftNewlines: true)).toEqual [4, 0]
+        expect(displayBuffer.clipScreenPosition([3, 51], wrapAtSoftNewlines: true)).toEqual [4, 4]
+        expect(displayBuffer.clipScreenPosition([3, 58], wrapAtSoftNewlines: true)).toEqual [4, 4]
+        expect(displayBuffer.clipScreenPosition([3, 1000], wrapAtSoftNewlines: true)).toEqual [4, 4]
 
-    describe "when skipAtomicTokens is false (the default)", ->
-      it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
+    describe "when clip is 'closest' (the default)", ->
+      it "clips screen positions in the middle of atomic tab characters to the closest edge of the character", ->
         buffer.insert([0, 0], '\t')
         expect(displayBuffer.clipScreenPosition([0, 0])).toEqual [0, 0]
         expect(displayBuffer.clipScreenPosition([0, 1])).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, 2])).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, tabLength-1])).toEqual [0, tabLength]
         expect(displayBuffer.clipScreenPosition([0, tabLength])).toEqual [0, tabLength]
 
-    describe "when skipAtomicTokens is true", ->
+    describe "when clip is 'backward'", ->
+      it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
+        buffer.insert([0, 0], '\t')
+        expect(displayBuffer.clipScreenPosition([0, 0], clip: 'backward')).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, tabLength-1], clip: 'backward')).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, tabLength], clip: 'backward')).toEqual [0, tabLength]
+
+    describe "when clip is 'forward'", ->
       it "clips screen positions in the middle of atomic tab characters to the end of the character", ->
         buffer.insert([0, 0], '\t')
-        expect(displayBuffer.clipScreenPosition([0, 0], skipAtomicTokens: true)).toEqual [0, 0]
-        expect(displayBuffer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabLength]
-        expect(displayBuffer.clipScreenPosition([0, tabLength], skipAtomicTokens: true)).toEqual [0, tabLength]
+        expect(displayBuffer.clipScreenPosition([0, 0], clip: 'forward')).toEqual [0, 0]
+        expect(displayBuffer.clipScreenPosition([0, 1], clip: 'forward')).toEqual [0, tabLength]
+        expect(displayBuffer.clipScreenPosition([0, tabLength], clip: 'forward')).toEqual [0, tabLength]
 
   describe "::screenPositionForBufferPosition(bufferPosition, options)", ->
     it "clips the specified buffer position", ->
@@ -644,6 +730,25 @@ describe "DisplayBuffer", ->
       expect(displayBuffer.screenPositionForBufferPosition([0, 100000])).toEqual [0, 29]
       expect(displayBuffer.screenPositionForBufferPosition([100000, 0])).toEqual [12, 2]
       expect(displayBuffer.screenPositionForBufferPosition([100000, 100000])).toEqual [12, 2]
+
+    it "clips to the (left or right) edge of an atomic token without simply rounding up", ->
+      tabLength = 4
+      displayBuffer.setTabLength(tabLength)
+
+      buffer.insert([0, 0], '\t')
+      expect(displayBuffer.screenPositionForBufferPosition([0, 0])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, tabLength]
+
+    it "clips to the edge closest to the given position when it's inside a soft tab", ->
+      tabLength = 4
+      displayBuffer.setTabLength(tabLength)
+
+      buffer.insert([0, 0], '    ')
+      expect(displayBuffer.screenPositionForBufferPosition([0, 0])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 2])).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 3])).toEqual [0, 4]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 4])).toEqual [0, 4]
 
   describe "position translation in the presence of hard tabs", ->
     it "correctly translates positions on either side of a tab", ->
@@ -655,8 +760,8 @@ describe "DisplayBuffer", ->
       buffer.setText('\t\taa  bb  cc  dd  ee  ff  gg')
       displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(10)
-      expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 0]
-      expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 10]
+      expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 4]
+      expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 9]
 
   describe "::getMaxLineLength()", ->
     it "returns the length of the longest screen line", ->
@@ -666,16 +771,16 @@ describe "DisplayBuffer", ->
 
     it "correctly updates the location of the longest screen line when changes occur", ->
       expect(displayBuffer.getLongestScreenRow()).toBe 6
-      buffer.delete([[0, 0], [2, 0]])
+      buffer.delete([[3, 0], [5, 0]])
       expect(displayBuffer.getLongestScreenRow()).toBe 4
+
       buffer.delete([[4, 0], [5, 0]])
+      expect(displayBuffer.getLongestScreenRow()).toBe 5
+      expect(displayBuffer.getMaxLineLength()).toBe 56
 
-      expect(displayBuffer.getLongestScreenRow()).toBe 1
-      expect(displayBuffer.getMaxLineLength()).toBe 62
-
-      buffer.delete([[2, 0], [4, 0]])
-      expect(displayBuffer.getLongestScreenRow()).toBe 1
-      expect(displayBuffer.getMaxLineLength()).toBe 62
+      buffer.delete([[6, 0], [8, 0]])
+      expect(displayBuffer.getLongestScreenRow()).toBe 5
+      expect(displayBuffer.getMaxLineLength()).toBe 56
 
   describe "::destroy()", ->
     it "unsubscribes all display buffer markers from their underlying buffer marker (regression)", ->
@@ -1098,7 +1203,6 @@ describe "DisplayBuffer", ->
 
   describe "::setScrollTop", ->
     beforeEach ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
 
     it "disallows negative values", ->
@@ -1120,7 +1224,6 @@ describe "DisplayBuffer", ->
     describe "when editor.scrollPastEnd is false", ->
       beforeEach ->
         atom.config.set("editor.scrollPastEnd", false)
-        displayBuffer.manageScrollPosition = true
         displayBuffer.setLineHeightInPixels(10)
 
       it "does not add the height of the view to the scroll height", ->
@@ -1133,7 +1236,6 @@ describe "DisplayBuffer", ->
     describe "when editor.scrollPastEnd is true", ->
       beforeEach ->
         atom.config.set("editor.scrollPastEnd", true)
-        displayBuffer.manageScrollPosition = true
         displayBuffer.setLineHeightInPixels(10)
 
       it "adds the height of the view to the scroll height", ->
@@ -1145,7 +1247,6 @@ describe "DisplayBuffer", ->
 
   describe "::setScrollLeft", ->
     beforeEach ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
 
@@ -1166,14 +1267,17 @@ describe "DisplayBuffer", ->
 
   describe "::scrollToScreenPosition(position, [options])", ->
     beforeEach ->
-      displayBuffer.manageScrollPosition = true
       displayBuffer.setLineHeightInPixels(10)
       displayBuffer.setDefaultCharWidth(10)
       displayBuffer.setHorizontalScrollbarHeight(0)
       displayBuffer.setHeight(50)
-      displayBuffer.setWidth(50)
+      displayBuffer.setWidth(150)
 
     it "sets the scroll top and scroll left so the given screen position is in view", ->
+      displayBuffer.scrollToScreenPosition([8, 20])
+      expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
+      expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
+
       displayBuffer.scrollToScreenPosition([8, 20])
       expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
       expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
@@ -1222,3 +1326,29 @@ describe "DisplayBuffer", ->
 
       expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + operatorWidth * 2 + cursorWidth
       expect(changedSpy.callCount).toBe 1
+
+  describe "::getVisibleRowRange()", ->
+    beforeEach ->
+      displayBuffer.setLineHeightInPixels(10)
+      displayBuffer.setHeight(100)
+
+    it "returns the first and the last visible rows", ->
+      displayBuffer.setScrollTop(0)
+
+      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 9]
+
+    it "includes partially visible rows in the range", ->
+      displayBuffer.setScrollTop(5)
+
+      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 10]
+
+    it "returns an empty range when lineHeight is 0", ->
+      displayBuffer.setLineHeightInPixels(0)
+
+      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 0]
+
+    it "ends at last buffer row even if there's more space available", ->
+      displayBuffer.setHeight(150)
+      displayBuffer.setScrollTop(60)
+
+      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 13]

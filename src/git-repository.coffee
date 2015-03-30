@@ -59,7 +59,7 @@ class GitRepository
   # Public: Creates a new GitRepository instance.
   #
   # * `path` The {String} path to the Git repository to open.
-  # * `options` An optinal {Object} with the following keys:
+  # * `options` An optional {Object} with the following keys:
   #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
   #     statuses when the window is focused.
   #
@@ -96,13 +96,19 @@ class GitRepository
       @subscriptions.add new Disposable(-> window.removeEventListener 'focus', onWindowFocus)
 
     if @project?
-      @subscriptions.add @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
+      @project.getBuffers().forEach (buffer) => @subscribeToBuffer(buffer)
+      @subscriptions.add @project.onDidAddBuffer (buffer) => @subscribeToBuffer(buffer)
 
   # Public: Destroy this {GitRepository} object.
   #
   # This destroys any tasks and subscriptions and releases the underlying
-  # libgit2 repository handle.
+  # libgit2 repository handle. This method is idempotent.
   destroy: ->
+    if @emitter?
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
+      @emitter = null
+
     if @statusTask?
       @statusTask.terminate()
       @statusTask = null
@@ -111,7 +117,14 @@ class GitRepository
       @repo.release()
       @repo = null
 
-    @subscriptions.dispose()
+    if @subscriptions?
+      @subscriptions.dispose()
+      @subscriptions = null
+
+  # Public: Invoke the given callback when this GitRepository's destroy() method
+  # is invoked.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
 
   ###
   Section: Event Subscription
@@ -155,6 +168,12 @@ class GitRepository
   ###
   Section: Repository Details
   ###
+
+  # Public: A {String} indicating the type of version control system used by
+  # this repository.
+  #
+  # Returns `"git"`.
+  getType: -> 'git'
 
   # Public: Returns the {String} path of the repository.
   getPath: ->

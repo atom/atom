@@ -1,4 +1,5 @@
-{Point, Range} = require 'text-buffer'
+TextBuffer = require 'text-buffer'
+{Point, Range} = TextBuffer
 {File, Directory} = require 'pathwatcher'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {deprecate} = require 'grim'
@@ -8,6 +9,7 @@ module.exports =
   BufferedProcess: require '../src/buffered-process'
   GitRepository: require '../src/git-repository'
   Notification: require '../src/notification'
+  TextBuffer: TextBuffer
   Point: Point
   Range: Range
   File: File

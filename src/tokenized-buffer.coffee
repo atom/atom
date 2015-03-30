@@ -138,12 +138,19 @@ class TokenizedBuffer extends Model
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
+
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
       @tokenizeNextChunk() if @isAlive() and @buffer.isAlive()
 
   tokenizeNextChunk: ->
+    # Short circuit null grammar which can just use the placeholder tokens
+    if @grammar is atom.grammars.nullGrammar and @firstInvalidRow()?
+      @invalidRows = []
+      @markTokenizationComplete()
+      return
+
     rowsRemaining = @chunkSize
 
     while @firstInvalidRow()? and rowsRemaining > 0
@@ -177,16 +184,20 @@ class TokenizedBuffer extends Model
     if @firstInvalidRow()?
       @tokenizeInBackground()
     else
-      unless @fullyTokenized
-        @emit 'tokenized'
-        @emitter.emit 'did-tokenize'
-      @fullyTokenized = true
+      @markTokenizationComplete()
+
+  markTokenizationComplete: ->
+    unless @fullyTokenized
+      @emit 'tokenized'
+      @emitter.emit 'did-tokenize'
+    @fullyTokenized = true
 
   firstInvalidRow: ->
     @invalidRows[0]
 
   validateRow: (row) ->
     @invalidRows.shift() while @invalidRows[0] <= row
+    return
 
   invalidateRow: (row) ->
     @invalidRows.push(row)
@@ -302,7 +313,9 @@ class TokenizedBuffer extends Model
     new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
 
   buildTokenizedLineForRow: (row, ruleStack) ->
-    line = @buffer.lineForRow(row)
+    @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack)
+
+  buildTokenizedLineForRowWithText: (row, line, ruleStack = @stackForRow(row - 1)) ->
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
@@ -456,3 +469,4 @@ class TokenizedBuffer extends Model
     for row in [start..end]
       line = @tokenizedLineForRow(row).text
       console.log row, line, line.length
+    return

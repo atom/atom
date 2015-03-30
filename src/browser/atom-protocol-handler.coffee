@@ -18,12 +18,11 @@ module.exports =
 class AtomProtocolHandler
   constructor: (resourcePath, safeMode) ->
     @loadPaths = []
-    @dotAtomDirectory = path.join(app.getHomeDir(), '.atom')
 
     unless safeMode
-      @loadPaths.push(path.join(@dotAtomDirectory, 'dev', 'packages'))
+      @loadPaths.push(path.join(process.env.ATOM_HOME, 'dev', 'packages'))
 
-    @loadPaths.push(path.join(@dotAtomDirectory, 'packages'))
+    @loadPaths.push(path.join(process.env.ATOM_HOME, 'packages'))
     @loadPaths.push(path.join(resourcePath, 'node_modules'))
 
     @registerAtomProtocol()
@@ -34,7 +33,7 @@ class AtomProtocolHandler
       relativePath = path.normalize(request.url.substr(7))
 
       if relativePath.indexOf('assets/') is 0
-        assetsPath = path.join(@dotAtomDirectory, relativePath)
+        assetsPath = path.join(process.env.ATOM_HOME, relativePath)
         filePath = assetsPath if fs.statSyncNoException(assetsPath).isFile?()
 
       unless filePath

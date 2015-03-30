@@ -3,6 +3,9 @@ module.exports =
 
   deactivate: ->
 
+  provideFirstServiceV2: ->
+    'first-service-v2'
+
   provideFirstServiceV3: ->
     'first-service-v3'
 

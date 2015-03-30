@@ -151,6 +151,14 @@ describe "ContextMenuManager", ->
       shouldDisplay = false
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual []
 
+    it "throws an error when the selector is invalid", ->
+      addError = null
+      try
+        contextMenu.add '<>': [{label: 'A', command: 'a'}]
+      catch error
+        addError = error
+      expect(addError.message).toContain('<>')
+
     describe "when the menus are specified in a legacy format", ->
       beforeEach ->
         jasmine.snapshotDeprecations()

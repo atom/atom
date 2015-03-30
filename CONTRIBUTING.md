@@ -6,12 +6,12 @@ The following is a set of guidelines for contributing to Atom and its packages,
 which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
 If you're unsure which package is causing your problem or if you're having an
 issue with Atom core, please open an issue on the [main atom repository](https://github.com/atom/atom/issues).
-These are just guidelines, not rules, use your best judgement and feel free to
+These are just guidelines, not rules, use your best judgment and feel free to
 propose changes to this document in a pull request.
 
 ## Submitting Issues
 
-* Check the [debugging guide](https://atom.io/docs/latest/debugging) for tips
+* Check the [debugging guide](https://atom.io/docs/latest/hacking-atom-debugging) for tips
   on debugging. You might be able to find the cause of the problem and fix
   things yourself.
 * Include the version of Atom you are using and the OS.
@@ -39,7 +39,7 @@ many packages and themes that are stored in other repos under the
 [atom-light-ui](https://github.com/atom/atom-light-ui).
 
 For more information on how to work with Atom's official packages, see
-[Contributing to Atom Packages](https://atom.io/docs/latest/contributing-to-packages.html)
+[Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md)
 
 ## Pull Requests
 
@@ -48,7 +48,7 @@ For more information on how to work with Atom's official packages, see
   [JavaScript](https://github.com/styleguide/javascript),
   and [CSS](https://github.com/styleguide/css) styleguides.
 * Include thoughtfully-worded, well-structured
-  [Jasmine](http://jasmine.github.io/) specs.
+  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`.
 * Document new code based on the
   [Documentation Styleguide](#documentation-styleguide)
 * End files with a newline.
@@ -104,6 +104,9 @@ For more information on how to work with Atom's official packages, see
   should be lower-case:
   * `getURI` instead of `getUri`
   * `uriToOpen` instead of `URIToOpen`
+* Use `slice()` to copy an array
+* Add an explicit `return` when your function ends with a `for`/`while` loop and
+  you don't want it to return a collected array.
 
 ## Documentation Styleguide
 

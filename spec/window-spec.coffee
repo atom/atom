@@ -276,33 +276,31 @@ describe "Window", ->
         elements.trigger "core:focus-previous"
         expect(elements.find("[tabindex=1]:focus")).toExist()
 
-  describe "the window:open-path event", ->
+  describe "the window:open-locations event", ->
     beforeEach ->
       spyOn(atom.workspace, 'open')
+      atom.project.setPaths([])
 
-    describe "when the project does not have a path", ->
-      beforeEach ->
-        atom.project.setPaths([])
+    describe "when the opened path exists", ->
+      it "adds it to the project's paths", ->
+        pathToOpen = __filename
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
+        expect(atom.project.getPaths()[0]).toBe __dirname
 
-      describe "when the opened path exists", ->
-        it "sets the project path to the opened path", ->
-          atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
-          expect(atom.project.getPaths()[0]).toBe __dirname
-
-      describe "when the opened path does not exist but its parent directory does", ->
-        it "sets the project path to the opened path's parent directory", ->
-          pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
-          atom.getCurrentWindow().send 'message', 'open-path', {pathToOpen}
-          expect(atom.project.getPaths()[0]).toBe __dirname
+    describe "when the opened path does not exist but its parent directory does", ->
+      it "adds the parent directory to the project paths", ->
+        pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
+        expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path is a file", ->
       it "opens it in the workspace", ->
-        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
-
+        pathToOpen = __filename
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
         expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
 
     describe "when the opened path is a directory", ->
       it "does not open it in the workspace", ->
-        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __dirname
-
+        pathToOpen = __dirname
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
         expect(atom.workspace.open.callCount).toBe 0

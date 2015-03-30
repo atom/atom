@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 EmitterMixin = require('emissary').Emitter
-guid = require 'guid'
 Serializable = require 'serializable'
 {Model} = require 'theorist'
 {CompositeDisposable, Emitter} = require 'event-kit'
@@ -23,7 +22,6 @@ class DisplayBuffer extends Model
   Serializable.includeInto(this)
 
   @properties
-    manageScrollPosition: false
     softWrapped: null
     editorWidthInChars: null
     lineHeightInPixels: null
@@ -70,10 +68,15 @@ class DisplayBuffer extends Model
       scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
       softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
       softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      softWrapHangingIndent: atom.config.get('editor.softWrapHangingIndent', scope: scopeDescriptor)
       preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
 
     subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrap = newValue
+      @updateWrappedScreenLines()
+
+    subscriptions.add atom.config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrapHangingIndent = newValue
       @updateWrappedScreenLines()
 
     subscriptions.add atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
@@ -196,11 +199,21 @@ class DisplayBuffer extends Model
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
-  getVerticalScrollMargin: -> @verticalScrollMargin
+  getVerticalScrollMargin: -> Math.min(@verticalScrollMargin, (@getHeight() - @getLineHeightInPixels()) / 2)
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getHorizontalScrollMargin: -> @horizontalScrollMargin
+  getVerticalScrollMarginInPixels: ->
+    scrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeightInPixels()
+    maxScrollMarginInPixels = (@getHeight() - @getLineHeightInPixels()) / 2
+    Math.min(scrollMarginInPixels, maxScrollMarginInPixels)
+
+  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, (@getWidth() - @getDefaultCharWidth()) / 2)
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
+
+  getHorizontalScrollMarginInPixels: ->
+    scrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
+    maxScrollMarginInPixels = (@getWidth() - @getDefaultCharWidth()) / 2
+    Math.min(scrollMarginInPixels, maxScrollMarginInPixels)
 
   getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
   setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
@@ -264,26 +277,19 @@ class DisplayBuffer extends Model
 
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
-    if @manageScrollPosition
-      @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
-    else
-      @scrollTop = Math.round(scrollTop)
+    @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
 
   getMaxScrollTop: ->
     @getScrollHeight() - @getClientHeight()
 
-  getScrollBottom: -> @scrollTop + @height
+  getScrollBottom: -> @scrollTop + @getClientHeight()
   setScrollBottom: (scrollBottom) ->
     @setScrollTop(scrollBottom - @getClientHeight())
     @getScrollBottom()
 
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
-    if @manageScrollPosition
-      @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
-      @scrollLeft
-    else
-      @scrollLeft = Math.round(scrollLeft)
+    @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
 
   getMaxScrollLeft: ->
     @getScrollWidth() - @getClientWidth()
@@ -349,12 +355,13 @@ class DisplayBuffer extends Model
   getScrollWidth: ->
     @scrollWidth
 
+  # Returns an {Array} of two numbers representing the first and the last visible rows.
   getVisibleRowRange: ->
     return [0, 0] unless @getLineHeightInPixels() > 0
 
-    heightInLines = Math.ceil(@getHeight() / @getLineHeightInPixels()) + 1
     startRow = Math.floor(@getScrollTop() / @getLineHeightInPixels())
-    endRow = Math.min(@getLineCount(), startRow + heightInLines)
+    endRow = Math.ceil((@getScrollTop() + @getHeight()) / @getLineHeightInPixels()) - 1
+    endRow = Math.min(@getLineCount(), endRow)
 
     [startRow, endRow]
 
@@ -367,15 +374,16 @@ class DisplayBuffer extends Model
     @intersectsVisibleRowRange(start.row, end.row + 1)
 
   scrollToScreenRange: (screenRange, options) ->
-    verticalScrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeightInPixels()
-    horizontalScrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
+    verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
+    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
 
-    {top, left, height, width} = @pixelRectForScreenRange(screenRange)
-    bottom = top + height
-    right = left + width
+    {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
+    {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
+    bottom = endTop + endHeight
+    right = endLeft
 
     if options?.center
-      desiredScrollCenter = top + height / 2
+      desiredScrollCenter = (top + bottom) / 2
       unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
         desiredScrollTop =  desiredScrollCenter - @getHeight() / 2
         desiredScrollBottom =  desiredScrollCenter + @getHeight() / 2
@@ -386,15 +394,26 @@ class DisplayBuffer extends Model
     desiredScrollLeft = left - horizontalScrollMarginInPixels
     desiredScrollRight = right + horizontalScrollMarginInPixels
 
-    if desiredScrollTop < @getScrollTop()
-      @setScrollTop(desiredScrollTop)
-    else if desiredScrollBottom > @getScrollBottom()
-      @setScrollBottom(desiredScrollBottom)
+    if options?.reversed ? true
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
 
-    if desiredScrollLeft < @getScrollLeft()
-      @setScrollLeft(desiredScrollLeft)
-    else if desiredScrollRight > @getScrollRight()
-      @setScrollRight(desiredScrollRight)
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
+    else
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
+
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
 
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToScreenRange(new Range(screenPosition, screenPosition), options)
@@ -459,7 +478,7 @@ class DisplayBuffer extends Model
     width = @width ? @getScrollWidth()
     width -= @getVerticalScrollbarWidth()
     if width? and @defaultCharWidth > 0
-      Math.floor(width / @defaultCharWidth)
+      Math.max(0, Math.floor(width / @defaultCharWidth))
     else
       @editorWidthInChars
 
@@ -533,6 +552,7 @@ class DisplayBuffer extends Model
   # bufferRow - The buffer row {Number} to check against
   unfoldBufferRow: (bufferRow) ->
     fold.destroy() for fold in @foldsContainingBufferRow(bufferRow)
+    return
 
   # Given a buffer row, this returns the largest fold that starts there.
   #
@@ -820,11 +840,12 @@ class DisplayBuffer extends Model
   # options - A hash with the following values:
   #           wrapBeyondNewlines: if `true`, continues wrapping past newlines
   #           wrapAtSoftNewlines: if `true`, continues wrapping past soft newlines
+  #           skipSoftWrapIndentation: if `true`, skips soft wrap indentation without wrapping to the previous line
   #           screenLine: if `true`, indicates that you're using a line number, not a row number
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
+    { wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation } = options
     { row, column } = Point.fromObject(screenPosition)
 
     if row < 0
@@ -842,9 +863,15 @@ class DisplayBuffer extends Model
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
       if wrapAtSoftNewlines
         row++
-        column = 0
+        column = @screenLines[row].clipScreenColumn(0)
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
+    else if screenLine.isColumnInsideSoftWrapIndentation(column)
+      if skipSoftWrapIndentation
+        column = screenLine.clipScreenColumn(0)
+      else
+        row--
+        column = @screenLines[row].getMaxScreenColumn() - 1
     else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
       row++
       column = 0
@@ -852,27 +879,17 @@ class DisplayBuffer extends Model
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
-  # Given a line, finds the point where it would wrap.
+  # Clip the start and end of the given range to valid positions on screen.
+  # See {::clipScreenPosition} for more information.
   #
-  # line - The {String} to check
-  # softWrapColumn - The {Number} where you want soft wrapping to occur
-  #
-  # Returns a {Number} representing the `line` position where the wrap would take place.
-  # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @isSoftWrapped()
-    return unless line.length > softWrapColumn
+  # * `range` The {Range} to clip.
+  # * `options` (optional) See {::clipScreenPosition} `options`.
+  # Returns a {Range}.
+  clipScreenRange: (range, options) ->
+    start = @clipScreenPosition(range.start, options)
+    end = @clipScreenPosition(range.end, options)
 
-    if /\s/.test(line[softWrapColumn])
-      # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.length]
-        return column if /\S/.test(line[column])
-      return line.length
-    else
-      # search backward for the start of the word on the boundary
-      for column in [softWrapColumn..0]
-        return column + 1 if /\s/.test(line[column])
-      return softWrapColumn
+    new Range(start, end)
 
   # Calculates a {Range} representing the start of the {TextBuffer} until the end.
   #
@@ -1080,6 +1097,7 @@ class DisplayBuffer extends Model
 
   pauseMarkerChangeEvents: ->
     marker.pauseChangeEvents() for marker in @getMarkers()
+    return
 
   resumeMarkerChangeEvents: ->
     marker.resumeChangeEvents() for marker in @getMarkers()
@@ -1089,6 +1107,7 @@ class DisplayBuffer extends Model
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
       marker.notifyObservers(textChanged: false)
+    return
 
   destroyed: ->
     marker.unsubscribe() for id, marker of @markers
@@ -1100,6 +1119,7 @@ class DisplayBuffer extends Model
     for row in [start..end]
       line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
+    return
 
   getRootScopeDescriptor: ->
     @tokenizedBuffer.rootScopeDescriptor
@@ -1107,7 +1127,7 @@ class DisplayBuffer extends Model
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
-    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if @manageScrollPosition and delta < 0
+    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
@@ -1158,10 +1178,15 @@ class DisplayBuffer extends Model
         bufferRow += foldedRowCount
       else
         softWraps = 0
-        while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
-          [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-          screenLines.push(wrappedLine)
-          softWraps++
+        if @isSoftWrapped()
+          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
+            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
+              wrapScreenColumn,
+              @configSettings.softWrapHangingIndent
+            )
+            break if wrappedLine.hasOnlySoftWrapIndentation()
+            screenLines.push(wrappedLine)
+            softWraps++
         screenLines.push(tokenizedLine)
 
         if softWraps > 0
@@ -1190,7 +1215,7 @@ class DisplayBuffer extends Model
       maxLengthCandidatesStartRow = 0
       maxLengthCandidates = @screenLines
     else
-      @longestScreenRow += screenDelta if endScreenRow < @longestScreenRow
+      @longestScreenRow += screenDelta if endScreenRow <= @longestScreenRow
       maxLengthCandidatesStartRow = startScreenRow
       maxLengthCandidates = newScreenLines
 

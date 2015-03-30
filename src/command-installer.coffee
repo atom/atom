@@ -2,21 +2,21 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 fs = require 'fs-plus'
-mkdirp = require 'mkdirp'
-runas = require 'runas'
+runas = null # defer until used
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
   fs.unlink destinationPath, (error) ->
     if error? and error?.code != 'ENOENT'
       callback(error)
     else
-      mkdirp path.dirname(destinationPath), (error) ->
+      fs.makeTree path.dirname(destinationPath), (error) ->
         if error?
           callback(error)
         else
           fs.symlink sourcePath, destinationPath, callback
 
 symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
+  runas ?= require 'runas'
   if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
     throw new Error("Failed to remove '#{destinationPath}'")
 

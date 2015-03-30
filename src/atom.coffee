@@ -73,7 +73,7 @@ class Atom extends Model
   # Loads and returns the serialized state corresponding to this window
   # if it exists; otherwise returns undefined.
   @loadState: (mode) ->
-    statePath = @getStatePath(mode)
+    statePath = @getStatePath(@getLoadSettings().initialPaths, mode)
 
     if fs.existsSync(statePath)
       try
@@ -90,14 +90,13 @@ class Atom extends Model
 
   # Returns the path where the state for the current window will be
   # located if it exists.
-  @getStatePath: (mode) ->
+  @getStatePath: (paths, mode) ->
     switch mode
       when 'spec'
         filename = 'spec'
       when 'editor'
-        {initialPath} = @getLoadSettings()
-        if initialPath
-          sha1 = crypto.createHash('sha1').update(initialPath).digest('hex')
+        if paths?.length > 0
+          sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
           filename = "editor-#{sha1}"
 
     if filename
@@ -119,7 +118,7 @@ class Atom extends Model
 
   # Returns the load settings hash associated with the current window.
   @getLoadSettings: ->
-    @loadSettings ?= JSON.parse(decodeURIComponent(location.search.substr(14)))
+    @loadSettings ?= JSON.parse(decodeURIComponent(location.hash.substr(1)))
     cloned = _.deepClone(@loadSettings)
     # The loadSettings.windowState could be large, request it only when needed.
     cloned.__defineGetter__ 'windowState', =>
@@ -127,6 +126,11 @@ class Atom extends Model
     cloned.__defineSetter__ 'windowState', (value) =>
       @getCurrentWindow().loadSettings.windowState = value
     cloned
+
+  @updateLoadSetting: (key, value) ->
+    @getLoadSettings()
+    @loadSettings[key] = value
+    location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
 
   @getCurrentWindow: ->
     remote.getCurrentWindow()
@@ -203,12 +207,6 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    # Disable deprecations unless in dev mode or spec mode so that regular
-    # editor performance isn't impacted by generating stack traces for
-    # deprecated calls.
-    unless @inDevMode() or @inSpecMode()
-      require('grim').deprecate = ->
-
     sourceMapCache = {}
 
     window.onerror = =>
@@ -407,6 +405,17 @@ class Atom extends Model
   open: (options) ->
     ipc.send('open', options)
 
+  # Extended: Show the native dialog to prompt the user to select a folder.
+  #
+  # * `callback` A {Function} to call once the user has selected a folder.
+  #   * `path` {String} the path to the folder the user selected.
+  pickFolder: (callback) ->
+    responseChannel = "atom-pick-folder-response"
+    ipc.on responseChannel, (path) ->
+      ipc.removeAllListeners(responseChannel)
+      callback(path)
+    ipc.send("pick-folder", responseChannel)
+
   # Essential: Close the current window.
   close: ->
     @getCurrentWindow().close()
@@ -595,6 +604,8 @@ class Atom extends Model
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
+    @openInitialEmptyEditorIfNecessary()
+
     maximize = dimensions?.maximized and process.platform isnt 'darwin'
     @displayWindow({maximize})
 
@@ -618,6 +629,10 @@ class Atom extends Model
     @project = null
 
     @windowEventHandler?.unsubscribe()
+
+  openInitialEmptyEditorIfNecessary: ->
+    if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
+      @workspace.open(null)
 
   ###
   Section: Messaging the User
@@ -693,7 +708,7 @@ class Atom extends Model
     Project = require './project'
 
     startTime = Date.now()
-    @project ?= @deserializers.deserialize(@state.project) ? new Project(paths: [@getLoadSettings().initialPath])
+    @project ?= @deserializers.deserialize(@state.project) ? new Project()
     @deserializeTimings.project = Date.now() - startTime
 
   deserializeWorkspaceView: ->
@@ -735,10 +750,8 @@ class Atom extends Model
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
-    onProjectPathChanged = =>
-      ipc.send('window-command', 'project-path-changed', @project.getPaths()[0])
-    @subscribe @project.onDidChangePaths(onProjectPathChanged)
-    onProjectPathChanged()
+    @subscribe @project.onDidChangePaths =>
+      @constructor.updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
     app = remote.require('app')
@@ -762,7 +775,7 @@ class Atom extends Model
 
   saveSync: ->
     stateString = JSON.stringify(@state)
-    if statePath = @constructor.getStatePath(@mode)
+    if statePath = @constructor.getStatePath(@project?.getPaths(), @mode)
       fs.writeFileSync(statePath, stateString, 'utf8')
     else
       @getCurrentWindow().loadSettings.windowState = stateString
@@ -792,7 +805,7 @@ class Atom extends Model
   # require completes.
   #
   # * `id` The {String} module name or path.
-  # * `globals` An optinal {Object} to set as globals during require.
+  # * `globals` An optional {Object} to set as globals during require.
   requireWithGlobals: (id, globals={}) ->
     existingGlobals = {}
     for key, value of globals
@@ -806,6 +819,7 @@ class Atom extends Model
         delete window[key]
       else
         window[key] = value
+    return
 
   onUpdateAvailable: (callback) ->
     @emitter.on 'update-available', callback

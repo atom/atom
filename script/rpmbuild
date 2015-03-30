@@ -3,4 +3,4 @@
 set -e
 
 script/build
-script/grunt mkrpm publish-build --stack --install-dir /usr
+script/grunt mkrpm publish-build --stack --no-color --install-dir /usr

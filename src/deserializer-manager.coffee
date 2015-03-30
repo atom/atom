@@ -35,10 +35,12 @@ class DeserializerManager
     @deserializers[deserializer.name] = deserializer for deserializer in deserializers
     new Disposable =>
       delete @deserializers[deserializer.name] for deserializer in deserializers
+      return
 
   remove: (classes...) ->
     Grim.deprecate("Call .dispose() on the Disposable return from ::add instead")
     delete @deserializers[name] for {name} in classes
+    return
 
   # Public: Deserialize the state and params.
   #
