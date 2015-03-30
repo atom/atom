@@ -25,6 +25,7 @@
     "test": "grunt test"
   },
   "dependencies": {
+    "asar-require": "0.1.1",
     "optimist": "~0.4.0",
     "async": "~0.2.8",
     "underscore-plus": "1.x",

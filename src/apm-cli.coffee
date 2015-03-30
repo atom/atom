@@ -7,6 +7,9 @@ npm = require 'npm'
 optimist = require 'optimist'
 wordwrap = require 'wordwrap'
 
+# Enable "require" scripts in asar archives
+require 'asar-require'
+
 config = require './apm'
 fs = require './fs'
 git = require './git'
