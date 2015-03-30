@@ -6,7 +6,7 @@ The following is a set of guidelines for contributing to Atom and its packages,
 which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
 If you're unsure which package is causing your problem or if you're having an
 issue with Atom core, please open an issue on the [main atom repository](https://github.com/atom/atom/issues).
-These are just guidelines, not rules, use your best judgement and feel free to
+These are just guidelines, not rules, use your best judgment and feel free to
 propose changes to this document in a pull request.
 
 ## Submitting Issues
