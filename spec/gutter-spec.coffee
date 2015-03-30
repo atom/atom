@@ -62,3 +62,7 @@ describe 'Gutter', ->
         didDestroy = true
       gutter.destroy()
       expect(didDestroy).toBe true
+
+    it 'does not allow destroying the line-number gutter', ->
+      gutter = new Gutter mockGutterContainer, {name: 'line-number'}
+      expect(gutter.destroy).toThrow()

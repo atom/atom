@@ -23,9 +23,12 @@ class Gutter
     @emitter = new Emitter
 
   destroy: ->
-    @gutterContainer.removeGutter(this)
-    @emitter.emit 'did-destroy'
-    @emitter.dispose()
+    if @name is 'line-number'
+      throw new Error('The line-number gutter cannot be destroyed.')
+    else
+      @gutterContainer.removeGutter(this)
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
 
   hide: ->
     if @visible
