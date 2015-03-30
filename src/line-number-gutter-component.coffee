@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+{setDimensionsAndBackground} = require './gutter-component-helpers'
 
 WrapperDiv = document.createElement('div')
 
@@ -30,17 +31,7 @@ class LineNumberGutterComponent
 
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    if @newState.scrollHeight isnt @oldState.scrollHeight
-      @lineNumbersNode.style.height = @newState.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
-
-    if @newState.scrollTop isnt @oldState.scrollTop
-      @lineNumbersNode.style['-webkit-transform'] = "translate3d(0px, #{-@newState.scrollTop}px, 0px)"
-      @oldState.scrollTop = @newState.scrollTop
-
-    if @newState.backgroundColor isnt @oldState.backgroundColor
-      @lineNumbersNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
+    setDimensionsAndBackground(@oldState, @newState, @lineNumbersNode)
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()

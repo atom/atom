@@ -1,3 +1,5 @@
+{setDimensionsAndBackground} = require './gutter-component-helpers'
+
 # This class represents a gutter other than the 'line-numbers' gutter.
 # The contents of this gutter may be specified by Decorations.
 
@@ -33,15 +35,7 @@ class CustomGutterComponent
     decorationState = state.gutters.customDecorations[@getName()]
     @oldState ?= {}
 
-    # TODO (jessicalin) Factor this out (also in LineNumberGutterComponent).
-    # Also, set backgroundColor?
-    if gutterProps.scrollHeight isnt @oldState.scrollHeight
-      @decorationsNode.style.height = gutterProps.scrollHeight + 'px'
-      @oldState.scrollHeight = gutterProps.scrollHeight
-
-    if gutterProps.scrollTop isnt @oldState.scrollTop
-      @decorationsNode.style['-webkit-transform'] = "translate3d(0px, #{-gutterProps.scrollTop}px, 0px)"
-      @oldState.scrollTop = gutterProps.scrollTop
+    setDimensionsAndBackground(@oldState, gutterProps, @decorationsNode)
 
     return if !decorationState
 
