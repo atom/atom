@@ -26,14 +26,16 @@ module.exports =
   get: (requestOptions, callback) ->
     configureRequest requestOptions, ->
       retryCount = requestOptions.retries ? 0
+      requestsMade = 0
       tryRequest = ->
+        requestsMade++
         request.get requestOptions, (error, response, body) ->
           if retryCount > 0 and error?.code in ['ETIMEDOUT', 'ECONNRESET']
             retryCount--
             tryRequest()
           else
-            if error?.message and requestOptions.retries?
-              error.message += " (#{requestOptions.retries + 1} attempts)"
+            if error?.message and requestsMade > 1
+              error.message += " (#{requestsMade} attempts)"
 
             callback(error, response, body)
       tryRequest()
