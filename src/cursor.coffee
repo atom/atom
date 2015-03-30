@@ -305,7 +305,7 @@ class Cursor extends Model
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column})
+      @setScreenPosition({row, column}, clip: 'backward')
 
   # Public: Moves the cursor right one screen column.
   #
@@ -332,7 +332,7 @@ class Cursor extends Model
         columnsRemainingInLine = rowLength
 
       column = column + columnCount
-      @setScreenPosition({row, column}, skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      @setScreenPosition({row, column}, clip: 'forward', wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
