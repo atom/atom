@@ -33,10 +33,10 @@ class GutterContainerComponent
       gutterComponent = @gutterComponentsByGutterName[gutter.name]
       if !gutterComponent
         if gutter.name is 'line-number'
-          gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, name: gutter.name})
+          gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, gutter})
           @lineNumberGutterComponent = gutterComponent
         else
-          gutterComponent = new CustomGutterComponent({name: gutter.name})
+          gutterComponent = new CustomGutterComponent({gutter})
       newGutterComponents.push(gutterComponent)
       newGutterComponentsByGutterName[gutter.name] = gutterComponent
 

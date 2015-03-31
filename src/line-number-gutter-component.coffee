@@ -7,14 +7,11 @@ module.exports =
 class LineNumberGutterComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @name}) ->
+  constructor: ({@onMouseDown, @editor, @gutter}) ->
     @lineNumberNodesById = {}
 
-    @domNode = document.createElement('div')
-    @domNode.classList.add('gutter')
-    @lineNumbersNode = document.createElement('div')
-    @lineNumbersNode.classList.add('line-numbers')
-    @domNode.appendChild(@lineNumbersNode)
+    @domNode = atom.views.getView(@gutter)
+    @lineNumbersNode = @domNode.firstChild
 
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
@@ -23,7 +20,7 @@ class LineNumberGutterComponent
     @domNode
 
   getName: ->
-    @name
+    @gutter.name
 
   updateSync: (state) ->
     @newState = state.lineNumberGutter

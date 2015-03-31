@@ -11,16 +11,12 @@ TEMP_DECOR_BACKGROUND = 'white'
 module.exports =
 class CustomGutterComponent
 
-  constructor: ({@name}) ->
+  constructor: ({@gutter}) ->
     @decorationNodesById = {}
     @decorationItemsById = {}
 
-    @domNode = document.createElement('div')
-    @domNode.classList.add('gutter')
-    @domNode.setAttribute('gutter-name', @name)
-    @decorationsNode = document.createElement('div')
-    @decorationsNode.classList.add('custom-decorations')
-    @domNode.appendChild(@decorationsNode)
+    @domNode = atom.views.getView(@gutter)
+    @decorationsNode = @domNode.firstChild
 
     @domNode.style['width'] = '' + TEMP_MIN_WIDTH + 'px'
 
@@ -28,7 +24,7 @@ class CustomGutterComponent
     @domNode
 
   getName: ->
-    @name
+    @gutter.name
 
   updateSync: (state) ->
     gutterProps = state.lineNumberGutter
