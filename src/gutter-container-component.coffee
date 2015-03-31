@@ -25,7 +25,7 @@ class GutterContainerComponent
   updateSync: (state) ->
     # The GutterContainerComponent expects the gutters to be sorted in the order
     # they should appear.
-    newState = state.gutters.sortedDescriptions
+    newState = state.gutters.sortedModels
 
     newGutterComponents = []
     newGutterComponentsByGutterName = {}

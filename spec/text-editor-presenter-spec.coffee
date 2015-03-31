@@ -2191,9 +2191,9 @@ describe "TextEditorPresenter", ->
         expect(presenter.getState().focused).toBe false
 
     describe ".gutters", ->
-      describe ".sortedDescriptions", ->
+      describe ".sortedModels", ->
         gutterDescriptionWithName = (presenter, name) ->
-          for gutterDesc in presenter.getState().gutters.sortedDescriptions
+          for gutterDesc in presenter.getState().gutters.sortedModels
             return gutterDesc if gutterDesc.name is name
           undefined
 
@@ -2235,13 +2235,10 @@ describe "TextEditorPresenter", ->
 
         it "updates when gutters are added to the editor model, and keeps the gutters sorted by priority", ->
           presenter = buildPresenter()
-          editor.addGutter({name: 'test-gutter-1', priority: -100, visible: true})
+          gutter1 = editor.addGutter({name: 'test-gutter-1', priority: -100, visible: true})
           editor.addGutter({name: 'test-gutter-2', priority: 100, visible: false})
-          expectedState = [
-            {name: 'test-gutter-1'},
-            {name: 'line-number'},
-          ]
-          expect(presenter.getState().gutters.sortedDescriptions).toEqual expectedState
+          expectedState = [gutter1, editor.gutterWithName('line-number')]
+          expect(presenter.getState().gutters.sortedModels).toEqual expectedState
 
         it "updates when the visibility of a gutter changes", ->
           presenter = buildPresenter()
