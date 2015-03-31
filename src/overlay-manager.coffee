@@ -23,16 +23,23 @@ class OverlayManager
 
     itemWidth = item.offsetWidth
     itemHeight = item.offsetHeight
-
+    contentMargin = parseInt(getComputedStyle(item)['margin-left']) ? 0
 
     {scrollTop, scrollLeft} = state.content
 
-    left = pixelPosition.left
-    if left + itemWidth - scrollLeft > @presenter.contentFrameWidth and left - itemWidth >= scrollLeft
-      left -= itemWidth
+    editorBounds = @presenter.boundingClientRect
+    gutterWidth = editorBounds.width - @presenter.contentFrameWidth
 
-    top = pixelPosition.top + @presenter.lineHeight
-    if top + itemHeight - scrollTop > @presenter.height and top - itemHeight - @presenter.lineHeight >= scrollTop
+    left = pixelPosition.left - scrollLeft + gutterWidth
+    top = pixelPosition.top + @presenter.lineHeight - scrollTop
+
+    rightDiff = left + editorBounds.left + itemWidth + contentMargin - @presenter.windowWidth
+    left -= rightDiff if rightDiff > 0
+
+    leftDiff = left + editorBounds.left + contentMargin
+    left -= leftDiff if leftDiff < 0
+
+    if top + editorBounds.top + itemHeight > @presenter.windowHeight
       top -= itemHeight + @presenter.lineHeight
 
     overlayNode.style.top = top + 'px'
