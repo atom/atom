@@ -11,6 +11,7 @@ InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
+OverlayManager = require './overlay-manager'
 
 module.exports =
 class TextEditorComponent
@@ -56,8 +57,14 @@ class TextEditorComponent
     @domNode = document.createElement('div')
     if @useShadowDOM
       @domNode.classList.add('editor-contents--private')
+
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', 'atom-overlay')
+      @domNode.appendChild(insertionPoint)
+      @overlayManager = new OverlayManager(@presenter, @hostElement)
     else
       @domNode.classList.add('editor-contents')
+      @overlayManager = new OverlayManager(@presenter, @domNode)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -139,6 +146,8 @@ class TextEditorComponent
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
+
+    @overlayManager?.render(@newState)
 
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
