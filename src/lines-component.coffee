@@ -33,6 +33,8 @@ class LinesComponent
 
     @highlightsComponent = new HighlightsComponent(@presenter)
     @domNode.appendChild(@highlightsComponent.domNode)
+    canvas = document.createElement("canvas")
+    @context = canvas.getContext("2d")
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -287,13 +289,13 @@ class LinesComponent
         @measureCharactersInLine(id, lineState, lineNode) if lineNode?
       return
 
+    @context.font = "16px Monaco"
     if batch
       @presenter.batchCharacterMeasurement(fn)
     else
       fn()
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    rangeForMeasurement = null
     iterator = null
     charIndex = 0
     charWidths = []
@@ -312,22 +314,7 @@ class LinesComponent
 
         continue if char is '\0'
 
-        unless textNode?
-          rangeForMeasurement ?= document.createRange()
-          iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
-          textNode = iterator.nextNode()
-          textNodeIndex = 0
-          nextTextNodeIndex = textNode.textContent.length
-
-        while nextTextNodeIndex <= charIndex
-          textNode = iterator.nextNode()
-          textNodeIndex = nextTextNodeIndex
-          nextTextNodeIndex = textNodeIndex + textNode.textContent.length
-
-        i = charIndex - textNodeIndex
-        rangeForMeasurement.setStart(textNode, i)
-        rangeForMeasurement.setEnd(textNode, i + charLength)
-        charWidth = rangeForMeasurement.getBoundingClientRect().width
+        charWidth = @context.measureText(char).width
         charWidths.push(charWidth)
         charIndex += charLength
 

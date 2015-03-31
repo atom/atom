@@ -318,12 +318,8 @@ class DisplayBuffer extends Model
     @handleCharacterWidthsChanged() if @characterWidthsChanged
 
   setCharWidthsForRow: (row, charWidths) ->
-    hasSameWidths = _.isEqual(charWidths, @charWidthsByRow[row])
-    return if hasSameWidths
-
     @charWidthsByRow[row] = charWidths
     @characterWidthsChanged = true
-    @handleCharacterWidthsChanged() unless @batchingCharacterMeasurement
 
   getCharWidthForRow: (row, index) ->
     charWidths = @charWidthsByRow[row] ? []
