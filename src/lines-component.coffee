@@ -279,6 +279,7 @@ class LinesComponent
   remeasureCharacterWidths: ->
     return unless @presenter.baseCharacterWidth
 
+    @contextsByScopeIdentifier = {}
     @measureCharactersInLines(@newState.lines)
 
   measureCharactersInLines: (lines, batch = true) ->
