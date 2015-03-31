@@ -33,8 +33,7 @@ class LinesComponent
 
     @highlightsComponent = new HighlightsComponent(@presenter)
     @domNode.appendChild(@highlightsComponent.domNode)
-    canvas = document.createElement("canvas")
-    @context = canvas.getContext("2d")
+    @contextsByScopeIdentifier = {}
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -289,18 +288,18 @@ class LinesComponent
         @measureCharactersInLine(id, lineState, lineNode) if lineNode?
       return
 
-    @context.font = "16px Monaco"
     if batch
       @presenter.batchCharacterMeasurement(fn)
     else
       fn()
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    iterator = null
+    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
     charWidths = []
 
     for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
+      scopesIdentifier = scopes.join()
       valueIndex = 0
       while valueIndex < value.length
         if hasPairedCharacter
@@ -314,7 +313,23 @@ class LinesComponent
 
         continue if char is '\0'
 
-        charWidth = @context.measureText(char).width
+        unless @contextsByScopeIdentifier[scopesIdentifier]?
+          unless textNode?
+            textNode = iterator.nextNode()
+            textNodeIndex = 0
+            nextTextNodeIndex = textNode.textContent.length
+
+          while nextTextNodeIndex <= charIndex
+            textNode = iterator.nextNode()
+            textNodeIndex = nextTextNodeIndex
+            nextTextNodeIndex = textNodeIndex + textNode.textContent.length
+
+          canvas = document.createElement("canvas")
+          context = canvas.getContext("2d")
+          context.font = getComputedStyle(textNode.parentElement).font
+          @contextsByScopeIdentifier[scopesIdentifier] = context
+
+        charWidth = @contextsByScopeIdentifier[scopesIdentifier].measureText(char).width
         charWidths.push(charWidth)
         charIndex += charLength
 
