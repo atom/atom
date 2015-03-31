@@ -1384,7 +1384,7 @@ describe "TextEditorComponent", ->
       afterEach ->
         atom.restoreWindowDimensions()
 
-      it "slides horizontally when near the right edge", ->
+      it "slides horizontally left when near the right edge", ->
         marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
@@ -1407,9 +1407,6 @@ describe "TextEditorComponent", ->
         expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-      it "slides horizontally right when near the left edge with margin", ->
-        # TODO:
-
       it "flips vertically when near the bottom edge", ->
         marker = editor.displayBuffer.markBufferRange([[4, 0], [4, 0]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
@@ -1428,6 +1425,39 @@ describe "TextEditorComponent", ->
 
         expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top - itemHeight + 'px'
+
+      describe "when the overlay item has a margin", ->
+        itemMargin = null
+        beforeEach ->
+          itemWidth = 12 * editor.getDefaultCharWidth()
+          itemMargin = gutterWidth + 2 * editor.getDefaultCharWidth()
+          item.style.width = itemWidth + 'px'
+          item.style['margin-left'] = "-#{itemMargin}px"
+
+        it "slides horizontally right when near the left edge with margin", ->
+          editor.setCursorBufferPosition([0, 3])
+          cursor = editor.getLastCursor()
+          marker = cursor.marker
+          decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
+
+          position = wrapperNode.pixelPositionForBufferPosition([0, 3])
+
+          overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
+          expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          cursor.moveLeft()
+          nextAnimationFrame()
+
+          expect(overlay.style.left).toBe itemMargin + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+          cursor.moveLeft()
+          nextAnimationFrame()
+
+          expect(overlay.style.left).toBe itemMargin + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
       describe "when the editor is very small", ->
         beforeEach ->
