@@ -657,6 +657,24 @@ class TextEditorPresenter
       @updateLinesState()
       @updateCursorsState() unless oldContentFrameWidth?
 
+  setBoundingClientRect: (boundingClientRect) ->
+    unless @clientRectsEqual(@boundingClientRect, boundingClientRect)
+      @boundingClientRect = boundingClientRect
+      @updateOverlaysState()
+
+  clientRectsEqual: (clientRectA, clientRectB) ->
+    clientRectA? and clientRectB? and
+      clientRectA.top is clientRectB.top and
+      clientRectA.left is clientRectB.left and
+      clientRectA.width is clientRectB.width and
+      clientRectA.height is clientRectB.height
+
+  setWindowSize: (width, height) ->
+    if @windowWidth isnt width or @windowHeight isnt height
+      @windowWidth = width
+      @windowHeight = height
+      @updateOverlaysState()
+
   setBackgroundColor: (backgroundColor) ->
     unless @backgroundColor is backgroundColor
       @backgroundColor = backgroundColor

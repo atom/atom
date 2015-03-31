@@ -168,7 +168,8 @@ class TextEditorComponent
     @measureScrollbars() if @measureScrollbarsWhenShown
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @measureHeightAndWidth()
+    @measureWindowSize()
+    @measureDimensions()
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
     @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @editor.setVisible(true)
@@ -565,7 +566,7 @@ class TextEditorComponent
   pollDOM: =>
     unless @checkForVisibilityChange()
       @sampleBackgroundColors()
-      @measureHeightAndWidth()
+      @measureDimensions()
       @sampleFontStyling()
 
   checkForVisibilityChange: ->
@@ -584,13 +585,14 @@ class TextEditorComponent
     @heightAndWidthMeasurementRequested = true
     requestAnimationFrame =>
       @heightAndWidthMeasurementRequested = false
-      @measureHeightAndWidth()
+      @measureDimensions()
+      @measureWindowSize()
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
-  measureHeightAndWidth: ->
+  measureDimensions: ->
     return unless @mounted
 
     {position} = getComputedStyle(@hostElement)
@@ -610,6 +612,16 @@ class TextEditorComponent
     clientWidth -= paddingLeft
     if clientWidth > 0
       @presenter.setContentFrameWidth(clientWidth)
+
+    @presenter.setBoundingClientRect(@hostElement.getBoundingClientRect())
+
+  measureWindowSize: ->
+    return unless @mounted
+
+    width = window.innerWidth
+    height = window.innerHeight
+
+    @presenter.setWindowSize(width, height)
 
   sampleFontStyling: =>
     oldFontSize = @fontSize

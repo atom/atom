@@ -50,7 +50,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
   afterEach ->
@@ -70,7 +70,7 @@ describe "TextEditorComponent", ->
   describe "line rendering", ->
     it "renders the currently-visible lines plus the overdraw margin", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       linesNode = componentNode.querySelector('.lines')
@@ -113,7 +113,7 @@ describe "TextEditorComponent", ->
 
     it "updates the lines when lines are inserted or removed above the rendered row range", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       verticalScrollbarNode.scrollTop = 5 * lineHeightInPixels
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
@@ -163,7 +163,7 @@ describe "TextEditorComponent", ->
     it "renders the .lines div at the full height of the editor if there aren't enough lines to scroll vertically", ->
       editor.setText('')
       wrapperNode.style.height = '300px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       linesNode = componentNode.querySelector('.lines')
@@ -175,7 +175,7 @@ describe "TextEditorComponent", ->
       lineNodes = componentNode.querySelectorAll('.line')
 
       componentNode.style.width = gutterWidth + (30 * charWidth) + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       expect(editor.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
 
@@ -187,7 +187,7 @@ describe "TextEditorComponent", ->
         expect(lineNode.style.width).toBe editor.getScrollWidth() + 'px'
 
       componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       scrollViewWidth = scrollViewNode.offsetWidth
 
@@ -339,7 +339,7 @@ describe "TextEditorComponent", ->
           editor.setSoftWrapped(true)
           nextAnimationFrame()
           componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
-          component.measureHeightAndWidth()
+          component.measureDimensions()
           nextAnimationFrame()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
@@ -480,7 +480,7 @@ describe "TextEditorComponent", ->
   describe "gutter rendering", ->
     it "renders the currently-visible line numbers", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(componentNode.querySelectorAll('.line-number').length).toBe 6 + 2 + 1 # line overdraw margin below + dummy line number
@@ -524,7 +524,7 @@ describe "TextEditorComponent", ->
       editor.setSoftWrapped(true)
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 30 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(componentNode.querySelectorAll('.line-number').length).toBe 6 + lineOverdrawMargin + 1 # 1 dummy line componentNode
@@ -562,7 +562,7 @@ describe "TextEditorComponent", ->
 
     it "renders the .line-numbers div at the full height of the editor even if it's taller than its content", ->
       wrapperNode.style.height = componentNode.offsetHeight + 100 + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       expect(componentNode.querySelector('.line-numbers').offsetHeight).toBe componentNode.offsetHeight
 
@@ -653,7 +653,7 @@ describe "TextEditorComponent", ->
             editor.setSoftWrapped(true)
             nextAnimationFrame()
             componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
-            component.measureHeightAndWidth()
+            component.measureDimensions()
             nextAnimationFrame()
 
           it "doesn't add the foldable class for soft-wrapped lines", ->
@@ -697,7 +697,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -992,7 +992,7 @@ describe "TextEditorComponent", ->
 
       # Shrink editor vertically
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       # Add decorations that are out of range
@@ -1016,7 +1016,7 @@ describe "TextEditorComponent", ->
       editor.setText("a line that wraps, ok")
       editor.setSoftWrapped(true)
       componentNode.style.width = 16 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       marker.destroy()
@@ -1132,7 +1132,7 @@ describe "TextEditorComponent", ->
 
     it "does not render highlights for off-screen lines until they come on-screen", ->
       wrapperNode.style.height = 2.5 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], invalidate: 'inside')
@@ -1279,10 +1279,13 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.new-test-highlight')).toBeTruthy()
 
   describe "overlay decoration rendering", ->
-    [item] = []
+    [item, gutterWidth] = []
     beforeEach ->
       item = document.createElement('div')
       item.classList.add 'overlay-test'
+      item.style.background = 'red'
+
+      gutterWidth = componentNode.querySelector('.gutter').offsetWidth
 
     describe "when the marker is empty", ->
       it "renders an overlay decoration when added and removes the overlay when the decoration is destroyed", ->
@@ -1309,7 +1312,7 @@ describe "TextEditorComponent", ->
         position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
         editor.moveRight()
@@ -1318,7 +1321,7 @@ describe "TextEditorComponent", ->
 
         position = wrapperNode.pixelPositionForBufferPosition([2, 7])
 
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
     describe "when the marker is not empty", ->
@@ -1330,7 +1333,7 @@ describe "TextEditorComponent", ->
         position = wrapperNode.pixelPositionForBufferPosition([2, 10])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
       it "renders at the head of the marker when the marker is reversed", ->
@@ -1341,7 +1344,7 @@ describe "TextEditorComponent", ->
         position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
       it "renders at the tail of the marker when the 'position' option is 'tail'", ->
@@ -1352,18 +1355,19 @@ describe "TextEditorComponent", ->
         position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
     describe "positioning the overlay when near the edge of the editor", ->
-      [itemWidth, itemHeight] = []
+      [itemWidth, itemHeight, windowWidth, windowHeight] = []
       beforeEach ->
+        atom.storeWindowDimensions()
+
         itemWidth = 4 * editor.getDefaultCharWidth()
         itemHeight = 4 * editor.getLineHeightInPixels()
 
-        gutterWidth = componentNode.querySelector('.gutter').offsetWidth
         windowWidth = gutterWidth + 30 * editor.getDefaultCharWidth()
-        windowHeight = 9 * editor.getLineHeightInPixels()
+        windowHeight = 10 * editor.getLineHeightInPixels()
 
         item.style.width = itemWidth + 'px'
         item.style.height = itemHeight + 'px'
@@ -1371,10 +1375,16 @@ describe "TextEditorComponent", ->
         wrapperNode.style.width = windowWidth + 'px'
         wrapperNode.style.height = windowHeight + 'px'
 
-        component.measureHeightAndWidth()
+        atom.setWindowDimensions({width: windowWidth, height: windowHeight})
+
+        component.measureDimensions()
+        component.measureWindowSize()
         nextAnimationFrame()
 
-      it "flips horizontally when near the right edge", ->
+      afterEach ->
+        atom.restoreWindowDimensions()
+
+      it "slides horizontally when near the right edge", ->
         marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
@@ -1382,16 +1392,23 @@ describe "TextEditorComponent", ->
         position = wrapperNode.pixelPositionForBufferPosition([0, 26])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
         editor.insertText('a')
         nextAnimationFrame()
 
-        position = wrapperNode.pixelPositionForBufferPosition([0, 27])
-
-        expect(overlay.style.left).toBe position.left - itemWidth + 'px'
+        expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+        editor.insertText('b')
+        nextAnimationFrame()
+
+        expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+
+      it "slides horizontally right when near the left edge with margin", ->
+        # TODO:
 
       it "flips vertically when near the bottom edge", ->
         marker = editor.displayBuffer.markBufferRange([[4, 0], [4, 0]], invalidate: 'never')
@@ -1401,7 +1418,7 @@ describe "TextEditorComponent", ->
         position = wrapperNode.pixelPositionForBufferPosition([4, 0])
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
         editor.insertNewline()
@@ -1409,7 +1426,7 @@ describe "TextEditorComponent", ->
 
         position = wrapperNode.pixelPositionForBufferPosition([5, 0])
 
-        expect(overlay.style.left).toBe position.left + 'px'
+        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top - itemHeight + 'px'
 
       describe "when the editor is very small", ->
@@ -1421,7 +1438,7 @@ describe "TextEditorComponent", ->
           wrapperNode.style.width = windowWidth + 'px'
           wrapperNode.style.height = windowHeight + 'px'
 
-          component.measureHeightAndWidth()
+          component.measureDimensions()
           nextAnimationFrame()
 
         it "does not flip horizontally and force the overlay to have a negative left", ->
@@ -1432,7 +1449,7 @@ describe "TextEditorComponent", ->
           position = wrapperNode.pixelPositionForBufferPosition([0, 2])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
           editor.insertText('a')
@@ -1440,7 +1457,7 @@ describe "TextEditorComponent", ->
 
           position = wrapperNode.pixelPositionForBufferPosition([0, 3])
 
-          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
         it "does not flip vertically and force the overlay to have a negative top", ->
@@ -1451,7 +1468,7 @@ describe "TextEditorComponent", ->
           position = wrapperNode.pixelPositionForBufferPosition([1, 0])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
           editor.insertNewline()
@@ -1459,33 +1476,35 @@ describe "TextEditorComponent", ->
 
           position = wrapperNode.pixelPositionForBufferPosition([2, 0])
 
-          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
-
 
       describe "when editor scroll position is not 0", ->
         it "flips horizontally when near the right edge", ->
-          editor.setScrollLeft(2 * editor.getDefaultCharWidth())
-          marker = editor.displayBuffer.markBufferRange([[0, 28], [0, 28]], invalidate: 'never')
+          scrollLeft = 3 * editor.getDefaultCharWidth()
+          editor.setScrollLeft(scrollLeft)
+          editor.setCursorBufferPosition([1, 20])
+          marker = editor.displayBuffer.markBufferRange([[1, 29], [1, 29]], invalidate: 'never')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
 
-          position = wrapperNode.pixelPositionForBufferPosition([0, 28])
+          position = wrapperNode.pixelPositionForBufferPosition([1, 29])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-          expect(overlay.style.left).toBe position.left + 'px'
+          expect(overlay.style.left).toBe position.left + gutterWidth - scrollLeft + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
           editor.insertText('a')
           nextAnimationFrame()
 
-          position = wrapperNode.pixelPositionForBufferPosition([0, 29])
-
-          expect(overlay.style.left).toBe position.left - itemWidth + 'px'
+          expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
         it "flips vertically when near the bottom edge", ->
-          editor.setScrollTop(2 * editor.getLineHeightInPixels())
+          scrollTop = 2 * editor.getLineHeightInPixels()
+          editor.setScrollTop(scrollTop)
+          editor.setCursorBufferPosition([5, 0])
+
           marker = editor.displayBuffer.markBufferRange([[6, 0], [6, 0]], invalidate: 'never')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
@@ -1493,16 +1512,16 @@ describe "TextEditorComponent", ->
           position = wrapperNode.pixelPositionForBufferPosition([6, 0])
 
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-          expect(overlay.style.left).toBe position.left + 'px'
-          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+          expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() - scrollTop + 'px'
 
           editor.insertNewline()
           nextAnimationFrame()
 
           position = wrapperNode.pixelPositionForBufferPosition([7, 0])
 
-          expect(overlay.style.left).toBe position.left + 'px'
-          expect(overlay.style.top).toBe position.top - itemHeight + 'px'
+          expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
+          expect(overlay.style.top).toBe position.top - itemHeight - scrollTop + 'px'
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
@@ -1512,7 +1531,7 @@ describe "TextEditorComponent", ->
       inputNode = componentNode.querySelector('.hidden-input')
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
@@ -1566,7 +1585,7 @@ describe "TextEditorComponent", ->
         height = 4.5 * lineHeightInPixels
         wrapperNode.style.height = height + 'px'
         wrapperNode.style.width = 10 * charWidth + 'px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
         nextAnimationFrame()
 
         coordinates = clientCoordinatesForScreenPosition([0, 2])
@@ -1580,7 +1599,7 @@ describe "TextEditorComponent", ->
         it "moves the cursor to the nearest screen position", ->
           wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
           wrapperNode.style.width = 10 * charWidth + 'px'
-          component.measureHeightAndWidth()
+          component.measureDimensions()
           editor.setScrollTop(3.5 * lineHeightInPixels)
           editor.setScrollLeft(2 * charWidth)
           nextAnimationFrame()
@@ -1863,7 +1882,7 @@ describe "TextEditorComponent", ->
         editor.setSoftWrapped(true)
         nextAnimationFrame()
         componentNode.style.width = 21 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
         nextAnimationFrame()
 
       describe "when the gutter is clicked", ->
@@ -2029,7 +2048,7 @@ describe "TextEditorComponent", ->
   describe "scrolling", ->
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(verticalScrollbarNode.scrollTop).toBe 0
@@ -2040,7 +2059,7 @@ describe "TextEditorComponent", ->
 
     it "updates the horizontal scrollbar and the x transform of the lines based on the scrollLeft of the model", ->
       componentNode.style.width = 30 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       linesNode = componentNode.querySelector('.lines')
@@ -2054,7 +2073,7 @@ describe "TextEditorComponent", ->
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
       componentNode.style.width = 30 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(editor.getScrollLeft()).toBe 0
@@ -2067,7 +2086,7 @@ describe "TextEditorComponent", ->
     it "does not obscure the last line with the horizontal scrollbar", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       editor.setScrollBottom(editor.getScrollHeight())
       nextAnimationFrame()
       lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
@@ -2077,7 +2096,7 @@ describe "TextEditorComponent", ->
 
       # Scroll so there's no space below the last line when the horizontal scrollbar disappears
       wrapperNode.style.width = 100 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
       bottomOfEditor = componentNode.getBoundingClientRect().bottom
@@ -2086,7 +2105,7 @@ describe "TextEditorComponent", ->
     it "does not obscure the last character of the longest line with the vertical scrollbar", ->
       wrapperNode.style.height = 7 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       editor.setScrollLeft(Infinity)
       nextAnimationFrame()
 
@@ -2100,21 +2119,21 @@ describe "TextEditorComponent", ->
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe 'none'
 
       componentNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(verticalScrollbarNode.style.display).toBe ''
       expect(horizontalScrollbarNode.style.display).toBe ''
 
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(verticalScrollbarNode.style.display).toBe 'none'
@@ -2123,7 +2142,7 @@ describe "TextEditorComponent", ->
     it "makes the dummy scrollbar divs only as tall/wide as the actual scrollbars", ->
       wrapperNode.style.height = 4 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       atom.styles.addStyleSheet """
@@ -2152,21 +2171,21 @@ describe "TextEditorComponent", ->
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe '0px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe 'none'
 
       componentNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe verticalScrollbarNode.offsetWidth + 'px'
       expect(scrollbarCornerNode.style.display).toBe ''
 
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
       expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
       expect(horizontalScrollbarNode.style.right).toBe '0px'
@@ -2175,7 +2194,7 @@ describe "TextEditorComponent", ->
     it "accounts for the width of the gutter in the scrollWidth of the horizontal scrollbar", ->
       gutterNode = componentNode.querySelector('.gutter')
       componentNode.style.width = 10 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
@@ -2189,7 +2208,7 @@ describe "TextEditorComponent", ->
       beforeEach ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
         nextAnimationFrame()
 
       it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
@@ -2233,7 +2252,7 @@ describe "TextEditorComponent", ->
       it "keeps the line on the DOM if it is scrolled off-screen", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
 
         lineNode = componentNode.querySelector('.line')
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
@@ -2246,7 +2265,7 @@ describe "TextEditorComponent", ->
       it "does not set the mouseWheelScreenRow if scrolling horizontally", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
 
         lineNode = componentNode.querySelector('.line')
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 10, wheelDeltaY: 0)
@@ -2289,7 +2308,7 @@ describe "TextEditorComponent", ->
       it "keeps the line number on the DOM if it is scrolled off-screen", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
 
         lineNumberNode = componentNode.querySelectorAll('.line-number')[1]
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -500)
@@ -2304,7 +2323,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * charWidth + 'px'
-      component.measureHeightAndWidth()
+      component.measureDimensions()
       nextAnimationFrame()
 
       # try to scroll past the top, which is impossible
@@ -2700,7 +2719,7 @@ describe "TextEditorComponent", ->
     describe "when the wrapper view has an explicit height", ->
       it "does not assign a height on the component node", ->
         wrapperNode.style.height = '200px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
         nextAnimationFrame()
         expect(componentNode.style.height).toBe ''
 
