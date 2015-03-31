@@ -371,8 +371,8 @@ class Workspace extends Model
   Section: Opening
   ###
 
-  # Essential: Open a given URI in Atom asynchronously. 
-  # If no URI is given, or URI does not resolve to an existing file, 
+  # Essential: Opens the given URI in Atom asynchronously, if it's not already open. 
+  # If no URI is given, or the URI is the path of a file that does not exist,
   # a new empty text edtior is created.
   # 
   # * `uri` (optional) A {String} containing a URI. 
