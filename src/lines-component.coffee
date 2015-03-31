@@ -33,6 +33,9 @@ class LinesComponent
 
     @highlightsComponent = new HighlightsComponent(@presenter)
     @domNode.appendChild(@highlightsComponent.domNode)
+    @iframe = document.createElement("iframe")
+    @domNode.appendChild(@iframe)
+    @iframe.style.display = "none"
     @contextsByScopeIdentifier = {}
 
     if @useShadowDOM
@@ -325,7 +328,7 @@ class LinesComponent
             textNodeIndex = nextTextNodeIndex
             nextTextNodeIndex = textNodeIndex + textNode.textContent.length
 
-          canvas = document.createElement("canvas")
+          canvas = @iframe.contentDocument.createElement("canvas")
           context = canvas.getContext("2d")
           context.font = getComputedStyle(textNode.parentElement).font
           @contextsByScopeIdentifier[scopesIdentifier] = context
