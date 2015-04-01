@@ -725,13 +725,19 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([0, tabLength], clip: 'forward')).toEqual [0, tabLength]
 
   describe "::screenPositionForPixelPosition(pixelPosition)", ->
-    it "pixel positions above buffer to map to start", ->
+    it "clips pixel positions above buffer start", ->
+      displayBuffer.setLineHeightInPixels(20)
       expect(displayBuffer.screenPositionForPixelPosition(top: -Infinity, left: -Infinity)).toEqual [0, 0]
       expect(displayBuffer.screenPositionForPixelPosition(top: -Infinity, left: Infinity)).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForPixelPosition(top: -1, left: Infinity)).toEqual [0, 0]
+      expect(displayBuffer.screenPositionForPixelPosition(top: 0, left: Infinity)).toEqual [0, 29]
 
-    it "pixel positions below buffer map to end", ->
+    it "clips pixel positions below buffer end", ->
+      displayBuffer.setLineHeightInPixels(20)
       expect(displayBuffer.screenPositionForPixelPosition(top: Infinity, left: -Infinity)).toEqual [12, 2]
       expect(displayBuffer.screenPositionForPixelPosition(top: Infinity, left: Infinity)).toEqual [12, 2]
+      expect(displayBuffer.screenPositionForPixelPosition(top: displayBuffer.getHeight() + 1, left: 0)).toEqual [12, 2]
+      expect(displayBuffer.screenPositionForPixelPosition(top: displayBuffer.getHeight() - 1, left: 0)).toEqual [12, 0]
 
   describe "::screenPositionForBufferPosition(bufferPosition, options)", ->
     it "clips the specified buffer position", ->
