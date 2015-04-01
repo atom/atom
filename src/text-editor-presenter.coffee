@@ -1053,9 +1053,6 @@ class TextEditorPresenter
       overlayState.contentMargin = contentMargin
       @updateOverlaysState()
 
-  getOverlayDimensions: (decorationId) ->
-    @overlayDimensions[decorationId]
-
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
       @updateHiddenInputState() if cursor.isLastCursor()
