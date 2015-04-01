@@ -190,8 +190,6 @@ class TextEditorComponent
     else unless @updateRequested
       @updateRequested = true
       atom.views.updateDocument =>
-        @editor.horribleUpdateMethod?()
-        @editor.horribleUpdateMethod = null
         @updateRequested = false
         @updateSync() if @editor.isAlive()
       atom.views.readDocument(@readAfterUpdateSync)
