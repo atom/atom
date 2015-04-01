@@ -8,6 +8,7 @@ StartDotRegex = /^\.?/
 WhitespaceRegex = /\S/
 
 MaxTokenLength = 20000
+idCounter = 1
 
 # Represents a single unit of text as selected by a grammar.
 module.exports =
@@ -22,6 +23,7 @@ class Token
   hasInvisibleCharacters: false
 
   constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndentation}) ->
+    @id = idCounter++
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
@@ -208,7 +210,8 @@ class Token
         html += @escapeString(@value, startIndex, endIndex)
 
       html += trailingHtml
-    html
+
+    "<span id='token-#{@id}'>" + html + "</span>"
 
   escapeString: (str, startIndex, endIndex) ->
     strLength = str.length

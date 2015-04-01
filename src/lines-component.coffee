@@ -298,11 +298,10 @@ class LinesComponent
       fn()
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
     charWidths = []
 
-    for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
+    for {id, value, scopes, hasPairedCharacter} in tokenizedLine.tokens
       scopesIdentifier = scopes.join()
       valueIndex = 0
       while valueIndex < value.length
@@ -318,19 +317,10 @@ class LinesComponent
         continue if char is '\0'
 
         unless @contextsByScopeIdentifier[scopesIdentifier]?
-          unless textNode?
-            textNode = iterator.nextNode()
-            textNodeIndex = 0
-            nextTextNodeIndex = textNode.textContent.length
-
-          while nextTextNodeIndex <= charIndex
-            textNode = iterator.nextNode()
-            textNodeIndex = nextTextNodeIndex
-            nextTextNodeIndex = textNodeIndex + textNode.textContent.length
-
+          element = document.querySelector("html /deep/ #token-#{id}")
           canvas = @iframe.contentDocument.createElement("canvas")
           context = canvas.getContext("2d")
-          context.font = getComputedStyle(textNode.parentElement).font
+          context.font = getComputedStyle(element).font
           @contextsByScopeIdentifier[scopesIdentifier] = context
 
         charWidth = @contextsByScopeIdentifier[scopesIdentifier].measureText(char).width
