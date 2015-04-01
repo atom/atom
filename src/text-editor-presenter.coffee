@@ -333,8 +333,8 @@ class TextEditorPresenter
       {scrollTop, scrollLeft} = @state.content
       gutterWidth = @boundingClientRect.width - @contentFrameWidth
 
-      left = pixelPosition.left - scrollLeft + gutterWidth
       top = pixelPosition.top + @lineHeight - scrollTop
+      left = pixelPosition.left + gutterWidth - scrollLeft
 
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
@@ -345,7 +345,7 @@ class TextEditorPresenter
         leftDiff = left + @boundingClientRect.left + contentMargin
         left -= leftDiff if leftDiff < 0
 
-        if top + @boundingClientRect.top + itemHeight > @windowHeight
+        if top + @boundingClientRect.top + itemHeight > @windowHeight and top - (itemHeight + @lineHeight) >= 0
           top -= itemHeight + @lineHeight
 
       pixelPosition.top = top
