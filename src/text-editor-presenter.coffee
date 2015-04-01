@@ -644,7 +644,6 @@ class TextEditorPresenter
       decorationClasses.push(decoration.getProperties().class)
     decorationClasses
 
-  # TODO (jssln) This needs tests.
   # Returns a {Set} of {Decoration}s on the given custom gutter from startRow to endRow (inclusive).
   customGutterDecorationsInRange: (gutterName, startRow, endRow) ->
     decorations = new Set
