@@ -113,7 +113,7 @@ For more information on how to work with Atom's official packages, see
 - Include thoughtfully-worded, well-structured
   [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
 - treat `describe` as a noun or situation.
-- trea `it` as a statement about state or how an operation changes state.
+- treat `it` as a statement about state or how an operation changes state.
 
 ### Example
 
