@@ -46,8 +46,39 @@ function removeNodeModules() {
   }
 }
 
+function removeTempFolders() {
+  var fsPlus;
+  try {
+    fsPlus = require('fs-plus');
+  } catch (error) {
+    return;
+  }
+
+  var temp = require('os').tmpdir();
+  if (!fsPlus.isDirectorySync(temp))
+    return;
+
+  var deletedFolders = 0;
+
+  try {
+    fsPlus.readdirSync(temp).filter(function(folderName) {
+      return folderName.indexOf('npm-') === 0;
+    }).forEach(function(folderName) {
+      fsPlus.removeSync(path.join(temp, folderName));
+      deletedFolders++;
+    });
+
+    if (deletedFolders > 0)
+      console.log("Deleted " + deletedFolders + " npm folders from temp directory");
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+}
+
 readEnvironmentVariables();
 removeNodeModules();
+removeTempFolders();
 cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
   cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
     if (error)
