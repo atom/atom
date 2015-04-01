@@ -69,7 +69,7 @@ function removeTempFolders() {
     });
 
     if (deletedFolders > 0)
-      console.log("Deleted " + deletedFolder + " npm folders from temp directory");
+      console.log("Deleted " + deletedFolders + " npm folders from temp directory");
   } catch (error) {
     console.error(error.message);
     process.exit(1);
