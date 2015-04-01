@@ -39,7 +39,8 @@ class LineNumberGutterComponent
 
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    setDimensionsAndBackground(@oldState, @newState, @lineNumbersNode)
+    newDimensionsAndBackgroundState = state.gutters
+    setDimensionsAndBackground(@oldState, newDimensionsAndBackgroundState, @lineNumbersNode)
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()

@@ -121,10 +121,12 @@ class TextEditorPresenter
       @updateLinesState()
       @updateLineNumberGutterState()
       @updateLineNumbersState()
+      @updateCommonGutterState()
       @updateCustomGutterState()
       @updateCustomGutterDecorationState()
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @updateLineNumberGutterState()
+      @updateCommonGutterState()
       @updateCustomGutterState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
@@ -160,12 +162,14 @@ class TextEditorPresenter
     @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
       @showLineNumbers = newValue
       @updateLineNumberGutterState()
+      @updateCommonGutterState()
       @updateCustomGutterState()
 
   didChangeGrammar: ->
     @observeConfig()
     @updateContentState()
     @updateLineNumberGutterState()
+    @updateCommonGutterState()
     @updateCustomGutterState()
 
   buildState: ->
@@ -205,6 +209,7 @@ class TextEditorPresenter
     @updateOverlaysState()
     @updateLineNumberGutterState()
     @updateLineNumbersState()
+    @updateCommonGutterState()
     @updateCustomGutterState()
     @updateCustomGutterDecorationState()
 
@@ -219,11 +224,11 @@ class TextEditorPresenter
 
   updateVerticalScrollState: -> @batch "shouldUpdateVerticalScrollState", ->
     @state.content.scrollHeight = @scrollHeight
-    @state.lineNumberGutter.scrollHeight = @scrollHeight
+    @state.gutters.scrollHeight = @scrollHeight
     @state.verticalScrollbar.scrollHeight = @scrollHeight
 
     @state.content.scrollTop = @scrollTop
-    @state.lineNumberGutter.scrollTop = @scrollTop
+    @state.gutters.scrollTop = @scrollTop
     @state.verticalScrollbar.scrollTop = @scrollTop
 
   updateHorizontalScrollState: -> @batch "shouldUpdateHorizontalScrollState", ->
@@ -380,13 +385,12 @@ class TextEditorPresenter
 
   updateLineNumberGutterState: -> @batch "shouldUpdateLineNumberGutterState", ->
     @state.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
-    @state.lineNumberGutter.backgroundColor = @getGutterBackgroundColor()
 
-  getGutterBackgroundColor: ->
-    if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
-      @gutterBackgroundColor
-    else
-      @backgroundColor
+  updateCommonGutterState: ->
+    @state.gutters.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
+        @gutterBackgroundColor
+      else
+        @backgroundColor
 
   didAddGutter: (gutter) ->
     gutterDisposables = new CompositeDisposable
@@ -403,9 +407,6 @@ class TextEditorPresenter
 
   updateCustomGutterState: ->
     @batch "shouldUpdateCustomGutterState", ->
-      # For now, just match the background color of the line-number gutter.
-      # TODO: Allow gutters to have different background colors. (?)
-      @state.gutters.backgroundColor = @getGutterBackgroundColor()
       @state.gutters.sortedDescriptions = []
       if @model.isMini()
         return
@@ -808,12 +809,14 @@ class TextEditorPresenter
       @backgroundColor = backgroundColor
       @updateContentState()
       @updateLineNumberGutterState()
+      @updateCommonGutterState()
       @updateCustomGutterState()
 
   setGutterBackgroundColor: (gutterBackgroundColor) ->
     unless @gutterBackgroundColor is gutterBackgroundColor
       @gutterBackgroundColor = gutterBackgroundColor
       @updateLineNumberGutterState()
+      @updateCommonGutterState()
       @updateCustomGutterState()
 
   setLineHeight: (lineHeight) ->

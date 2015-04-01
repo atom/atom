@@ -38,12 +38,11 @@ class CustomGutterComponent
       @visible = true
 
   updateSync: (state) ->
-    gutterProps = state.lineNumberGutter
+    @oldDimensionsAndBackgroundState ?= {}
+    newDimensionsAndBackgroundState = state.gutters
+    setDimensionsAndBackground(@oldDimensionsAndBackgroundState, newDimensionsAndBackgroundState, @decorationsNode)
+
     decorationState = state.gutters.customDecorations[@getName()]
-    @oldState ?= {}
-
-    setDimensionsAndBackground(@oldState, gutterProps, @decorationsNode)
-
     return if !decorationState
 
     updatedDecorationIds = new Set
