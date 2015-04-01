@@ -1308,6 +1308,7 @@ describe "TextEditorComponent", ->
         marker = editor.getLastCursor().getMarker()
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
+        nextAnimationFrame()
 
         position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
@@ -1329,6 +1330,7 @@ describe "TextEditorComponent", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
+        nextAnimationFrame()
 
         position = wrapperNode.pixelPositionForBufferPosition([2, 10])
 
@@ -1340,6 +1342,7 @@ describe "TextEditorComponent", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never', reversed: true)
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
+        nextAnimationFrame()
 
         position = wrapperNode.pixelPositionForBufferPosition([2, 5])
 
@@ -1350,6 +1353,7 @@ describe "TextEditorComponent", ->
       it "renders at the tail of the marker when the 'position' option is 'tail'", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
+        nextAnimationFrame()
         nextAnimationFrame()
 
         position = wrapperNode.pixelPositionForBufferPosition([2, 5])
@@ -1388,6 +1392,7 @@ describe "TextEditorComponent", ->
         marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
+        nextAnimationFrame()
 
         position = wrapperNode.pixelPositionForBufferPosition([0, 26])
 
@@ -1410,6 +1415,7 @@ describe "TextEditorComponent", ->
       it "flips vertically when near the bottom edge", ->
         marker = editor.displayBuffer.markBufferRange([[4, 0], [4, 0]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+        nextAnimationFrame()
         nextAnimationFrame()
 
         position = wrapperNode.pixelPositionForBufferPosition([4, 0])
@@ -1439,6 +1445,7 @@ describe "TextEditorComponent", ->
           cursor = editor.getLastCursor()
           marker = cursor.marker
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
           nextAnimationFrame()
 
           position = wrapperNode.pixelPositionForBufferPosition([0, 3])
@@ -1475,6 +1482,7 @@ describe "TextEditorComponent", ->
           marker = editor.displayBuffer.markBufferRange([[0, 2], [0, 2]], invalidate: 'never')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
+          nextAnimationFrame()
 
           position = wrapperNode.pixelPositionForBufferPosition([0, 2])
 
@@ -1493,6 +1501,7 @@ describe "TextEditorComponent", ->
         it "does not flip vertically and force the overlay to have a negative top", ->
           marker = editor.displayBuffer.markBufferRange([[1, 0], [1, 0]], invalidate: 'never')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
           nextAnimationFrame()
 
           position = wrapperNode.pixelPositionForBufferPosition([1, 0])
@@ -1517,6 +1526,7 @@ describe "TextEditorComponent", ->
           marker = editor.displayBuffer.markBufferRange([[1, 29], [1, 29]], invalidate: 'never')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           nextAnimationFrame()
+          nextAnimationFrame()
 
           position = wrapperNode.pixelPositionForBufferPosition([1, 29])
 
@@ -1537,6 +1547,7 @@ describe "TextEditorComponent", ->
 
           marker = editor.displayBuffer.markBufferRange([[6, 0], [6, 0]], invalidate: 'never')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+          nextAnimationFrame()
           nextAnimationFrame()
 
           position = wrapperNode.pixelPositionForBufferPosition([6, 0])

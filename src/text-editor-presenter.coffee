@@ -9,6 +9,7 @@ class TextEditorPresenter
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
   scopedCharacterWidthsChangeCount: 0
+  overlayDimensions: {}
 
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft} = params
@@ -327,12 +328,38 @@ class TextEditorPresenter
       else
         screenPosition = decoration.getMarker().getHeadScreenPosition()
 
+      pixelPosition = @pixelPositionForScreenPosition(screenPosition)
+
+      if overlayDimensions = @overlayDimensions[decoration.id]
+        {itemWidth, itemHeight, contentMargin} = overlayDimensions
+        {scrollTop, scrollLeft} = @state.content
+
+        gutterWidth = @boundingClientRect.width - @contentFrameWidth
+
+        left = pixelPosition.left - scrollLeft + gutterWidth
+        top = pixelPosition.top + @lineHeight - scrollTop
+
+        rightDiff = left + @boundingClientRect.left + itemWidth + contentMargin - @windowWidth
+        left -= rightDiff if rightDiff > 0
+
+        leftDiff = left + @boundingClientRect.left + contentMargin
+        left -= leftDiff if leftDiff < 0
+
+        if top + @boundingClientRect.top + itemHeight > @windowHeight
+          top -= itemHeight + @lineHeight
+
+        pixelPosition.top = top
+        pixelPosition.left = left
+
       @state.content.overlays[decoration.id] ?= {item}
-      @state.content.overlays[decoration.id].pixelPosition = @pixelPositionForScreenPosition(screenPosition)
+      @state.content.overlays[decoration.id].pixelPosition = pixelPosition
       visibleDecorationIds[decoration.id] = true
 
     for id of @state.content.overlays
       delete @state.content.overlays[id] unless visibleDecorationIds[id]
+
+    for id of @overlayDimensions
+      delete @overlayDimensions[id] unless visibleDecorationIds[id]
 
     return
 
@@ -566,6 +593,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateCursorsState()
       @updateLineNumbersState()
+      @updateOverlaysState()
 
   didStartScrolling: ->
     if @stoppedScrollingTimeoutId?
@@ -593,6 +621,7 @@ class TextEditorPresenter
       @updateHorizontalScrollState()
       @updateHiddenInputState()
       @updateCursorsState() unless oldScrollLeft?
+      @updateOverlaysState()
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
@@ -1013,18 +1042,19 @@ class TextEditorPresenter
       regions
 
   setOverlayDimensions: (decorationId, itemWidth, itemHeight, contentMargin) ->
-    if overlayState = @state.content.overlays[decorationId]
-      dimensionsAreEqual = overlayState.itemWidth is itemWidth and
-        overlayState.itemHeight is itemHeight and
-        overlayState.contentMargin is contentMargin
-      unless dimensionsAreEqual
-        overlayState.itemWidth = itemWidth
-        overlayState.itemHeight = itemHeight
-        overlayState.contentMargin = contentMargin
-        @updateOverlaysState()
+    @overlayDimensions[decorationId] ?= {}
+    overlayState = @overlayDimensions[decorationId]
+    dimensionsAreEqual = overlayState.itemWidth is itemWidth and
+      overlayState.itemHeight is itemHeight and
+      overlayState.contentMargin is contentMargin
+    unless dimensionsAreEqual
+      overlayState.itemWidth = itemWidth
+      overlayState.itemHeight = itemHeight
+      overlayState.contentMargin = contentMargin
+      @updateOverlaysState()
 
   getOverlayDimensions: (decorationId) ->
-    @state.content.overlays[decorationId]
+    @overlayDimensions[decorationId]
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
