@@ -1,5 +1,6 @@
 TextBuffer = require 'text-buffer'
 {Point, Range} = TextBuffer
+{File, Directory} = require 'pathwatcher'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {deprecate} = require 'grim'
 
@@ -11,6 +12,8 @@ module.exports =
   TextBuffer: TextBuffer
   Point: Point
   Range: Range
+  File: File
+  Directory: Directory
   Emitter: Emitter
   Disposable: Disposable
   CompositeDisposable: CompositeDisposable
