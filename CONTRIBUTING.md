@@ -118,11 +118,11 @@ For more information on how to work with Atom's official packages, see
 ### Example
 
 ```coffee
-describe 'a dog'
- it 'barks'
+describe 'a dog', ->
+ it 'barks', ->
  # spec here
- describe 'when the dog is happy'
-  it 'wags its tail'
+ describe 'when the dog is happy', ->
+  it 'wags its tail', ->
   # spec here
 ```
 
