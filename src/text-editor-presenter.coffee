@@ -1012,6 +1012,20 @@ class TextEditorPresenter
 
       regions
 
+  setOverlayDimensions: (decorationId, itemWidth, itemHeight, contentMargin) ->
+    if overlayState = @state.content.overlays[decorationId]
+      dimensionsAreEqual = overlayState.itemWidth is itemWidth and
+        overlayState.itemHeight is itemHeight and
+        overlayState.contentMargin is contentMargin
+      unless dimensionsAreEqual
+        overlayState.itemWidth = itemWidth
+        overlayState.itemHeight = itemHeight
+        overlayState.contentMargin = contentMargin
+        @updateOverlaysState()
+
+  getOverlayDimensions: (decorationId) ->
+    @state.content.overlays[decorationId]
+
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
       @updateHiddenInputState() if cursor.isLastCursor()

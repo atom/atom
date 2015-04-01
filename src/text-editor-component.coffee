@@ -158,6 +158,7 @@ class TextEditorComponent
 
   readAfterUpdateSync: =>
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
+    @overlayManager?.measureOverlays()
 
   mountGutterComponent: ->
     @gutterComponent = new GutterComponent({@editor, onMouseDown: @onGutterMouseDown})
@@ -189,6 +190,8 @@ class TextEditorComponent
     else unless @updateRequested
       @updateRequested = true
       atom.views.updateDocument =>
+        @editor.horribleUpdateMethod?()
+        @editor.horribleUpdateMethod = null
         @updateRequested = false
         @updateSync() if @editor.isAlive()
       atom.views.readDocument(@readAfterUpdateSync)
@@ -568,6 +571,7 @@ class TextEditorComponent
       @sampleBackgroundColors()
       @measureDimensions()
       @sampleFontStyling()
+      @overlayManager?.measureOverlays()
 
   checkForVisibilityChange: ->
     if @isVisible()
@@ -617,11 +621,7 @@ class TextEditorComponent
 
   measureWindowSize: ->
     return unless @mounted
-
-    width = window.innerWidth
-    height = window.innerHeight
-
-    @presenter.setWindowSize(width, height)
+    @presenter.setWindowSize(window.innerWidth, window.innerHeight)
 
   sampleFontStyling: =>
     oldFontSize = @fontSize
