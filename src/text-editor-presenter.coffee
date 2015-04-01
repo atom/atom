@@ -781,7 +781,7 @@ class TextEditorPresenter
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left += @model.getCharWidthForRow(targetRow, index++) unless char is '\0'
+        left = @model.getCharWidthForRow(targetRow, ++index) unless char is '\0'
         column += charLength
 
     {top, left}

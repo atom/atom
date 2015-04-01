@@ -298,12 +298,13 @@ class LinesComponent
       fn()
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    charIndex = 0
-    charWidths = []
-
+    charWidths = [0]
+    left = 0
     for {id, value, scopes, hasPairedCharacter} in tokenizedLine.tokens
+      text = ""
       scopesIdentifier = scopes.join()
       valueIndex = 0
+      tokenLeft = 0
       while valueIndex < value.length
         if hasPairedCharacter
           char = value.substr(valueIndex, 2)
@@ -323,9 +324,12 @@ class LinesComponent
           context.font = getComputedStyle(element).font
           @contextsByScopeIdentifier[scopesIdentifier] = context
 
-        charWidth = @contextsByScopeIdentifier[scopesIdentifier].measureText(char).width
-        charWidths.push(charWidth)
-        charIndex += charLength
+        text += char
+        tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
+
+        charWidths.push(left + tokenLeft)
+
+      left += tokenLeft
 
     if charWidths.length isnt 0
       @presenter.setCharWidthsForRow(tokenizedLine.screenRow, charWidths)
