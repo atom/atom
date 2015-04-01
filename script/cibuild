@@ -92,7 +92,7 @@ cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(
     async.series(tasks, function(error) {
       if (error && process.platform === 'win32') {
         var fs = require('fs');
-        var squirrelLog = path.resolve(__dirname, 'build', 'node_modules', 'grunt-atom-shell-installer', 'vendor', 'SquirrelSetup.log');
+        var squirrelLog = path.resolve(__dirname, '..', 'build', 'node_modules', 'grunt-atom-shell-installer', 'vendor', 'SquirrelSetup.log');
         if (fs.existsSync(squirrelLog))
           console.log(fs.readFileSync(squirrelLog));
       }
