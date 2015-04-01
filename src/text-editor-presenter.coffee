@@ -428,6 +428,8 @@ class TextEditorPresenter
       return unless @startRow? and @endRow? and @lineHeight?
 
       @state.gutters.customDecorations = {}
+      return if @model.isMini()
+
       for gutter in @model.getGutters()
         gutterName = gutter.name
         @state.gutters.customDecorations[gutterName] = {}
