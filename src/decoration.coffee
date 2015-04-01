@@ -20,7 +20,7 @@ nextId = -> idCounter++
 # decoration = editor.decorateMarker(marker, {type: 'line', class: 'my-line-class'})
 # ```
 #
-# Best practice for destorying the decoration is by destroying the {Marker}.
+# Best practice for destroying the decoration is by destroying the {Marker}.
 #
 # ```coffee
 # marker.destroy()
@@ -56,7 +56,6 @@ class Decoration
     @properties.id = @id
     @flashQueue = null
     @destroyed = false
-
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
   # Essential: Destroy this marker.
