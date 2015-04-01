@@ -18,6 +18,9 @@ class LineNumberGutterComponent
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
 
+  getDomNode: ->
+    @domNode
+
   getName: ->
     @name
 
@@ -46,6 +49,10 @@ class LineNumberGutterComponent
       @lineNumberNodesById = {}
 
     @updateLineNumbers()
+
+  ###
+  Section: Private Methods
+  ###
 
   # This dummy line number element holds the gutter to the appropriate width,
   # since the real line numbers are absolutely positioned for performance reasons.
