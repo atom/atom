@@ -1284,7 +1284,6 @@ describe "TextEditorComponent", ->
       item = document.createElement('div')
       item.classList.add 'overlay-test'
       item.style.background = 'red'
-
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
 
     describe "when the marker is empty", ->
@@ -1301,29 +1300,6 @@ describe "TextEditorComponent", ->
 
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
         expect(overlay).toBe null
-
-      it "renders in the correct position on initial display and when the marker moves", ->
-        editor.setCursorBufferPosition([2, 5])
-
-        marker = editor.getLastCursor().getMarker()
-        decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-        nextAnimationFrame()
-        nextAnimationFrame()
-
-        position = wrapperNode.pixelPositionForBufferPosition([2, 5])
-
-        overlay = component.getTopmostDOMNode().querySelector('atom-overlay')
-        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
-        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
-
-        editor.moveRight()
-        editor.moveRight()
-        nextAnimationFrame()
-
-        position = wrapperNode.pixelPositionForBufferPosition([2, 7])
-
-        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
-        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
     describe "when the marker is not empty", ->
       it "renders at the head of the marker by default", ->
@@ -1387,14 +1363,6 @@ describe "TextEditorComponent", ->
 
         expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
-        editor.insertNewline()
-        nextAnimationFrame()
-
-        position = wrapperNode.pixelPositionForBufferPosition([5, 0])
-
-        expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
-        expect(overlay.style.top).toBe position.top - itemHeight + 'px'
-
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
