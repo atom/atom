@@ -90,14 +90,18 @@ cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(
       cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
     ]
     async.series(tasks, function(error) {
-      console.log('DONE-----');
-      var fs = require('fs');
-      var squirrelLog = path.resolve(__dirname, '..', 'build', 'node_modules', 'grunt-atom-shell-installer', 'vendor', 'SquirrelSetup.log');
-      console.log(squirrelLog, fs.existsSync(squirrelLog));
-      if (fs.existsSync(squirrelLog))
-        console.log(fs.readFileSync(squirrelLog, 'utf8'));
-
       process.exit(error ? 1 : 0);
     });
   })();
 })();
+
+
+process.on('exit', function() {
+  console.log('DONE-----');
+  var fs = require('fs');
+  var squirrelLog = path.resolve(__dirname, '..', 'build', 'node_modules', 'grunt-atom-shell-installer', 'vendor', 'SquirrelSetup.log');
+  console.log(squirrelLog, fs.existsSync(squirrelLog));
+  if (fs.existsSync(squirrelLog))
+    console.log(fs.readFileSync(squirrelLog, 'utf8'));
+
+});
