@@ -392,6 +392,7 @@ class TextEditorPresenter
     gutterDisposables = new CompositeDisposable
     gutterDisposables.add gutter.onDidChangeVisible =>
       @updateCustomGutterState()
+      @updateCustomGutterDecorationState()
     gutterDisposables.add gutter.onDidDestroy =>
       @disposables.remove(gutterDisposables)
       gutterDisposables.dispose()
@@ -409,9 +410,7 @@ class TextEditorPresenter
       if @model.isMini()
         return
       for gutter in @model.getGutters()
-        isVisible = gutter.isVisible()
-        if gutter.name is 'line-number'
-          isVisible = isVisible && @showLineNumbers
+        isVisible = @gutterIsVisible(gutter)
         @state.gutters.sortedDescriptions.push({gutter, visible: isVisible})
 
   # Updates the decoration state for the gutter with the given gutterName.
@@ -434,6 +433,8 @@ class TextEditorPresenter
         @state.gutters.customDecorations[gutterName] = {}
         gutterState = @state.gutters.customDecorations[gutterName]
 
+        return if !@gutterIsVisible(gutter)
+
         relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
         return if !relevantDecorations
 
@@ -444,6 +445,12 @@ class TextEditorPresenter
             height: @lineHeight * decorationRange.getRowCount()
             item: decoration.getProperties().item
             class: decoration.getProperties().class
+
+  gutterIsVisible: (gutterModel) ->
+    isVisible = gutterModel.isVisible()
+    if gutterModel.name is 'line-number'
+      isVisible = isVisible && @showLineNumbers
+    isVisible
 
   updateLineNumbersState: -> @batch "shouldUpdateLineNumbersState", ->
     return unless @startRow? and @endRow? and @lineHeight?
