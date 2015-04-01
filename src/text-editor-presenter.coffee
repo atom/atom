@@ -12,7 +12,7 @@ class TextEditorPresenter
   overlayDimensions: {}
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft} = params
+    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
@@ -315,7 +315,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   updateOverlaysState: -> @batch "shouldUpdateOverlaysState", ->
-    return unless @hasPixelRectRequirements()
+    return unless @hasOverlayPositionRequirements()
 
     visibleDecorationIds = {}
 
@@ -330,14 +330,14 @@ class TextEditorPresenter
 
       pixelPosition = @pixelPositionForScreenPosition(screenPosition)
 
+      {scrollTop, scrollLeft} = @state.content
+      gutterWidth = @boundingClientRect.width - @contentFrameWidth
+
+      left = pixelPosition.left - scrollLeft + gutterWidth
+      top = pixelPosition.top + @lineHeight - scrollTop
+
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
-        {scrollTop, scrollLeft} = @state.content
-
-        gutterWidth = @boundingClientRect.width - @contentFrameWidth
-
-        left = pixelPosition.left - scrollLeft + gutterWidth
-        top = pixelPosition.top + @lineHeight - scrollTop
 
         rightDiff = left + @boundingClientRect.left + itemWidth + contentMargin - @windowWidth
         left -= rightDiff if rightDiff > 0
@@ -348,8 +348,8 @@ class TextEditorPresenter
         if top + @boundingClientRect.top + itemHeight > @windowHeight
           top -= itemHeight + @lineHeight
 
-        pixelPosition.top = top
-        pixelPosition.left = left
+      pixelPosition.top = top
+      pixelPosition.left = left
 
       @state.content.overlays[decoration.id] ?= {item}
       @state.content.overlays[decoration.id].pixelPosition = pixelPosition
@@ -823,6 +823,9 @@ class TextEditorPresenter
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?
+
+  hasOverlayPositionRequirements: ->
+    @hasPixelRectRequirements() and @boundingClientRect? and @windowWidth and @windowHeight
 
   pixelRectForScreenRange: (screenRange) ->
     if screenRange.end.row > screenRange.start.row
