@@ -182,7 +182,7 @@ class TextEditorPresenter
       lineNumberGutter:
         lineNumbers: {}
       gutters:
-        sortedModels: []
+        sortedDescriptions: []
         customDecorations: {}
     @updateState()
 
@@ -405,15 +405,14 @@ class TextEditorPresenter
       # For now, just match the background color of the line-number gutter.
       # TODO: Allow gutters to have different background colors. (?)
       @state.gutters.backgroundColor = @getGutterBackgroundColor()
-      @state.gutters.sortedModels = []
+      @state.gutters.sortedDescriptions = []
       if @model.isMini()
         return
       for gutter in @model.getGutters()
         isVisible = gutter.isVisible()
         if gutter.name is 'line-number'
           isVisible = isVisible && @showLineNumbers
-        if isVisible
-          @state.gutters.sortedModels.push(gutter)
+        @state.gutters.sortedDescriptions.push({gutter, visible: isVisible})
 
   # Updates the decoration state for the gutter with the given gutterName.
   # @state.gutters.customDecorations is an {Object}, with the form:

@@ -25,11 +25,11 @@ class GutterContainerComponent
   updateSync: (state) ->
     # The GutterContainerComponent expects the gutters to be sorted in the order
     # they should appear.
-    newState = state.gutters.sortedModels
+    newState = state.gutters.sortedDescriptions
 
     newGutterComponents = []
     newGutterComponentsByGutterName = {}
-    for gutter in newState
+    for {gutter, visible} in newState
       gutterComponent = @gutterComponentsByGutterName[gutter.name]
       if !gutterComponent
         if gutter.name is 'line-number'
@@ -37,6 +37,7 @@ class GutterContainerComponent
           @lineNumberGutterComponent = gutterComponent
         else
           gutterComponent = new CustomGutterComponent({gutter})
+      if visible then gutterComponent.showNode() else gutterComponent.hideNode()
       newGutterComponents.push(gutterComponent)
       newGutterComponentsByGutterName[gutter.name] = gutterComponent
 

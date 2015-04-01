@@ -584,22 +584,22 @@ describe "TextEditorComponent", ->
       editor.setLineNumberGutterVisible(false)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeNull()
+      expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
       atom.config.set("editor.showLineNumbers", false)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeNull()
+      expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
       editor.setLineNumberGutterVisible(true)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeNull()
+      expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
       atom.config.set("editor.showLineNumbers", true)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeDefined()
+      expect(componentNode.querySelector('.gutter').style.display).toBe ''
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
 
     describe "fold decorations", ->
