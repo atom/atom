@@ -80,6 +80,14 @@ class TextEditorPresenter
     @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
     @updateLinesState() if @shouldUpdateLinesState
+    @updateFocusedState() if @shouldUpdateFocusedState
+    @updateHeightState() if @shouldUpdateHeightState
+    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
+    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
+    @updateLineNumbersState() if @shouldUpdateLineNumbersState
+    @updateScrollbarsState() if @shouldUpdateScrollbarsState
+    @updateHiddenInputState() if @shouldUpdateHiddenInputState
+    @updateGutterState() if @shouldUpdateGutterState
 
     @shouldUpdateDecorations = shouldUpdateDecorations
     @updating = false
@@ -89,17 +97,9 @@ class TextEditorPresenter
   getPostMeasureState: ->
     @updating = true
 
-    @updateFocusedState() if @shouldUpdateFocusedState
-    @updateHeightState() if @shouldUpdateHeightState
-    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
-    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
-    @updateScrollbarsState() if @shouldUpdateScrollbarsState
-    @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateDecorations() if @shouldUpdateDecorations
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
-    @updateGutterState() if @shouldUpdateGutterState
-    @updateLineNumbersState() if @shouldUpdateLineNumbersState
 
     @updating = false
 

@@ -110,16 +110,6 @@ class TextEditorComponent
     @newState = @presenter.getPreMeasureState()
 
     shouldMeasure = @isVisible()
-    @linesComponent.preMeasureUpdateSync(@newState, shouldMeasure)
-
-  postMeasureUpdateSync: ->
-    @oldState ?= {}
-    @newState = @presenter.getPostMeasureState()
-
-    cursorMoved = @cursorMoved
-    selectionChanged = @selectionChanged
-    @cursorMoved = false
-    @selectionChanged = false
 
     if @editor.getLastSelection()? and !@editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
@@ -146,10 +136,21 @@ class TextEditorComponent
       @gutterComponent = null
 
     @hiddenInputComponent.updateSync(@newState)
-    @linesComponent.postMeasureUpdateSync(@newState)
+    @linesComponent.preMeasureUpdateSync(@newState, shouldMeasure)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
+
+  postMeasureUpdateSync: ->
+    @oldState ?= {}
+    @newState = @presenter.getPostMeasureState()
+
+    cursorMoved = @cursorMoved
+    selectionChanged = @selectionChanged
+    @cursorMoved = false
+    @selectionChanged = false
+
+    @linesComponent.postMeasureUpdateSync(@newState)
 
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
