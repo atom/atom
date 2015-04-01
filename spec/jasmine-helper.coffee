@@ -1,9 +1,17 @@
 fs = require 'fs'
 
-module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
-  {$, $$} = require '../src/space-pen-extensions'
-
-  window[key] = value for key, value of require '../vendor/jasmine'
+module.exports.runSpecSuite = (specSuite, logFile, useJasmineV2) ->
+  if useJasmineV2
+    jasmineRequire = require("jasmine-core")
+    window.jasmine = jasmineRequire.core(jasmineRequire)
+    jasmineInterface = jasmineRequire.interface(jasmine, jasmine.getEnv())
+    window[key] = value for key, value of jasmineInterface
+    atom.initialize()
+    atom.themes.loadBaseStylesheets()
+    atom.themes.requireStylesheet '../static/jasmine'
+  else
+    window[key] = value for key, value of require '../vendor/jasmine' 
+    require "./spec-helper"
 
   {TerminalReporter} = require 'jasmine-tagged'
 
@@ -47,7 +55,9 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   jasmineEnv.addReporter(timeReporter)
   jasmineEnv.setIncludedTags([process.platform])
 
-  $('body').append $$ -> @div id: 'jasmine-content'
+  jasmineContent = document.createElement("div")
+  jasmineContent.id = "jasmine-content"
+  document.body.appendChild(jasmineContent)
 
   jasmineEnv.execute()
 

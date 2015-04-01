@@ -9,4 +9,4 @@ window.atom = atom
 atom.openDevTools()
 
 document.title = "Benchmark Suite"
-runSpecSuite('../benchmark/benchmark-suite', atom.getLoadSettings().logFile)
+runSpecSuite('../benchmark/benchmark-suite', atom.getLoadSettings().logFile, false)

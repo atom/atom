@@ -40,6 +40,7 @@
     "grim": "1.2",
     "jasmine-json": "~0.0",
     "jasmine-tagged": "^1.1.4",
+    "jasmine-core": "^2.2.0",
     "jquery": "^2.1.1",
     "less-cache": "0.22",
     "marked": "^0.3",
