@@ -9,6 +9,7 @@ class LineNumberGutterComponent
 
   constructor: ({@onMouseDown, @editor, @gutter}) ->
     @lineNumberNodesById = {}
+    @visible = true
 
     @domNode = atom.views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
@@ -21,6 +22,16 @@ class LineNumberGutterComponent
 
   getName: ->
     @gutter.name
+
+  hideNode: ->
+    if @visible
+      @domNode.style.display = 'none'
+      @visible = false
+
+  showNode: ->
+    if !@visible
+      @domNode.style.removeProperty('display')
+      @visible = true
 
   updateSync: (state) ->
     @newState = state.lineNumberGutter

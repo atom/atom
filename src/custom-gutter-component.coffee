@@ -14,6 +14,7 @@ class CustomGutterComponent
   constructor: ({@gutter}) ->
     @decorationNodesById = {}
     @decorationItemsById = {}
+    @visible = true
 
     @domNode = atom.views.getView(@gutter)
     @decorationsNode = @domNode.firstChild
@@ -25,6 +26,16 @@ class CustomGutterComponent
 
   getName: ->
     @gutter.name
+
+  hideNode: ->
+    if @visible
+      @domNode.style.display = 'none'
+      @visible = false
+
+  showNode: ->
+    if !@visible
+      @domNode.style.removeProperty('display')
+      @visible = true
 
   updateSync: (state) ->
     gutterProps = state.lineNumberGutter
