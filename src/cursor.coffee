@@ -94,8 +94,6 @@ class Cursor extends Model
         Grim.deprecate("Use Cursor::onDidChangePosition instead")
       when 'destroyed'
         Grim.deprecate("Use Cursor::onDidDestroy instead")
-      when 'destroyed'
-        Grim.deprecate("Use Cursor::onDidDestroy instead")
       else
         Grim.deprecate("::on is no longer supported. Use the event subscription methods instead")
     super
