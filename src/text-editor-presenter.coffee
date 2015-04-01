@@ -424,30 +424,26 @@ class TextEditorPresenter
   #       class (optional): {String} class
   #     }
   #   }
-  updateCustomGutterDecorationState: () ->
+  updateCustomGutterDecorationState: ->
     @batch 'shouldUpdateCustomGutterDecorationState', =>
       return unless @startRow? and @endRow? and @lineHeight?
 
+      @state.gutters.customDecorations = {}
       for gutter in @model.getGutters()
         gutterName = gutter.name
-        @state.gutters.customDecorations[gutterName] ?= {}
+        @state.gutters.customDecorations[gutterName] = {}
         gutterState = @state.gutters.customDecorations[gutterName]
-        visibleDecorationIds = {}
 
         relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
         return if !relevantDecorations
 
         relevantDecorations.forEach (decoration) =>
-          visibleDecorationIds[decoration.id] = true
           decorationRange = decoration.getMarker().getScreenRange()
           gutterState[decoration.id] =
             top: @lineHeight * decorationRange.start.row
             height: @lineHeight * decorationRange.getRowCount()
             item: decoration.getProperties().item
             class: decoration.getProperties().class
-
-        for decorationId of gutterState
-          delete gutterState[decorationId] unless visibleDecorationIds[decorationId]
 
   updateLineNumbersState: -> @batch "shouldUpdateLineNumbersState", ->
     return unless @startRow? and @endRow? and @lineHeight?
