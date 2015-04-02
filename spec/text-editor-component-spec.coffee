@@ -1419,6 +1419,22 @@ describe "TextEditorComponent", ->
     beforeEach ->
       linesNode = componentNode.querySelector('.lines')
 
+    describe "when the mouse is single-clicked above the first line", ->
+      it "moves the cursor to the start of file buffer position", ->
+        editor.setText('foo')
+        editor.setCursorBufferPosition([0, 3])
+        height = 4.5 * lineHeightInPixels
+        wrapperNode.style.height = height + 'px'
+        wrapperNode.style.width = 10 * charWidth + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        coordinates = clientCoordinatesForScreenPosition([0, 2])
+        coordinates.clientY = -1
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
+        nextAnimationFrame()
+        expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+
     describe "when the mouse is single-clicked below the last line", ->
       it "moves the cursor to the end of file buffer position", ->
         editor.setText('foo')
