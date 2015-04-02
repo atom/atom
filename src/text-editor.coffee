@@ -459,7 +459,7 @@ class TextEditor extends Model
   onDidChangeIcon: (callback) ->
     @emitter.on 'did-change-icon', callback
 
-  # Retrieves the current {TextBuffer}.
+  # Public: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
   # Retrieves the current buffer's URI.
