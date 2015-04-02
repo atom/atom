@@ -843,7 +843,7 @@ class TextEditor extends Model
   mutateSelectedText: (fn) ->
     @mergeIntersectingSelections =>
       @transact =>
-        fn(selection, index) for selection, index in @getSelections()
+        fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
 
   # Move lines intersection the most recent selection up by one row in screen
   # coordinates.
@@ -2621,7 +2621,7 @@ class TextEditor extends Model
   # Essential: For each selection, copy the selected text.
   copySelectedText: ->
     maintainClipboard = false
-    for selection in @getSelections()
+    for selection in @getSelectionsOrderedByBufferPosition()
       if selection.isEmpty()
         previousRange = selection.getBufferRange()
         selection.selectLine()
