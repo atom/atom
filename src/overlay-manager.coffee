@@ -32,9 +32,12 @@ class OverlayManager
     cachedOverlay = @overlaysById[decorationId]
     unless overlayNode = cachedOverlay?.overlayNode
       overlayNode = document.createElement('atom-overlay')
-      overlayNode.appendChild(itemView)
       @container.appendChild(overlayNode)
       @overlaysById[decorationId] = cachedOverlay = {overlayNode, itemView}
+
+    # The same node may be used in more than one overlay. This steals the node
+    # back if it has been displayed in another overlay.
+    overlayNode.appendChild(itemView) if overlayNode.childNodes.length == 0
 
     cachedOverlay.pixelPosition = pixelPosition
     overlayNode.style.top = pixelPosition.top + 'px'
