@@ -2234,6 +2234,7 @@ describe "TextEditorComponent", ->
       expect(editor.lineTextForBufferRow(0)).toBe 'üvar quicksort = function () {'
 
     it "does not handle input events when input is disabled", ->
+      nextAnimationFrame = noAnimationFrame # This spec is flaky on the build machine, so this.
       component.setInputEnabled(false)
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
       expect(nextAnimationFrame).toBe noAnimationFrame
