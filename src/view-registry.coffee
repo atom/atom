@@ -178,6 +178,9 @@ class ViewRegistry
       @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
       @stopPollingDocument() if @documentPollers.length is 0
 
+  pollAfterNextUpdate: ->
+    @performDocumentPollAfterUpdate = true
+
   clearDocumentRequests: ->
     @documentReaders = []
     @documentWriters = []
@@ -194,6 +197,7 @@ class ViewRegistry
     writer() while writer = @documentWriters.shift()
     reader() while reader = @documentReaders.shift()
     @performDocumentPoll() if @performDocumentPollAfterUpdate
+    @performDocumentPollAfterUpdate = false
 
   startPollingDocument: ->
     @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
@@ -205,6 +209,5 @@ class ViewRegistry
     if @documentUpdateRequested
       @performDocumentPollAfterUpdate = true
     else
-      @performDocumentPollAfterUpdate = false
       poller() for poller in @documentPollers
       return

@@ -29,6 +29,9 @@ describe "TextEditorPresenter", ->
         model: editor
         explicitHeight: 130
         contentFrameWidth: 500
+        windowWidth: 500
+        windowHeight: 130
+        boundingClientRect: {left: 0, top: 0, width: 500, height: 130}
         lineHeight: 10
         baseCharacterWidth: 10
         horizontalScrollbarHeight: 10
@@ -1485,11 +1488,11 @@ describe "TextEditorPresenter", ->
           }
 
       describe ".overlays", ->
+        [item] = []
         stateForOverlay = (presenter, decoration) ->
           presenter.getState().content.overlays[decoration.id]
 
         it "contains state for overlay decorations both initially and when their markers move", ->
-          item = {}
           marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
@@ -1497,14 +1500,14 @@ describe "TextEditorPresenter", ->
           # Initial state
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 2 * 10, left: 13 * 10}
+            pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
           }
 
           # Change range
           expectStateUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]])
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 4 * 10, left: 6 * 10}
+            pixelPosition: {top: 5 * 10 - presenter.state.content.scrollTop, left: 6 * 10}
           }
 
           # Valid -> invalid
@@ -1515,14 +1518,14 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.undo()
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 4 * 10, left: 6 * 10}
+            pixelPosition: {top: 5 * 10 - presenter.state.content.scrollTop, left: 6 * 10}
           }
 
           # Reverse direction
           expectStateUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]], reversed: true)
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 2 * 10, left: 13 * 10}
+            pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
           }
 
           # Destroy
@@ -1533,68 +1536,236 @@ describe "TextEditorPresenter", ->
           decoration2 = editor.decorateMarker(marker, {type: 'overlay', item})
           expectValues stateForOverlay(presenter, decoration2), {
             item: item
-            pixelPosition: {top: 2 * 10, left: 13 * 10}
+            pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
           }
 
         it "updates when ::baseCharacterWidth changes", ->
-          item = {}
+          scrollTop = 20
           marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-          presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
+          presenter = buildPresenter({explicitHeight: 30, scrollTop})
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 2 * 10, left: 13 * 10}
+            pixelPosition: {top: 3 * 10 - scrollTop, left: 13 * 10}
           }
 
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(5)
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 2 * 10, left: 13 * 5}
+            pixelPosition: {top: 3 * 10 - scrollTop, left: 13 * 5}
           }
 
         it "updates when ::lineHeight changes", ->
-          item = {}
+          scrollTop = 20
           marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-          presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
+          presenter = buildPresenter({explicitHeight: 30, scrollTop})
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 2 * 10, left: 13 * 10}
+            pixelPosition: {top: 3 * 10 - scrollTop, left: 13 * 10}
           }
 
           expectStateUpdate presenter, -> presenter.setLineHeight(5)
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 2 * 5, left: 13 * 10}
+            pixelPosition: {top: 3 * 5 - scrollTop, left: 13 * 10}
           }
 
         it "honors the 'position' option on overlay decorations", ->
-          item = {}
+          scrollTop = 20
           marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
-          presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
+          presenter = buildPresenter({explicitHeight: 30, scrollTop})
           expectValues stateForOverlay(presenter, decoration), {
             item: item
-            pixelPosition: {top: 2 * 10, left: 13 * 10}
+            pixelPosition: {top: 3 * 10 - scrollTop, left: 13 * 10}
           }
 
         it "is empty until all of the required measurements are assigned", ->
-          item = {}
           marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
 
-          presenter = buildPresenter(baseCharacterWidth: null, lineHeight: null)
+          presenter = buildPresenter(baseCharacterWidth: null, lineHeight: null, windowWidth: null, windowHeight: null, boundingClientRect: null)
           expect(presenter.getState().content.overlays).toEqual({})
 
           presenter.setBaseCharacterWidth(10)
           expect(presenter.getState().content.overlays).toEqual({})
 
           presenter.setLineHeight(10)
+          expect(presenter.getState().content.overlays).toEqual({})
+
+          presenter.setWindowSize(500, 100)
+          expect(presenter.getState().content.overlays).toEqual({})
+
+          presenter.setBoundingClientRect({top: 0, left: 0, height: 100, width: 500})
           expect(presenter.getState().content.overlays).not.toEqual({})
+
+        describe "when the overlay has been measured", ->
+          [gutterWidth, windowWidth, windowHeight, itemWidth, itemHeight, contentMargin, boundingClientRect, contentFrameWidth] = []
+          beforeEach ->
+            item = {}
+            gutterWidth = 5 * 10 # 5 chars wide
+            contentFrameWidth = 30 * 10
+            windowWidth = gutterWidth + contentFrameWidth
+            windowHeight = 9 * 10
+
+            itemWidth = 4 * 10
+            itemHeight = 4 * 10
+            contentMargin = 0
+
+            boundingClientRect =
+              top: 0
+              left: 0,
+              width: windowWidth
+              height: windowHeight
+
+          it "slides horizontally left when near the right edge", ->
+            scrollLeft = 20
+            marker = editor.markBufferPosition([0, 26], invalidate: 'never')
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+
+            presenter = buildPresenter({scrollLeft, windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+            expectStateUpdate presenter, ->
+              presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 1 * 10, left: 26 * 10 + gutterWidth - scrollLeft}
+            }
+
+            expectStateUpdate presenter, -> editor.insertText('a')
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 1 * 10, left: windowWidth - itemWidth}
+            }
+
+            expectStateUpdate presenter, -> editor.insertText('b')
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 1 * 10, left: windowWidth - itemWidth}
+            }
+
+          it "flips vertically when near the bottom edge", ->
+            scrollTop = 10
+            marker = editor.markBufferPosition([5, 0], invalidate: 'never')
+            decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+
+            presenter = buildPresenter({scrollTop, windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+            expectStateUpdate presenter, ->
+              presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 6 * 10 - scrollTop, left: gutterWidth}
+            }
+
+            expectStateUpdate presenter, ->
+              editor.insertNewline()
+              editor.setScrollTop(scrollTop) # I'm fighting the editor
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 6 * 10 - scrollTop - itemHeight, left: gutterWidth}
+            }
+
+          describe "when the overlay item has a margin", ->
+            beforeEach ->
+              itemWidth = 12 * 10
+              contentMargin = -(gutterWidth + 2 * 10)
+
+            it "slides horizontally right when near the left edge with margin", ->
+              editor.setCursorBufferPosition([0, 3])
+              cursor = editor.getLastCursor()
+              marker = cursor.marker
+              decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+
+              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+              expectStateUpdate presenter, ->
+                presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 1 * 10, left: 3 * 10 + gutterWidth}
+              }
+
+              expectStateUpdate presenter, -> cursor.moveLeft()
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 1 * 10, left: -contentMargin}
+              }
+
+              expectStateUpdate presenter, -> cursor.moveLeft()
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 1 * 10, left: -contentMargin}
+              }
+
+          describe "when the editor is very small", ->
+            beforeEach ->
+              windowWidth = gutterWidth + 6 * 10
+              windowHeight = 6 * 10
+              contentFrameWidth = windowWidth - gutterWidth
+              boundingClientRect.width = windowWidth
+              boundingClientRect.height = windowHeight
+
+            it "does not flip vertically and force the overlay to have a negative top", ->
+              marker = editor.markBufferPosition([1, 0], invalidate: 'never')
+              decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+
+              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+              expectStateUpdate presenter, ->
+                presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 2 * 10, left: 0 * 10 + gutterWidth}
+              }
+
+              expectStateUpdate presenter, -> editor.insertNewline()
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 3 * 10, left: gutterWidth}
+              }
+
+            it "does not adjust horizontally and force the overlay to have a negative left", ->
+              itemWidth = 6 * 10
+
+              marker = editor.markBufferPosition([0, 0], invalidate: 'never')
+              decoration = editor.decorateMarker(marker, {type: 'overlay', item})
+
+              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+              expectStateUpdate presenter, ->
+                presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
+
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 10, left: gutterWidth}
+              }
+
+              windowWidth = gutterWidth + 5 * 10
+              expectStateUpdate presenter, -> presenter.setWindowSize(windowWidth, windowHeight)
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 10, left: windowWidth - itemWidth}
+              }
+
+              windowWidth = gutterWidth + 1 * 10
+              expectStateUpdate presenter, -> presenter.setWindowSize(windowWidth, windowHeight)
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 10, left: 0}
+              }
+
+              windowWidth = gutterWidth
+              expectStateUpdate presenter, -> presenter.setWindowSize(windowWidth, windowHeight)
+              expectValues stateForOverlay(presenter, decoration), {
+                item: item
+                pixelPosition: {top: 10, left: 0}
+              }
+
 
     describe ".gutter", ->
       describe ".scrollHeight", ->
