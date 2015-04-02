@@ -305,6 +305,9 @@ class TextEditorPresenter
     lineState.top = row * @lineHeight
     lineState.decorationClasses = @lineDecorationClassesForRow(row)
 
+    unless @state.content.scrollingVertically
+      @state.content.changedLines[line.id] = @state.content.lines[line.id]
+
   buildLineState: (row, line) ->
     @state.content.lines[line.id] =
       screenRow: row
@@ -318,9 +321,6 @@ class TextEditorPresenter
       top: row * @lineHeight
       decorationClasses: @lineDecorationClassesForRow(row)
 
-    # if @mouseWheelScreenRow?
-    #   @linesToChangeOnUpdate[line.id] = true
-    # else
     @state.content.changedLines[line.id] = @state.content.lines[line.id]
 
   updateCursorsState: -> @batch "shouldUpdateCursorsState", ->
