@@ -1426,7 +1426,7 @@ describe "TextEditorComponent", ->
         height = 4.5 * lineHeightInPixels
         wrapperNode.style.height = height + 'px'
         wrapperNode.style.width = 10 * charWidth + 'px'
-        component.measureHeightAndWidth()
+        component.measureDimensions()
         nextAnimationFrame()
 
         coordinates = clientCoordinatesForScreenPosition([0, 2])
