@@ -2067,67 +2067,6 @@ describe "TextEditorPresenter", ->
         expectStateUpdate presenter, -> presenter.setFocused(false)
         expect(presenter.getState().focused).toBe false
 
-  describe "::getPreMeasureState()", ->
-    describe ".changedLines", ->
-      hasChangedLine = (presenter, state, screenRow) ->
-        lineId = presenter.model.tokenizedLineForScreenRow(screenRow).id
-        changedLine = state.content.changedLines[lineId]
-        actualLine = state.content.lines[lineId]
-
-        changedLine? and actualLine? and _.isEqual(changedLine, actualLine)
-
-      it "contains states for lines that have changed since the last update", ->
-        presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-
-        presenter.setScrollTop(50)
-        state = presenter.getPreMeasureState()
-        expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
-
-        state = presenter.getPreMeasureState()
-        expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
-
-        presenter.setScrollTop(51)
-        state = presenter.getPreMeasureState()
-        expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 7)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 8)).toBeFalsy()
-
-        presenter.setScrollTop(0)
-        state = presenter.getPreMeasureState()
-        expect(hasChangedLine(presenter, state, 0)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 1)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 2)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 3)).toBeTruthy()
-
-      it "doesn't mark lines as changed during mouse scrolling", ->
-        presenter = buildPresenter(explicitHeight: 15, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
-
-        presenter.setMouseWheelScreenRow(6)
-        presenter.setScrollTop(50)
-
-        state = presenter.getPreMeasureState()
-        expect(hasChangedLine(presenter, state, 4)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 5)).toBeFalsy()
-        expect(hasChangedLine(presenter, state, 6)).toBeFalsy()
-
-        presenter.didStopScrolling()
-        state = presenter.getPreMeasureState()
-        expect(hasChangedLine(presenter, state, 4)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 5)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 6)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 7)).toBeTruthy()
-        expect(hasChangedLine(presenter, state, 8)).toBeTruthy()
-
   # disabled until we fix an issue with display buffer markers not updating when
   # they are moved on screen but not in the buffer
   xdescribe "when the model and view measurements are mutated randomly", ->

@@ -323,7 +323,7 @@ class DisplayBuffer extends Model
 
   getCharWidthForRow: (row, index) ->
     charWidths = @charWidthsByRow[row] ? []
-    charWidths[index] ? @getDefaultCharWidth()
+    charWidths[index] ? @getDefaultCharWidth() * index
 
   handleCharacterWidthsChanged: ->
     return unless @characterWidthsChanged
