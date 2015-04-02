@@ -2792,6 +2792,20 @@ describe "TextEditor", ->
               [[5, 8], [5, 8]]
             ])
 
+        describe "when many selections get added in shuffle order", ->
+          it "copies them in order", ->
+            editor.setSelectedBufferRanges([
+              [[2,8], [2, 13]]
+              [[0,4], [0,13]],
+              [[1,6], [1, 10]],
+            ])
+            editor.copySelectedText()
+            expect(atom.clipboard.read()).toEqual """
+              quicksort
+              sort
+              items
+            """
+
       describe ".pasteText()", ->
         copyText = (text, {startColumn, textEditor}={}) ->
           startColumn ?= 0

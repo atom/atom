@@ -2621,7 +2621,7 @@ class TextEditor extends Model
   # Essential: For each selection, copy the selected text.
   copySelectedText: ->
     maintainClipboard = false
-    for selection in @getSelections()
+    for selection in @getSelectionsOrderedByBufferPosition()
       if selection.isEmpty()
         previousRange = selection.getBufferRange()
         selection.selectLine()
