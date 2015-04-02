@@ -434,16 +434,12 @@ class TextEditorPresenter
       for gutter in @model.getGutters()
         gutterName = gutter.name
         @state.gutters.customDecorations[gutterName] = {}
-        gutterState = @state.gutters.customDecorations[gutterName]
-
         return if !@gutterIsVisible(gutter)
 
         relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
-        return if !relevantDecorations
-
         relevantDecorations.forEach (decoration) =>
           decorationRange = decoration.getMarker().getScreenRange()
-          gutterState[decoration.id] =
+          @state.gutters.customDecorations[gutterName][decoration.id] =
             top: @lineHeight * decorationRange.start.row
             height: @lineHeight * decorationRange.getRowCount()
             item: decoration.getProperties().item
@@ -651,10 +647,10 @@ class TextEditorPresenter
   # TODO (jssln) This needs tests.
   # Returns a {Set} of {Decoration}s on the given custom gutter from startRow to endRow (inclusive).
   customGutterDecorationsInRange: (gutterName, startRow, endRow) ->
-    return null if @model.isMini() or gutterName is 'line-number'
-
     decorations = new Set
-    return decorations if !@customGutterDecorationsByGutterNameAndScreenRow[gutterName]
+
+    return decorations if @model.isMini() or gutterName is 'line-number' or
+      !@customGutterDecorationsByGutterNameAndScreenRow[gutterName]
 
     for bufferRow in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
       for id, decoration of @customGutterDecorationsByGutterNameAndScreenRow[gutterName][bufferRow]
