@@ -370,7 +370,7 @@ window.setEditorWidthInChars = (editorView, widthInChars, charWidth=editorView.c
 
 window.setEditorHeightInLines = (editorView, heightInLines, lineHeight=editorView.lineHeight) ->
   editorView.height(editorView.getEditor().getLineHeightInPixels() * heightInLines)
-  editorView.component?.measureHeightAndWidth()
+  editorView.component?.measureDimensions()
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
