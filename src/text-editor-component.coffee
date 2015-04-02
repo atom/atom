@@ -11,6 +11,7 @@ InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
+OverlayManager = require './overlay-manager'
 
 module.exports =
 class TextEditorComponent
@@ -56,8 +57,14 @@ class TextEditorComponent
     @domNode = document.createElement('div')
     if @useShadowDOM
       @domNode.classList.add('editor-contents--private')
+
+      insertionPoint = document.createElement('content')
+      insertionPoint.setAttribute('select', 'atom-overlay')
+      @domNode.appendChild(insertionPoint)
+      @overlayManager = new OverlayManager(@presenter, @hostElement)
     else
       @domNode.classList.add('editor-contents')
+      @overlayManager = new OverlayManager(@presenter, @domNode)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -151,6 +158,7 @@ class TextEditorComponent
     @selectionChanged = false
 
     @linesComponent.postMeasureUpdateSync(@newState)
+    @overlayManager?.render(@newState)
 
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
@@ -158,6 +166,10 @@ class TextEditorComponent
       @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
       @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
       @hostElement.__spacePenView.trigger 'editor:display-updated'
+
+  readAfterUpdateSync: =>
+    @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
+    @overlayManager?.measureOverlays()
 
   mountGutterComponent: ->
     @gutterComponent = new GutterComponent({@editor, onMouseDown: @onGutterMouseDown})
@@ -168,7 +180,8 @@ class TextEditorComponent
     @measureScrollbars() if @measureScrollbarsWhenShown
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @measureHeightAndWidth()
+    @measureWindowSize()
+    @measureDimensions()
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
     @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @editor.setVisible(true)
@@ -564,8 +577,9 @@ class TextEditorComponent
   pollDOM: =>
     unless @checkForVisibilityChange()
       @sampleBackgroundColors()
-      @measureHeightAndWidth()
+      @measureDimensions()
       @sampleFontStyling()
+      @overlayManager?.measureOverlays()
 
   checkForVisibilityChange: ->
     if @isVisible()
@@ -583,13 +597,14 @@ class TextEditorComponent
     @heightAndWidthMeasurementRequested = true
     requestAnimationFrame =>
       @heightAndWidthMeasurementRequested = false
-      @measureHeightAndWidth()
+      @measureDimensions()
+      @measureWindowSize()
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
-  measureHeightAndWidth: ->
+  measureDimensions: ->
     return unless @mounted
 
     {position} = getComputedStyle(@hostElement)
@@ -609,6 +624,12 @@ class TextEditorComponent
     clientWidth -= paddingLeft
     if clientWidth > 0
       @presenter.setContentFrameWidth(clientWidth)
+
+    @presenter.setBoundingClientRect(@hostElement.getBoundingClientRect())
+
+  measureWindowSize: ->
+    return unless @mounted
+    @presenter.setWindowSize(window.innerWidth, window.innerHeight)
 
   sampleFontStyling: =>
     oldFontSize = @fontSize

@@ -6,7 +6,7 @@ The following is a set of guidelines for contributing to Atom and its packages,
 which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
 If you're unsure which package is causing your problem or if you're having an
 issue with Atom core, please open an issue on the [main atom repository](https://github.com/atom/atom/issues).
-These are just guidelines, not rules, use your best judgement and feel free to
+These are just guidelines, not rules, use your best judgment and feel free to
 propose changes to this document in a pull request.
 
 ## Submitting Issues
@@ -48,7 +48,7 @@ For more information on how to work with Atom's official packages, see
   [JavaScript](https://github.com/styleguide/javascript),
   and [CSS](https://github.com/styleguide/css) styleguides.
 * Include thoughtfully-worded, well-structured
-  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`.
+  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`. See the [Specs Styleguide](#specs-styleguide) below.
 * Document new code based on the
   [Documentation Styleguide](#documentation-styleguide)
 * End files with a newline.
@@ -107,6 +107,24 @@ For more information on how to work with Atom's official packages, see
 * Use `slice()` to copy an array
 * Add an explicit `return` when your function ends with a `for`/`while` loop and
   you don't want it to return a collected array.
+
+## Specs Styleguide
+
+- Include thoughtfully-worded, well-structured
+  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
+- treat `describe` as a noun or situation.
+- treat `it` as a statement about state or how an operation changes state.
+
+### Example
+
+```coffee
+describe 'a dog', ->
+ it 'barks', ->
+ # spec here
+ describe 'when the dog is happy', ->
+  it 'wags its tail', ->
+  # spec here
+```
 
 ## Documentation Styleguide
 

@@ -137,6 +137,21 @@ describe "ViewRegistry", ->
       advanceClock(registry.documentPollingInterval)
       expect(events).toEqual ['write', 'read', 'poll', 'poll']
 
+    it "polls the document after updating when ::pollAfterNextUpdate() has been called", ->
+      events = []
+      registry.pollDocument -> events.push('poll')
+      registry.updateDocument -> events.push('write')
+      registry.readDocument -> events.push('read')
+      frameRequests.shift()()
+      expect(events).toEqual ['write', 'read']
+
+      events = []
+      registry.pollAfterNextUpdate()
+      registry.updateDocument -> events.push('write')
+      registry.readDocument -> events.push('read')
+      frameRequests.shift()()
+      expect(events).toEqual ['write', 'read', 'poll']
+
   describe "::pollDocument(fn)", ->
     it "calls all registered reader functions on an interval until they are disabled via a returned disposable", ->
       spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
