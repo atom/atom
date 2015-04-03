@@ -3376,6 +3376,21 @@ describe "TextEditor", ->
       expect(buffer.lineForRow(0)).toBe(line2)
       expect(buffer.getLineCount()).toBe(count - 2)
 
+    it "deletes only the first line when it has multiple selections", ->
+      line1 = buffer.lineForRow(1)
+      count = buffer.getLineCount()
+      editor.getLastCursor().moveToTop()
+      editor.setSelectedBufferRanges([
+        [[0, 1], [0, 2]],
+        [[0, 4], [0, 5]]
+      ])
+      expect(buffer.lineForRow(0)).not.toBe(line1)
+
+      editor.deleteLine()
+
+      expect(buffer.lineForRow(0)).toBe(line1)
+      expect(buffer.getLineCount()).toBe(count - 1)
+
     it "only deletes first line if only newline is selected on second line", ->
       editor.setSelectedBufferRange([[0, 2], [1, 0]])
       line1 = buffer.lineForRow(1)

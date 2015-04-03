@@ -1114,6 +1114,7 @@ class TextEditor extends Model
 
   # Extended: Delete all lines intersecting selections.
   deleteLine: ->
+    @mergeIntersectingSelectionsByRow()
     @mutateSelectedText (selection) -> selection.deleteLine()
 
   # Deprecated: Use {::deleteToBeginningOfWord} instead.
@@ -2232,6 +2233,17 @@ class TextEditor extends Model
   # the function with merging suppressed, then merges intersecting selections
   # afterward.
   mergeIntersectingSelections: (args...) ->
+    @mergeSelections args..., (previousSelection, currentSelection) ->
+      exclusive = not currentSelection.isEmpty() and not previousSelection.isEmpty()
+
+      previousSelection.intersectsWith(currentSelection, exclusive)
+
+  mergeIntersectingSelectionsByRow: (args...) ->
+    @mergeSelections args..., (previousSelection, currentSelection) ->
+      previousSelection.intersectsByRowWith(currentSelection)
+
+  mergeSelections: (args...) ->
+    mergePredicate = args.pop()
     fn = args.pop() if _.isFunction(_.last(args))
     options = args.pop() ? {}
 
@@ -2244,10 +2256,7 @@ class TextEditor extends Model
 
     reducer = (disjointSelections, selection) ->
       adjacentSelection = _.last(disjointSelections)
-      exclusive = not selection.isEmpty() and not adjacentSelection.isEmpty()
-      intersects = adjacentSelection.intersectsWith(selection, exclusive)
-
-      if intersects
+      if mergePredicate(adjacentSelection, selection)
         adjacentSelection.merge(selection, options)
         disjointSelections
       else

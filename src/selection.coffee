@@ -174,6 +174,13 @@ class Selection extends Model
   intersectsScreenRow: (screenRow) ->
     @getScreenRange().intersectsRow(screenRow)
 
+  intersectsByRowWith: (otherSelection) ->
+    otherScreenRange = otherSelection.getScreenRange()
+
+    @getScreenRange().intersectsRowRange(
+      otherScreenRange.start.row, otherScreenRange.end.row
+    )
+
   # Public: Identifies if a selection intersects with another selection.
   #
   # * `otherSelection` A {Selection} to check against.
