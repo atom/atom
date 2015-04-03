@@ -26,6 +26,13 @@ module.exports =
         default: []
         items:
           type: 'string'
+      packagesWithKeymapsDisabled:
+        type: 'array'
+        default: []
+        title: "Disable Keymaps for Packages"
+        description: "Used to disable keymaps for individual packages."
+        items:
+          type: 'string'
       themes:
         type: 'array'
         default: ['one-dark-ui', 'one-dark-syntax']

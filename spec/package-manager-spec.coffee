@@ -357,6 +357,26 @@ describe "PackageManager", ->
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-n', target: element1[0])[0].command).toBe 'keymap-2'
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-y', target: element3[0])).toHaveLength 0
 
+      describe "when the package is listed in the config 'core.packagesWithKeymapsDisabled'", ->
+        it "doesn't load the keymaps", ->
+          atom.config.set("config.packagesWithKeymapsDisabled", ["package-with-keymaps"])
+
+          element1 = $$ -> @div class: 'test-1'
+          element2 = $$ -> @div class: 'test-2'
+          element3 = $$ -> @div class: 'test-3'
+
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps")
+
+          runs ->
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
+
       describe "when the keymap file is empty", ->
         it "does not throw an error on activation", ->
           waitsForPromise ->
