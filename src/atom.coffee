@@ -768,7 +768,7 @@ class Atom extends Model
     callback(showSaveDialogSync())
 
   showSaveDialogSync: (defaultPath) ->
-    defaultPath ?= @project?.getPath()
+    defaultPath ?= @project?.getPaths()[0]
     currentWindow = @getCurrentWindow()
     dialog = remote.require('dialog')
     dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
