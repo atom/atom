@@ -411,16 +411,9 @@ class PackageManager
     atom.notifications.addError(message, {stack, detail, dismissable: true})
 
 if Grim.includeDeprecatedAPIs
-  PackageManager::onDidLoadAll = (callback) ->
-    Grim.deprecate("Use `::onDidLoadInitialPackages` instead.")
-    @onDidLoadInitialPackages(callback)
-
-  PackageManager::onDidActivateAll = (callback) ->
-    Grim.deprecate("Use `::onDidActivateInitialPackages` instead.")
-    @onDidActivateInitialPackages(callback)
-
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(PackageManager)
+
   PackageManager::on = (eventName) ->
     switch eventName
       when 'loaded'
@@ -430,3 +423,11 @@ if Grim.includeDeprecatedAPIs
       else
         Grim.deprecate 'PackageManager::on is deprecated. Use event subscription methods instead.'
     EmitterMixin::on.apply(this, arguments)
+
+  PackageManager::onDidLoadAll = (callback) ->
+    Grim.deprecate("Use `::onDidLoadInitialPackages` instead.")
+    @onDidLoadInitialPackages(callback)
+
+  PackageManager::onDidActivateAll = (callback) ->
+    Grim.deprecate("Use `::onDidActivateInitialPackages` instead.")
+    @onDidActivateInitialPackages(callback)
