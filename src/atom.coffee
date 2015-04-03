@@ -226,7 +226,7 @@ class Atom extends Model
 
       if openDevTools
         @openDevTools()
-        @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
+        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
       @emit 'uncaught-error', arguments...
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
@@ -581,9 +581,9 @@ class Atom extends Model
     {resourcePath, safeMode} = @getLoadSettings()
 
     CommandInstaller = require './command-installer'
-    CommandInstaller.installAtomCommand resourcePath, false, (error) ->
+    CommandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
-    CommandInstaller.installApmCommand resourcePath, false, (error) ->
+    CommandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
     dimensions = @restoreWindowDimensions()

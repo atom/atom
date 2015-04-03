@@ -83,7 +83,7 @@ class Task
     taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = fork '--eval', [bootstrap], {env, cwd: __dirname}
+    @childProcess = fork '--eval', [bootstrap], {env, silent: true}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
@@ -100,6 +100,11 @@ class Task
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
       @emit(event, args...) if @childProcess?
+    # Catch the errors that happened before task-bootstrap.
+    @childProcess.stdout.on 'data', (data) ->
+      console.log data.toString()
+    @childProcess.stderr.on 'data', (data) ->
+      console.error data.toString()
 
   # Public: Starts the task.
   #
