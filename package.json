@@ -1,7 +1,7 @@
 {
   "name": "atom-package-manager",
   "description": "Atom package manager",
-  "version": "0.157.0",
+  "version": "0.158.0",
   "licenses": [
     {
       "type": "MIT",
@@ -25,6 +25,7 @@
     "test": "grunt test"
   },
   "dependencies": {
+    "asar-require": "0.1.4",
     "optimist": "~0.4.0",
     "async": "~0.2.8",
     "underscore-plus": "1.x",

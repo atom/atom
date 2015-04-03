@@ -20,24 +20,24 @@ module.exports =
 
     apmFolder = path.resolve(__dirname, '..')
     appFolder = path.dirname(apmFolder)
-    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
+    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app.asar'
       return process.nextTick -> callback(appFolder)
 
     apmFolder = path.resolve(__dirname, '..', '..', '..')
     appFolder = path.dirname(apmFolder)
-    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
+    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app.asar'
       return process.nextTick -> callback(appFolder)
 
     switch process.platform
       when 'darwin'
         child_process.exec 'mdfind "kMDItemCFBundleIdentifier == \'com.github.atom\'"', (error, stdout='', stderr) ->
           appLocation = stdout.split('\n')[0] ? '/Applications/Atom.app'
-          callback("#{appLocation}/Contents/Resources/app")
+          callback("#{appLocation}/Contents/Resources/app.asar")
       when 'linux'
-        process.nextTick -> callback('/usr/local/share/atom/resources/app')
+        process.nextTick -> callback('/usr/local/share/atom/resources/app.asar')
       when 'win32'
         process.nextTick ->
-          programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app')
+          programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app.asar')
           callback(programFilesPath)
 
   getReposDirectory: ->
