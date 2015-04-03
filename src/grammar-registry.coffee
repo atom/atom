@@ -38,7 +38,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   selectGrammar: (filePath, fileContents) -> super
 
   clearObservers: ->
-    @off() if includeDeprecations
+    @off() if includeDeprecatedAPIs
     @emitter = new Emitter
 
 if includeDeprecatedAPIs
