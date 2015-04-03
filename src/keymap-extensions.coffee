@@ -3,13 +3,14 @@ path = require 'path'
 KeymapManager = require 'atom-keymap'
 CSON = require 'season'
 {jQuery} = require 'space-pen'
+Grim = require 'grim'
 
 KeymapManager::onDidLoadBundledKeymaps = (callback) ->
   @emitter.on 'did-load-bundled-keymaps', callback
 
 KeymapManager::loadBundledKeymaps = ->
   @loadKeymap(path.join(@resourcePath, 'keymaps'))
-  @emit 'bundled-keymaps-loaded'
+  @emit 'bundled-keymaps-loaded' if Grim.includeDeprecatedAPIs
   @emitter.emit 'did-load-bundled-keymaps'
 
 KeymapManager::getUserKeymapPath = ->
