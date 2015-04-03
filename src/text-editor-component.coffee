@@ -782,12 +782,10 @@ class TextEditorComponent
     @rootElement.classList.toggle('mini', @editor.isMini())
 
 if grim.includeDeprecatedAPIs
-  # Deprecated
   TextEditorComponent::setInvisibles = (invisibles={}) ->
     grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
     atom.config.set('editor.invisibles', invisibles)
 
-  # Deprecated
   TextEditorComponent::setShowInvisibles = (showInvisibles) ->
     grim.deprecate "Use config.set('editor.showInvisibles', showInvisibles) instead"
     atom.config.set('editor.showInvisibles', showInvisibles)
