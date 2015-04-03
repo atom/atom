@@ -18,6 +18,7 @@ class Pane extends Model
   @properties
     container: undefined
     activeItem: undefined
+    previewItem: undefined
     focused: false
 
   # Public: Only one pane is considered *active* at a time. A pane is activated
@@ -45,6 +46,7 @@ class Pane extends Model
       activeItemURI = @activeItem.getURI()
     else if typeof @activeItem?.getUri is 'function'
       activeItemURI = @activeItem.getUri()
+    # TODO: previewItem be serialized as well?
 
     id: @id
     items: compact(@items.map((item) -> item.serialize?()))
@@ -190,6 +192,28 @@ class Pane extends Model
     callback(@getActiveItem())
     @onDidChangeActiveItem(callback)
 
+  # Public: Invoke the given callback when the value of {::getPreviewItem}
+  # changes.
+  #
+  # * `callback` {Function} to be called with when the preview item changes.
+  #   * `previewItem` The current preview item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangePreviewItem: (callback) ->
+    @emitter.on 'did-change-preview-item', callback
+
+  # Public: Invoke the given callback with the current and future values of
+  # {::getPreviewItem}.
+  #
+  # * `callback` {Function} to be called with the current and future active
+  #   items.
+  #   * `previewItem` The current preview item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observePreviewItem: (callback) ->
+    callback(@getPreviewItem())
+    @onDidChangePreviewItem(callback)
+
   # Public: Invoke the given callback before items are destroyed.
   #
   # * `callback` {Function} to be called before items are destroyed.
@@ -240,6 +264,22 @@ class Pane extends Model
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
+
+  # Public: Get the pane item being previewed in this pane.
+  #
+  # Returns a pane item.
+  getPreviewItem: -> @previewItem
+
+  setPreviewItem: (previewItem) ->
+    unless previewItem is @previewItem
+      @removeItem(@previewItem) if @previewItem
+      @previewItem = previewItem
+      @emitter.emit 'did-change-preview-item', @previewItem
+    @previewItem
+
+  clearPreviewItem: ->
+    @previewItem = undefined
+    @emitter.emit 'did-change-preview-item', @previewItem
 
   # Return an {TextEditor} if the pane item is an {TextEditor}, or null otherwise.
   getActiveEditor: ->
@@ -300,6 +340,14 @@ class Pane extends Model
       @addItem(item)
       @setActiveItem(item)
 
+  # Public: Make the given item *active*, and in preview state if it has
+  # not been added to the pane yet.
+  activatePreviewItem: (item) ->
+    if item?
+      inPane = item in @items
+      @activateItem(item)
+      @setPreviewItem(item) unless inPane
+
   # Public: Add the given item to the pane.
   #
   # * `item` The item to add. It can be a model with an associated view or a
@@ -351,6 +399,9 @@ class Pane extends Model
         @activateNextItem()
       else
         @activatePreviousItem()
+    if item is @previewItem
+      @clearPreviewItem()
+      
     @items.splice(index, 1)
     @emit 'item-removed', item, index, destroyed if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-remove-item', {item, index, destroyed}

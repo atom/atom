@@ -394,7 +394,7 @@ class Workspace extends Model
       options.activatePane = options.changeFocus
       delete options.changeFocus
 
-    {initialLine, initialColumn} = options
+    {initialLine, initialColumn, preview} = options
     activatePane = options.activatePane ? true
 
     uri = atom.project.resolvePath(uri)
@@ -402,8 +402,12 @@ class Workspace extends Model
     if uri
       item ?= opener(uri, options) for opener in @getOpeners() when !item
     item ?= atom.project.openSync(uri, {initialLine, initialColumn})
-
-    @getActivePane().activateItem(item)
+    
+    if options.preview
+      @getActivePane().activatePreviewItem(item)
+    else 
+      @getActivePane().activateItem(item)
+      
     @itemOpened(item)
     @getActivePane().activate() if activatePane
     item
@@ -441,7 +445,10 @@ class Workspace extends Model
           pane = new Pane(items: [item])
           @paneContainer.root = pane
         @itemOpened(item)
-        pane.activateItem(item)
+        if options.preview
+          pane.activatePreviewItem(item)
+        else 
+          pane.activateItem(item)
         pane.activate() if activatePane
         if options.initialLine? or options.initialColumn?
           item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
