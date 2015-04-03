@@ -69,7 +69,7 @@ class Project extends Model
 
     if Grim.includeDeprecatedAPIs and path?
       Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor")
-      paths ?= _.compact([path])
+    paths ?= _.compact([path])
 
     @setPaths(paths)
 
