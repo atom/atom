@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 {deprecate} = require 'grim'
 {specificity} = require 'clear-cut'
 {Subscriber} = require 'emissary'
+{Emitter} = require 'event-kit'
 FirstMate = require 'first-mate'
 {ScopeSelector} = FirstMate
 ScopedPropertyStore = require 'scoped-property-store'
@@ -69,3 +70,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   propertiesForScope: (scope, keyPath) ->
     deprecate 'Use atom.config.getAll instead.'
     atom.config.settingsForScopeDescriptor(scope, keyPath)
+
+  clearObservers: ->
+    @off()
+    @emitter = new Emitter
