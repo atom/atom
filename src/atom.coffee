@@ -226,7 +226,7 @@ class Atom extends Model
 
       if openDevTools
         @openDevTools()
-        @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
+        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
       @emit 'uncaught-error', arguments...
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
