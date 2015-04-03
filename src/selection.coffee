@@ -1,8 +1,8 @@
 {Point, Range} = require 'text-buffer'
-{Model} = require 'theorist'
 {pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
+Model = require './model'
 
 NonWhitespaceRegExp = /\S/
 
@@ -27,7 +27,7 @@ class Selection extends Model
       unless @editor.isDestroyed()
         @destroyed = true
         @editor.removeSelection(this)
-        @emit 'destroyed'
+        @emit 'destroyed' if Grim.includeDeprecatedAPIs
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
@@ -62,18 +62,6 @@ class Selection extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
-
-  on: (eventName) ->
-    switch eventName
-      when 'screen-range-changed'
-        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
-      when 'destroyed'
-        Grim.deprecate("Use Selection::onDidDestroy instead.")
-      else
-        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
 
   ###
   Section: Managing the selection range
@@ -416,16 +404,6 @@ class Selection extends Model
     @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
 
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  backspaceToBeginningOfWord: ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  backspaceToBeginningOfLine: ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
-
   # Public: Removes from the start of the selection to the beginning of the
   # current word if the selection is empty otherwise it deletes the selection.
   deleteToBeginningOfWord: ->
@@ -754,7 +732,7 @@ class Selection extends Model
       newScreenRange: @getScreenRange()
       selection: this
 
-    @emit 'screen-range-changed', @getScreenRange() # old event
+    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-range'
     @editor.selectionRangeChanged(eventObject)
 
@@ -789,3 +767,25 @@ class Selection extends Model
   getGoalScreenRange: ->
     if goalScreenRange = @marker.getProperties().goalScreenRange
       Range.fromObject(goalScreenRange)
+
+if Grim.includeDeprecatedAPIs
+  Selection::on = (eventName) ->
+    switch eventName
+      when 'screen-range-changed'
+        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
+      when 'destroyed'
+        Grim.deprecate("Use Selection::onDidDestroy instead.")
+      else
+        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
+
+    super
+
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  Selection::backspaceToBeginningOfWord = ->
+    deprecate("Use Selection::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  Selection::backspaceToBeginningOfLine = ->
+    deprecate("Use Selection::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()

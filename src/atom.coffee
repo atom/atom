@@ -6,12 +6,11 @@ remote = require 'remote'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{deprecate} = require 'grim'
-{Emitter} = require 'event-kit'
-{Model} = require 'theorist'
+{deprecate, includeDeprecatedAPIs} = require 'grim'
+{CompositeDisposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {convertStackTrace, convertLine} = require 'coffeestack'
-
+Model = require './model'
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
@@ -34,35 +33,36 @@ class Atom extends Model
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
 
-    workspaceViewDeprecationMessage = """
-      atom.workspaceView is no longer available.
-      In most cases you will not need the view. See the Workspace docs for
-      alternatives: https://atom.io/docs/api/latest/Workspace.
-      If you do need the view, please use `atom.views.getView(atom.workspace)`,
-      which returns an HTMLElement.
-    """
+    if includeDeprecatedAPIs
+      workspaceViewDeprecationMessage = """
+        atom.workspaceView is no longer available.
+        In most cases you will not need the view. See the Workspace docs for
+        alternatives: https://atom.io/docs/api/latest/Workspace.
+        If you do need the view, please use `atom.views.getView(atom.workspace)`,
+        which returns an HTMLElement.
+      """
 
-    serviceHubDeprecationMessage = """
-      atom.services is no longer available. To register service providers and
-      consumers, use the `providedServices` and `consumedServices` fields in
-      your package's package.json.
-    """
+      serviceHubDeprecationMessage = """
+        atom.services is no longer available. To register service providers and
+        consumers, use the `providedServices` and `consumedServices` fields in
+        your package's package.json.
+      """
 
-    Object.defineProperty atom, 'workspaceView',
-      get: ->
-        deprecate(workspaceViewDeprecationMessage)
-        atom.__workspaceView
-      set: (newValue) ->
-        deprecate(workspaceViewDeprecationMessage)
-        atom.__workspaceView = newValue
+      Object.defineProperty atom, 'workspaceView',
+        get: ->
+          deprecate(workspaceViewDeprecationMessage)
+          atom.__workspaceView
+        set: (newValue) ->
+          deprecate(workspaceViewDeprecationMessage)
+          atom.__workspaceView = newValue
 
-    Object.defineProperty atom, 'services',
-      get: ->
-        deprecate(serviceHubDeprecationMessage)
-        atom.packages.serviceHub
-      set: (newValue) ->
-        deprecate(serviceHubDeprecationMessage)
-        atom.packages.serviceHub = newValue
+      Object.defineProperty atom, 'services',
+        get: ->
+          deprecate(serviceHubDeprecationMessage)
+          atom.packages.serviceHub
+        set: (newValue) ->
+          deprecate(serviceHubDeprecationMessage)
+          atom.packages.serviceHub = newValue
 
     atom
 
@@ -197,6 +197,7 @@ class Atom extends Model
   # Call .loadOrCreate instead
   constructor: (@state) ->
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
     {@mode} = @state
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
@@ -228,10 +229,12 @@ class Atom extends Model
         @openDevTools()
         @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
 
-      @emit 'uncaught-error', arguments...
+      @emit 'uncaught-error', arguments... if includeDeprecatedAPIs
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
-    @unsubscribe()
+    @disposables?.dispose()
+    @disposables = new CompositeDisposable
+
     @setBodyPlatformClass()
 
     @loadTime = null
@@ -263,7 +266,10 @@ class Atom extends Model
 
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
-    @keymap = @keymaps # Deprecated
+
+    if includeDeprecatedAPIs
+      @keymap = @keymaps # Deprecated
+
     @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
     @notifications = new NotificationManager
@@ -279,11 +285,12 @@ class Atom extends Model
 
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
 
-    Object.defineProperty this, 'syntax', get: ->
-      deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
-      @grammars
+    if includeDeprecatedAPIs
+      Object.defineProperty this, 'syntax', get: ->
+        deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
+        @grammars
 
-    @subscribe @packages.onDidActivateInitialPackages => @watchThemes()
+    @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
 
     Project = require './project'
     TextBuffer = require 'text-buffer'
@@ -342,15 +349,15 @@ class Atom extends Model
 
   # Public: Is the current window in development mode?
   inDevMode: ->
-    @getLoadSettings().devMode
+    @devMode ?= @getLoadSettings().devMode
 
   # Public: Is the current window in safe mode?
   inSafeMode: ->
-    @getLoadSettings().safeMode
+    @safeMode ?= @getLoadSettings().safeMode
 
   # Public: Is the current window running specs?
   inSpecMode: ->
-    @getLoadSettings().isSpec
+    @specMode ?= @getLoadSettings().isSpec
 
   # Public: Get the version of the Atom application.
   #
@@ -600,7 +607,7 @@ class Atom extends Model
     @requireUserInitScript() unless safeMode
 
     @menu.update()
-    @subscribe @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
+    @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
@@ -713,7 +720,9 @@ class Atom extends Model
 
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
-    WorkspaceView = require './workspace-view'
+
+    if includeDeprecatedAPIs
+      WorkspaceView = require './workspace-view'
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
@@ -750,7 +759,7 @@ class Atom extends Model
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
-    @subscribe @project.onDidChangePaths =>
+    @disposables.add @project.onDidChangePaths =>
       @constructor.updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
@@ -827,17 +836,18 @@ class Atom extends Model
   updateAvailable: (details) ->
     @emitter.emit 'update-available', details
 
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClass: ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
-  # Deprecated: Callers should be converted to use atom.deserializers
-  registerRepresentationClasses: ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")
 
   setAutoHideMenuBar: (autoHide) ->
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
     ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)
+
+if includeDeprecatedAPIs
+  # Deprecated: Callers should be converted to use atom.deserializers
+  Atom::registerRepresentationClass = ->
+    deprecate("Callers should be converted to use atom.deserializers")
+
+  # Deprecated: Callers should be converted to use atom.deserializers
+  Atom::registerRepresentationClasses = ->
+    deprecate("Callers should be converted to use atom.deserializers")

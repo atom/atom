@@ -16,10 +16,10 @@ class WorkspaceElement extends HTMLElement
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
-    callAttachHooks(this)
+    callAttachHooks(this) if Grim.includeDeprecatedAPIs
     @focus()
 
   detachedCallback: ->
@@ -82,7 +82,7 @@ class WorkspaceElement extends HTMLElement
 
     @appendChild(@panelContainers.modal)
 
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model
@@ -136,6 +136,8 @@ atom.commands.add 'atom-workspace',
   'application:open-folder': -> ipc.send('command', 'application:open-folder')
   'application:open-dev': -> ipc.send('command', 'application:open-dev')
   'application:open-safe': -> ipc.send('command', 'application:open-safe')
+  'application:open-api-preview': -> ipc.send('command', 'application:open-api-preview')
+  'application:open-dev-api-preview': -> ipc.send('command', 'application:open-dev-api-preview')
   'application:minimize': -> ipc.send('command', 'application:minimize')
   'application:zoom': -> ipc.send('command', 'application:zoom')
   'application:bring-all-windows-to-front': -> ipc.send('command', 'application:bring-all-windows-to-front')

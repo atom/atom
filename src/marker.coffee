@@ -1,8 +1,5 @@
-{Range} = require 'text-buffer'
 _ = require 'underscore-plus'
-{Subscriber} = require 'emissary'
-EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 Grim = require 'grim'
 
 # Essential: Represents a buffer annotation that remains logically stationary
@@ -45,9 +42,6 @@ Grim = require 'grim'
 # See {TextEditor::markBufferRange} for usage.
 module.exports =
 class Marker
-  EmitterMixin.includeInto(this)
-  Subscriber.includeInto(this)
-
   bufferMarkerSubscription: null
   oldHeadBufferPosition: null
   oldHeadScreenPosition: null
@@ -62,6 +56,7 @@ class Marker
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
     @id = @bufferMarker.id
     @oldHeadBufferPosition = @getHeadBufferPosition()
     @oldHeadScreenPosition = @getHeadScreenPosition()
@@ -69,14 +64,14 @@ class Marker
     @oldTailScreenPosition = @getTailScreenPosition()
     @wasValid = @isValid()
 
-    @subscribe @bufferMarker.onDidDestroy => @destroyed()
-    @subscribe @bufferMarker.onDidChange (event) => @notifyObservers(event)
+    @disposables.add @bufferMarker.onDidDestroy => @destroyed()
+    @disposables.add @bufferMarker.onDidChange (event) => @notifyObservers(event)
 
   # Essential: Destroys the marker, causing it to emit the 'destroyed' event. Once
   # destroyed, a marker cannot be restored by undo/redo operations.
   destroy: ->
     @bufferMarker.destroy()
-    @unsubscribe()
+    @disposables.dispose()
 
   # Essential: Creates and returns a new {Marker} with the same properties as this
   # marker.
@@ -118,17 +113,6 @@ class Marker
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
-  on: (eventName) ->
-    switch eventName
-      when 'changed'
-        Grim.deprecate("Use Marker::onDidChange instead")
-      when 'destroyed'
-        Grim.deprecate("Use Marker::onDidDestroy instead")
-      else
-        Grim.deprecate("Marker::on is deprecated. Use documented event subscription methods instead.")
-
-    EmitterMixin::on.apply(this, arguments)
-
   ###
   Section: Marker Details
   ###
@@ -161,9 +145,6 @@ class Marker
   # the marker.
   getProperties: ->
     @bufferMarker.getProperties()
-  getAttributes: ->
-    Grim.deprecate 'Use Marker::getProperties instead'
-    @getProperties()
 
   # Essential: Merges an {Object} containing new properties into the marker's
   # existing properties.
@@ -171,16 +152,10 @@ class Marker
   # * `properties` {Object}
   setProperties: (properties) ->
     @bufferMarker.setProperties(properties)
-  setAttributes: (properties) ->
-    Grim.deprecate 'Use Marker::getProperties instead'
-    @setProperties(properties)
 
   matchesProperties: (attributes) ->
     attributes = @displayBuffer.translateToBufferMarkerParams(attributes)
     @bufferMarker.matchesParams(attributes)
-  matchesAttributes: (attributes) ->
-    Grim.deprecate 'Use Marker::matchesProperties instead'
-    @matchesProperties(attributes)
 
   ###
   Section: Comparing to other markers
@@ -344,7 +319,7 @@ class Marker
 
   destroyed: ->
     delete @displayBuffer.markers[@id]
-    @emit 'destroyed'
+    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -375,7 +350,7 @@ class Marker
     if @deferredChangeEvents?
       @deferredChangeEvents.push(changeEvent)
     else
-      @emit 'changed', changeEvent
+      @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change', changeEvent
 
     @oldHeadBufferPosition = newHeadBufferPosition
@@ -392,9 +367,36 @@ class Marker
       @deferredChangeEvents = null
 
       for event in deferredChangeEvents
-        @emit 'changed', event
+        @emit 'changed', event if Grim.includeDeprecatedAPIs
         @emitter.emit 'did-change', event
     return
 
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
+
+if Grim.includeDeprecatedAPIs
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(Marker)
+
+  Marker::on = (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use Marker::onDidChange instead")
+      when 'destroyed'
+        Grim.deprecate("Use Marker::onDidDestroy instead")
+      else
+        Grim.deprecate("Marker::on is deprecated. Use documented event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
+
+  Marker::getAttributes = ->
+    Grim.deprecate 'Use Marker::getProperties instead'
+    @getProperties()
+
+  Marker::setAttributes = (properties) ->
+    Grim.deprecate 'Use Marker::setProperties instead'
+    @setProperties(properties)
+
+  Marker::matchesAttributes = (attributes) ->
+    Grim.deprecate 'Use Marker::matchesProperties instead'
+    @matchesProperties(attributes)

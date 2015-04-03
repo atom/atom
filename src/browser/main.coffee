@@ -106,6 +106,7 @@ parseCommandLine = ->
       ATOM_HOME               The root path for all configuration files and folders.
                               Defaults to `~/.atom`.
   """
+  options.alias('1', 'one').boolean('1').describe('1', 'Run in 1.0 API preview mode.')
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
@@ -131,6 +132,7 @@ parseCommandLine = ->
   executedFrom = args['executed-from']
   devMode = args['dev']
   safeMode = args['safe']
+  apiPreviewMode = args['one']
   pathsToOpen = args._
   pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
@@ -164,6 +166,7 @@ parseCommandLine = ->
   process.env.PATH = args['path-environment'] if args['path-environment']
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
-   devMode, safeMode, newWindow, specDirectory, logFile, socketPath}
+   devMode, apiPreviewMode, safeMode, newWindow, specDirectory, logFile,
+   socketPath}
 
 start()

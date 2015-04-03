@@ -1,8 +1,8 @@
 {Point, Range} = require 'text-buffer'
-{Model} = require 'theorist'
 {Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
 Grim = require 'grim'
+Model = require './model'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
@@ -39,13 +39,13 @@ class Cursor extends Model
         textChanged: textChanged
         cursor: this
 
-      @emit 'moved', movedEvent
+      @emit 'moved', movedEvent if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-position', movedEvent
       @editor.cursorMoved(movedEvent)
     @marker.onDidDestroy =>
       @destroyed = true
       @editor.removeCursor(this)
-      @emit 'destroyed'
+      @emit 'destroyed' if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-destroy'
       @emitter.dispose()
 
@@ -89,6 +89,8 @@ class Cursor extends Model
     @emitter.on 'did-change-visibility', callback
 
   on: (eventName) ->
+    return unless Grim.includeDeprecatedAPIs
+
     switch eventName
       when 'moved'
         Grim.deprecate("Use Cursor::onDidChangePosition instead")
@@ -222,9 +224,6 @@ class Cursor extends Model
   # Returns a {ScopeDescriptor}
   getScopeDescriptor: ->
     @editor.scopeDescriptorForBufferPosition(@getBufferPosition())
-  getScopes: ->
-    Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
-    @getScopeDescriptor().getScopesArray()
 
   # Public: Returns true if this cursor has no non-whitespace characters before
   # its current position.
@@ -476,10 +475,6 @@ class Cursor extends Model
 
     endOfWordPosition or currentBufferPosition
 
-  getMoveNextWordBoundaryBufferPosition: (options) ->
-    Grim.deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
-    @getNextWordBoundaryBufferPosition(options)
-
   # Public: Retrieves the buffer position of where the current word starts.
   #
   # * `options` (optional) An {Object} with the following keys:
@@ -593,7 +588,7 @@ class Cursor extends Model
   setVisible: (visible) ->
     if @visible != visible
       @visible = visible
-      @emit 'visibility-changed', @visible
+      @emit 'visibility-changed', @visible if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-visibility', @visible
 
   # Public: Returns the visibility of the cursor.
@@ -686,3 +681,12 @@ class Cursor extends Model
         position = range.start
         stop()
     position
+
+if Grim.includeDeprecatedAPIs
+  Cursor::getScopes = ->
+    Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
+    @getScopeDescriptor().getScopesArray()
+
+  Cursor::getMoveNextWordBoundaryBufferPosition = (options) ->
+    Grim.deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
+    @getNextWordBoundaryBufferPosition(options)
