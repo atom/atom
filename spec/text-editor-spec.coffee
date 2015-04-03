@@ -3376,7 +3376,7 @@ describe "TextEditor", ->
       expect(buffer.lineForRow(0)).toBe(line2)
       expect(buffer.getLineCount()).toBe(count - 2)
 
-    it "deletes only the first line when it has multiple selections", ->
+    it "deletes a line only once when multiple selections are on the same line", ->
       line1 = buffer.lineForRow(1)
       count = buffer.getLineCount()
       editor.getLastCursor().moveToTop()
