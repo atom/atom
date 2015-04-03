@@ -21,7 +21,7 @@ class TextEditorElement extends HTMLElement
   createdCallback: ->
     @emitter = new Emitter
     @initializeContent()
-    @createSpacePenShim() if Grim.includeDeprecations
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
@@ -87,7 +87,7 @@ class TextEditorElement extends HTMLElement
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
-    @__spacePenView.setModel(@model) if Grim.includeDeprecations
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
   getModel: ->

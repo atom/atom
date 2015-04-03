@@ -41,7 +41,7 @@ class Pane extends Model
 
   # Called by the Serializable mixin during serialization.
   serializeParams: ->
-    if Grim.includeDeprecations and typeof @activeItem?.getURI is 'function'
+    if Grim.includeDeprecatedAPIs and typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
     else if typeof @activeItem?.getUri is 'function'
       activeItemURI = @activeItem.getUri()
@@ -660,7 +660,7 @@ class Pane extends Model
     else
       throw error
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   Pane::on = (eventName) ->
     switch eventName
       when 'activated'

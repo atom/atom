@@ -308,7 +308,7 @@ class PackageManager
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
     @loadPackage(packagePath) for packagePath in packagePaths
-    @emit 'loaded' if Grim.includeDeprecations
+    @emit 'loaded' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
@@ -357,7 +357,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     Q.all(promises).then =>
-      @emit 'activated' if Grim.includeDeprecations
+      @emit 'activated' if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
@@ -410,7 +410,7 @@ class PackageManager
     message = "Failed to load the #{path.basename(packagePath)} package"
     atom.notifications.addError(message, {stack, detail, dismissable: true})
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   PackageManager::onDidLoadAll = (callback) ->
     Grim.deprecate("Use `::onDidLoadInitialPackages` instead.")
     @onDidLoadInitialPackages(callback)

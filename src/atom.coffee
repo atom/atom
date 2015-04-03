@@ -6,7 +6,7 @@ remote = require 'remote'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{deprecate, includeDeprecations} = require 'grim'
+{deprecate, includeDeprecatedAPIs} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {convertStackTrace, convertLine} = require 'coffeestack'
@@ -33,7 +33,7 @@ class Atom extends Model
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
 
-    if includeDeprecations
+    if includeDeprecatedAPIs
       workspaceViewDeprecationMessage = """
         atom.workspaceView is no longer available.
         In most cases you will not need the view. See the Workspace docs for
@@ -229,7 +229,7 @@ class Atom extends Model
         @openDevTools()
         @executeJavaScriptInDevTools('InspectorFrontendAPI.showConsole()')
 
-      @emit 'uncaught-error', arguments... if includeDeprecations
+      @emit 'uncaught-error', arguments... if includeDeprecatedAPIs
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @disposables?.dispose()
@@ -267,7 +267,7 @@ class Atom extends Model
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
 
-    if includeDeprecations
+    if includeDeprecatedAPIs
       @keymap = @keymaps # Deprecated
 
     @keymaps.subscribeToFileReadFailure()
@@ -285,7 +285,7 @@ class Atom extends Model
 
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
 
-    if includeDeprecations
+    if includeDeprecatedAPIs
       Object.defineProperty this, 'syntax', get: ->
         deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
         @grammars
@@ -721,7 +721,7 @@ class Atom extends Model
   deserializeWorkspaceView: ->
     Workspace = require './workspace'
 
-    if includeDeprecations
+    if includeDeprecatedAPIs
       WorkspaceView = require './workspace-view'
 
     startTime = Date.now()
@@ -843,7 +843,7 @@ class Atom extends Model
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
     ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)
 
-if includeDeprecations
+if includeDeprecatedAPIs
   # Deprecated: Callers should be converted to use atom.deserializers
   Atom::registerRepresentationClass = ->
     deprecate("Callers should be converted to use atom.deserializers")

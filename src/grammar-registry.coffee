@@ -1,5 +1,5 @@
 {Emitter} = require 'event-kit'
-{includeDeprecations, deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 FirstMate = require 'first-mate'
 Token = require './token'
 
@@ -41,7 +41,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     @off() if includeDeprecations
     @emitter = new Emitter
 
-if includeDeprecations
+if includeDeprecatedAPIs
   PropertyAccessors = require 'property-accessors'
   PropertyAccessors.includeInto(GrammarRegistry)
 

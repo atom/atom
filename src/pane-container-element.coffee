@@ -10,13 +10,13 @@ class PaneContainerElement extends HTMLElement
     @subscriptions = new CompositeDisposable
     @classList.add 'panes'
 
-    if Grim.includeDeprecations
+    if Grim.includeDeprecatedAPIs
       PaneContainerView ?= require './pane-container-view'
       @__spacePenView = new PaneContainerView(this)
 
   initialize: (@model) ->
     @subscriptions.add @model.observeRoot(@rootChanged.bind(this))
-    @__spacePenView.setModel(@model) if Grim.includeDeprecations
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   rootChanged: (root) ->

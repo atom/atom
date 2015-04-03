@@ -1,7 +1,7 @@
 TextBuffer = require 'text-buffer'
 {Point, Range} = TextBuffer
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-{includeDeprecations, deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
@@ -21,7 +21,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Task = require '../src/task'
   module.exports.TextEditor = require '../src/text-editor'
 
-  if includeDeprecations
+  if includeDeprecatedAPIs
     {$, $$, $$$, View} = require '../src/space-pen-extensions'
 
     Object.defineProperty module.exports, 'Workspace', get: ->
@@ -125,7 +125,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       deprecate "Please require `reactionary-atom-fork` instead: `Reactionary = require 'reactionary-atom-fork'`. Add `\"reactionary-atom-fork\": \"^0.9\"` to your package dependencies."
       require 'reactionary-atom-fork'
 
-if includeDeprecations
+if includeDeprecatedAPIs
   Object.defineProperty module.exports, 'Git', get: ->
     deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
     module.exports.GitRepository

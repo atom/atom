@@ -27,7 +27,7 @@ class Selection extends Model
       unless @editor.isDestroyed()
         @destroyed = true
         @editor.removeSelection(this)
-        @emit 'destroyed' if Grim.includeDeprecations
+        @emit 'destroyed' if Grim.includeDeprecatedAPIs
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
@@ -732,7 +732,7 @@ class Selection extends Model
       newScreenRange: @getScreenRange()
       selection: this
 
-    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecations
+    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-range'
     @editor.selectionRangeChanged(eventObject)
 
@@ -768,7 +768,7 @@ class Selection extends Model
     if goalScreenRange = @marker.getProperties().goalScreenRange
       Range.fromObject(goalScreenRange)
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   Selection::on = (eventName) ->
     switch eventName
       when 'screen-range-changed'

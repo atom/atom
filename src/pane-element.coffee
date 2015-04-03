@@ -13,7 +13,7 @@ class PaneElement extends HTMLElement
 
     @initializeContent()
     @subscribeToDOMEvents()
-    @createSpacePenShim() if Grim.includeDeprecations
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
     @attached = true
@@ -51,7 +51,7 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
-    @__spacePenView.setModel(@model) if Grim.includeDeprecations
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model

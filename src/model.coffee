@@ -1,5 +1,5 @@
 Grim = require 'grim'
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   module.exports = require('theorist').Model
   return
 

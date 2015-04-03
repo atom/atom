@@ -371,7 +371,7 @@ class Config
   observe: ->
     if arguments.length is 2
       [keyPath, callback] = arguments
-    else if Grim.includeDeprecations and arguments.length is 3 and (_.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor)
+    else if Grim.includeDeprecatedAPIs and arguments.length is 3 and (_.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor)
       Grim.deprecate """
         Passing a scope descriptor as the first argument to Config::observe is deprecated.
         Pass a `scope` in an options hash as the third argument instead.
@@ -380,7 +380,7 @@ class Config
     else if arguments.length is 3 and (_.isString(arguments[0]) and _.isObject(arguments[1]))
       [keyPath, options, callback] = arguments
       scopeDescriptor = options.scope
-      if Grim.includeDeprecations and options.callNow?
+      if Grim.includeDeprecatedAPIs and options.callNow?
         Grim.deprecate """
           Config::observe no longer takes a `callNow` option. Use ::onDidChange instead.
           Note that ::onDidChange passes its callback different arguments.
@@ -419,7 +419,7 @@ class Config
       [callback] = arguments
     else if arguments.length is 2
       [keyPath, callback] = arguments
-    else if Grim.includeDeprecations and _.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor
+    else if Grim.includeDeprecatedAPIs and _.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor
       Grim.deprecate """
         Passing a scope descriptor as the first argument to Config::onDidChange is deprecated.
         Pass a `scope` in an options hash as the third argument instead.
@@ -498,7 +498,7 @@ class Config
       if typeof arguments[0] is 'string' or not arguments[0]?
         [keyPath, options] = arguments
         {scope} = options
-      else if Grim.includeDeprecations
+      else if Grim.includeDeprecatedAPIs
         Grim.deprecate """
           Passing a scope descriptor as the first argument to Config::get is deprecated.
           Pass a `scope` in an options hash as the final argument instead.
@@ -578,7 +578,7 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
-    if Grim.includeDeprecations and arguments[0]?[0] is '.'
+    if Grim.includeDeprecatedAPIs and arguments[0]?[0] is '.'
       Grim.deprecate """
         Passing a scope selector as the first argument to Config::set is deprecated.
         Pass a `scopeSelector` in an options hash as the final argument instead.
@@ -617,7 +617,7 @@ class Config
   #   * `scopeSelector` (optional) {String}. See {::set}
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
-    if Grim.includeDeprecations and typeof options is 'string'
+    if Grim.includeDeprecatedAPIs and typeof options is 'string'
       Grim.deprecate """
         Passing a scope selector as the first argument to Config::unset is deprecated.
         Pass a `scopeSelector` in an options hash as the second argument instead.
@@ -1146,7 +1146,7 @@ withoutEmptyObjects = (object) ->
     resultObject = object
   resultObject
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   Config::restoreDefault = (scopeSelector, keyPath) ->
     Grim.deprecate("Use ::unset instead.")
     @unset(scopeSelector, keyPath)

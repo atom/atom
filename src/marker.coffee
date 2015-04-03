@@ -319,7 +319,7 @@ class Marker
 
   destroyed: ->
     delete @displayBuffer.markers[@id]
-    @emit 'destroyed' if Grim.includeDeprecations
+    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -350,7 +350,7 @@ class Marker
     if @deferredChangeEvents?
       @deferredChangeEvents.push(changeEvent)
     else
-      @emit 'changed', changeEvent if Grim.includeDeprecations
+      @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change', changeEvent
 
     @oldHeadBufferPosition = newHeadBufferPosition
@@ -367,14 +367,14 @@ class Marker
       @deferredChangeEvents = null
 
       for event in deferredChangeEvents
-        @emit 'changed', event if Grim.includeDeprecations
+        @emit 'changed', event if Grim.includeDeprecatedAPIs
         @emitter.emit 'did-change', event
     return
 
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Marker)
 

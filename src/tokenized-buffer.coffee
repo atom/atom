@@ -87,7 +87,7 @@ class TokenizedBuffer extends Model
 
     @retokenizeLines()
 
-    @emit 'grammar-changed', grammar if Grim.includeDeprecations
+    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-grammar', grammar
 
   reloadGrammar: ->
@@ -109,7 +109,7 @@ class TokenizedBuffer extends Model
     @invalidateRow(0)
     @fullyTokenized = false
     event = {start: 0, end: lastRow, delta: 0}
-    @emit 'changed', event if Grim.includeDeprecations
+    @emit 'changed', event if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
@@ -171,7 +171,7 @@ class TokenizedBuffer extends Model
       [startRow, endRow] = @updateFoldableStatus(startRow, endRow)
 
       event = {start: startRow, end: endRow, delta: 0}
-      @emit 'changed', event if Grim.includeDeprecations
+      @emit 'changed', event if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change', event
 
     if @firstInvalidRow()?
@@ -181,7 +181,7 @@ class TokenizedBuffer extends Model
 
   markTokenizationComplete: ->
     unless @fullyTokenized
-      @emit 'tokenized' if Grim.includeDeprecations
+      @emit 'tokenized' if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-tokenize'
     @fullyTokenized = true
 
@@ -228,7 +228,7 @@ class TokenizedBuffer extends Model
     end -= delta
 
     event = { start, end, delta, bufferChange: e }
-    @emit 'changed', event if Grim.includeDeprecations
+    @emit 'changed', event if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', event
 
   retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
@@ -464,7 +464,7 @@ class TokenizedBuffer extends Model
       console.log row, line, line.length
     return
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
 
   TokenizedBuffer::on = (eventName) ->

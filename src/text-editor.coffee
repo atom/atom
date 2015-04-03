@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 path = require 'path'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
-{includeDeprecations, deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 {Model} = require 'theorist'
 EmitterMixin = require('emissary').Emitter
 {CompositeDisposable, Emitter} = require 'event-kit'
@@ -1252,7 +1252,7 @@ class TextEditor extends Model
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
-    if includeDeprecations and decorationParams.type is 'gutter'
+    if includeDeprecatedAPIs and decorationParams.type is 'gutter'
       deprecate("Decorations of `type: 'gutter'` have been renamed to `type: 'line-number'`.")
       decorationParams.type = 'line-number'
     @displayBuffer.decorateMarker(marker, decorationParams)
@@ -2835,7 +2835,7 @@ class TextEditor extends Model
 
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
-if includeDeprecations
+if includeDeprecatedAPIs
   TextEditor::getViewClass = ->
     require './text-editor-view'
 

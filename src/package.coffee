@@ -6,7 +6,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
-{includeDeprecations, deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
@@ -40,11 +40,11 @@ class Package
     metadata ?= {}
     metadata.name = packageName
 
-    if includeDeprecations and metadata.stylesheetMain?
+    if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
       metadata.mainStyleSheet = metadata.stylesheetMain
 
-    if includeDeprecations and metadata.stylesheets?
+    if includeDeprecatedAPIs and metadata.stylesheets?
       deprecate("Use the `styleSheets` key instead of `stylesheets` in the `package.json` of `#{packageName}`", {packageName})
       metadata.styleSheets = metadata.stylesheets
 
@@ -163,7 +163,7 @@ class Package
     if @mainModule?
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
-      else if includeDeprecations and @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
+      else if includeDeprecatedAPIs and @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
         deprecate """Use a config schema instead. See the configuration section
         of https://atom.io/docs/latest/hacking-atom-package-word-count and
         https://atom.io/docs/api/latest/Config for more details"""
@@ -257,7 +257,7 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    if includeDeprecations and fs.isDirectorySync(path.join(@path, 'stylesheets'))
+    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'stylesheets'))
       deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
       path.join(@path, 'stylesheets')
     else
@@ -328,7 +328,7 @@ class Package
 
     deferred = Q.defer()
 
-    if includeDeprecations and fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
       deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
     else
@@ -356,7 +356,7 @@ class Package
         @mainModule?.deactivate?()
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
-    @emit 'deactivated' if includeDeprecations
+    @emit 'deactivated' if includeDeprecatedAPIs
     @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
@@ -456,7 +456,7 @@ class Package
         else if _.isArray(commands)
           @activationCommands[selector].push(commands...)
 
-    if includeDeprecations and @metadata.activationEvents?
+    if includeDeprecatedAPIs and @metadata.activationEvents?
       deprecate """
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
@@ -575,7 +575,7 @@ class Package
 
     atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
 
-if includeDeprecations
+if includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Package)
 

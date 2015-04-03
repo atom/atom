@@ -1,4 +1,4 @@
-{includeDeprecations, deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 _ = require 'underscore-plus'
 path = require 'path'
 {join} = path
@@ -112,7 +112,7 @@ class Workspace extends Model
     _.uniq(packageNames)
 
   editorAdded: (editor) ->
-    @emit 'editor-created', editor if includeDeprecations
+    @emit 'editor-created', editor if includeDeprecatedAPIs
 
   installShellCommands: ->
     require('./command-installer').installShellCommandsInteractively()
@@ -389,7 +389,7 @@ class Workspace extends Model
   #     the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
     # TODO: Remove deprecated changeFocus option
-    if includeDeprecations and options.changeFocus?
+    if includeDeprecatedAPIs and options.changeFocus?
       deprecate("The `changeFocus` option has been renamed to `activatePane`")
       options.activatePane = options.changeFocus
       delete options.changeFocus
@@ -410,7 +410,7 @@ class Workspace extends Model
 
   openURIInPane: (uri, pane, options={}) ->
     # TODO: Remove deprecated changeFocus option
-    if includeDeprecations and options.changeFocus?
+    if includeDeprecatedAPIs and options.changeFocus?
       deprecate("The `changeFocus` option has been renamed to `activatePane`")
       options.activatePane = options.changeFocus
       delete options.changeFocus
@@ -446,7 +446,7 @@ class Workspace extends Model
         if options.initialLine? or options.initialColumn?
           item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
         index = pane.getActiveItemIndex()
-        @emit "uri-opened" if includeDeprecations
+        @emit "uri-opened" if includeDeprecatedAPIs
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
 
@@ -477,7 +477,7 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # opener.
   addOpener: (opener) ->
-    if includeDeprecations
+    if includeDeprecatedAPIs
       packageName = @getCallingPackageName()
 
       wrappedOpener = (uri, options) ->
@@ -891,7 +891,7 @@ class Workspace extends Model
 
     deferred.promise
 
-if includeDeprecations
+if includeDeprecatedAPIs
   Object.defineProperty Workspace::, 'activePaneItem',
     get: ->
       Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"

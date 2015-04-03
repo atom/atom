@@ -65,7 +65,7 @@ class Decoration
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
-    @emit 'destroyed' if Grim.includeDeprecations
+    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -136,7 +136,7 @@ class Decoration
     oldProperties = @properties
     @properties = newProperties
     @properties.id = @id
-    @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecations
+    @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -156,14 +156,14 @@ class Decoration
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
-    @emit 'flash' if Grim.includeDeprecations
+    @emit 'flash' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-flash'
 
   consumeNextFlash: ->
     return @flashQueue.shift() if @flashQueue?.length > 0
     null
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Decoration)
 

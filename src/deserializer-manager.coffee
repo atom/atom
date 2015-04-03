@@ -61,7 +61,7 @@ class DeserializerManager
     name = state.get?('deserializer') ? state.deserializer
     @deserializers[name]
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   DeserializerManager::remove = (classes...) ->
     Grim.deprecate("Call .dispose() on the Disposable return from ::add instead")
     delete @deserializers[name] for {name} in classes

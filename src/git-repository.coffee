@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
-{includeDeprecations, deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 Task = require './task'
 
@@ -313,7 +313,7 @@ class GitRepository
     else
       delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
-      @emit 'status-changed', path, pathStatus if includeDeprecations
+      @emit 'status-changed', path, pathStatus if includeDeprecatedAPIs
       @emitter.emit 'did-change-status', {path, pathStatus}
 
     pathStatus
@@ -474,10 +474,10 @@ class GitRepository
         submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
       unless statusesUnchanged
-        @emit 'statuses-changed' if includeDeprecations
+        @emit 'statuses-changed' if includeDeprecatedAPIs
         @emitter.emit 'did-change-statuses'
 
-if includeDeprecations
+if includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(GitRepository)
 

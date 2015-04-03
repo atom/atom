@@ -152,7 +152,7 @@ class TextEditorComponent
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
-      if grim.includeDeprecations
+      if grim.includeDeprecatedAPIs
         @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
         @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
         @hostElement.__spacePenView.trigger 'editor:display-updated'
@@ -781,7 +781,7 @@ class TextEditorComponent
     @hostElement.classList.toggle('mini', @editor.isMini())
     @rootElement.classList.toggle('mini', @editor.isMini())
 
-if grim.includeDeprecations
+if grim.includeDeprecatedAPIs
   # Deprecated
   TextEditorComponent::setInvisibles = (invisibles={}) ->
     grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"

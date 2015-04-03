@@ -99,7 +99,7 @@ class ContextMenuManager
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
   add: (itemsBySelector) ->
-    if Grim.includeDeprecations
+    if Grim.includeDeprecatedAPIs
       # Detect deprecated file path as first argument
       if itemsBySelector? and typeof itemsBySelector isnt 'object'
         Grim.deprecate """

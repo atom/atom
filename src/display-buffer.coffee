@@ -155,7 +155,7 @@ class DisplayBuffer extends Model
     if refreshMarkers
       @pauseMarkerChangeEvents()
       @refreshMarkerScreenPositions()
-    @emit 'changed', eventProperties if Grim.includeDeprecations
+    @emit 'changed', eventProperties if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', eventProperties
     @resumeMarkerChangeEvents()
 
@@ -309,7 +309,7 @@ class DisplayBuffer extends Model
 
   characterWidthsChanged: ->
     @computeScrollWidth()
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount if Grim.includeDeprecations
+    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
 
   clearScopedCharWidths: ->
@@ -427,7 +427,7 @@ class DisplayBuffer extends Model
       @softWrapped = softWrapped
       @updateWrappedScreenLines()
       softWrapped = @isSoftWrapped()
-      @emit 'soft-wrap-changed', softWrapped if Grim.includeDeprecations
+      @emit 'soft-wrap-changed', softWrapped if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-soft-wrapped', softWrapped
       softWrapped
     else
@@ -911,7 +911,7 @@ class DisplayBuffer extends Model
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
-    @emit 'decoration-added', decoration if Grim.includeDeprecations
+    @emit 'decoration-added', decoration if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-add-decoration', decoration
     decoration
 
@@ -923,7 +923,7 @@ class DisplayBuffer extends Model
     if index > -1
       decorations.splice(index, 1)
       delete @decorationsById[decoration.id]
-      @emit 'decoration-removed', decoration if Grim.includeDeprecations
+      @emit 'decoration-removed', decoration if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
 
@@ -1075,7 +1075,7 @@ class DisplayBuffer extends Model
 
   resumeMarkerChangeEvents: ->
     marker.resumeChangeEvents() for marker in @getMarkers()
-    @emit 'markers-updated' if Grim.includeDeprecations
+    @emit 'markers-updated' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-update-markers'
 
   refreshMarkerScreenPositions: ->
@@ -1217,7 +1217,7 @@ class DisplayBuffer extends Model
     if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
-      @emit 'marker-created', marker if Grim.includeDeprecations
+      @emit 'marker-created', marker if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-create-marker', marker
 
   createFoldForMarker: (marker) ->
@@ -1227,7 +1227,7 @@ class DisplayBuffer extends Model
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
 
-if Grim.includeDeprecations
+if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
 
   DisplayBuffer::on = (eventName) ->

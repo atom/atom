@@ -4,7 +4,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
-{includeDeprecations, deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 {Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
 Serializable = require 'serializable'
@@ -67,7 +67,7 @@ class Project extends Model
 
     @subscribeToBuffer(buffer) for buffer in @buffers
 
-    if Grim.includeDeprecations and path?
+    if Grim.includeDeprecatedAPIs and path?
       Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor")
       paths ?= _.compact([path])
 
@@ -178,7 +178,7 @@ class Project extends Model
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
-    @emit "path-changed" if includeDeprecations
+    @emit "path-changed" if includeDeprecatedAPIs
     @emitter.emit 'did-change-paths', projectPaths
 
   # Public: Add a path to the project's list of root paths
@@ -205,7 +205,7 @@ class Project extends Model
     @repositories.push(repo ? null)
 
     unless options?.emitEvent is false
-      @emit "path-changed" if includeDeprecations
+      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-paths', @getPaths()
 
   # Public: remove a path from the project's list of root paths.
@@ -227,7 +227,7 @@ class Project extends Model
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedDirectory.off()
       removedRepository?.destroy() unless removedRepository in @repositories
-      @emit "path-changed" if includeDeprecations
+      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
@@ -393,7 +393,7 @@ class Project extends Model
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
     @subscribeToBuffer(buffer)
-    @emit 'buffer-created', buffer if includeDeprecations
+    @emit 'buffer-created', buffer if includeDeprecatedAPIs
     @emitter.emit 'did-add-buffer', buffer
     buffer
 
@@ -433,7 +433,7 @@ class Project extends Model
         detail: error.message
         dismissable: true
 
-if includeDeprecations
+if includeDeprecatedAPIs
   Project.pathForRepositoryUrl = (repoUrl) ->
     deprecate '::pathForRepositoryUrl will be removed. Please remove from your code.'
     [repoName] = url.parse(repoUrl).path.split('/')[-1..]
