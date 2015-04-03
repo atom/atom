@@ -672,7 +672,7 @@ class Cursor extends Model
       if !range.start.isEqual(start)
         position = range.start
         stop()
-    @editor.screenPositionForBufferPosition(position)
+    position
 
   getBeginningOfPreviousParagraphBufferPosition: ->
     start = @getBufferPosition()
@@ -685,4 +685,4 @@ class Cursor extends Model
       if !range.start.isEqual(zero)
         position = range.start
         stop()
-    @editor.screenPositionForBufferPosition(position)
+    position
