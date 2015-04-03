@@ -109,10 +109,10 @@ class TextEditor extends Model
     @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
     @subscribe @$scrollTop, (scrollTop) =>
-      @emit 'scroll-top-changed', scrollTop
+      @emit 'scroll-top-changed', scrollTop if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-top', scrollTop
     @subscribe @$scrollLeft, (scrollLeft) =>
-      @emit 'scroll-left-changed', scrollLeft
+      @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
     atom.workspace?.editorAdded(this) if registerEditor
@@ -134,18 +134,19 @@ class TextEditor extends Model
     @subscribe @buffer.onDidChangePath =>
       unless atom.project.getPaths().length > 0
         atom.project.setPaths([path.dirname(@getPath())])
-      @emit "title-changed"
+      @emit "title-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-title', @getTitle()
-      @emit "path-changed"
+      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-path', @getPath()
     @subscribe @buffer.onDidChangeEncoding =>
       @emitter.emit 'did-change-encoding', @getEncoding()
     @subscribe @buffer.onDidDestroy => @destroy()
 
     # TODO: remove these when we remove the deprecations. They are old events.
-    @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
-    @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
-    @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
+    if includeDeprecatedAPIs
+      @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
+      @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
+      @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
 
     @preserveCursorPositionOnBufferReload()
 
@@ -1630,14 +1631,14 @@ class TextEditor extends Model
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
-    @emit 'cursor-added', cursor
+    @emit 'cursor-added', cursor if includeDeprecatedAPIs
     @emitter.emit 'did-add-cursor', cursor
     cursor
 
   # Remove the given cursor from this editor.
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
-    @emit 'cursor-removed', cursor
+    @emit 'cursor-removed', cursor if includeDeprecatedAPIs
     @emitter.emit 'did-remove-cursor', cursor
 
   moveCursors: (fn) ->
@@ -1645,7 +1646,7 @@ class TextEditor extends Model
     @mergeCursors()
 
   cursorMoved: (event) ->
-    @emit 'cursor-moved', event
+    @emit 'cursor-moved', event if includeDeprecatedAPIs
     @emitter.emit 'did-change-cursor-position', event
 
   # Merge cursors that have the same screen position
@@ -2092,14 +2093,14 @@ class TextEditor extends Model
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
-      @emit 'selection-added', selection
+      @emit 'selection-added', selection if includeDeprecatedAPIs
       @emitter.emit 'did-add-selection', selection
       selection
 
   # Remove the given selection.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
-    @emit 'selection-removed', selection
+    @emit 'selection-removed', selection if includeDeprecatedAPIs
     @emitter.emit 'did-remove-selection', selection
 
   # Reduce one or more selections to a single empty selection based on the most
@@ -2119,7 +2120,7 @@ class TextEditor extends Model
 
   # Called by the selection
   selectionRangeChanged: (event) ->
-    @emit 'selection-screen-range-changed', event
+    @emit 'selection-screen-range-changed', event if includeDeprecatedAPIs
     @emitter.emit 'did-change-selection-range', event
 
   ###
@@ -2723,7 +2724,7 @@ class TextEditor extends Model
     @updateInvisibles()
     @subscribeToScopedConfigSettings()
     @unfoldAll()
-    @emit 'grammar-changed'
+    @emit 'grammar-changed' if includeDeprecatedAPIs
     @emitter.emit 'did-change-grammar', @getGrammar()
 
   handleMarkerCreated: (marker) =>

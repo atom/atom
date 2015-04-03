@@ -317,7 +317,7 @@ class Pane extends Model
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
     @items.splice(index, 0, item)
-    @emit 'item-added', item, index
+    @emit 'item-added', item, index if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-add-item', {item, index}
     @setActiveItem(item) unless @getActiveItem()?
     item
@@ -352,7 +352,7 @@ class Pane extends Model
       else
         @activatePreviousItem()
     @items.splice(index, 1)
-    @emit 'item-removed', item, index, destroyed
+    @emit 'item-removed', item, index, destroyed if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-remove-item', {item, index, destroyed}
     @container?.didDestroyPaneItem({item, index, pane: this}) if destroyed
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
@@ -365,7 +365,7 @@ class Pane extends Model
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
-    @emit 'item-moved', item, newIndex
+    @emit 'item-moved', item, newIndex if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-move-item', {item, oldIndex, newIndex}
 
   # Public: Move the given item to the given index on another pane.
@@ -393,7 +393,7 @@ class Pane extends Model
   destroyItem: (item) ->
     index = @items.indexOf(item)
     if index isnt -1
-      @emit 'before-item-destroyed', item
+      @emit 'before-item-destroyed', item if Grim.includeDeprecatedAPIs
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
@@ -530,7 +530,7 @@ class Pane extends Model
     throw new Error("Pane has been destroyed") if @isDestroyed()
 
     @container?.setActivePane(this)
-    @emit 'activated'
+    @emit 'activated' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-activate'
 
   # Public: Close the pane and destroy all its items.
