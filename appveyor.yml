@@ -6,4 +6,4 @@ deploy: off
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - script/cibuild
+  - "script/build"
