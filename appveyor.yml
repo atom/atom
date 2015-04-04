@@ -1,0 +1,9 @@
+version: "{build}"
+os: Windows Server 2012 R2
+
+test: off
+deploy: off
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - script/cibuild
