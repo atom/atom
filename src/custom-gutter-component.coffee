@@ -3,11 +3,6 @@
 # This class represents a gutter other than the 'line-numbers' gutter.
 # The contents of this gutter may be specified by Decorations.
 
-# TODO (jssln) Remove these (testing-only).
-TEMP_MIN_WIDTH = 25
-TEMP_DECOR_WIDTH = '50px'
-TEMP_DECOR_BACKGROUND = 'white'
-
 module.exports =
 class CustomGutterComponent
 
@@ -18,8 +13,6 @@ class CustomGutterComponent
 
     @domNode = atom.views.getView(@gutter)
     @decorationsNode = @domNode.firstChild
-
-    @domNode.style['width'] = '' + TEMP_MIN_WIDTH + 'px'
 
   getDomNode: ->
     @domNode
@@ -73,8 +66,6 @@ class CustomGutterComponent
     newNode.style.top = decorationInfo.top + 'px'
     newNode.style.height = decorationInfo.height + 'px'
     newNode.style.position = 'absolute'
-    newNode.style['background-color'] = TEMP_DECOR_BACKGROUND
-    newNode.style.width = TEMP_DECOR_WIDTH
     if decorationInfo.class
       newNode.classList.add(decorationInfo.class)
     @setDecorationItem(decorationInfo.item, decorationInfo.height, decorationId, newNode)
