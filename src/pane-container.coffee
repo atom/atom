@@ -241,5 +241,3 @@ if Grim.includeDeprecatedAPIs
     @$activePane
       .switch((activePane) -> activePane?.$activeItem)
       .distinctUntilChanged()
-else
-  PaneContainer::activePane = null
