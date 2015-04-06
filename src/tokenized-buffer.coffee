@@ -1,8 +1,8 @@
 _ = require 'underscore-plus'
-{Model} = require 'theorist'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 Serializable = require 'serializable'
+Model = require './model'
 TokenizedLine = require './tokenized-line'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
@@ -12,11 +12,10 @@ module.exports =
 class TokenizedBuffer extends Model
   Serializable.includeInto(this)
 
-  @property 'tabLength'
-
   grammar: null
   currentGrammarScore: null
   buffer: null
+  tabLength: null
   tokenizedLines: null
   chunkSize: 50
   invalidRows: null
