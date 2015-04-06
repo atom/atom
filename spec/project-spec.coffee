@@ -502,7 +502,11 @@ describe "Project", ->
 
   describe ".eachBuffer(callback)", ->
     beforeEach ->
+      jasmine.snapshotDeprecations()
       atom.project.bufferForPathSync('a')
+
+    afterEach ->
+      jasmine.restoreDeprecationsSnapshot()
 
     it "invokes the callback for existing buffer", ->
       count = 0
