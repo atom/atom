@@ -9,6 +9,7 @@ Serializable = require 'serializable'
 Grim = require 'grim'
 fs = require 'fs-plus'
 StackTraceParser = require 'stacktrace-parser'
+Model = require './model'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -33,13 +34,13 @@ class Workspace extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @properties
-    paneContainer: null
-    fullScreen: false
-    destroyedItemURIs: -> []
-
   constructor: (params) ->
     super
+
+    unless Grim.includeDeprecatedAPIs
+      @paneContainer = params?.paneContainer
+      @fullScreen = params?.fullScreen ? false
+      @destroyedItemURIs = params?.destroyedItemURIs ? []
 
     @emitter = new Emitter
     @openers = []
@@ -892,6 +893,11 @@ class Workspace extends Model
     deferred.promise
 
 if includeDeprecatedAPIs
+  Workspace.properties
+    paneContainer: null
+    fullScreen: false
+    destroyedItemURIs: -> []
+
   Object.defineProperty Workspace::, 'activePaneItem',
     get: ->
       Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"
