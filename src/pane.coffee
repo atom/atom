@@ -15,22 +15,12 @@ class Pane extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @properties
-    container: undefined
-    activeItem: undefined
-    focused: false
-
-  # Public: Only one pane is considered *active* at a time. A pane is activated
-  # when it is focused, and when focus returns to the pane container after
-  # moving to another element such as a panel, it returns to the active pane.
-  @behavior 'active', ->
-    @$container
-      .switch((container) -> container?.$activePane)
-      .map((activePane) => activePane is this)
-      .distinctUntilChanged()
-
   constructor: (params) ->
     super
+
+    unless Grim.includeDeprecatedAPIs
+      @container = params?.container
+      @activeItem = params?.activeItem
 
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
@@ -313,7 +303,8 @@ class Pane extends Model
 
     if typeof item.onDidDestroy is 'function'
       @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, true)
-    else if typeof item.on is 'function'
+    else if Grim.includeDeprecations and typeof item.on is 'function'
+      deprecate 'If you would like your pane item to support removal when destroyed behavior, please implement a ::onDidDestroy() method. ::on methods for items are no longer supported. If not, ignore this message.'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
     @items.splice(index, 0, item)
@@ -340,7 +331,7 @@ class Pane extends Model
     index = @items.indexOf(item)
     return if index is -1
 
-    if typeof item.on is 'function'
+    if Grim.includeDeprecations and typeof item.on is 'function'
       @unsubscribe item
     @unsubscribeFromItem(item)
 
@@ -661,6 +652,17 @@ class Pane extends Model
       throw error
 
 if Grim.includeDeprecatedAPIs
+  Pane.properties
+    container: undefined
+    activeItem: undefined
+    focused: false
+
+  Pane.behavior 'active', ->
+    @$container
+      .switch((container) -> container?.$activePane)
+      .map((activePane) => activePane is this)
+      .distinctUntilChanged()
+
   Pane::on = (eventName) ->
     switch eventName
       when 'activated'
@@ -701,3 +703,7 @@ if Grim.includeDeprecatedAPIs
   Pane::activateItemForUri = (uri) ->
     Grim.deprecate("Use `::activateItemForURI` instead.")
     @activateItemForURI(uri)
+else
+  Pane::container = undefined
+  Pane::activeItem = undefined
+  Pane::focused = undefined

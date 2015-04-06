@@ -24,6 +24,9 @@ class PaneContainer extends Model
   constructor: (params) ->
     super
 
+    unless Grim.includeDeprecatedAPIs
+      @activePane = params?.activePane
+
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
@@ -238,6 +241,5 @@ if Grim.includeDeprecatedAPIs
     @$activePane
       .switch((activePane) -> activePane?.$activeItem)
       .distinctUntilChanged()
-
 else
   PaneContainer::activePane = null
