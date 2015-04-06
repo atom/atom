@@ -412,10 +412,11 @@ class Atom extends Model
   open: (options) ->
     ipc.send('open', options)
 
-  # Extended: Show the native dialog to prompt the user to select a folder.
+  # Extended: Prompt the user to select one or more folders.
   #
-  # * `callback` A {Function} to call once the user has selected a folder.
-  #   * `path` {String} the path to the folder the user selected.
+  # * `callback` A {Function} to call once the user has confirmed the selection.
+  #   * `paths` An {Array} of {String} paths that the user selected, or `null`
+  #     if the user dismissed the dialog.
   pickFolder: (callback) ->
     responseChannel = "atom-pick-folder-response"
     ipc.on responseChannel, (path) ->
@@ -772,6 +773,10 @@ class Atom extends Model
 
   setRepresentedFilename: (filename) ->
     ipc.send('call-window-method', 'setRepresentedFilename', filename)
+
+  addRootFolder: ->
+    @pickFolder (selectedPaths = []) =>
+      @project.addPath(selectedPath) for selectedPath in selectedPaths
 
   showSaveDialog: (callback) ->
     callback(showSaveDialogSync())
