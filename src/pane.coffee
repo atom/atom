@@ -303,8 +303,8 @@ class Pane extends Model
 
     if typeof item.onDidDestroy is 'function'
       @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, true)
-    else if Grim.includeDeprecations and typeof item.on is 'function'
-      deprecate 'If you would like your pane item to support removal when destroyed behavior, please implement a ::onDidDestroy() method. ::on methods for items are no longer supported. If not, ignore this message.'
+    else if Grim.includeDeprecatedAPIs and typeof item.on is 'function'
+      Grim.deprecate 'If you would like your pane item to support removal when destroyed behavior, please implement a ::onDidDestroy() method. ::on methods for items are no longer supported. If not, ignore this message.'
       @subscribe item, 'destroyed', => @removeItem(item, true)
 
     @items.splice(index, 0, item)
@@ -331,7 +331,7 @@ class Pane extends Model
     index = @items.indexOf(item)
     return if index is -1
 
-    if Grim.includeDeprecations and typeof item.on is 'function'
+    if Grim.includeDeprecatedAPIs and typeof item.on is 'function'
       @unsubscribe item
     @unsubscribeFromItem(item)
 
