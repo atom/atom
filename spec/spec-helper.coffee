@@ -72,7 +72,6 @@ if specDirectory
 isCoreSpec = specDirectory == fs.realpathSync(__dirname)
 
 beforeEach ->
-  Grim.clearDeprecations() if isCoreSpec
   $.fx.off = true
   documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
