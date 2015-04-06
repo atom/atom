@@ -49,7 +49,7 @@ class Pane extends Model
     params.activeItem = find params.items, (item) ->
       if typeof item.getURI is 'function'
         itemURI = item.getURI()
-      else if typeof item.getUri is 'function'
+      else if Grim.includeDeprecatedAPIs and typeof item.getUri is 'function'
         itemURI = item.getUri()
 
       itemURI is activeItemURI
