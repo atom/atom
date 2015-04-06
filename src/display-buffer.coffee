@@ -252,10 +252,10 @@ class DisplayBuffer extends Model
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
     scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
-    return if scrollTop is @scrollTop
-
-    @scrollTop = scrollTop
-    @emitter.emit 'did-change-scroll-top', @scrollTop
+    unless scrollTop is @scrollTop
+      @scrollTop = scrollTop
+      @emitter.emit 'did-change-scroll-top', @scrollTop
+    @scrollTop
 
   getMaxScrollTop: ->
     @getScrollHeight() - @getClientHeight()
@@ -268,10 +268,10 @@ class DisplayBuffer extends Model
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
     scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
-    return if scrollLeft is @scrollLeft
-
-    @scrollLeft = scrollLeft
-    @emitter.emit 'did-change-scroll-left', @scrollLeft
+    unless scrollLeft is @scrollLeft
+      @scrollLeft = scrollLeft
+      @emitter.emit 'did-change-scroll-left', @scrollLeft
+    @scrollLeft
 
   getMaxScrollLeft: ->
     @getScrollWidth() - @getClientWidth()
