@@ -33,12 +33,13 @@ class Project extends Model
     @emitter = new Emitter
     @buffers ?= []
     @rootDirectories = []
+    @pathsToIncludeInSerializationKey = new Set()
     @repositories = []
 
     @directoryProviders = [new DefaultDirectoryProvider()]
     atom.packages.serviceHub.consume(
       'atom.directory-provider',
-      '^0.1.0',
+      '^0.2.0',
       # New providers are added to the front of @directoryProviders because
       # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
       (provider) => @directoryProviders.unshift(provider))
@@ -85,8 +86,15 @@ class Project extends Model
   Section: Serialization
   ###
 
+  # Returns:
+  # * {Array} of {String} paths to include as part of serialization. Often, this
+  # will be identical to the result of `@getPaths()` unless a {Directory} has
+  # explicitly opted out of serialization.
+  getPathsForSerialization: ->
+    @getPaths().filter (path) => @pathsToIncludeInSerializationKey.has(path)
+
   serializeParams: ->
-    paths: @getPaths()
+    paths: @getPathsForSerialization()
     buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
 
   deserializeParams: (params) ->
@@ -198,6 +206,8 @@ class Project extends Model
       # return a Directory.
       throw new Error(projectPath + ' could not be resolved to a directory')
     @rootDirectories.push(directory)
+    unless provider.excludeFromSerialization?(directory)
+      @pathsToIncludeInSerializationKey.add(projectPath)
 
     repo = null
     for provider in @repositoryProviders
@@ -225,6 +235,7 @@ class Project extends Model
     if indexToRemove?
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
+      @pathsToIncludeInSerializationKey.delete(projectPath)
       removedDirectory.off()
       removedRepository?.destroy() unless removedRepository in @repositories
       @emit "path-changed" if includeDeprecatedAPIs

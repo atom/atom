@@ -784,7 +784,7 @@ class Atom extends Model
 
   saveSync: ->
     stateString = JSON.stringify(@state)
-    if statePath = @constructor.getStatePath(@project?.getPaths(), @mode)
+    if statePath = @constructor.getStatePath(@project?.getPathsForSerialization(), @mode)
       fs.writeFileSync(statePath, stateString, 'utf8')
     else
       @getCurrentWindow().loadSettings.windowState = stateString

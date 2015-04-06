@@ -33,7 +33,7 @@ describe "Project", ->
             null
         directoryForURI: (uri) -> throw new Error("This should not be called.")
       atom.packages.serviceHub.provide(
-        "atom.directory-provider", "0.1.0", directoryProvider)
+        "atom.directory-provider", "0.2.0", directoryProvider)
 
       tmp = temp.mkdirSync()
       atom.project.setPaths([tmp, remotePath])
@@ -70,7 +70,7 @@ describe "Project", ->
         directoryForURISync: (uri) -> null
         directoryForURI: (uri) -> throw new Error("This should not be called.")
       atom.packages.serviceHub.provide(
-        "atom.directory-provider", "0.1.0", directoryProvider)
+        "atom.directory-provider", "0.2.0", directoryProvider)
 
       tmp = temp.mkdirSync()
       atom.project.setPaths([tmp])
@@ -177,6 +177,39 @@ describe "Project", ->
         fs.chmodSync(pathToOpen, '000')
         deserializedProject = atom.project.testSerialization()
         expect(deserializedProject.getBuffers().length).toBe 0
+
+    it "does not serialize paths marked with excludeFromSerialization", ->
+      tmp1 = temp.mkdirSync()
+      tmp2 = temp.mkdirSync()
+      directoryProvider =
+        directoryForURISync: (uri) ->
+          if uri is tmp1
+            new Directory(tmp1)
+          else
+            null
+        directoryForURI: (uri) -> throw new Error("This should not be called.")
+        excludeFromSerialization: (directory) ->
+          if directory.getPath() is tmp1
+            true
+          else
+            throw new Error("Unexpected call with: " + directory.getPath())
+      atom.packages.serviceHub.provide(
+        "atom.directory-provider", "0.2.0", directoryProvider)
+
+      atom.project.setPaths([tmp1, tmp2])
+      expect(atom.project.getPaths()).toEqual [tmp1, tmp2]
+      expect(atom.project.getPathsForSerialization()).toEqual [tmp2]
+      expect(atom.project.serializeParams().paths).toEqual [tmp2]
+
+      atom.project.removePath(tmp1)
+      expect(atom.project.getPaths()).toEqual [tmp2]
+      expect(atom.project.getPathsForSerialization()).toEqual [tmp2]
+      expect(atom.project.serializeParams().paths).toEqual [tmp2]
+
+      atom.project.removePath(tmp2)
+      expect(atom.project.getPaths()).toEqual []
+      expect(atom.project.getPathsForSerialization()).toEqual []
+      expect(atom.project.serializeParams().paths).toEqual []
 
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
