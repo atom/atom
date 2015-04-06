@@ -2,7 +2,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
 {join} = path
-{Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
