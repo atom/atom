@@ -1,7 +1,8 @@
 {find, flatten} = require 'underscore-plus'
-{Model} = require 'theorist'
+Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
+Model = require './model'
 Pane = require './pane'
 PaneElement = require './pane-element'
 PaneContainerElement = require './pane-container-element'
@@ -18,15 +19,7 @@ class PaneContainer extends Model
 
   @version: 1
 
-  @properties
-    activePane: null
-
   root: null
-
-  @behavior 'activePaneItem', ->
-    @$activePane
-      .switch((activePane) -> activePane?.$activeItem)
-      .distinctUntilChanged()
 
   constructor: (params) ->
     super
@@ -236,3 +229,15 @@ class PaneContainer extends Model
 
   removedPaneItem: (item) ->
     @itemRegistry.removeItem(item)
+
+if Grim.includeDeprecatedAPIs
+  PaneContainer.properties
+    activePane: null
+
+  PaneContainer.behavior 'activePaneItem', ->
+    @$activePane
+      .switch((activePane) -> activePane?.$activeItem)
+      .distinctUntilChanged()
+
+else
+  PaneContainer::activePane = null
