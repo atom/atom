@@ -1,7 +1,7 @@
-{Model} = require 'theorist'
 {Emitter, CompositeDisposable} = require 'event-kit'
 {flatten} = require 'underscore-plus'
 Serializable = require 'serializable'
+Model = require './model'
 
 module.exports =
 class PaneAxis extends Model
