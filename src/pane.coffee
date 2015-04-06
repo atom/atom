@@ -41,9 +41,9 @@ class Pane extends Model
 
   # Called by the Serializable mixin during serialization.
   serializeParams: ->
-    if Grim.includeDeprecatedAPIs and typeof @activeItem?.getURI is 'function'
+    if typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
-    else if typeof @activeItem?.getUri is 'function'
+    else if Grim.includeDeprecatedAPIs and typeof @activeItem?.getUri is 'function'
       activeItemURI = @activeItem.getUri()
 
     id: @id
