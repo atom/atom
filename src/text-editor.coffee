@@ -78,6 +78,7 @@ class TextEditor extends Model
     super
 
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
     @cursors = []
     @selections = []
 
@@ -104,10 +105,11 @@ class TextEditor extends Model
 
     @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
-    @subscribe @displayBuffer.$scrollTop, (scrollTop) =>
+    @disposables.add @displayBuffer.onDidChangeScrollTop (scrollTop) =>
       @emit 'scroll-top-changed', scrollTop if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-top', scrollTop
-    @subscribe @displayBuffer.$scrollLeft, (scrollLeft) =>
+
+    @disposables.add @displayBuffer.onDidChangeScrollLeft (scrollLeft) =>
       @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
@@ -173,6 +175,7 @@ class TextEditor extends Model
 
   destroyed: ->
     @unsubscribe()
+    @disposables.dispose()
     @scopedConfigSubscriptions.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()

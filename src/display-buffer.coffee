@@ -1,11 +1,11 @@
 _ = require 'underscore-plus'
 Serializable = require 'serializable'
-{Model} = require 'theorist'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
+Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
@@ -19,19 +19,6 @@ class BufferToScreenConversionError extends Error
 module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
-
-  @properties
-    softWrapped: null
-    editorWidthInChars: null
-    lineHeightInPixels: null
-    defaultCharWidth: null
-    height: null
-    width: null
-    scrollTop: 0
-    scrollLeft: 0
-    scrollWidth: 0
-    verticalScrollbarWidth: 15
-    horizontalScrollbarHeight: 15
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
@@ -134,6 +121,20 @@ class DisplayBuffer extends Model
 
   onDidChangeCharacterWidths: (callback) ->
     @emitter.on 'did-change-character-widths', callback
+
+  onDidChangeScrollTop: (callback) ->
+    @emitter.on 'did-change-scroll-top', callback
+
+  onDidChangeScrollLeft: (callback) ->
+    @emitter.on 'did-change-scroll-left', callback
+
+  observeScrollTop: (callback) ->
+    callback(@scrollTop)
+    @onDidChangeScrollTop(callback)
+
+  observeScrollLeft: (callback) ->
+    callback(@scrollLeft)
+    @onDidChangeScrollLeft(callback)
 
   observeDecorations: (callback) ->
     callback(decoration) for decoration in @getDecorations()
@@ -250,7 +251,11 @@ class DisplayBuffer extends Model
 
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
-    @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
+    scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
+    return if scrollTop is @scrollTop
+
+    @scrollTop = scrollTop
+    @emitter.emit 'did-change-scroll-top', @scrollTop
 
   getMaxScrollTop: ->
     @getScrollHeight() - @getClientHeight()
@@ -262,7 +267,11 @@ class DisplayBuffer extends Model
 
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
-    @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
+    scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
+    return if scrollLeft is @scrollLeft
+
+    @scrollLeft = scrollLeft
+    @emitter.emit 'did-change-scroll-left', @scrollLeft
 
   getMaxScrollLeft: ->
     @getScrollWidth() - @getClientWidth()
@@ -1228,6 +1237,19 @@ class DisplayBuffer extends Model
     @foldsByMarkerId[marker.id]
 
 if Grim.includeDeprecatedAPIs
+  DisplayBuffer.properties
+    softWrapped: null
+    editorWidthInChars: null
+    lineHeightInPixels: null
+    defaultCharWidth: null
+    height: null
+    width: null
+    scrollTop: 0
+    scrollLeft: 0
+    scrollWidth: 0
+    verticalScrollbarWidth: 15
+    horizontalScrollbarHeight: 15
+
   EmitterMixin = require('emissary').Emitter
 
   DisplayBuffer::on = (eventName) ->
@@ -1256,3 +1278,15 @@ if Grim.includeDeprecatedAPIs
         Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
 
     EmitterMixin::on.apply(this, arguments)
+else
+  DisplayBuffer::softWrapped = null
+  DisplayBuffer::editorWidthInChars = null
+  DisplayBuffer::lineHeightInPixels = null
+  DisplayBuffer::defaultCharWidth = null
+  DisplayBuffer::height = null
+  DisplayBuffer::width = null
+  DisplayBuffer::scrollTop = 0
+  DisplayBuffer::scrollLeft = 0
+  DisplayBuffer::scrollWidth = 0
+  DisplayBuffer::verticalScrollbarWidth = 15
+  DisplayBuffer::horizontalScrollbarHeight = 15
