@@ -728,7 +728,7 @@ describe "TextEditorComponent", ->
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
       expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
 
-      wrapperView.on 'cursor:moved', cursorMovedListener = jasmine.createSpy('cursorMovedListener')
+      editor.onDidChangeCursorPosition cursorMovedListener = jasmine.createSpy('cursorMovedListener')
       cursor3.setScreenPosition([4, 11], autoscroll: false)
       nextAnimationFrame()
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
