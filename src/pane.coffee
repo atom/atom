@@ -1,8 +1,8 @@
 {find, compact, extend, last} = require 'underscore-plus'
-{Model} = require 'theorist'
 {Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 Grim = require 'grim'
+Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
 
