@@ -74,10 +74,6 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
-    '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
-    toProperty: 'displayBuffer'
-
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @gutterVisible}) ->
     super
 
@@ -108,10 +104,10 @@ class TextEditor extends Model
 
     @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
-    @subscribe @$scrollTop, (scrollTop) =>
+    @subscribe @displayBuffer.$scrollTop, (scrollTop) =>
       @emit 'scroll-top-changed', scrollTop if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-top', scrollTop
-    @subscribe @$scrollLeft, (scrollLeft) =>
+    @subscribe @displayBuffer.$scrollLeft, (scrollLeft) =>
       @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
@@ -2837,6 +2833,10 @@ class TextEditor extends Model
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
 if includeDeprecatedAPIs
+  TextEditor.delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
+    '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
+    toProperty: 'displayBuffer'
+
   TextEditor::getViewClass = ->
     require './text-editor-view'
 
