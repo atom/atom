@@ -10,7 +10,7 @@ AtomHome = temp.mkdirSync('atom-home')
 fs.writeFileSync(path.join(AtomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config.cson')))
 runAtom = require("./helpers/start-atom")
 
-fdescribe "Starting Atom", ->
+describe "Starting Atom", ->
   [tempDirPath, otherTempDirPath] = []
 
   beforeEach ->
