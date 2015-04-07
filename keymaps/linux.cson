@@ -21,6 +21,7 @@
   'ctrl-N': 'application:new-window'
   'ctrl-W': 'window:close'
   'ctrl-o': 'application:open-file'
+  'ctrl-alt-o': 'application:add-project-folder'
   'ctrl-q': 'application:quit'
   'ctrl-T': 'pane:reopen-closed-item'
   'ctrl-n': 'application:new-file'

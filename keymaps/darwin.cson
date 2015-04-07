@@ -37,6 +37,7 @@
   'cmd-N': 'application:new-window'
   'cmd-W': 'window:close'
   'cmd-o': 'application:open'
+  'cmd-alt-o': 'application:add-project-folder'
   'cmd-T': 'pane:reopen-closed-item'
   'cmd-n': 'application:new-file'
   'cmd-s': 'core:save'
