@@ -146,7 +146,7 @@ class Decoration
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?
     for key, value of decorationPattern
-      return false if @properties[key] != value
+      return false if @properties[key] isnt value
     true
 
   onDidFlash: (callback) ->

@@ -949,14 +949,14 @@ class TextEditor extends Model
   # For each selection, if the selection is empty, converts the containing word
   # to upper case. Otherwise convert the selected text to upper case.
   upperCase: ->
-    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toUpperCase()
+    @replaceSelectedText selectWordIfEmpty: true, (text) -> text.toUpperCase()
 
   # Extended: Convert the selected text to lower case.
   #
   # For each selection, if the selection is empty, converts the containing word
   # to upper case. Otherwise convert the selected text to upper case.
   lowerCase: ->
-    @replaceSelectedText selectWordIfEmpty:true, (text) -> text.toLowerCase()
+    @replaceSelectedText selectWordIfEmpty: true, (text) -> text.toLowerCase()
 
   # Extended: Toggle line comments for rows intersecting selections.
   #
@@ -2464,7 +2464,7 @@ class TextEditor extends Model
       {cursor} = selection
       if indentBasis?
         containsNewlines = text.indexOf('\n') isnt -1
-        if containsNewlines or !cursor.hasPrecedingCharactersOnLine()
+        if containsNewlines or not cursor.hasPrecedingCharactersOnLine()
           options.indentBasis ?= indentBasis
 
       if fullLine and selection.isEmpty()

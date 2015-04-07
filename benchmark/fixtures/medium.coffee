@@ -209,13 +209,13 @@ template = (str) ->
     'var p=[],print=function(){p.push.apply(p,arguments);};' +
     'with(obj){p.push(\'' +
     str.replace(/[\r\t\n]/g, " ")
-       .replace(/'(?=[^<]*%>)/g,"\t")
-       .split("'").join("\\'")
-       .split("\t").join("'")
-       .replace(/<%=(.+?)%>/g, "',$1,'")
-       .split('<%').join("');")
-       .split('%>').join("p.push('") +
-       "');}return p.join('');"
+      .replace(/'(?=[^<]*%>)/g,"\t")
+      .split("'").join("\\'")
+      .split("\t").join("'")
+      .replace(/<%=(.+?)%>/g, "',$1,'")
+      .split('<%').join("');")
+      .split('%>').join("p.push('") +
+      "');}return p.join('');"
 
 # Create the template that we will use to generate the Docco HTML page.
 docco_template  = template fs.readFileSync(__dirname + '/../resources/docco.jst').toString()

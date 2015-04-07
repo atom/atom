@@ -85,7 +85,7 @@ class WindowEventHandler
 
     if process.platform in ['win32', 'linux']
       @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
-        atom.config.set('core.autoHideMenuBar', !atom.config.get('core.autoHideMenuBar'))
+        atom.config.set('core.autoHideMenuBar', not atom.config.get('core.autoHideMenuBar'))
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 

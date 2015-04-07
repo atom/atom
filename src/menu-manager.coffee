@@ -164,7 +164,7 @@ class MenuManager
     filtered = {}
     for key, bindings of keystrokesByCommand
       for binding in bindings
-        continue if binding.indexOf(' ') != -1
+        continue if binding.indexOf(' ') isnt -1
 
         filtered[key] ?= []
         filtered[key].push(binding)

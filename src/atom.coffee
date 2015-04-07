@@ -499,7 +499,7 @@ class Atom extends Model
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
-    @setFullScreen(!@isFullScreen())
+    @setFullScreen(not @isFullScreen())
 
   # Schedule the window to be shown and focused on the next tick.
   #

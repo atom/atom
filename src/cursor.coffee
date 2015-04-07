@@ -156,7 +156,7 @@ class Cursor extends Model
 
   # Public: Returns whether the cursor is at the start of a line.
   isAtBeginningOfLine: ->
-    @getBufferPosition().column == 0
+    @getBufferPosition().column is 0
 
   # Public: Returns whether the cursor is on the line return character.
   isAtEndOfLine: ->
@@ -210,7 +210,7 @@ class Cursor extends Model
   isInsideWord: (options) ->
     {row, column} = @getBufferPosition()
     range = [[row, column], [row, Infinity]]
-    @editor.getTextInBufferRange(range).search(options?.wordRegex ? @wordRegExp()) == 0
+    @editor.getTextInBufferRange(range).search(options?.wordRegex ? @wordRegExp()) is 0
 
   # Public: Returns the indentation level of the current line.
   getIndentLevel: ->
@@ -243,7 +243,7 @@ class Cursor extends Model
   #
   # Returns a {Boolean}.
   isLastCursor: ->
-    this == @editor.getLastCursor()
+    this is @editor.getLastCursor()
 
   ###
   Section: Moving the Cursor
@@ -258,9 +258,9 @@ class Cursor extends Model
   moveUp: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
-      { row, column } = range.start
+      {row, column} = range.start
     else
-      { row, column } = @getScreenPosition()
+      {row, column} = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row - rowCount, column: column}, skipSoftWrapIndentation: true)
@@ -275,9 +275,9 @@ class Cursor extends Model
   moveDown: (rowCount=1, {moveToEndOfSelection}={}) ->
     range = @marker.getScreenRange()
     if moveToEndOfSelection and not range.isEmpty()
-      { row, column } = range.end
+      {row, column} = range.end
     else
-      { row, column } = @getScreenPosition()
+      {row, column} = @getScreenPosition()
 
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row + rowCount, column: column}, skipSoftWrapIndentation: true)
@@ -315,7 +315,7 @@ class Cursor extends Model
     if moveToEndOfSelection and not range.isEmpty()
       @setScreenPosition(range.end)
     else
-      { row, column } = @getScreenPosition()
+      {row, column} = @getScreenPosition()
       maxLines = @editor.getScreenLineCount()
       rowLength = @editor.lineTextForScreenRow(row).length
       columnsRemainingInLine = rowLength - column
@@ -586,7 +586,7 @@ class Cursor extends Model
 
   # Public: Sets whether the cursor is visible.
   setVisible: (visible) ->
-    if @visible != visible
+    if @visible isnt visible
       @visible = visible
       @emit 'visibility-changed', @visible if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-visibility', @visible
@@ -664,7 +664,7 @@ class Cursor extends Model
     position = new Point(row, column - 1)
 
     @editor.scanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      if !range.start.isEqual(start)
+      unless range.start.isEqual(start)
         position = range.start
         stop()
     position
@@ -677,7 +677,7 @@ class Cursor extends Model
     position = new Point(0, 0)
     zero = new Point(0,0)
     @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      if !range.start.isEqual(zero)
+      unless range.start.isEqual(zero)
         position = range.start
         stop()
     position

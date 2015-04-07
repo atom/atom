@@ -110,7 +110,7 @@ class Selection extends Model
     range = @getBufferRange()
     start = range.start.row
     end = range.end.row
-    end = Math.max(start, end - 1) if range.end.column == 0
+    end = Math.max(start, end - 1) if range.end.column is 0
     [start, end]
 
   getTailScreenPosition: ->
@@ -386,7 +386,7 @@ class Selection extends Model
     if autoIndentFirstLine
       @editor.setIndentationForBufferRow(oldBufferRange.start.row, desiredIndentLevel)
 
-    if options.autoIndentNewline and text == '\n'
+    if options.autoIndentNewline and text is '\n'
       currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
       @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
       if @editor.indentationForBufferRow(newBufferRange.end.row) < currentIndentation
@@ -601,7 +601,7 @@ class Selection extends Model
   # of levels. Leaves the first line unchanged.
   adjustIndent: (lines, indentAdjustment) ->
     for line, i in lines
-      if indentAdjustment == 0 or line is ''
+      if indentAdjustment is 0 or line is ''
         continue
       else if indentAdjustment > 0
         lines[i] = @editor.buildIndentString(indentAdjustment) + line
@@ -620,8 +620,8 @@ class Selection extends Model
   # * `options` (optional) {Object} with the keys:
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
   #     level. Otherwise, {TextEditor::getTabText} is inserted.
-  indent: ({ autoIndent }={}) ->
-    { row, column } = @cursor.getBufferPosition()
+  indent: ({autoIndent}={}) ->
+    {row, column} = @cursor.getBufferPosition()
 
     if @isEmpty()
       @cursor.skipLeadingWhitespace()
@@ -640,7 +640,7 @@ class Selection extends Model
   indentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     for row in [start..end]
-      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
+      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) is 0
     return
 
   ###

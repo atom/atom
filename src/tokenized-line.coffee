@@ -52,9 +52,9 @@ class TokenizedLine
   #
   # Returns a {Number} representing the clipped column.
   clipScreenColumn: (column, options={}) ->
-    return 0 if @tokens.length == 0
+    return 0 if @tokens.length is 0
 
-    { clip } = options
+    {clip} = options
     column = Math.min(column, @getMaxScreenColumn())
 
     tokenStartColumn = 0
@@ -65,9 +65,9 @@ class TokenizedLine
     if @isColumnInsideSoftWrapIndentation(tokenStartColumn)
       @softWrapIndentationDelta
     else if token.isAtomic and tokenStartColumn < column
-      if clip == 'forward'
+      if clip is 'forward'
         tokenStartColumn + token.screenDelta
-      else if clip == 'backward'
+      else if clip is 'backward'
         tokenStartColumn
       else #'closest'
         if column > tokenStartColumn + (token.screenDelta / 2)
@@ -140,7 +140,7 @@ class TokenizedLine
     indentTokens
 
   softWrapAt: (column, hangingIndent) ->
-    return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
+    return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column is 0
 
     rightTokens = new Array(@tokens...)
     leftTokens = []
@@ -179,7 +179,7 @@ class TokenizedLine
     @lineEnding is null
 
   isColumnInsideSoftWrapIndentation: (column) ->
-    return false if @softWrapIndentationTokens.length == 0
+    return false if @softWrapIndentationTokens.length is 0
 
     column < @softWrapIndentationDelta
 
@@ -190,7 +190,7 @@ class TokenizedLine
     _.reduce @softWrapIndentationTokens, ((acc, token) -> acc + token.screenDelta), 0
 
   hasOnlySoftWrapIndentation: ->
-    @tokens.length == @softWrapIndentationTokens.length
+    @tokens.length is @softWrapIndentationTokens.length
 
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]

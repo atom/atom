@@ -1,4 +1,4 @@
-class quicksort
+class Quicksort
   sort: (items) ->
     return items if items.length <= 1
 
@@ -13,6 +13,7 @@ class quicksort
       if current < pivot
         left.push(current)
       else
+        # coffeelint: disable=no_trailing_semicolons
         right.push(current);
 
     sort(left).concat(pivot).concat(sort(right))
