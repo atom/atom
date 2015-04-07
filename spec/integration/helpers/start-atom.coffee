@@ -114,7 +114,7 @@ module.exports = (args, env, fn) ->
       chromedriver.stderr.on "close", ->
         resolve(errorCode)
 
-  waits(100)
+  waits(5000)
 
   waitsFor("webdriver to finish", (done) ->
     finish = once ->
@@ -137,4 +137,4 @@ module.exports = (args, env, fn) ->
       finish()
 
     fn(client.init()).then(finish)
-  , 30000)
+  , 60000)
