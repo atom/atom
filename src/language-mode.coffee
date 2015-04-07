@@ -1,14 +1,10 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
-{Emitter, Subscriber} = require 'emissary'
 ScopeDescriptor = require './scope-descriptor'
 
 module.exports =
 class LanguageMode
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
-
   # Sets up a `LanguageMode` for the given {TextEditor}.
   #
   # editor - The {TextEditor} to associate with
@@ -16,7 +12,6 @@ class LanguageMode
     {@buffer} = @editor
 
   destroy: ->
-    @unsubscribe()
 
   toggleLineCommentForBufferRow: (row) ->
     @toggleLineCommentsForBufferRows(row, row)
