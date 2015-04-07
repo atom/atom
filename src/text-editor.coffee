@@ -1026,6 +1026,7 @@ class TextEditor extends Model
 
   # Extended: Delete all lines intersecting selections.
   deleteLine: ->
+    @mergeSelectionsOnSameRows()
     @mutateSelectedText (selection) -> selection.deleteLine()
 
   ###
@@ -2048,6 +2049,19 @@ class TextEditor extends Model
   # the function with merging suppressed, then merges intersecting selections
   # afterward.
   mergeIntersectingSelections: (args...) ->
+    @mergeSelections args..., (previousSelection, currentSelection) ->
+      exclusive = not currentSelection.isEmpty() and not previousSelection.isEmpty()
+
+      previousSelection.intersectsWith(currentSelection, exclusive)
+
+  mergeSelectionsOnSameRows: (args...) ->
+    @mergeSelections args..., (previousSelection, currentSelection) ->
+      screenRange = currentSelection.getScreenRange()
+
+      previousSelection.intersectsScreenRowRange(screenRange.start.row, screenRange.end.row)
+
+  mergeSelections: (args...) ->
+    mergePredicate = args.pop()
     fn = args.pop() if _.isFunction(_.last(args))
     options = args.pop() ? {}
 
@@ -2060,10 +2074,7 @@ class TextEditor extends Model
 
     reducer = (disjointSelections, selection) ->
       adjacentSelection = _.last(disjointSelections)
-      exclusive = not selection.isEmpty() and not adjacentSelection.isEmpty()
-      intersects = adjacentSelection.intersectsWith(selection, exclusive)
-
-      if intersects
+      if mergePredicate(adjacentSelection, selection)
         adjacentSelection.merge(selection, options)
         disjointSelections
       else
