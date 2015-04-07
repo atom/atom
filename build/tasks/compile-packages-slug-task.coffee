@@ -6,6 +6,13 @@ _ = require 'underscore-plus'
 module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
 
+  getMenu = (appDir) ->
+    menusPath = path.join(appDir, 'menus')
+    menuPath = path.join(menusPath, process.platform)
+    menu = CSON.readFileSync(menuPath) if fs.isFileSync(menuPath)
+    rm menusPath
+    menu ? {}
+
   grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to the main package.json file', ->
     appDir = fs.realpathSync(grunt.config.get('atom.appDir'))
 
@@ -50,5 +57,6 @@ module.exports = (grunt) ->
 
     metadata = grunt.file.readJSON(path.join(appDir, 'package.json'))
     metadata._atomPackages = packages
+    metadata._menu = getMenu(appDir)
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
