@@ -3,7 +3,6 @@ path = require 'path'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
-EmitterMixin = require('emissary').Emitter
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
 LanguageMode = require './language-mode'
@@ -3015,6 +3014,7 @@ if includeDeprecatedAPIs
     deprecate("Use TextEditor::isSoftWrapped instead")
     @displayBuffer.isSoftWrapped()
 
+  EmitterMixin = require('emissary').Emitter
   TextEditor::on = (eventName) ->
     switch eventName
       when 'title-changed'
