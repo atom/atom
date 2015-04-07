@@ -2056,7 +2056,9 @@ class TextEditor extends Model
 
   mergeSelectionsOnSameRows: (args...) ->
     @mergeSelections args..., (previousSelection, currentSelection) ->
-      previousSelection.intersectsScreenRowRange(currentSelection.getBufferRowRange()...)
+      screenRange = currentSelection.getScreenRange()
+
+      previousSelection.intersectsScreenRowRange(screenRange.start.row, screenRange.end.row)
 
   mergeSelections: (args...) ->
     mergePredicate = args.pop()
