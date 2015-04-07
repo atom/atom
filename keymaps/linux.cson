@@ -10,7 +10,6 @@
   'ctrl-shift-i': 'window:toggle-dev-tools'
   'ctrl-alt-p': 'window:run-package-specs'
   'ctrl-alt-s': 'application:run-all-specs'
-  'ctrl-alt-shift-o': 'application:open-dev'
   'ctrl-shift-o': 'application:open-folder'
   'ctrl-alt-o': 'application:add-project-folder'
   'ctrl-shift-pageup': 'pane:move-item-left'
