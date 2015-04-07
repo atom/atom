@@ -1,9 +1,10 @@
-version: "{build}"
-os: Windows Server 2012 R2
+environment:
+  nodejs_version: "0.10"
 
-test: off
-deploy: off
+install:
+  - ps: Install-Product node $env:nodejs_version
 
-build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%
+test_script:
   - "script/cibuild"
+
+build: off
