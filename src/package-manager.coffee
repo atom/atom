@@ -276,9 +276,9 @@ class PackageManager
   getPackageDependencies: ->
     unless @packageDependencies?
       try
-        metadataPath = path.join(@resourcePath, 'package.json')
-        {@packageDependencies} = JSON.parse(fs.readFileSync(metadataPath)) ? {}
-      @packageDependencies ?= {}
+        @packageDependencies = require('../package.json')?.packageDependencies ? {}
+      catch error
+        @packageDependencies = {}
 
     @packageDependencies
 
