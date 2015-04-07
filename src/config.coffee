@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-EmitterMixin = require('emissary').Emitter
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 CSON = require 'season'
 path = require 'path'
@@ -290,7 +289,6 @@ ScopeDescriptor = require './scope-descriptor'
 #
 module.exports =
 class Config
-  EmitterMixin.includeInto(this)
   @schemaEnforcers = {}
 
   @addSchemaEnforcer: (typeName, enforcerFunction) ->
@@ -1147,6 +1145,9 @@ withoutEmptyObjects = (object) ->
   resultObject
 
 if Grim.includeDeprecatedAPIs
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(Config)
+
   Config::restoreDefault = (scopeSelector, keyPath) ->
     Grim.deprecate("Use ::unset instead.")
     @unset(scopeSelector, keyPath)
