@@ -6,6 +6,7 @@
       { label: '&New File', command: 'application:new-file' }
       { label: '&Open File...', command: 'application:open-file' }
       { label: 'Open Folder...', command: 'application:open-folder' }
+      { label: 'Add Project Folder...', command: 'application:add-project-folder' }
       { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Se&ttings', command: 'application:show-settings' }
