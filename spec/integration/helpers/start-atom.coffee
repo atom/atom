@@ -1,4 +1,5 @@
 path = require "path"
+http = require "http"
 temp = require("temp").track()
 remote = require "remote"
 async = require "async"
@@ -11,6 +12,16 @@ AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
 ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'atom-shell', 'chromedriver', 'chromedriver')
 SocketPath = path.join(temp.mkdirSync("socket-dir"), "atom-#{process.env.USER}.sock")
 ChromedriverPort = 9515
+ChromedriverURLBase = "/wd/hub"
+ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
+
+pollChromeDriver = (done) ->
+  http.get(ChromedriverStatusURL, (response) ->
+    if response.statusCode is 200
+      done()
+    else
+      pollChromeDriver(done)
+  )
 
 buildAtomClient = (args, env) ->
   client = webdriverio.remote(
@@ -101,7 +112,7 @@ module.exports = (args, env, fn) ->
     chromedriver = spawn(ChromedriverPath, [
       "--verbose",
       "--port=#{ChromedriverPort}",
-      "--url-base=/wd/hub"
+      "--url-base=#{ChromedriverURLBase}"
     ])
 
     chromedriverLogs = []
@@ -114,7 +125,7 @@ module.exports = (args, env, fn) ->
       chromedriver.stderr.on "close", ->
         resolve(errorCode)
 
-  waits(5000)
+  waitsFor("webdriver to start", pollChromeDriver, 5000)
 
   waitsFor("webdriver to finish", (done) ->
     finish = once ->
