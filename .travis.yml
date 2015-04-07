@@ -1,14 +1,8 @@
 language: objective-c
 
-install: script/build
-
-script: ./apm/node_modules/.bin/apm test --path ./atom.sh
+script: script/cibuild
 
 notifications:
   email:
     on_success: never
     on_failure: change
-
-cache:
-  directories:
-    - node_modules
