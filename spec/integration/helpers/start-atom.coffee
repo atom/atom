@@ -16,12 +16,15 @@ ChromedriverURLBase = "/wd/hub"
 ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
 
 pollChromeDriver = (done) ->
-  http.get(ChromedriverStatusURL, (response) ->
-    if response.statusCode is 200
-      done()
-    else
-      pollChromeDriver(done)
-  )
+  checkStatus = ->
+    http.get(ChromedriverStatusURL, (response) ->
+      if response.statusCode is 200
+        done()
+      else
+        pollChromeDriver(done)
+    )
+
+  setTimeout(checkStatus, 100)
 
 buildAtomClient = (args, env) ->
   client = webdriverio.remote(
