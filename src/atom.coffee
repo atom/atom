@@ -774,7 +774,7 @@ class Atom extends Model
   setRepresentedFilename: (filename) ->
     ipc.send('call-window-method', 'setRepresentedFilename', filename)
 
-  addRootFolder: ->
+  addProjectFolder: ->
     @pickFolder (selectedPaths = []) =>
       @project.addPath(selectedPath) for selectedPath in selectedPaths
 

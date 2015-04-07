@@ -181,18 +181,18 @@ describe "the `atom` global", ->
         atom.openInitialEmptyEditorIfNecessary()
         expect(atom.workspace.open).not.toHaveBeenCalled()
 
-  describe "adding a root folder", ->
+  describe "adding a project folder", ->
     it "adds a second path to the project", ->
       initialPaths = atom.project.getPaths()
       tempDirectory = temp.mkdirSync("a-new-directory")
       spyOn(atom, "pickFolder").andCallFake (callback) ->
         callback([tempDirectory])
-      atom.addRootFolder()
+      atom.addProjectFolder()
       expect(atom.project.getPaths()).toEqual(initialPaths.concat([tempDirectory]))
 
     it "does nothing if the user dismisses the file picker", ->
       initialPaths = atom.project.getPaths()
       tempDirectory = temp.mkdirSync("a-new-directory")
       spyOn(atom, "pickFolder").andCallFake (callback) -> callback(null)
-      atom.addRootFolder()
+      atom.addProjectFolder()
       expect(atom.project.getPaths()).toEqual(initialPaths)
