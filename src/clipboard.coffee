@@ -1,5 +1,11 @@
-clipboard = require 'clipboard'
 crypto = require 'crypto'
+
+# Using clipboard in renderer process is not safe on Linux.
+clipboard =
+  if process.platform is 'linux'
+    require('remote').require 'clipboard'
+  else
+    require 'clipboard'
 
 # Extended: Represents the clipboard used for copying and pasting in Atom.
 #
