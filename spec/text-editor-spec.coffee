@@ -3373,7 +3373,6 @@ describe "TextEditor", ->
     it "deletes a line only once when multiple selections are on the same line", ->
       line1 = buffer.lineForRow(1)
       count = buffer.getLineCount()
-      editor.getLastCursor().moveToTop()
       editor.setSelectedBufferRanges([
         [[0, 1], [0, 2]],
         [[0, 4], [0, 5]]
