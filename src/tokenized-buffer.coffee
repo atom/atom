@@ -226,7 +226,7 @@ class TokenizedBuffer extends Model
     [start, end] = @updateFoldableStatus(start, end + delta)
     end -= delta
 
-    event = { start, end, delta, bufferChange: e }
+    event = {start, end, delta, bufferChange: e}
     @emit 'changed', event if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', event
 

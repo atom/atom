@@ -846,7 +846,7 @@ class Atom extends Model
 
   setAutoHideMenuBar: (autoHide) ->
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
-    ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)
+    ipc.send('call-window-method', 'setMenuBarVisibility', not autoHide)
 
 if includeDeprecatedAPIs
   # Deprecated: Callers should be converted to use atom.deserializers
