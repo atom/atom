@@ -1026,7 +1026,7 @@ class TextEditor extends Model
 
   # Extended: Delete all lines intersecting selections.
   deleteLine: ->
-    @mergeIntersectingSelectionsByRow()
+    @mergeSelectionsOnSameRows()
     @mutateSelectedText (selection) -> selection.deleteLine()
 
   ###
@@ -2054,9 +2054,9 @@ class TextEditor extends Model
 
       previousSelection.intersectsWith(currentSelection, exclusive)
 
-  mergeIntersectingSelectionsByRow: (args...) ->
+  mergeSelectionsOnSameRows: (args...) ->
     @mergeSelections args..., (previousSelection, currentSelection) ->
-      previousSelection.intersectsByRowWith(currentSelection)
+      previousSelection.intersectsScreenRowRange(currentSelection.getBufferRowRange()...)
 
   mergeSelections: (args...) ->
     mergePredicate = args.pop()
