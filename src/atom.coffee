@@ -729,7 +729,10 @@ class Atom extends Model
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
 
     workspaceElement = @views.getView(@workspace)
-    @__workspaceView = workspaceElement.__spacePenView
+
+    if includeDeprecatedAPIs
+      @__workspaceView = workspaceElement.__spacePenView
+
     @deserializeTimings.workspace = Date.now() - startTime
 
     @keymaps.defaultTarget = workspaceElement
