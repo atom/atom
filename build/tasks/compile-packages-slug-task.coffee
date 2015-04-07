@@ -13,6 +13,12 @@ module.exports = (grunt) ->
     rm menusPath
     menu ? {}
 
+  getKeymaps = (appDir) ->
+    keymapsPath = path.join(appDir, 'keymaps')
+    keymaps = fs.listSync(keymapsPath, ['.cson', '.json']).map (keymapPath) -> CSON.readFileSync(keymapPath)
+    rm keymapsPath
+    keymaps ? []
+
   grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to the main package.json file', ->
     appDir = fs.realpathSync(grunt.config.get('atom.appDir'))
 
@@ -58,5 +64,6 @@ module.exports = (grunt) ->
     metadata = grunt.file.readJSON(path.join(appDir, 'package.json'))
     metadata._atomPackages = packages
     metadata._menu = getMenu(appDir)
+    metadata._keymaps = getKeymaps(appDir)
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
