@@ -16,10 +16,10 @@ class WorkspaceElement extends HTMLElement
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
-    callAttachHooks(this)
+    callAttachHooks(this) if Grim.includeDeprecatedAPIs
     @focus()
 
   detachedCallback: ->
@@ -82,7 +82,7 @@ class WorkspaceElement extends HTMLElement
 
     @appendChild(@panelContainers.modal)
 
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model
@@ -136,6 +136,9 @@ atom.commands.add 'atom-workspace',
   'application:open-folder': -> ipc.send('command', 'application:open-folder')
   'application:open-dev': -> ipc.send('command', 'application:open-dev')
   'application:open-safe': -> ipc.send('command', 'application:open-safe')
+  'application:open-api-preview': -> ipc.send('command', 'application:open-api-preview')
+  'application:open-dev-api-preview': -> ipc.send('command', 'application:open-dev-api-preview')
+  'application:add-root-folder': -> atom.addRootFolder()
   'application:minimize': -> ipc.send('command', 'application:minimize')
   'application:zoom': -> ipc.send('command', 'application:zoom')
   'application:bring-all-windows-to-front': -> ipc.send('command', 'application:bring-all-windows-to-front')
@@ -153,9 +156,9 @@ atom.commands.add 'atom-workspace',
   'window:focus-pane-on-left': -> @focusPaneViewOnLeft()
   'window:focus-pane-on-right': -> @focusPaneViewOnRight()
   'window:save-all': -> @getModel().saveAll()
-  'window:toggle-invisibles': -> atom.config.toggle("editor.showInvisibles")
+  'window:toggle-invisibles': -> atom.config.set("editor.showInvisibles", !atom.config.get("editor.showInvisibles"))
   'window:log-deprecation-warnings': -> Grim.logDeprecations()
-  'window:toggle-auto-indent': -> atom.config.toggle("editor.autoIndent")
+  'window:toggle-auto-indent': -> atom.config.set("editor.autoIndent", !atom.config.get("editor.autoIndent"))
   'pane:reopen-closed-item': -> @getModel().reopenItem()
   'core:close': -> @getModel().destroyActivePaneItemOrEmptyPane()
   'core:save': -> @getModel().saveActivePaneItem()

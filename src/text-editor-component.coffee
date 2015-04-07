@@ -152,9 +152,10 @@ class TextEditorComponent
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
-      @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
-      @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
-      @hostElement.__spacePenView.trigger 'editor:display-updated'
+      if grim.includeDeprecatedAPIs
+        @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
+        @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
+        @hostElement.__spacePenView.trigger 'editor:display-updated'
 
   readAfterUpdateSync: =>
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
@@ -747,15 +748,6 @@ class TextEditorComponent
   setShowIndentGuide: (showIndentGuide) ->
     atom.config.set("editor.showIndentGuide", showIndentGuide)
 
-  # Deprecated
-  setInvisibles: (invisibles={}) ->
-    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
-    atom.config.set('editor.invisibles', invisibles)
-
-  # Deprecated
-  setShowInvisibles: (showInvisibles) ->
-    atom.config.set('editor.showInvisibles', showInvisibles)
-
   setScrollSensitivity: (scrollSensitivity) =>
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
@@ -788,3 +780,12 @@ class TextEditorComponent
   updateParentViewMiniClass: ->
     @hostElement.classList.toggle('mini', @editor.isMini())
     @rootElement.classList.toggle('mini', @editor.isMini())
+
+if grim.includeDeprecatedAPIs
+  TextEditorComponent::setInvisibles = (invisibles={}) ->
+    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
+    atom.config.set('editor.invisibles', invisibles)
+
+  TextEditorComponent::setShowInvisibles = (showInvisibles) ->
+    grim.deprecate "Use config.set('editor.showInvisibles', showInvisibles) instead"
+    atom.config.set('editor.showInvisibles', showInvisibles)

@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "donna": "1.0.7",
+    "donna": "1.0.10",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
     "github-releases": "~0.2.0",

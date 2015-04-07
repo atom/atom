@@ -1,4 +1,5 @@
 {CompositeDisposable} = require 'event-kit'
+Grim = require 'grim'
 {callAttachHooks} = require './space-pen-extensions'
 PaneContainerView = null
 _ = require 'underscore-plus'
@@ -8,12 +9,14 @@ class PaneContainerElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
     @classList.add 'panes'
-    PaneContainerView ?= require './pane-container-view'
-    @__spacePenView = new PaneContainerView(this)
+
+    if Grim.includeDeprecatedAPIs
+      PaneContainerView ?= require './pane-container-view'
+      @__spacePenView = new PaneContainerView(this)
 
   initialize: (@model) ->
     @subscriptions.add @model.observeRoot(@rootChanged.bind(this))
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   rootChanged: (root) ->

@@ -1,14 +1,14 @@
-{deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 _ = require 'underscore-plus'
 path = require 'path'
 {join} = path
-{Model} = require 'theorist'
 Q = require 'q'
 Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 fs = require 'fs-plus'
 StackTraceParser = require 'stacktrace-parser'
+Model = require './model'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -33,23 +33,13 @@ class Workspace extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  Object.defineProperty @::, 'activePaneItem',
-    get: ->
-      Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"
-      @getActivePaneItem()
-
-  Object.defineProperty @::, 'activePane',
-    get: ->
-      Grim.deprecate "Use ::getActivePane() instead of the ::activePane property"
-      @getActivePane()
-
-  @properties
-    paneContainer: null
-    fullScreen: false
-    destroyedItemURIs: -> []
-
   constructor: (params) ->
     super
+
+    unless Grim.includeDeprecatedAPIs
+      @paneContainer = params?.paneContainer
+      @fullScreen = params?.fullScreen ? false
+      @destroyedItemURIs = params?.destroyedItemURIs ? []
 
     @emitter = new Emitter
     @openers = []
@@ -122,7 +112,7 @@ class Workspace extends Model
     _.uniq(packageNames)
 
   editorAdded: (editor) ->
-    @emit 'editor-created', editor
+    @emit 'editor-created', editor if includeDeprecatedAPIs
 
   installShellCommands: ->
     require('./command-installer').installShellCommandsInteractively()
@@ -342,32 +332,6 @@ class Workspace extends Model
     @onDidAddPaneItem ({item, pane, index}) ->
       callback({textEditor: item, pane, index}) if item instanceof TextEditor
 
-  eachEditor: (callback) ->
-    deprecate("Use Workspace::observeTextEditors instead")
-
-    callback(editor) for editor in @getEditors()
-    @subscribe this, 'editor-created', (editor) -> callback(editor)
-
-  getEditors: ->
-    deprecate("Use Workspace::getTextEditors instead")
-
-    editors = []
-    for pane in @paneContainer.getPanes()
-      editors.push(item) for item in pane.getItems() when item instanceof TextEditor
-
-    editors
-
-  on: (eventName) ->
-    switch eventName
-      when 'editor-created'
-        deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
-      when 'uri-opened'
-        deprecate("Use Workspace::onDidOpen or Workspace::onDidAddPaneItem instead. https://atom.io/docs/api/latest/Workspace#instance-onDidOpen")
-      else
-        deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
   ###
   Section: Opening
   ###
@@ -425,7 +389,7 @@ class Workspace extends Model
   #     the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
     # TODO: Remove deprecated changeFocus option
-    if options.changeFocus?
+    if includeDeprecatedAPIs and options.changeFocus?
       deprecate("The `changeFocus` option has been renamed to `activatePane`")
       options.activatePane = options.changeFocus
       delete options.changeFocus
@@ -446,7 +410,7 @@ class Workspace extends Model
 
   openURIInPane: (uri, pane, options={}) ->
     # TODO: Remove deprecated changeFocus option
-    if options.changeFocus?
+    if includeDeprecatedAPIs and options.changeFocus?
       deprecate("The `changeFocus` option has been renamed to `activatePane`")
       options.activatePane = options.changeFocus
       delete options.changeFocus
@@ -482,7 +446,7 @@ class Workspace extends Model
         if options.initialLine? or options.initialColumn?
           item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
         index = pane.getActiveItemIndex()
-        @emit "uri-opened"
+        @emit "uri-opened" if includeDeprecatedAPIs
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
 
@@ -495,12 +459,6 @@ class Workspace extends Model
       @open(uri)
     else
       Q()
-
-  # Deprecated
-  reopenItemSync: ->
-    deprecate("Use Workspace::reopenItem instead")
-    if uri = @destroyedItemURIs.pop()
-      @openSync(uri)
 
   # Public: Register an opener for a uri.
   #
@@ -519,24 +477,20 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # opener.
   addOpener: (opener) ->
-    packageName = @getCallingPackageName()
+    if includeDeprecatedAPIs
+      packageName = @getCallingPackageName()
 
-    wrappedOpener = (uri, options) ->
-      item = opener(uri, options)
-      if item? and typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
-        Grim.deprecate("Pane item with class `#{item.constructor.name}` should implement `::getURI` instead of `::getUri`.", {packageName})
-      item
+      wrappedOpener = (uri, options) ->
+        item = opener(uri, options)
+        if item? and typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
+          Grim.deprecate("Pane item with class `#{item.constructor.name}` should implement `::getURI` instead of `::getUri`.", {packageName})
+        item
 
-    @openers.push(wrappedOpener)
-    new Disposable => _.remove(@openers, wrappedOpener)
-
-  registerOpener: (opener) ->
-    Grim.deprecate("Call Workspace::addOpener instead")
-    @addOpener(opener)
-
-  unregisterOpener: (opener) ->
-    Grim.deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
-    _.remove(@openers, opener)
+      @openers.push(wrappedOpener)
+      new Disposable => _.remove(@openers, wrappedOpener)
+    else
+      @openers.push(opener)
+      new Disposable => _.remove(@openers, opener)
 
   getOpeners: ->
     @openers
@@ -598,11 +552,6 @@ class Workspace extends Model
   getActiveTextEditor: ->
     activeItem = @getActivePaneItem()
     activeItem if activeItem instanceof TextEditor
-
-  # Deprecated
-  getActiveEditor: ->
-    Grim.deprecate "Call ::getActiveTextEditor instead"
-    @getActivePane()?.getActiveEditor()
 
   # Save all pane items.
   saveAll: ->
@@ -666,10 +615,6 @@ class Workspace extends Model
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
   paneForURI: (uri) ->
     @paneContainer.paneForURI(uri)
-
-  paneForUri: (uri) ->
-    deprecate("Use ::paneForURI instead.")
-    @paneForURI(uri)
 
   # Extended: Get the {Pane} containing the given item.
   #
@@ -945,3 +890,66 @@ class Workspace extends Model
     checkFinished()
 
     deferred.promise
+
+if includeDeprecatedAPIs
+  Workspace.properties
+    paneContainer: null
+    fullScreen: false
+    destroyedItemURIs: -> []
+
+  Object.defineProperty Workspace::, 'activePaneItem',
+    get: ->
+      Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"
+      @getActivePaneItem()
+
+  Object.defineProperty Workspace::, 'activePane',
+    get: ->
+      Grim.deprecate "Use ::getActivePane() instead of the ::activePane property"
+      @getActivePane()
+
+  Workspace::eachEditor = (callback) ->
+    deprecate("Use Workspace::observeTextEditors instead")
+
+    callback(editor) for editor in @getEditors()
+    @subscribe this, 'editor-created', (editor) -> callback(editor)
+
+  Workspace::getEditors = ->
+    deprecate("Use Workspace::getTextEditors instead")
+
+    editors = []
+    for pane in @paneContainer.getPanes()
+      editors.push(item) for item in pane.getItems() when item instanceof TextEditor
+
+    editors
+
+  Workspace::on = (eventName) ->
+    switch eventName
+      when 'editor-created'
+        deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
+      when 'uri-opened'
+        deprecate("Use Workspace::onDidOpen or Workspace::onDidAddPaneItem instead. https://atom.io/docs/api/latest/Workspace#instance-onDidOpen")
+      else
+        deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
+
+    super
+
+  Workspace::reopenItemSync = ->
+    deprecate("Use Workspace::reopenItem instead")
+    if uri = @destroyedItemURIs.pop()
+      @openSync(uri)
+
+  Workspace::registerOpener = (opener) ->
+    Grim.deprecate("Call Workspace::addOpener instead")
+    @addOpener(opener)
+
+  Workspace::unregisterOpener = (opener) ->
+    Grim.deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
+    _.remove(@openers, opener)
+
+  Workspace::getActiveEditor = ->
+    Grim.deprecate "Call ::getActiveTextEditor instead"
+    @getActivePane()?.getActiveEditor()
+
+  Workspace::paneForUri = (uri) ->
+    deprecate("Use ::paneForURI instead.")
+    @paneForURI(uri)

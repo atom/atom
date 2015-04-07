@@ -1,6 +1,7 @@
 {CompositeDisposable} = require 'event-kit'
+Grim = require 'grim'
 {$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
-PaneView = require './pane-view'
+PaneView = null
 
 class PaneElement extends HTMLElement
   attached: false
@@ -12,7 +13,7 @@ class PaneElement extends HTMLElement
 
     @initializeContent()
     @subscribeToDOMEvents()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
     @attached = true
@@ -41,6 +42,7 @@ class PaneElement extends HTMLElement
     @addEventListener 'blur', handleBlur, true
 
   createSpacePenShim: ->
+    PaneView ?= require './pane-view'
     @__spacePenView = new PaneView(this)
 
   initialize: (@model) ->
@@ -49,7 +51,7 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model

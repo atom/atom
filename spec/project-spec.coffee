@@ -221,7 +221,7 @@ describe "Project", ->
     beforeEach ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newBufferHandler = jasmine.createSpy('newBufferHandler')
-      atom.project.on 'buffer-created', newBufferHandler
+      atom.project.onDidAddBuffer(newBufferHandler)
 
     describe "when given an absolute path that isn't currently open", ->
       it "returns a new edit session for the given path and emits 'buffer-created'", ->
@@ -502,7 +502,11 @@ describe "Project", ->
 
   describe ".eachBuffer(callback)", ->
     beforeEach ->
+      jasmine.snapshotDeprecations()
       atom.project.bufferForPathSync('a')
+
+    afterEach ->
+      jasmine.restoreDeprecationsSnapshot()
 
     it "invokes the callback for existing buffer", ->
       count = 0
