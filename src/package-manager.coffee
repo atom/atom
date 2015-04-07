@@ -276,9 +276,8 @@ class PackageManager
   getPackageDependencies: ->
     unless @packageDependencies?
       try
-        @packageDependencies = require('../package.json')?.packageDependencies ? {}
-      catch error
-        @packageDependencies = {}
+        @packageDependencies = require('../package.json')?.packageDependencies
+      @packageDependencies ?= {}
 
     @packageDependencies
 
