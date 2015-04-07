@@ -8,6 +8,11 @@ fs = require 'fs-plus'
 
 MenuHelpers = require './menu-helpers'
 
+try
+  platformMenu = require('../package.json')?._atomMenu
+catch error
+  platformMenu = null
+
 # Extended: Provides a registry for menu items that you'd like to appear in the
 # application menu.
 #
@@ -144,10 +149,13 @@ class MenuManager
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
   loadPlatformItems: ->
-    menusDirPath = path.join(@resourcePath, 'menus')
-    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
-    {menu} = CSON.readFileSync(platformMenuPath)
-    @add(menu)
+    if platformMenuPath
+      @add(menu)
+    else
+      menusDirPath = path.join(@resourcePath, 'menus')
+      platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+      {menu} = CSON.readFileSync(platformMenuPath)
+      @add(menu)
 
   # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
