@@ -63,7 +63,7 @@ module.exports = (grunt) ->
 
     metadata = grunt.file.readJSON(path.join(appDir, 'package.json'))
     metadata._atomPackages = packages
-    metadata._menu = getMenu(appDir)
-    metadata._keymaps = getKeymaps(appDir)
+    metadata._atomMenu = getMenu(appDir)
+    metadata._atomKeymaps = getKeymaps(appDir)
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
