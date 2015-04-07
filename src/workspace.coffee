@@ -7,7 +7,6 @@ Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 fs = require 'fs-plus'
-StackTraceParser = require 'stacktrace-parser'
 Model = require './model'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
@@ -495,34 +494,6 @@ class Workspace extends Model
   getOpeners: ->
     @openers
 
-  getCallingPackageName: ->
-    error = new Error
-    Error.captureStackTrace(error)
-    stack = StackTraceParser.parse(error.stack)
-
-    packagePaths = @getPackagePathsByPackageName()
-
-    for i in [0...stack.length]
-      stackFramePath = stack[i].file
-
-      # Empty when it was run from the dev console
-      return unless stackFramePath
-
-      for packageName, packagePath of packagePaths
-        continue if stackFramePath is 'node.js'
-        relativePath = path.relative(packagePath, stackFramePath)
-        return packageName unless /^\.\./.test(relativePath)
-    return
-
-  getPackagePathsByPackageName: ->
-    packagePathsByPackageName = {}
-    for pack in atom.packages.getLoadedPackages()
-      packagePath = pack.path
-      if packagePath.indexOf('.atom/dev/packages') > -1 or packagePath.indexOf('.atom/packages') > -1
-        packagePath = fs.realpathSync(packagePath)
-      packagePathsByPackageName[pack.name] = packagePath
-    packagePathsByPackageName
-
   ###
   Section: Pane Items
   ###
@@ -906,6 +877,36 @@ if includeDeprecatedAPIs
     get: ->
       Grim.deprecate "Use ::getActivePane() instead of the ::activePane property"
       @getActivePane()
+
+  StackTraceParser = require 'stacktrace-parser'
+
+  Workspace::getCallingPackageName = ->
+    error = new Error
+    Error.captureStackTrace(error)
+    stack = StackTraceParser.parse(error.stack)
+
+    packagePaths = @getPackagePathsByPackageName()
+
+    for i in [0...stack.length]
+      stackFramePath = stack[i].file
+
+      # Empty when it was run from the dev console
+      return unless stackFramePath
+
+      for packageName, packagePath of packagePaths
+        continue if stackFramePath is 'node.js'
+        relativePath = path.relative(packagePath, stackFramePath)
+        return packageName unless /^\.\./.test(relativePath)
+    return
+
+  Workspace::getPackagePathsByPackageName = ->
+    packagePathsByPackageName = {}
+    for pack in atom.packages.getLoadedPackages()
+      packagePath = pack.path
+      if packagePath.indexOf('.atom/dev/packages') > -1 or packagePath.indexOf('.atom/packages') > -1
+        packagePath = fs.realpathSync(packagePath)
+      packagePathsByPackageName[pack.name] = packagePath
+    packagePathsByPackageName
 
   Workspace::eachEditor = (callback) ->
     deprecate("Use Workspace::observeTextEditors instead")
