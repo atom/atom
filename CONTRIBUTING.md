@@ -4,13 +4,14 @@
 
 The following is a set of guidelines for contributing to Atom and its packages,
 which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
-If you're unsure which package is causing your problem or if you're having an
-issue with Atom core, please open an issue on the [main atom repository](https://github.com/atom/atom/issues).
 These are just guidelines, not rules, use your best judgment and feel free to
 propose changes to this document in a pull request.
 
 ## Submitting Issues
 
+* You can create an issue [here](https://github.com/atom/atom/issues/new), but
+  before doing that please read the notes below on debugging and submitting issues,
+  and include as many details as possible with your report.
 * Check the [debugging guide](https://atom.io/docs/latest/hacking-atom-debugging) for tips
   on debugging. You might be able to find the cause of the problem and fix
   things yourself.
@@ -24,7 +25,8 @@ propose changes to this document in a pull request.
   will be logged. If you can reproduce the error, use this approach to get the
   full stack trace and include it in the issue.
 * On Mac, check Console.app for stack traces to include if reporting a crash.
-* Perform a cursory search to see if a similar issue has already been submitted.
+* Perform a [cursory search](https://github.com/issues?q=+is%3Aissue+user%3Aatom)
+  to see if a similar issue has already been submitted.
 * Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
   to make yourself recognizable and so we can all get to know each other better.
 
@@ -37,6 +39,10 @@ many packages and themes that are stored in other repos under the
 [find-and-replace](https://github.com/atom/find-and-replace),
 [language-javascript](https://github.com/atom/language-javascript), and
 [atom-light-ui](https://github.com/atom/atom-light-ui).
+
+If your issue is related to a specific package, open an issue on that package's
+issue tracker. If you're unsure which package is causing your problem or if
+you're having an issue with Atom core, open an issue on this repository.
 
 For more information on how to work with Atom's official packages, see
 [Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md)
