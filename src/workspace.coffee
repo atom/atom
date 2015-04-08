@@ -399,7 +399,7 @@ class Workspace extends Model
     uri = atom.project.resolvePath(uri)
     item = @getActivePane().itemForURI(uri)
     if uri
-      item ?= opener(uri, options) for opener in @getOpeners() when !item
+      item ?= opener(uri, options) for opener in @getOpeners() when not item
     item ?= atom.project.openSync(uri, {initialLine, initialColumn})
 
     @getActivePane().activateItem(item)
@@ -418,7 +418,7 @@ class Workspace extends Model
 
     if uri?
       item = pane.itemForURI(uri)
-      item ?= opener(uri, options) for opener in @getOpeners() when !item
+      item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
       item ?= atom.project.open(uri, options)
@@ -836,8 +836,8 @@ class Workspace extends Model
     openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
     outOfProcessPaths = _.difference(filePaths, openPaths)
 
-    inProcessFinished = !openPaths.length
-    outOfProcessFinished = !outOfProcessPaths.length
+    inProcessFinished = not openPaths.length
+    outOfProcessFinished = not outOfProcessPaths.length
     checkFinished = ->
       deferred.resolve() if outOfProcessFinished and inProcessFinished
 

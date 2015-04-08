@@ -189,7 +189,7 @@ describe "Workspace", ->
             workspace.open('a', split: 'right').then (o) -> editor = o
 
           runs ->
-            pane2 = workspace.getPanes().filter((p) -> p != pane1)[0]
+            pane2 = workspace.getPanes().filter((p) -> p isnt pane1)[0]
             expect(workspace.getActivePane()).toBe pane2
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
@@ -218,7 +218,7 @@ describe "Workspace", ->
               workspace.open('a', split: 'right').then (o) -> editor = o
 
             runs ->
-              pane4 = workspace.getPanes().filter((p) -> p != pane1)[0]
+              pane4 = workspace.getPanes().filter((p) -> p isnt pane1)[0]
               expect(workspace.getActivePane()).toBe pane4
               expect(pane4.items).toEqual [editor]
               expect(workspace.paneContainer.root.children[0]).toBe pane1
@@ -226,19 +226,19 @@ describe "Workspace", ->
 
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
-        fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
-        barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
+        fooOpener = (pathToOpen, options) -> {foo: pathToOpen, options} if pathToOpen?.match(/\.foo/)
+        barOpener = (pathToOpen) -> {bar: pathToOpen} if pathToOpen?.match(/^bar:\/\//)
         workspace.addOpener(fooOpener)
         workspace.addOpener(barOpener)
 
         waitsForPromise ->
           pathToOpen = atom.project.getDirectories()[0]?.resolve('a.foo')
           workspace.open(pathToOpen, hey: "there").then (item) ->
-            expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
+            expect(item).toEqual {foo: pathToOpen, options: {hey: "there"}}
 
         waitsForPromise ->
           workspace.open("bar://baz").then (item) ->
-            expect(item).toEqual { bar: "bar://baz" }
+            expect(item).toEqual {bar: "bar://baz"}
 
     it "notifies ::onDidAddTextEditor observers", ->
       absolutePath = require.resolve('./fixtures/dir/a')
@@ -835,7 +835,7 @@ describe "Workspace", ->
 
         runs ->
           expect(results).toHaveLength 3
-          resultForA = _.find results, ({filePath}) -> path.basename(filePath) == 'a'
+          resultForA = _.find results, ({filePath}) -> path.basename(filePath) is 'a'
           expect(resultForA.matches).toHaveLength 1
           expect(resultForA.matches[0].matchText).toBe 'Elephant'
 

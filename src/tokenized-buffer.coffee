@@ -154,11 +154,11 @@ class TokenizedBuffer extends Model
       loop
         previousStack = @stackForRow(row)
         @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
-        if --rowsRemaining == 0
+        if --rowsRemaining is 0
           filledRegion = false
           endRow = row
           break
-        if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
+        if row is lastRow or _.isEqual(@stackForRow(row), previousStack)
           filledRegion = true
           endRow = row
           break
@@ -226,7 +226,7 @@ class TokenizedBuffer extends Model
     [start, end] = @updateFoldableStatus(start, end + delta)
     end -= delta
 
-    event = { start, end, delta, bufferChange: e }
+    event = {start, end, delta, bufferChange: e}
     @emit 'changed', event if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', event
 
@@ -280,7 +280,7 @@ class TokenizedBuffer extends Model
     ruleStack = startingStack
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow]
-      if (ruleStack or row == 0) and row < stopTokenizingAt
+      if (ruleStack or row is 0) and row < stopTokenizingAt
         screenLine = @buildTokenizedLineForRow(row, ruleStack)
         ruleStack = screenLine.ruleStack
       else
@@ -390,7 +390,7 @@ class TokenizedBuffer extends Model
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)
-    { start, end } = bufferRange
+    {start, end} = bufferRange
 
     keepLooping = true
     stop = -> keepLooping = false
@@ -399,13 +399,13 @@ class TokenizedBuffer extends Model
       bufferColumn = 0
       for token in @tokenizedLines[bufferRow].tokens
         startOfToken = new Point(bufferRow, bufferColumn)
-        iterator(token, startOfToken, { stop }) if bufferRange.containsPoint(startOfToken)
+        iterator(token, startOfToken, {stop}) if bufferRange.containsPoint(startOfToken)
         return unless keepLooping
         bufferColumn += token.bufferDelta
 
   backwardsIterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)
-    { start, end } = bufferRange
+    {start, end} = bufferRange
 
     keepLooping = true
     stop = -> keepLooping = false
@@ -415,20 +415,20 @@ class TokenizedBuffer extends Model
       for token in new Array(@tokenizedLines[bufferRow].tokens...).reverse()
         bufferColumn -= token.bufferDelta
         startOfToken = new Point(bufferRow, bufferColumn)
-        iterator(token, startOfToken, { stop }) if bufferRange.containsPoint(startOfToken)
+        iterator(token, startOfToken, {stop}) if bufferRange.containsPoint(startOfToken)
         return unless keepLooping
 
   findOpeningBracket: (startBufferPosition) ->
     range = [[0,0], startBufferPosition]
     position = null
     depth = 0
-    @backwardsIterateTokensInBufferRange range, (token, startPosition, { stop }) ->
+    @backwardsIterateTokensInBufferRange range, (token, startPosition, {stop}) ->
       if token.isBracket()
-        if token.value == '}'
+        if token.value is '}'
           depth++
-        else if token.value == '{'
+        else if token.value is '{'
           depth--
-          if depth == 0
+          if depth is 0
             position = startPosition
             stop()
     position
@@ -437,13 +437,13 @@ class TokenizedBuffer extends Model
     range = [startBufferPosition, @buffer.getEndPosition()]
     position = null
     depth = 0
-    @iterateTokensInBufferRange range, (token, startPosition, { stop }) ->
+    @iterateTokensInBufferRange range, (token, startPosition, {stop}) ->
       if token.isBracket()
-        if token.value == '{'
+        if token.value is '{'
           depth++
-        else if token.value == '}'
+        else if token.value is '}'
           depth--
-          if depth == 0
+          if depth is 0
             position = startPosition
             stop()
     position

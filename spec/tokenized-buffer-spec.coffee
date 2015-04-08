@@ -352,7 +352,7 @@ describe "TokenizedBuffer", ->
         tabAsSpaces = _.multiplyString(' ', tokenizedBuffer.getTabLength())
         screenLine0 = tokenizedBuffer.tokenizedLineForRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
-        { tokens } = screenLine0
+        {tokens} = screenLine0
 
         expect(tokens.length).toBe 4
         expect(tokens[0].value).toBe "#"
@@ -452,7 +452,7 @@ describe "TokenizedBuffer", ->
     it "renders each UTF-8 surrogate pair as its own atomic token", ->
       screenLine0 = tokenizedBuffer.tokenizedLineForRow(0)
       expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
-      { tokens } = screenLine0
+      {tokens} = screenLine0
 
       expect(tokens.length).toBe 5
       expect(tokens[0].value).toBe "'"
@@ -464,7 +464,7 @@ describe "TokenizedBuffer", ->
 
       screenLine1 = tokenizedBuffer.tokenizedLineForRow(1)
       expect(screenLine1.text).toBe "//\uD835\uDF97xyz"
-      { tokens } = screenLine1
+      {tokens} = screenLine1
 
       expect(tokens.length).toBe 4
       expect(tokens[0].value).toBe '//'

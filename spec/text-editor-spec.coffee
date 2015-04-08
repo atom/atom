@@ -547,7 +547,7 @@ describe "TextEditor", ->
             lastLine = buffer.lineForRow(lastLineIndex)
             expect(lastLine.length).toBeGreaterThan(0)
 
-            lastPosition = { row: lastLineIndex, column: lastLine.length }
+            lastPosition = {row: lastLineIndex, column: lastLine.length}
             editor.setCursorScreenPosition(lastPosition)
             editor.moveRight()
 

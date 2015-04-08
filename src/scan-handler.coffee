@@ -34,7 +34,7 @@ module.exports = (rootPaths, regexSource, options) ->
 
       scanner.on 'path-found', ->
         pathsSearched++
-        if pathsSearched % PATHS_COUNTER_SEARCHED_CHUNK == 0
+        if pathsSearched % PATHS_COUNTER_SEARCHED_CHUNK is 0
           emit('scan:paths-searched', pathsSearched)
 
       search regex, scanner, searcher, ->
