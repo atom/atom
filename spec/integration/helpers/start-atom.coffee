@@ -18,6 +18,8 @@ ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBa
 pollChromeDriver = (done) ->
   checkStatus = ->
     http.get(ChromedriverStatusURL, (response) ->
+      console.log response.statusCode
+
       if response.statusCode is 200
         done()
       else
