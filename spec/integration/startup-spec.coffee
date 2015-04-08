@@ -19,7 +19,7 @@ describe "Starting Atom", ->
     tempDirPath = temp.mkdirSync("empty-dir")
     otherTempDirPath = temp.mkdirSync("another-temp-dir")
 
-  fdescribe "opening a new file", ->
+  describe "opening a new file", ->
     it "opens the parent directory and creates an empty text editor", ->
       runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: AtomHome}, (client) ->
         client
