@@ -80,8 +80,8 @@ function bootstrap() {
 
   // apm ships with 32-bit node so make sure its native modules are compiled
   // for a 32-bit target architecture
-  if (process.env.JANKY_SHA1 && process.platform === 'win32')
-    apmInstallCommand += ' --arch=ia32';
+  // if (process.env.JANKY_SHA1 && process.platform === 'win32')
+  //   apmInstallCommand += ' --arch=ia32';
 
   var commands = [
     {
