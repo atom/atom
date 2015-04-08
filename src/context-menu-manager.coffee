@@ -8,11 +8,7 @@ Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
 {validateSelector} = require './selector-validator'
 
-try
-  platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
-catch error
-  platformContextMenu = null
-
+platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 SpecificityCache = {}
 
 # Extended: Provides a registry for commands that you'd like to appear in the

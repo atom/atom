@@ -5,10 +5,7 @@ CSON = require 'season'
 {jQuery} = require 'space-pen'
 Grim = require 'grim'
 
-try
-  bundledKeymaps = require('../package.json')?._atomKeymaps
-catch error
-  bundledKeymaps = null
+bundledKeymaps = require('../package.json')?._atomKeymaps
 
 KeymapManager::onDidLoadBundledKeymaps = (callback) ->
   @emitter.on 'did-load-bundled-keymaps', callback

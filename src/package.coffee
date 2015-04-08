@@ -11,10 +11,7 @@ Q = require 'q'
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
-try
-  packagesCache = require('../package.json')?._atomPackages ? {}
-catch error
-  packagesCache = {}
+packagesCache = require('../package.json')?._atomPackages ? {}
 
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.

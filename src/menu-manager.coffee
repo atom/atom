@@ -8,10 +8,7 @@ fs = require 'fs-plus'
 
 MenuHelpers = require './menu-helpers'
 
-try
-  platformMenu = require('../package.json')?._atomMenu?.menu
-catch error
-  platformMenu = null
+platformMenu = require('../package.json')?._atomMenu?.menu
 
 # Extended: Provides a registry for menu items that you'd like to appear in the
 # application menu.
