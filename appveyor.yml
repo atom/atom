@@ -1,5 +1,6 @@
 environment:
   nodejs_version: "0.10"
+  GYP_MSVS_VERSION: 2013
 
 install:
   - ps: Install-Product node $env:nodejs_version
