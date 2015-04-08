@@ -63,7 +63,7 @@ KeymapManager::subscribeToFileReadFailure = ->
     else
       error.message
 
-    atom.notifications.addError(message, {detail: detail, dismissable: true})
+    atom.notifications.addError(message, {detail, dismissable: true})
 
 # This enables command handlers registered via jQuery to call
 # `.abortKeyBinding()` on the `jQuery.Event` object passed to the handler.
