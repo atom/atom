@@ -149,8 +149,8 @@ class MenuManager
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
   loadPlatformItems: ->
-    if platformMenuPath
-      @add(menu)
+    if platformMenu?
+      @add(platformMenu)
     else
       menusDirPath = path.join(@resourcePath, 'menus')
       platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
