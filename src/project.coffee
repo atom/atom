@@ -5,7 +5,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
-{Subscriber} = require 'emissary'
 {Emitter} = require 'event-kit'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
@@ -171,7 +170,9 @@ class Project extends Model
   #
   # * `projectPaths` {Array} of {String} paths.
   setPaths: (projectPaths) ->
-    rootDirectory.off() for rootDirectory in @rootDirectories
+    if includeDeprecatedAPIs
+      rootDirectory.off() for rootDirectory in @rootDirectories
+
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
@@ -225,7 +226,7 @@ class Project extends Model
     if indexToRemove?
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
-      removedDirectory.off()
+      removedDirectory.off() if includeDeprecatedAPIs
       removedRepository?.destroy() unless removedRepository in @repositories
       @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit "did-change-paths", @getPaths()

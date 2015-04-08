@@ -34,6 +34,7 @@
       { label: 'New Window', command: 'application:new-window' }
       { label: 'New File', command: 'application:new-file' }
       { label: 'Open...', command: 'application:open' }
+      { label: 'Add Project Folder...', command: 'application:add-project-folder' }
       { label: 'Reopen Last Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Save', command: 'core:save' }

@@ -3,13 +3,12 @@ path = require 'path'
 Serializable = require 'serializable'
 Delegator = require 'delegato'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
-{Model} = require 'theorist'
-EmitterMixin = require('emissary').Emitter
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
+Model = require './model'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
@@ -74,14 +73,11 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  @delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
-    '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
-    toProperty: 'displayBuffer'
-
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @gutterVisible}) ->
     super
 
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
     @cursors = []
     @selections = []
 
@@ -108,10 +104,11 @@ class TextEditor extends Model
 
     @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
-    @subscribe @$scrollTop, (scrollTop) =>
+    @disposables.add @displayBuffer.onDidChangeScrollTop (scrollTop) =>
       @emit 'scroll-top-changed', scrollTop if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-top', scrollTop
-    @subscribe @$scrollLeft, (scrollLeft) =>
+
+    @disposables.add @displayBuffer.onDidChangeScrollLeft (scrollLeft) =>
       @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
 
@@ -131,16 +128,16 @@ class TextEditor extends Model
 
   subscribeToBuffer: ->
     @buffer.retain()
-    @subscribe @buffer.onDidChangePath =>
+    @disposables.add @buffer.onDidChangePath =>
       unless atom.project.getPaths().length > 0
         atom.project.setPaths([path.dirname(@getPath())])
       @emit "title-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-title', @getTitle()
       @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-path', @getPath()
-    @subscribe @buffer.onDidChangeEncoding =>
+    @disposables.add @buffer.onDidChangeEncoding =>
       @emitter.emit 'did-change-encoding', @getEncoding()
-    @subscribe @buffer.onDidDestroy => @destroy()
+    @disposables.add @buffer.onDidDestroy => @destroy()
 
     # TODO: remove these when we remove the deprecations. They are old events.
     if includeDeprecatedAPIs
@@ -151,18 +148,19 @@ class TextEditor extends Model
     @preserveCursorPositionOnBufferReload()
 
   subscribeToDisplayBuffer: ->
-    @subscribe @displayBuffer.onDidCreateMarker @handleMarkerCreated
-    @subscribe @displayBuffer.onDidUpdateMarkers => @mergeIntersectingSelections()
-    @subscribe @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
-    @subscribe @displayBuffer.onDidTokenize => @handleTokenization()
-    @subscribe @displayBuffer.onDidChange (e) =>
-      @emit 'screen-lines-changed', e
+    @disposables.add @displayBuffer.onDidCreateMarker @handleMarkerCreated
+    @disposables.add @displayBuffer.onDidUpdateMarkers => @mergeIntersectingSelections()
+    @disposables.add @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
+    @disposables.add @displayBuffer.onDidTokenize => @handleTokenization()
+    @disposables.add @displayBuffer.onDidChange (e) =>
+      @emit 'screen-lines-changed', e if includeDeprecatedAPIs
       @emitter.emit 'did-change', e
 
     # TODO: remove these when we remove the deprecations. Though, no one is likely using them
-    @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
-    @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
-    @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
+    if includeDeprecatedAPIs
+      @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
+      @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
+      @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
     @subscribeToScopedConfigSettings()
 
@@ -176,7 +174,8 @@ class TextEditor extends Model
     subscriptions.add atom.config.onDidChange 'editor.invisibles', scope: scopeDescriptor, => @updateInvisibles()
 
   destroyed: ->
-    @unsubscribe()
+    @unsubscribe() if includeDeprecatedAPIs
+    @disposables.dispose()
     @scopedConfigSubscriptions.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
@@ -459,7 +458,7 @@ class TextEditor extends Model
   onDidChangeIcon: (callback) ->
     @emitter.on 'did-change-icon', callback
 
-  # Retrieves the current {TextBuffer}.
+  # Public: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
   # Retrieves the current buffer's URI.
@@ -720,7 +719,7 @@ class TextEditor extends Model
     willInsert = true
     cancel = -> willInsert = false
     willInsertEvent = {cancel, text}
-    @emit('will-insert-text', willInsertEvent)
+    @emit('will-insert-text', willInsertEvent) if includeDeprecatedAPIs
     @emitter.emit 'will-insert-text', willInsertEvent
 
     if willInsert
@@ -729,7 +728,7 @@ class TextEditor extends Model
       @mutateSelectedText (selection) =>
         range = selection.insertText(text, options)
         didInsertEvent = {text, range}
-        @emit('did-insert-text', didInsertEvent)
+        @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
         @emitter.emit 'did-insert-text', didInsertEvent
         range
     else
@@ -1026,6 +1025,7 @@ class TextEditor extends Model
 
   # Extended: Delete all lines intersecting selections.
   deleteLine: ->
+    @mergeSelectionsOnSameRows()
     @mutateSelectedText (selection) -> selection.deleteLine()
 
   ###
@@ -1662,9 +1662,9 @@ class TextEditor extends Model
 
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
-    @subscribe @buffer.onWillReload =>
+    @disposables.add @buffer.onWillReload =>
       cursorPosition = @getCursorBufferPosition()
-    @subscribe @buffer.onDidReload =>
+    @disposables.add @buffer.onDidReload =>
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 
@@ -2048,6 +2048,19 @@ class TextEditor extends Model
   # the function with merging suppressed, then merges intersecting selections
   # afterward.
   mergeIntersectingSelections: (args...) ->
+    @mergeSelections args..., (previousSelection, currentSelection) ->
+      exclusive = not currentSelection.isEmpty() and not previousSelection.isEmpty()
+
+      previousSelection.intersectsWith(currentSelection, exclusive)
+
+  mergeSelectionsOnSameRows: (args...) ->
+    @mergeSelections args..., (previousSelection, currentSelection) ->
+      screenRange = currentSelection.getScreenRange()
+
+      previousSelection.intersectsScreenRowRange(screenRange.start.row, screenRange.end.row)
+
+  mergeSelections: (args...) ->
+    mergePredicate = args.pop()
     fn = args.pop() if _.isFunction(_.last(args))
     options = args.pop() ? {}
 
@@ -2060,10 +2073,7 @@ class TextEditor extends Model
 
     reducer = (disjointSelections, selection) ->
       adjacentSelection = _.last(disjointSelections)
-      exclusive = not selection.isEmpty() and not adjacentSelection.isEmpty()
-      intersects = adjacentSelection.intersectsWith(selection, exclusive)
-
-      if intersects
+      if mergePredicate(adjacentSelection, selection)
         adjacentSelection.merge(selection, options)
         disjointSelections
       else
@@ -2837,6 +2847,10 @@ class TextEditor extends Model
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
 if includeDeprecatedAPIs
+  TextEditor.delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
+    '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
+    toProperty: 'displayBuffer'
+
   TextEditor::getViewClass = ->
     require './text-editor-view'
 
@@ -3000,6 +3014,7 @@ if includeDeprecatedAPIs
     deprecate("Use TextEditor::isSoftWrapped instead")
     @displayBuffer.isSoftWrapped()
 
+  EmitterMixin = require('emissary').Emitter
   TextEditor::on = (eventName) ->
     switch eventName
       when 'title-changed'

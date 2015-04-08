@@ -1,7 +1,0 @@
-'editor':
-  'fontSize': 16
-'core':
-  'themes': [
-    'one-dark-ui'
-    'one-dark-syntax'
-  ]
