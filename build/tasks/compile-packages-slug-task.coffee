@@ -18,7 +18,7 @@ module.exports = (grunt) ->
   getKeymaps = (appDir) ->
     keymapsPath = path.join(appDir, 'keymaps')
     keymaps = {}
-    for keymapPath in fs.listSync(keymapsPath, ['.cson', '.json'])
+    for keymapPath in fs.listSync(keymapsPath, ['.json'])
       name = path.basename(keymapPath, path.extname(keymapPath))
       continue unless OtherPlatforms.indexOf(name) is -1
 
