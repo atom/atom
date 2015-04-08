@@ -8,6 +8,7 @@ Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
 {validateSelector} = require './selector-validator'
 
+platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 SpecificityCache = {}
 
 # Extended: Provides a registry for commands that you'd like to appear in the
@@ -49,10 +50,13 @@ class ContextMenuManager
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
 
   loadPlatformItems: ->
-    menusDirPath = path.join(@resourcePath, 'menus')
-    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
-    map = CSON.readFileSync(platformMenuPath)
-    atom.contextMenu.add(map['context-menu'])
+    if platformContextMenu?
+      @add(platformContextMenu)
+    else
+      menusDirPath = path.join(@resourcePath, 'menus')
+      platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+      map = CSON.readFileSync(platformMenuPath)
+      @add(map['context-menu'])
 
   # Public: Add context menu items scoped by CSS selectors.
   #

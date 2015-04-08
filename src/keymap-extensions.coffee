@@ -5,11 +5,20 @@ CSON = require 'season'
 {jQuery} = require 'space-pen'
 Grim = require 'grim'
 
+bundledKeymaps = require('../package.json')?._atomKeymaps
+
 KeymapManager::onDidLoadBundledKeymaps = (callback) ->
   @emitter.on 'did-load-bundled-keymaps', callback
 
 KeymapManager::loadBundledKeymaps = ->
-  @loadKeymap(path.join(@resourcePath, 'keymaps'))
+  keymapsPath = path.join(@resourcePath, 'keymaps')
+  if bundledKeymaps?
+    for keymapName, keymap of bundledKeymaps
+      keymapPath = path.join(keymapsPath, keymapName)
+      @add(keymapPath, keymap)
+  else
+    @loadKeymap(keymapsPath)
+
   @emit 'bundled-keymaps-loaded' if Grim.includeDeprecatedAPIs
   @emitter.emit 'did-load-bundled-keymaps'
 
@@ -51,7 +60,7 @@ KeymapManager::subscribeToFileReadFailure = ->
     else
       error.message
 
-    atom.notifications.addError(message, {detail: detail, dismissable: true})
+    atom.notifications.addError(message, {detail, dismissable: true})
 
 # This enables command handlers registered via jQuery to call
 # `.abortKeyBinding()` on the `jQuery.Event` object passed to the handler.
