@@ -6,6 +6,7 @@
     "url": "https://github.com/atom/atom.git"
   },
   "dependencies": {
+    "asar": "^0.4.0",
     "async": "~0.2.9",
     "donna": "1.0.10",
     "formidable": "~1.0.14",
