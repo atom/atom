@@ -10,7 +10,7 @@ module.exports = (grunt) ->
 
   getMenu = (appDir) ->
     menusPath = path.join(appDir, 'menus')
-    menuPath = path.join(menusPath, "#{process.platform}.cson")
+    menuPath = path.join(menusPath, "#{process.platform}.json")
     menu = CSON.readFileSync(menuPath) if fs.isFileSync(menuPath)
     rm menusPath
     menu ? {}
