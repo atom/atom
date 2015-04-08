@@ -3,6 +3,8 @@ CSON = require 'season'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
 
+OtherPlatforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32'].filter (platform) -> platform isnt process.platform
+
 module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
 
@@ -15,7 +17,13 @@ module.exports = (grunt) ->
 
   getKeymaps = (appDir) ->
     keymapsPath = path.join(appDir, 'keymaps')
-    keymaps = fs.listSync(keymapsPath, ['.cson', '.json']).map (keymapPath) -> CSON.readFileSync(keymapPath)
+    keymaps = {}
+    for keymapPath in fs.listSync(keymapsPath, ['.cson', '.json'])
+      name = path.basename(keymapPath, path.extname(keymapPath))
+      continue unless OtherPlatforms.indexOf(name) is -1
+
+      keymap = CSON.readFileSync(keymapPath)
+      keymaps[path.basename(keymapPath)] = keymap
     rm keymapsPath
     keymaps
 

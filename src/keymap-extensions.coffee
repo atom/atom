@@ -5,11 +5,23 @@ CSON = require 'season'
 {jQuery} = require 'space-pen'
 Grim = require 'grim'
 
+try
+  bundledKeymaps = require('../package.json')?._atomKeymaps
+catch error
+  bundledKeymaps = null
+
 KeymapManager::onDidLoadBundledKeymaps = (callback) ->
   @emitter.on 'did-load-bundled-keymaps', callback
 
 KeymapManager::loadBundledKeymaps = ->
-  @loadKeymap(path.join(@resourcePath, 'keymaps'))
+  keymapsPath = path.join(@resourcePath, 'keymaps')
+  if bundledKeymaps?
+    for keymapName, keymap of bundledKeymaps
+      keymapPath = path.join(keymapsPath, keymapName)
+      @add(keymapPath, keymap)
+  else
+    @loadKeymap(keymapsPath)
+
   @emit 'bundled-keymaps-loaded' if Grim.includeDeprecatedAPIs
   @emitter.emit 'did-load-bundled-keymaps'
 
