@@ -9,7 +9,7 @@ fs = require 'fs-plus'
 MenuHelpers = require './menu-helpers'
 
 try
-  platformMenu = require('../package.json')?._atomMenu
+  platformMenu = require('../package.json')?._atomMenu?.menu
 catch error
   platformMenu = null
 
