@@ -3,7 +3,7 @@ fs = require 'fs'
 path = require 'path'
 
 module.exports = (grunt) ->
-  {rm} = require('./task-helpers')(grunt)
+  {cp, rm} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'generate-asar', 'Generate asar archive for the app', ->
     done = @async()
@@ -15,5 +15,7 @@ module.exports = (grunt) ->
 
     asar.createPackageWithOptions appDir, path.resolve(appDir, '..', 'app.asar'), {unpack: '*.node'}, (err) ->
       return done(err) if err?
+
       rm appDir
+      fs.renameSync path.resolve(appDir, '..', 'new-app'), appDir
       done()
