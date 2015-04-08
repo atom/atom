@@ -13,7 +13,7 @@ module.exports = (grunt) ->
     menuPath = path.join(menusPath, "#{process.platform}.json")
     menu = CSON.readFileSync(menuPath) if fs.isFileSync(menuPath)
     rm menusPath
-    menu ? {}
+    menu
 
   getKeymaps = (appDir) ->
     keymapsPath = path.join(appDir, 'keymaps')
