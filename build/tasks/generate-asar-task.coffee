@@ -18,4 +18,9 @@ module.exports = (grunt) ->
 
       rm appDir
       fs.renameSync path.resolve(appDir, '..', 'new-app'), appDir
+
+      ctagsFolder = path.join("#{appDir}.asar.unpacked", 'node_modules', 'symbols-view', 'vendor')
+      for ctagsFile in fs.readdirSync(ctagsFolder)
+        fs.chmodSync(path.join(ctagsFolder, ctagsFile), "755")
+
       done()
