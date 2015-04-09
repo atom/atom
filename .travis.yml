@@ -1,4 +1,9 @@
-language: objective-c
+os:
+  - linux
+  - osx
+
+install:
+  - test "$TRAVIS_OS_NAME" = "linux" && sudo apt-get install build-essential git libgnome-keyring-dev fakeroot
 
 script: script/cibuild
 
