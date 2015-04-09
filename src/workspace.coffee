@@ -371,11 +371,12 @@ class Workspace extends Model
   Section: Opening
   ###
 
-  # Essential: Opens the given URI in Atom asynchronously, if it's not already open. 
-  # If no URI is given, or the URI is the path of a file that does not exist,
-  # a new empty text edtior is created.
-  # 
-  # * `uri` (optional) A {String} containing a URI. 
+  # Essential: Opens the given URI in Atom asynchronously.
+  # If the URI is already open, the existing item for that URI will be
+  # activated. If no URI is given, or no registered opener can open
+  # the URI, a new empty {TextEditor} will be created.
+  #
+  # * `uri` (optional) A {String} containing a URI.
   # * `options` (optional) {Object}
   #   * `initialLine` A {Number} indicating which row to move the cursor to
   #     initially. Defaults to `0`.
