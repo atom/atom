@@ -335,9 +335,12 @@ class Workspace extends Model
   Section: Opening
   ###
 
-  # Essential: Open a given a URI in Atom asynchronously.
+  # Essential: Opens the given URI in Atom asynchronously.
+  # If the URI is already open, the existing item for that URI will be
+  # activated. If no URI is given, or no registered opener can open
+  # the URI, a new empty {TextEditor} will be created.
   #
-  # * `uri` A {String} containing a URI.
+  # * `uri` (optional) A {String} containing a URI.
   # * `options` (optional) {Object}
   #   * `initialLine` A {Number} indicating which row to move the cursor to
   #     initially. Defaults to `0`.
