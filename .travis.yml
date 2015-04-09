@@ -3,7 +3,7 @@ os:
   - osx
 
 install:
-  - test "$TRAVIS_OS_NAME" = "linux" && sudo apt-get install build-essential git libgnome-keyring-dev fakeroot
+  - test "$TRAVIS_OS_NAME" = "linux" && sudo apt-get install build-essential git libgnome-keyring-dev fakeroot || true
 
 script: script/cibuild
 
