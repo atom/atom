@@ -1,9 +1,20 @@
+env:
+  - NODE_VERSION=0.10
+  - NODE_VERSION=0.12
+  - NODE_VERSION=iojs
+
 os:
   - linux
   - osx
 
 install:
-  - test "$TRAVIS_OS_NAME" = "linux" && sudo apt-get install build-essential git libgnome-keyring-dev fakeroot || true
+  - git clone https://github.com/creationix/nvm.git ./.nvm
+  - source ./.nvm/nvm.sh
+  - nvm install $NODE_VERSION
+  - nvm use $NODE_VERSION
+  - if [ $TRAVIS_OS_NAME == "linux" ]; then
+      sudo apt-get install build-essential git libgnome-keyring-dev fakeroot;
+    fi
 
 script: script/cibuild
 
