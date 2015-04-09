@@ -91,12 +91,10 @@ parseCommandLine = ->
 
     Usage: atom [options] [path ...]
 
-    One or more paths to files or folders to open may be specified.
-
-    File paths will open in the current window.
-
-    Folder paths will open in an existing window if that folder has already been
-    opened or a new window if it hasn't.
+    One or more paths to files or folders may be specified. If there is an
+    existing Atom window that contains all of the given folders, the paths
+    will be opened in that window. Otherwise, they will be opened in a new
+    window.
 
     Environment Variables:
 
