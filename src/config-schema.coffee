@@ -99,9 +99,7 @@ module.exports =
 
       # These can be used as globals or scoped, thus defaults.
       completions:
-        type: "array"
-        items:
-          type: "string"
+        type: ['array', 'object']
         default: []
       fontFamily:
         type: 'string'
