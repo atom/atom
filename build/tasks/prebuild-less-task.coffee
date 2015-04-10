@@ -18,6 +18,7 @@ module.exports = (grunt) ->
     bootstrapCss = lessCache.readFileSync(bootstrapLessPath)
     grunt.file.write(bootstrapCssPath, bootstrapCss)
     rm(bootstrapLessPath)
+    rm(path.join(appDir, 'node_modules', 'bootstrap', 'less'))
 
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled LESS files', ->
     prebuiltConfigurations = [
