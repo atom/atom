@@ -31,7 +31,7 @@ class PaneAxisElement extends HTMLElement
     view = atom.views.getView(child)
     view.remove()
 
-  childReplaced:  ({index, oldChild, newChild}) ->
+  childReplaced: ({index, oldChild, newChild}) ->
     focusedElement = document.activeElement if @hasFocus()
     @childRemoved({child: oldChild, index})
     @childAdded({child: newChild, index})

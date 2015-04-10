@@ -166,7 +166,7 @@ class DisplayBuffer extends Model
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @emitDidChange({ start, end, screenDelta, bufferDelta })
+    @emitDidChange({start, end, screenDelta, bufferDelta})
 
   # Sets the visibility of the tokenized buffer.
   #
@@ -740,7 +740,7 @@ class DisplayBuffer extends Model
   screenPositionForBufferPosition: (bufferPosition, options) ->
     throw new Error("This TextEditor has been destroyed") if @isDestroyed()
 
-    { row, column } = @buffer.clipPosition(bufferPosition)
+    {row, column} = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
       screenLine = @screenLines[screenRow]
@@ -774,7 +774,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
-    { row, column } = @clipScreenPosition(Point.fromObject(screenPosition), options)
+    {row, column} = @clipScreenPosition(Point.fromObject(screenPosition), options)
     [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
     new Point(bufferRow, @screenLines[row].bufferColumnForScreenColumn(column))
 
@@ -828,8 +828,8 @@ class DisplayBuffer extends Model
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    { wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation } = options
-    { row, column } = Point.fromObject(screenPosition)
+    {wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation} = options
+    {row, column} = Point.fromObject(screenPosition)
 
     if row < 0
       row = 0

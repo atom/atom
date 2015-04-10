@@ -1126,7 +1126,7 @@ splitKeyPath = (keyPath) ->
   startIndex = 0
   keyPathArray = []
   for char, i in keyPath
-    if char is '.' and (i is 0 or keyPath[i-1] != '\\')
+    if char is '.' and (i is 0 or keyPath[i-1] isnt '\\')
       keyPathArray.push keyPath.substring(startIndex, i)
       startIndex = i + 1
   keyPathArray.push keyPath.substr(startIndex, keyPath.length)
@@ -1191,7 +1191,7 @@ if Grim.includeDeprecatedAPIs
 
   Config::toggle = (keyPath) ->
     Grim.deprecate 'Config::toggle is no longer supported. Please remove from your code.'
-    @set(keyPath, !@get(keyPath))
+    @set(keyPath, not @get(keyPath))
 
   Config::unobserve = (keyPath) ->
     Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'

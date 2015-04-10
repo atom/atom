@@ -55,9 +55,9 @@ module.exports = (grunt) ->
     proc.stderr.on 'data', (data) -> stderr.push(data.toString())
     proc.on 'error', (processError) -> error ?= processError
     proc.on 'close', (exitCode, signal) ->
-      error ?= new Error(signal) if exitCode != 0
+      error ?= new Error(signal) if exitCode isnt 0
       results = {stderr: stderr.join(''), stdout: stdout.join(''), code: exitCode}
-      grunt.log.error results.stderr if exitCode != 0
+      grunt.log.error results.stderr if exitCode isnt 0
       callback(error, results, exitCode)
 
   isAtomPackage: (packagePath) ->

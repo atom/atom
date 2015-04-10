@@ -335,9 +335,12 @@ class Workspace extends Model
   Section: Opening
   ###
 
-  # Essential: Open a given a URI in Atom asynchronously.
+  # Essential: Opens the given URI in Atom asynchronously.
+  # If the URI is already open, the existing item for that URI will be
+  # activated. If no URI is given, or no registered opener can open
+  # the URI, a new empty {TextEditor} will be created.
   #
-  # * `uri` A {String} containing a URI.
+  # * `uri` (optional) A {String} containing a URI.
   # * `options` (optional) {Object}
   #   * `initialLine` A {Number} indicating which row to move the cursor to
   #     initially. Defaults to `0`.
@@ -399,7 +402,7 @@ class Workspace extends Model
     uri = atom.project.resolvePath(uri)
     item = @getActivePane().itemForURI(uri)
     if uri
-      item ?= opener(uri, options) for opener in @getOpeners() when !item
+      item ?= opener(uri, options) for opener in @getOpeners() when not item
     item ?= atom.project.openSync(uri, {initialLine, initialColumn})
 
     @getActivePane().activateItem(item)
@@ -418,7 +421,7 @@ class Workspace extends Model
 
     if uri?
       item = pane.itemForURI(uri)
-      item ?= opener(uri, options) for opener in @getOpeners() when !item
+      item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
       item ?= atom.project.open(uri, options)
@@ -836,8 +839,8 @@ class Workspace extends Model
     openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
     outOfProcessPaths = _.difference(filePaths, openPaths)
 
-    inProcessFinished = !openPaths.length
-    outOfProcessFinished = !outOfProcessPaths.length
+    inProcessFinished = not openPaths.length
+    outOfProcessFinished = not outOfProcessPaths.length
     checkFinished = ->
       deferred.resolve() if outOfProcessFinished and inProcessFinished
 

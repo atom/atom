@@ -6,7 +6,7 @@ runas = null # defer until used
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
   fs.unlink destinationPath, (error) ->
-    if error? and error?.code != 'ENOENT'
+    if error? and error?.code isnt 'ENOENT'
       callback(error)
     else
       fs.makeTree path.dirname(destinationPath), (error) ->
@@ -17,13 +17,13 @@ symlinkCommand = (sourcePath, destinationPath, callback) ->
 
 symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
   runas ?= require 'runas'
-  if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
+  if runas('/bin/rm', ['-f', destinationPath], admin: true) isnt 0
     throw new Error("Failed to remove '#{destinationPath}'")
 
-  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) != 0
+  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) isnt 0
     throw new Error("Failed to create directory '#{destinationPath}'")
 
-  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) != 0
+  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) isnt 0
     throw new Error("Failed to symlink '#{sourcePath}' to '#{destinationPath}'")
 
 module.exports =

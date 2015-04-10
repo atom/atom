@@ -13,5 +13,19 @@
   },
   "no_debugger": {
     "level": "error"
+  },
+  "prefer_english_operator": {
+    "level": "error"
+  },
+  "colon_assignment_spacing": {
+    "spacing": {
+      "left": 0,
+      "right": 1
+    },
+    "level": "error"
+  },
+  "braces_spacing": {
+    "spaces": 0,
+    "level": "error"
   }
 }

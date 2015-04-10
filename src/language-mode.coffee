@@ -117,7 +117,7 @@ class LanguageMode
       continue unless startRow?
 
       # assumption: startRow will always be the min indent level for the entire range
-      if @editor.indentationForBufferRow(startRow) == indentLevel
+      if @editor.indentationForBufferRow(startRow) is indentLevel
         @editor.createFold(startRow, endRow)
     return
 
@@ -173,7 +173,7 @@ class LanguageMode
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopeDescriptor(scopeDescriptor)?.searchSync(@editor.lineTextForBufferRow(row))
+        includeRowInFold = indentation is startIndentLevel and @foldEndRegexForScopeDescriptor(scopeDescriptor)?.searchSync(@editor.lineTextForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -206,14 +206,14 @@ class LanguageMode
 
     startRow = bufferRow
     while startRow > firstRow
-      break if @isLineCommentedAtBufferRow(startRow - 1) != isOriginalRowComment
+      break if @isLineCommentedAtBufferRow(startRow - 1) isnt isOriginalRowComment
       break unless /\w/.test(@editor.lineTextForBufferRow(startRow - 1))
       startRow--
 
     endRow = bufferRow
     lastRow = @editor.getLastBufferRow()
     while endRow < lastRow
-      break if @isLineCommentedAtBufferRow(endRow + 1) != isOriginalRowComment
+      break if @isLineCommentedAtBufferRow(endRow + 1) isnt isOriginalRowComment
       break unless /\w/.test(@editor.lineTextForBufferRow(endRow + 1))
       endRow++
 

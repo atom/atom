@@ -139,4 +139,4 @@ module.exports = (grunt) ->
       if process.platform is 'win32' and process.env.JANKY_SHA1
         done()
       else
-        done(!coreSpecFailed and failedPackages.length == 0)
+        done(not coreSpecFailed and failedPackages.length is 0)

@@ -37,7 +37,7 @@ class OverlayManager
 
     # The same node may be used in more than one overlay. This steals the node
     # back if it has been displayed in another overlay.
-    overlayNode.appendChild(itemView) if overlayNode.childNodes.length == 0
+    overlayNode.appendChild(itemView) if overlayNode.childNodes.length is 0
 
     cachedOverlay.pixelPosition = pixelPosition
     overlayNode.style.top = pixelPosition.top + 'px'

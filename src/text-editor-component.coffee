@@ -117,7 +117,7 @@ class TextEditorComponent
     @cursorMoved = false
     @selectionChanged = false
 
-    if @editor.getLastSelection()? and !@editor.getLastSelection().isEmpty()
+    if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
     else
       @domNode.classList.remove('has-selection')

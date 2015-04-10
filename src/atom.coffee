@@ -499,7 +499,7 @@ class Atom extends Model
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
-    @setFullScreen(!@isFullScreen())
+    @setFullScreen(not @isFullScreen())
 
   # Schedule the window to be shown and focused on the next tick.
   #
@@ -849,7 +849,7 @@ class Atom extends Model
 
   setAutoHideMenuBar: (autoHide) ->
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
-    ipc.send('call-window-method', 'setMenuBarVisibility', !autoHide)
+    ipc.send('call-window-method', 'setMenuBarVisibility', not autoHide)
 
 if includeDeprecatedAPIs
   # Deprecated: Callers should be converted to use atom.deserializers

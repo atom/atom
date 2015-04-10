@@ -95,7 +95,7 @@ class AtomApplication
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
-    @applicationMenu?.enableWindowSpecificItems(false) if @windows.length == 0
+    @applicationMenu?.enableWindowSpecificItems(false) if @windows.length is 0
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->

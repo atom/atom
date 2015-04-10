@@ -3,8 +3,29 @@ CSON = require 'season'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
 
+OtherPlatforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32'].filter (platform) -> platform isnt process.platform
+
 module.exports = (grunt) ->
   {spawn, rm} = require('./task-helpers')(grunt)
+
+  getMenu = (appDir) ->
+    menusPath = path.join(appDir, 'menus')
+    menuPath = path.join(menusPath, "#{process.platform}.json")
+    menu = CSON.readFileSync(menuPath) if fs.isFileSync(menuPath)
+    rm menusPath
+    menu
+
+  getKeymaps = (appDir) ->
+    keymapsPath = path.join(appDir, 'keymaps')
+    keymaps = {}
+    for keymapPath in fs.listSync(keymapsPath, ['.json'])
+      name = path.basename(keymapPath, path.extname(keymapPath))
+      continue unless OtherPlatforms.indexOf(name) is -1
+
+      keymap = CSON.readFileSync(keymapPath)
+      keymaps[path.basename(keymapPath)] = keymap
+    rm keymapsPath
+    keymaps
 
   grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to the main package.json file', ->
     appDir = fs.realpathSync(grunt.config.get('atom.appDir'))
@@ -50,5 +71,7 @@ module.exports = (grunt) ->
 
     metadata = grunt.file.readJSON(path.join(appDir, 'package.json'))
     metadata._atomPackages = packages
+    metadata._atomMenu = getMenu(appDir)
+    metadata._atomKeymaps = getKeymaps(appDir)
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
