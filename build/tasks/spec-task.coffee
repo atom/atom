@@ -78,7 +78,7 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       packageSpecQueue.push(packagePath)
 
-    packageSpecQueue.concurrency = Math.min(1, concurrency - 1)
+    packageSpecQueue.concurrency = Math.max(1, concurrency - 1)
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
