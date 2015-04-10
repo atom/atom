@@ -20,7 +20,7 @@ module.exports = (grunt) ->
     rm(bootstrapLessPath)
     rm(path.join(appDir, 'node_modules', 'bootstrap', 'less'))
 
-  grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled LESS files', ->
+  grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled Less files', ->
     compileBootstrap()
 
     prebuiltConfigurations = [
