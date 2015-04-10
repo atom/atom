@@ -1,9 +1,24 @@
 path = require 'path'
 fs = require 'fs'
-
+temp = require('temp').track()
 LessCache = require 'less-cache'
 
 module.exports = (grunt) ->
+  {rm} = require('./task-helpers')(grunt)
+
+  compileBootstrap = ->
+    appDir = grunt.config.get('atom.appDir')
+    bootstrapLessPath = path.join(appDir, 'static', 'bootstrap.less')
+    bootstrapCssPath = path.join(appDir, 'static', 'bootstrap.css')
+
+    lessCache = new LessCache
+      cacheDir: temp.mkdirSync('atom-less-cache')
+      resourcePath: path.resolve('.')
+
+    bootstrapCss = lessCache.readFileSync(bootstrapLessPath)
+    grunt.file.write(bootstrapCssPath, bootstrapCss)
+    rm(bootstrapLessPath)
+
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled LESS files', ->
     prebuiltConfigurations = [
       ['atom-dark-ui', 'atom-dark-syntax']
@@ -78,3 +93,5 @@ module.exports = (grunt) ->
       for file in themeMains
         grunt.verbose.writeln("File #{file.cyan} created in cache.")
         cssForFile(file)
+
+    compileBootstrap()
