@@ -21,6 +21,8 @@ module.exports = (grunt) ->
     rm(path.join(appDir, 'node_modules', 'bootstrap', 'less'))
 
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled LESS files', ->
+    compileBootstrap()
+
     prebuiltConfigurations = [
       ['atom-dark-ui', 'atom-dark-syntax']
       ['atom-dark-ui', 'atom-light-syntax']
@@ -94,5 +96,3 @@ module.exports = (grunt) ->
       for file in themeMains
         grunt.verbose.writeln("File #{file.cyan} created in cache.")
         cssForFile(file)
-
-    compileBootstrap()
