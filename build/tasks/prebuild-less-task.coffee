@@ -75,7 +75,7 @@ module.exports = (grunt) ->
         themeMains.push(mainPath) if grunt.file.isFile(mainPath)
         importPaths.unshift(stylesheetsDir) if grunt.file.isDir(stylesheetsDir)
 
-      grunt.verbose.writeln("Building LESS cache for #{configuration.join(', ').yellow}")
+      grunt.verbose.writeln("Building Less cache for #{configuration.join(', ').yellow}")
       lessCache = new LessCache
         cacheDir: directory
         resourcePath: path.resolve('.')
