@@ -14,7 +14,7 @@ install:
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
       sudo apt-get install build-essential git libgnome-keyring-dev fakeroot;
       export DISPLAY=:99.0;
-      sh -e /etc/init.d/xvfb start -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset;
+      sh -e /etc/init.d/xvfb start;
     fi
 
 script: script/cibuild
