@@ -24,7 +24,7 @@ class LanguageMode
   # endRow - The row {Number} to end at
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @editor.scopeDescriptorForBufferPosition([start, 0])
-    {commentStartString, commentEndString} = @getCommentStartAndEndStrings(scope)
+    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
     return unless commentStartString?
 
     buffer = @editor.buffer
@@ -189,7 +189,7 @@ class LanguageMode
   # the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
     scope = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    {commentStartString, commentEndString} = @getCommentStartAndEndStrings(scope)
+    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
     commentStartRegex = null
     if commentStartString? and not commentEndString?
       commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
@@ -327,7 +327,7 @@ class LanguageMode
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
 
-  getCommentStartAndEndStrings: (scope) ->
+  commentStartAndEndStringsForScope: (scope) ->
     commentStartEntry = atom.config.getAll('editor.commentStart', {scope})[0]
     commentEndEntry = _.find atom.config.getAll('editor.commentEnd', {scope}), (entry) ->
       entry.scopeSelector is commentStartEntry.scopeSelector
