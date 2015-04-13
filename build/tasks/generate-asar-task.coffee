@@ -8,12 +8,21 @@ module.exports = (grunt) ->
   grunt.registerTask 'generate-asar', 'Generate asar archive for the app', ->
     done = @async()
 
+    unpack = [
+      '*.node'
+      'ctags-darwin'
+      'ctags-linux'
+      'ctags-win32.exe'
+      '\\.ctags'
+    ]
+    unpack = "{#{unpack.join(',')}}"
+
     appDir = grunt.config.get('atom.appDir')
     unless fs.existsSync(appDir)
       grunt.log.error 'The app has to be built before generating asar archive.'
       return done(false)
 
-    asar.createPackageWithOptions appDir, path.resolve(appDir, '..', 'app.asar'), {unpack: '{*.node,ctags-darwin,ctags-linux,ctags-win32.exe,\\.ctags}'}, (err) ->
+    asar.createPackageWithOptions appDir, path.resolve(appDir, '..', 'app.asar'), {unpack}, (err) ->
       return done(err) if err?
 
       rm appDir
