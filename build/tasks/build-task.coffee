@@ -65,6 +65,7 @@ module.exports = (grunt) ->
       path.join('jasmine-node', 'node_modules', 'gaze')
       path.join('jasmine-node', 'spec')
       path.join('node_modules', 'nan')
+      path.join('node_modules', 'native-mate')
       path.join('build', 'binding.Makefile')
       path.join('build', 'config.gypi')
       path.join('build', 'gyp-mac-tool')
