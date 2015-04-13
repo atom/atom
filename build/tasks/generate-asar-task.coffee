@@ -10,7 +10,7 @@ module.exports = (grunt) ->
 
     unpack = [
       '*.node'
-      '*.ctags'
+      '.ctags'
       'ctags-darwin'
       'ctags-linux'
       'ctags-win32.exe'
