@@ -2444,7 +2444,7 @@ describe "TextEditorComponent", ->
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
-        component.setFontFamily('sans-serif')
+        component.setFontFamily('serif')
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
         wrapperView.show()
@@ -2453,7 +2453,7 @@ describe "TextEditorComponent", ->
       it "does not re-measure character widths until the editor is shown again", ->
         wrapperView.hide()
 
-        component.setFontFamily('sans-serif')
+        component.setFontFamily('serif')
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
