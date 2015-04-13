@@ -49,6 +49,8 @@ module.exports = (grunt) ->
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
       path.join('bootstrap', 'docs')
+      path.join('bootstrap', 'dist')
+      path.join('bootstrap', 'fonts')
       path.join('bootstrap', '_config.yml')
       path.join('bootstrap', '_includes')
       path.join('bootstrap', '_layouts')
