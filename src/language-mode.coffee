@@ -24,14 +24,8 @@ class LanguageMode
   # endRow - The row {Number} to end at
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @editor.scopeDescriptorForBufferPosition([start, 0])
-    commentStartEntry = atom.config.getAll('editor.commentStart', {scope})[0]
-
-    return unless commentStartEntry?
-
-    commentEndEntry = _.find atom.config.getAll('editor.commentEnd', {scope}), (entry) ->
-      entry.scopeSelector is commentStartEntry.scopeSelector
-    commentStartString = commentStartEntry?.value
-    commentEndString = commentEndEntry?.value
+    {commentStartString, commentEndString} = @getCommentStartAndEndStrings(scope)
+    return unless commentStartString?
 
     buffer = @editor.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
@@ -190,11 +184,24 @@ class LanguageMode
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
     @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
-  # Find a row range for a 'paragraph' around specified bufferRow.
-  # Right now, a paragraph is a block of text bounded by and empty line or a
-  # block of text that is not the same type (comments next to source code).
+  # Find a row range for a 'paragraph' around specified bufferRow. A paragraph
+  # is a block of text bounded by and empty line or a block of text that is not
+  # the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
-    return unless /\S/.test(@editor.lineTextForBufferRow(bufferRow))
+    scope = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
+    {commentStartString, commentEndString} = @getCommentStartAndEndStrings(scope)
+    commentStartRegex = null
+    if commentStartString? and not commentEndString?
+      commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
+      commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
+
+    filterLineComments = (line) ->
+      if commentStartRegex?
+        matches = commentStartRegex.searchSync(line)
+        line = line.substring(matches[0].end) if matches?.length
+      line
+
+    return unless /\S/.test(filterLineComments(@editor.lineTextForBufferRow(bufferRow)))
 
     if @isLineCommentedAtBufferRow(bufferRow)
       isOriginalRowComment = true
@@ -207,14 +214,14 @@ class LanguageMode
     startRow = bufferRow
     while startRow > firstRow
       break if @isLineCommentedAtBufferRow(startRow - 1) isnt isOriginalRowComment
-      break unless /\S/.test(@editor.lineTextForBufferRow(startRow - 1))
+      break unless /\S/.test(filterLineComments(@editor.lineTextForBufferRow(startRow - 1)))
       startRow--
 
     endRow = bufferRow
     lastRow = @editor.getLastBufferRow()
     while endRow < lastRow
       break if @isLineCommentedAtBufferRow(endRow + 1) isnt isOriginalRowComment
-      break unless /\S/.test(@editor.lineTextForBufferRow(endRow + 1))
+      break unless /\S/.test(filterLineComments(@editor.lineTextForBufferRow(endRow + 1)))
       endRow++
 
     new Range([startRow, 0], [endRow, @editor.lineTextForBufferRow(endRow).length])
@@ -319,3 +326,11 @@ class LanguageMode
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
+
+  getCommentStartAndEndStrings: (scope) ->
+    commentStartEntry = atom.config.getAll('editor.commentStart', {scope})[0]
+    commentEndEntry = _.find atom.config.getAll('editor.commentEnd', {scope}), (entry) ->
+      entry.scopeSelector is commentStartEntry.scopeSelector
+    commentStartString = commentStartEntry?.value
+    commentEndString = commentEndEntry?.value
+    {commentStartString, commentEndString}

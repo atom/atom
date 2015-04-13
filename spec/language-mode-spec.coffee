@@ -126,7 +126,7 @@ describe "LanguageMode", ->
               // comment line after fn
 
               var nosort = function(items) {
-                  return item;
+                return item;
               }
 
             };
@@ -150,7 +150,7 @@ describe "LanguageMode", ->
           expect(range).toEqual [[15,0], [15,26]]
 
           range = languageMode.rowRangeForParagraphAtBufferRow(18)
-          expect(range).toEqual [[17,0], [19,1]]
+          expect(range).toEqual [[17,0], [19,3]]
 
   describe "coffeescript", ->
     beforeEach ->
