@@ -2815,7 +2815,7 @@ describe "TextEditorComponent", ->
       clipboardWrittenTo = false
       spyOn(require('ipc'), 'send').andCallFake (eventName, selectedText) ->
         if eventName is 'write-text-to-selection-clipboard'
-          require('clipboard').writeText(selectedText, 'selection')
+          require('../src/native-clipboard').writeText(selectedText, 'selection')
           clipboardWrittenTo = true
 
       atom.clipboard.write('')
