@@ -620,6 +620,10 @@ class TextEditorComponent
 
   measureWindowSize: ->
     return unless @mounted
+
+    # FIXME: on Ubuntu (via xvfb) `window.innerWidth` reports an incorrect value
+    # when window gets resized through `atom.setWindowDimensions({width:
+    # windowWidth, height: windowHeight})`.
     @presenter.setWindowSize(window.innerWidth, window.innerHeight)
 
   sampleFontStyling: =>

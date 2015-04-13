@@ -1352,17 +1352,18 @@ describe "TextEditorComponent", ->
         expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-        editor.insertText('a')
-        nextAnimationFrame()
+        if process.platform isnt "linux" # see TextEditorComponent#measureWindowSize
+          editor.insertText('a')
+          nextAnimationFrame()
 
-        expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
-        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+          expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-        editor.insertText('b')
-        nextAnimationFrame()
+          editor.insertText('b')
+          nextAnimationFrame()
 
-        expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
-        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+          expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
+          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
