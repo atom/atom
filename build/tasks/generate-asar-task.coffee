@@ -10,10 +10,10 @@ module.exports = (grunt) ->
 
     unpack = [
       '*.node'
+      '*.ctags'
       'ctags-darwin'
       'ctags-linux'
       'ctags-win32.exe'
-      '\\.ctags'
     ]
     unpack = "{#{unpack.join(',')}}"
 
