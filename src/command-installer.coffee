@@ -1,6 +1,4 @@
 path = require 'path'
-_ = require 'underscore-plus'
-async = require 'async'
 fs = require 'fs-plus'
 runas = null # defer until used
 
