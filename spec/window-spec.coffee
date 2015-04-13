@@ -285,19 +285,35 @@ describe "Window", ->
       it "adds it to the project's paths", ->
         pathToOpen = __filename
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.project.getPaths()[0]).toBe __dirname
+
+        waitsFor ->
+          atom.project.getPaths().length is 1
+
+        runs ->
+          expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path does not exist but its parent directory does", ->
       it "adds the parent directory to the project paths", ->
         pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.project.getPaths()[0]).toBe __dirname
+
+        waitsFor ->
+          atom.project.getPaths().length is 1
+
+        runs ->
+          expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path is a file", ->
       it "opens it in the workspace", ->
         pathToOpen = __filename
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
+        waitsFor ->
+          atom.workspace.open.callCount is 1
+
+        runs ->
+          expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
 
     describe "when the opened path is a directory", ->
       it "does not open it in the workspace", ->
