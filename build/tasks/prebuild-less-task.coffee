@@ -21,7 +21,12 @@ module.exports = (grunt) ->
     rm(path.join(appDir, 'node_modules', 'bootstrap', 'less'))
 
   importFallbackVariables = (lessFilePath) ->
-    lessFilePath.indexOf('static') isnt 0
+    if lessFilePath.indexOf('static') is 0
+      false
+    else if lessFilePath.indexOf('atom-space-pen-views') isnt -1
+      false
+    else
+      true
 
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled Less files', ->
     compileBootstrap()
