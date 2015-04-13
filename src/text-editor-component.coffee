@@ -556,7 +556,7 @@ class TextEditorComponent
 
     pasteSelectionClipboard = (event) =>
       if event?.which is 2 and process.platform is 'linux'
-        if selection = require('clipboard').readText('selection')
+        if selection = require('./native-clipboard').readText('selection')
           @editor.insertText(selection)
 
     window.addEventListener('mousemove', onMouseMove)
