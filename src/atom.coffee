@@ -574,7 +574,7 @@ class Atom extends Model
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
-    {resourcePath, safeMode} = @getLoadSettings()
+    {safeMode} = @getLoadSettings()
 
     CommandInstaller = require './command-installer'
     CommandInstaller.installAtomCommand false, (error) ->
