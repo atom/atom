@@ -66,7 +66,7 @@ For more information on how to work with Atom's official packages, see
     * Class methods and properties (methods starting with a `@`)
     * Instance methods and properties
 * Avoid platform-dependent code:
-    * Use `require('atom').fs.getHomeDirectory()` to get the home directory.
+    * Use `require('fs-plus').getHomeDirectory()` to get the home directory.
     * Use `path.join()` to concatenate filenames.
     * Use `os.tmpdir()` rather than `/tmp` when you need to reference the
       temporary directory.
