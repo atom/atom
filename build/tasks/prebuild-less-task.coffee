@@ -20,6 +20,9 @@ module.exports = (grunt) ->
     rm(bootstrapLessPath)
     rm(path.join(appDir, 'node_modules', 'bootstrap', 'less'))
 
+  importFallbackVariables = (lessFilePath) ->
+    lessFilePath.indexOf('static') isnt 0
+
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled Less files', ->
     compileBootstrap()
 
@@ -82,12 +85,14 @@ module.exports = (grunt) ->
         importPaths: importPaths
 
       cssForFile = (file) ->
-        baseVarImports = """
-        @import "variables/ui-variables";
-        @import "variables/syntax-variables";
-        """
         less = fs.readFileSync(file, 'utf8')
-        lessCache.cssForFile(file, [baseVarImports, less].join('\n'))
+        if importFallbackVariables(file)
+          baseVarImports = """
+          @import "variables/ui-variables";
+          @import "variables/syntax-variables";
+          """
+          less = [baseVarImports, less].join('\n')
+        lessCache.cssForFile(file, less)
 
       for file in @filesSrc
         grunt.verbose.writeln("File #{file.cyan} created in cache.")
