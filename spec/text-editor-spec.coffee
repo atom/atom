@@ -1,4 +1,4 @@
-clipboard = require 'clipboard'
+clipboard = require '../src/native-clipboard'
 TextEditor = require '../src/text-editor'
 
 describe "TextEditor", ->
