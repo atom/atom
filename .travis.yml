@@ -17,7 +17,7 @@ install:
       sh -e /etc/init.d/xvfb start;
     fi
 
-script: sudo script/cibuild
+script: script/cibuild
 
 notifications:
   email:
