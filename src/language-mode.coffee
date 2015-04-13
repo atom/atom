@@ -195,13 +195,13 @@ class LanguageMode
       commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
       commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
 
-    filterLineComments = (line) ->
+    filterCommentStart = (line) ->
       if commentStartRegex?
         matches = commentStartRegex.searchSync(line)
         line = line.substring(matches[0].end) if matches?.length
       line
 
-    return unless /\S/.test(filterLineComments(@editor.lineTextForBufferRow(bufferRow)))
+    return unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(bufferRow)))
 
     if @isLineCommentedAtBufferRow(bufferRow)
       isOriginalRowComment = true
@@ -214,14 +214,14 @@ class LanguageMode
     startRow = bufferRow
     while startRow > firstRow
       break if @isLineCommentedAtBufferRow(startRow - 1) isnt isOriginalRowComment
-      break unless /\S/.test(filterLineComments(@editor.lineTextForBufferRow(startRow - 1)))
+      break unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(startRow - 1)))
       startRow--
 
     endRow = bufferRow
     lastRow = @editor.getLastBufferRow()
     while endRow < lastRow
       break if @isLineCommentedAtBufferRow(endRow + 1) isnt isOriginalRowComment
-      break unless /\S/.test(filterLineComments(@editor.lineTextForBufferRow(endRow + 1)))
+      break unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(endRow + 1)))
       endRow++
 
     new Range([startRow, 0], [endRow, @editor.lineTextForBufferRow(endRow).length])
