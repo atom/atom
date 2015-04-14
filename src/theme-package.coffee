@@ -14,11 +14,6 @@ class ThemePackage extends Package
     atom.config.removeAtKeyPath('core.themes', @name)
 
   load: ->
-    @measure 'loadTime', =>
-      try
-        @metadata ?= Package.loadMetadata(@path)
-      catch error
-        console.warn "Failed to load theme named '#{@name}'", error.stack ? error
     this
 
   activate: ->
