@@ -3,7 +3,7 @@ PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
 describe "PaneResizeHandleElement", ->
-  describe "as children of PaneAxisElement", ->
+  describe "when add or remove panes in PaneAxisElement", ->
     [paneAxisElement, paneAxis] = []
 
     beforeEach ->
@@ -12,11 +12,7 @@ describe "PaneResizeHandleElement", ->
       paneAxisElement.initialize(paneAxis)
       document.querySelector('#jasmine-content').appendChild(paneAxisElement)
 
-    it "inserts or remove resize elements when pane axis added or removed", ->
-      modelChildren = (new PaneAxis({}) for i in [1..5])
-      paneAxis.addChild(modelChildren[0])
-      paneAxis.addChild(modelChildren[1])
-
+    it "inserts or remove resize elements", ->
       expectPaneAxisElement = (index) ->
         child = paneAxisElement.children[index]
         expect(child.nodeName.toLowerCase()).toBe('atom-pane-axis')
@@ -24,23 +20,23 @@ describe "PaneResizeHandleElement", ->
       expectResizeElement = (index) ->
         child = paneAxisElement.children[index]
         expect(paneAxisElement.isPaneResizeHandleElement(child)).toBe(true)
+
+      models = (new PaneAxis({}) for i in [0..2])
+      paneAxis.addChild(models[0])
+      paneAxis.addChild(models[1])
       expectResizeElement(1)
 
-      paneAxis.addChild(modelChildren[2])
-      paneAxis.addChild(modelChildren[3])
-      expectPaneAxisElement(i) for i in [0, 2, 4, 6]
-      expectResizeElement(i) for i in [1, 3, 5]
+      paneAxis.addChild(models[2])
+      expectPaneAxisElement(i) for i in [0, 2, 4]
+      expectResizeElement(i) for i in [1, 3]
 
       # test removeChild
-      paneAxis.removeChild(modelChildren[2])
+      paneAxis.removeChild(models[2])
       expectResizeElement(i) for i in [1, 3]
 
-      # test replaceChild
-      paneAxis.replaceChild(modelChildren[0], modelChildren[4])
-      expectResizeElement(i) for i in [1, 3]
-
-  describe "when mouse drag the resize element", ->
-    [container, containerElement, resizeElementMove, getElementWidth] = []
+  describe "when user drag the resize element", ->
+    [container, containerElement] = []
+    [resizeElementMove, getElementWidth, expectFlexScale] = []
 
     beforeEach ->
       container = new PaneContainer
@@ -63,104 +59,47 @@ describe "PaneResizeHandleElement", ->
       getElementWidth = (element) ->
         element.getBoundingClientRect().width
 
-    it "drag the pane resize handle element, then the panes around it will resize", ->
-      activePane = container.getActivePane()
-      rightPane = activePane.splitRight()
+      # assert the pane's flex scale. arguments is list of pane-scale pair
+      expectFlexScale = ->
+        args = Array::slice.apply(arguments, 0)
+        for paneScale in args
+          expect(paneScale[0].getFlexScale()).toBeCloseTo(paneScale[1], 0.1)
 
-      resizeElement = containerElement.querySelector('atom-pane-resize-handle')
-      expect(resizeElement).toBeTruthy()
-
-      leftWidth = getElementWidth(resizeElement.previousSibling)
-      resizeElementMove(resizeElement, leftWidth/2, 0)
-      expect(activePane.getFlexScale()).toBeCloseTo(0.5, 0.1)
-      expect(rightPane.getFlexScale()).toBeCloseTo(1.5, 0.1)
-
-    it "drag the resize element, the size of other panes in the same direction will not change", ->
+    it "add and remove panes in the same direction", ->
       leftPane = container.getActivePane()
       middlePane = leftPane.splitRight()
-      rightPane = middlePane.splitRight()
 
       resizeElements = containerElement.querySelectorAll('atom-pane-resize-handle')
       paneElements = containerElement.querySelectorAll('atom-pane')
       expect(resizeElements.length).toBe(2)
 
-      expectPaneScale = (leftScale, middleScale, rightScale) ->
-        expect(leftPane.getFlexScale()).toBeCloseTo(leftScale, 0.1)
-        expect(middlePane.getFlexScale()).toBeCloseTo(middleScale, 0.1)
-        expect(rightPane.getFlexScale()).toBeCloseTo(rightScale, 0.1)
-
       resizeElementMove(resizeElements[0], getElementWidth(paneElements[0]) / 2)
-      expectPaneScale(0.5, 1.5, 1)
+      expectPaneScale [leftPane, 0.5], [middlePane, 1.5]
 
+      rightPane = middlePane.splitRight()
       clientX = getElementWidth(paneElements[0]) + getElementWidth(paneElements[1]) / 2
       resizeElementMove(resizeElements[1], clientX)
-      expectPaneScale(0.5, 0.75, 1.75)
+      expectPaneScale [leftPane, 0.5], [middlePane, 0.75], [rightPane, 1.75]
 
-    it "drag the horizontal element, the size of other vertical pane will not change", ->
-      upperPane = container.getActivePane()
-      lowerPane = upperPane.splitDown()
-
-      [upperRightPane, upperLeftPane] = [upperPane.splitRight(), upperPane]
-      upperPane = upperLeftPane.getParent()
-
-      [lowerRightPane, lowerLeftPane] = [lowerPane.splitRight(), lowerPane]
-      lowerPane = lowerLeftPane.getParent()
-
-      horizontalResizeElements = containerElement.querySelectorAll('atom-pane-resize-handle.horizontal')
-      expect(horizontalResizeElements.length).toBe(2)
-
-      expectCloseTo = (element, scale) ->
-        expect(element.getFlexScale()).toBeCloseTo(scale, 0.1)
-
-      expectPaneScale = (upper, lower, upperLeft, upperRight, lowerLeft, lowerRight) ->
-        paneScales = [
-          [upperPane, upper], [lowerPane, lower], [upperLeftPane, upperLeft],
-          [upperRightPane, upperRight], [lowerLeftPane, lowerLeft],
-          [lowerRightPane, lowerRight]
-        ]
-        expectCloseTo(e[0], e[1]) for e in paneScales
-
-      newWidth = getElementWidth(horizontalResizeElements[0].previousSibling) / 2
-      resizeElementMove(horizontalResizeElements[0], newWidth)
-      expectPaneScale(1, 1, 0.5, 1.5, 1, 1)
-
-      newWidth = getElementWidth(horizontalResizeElements[1].previousSibling) / 2
-      resizeElementMove(horizontalResizeElements[1], newWidth)
-      expectPaneScale(1, 1, 0.5, 1.5, 0.5, 1.5)
-
-    it "transform the flex scale when dynamically split or close panes in the same direction", ->
-      leftPane = container.getActivePane()
-      middlePane = leftPane.splitRight()
-      rightPane = middlePane.splitRight()
-
-      expectPaneScale = (leftScale, middleScale, rightScale) ->
-        paneScales = [[leftPane, leftScale], [middlePane, middleScale], [rightPane, rightScale]];
-        expect(e[0].getFlexScale()).toBeCloseTo(e[1], 0.1) for e in paneScales
-
-      resizeElement = containerElement.querySelector('atom-pane-resize-handle')
-      resizeElementMove(resizeElement, getElementWidth(atom.views.getView(leftPane)) / 2)
-      expectPaneScale(0.5, 1.5, 1)
+      middlePane.close()
+      expectPaneScale [leftPane, 0.44], [rightPane, 1.55]
 
       leftPane.close()
-      expect(middlePane.getFlexScale()).toBeCloseTo(1.2, 0.1)
-      expect(rightPane.getFlexScale()).toBeCloseTo(0.8, 0.1)
+      expectPaneScale [rightPane, 1]
 
-      rightPane.close() # when close the same direction pane, the flexScale will recorver
-      expect(middlePane.getFlexScale()).toBeCloseTo(1, 0.1)
-
-    it "retain the flex scale when dynamically split or close panes in orthogonal direction", ->
+    it "split or close panes in orthogonal direction", ->
       leftPane = container.getActivePane()
       rightPane = leftPane.splitRight()
 
       resizeElement = containerElement.querySelector('atom-pane-resize-handle')
       resizeElementMove(resizeElement, getElementWidth(resizeElement.previousSibling) / 2)
-      expect(leftPane.getFlexScale()).toBeCloseTo(0.5, 0.1)
 
-      lowerPane = leftPane.splitDown()   # dynamically split pane, pane's flexScale will become to 1
-      expect(leftPane.getFlexScale()).toBeCloseTo(1, 0.1)
-      expect(leftPane.getParent().getFlexScale()).toBeCloseTo(0.5, 0.1)
+      # dynamically split pane, pane's flexScale will become to 1
+      lowerPane = leftPane.splitDown()
+      expectPaneScale [lowerPane, 1], [leftPane, 1], [leftPane.getParent(), 0.5]
 
-      lowerPane.close() # dynamically close pane, the pane's flexscale will recorver to origin value
-      expect(leftPane.getFlexScale()).toBeCloseTo(0.5, 0.1)
+      # dynamically close pane, the pane's flexscale will recorver to origin value
+      lowerPane.close()
+      expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
 
 
