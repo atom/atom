@@ -1,8 +1,7 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-{calculateSpecificity} = require 'clear-cut'
+{calculateSpecificity, validateSelector} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
-{validateSelector} = require './selector-validator'
 
 SequenceCount = 0
 

@@ -2,11 +2,10 @@ _ = require 'underscore-plus'
 path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
-{calculateSpecificity} = require 'clear-cut'
+{calculateSpecificity, validateSelector} = require 'clear-cut'
 {Disposable} = require 'event-kit'
 Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
-{validateSelector} = require './selector-validator'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 
