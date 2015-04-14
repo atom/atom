@@ -328,7 +328,7 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
-  # Public: Opens multiple paths, in existing windows if possible.
+  # Public: Opens a single path, in an existing window if possible.
   #
   # options -
   #   :pathToOpen - The file path to open
@@ -341,7 +341,7 @@ class AtomApplication
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, apiPreviewMode, window}) ->
     @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, apiPreviewMode, window})
 
-  # Public: Opens a single path, in an existing window if possible.
+  # Public: Opens multiple paths, in existing windows if possible.
   #
   # options -
   #   :pathsToOpen - The array of file paths to open
