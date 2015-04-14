@@ -9,7 +9,6 @@ MenuHelpers = require './menu-helpers'
 {validateSelector} = require './selector-validator'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
-SpecificityCache = {}
 
 # Extended: Provides a registry for commands that you'd like to appear in the
 # context menu.
@@ -208,4 +207,4 @@ class ContextMenuManager
 
 class ContextMenuItemSet
   constructor: (@selector, @items) ->
-    @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
+    @specificity = specificity(@selector)

@@ -5,7 +5,6 @@ _ = require 'underscore-plus'
 {validateSelector} = require './selector-validator'
 
 SequenceCount = 0
-SpecificityCache = {}
 
 # Public: Associates listener functions with commands in a
 # context-sensitive way using CSS selectors. You can access a global instance of
@@ -241,7 +240,7 @@ class CommandRegistry
 
 class SelectorBasedListener
   constructor: (@selector, @callback) ->
-    @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
+    @specificity = specificity(@selector)
     @sequenceNumber = SequenceCount++
 
   compare: (other) ->
