@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
-{specificity} = require 'clear-cut'
+{calculateSpecificity} = require 'clear-cut'
 {Disposable} = require 'event-kit'
 Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
@@ -207,4 +207,4 @@ class ContextMenuManager
 
 class ContextMenuItemSet
   constructor: (@selector, @items) ->
-    @specificity = specificity(@selector)
+    @specificity = calculateSpecificity(@selector)

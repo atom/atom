@@ -1,5 +1,5 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-{specificity} = require 'clear-cut'
+{calculateSpecificity} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
 {validateSelector} = require './selector-validator'
@@ -240,7 +240,7 @@ class CommandRegistry
 
 class SelectorBasedListener
   constructor: (@selector, @callback) ->
-    @specificity = specificity(@selector)
+    @specificity = calculateSpecificity(@selector)
     @sequenceNumber = SequenceCount++
 
   compare: (other) ->
