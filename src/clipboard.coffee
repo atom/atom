@@ -1,5 +1,5 @@
 crypto = require 'crypto'
-clipboard = require "./native-clipboard"
+clipboard = require "./safe-clipboard"
 
 # Extended: Represents the clipboard used for copying and pasting in Atom.
 #
