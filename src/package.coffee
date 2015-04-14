@@ -371,7 +371,12 @@ class Package
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
-    @loadStylesheets()
+
+    try
+      @loadStylesheets()
+    catch error
+      @handleError("Failed to reload the #{@name} package stylesheets", error)
+
     @stylesheetDisposables?.dispose()
     @stylesheetDisposables = new CompositeDisposable
     @stylesheetsActivated = false
