@@ -44,3 +44,6 @@ class ScopeDescriptor
         scope = ".#{scope}" unless scope[0] is '.'
         scope
       .join(' ')
+
+  toString: ->
+    @getScopeChain()
