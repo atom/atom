@@ -71,6 +71,8 @@ class PaneElement extends HTMLElement
     hasFocus = @hasFocus()
     itemView = atom.views.getView(item)
 
+    if item.getPath? then $(itemView).addClass('has-file-path')
+
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
       callAttachHooks(itemView)

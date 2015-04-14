@@ -118,6 +118,11 @@ describe "PaneView", ->
         paneModel.activateItem(view2)
         expect(pane.itemViews.find('#view-2').length).toBe 1
 
+    describe "when the active item implements ::getPath", ->
+      fit "adds .has-file-path to the active item element", ->
+        paneModel.activateItem(editor1)
+        expect(pane.itemViews.find('atom-text-editor')).toHaveClass('has-file-path')
+
   describe "when an item is destroyed", ->
     it "triggers the 'pane:item-removed' event with the item and its former index", ->
       itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
