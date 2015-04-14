@@ -119,7 +119,7 @@ describe "PaneView", ->
         expect(pane.itemViews.find('#view-2').length).toBe 1
 
     describe "when the active item implements ::getPath", ->
-      fit "adds .has-file-path to the active item element", ->
+      it "adds .has-file-path to the active item element", ->
         paneModel.activateItem(editor1)
         expect(pane.itemViews.find('atom-text-editor')).toHaveClass('has-file-path')
 
