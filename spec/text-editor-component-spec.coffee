@@ -1340,7 +1340,8 @@ describe "TextEditorComponent", ->
       afterEach ->
         atom.restoreWindowDimensions()
 
-      it "slides horizontally left when near the right edge", ->
+      # This spec should actually run on Linux as well, see TextEditorComponent#measureWindowSize for further information.
+      it "slides horizontally left when near the right edge on #win32 and #darwin", ->
         marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
@@ -1352,18 +1353,17 @@ describe "TextEditorComponent", ->
         expect(overlay.style.left).toBe position.left + gutterWidth + 'px'
         expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-        if process.platform isnt "linux" # see TextEditorComponent#measureWindowSize
-          editor.insertText('a')
-          nextAnimationFrame()
+        editor.insertText('a')
+        nextAnimationFrame()
 
-          expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
-          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+        expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
-          editor.insertText('b')
-          nextAnimationFrame()
+        editor.insertText('b')
+        nextAnimationFrame()
 
-          expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
-          expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
+        expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
+        expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
   describe "hidden input field", ->
     it "renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused", ->
