@@ -69,7 +69,9 @@ setupCrashReporter = ->
 setupAtomHome = ->
   return if process.env.ATOM_HOME
 
-  atomHome = path.join(app.getHomeDir(), '.atom')
+  atomHome = path.join(path.dirname(process.execPath), '.atom')
+  if not fs.existsSync(atomHome)
+    atomHome = path.join(app.getHomeDir(), '.atom')
   try
     atomHome = fs.realpathSync(atomHome)
   process.env.ATOM_HOME = atomHome
