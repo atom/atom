@@ -26,7 +26,10 @@ class ThemePackage extends Package
 
     @activationDeferred = Q.defer()
     @measure 'activateTime', =>
-      @loadStylesheets()
-      @activateNow()
+      try
+        @loadStylesheets()
+        @activateNow()
+      catch error
+        @handleError("Failed to activate the #{@name} theme", error)
 
     @activationDeferred.promise
