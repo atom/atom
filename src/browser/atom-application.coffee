@@ -43,7 +43,6 @@ class AtomApplication
       createAtomApplication()
       return
 
-
     client = net.connect {path: options.socketPath}, ->
       client.write JSON.stringify(options), ->
         client.end()
@@ -79,9 +78,11 @@ class AtomApplication
     @setupJavaScriptArguments()
     @handleEvents()
 
-    @openWithOptions(options)
+    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
+      @openWithOptions(options)
+    else
+      @loadState() or @openPath(options)
 
-  # Opens a new window based on the options provided.
   openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, apiPreviewMode, newWindow, specDirectory, logFile}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
@@ -197,6 +198,9 @@ class AtomApplication
 
     app.on 'window-all-closed', ->
       app.quit() if process.platform in ['win32', 'linux']
+
+    app.on 'before-quit', =>
+      @saveState()
 
     app.on 'will-quit', =>
       @killAllProcesses()
@@ -410,6 +414,41 @@ class AtomApplication
       if error.code isnt 'ESRCH'
         console.log("Killing process #{pid} failed: #{error.code ? error.message}")
     delete @pidsToOpenWindows[pid]
+
+  saveState: ->
+    states = []
+    for window in @windows
+      if loadSettings = window.getLoadSettings()
+        states.push(_.pick(loadSettings,
+          'initialPaths'
+          'isSpec'
+          'devMode'
+          'safeMode'
+          'apiPreviewMode'
+        ))
+    fs.writeFileSync(@getStatePath(), JSON.stringify(states))
+
+  loadState: ->
+    try
+      stateString = fs.readFileSync(@getStatePath(), 'utf8')
+    catch error
+      if error.code is 'ENOENT'
+        return false
+      else
+        throw error
+
+    states = JSON.parse(fs.readFileSync(@getStatePath()))
+    for state in states
+      @openWithOptions({
+        pathsToOpen: state.initialPaths
+        urlsToOpen: []
+        devMode: state.devMode
+        safeMode: state.safeMode
+        apiPreviewMode: state.apiPreviewMode
+      })
+
+  getStatePath: ->
+    path.join(process.env.ATOM_HOME, "storage", "application.json")
 
   # Open an atom:// url.
   #

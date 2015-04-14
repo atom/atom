@@ -101,36 +101,61 @@ describe "Starting Atom", ->
           .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
 
   describe "when there is an existing window with no project path", ->
-    describe "opening a directory", ->
-      it "opens the directory in the existing window", ->
-        runAtom [], {ATOM_HOME: atomHome}, (client) ->
-          client
-            .waitForExist("atom-workspace")
+    it "reuses that window to open a directory", ->
+      runAtom [], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .treeViewRootDirectories()
+          .then ({value}) -> expect(value).toEqual([])
+
+          .startAnotherAtom([tempDirPath], ATOM_HOME: atomHome)
+          .waitUntil(->
+            @treeViewRootDirectories()
+            .then ({value}) -> value[0] is tempDirPath
+          , 5000)
+          .then (result) -> expect(result).toBe(true)
+          .waitForWindowCount(1, 5000)
+
+  describe "launching with no path", ->
+    it "opens a new window with a single untitled buffer", ->
+      runAtom [], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)
+
+          # Opening with no file paths always creates a new window, even if
+          # existing windows have no project paths.
+          .waitForNewWindow(->
+            @startAnotherAtom([], ATOM_HOME: atomHome)
+          , 5000)
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(1, 5000)
+
+    it "reopens any previously opened windows", ->
+      runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForNewWindow(->
+            @startAnotherAtom([otherTempDirPath], ATOM_HOME: atomHome)
+          , 5000)
+          .waitForExist("atom-workspace")
+
+      runAtom [], {ATOM_HOME: atomHome}, (client) ->
+        windowProjectPaths = []
+
+        client
+          .waitForWindowCount(2, 10000)
+          .then ({value: windowHandles}) ->
+            @window(windowHandles[0])
             .treeViewRootDirectories()
-            .then ({value}) -> expect(value).toEqual([])
+            .then ({value: directories}) -> windowProjectPaths.push(directories)
 
-            .startAnotherAtom([tempDirPath], ATOM_HOME: atomHome)
-            .waitUntil(->
-              @treeViewRootDirectories()
-              .then ({value}) -> value[0] is tempDirPath
-            , 5000)
-            .then (result) -> expect(result).toBe(true)
-            .waitForWindowCount(1, 5000)
+            .window(windowHandles[1])
+            .treeViewRootDirectories()
+            .then ({value: directories}) -> windowProjectPaths.push(directories)
 
-    describe "launching with no path", ->
-      it "always opens a new window with a single untitled buffer", ->
-        runAtom [], {ATOM_HOME: atomHome}, (client) ->
-          client
-            .waitForExist("atom-workspace")
-            .waitForPaneItemCount(1, 5000)
-
-        runAtom [], {ATOM_HOME: atomHome}, (client) ->
-          client
-            .waitForExist("atom-workspace")
-            .waitForPaneItemCount(1, 5000)
-
-            # Opening with no file paths always creates a new window, even if
-            # existing windows have no project paths.
-            .waitForNewWindow(->
-              @startAnotherAtom([], ATOM_HOME: atomHome)
-            , 5000)
+            .call ->
+              expect(windowProjectPaths.sort()).toEqual [
+                [tempDirPath]
+                [otherTempDirPath]
+              ].sort()
