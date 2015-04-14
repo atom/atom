@@ -36,6 +36,7 @@ describe "Starting Atom", ->
           .keys("Hello!")
           .execute -> atom.workspace.getActiveTextEditor().getText()
           .then ({value}) -> expect(value).toBe "Hello!"
+          .dispatchCommand("editor:delete-line")
 
   describe "when there is already a window open", ->
     it "reuses that window when opening files, but not when opening directories", ->
@@ -75,7 +76,6 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(0, 3000)
           .execute -> atom.workspace.open()
           .waitForPaneItemCount(1, 3000)
-          .execute -> atom.unloadEditorWindow()
 
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
