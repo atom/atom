@@ -2,7 +2,7 @@ PaneContainer = require '../src/pane-container'
 PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
-fdescribe "PaneResizeHandleElement", ->
+describe "PaneResizeHandleElement", ->
   describe "as children of PaneAxisElement", ->
     [paneAxisElement, paneAxis] = []
 
