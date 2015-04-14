@@ -7,7 +7,7 @@ path = require 'path'
 temp = require 'temp'
 
 describe "PaneView", ->
-  [container, containerModel, view1, view2, editor1, editor2, image, archive, pane, paneModel, deserializerDisposable] = []
+  [container, containerModel, view1, view2, editor1, editor2, pane, paneModel, deserializerDisposable] = []
 
   class TestView extends View
     @deserialize: ({id, text}) -> new TestView({id, text})
@@ -37,16 +37,10 @@ describe "PaneView", ->
     waitsForPromise ->
       atom.workspace.open('sample.txt').then (o) -> editor2 = o
 
-    waitsForPromise ->
-      atom.workspace.open('sample.png').then (o) -> image = o
-
-    waitsForPromise ->
-      atom.workspace.open('sample.zip').then (o) -> archive = o
-
     runs ->
       pane = container.getRoot()
       paneModel = pane.getModel()
-      paneModel.addItems([view1, editor1, view2, editor2, image, archive])
+      paneModel.addItems([view1, editor1, view2, editor2])
 
   afterEach ->
     deserializerDisposable.dispose()
@@ -124,14 +118,10 @@ describe "PaneView", ->
         paneModel.activateItem(view2)
         expect(pane.itemViews.find('#view-2').length).toBe 1
 
-    describe "when the new activeItem implements ::getPath", ->
+    describe "when the active item implements ::getPath", ->
       fit "adds .has-file-path to the active item element", ->
         paneModel.activateItem(editor1)
         expect(pane.itemViews.find('atom-text-editor')).toHaveClass('has-file-path')
-        paneModel.activateItem(image)
-        expect(pane.itemViews.find('.image-view')).toHaveClass('has-file-path')
-        paneModel.activateItem(archive)
-        expect(pane.itemViews.find('.archive-editor')).toHaveClass('has-file-path')
 
   describe "when an item is destroyed", ->
     it "triggers the 'pane:item-removed' event with the item and its former index", ->
