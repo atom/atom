@@ -419,13 +419,13 @@ class AtomApplication
     states = []
     for window in @windows
       if loadSettings = window.getLoadSettings()
-        states.push(_.pick(loadSettings,
-          'initialPaths'
-          'isSpec'
-          'devMode'
-          'safeMode'
-          'apiPreviewMode'
-        ))
+        unless loadSettings.isSpec
+          states.push(_.pick(loadSettings,
+            'initialPaths'
+            'devMode'
+            'safeMode'
+            'apiPreviewMode'
+          ))
     fs.writeFileSync(@getStatePath(), JSON.stringify(states))
 
   loadState: ->
