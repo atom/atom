@@ -98,13 +98,13 @@ fdescribe "PaneResizeHandleElement", ->
 
     it "drag the horizontal element, the size of other vertical pane will not change", ->
       upperPane = container.getActivePane()
-      downPane = upperPane.splitDown()
+      lowerPane = upperPane.splitDown()
 
       [upperRightPane, upperLeftPane] = [upperPane.splitRight(), upperPane]
       upperPane = upperLeftPane.getParent()
 
-      [downRightPane, downLeftPane] = [downPane.splitRight(), downPane]
-      downPane = downLeftPane.getParent()
+      [lowerRightPane, lowerLeftPane] = [lowerPane.splitRight(), lowerPane]
+      lowerPane = lowerLeftPane.getParent()
 
       horizontalResizeElements = containerElement.querySelectorAll('atom-pane-resize-handle.horizontal')
       expect(horizontalResizeElements.length).toBe(2)
@@ -112,11 +112,11 @@ fdescribe "PaneResizeHandleElement", ->
       expectCloseTo = (element, scale) ->
         expect(element.getFlexScale()).toBeCloseTo(scale, 0.1)
 
-      expectPaneScale = (upper, down, upperLeft, upperRight, downLeft, downRight) ->
+      expectPaneScale = (upper, lower, upperLeft, upperRight, lowerLeft, lowerRight) ->
         paneScales = [
-          [upperPane, upper], [downPane, down], [upperLeftPane, upperLeft],
-          [upperRightPane, upperRight], [downLeftPane, downLeft],
-          [downRightPane, downRight]
+          [upperPane, upper], [lowerPane, lower], [upperLeftPane, upperLeft],
+          [upperRightPane, upperRight], [lowerLeftPane, lowerLeft],
+          [lowerRightPane, lowerRight]
         ]
         expectCloseTo(e[0], e[1]) for e in paneScales
 
@@ -156,11 +156,11 @@ fdescribe "PaneResizeHandleElement", ->
       resizeElementMove(resizeElement, getElementWidth(resizeElement.previousSibling) / 2)
       expect(leftPane.getFlexScale()).toBeCloseTo(0.5, 0.1)
 
-      downPane = leftPane.splitDown()   # dynamically split pane, pane's flexScale will become to 1
+      lowerPane = leftPane.splitDown()   # dynamically split pane, pane's flexScale will become to 1
       expect(leftPane.getFlexScale()).toBeCloseTo(1, 0.1)
       expect(leftPane.getParent().getFlexScale()).toBeCloseTo(0.5, 0.1)
 
-      downPane.close() # dynamically close pane, the pane's flexscale will recorver to origin value
+      lowerPane.close() # dynamically close pane, the pane's flexscale will recorver to origin value
       expect(leftPane.getFlexScale()).toBeCloseTo(0.5, 0.1)
 
 
