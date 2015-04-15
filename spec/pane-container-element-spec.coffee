@@ -40,7 +40,7 @@ describe "PaneResizeHandleElement", ->
 
     beforeEach ->
       container = new PaneContainer
-      containerElement = atom.views.getView(container);
+      containerElement = atom.views.getView(container)
       document.querySelector('#jasmine-content').appendChild(containerElement)
 
       resizeElementMove = (resizeElement, clientX, clientY) ->
@@ -106,5 +106,3 @@ describe "PaneResizeHandleElement", ->
       # dynamically close pane, the pane's flexscale will recorver to origin value
       lowerPane.close()
       expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
-
-
