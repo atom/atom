@@ -226,7 +226,7 @@ module.exports = (grunt) ->
   ciTasks.push('set-version', 'check-licenses', 'lint')
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('create-windows-installer') if process.platform is 'win32'
-  ciTasks.push('test') if process.platform in ['darwin', 'linux']
+  ciTasks.push('test') if process.platform is 'darwin'
   ciTasks.push('codesign') unless process.env.TRAVIS
   ciTasks.push('publish-build') unless process.env.TRAVIS
   grunt.registerTask('ci', ciTasks)
