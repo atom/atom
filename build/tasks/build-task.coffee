@@ -22,7 +22,7 @@ module.exports = (grunt) ->
     mkdir appDir
 
     if process.platform isnt 'win32'
-      cp 'atom.sh', path.join(appDir, 'atom.sh')
+      cp 'atom.sh', path.resolve(appDir, '..', 'new-app', 'atom.sh')
 
     cp 'package.json', path.join(appDir, 'package.json')
 
@@ -65,6 +65,7 @@ module.exports = (grunt) ->
       path.join('jasmine-node', 'node_modules', 'gaze')
       path.join('jasmine-node', 'spec')
       path.join('node_modules', 'nan')
+      path.join('node_modules', 'native-mate')
       path.join('build', 'binding.Makefile')
       path.join('build', 'config.gypi')
       path.join('build', 'gyp-mac-tool')
@@ -147,9 +148,9 @@ module.exports = (grunt) ->
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
 
-    cp path.join('apm', 'node_modules', 'atom-package-manager'), path.join(appDir, 'apm'), filter: filterNodeModule
+    cp path.join('apm', 'node_modules', 'atom-package-manager'), path.resolve(appDir, '..', 'new-app', 'apm'), filter: filterNodeModule
     if process.platform isnt 'win32'
-      fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(appDir, 'apm', 'node_modules', '.bin', 'apm'))
+      fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.resolve(appDir, '..', 'new-app', 'apm', 'node_modules', '.bin', 'apm'))
 
     if process.platform is 'darwin'
       grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->

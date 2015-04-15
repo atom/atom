@@ -1,6 +1,4 @@
 path = require 'path'
-_ = require 'underscore-plus'
-async = require 'async'
 fs = require 'fs-plus'
 runas = null # defer until used
 
@@ -36,12 +34,11 @@ module.exports =
         message: "Failed to install shell commands"
         detailedMessage: error.message
 
-    resourcePath = atom.getLoadSettings().resourcePath
-    @installAtomCommand resourcePath, true, (error) =>
+    @installAtomCommand true, (error) =>
       if error?
         showErrorDialog(error)
       else
-        @installApmCommand resourcePath, true, (error) ->
+        @installApmCommand true, (error) ->
           if error?
             showErrorDialog(error)
           else
@@ -49,12 +46,12 @@ module.exports =
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
-  installAtomCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'atom.sh')
+  installAtomCommand: (askForPrivilege, callback) ->
+    commandPath = path.join(process.resourcesPath, 'app', 'atom.sh')
     @createSymlink commandPath, askForPrivilege, callback
 
-  installApmCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
+  installApmCommand: (askForPrivilege, callback) ->
+    commandPath = path.join(process.resourcesPath, 'app', 'apm', 'node_modules', '.bin', 'apm')
     @createSymlink commandPath, askForPrivilege, callback
 
   createSymlink: (commandPath, askForPrivilege, callback) ->
