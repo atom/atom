@@ -28,6 +28,12 @@ describe "PackageManager", ->
       expect(pack.metadata.name).toBe "package-with-invalid-styles"
       expect(pack.stylesheets.length).toBe 0
 
+      addErrorHandler = jasmine.createSpy()
+      atom.notifications.onDidAddNotification(addErrorHandler)
+      expect(-> pack.reloadStylesheets()).not.toThrow()
+      expect(addErrorHandler.callCount).toBe 2
+      expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to reload the package-with-invalid-styles package stylesheets")
+
     it "returns null if the package has an invalid package.json", ->
       addErrorHandler = jasmine.createSpy()
       atom.notifications.onDidAddNotification(addErrorHandler)
