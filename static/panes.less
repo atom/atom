@@ -11,12 +11,26 @@ atom-pane-container {
     display: -webkit-flex;
     -webkit-flex: 1;
     -webkit-flex-direction: column;
+
+    & > div.pane-resize-handle {
+      height: 8px;
+      z-index: 3;
+      cursor: ns-resize;
+      border-bottom: none;
+    }
   }
 
   atom-pane-axis.horizontal {
     display: -webkit-flex;
     -webkit-flex: 1;
     -webkit-flex-direction: row;
+
+    & > div.pane-resize-handle {
+      width: 8px;
+      z-index: 3;
+      cursor: ew-resize;
+      border-right: none;
+    }
   }
 
   atom-pane {
