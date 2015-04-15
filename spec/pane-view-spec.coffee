@@ -119,9 +119,12 @@ describe "PaneView", ->
         expect(pane.itemViews.find('#view-2').length).toBe 1
 
     describe "when the new activeItem implements ::getPath", ->
-      it "adds .has-file-path to the active item element", ->
+      it "adds its file path to the active pane", ->
         paneModel.activateItem(editor1)
-        expect(pane.itemViews.find('atom-text-editor')).toHaveClass('has-file-path')
+        expect(pane).toHaveAttr('data-active-path')
+      it "adds its file name to the active pane", ->
+        paneModel.activateItem(editor1)
+        expect(pane).toHaveAttr('data-active-name')
 
   describe "when an item is destroyed", ->
     it "triggers the 'pane:item-removed' event with the item and its former index", ->

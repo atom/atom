@@ -71,7 +71,13 @@ class PaneElement extends HTMLElement
     hasFocus = @hasFocus()
     itemView = atom.views.getView(item)
 
-    itemView.classList.add('has-file-path') if item.getPath?
+    if itemPath = item.getPath?()
+      path = require 'path'
+      @dataset.activeName = path.basename(itemPath)
+      @dataset.activePath = itemPath
+    else
+      delete @dataset.activeName
+      delete @dataset.activePath
 
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
