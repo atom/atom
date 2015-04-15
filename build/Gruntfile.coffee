@@ -227,8 +227,8 @@ module.exports = (grunt) ->
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('create-windows-installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform in ['darwin', 'linux']
-  ciTasks.push('codesign')
-  ciTasks.push('publish-build')
+  ciTasks.push('codesign') unless process.env.TRAVIS
+  ciTasks.push('publish-build') unless process.env.TRAVIS
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-atom-shell', 'download-atom-shell-chromedriver', 'build', 'set-version']
