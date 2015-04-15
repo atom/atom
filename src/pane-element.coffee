@@ -64,6 +64,8 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
+    @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
+
     @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
