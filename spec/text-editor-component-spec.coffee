@@ -1340,7 +1340,8 @@ describe "TextEditorComponent", ->
       afterEach ->
         atom.restoreWindowDimensions()
 
-      it "slides horizontally left when near the right edge", ->
+      # This spec should actually run on Linux as well, see TextEditorComponent#measureWindowSize for further information.
+      it "slides horizontally left when near the right edge on #win32 and #darwin", ->
         marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
@@ -2444,7 +2445,7 @@ describe "TextEditorComponent", ->
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
-        component.setFontFamily('sans-serif')
+        component.setFontFamily('serif')
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
         wrapperView.show()
@@ -2453,7 +2454,7 @@ describe "TextEditorComponent", ->
       it "does not re-measure character widths until the editor is shown again", ->
         wrapperView.hide()
 
-        component.setFontFamily('sans-serif')
+        component.setFontFamily('serif')
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
@@ -2815,7 +2816,7 @@ describe "TextEditorComponent", ->
       clipboardWrittenTo = false
       spyOn(require('ipc'), 'send').andCallFake (eventName, selectedText) ->
         if eventName is 'write-text-to-selection-clipboard'
-          require('clipboard').writeText(selectedText, 'selection')
+          require('../src/safe-clipboard').writeText(selectedText, 'selection')
           clipboardWrittenTo = true
 
       atom.clipboard.write('')
