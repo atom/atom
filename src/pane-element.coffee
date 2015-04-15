@@ -1,3 +1,4 @@
+path = require 'path'
 {CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 {$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
@@ -72,7 +73,6 @@ class PaneElement extends HTMLElement
     itemView = atom.views.getView(item)
 
     if itemPath = item.getPath?()
-      path = require 'path'
       @dataset.activeItemName = path.basename(itemPath)
       @dataset.activeItemPath = itemPath
     else
