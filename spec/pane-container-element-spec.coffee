@@ -3,7 +3,7 @@ PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
 describe "PaneResizeHandleElement", ->
-  describe "when add or remove panes in PaneAxisElement", ->
+  describe "when panes are added or removed in PaneAxisElement", ->
     [paneAxisElement, paneAxis] = []
 
     beforeEach ->
@@ -12,7 +12,7 @@ describe "PaneResizeHandleElement", ->
       paneAxisElement.initialize(paneAxis)
       document.querySelector('#jasmine-content').appendChild(paneAxisElement)
 
-    it "inserts or remove resize elements", ->
+    it "inserts or removes resize elements", ->
       expectPaneAxisElement = (index) ->
         child = paneAxisElement.children[index]
         expect(child.nodeName.toLowerCase()).toBe('atom-pane-axis')
@@ -34,7 +34,7 @@ describe "PaneResizeHandleElement", ->
       paneAxis.removeChild(models[2])
       expectResizeElement(i) for i in [1]
 
-  describe "when user drag the resize element", ->
+  describe "when the resize element is dragged ", ->
     [container, containerElement] = []
     [resizeElementMove, getElementWidth, expectPaneScale] = []
 
@@ -65,7 +65,7 @@ describe "PaneResizeHandleElement", ->
         for paneScale in args
           expect(paneScale[0].getFlexScale()).toBeCloseTo(paneScale[1], 0.1)
 
-    it "add and remove panes in the same direction", ->
+    it "adds and removes panes in the direction that the pane is being dragged", ->
       leftPane = container.getActivePane()
       middlePane = leftPane.splitRight()
 
@@ -92,7 +92,7 @@ describe "PaneResizeHandleElement", ->
       leftPane.close()
       expectPaneScale [rightPane, 1]
 
-    it "split or close panes in orthogonal direction", ->
+    it "splits or closes panes in orthogonal direction that the pane is being dragged", ->
       leftPane = container.getActivePane()
       rightPane = leftPane.splitRight()
 
