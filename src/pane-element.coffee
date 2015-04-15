@@ -39,7 +39,7 @@ class PaneElement extends HTMLElement
     handleBlur = (event) =>
       @model.blur() unless @contains(event.relatedTarget)
 
-    handleDragOver = (event) =>
+    handleDragOver = (event) ->
       event.preventDefault()
       event.stopPropagation()
 

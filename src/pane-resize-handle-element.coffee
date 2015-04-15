@@ -17,7 +17,7 @@ class PaneResizeHandleElement extends HTMLElement
     @previousSibling.model.setFlexScale(1)
     @nextSibling.model.setFlexScale(1)
 
-  resizeStarted: (e)->
+  resizeStarted: (e) ->
     e.stopPropagation()
     document.addEventListener 'mousemove', @resizePane
     document.addEventListener 'mouseup', @resizeStopped
