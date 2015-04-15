@@ -696,7 +696,10 @@ describe "Pane", ->
     pane = null
 
     beforeEach ->
-      pane = new Pane(items: [new Item("A", "a"), new Item("B", "b"), new Item("C", "c")])
+      params =
+        items: [new Item("A", "a"), new Item("B", "b"), new Item("C", "c")]
+        flexScale: 2
+      pane = new Pane(params)
 
     it "can serialize and deserialize the pane and all its items", ->
       newPane = pane.testSerialization()

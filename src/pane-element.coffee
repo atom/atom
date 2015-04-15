@@ -39,8 +39,21 @@ class PaneElement extends HTMLElement
     handleBlur = (event) =>
       @model.blur() unless @contains(event.relatedTarget)
 
+    handleDragOver = (event) =>
+      event.preventDefault()
+      event.stopPropagation()
+
+    handleDrop = (event) =>
+      event.preventDefault()
+      event.stopPropagation()
+      @getModel().activate()
+      pathsToOpen = Array::map.call event.dataTransfer.files, (file) -> file.path
+      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+
     @addEventListener 'focus', handleFocus, true
     @addEventListener 'blur', handleBlur, true
+    @addEventListener 'dragover', handleDragOver
+    @addEventListener 'drop', handleDrop
 
   createSpacePenShim: ->
     PaneView ?= require './pane-view'
@@ -52,6 +65,8 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
+    @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
+
     @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
@@ -111,6 +126,9 @@ class PaneElement extends HTMLElement
 
   paneDestroyed: ->
     @subscriptions.dispose()
+
+  flexScaleChanged: (flexScale) ->
+    @style.flexGrow = flexScale
 
   getActiveView: -> atom.views.getView(@model.getActiveItem())
 
