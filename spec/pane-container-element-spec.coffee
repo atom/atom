@@ -2,88 +2,108 @@ PaneContainer = require '../src/pane-container'
 PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
-describe "PaneResizeHandleElement", ->
-  describe "when panes are added or removed in PaneAxisElement", ->
+describe "PaneContainerElement", ->
+  describe "when panes are added or removed", ->
     [paneAxisElement, paneAxis] = []
 
     beforeEach ->
-      paneAxisElement = document.createElement('atom-pane-axis')
-      paneAxis = new PaneAxis({})
-      paneAxisElement.initialize(paneAxis)
-      document.querySelector('#jasmine-content').appendChild(paneAxisElement)
+      paneAxis = new PaneAxis
+      paneAxisElement = new PaneAxisElement().initialize(paneAxis)
+
+    childTagNames = ->
+      child.nodeName.toLowerCase() for child in paneAxisElement.children
 
     it "inserts or removes resize elements", ->
-      expectPaneAxisElement = (index) ->
-        child = paneAxisElement.children[index]
-        expect(child.nodeName.toLowerCase()).toBe('atom-pane-axis')
+      expect(childTagNames()).toEqual []
 
-      expectResizeElement = (index) ->
-        child = paneAxisElement.children[index]
-        expect(paneAxisElement.isPaneResizeHandleElement(child)).toBe(true)
+      paneAxis.addChild(new PaneAxis)
+      expect(childTagNames()).toEqual [
+        'atom-pane-axis'
+      ]
 
-      models = (new PaneAxis({}) for i in [0..2])
-      paneAxis.addChild(models[0])
-      paneAxis.addChild(models[1])
-      expectResizeElement(1)
+      paneAxis.addChild(new PaneAxis)
+      expect(childTagNames()).toEqual [
+        'atom-pane-axis'
+        'atom-pane-resize-handle'
+        'atom-pane-axis'
+      ]
 
-      paneAxis.addChild(models[2])
-      expectPaneAxisElement(i) for i in [0, 2, 4]
-      expectResizeElement(i) for i in [1, 3]
+      paneAxis.addChild(new PaneAxis)
+      expect(childTagNames()).toEqual [
+        'atom-pane-axis'
+        'atom-pane-resize-handle'
+        'atom-pane-axis'
+        'atom-pane-resize-handle'
+        'atom-pane-axis'
+      ]
 
-      # test removeChild
-      paneAxis.removeChild(models[2])
-      expectResizeElement(i) for i in [1]
+      paneAxis.removeChild(paneAxis.getChildren()[2])
+      expect(childTagNames()).toEqual [
+        'atom-pane-axis'
+        'atom-pane-resize-handle'
+        'atom-pane-axis'
+      ]
 
   describe "when the resize element is dragged ", ->
     [container, containerElement] = []
-    [resizeElementMove, getElementWidth, expectPaneScale] = []
 
     beforeEach ->
       container = new PaneContainer
       containerElement = atom.views.getView(container)
       document.querySelector('#jasmine-content').appendChild(containerElement)
 
-      resizeElementMove = (resizeElement, clientX, clientY) ->
-        mouseDownEvent = new MouseEvent 'mousedown',
-          { view: window, bubbles: true, button: 0 }
-        resizeElement.dispatchEvent(mouseDownEvent)
+    dragElementToPosition = (element, clientX) ->
+      element.dispatchEvent(new MouseEvent('mousedown',
+        view: window
+        bubbles: true
+        button: 0
+      ))
 
-        mouseMoveEvent = new MouseEvent 'mousemove',
-          { view: window, bubbles: true, clientX: clientX, clientY: clientY}
-        resizeElement.dispatchEvent(mouseMoveEvent)
+      element.dispatchEvent(new MouseEvent 'mousemove',
+        view: window
+        bubbles: true
+        clientX: clientX
+      )
 
-        mouseUpEvent = new MouseEvent 'mouseup',
-          {view: window, bubbles: true, button: 0}
-        resizeElement.dispatchEvent(mouseUpEvent)
+      element.dispatchEvent(new MouseEvent 'mouseup',
+        iew: window
+        bubbles: true
+        button: 0
+      )
 
-      getElementWidth = (element) ->
-        element.getBoundingClientRect().width
+    getElementWidth = (element) ->
+      element.getBoundingClientRect().width
 
-      # assert the pane's flex scale. arguments is list of pane-scale pair
-      expectPaneScale = ->
-        args = Array::slice.call(arguments, 0)
-        for paneScale in args
-          expect(paneScale[0].getFlexScale()).toBeCloseTo(paneScale[1], 0.1)
+    expectPaneScale = (pairs...) ->
+      for [pane, expectedFlexScale] in pairs
+        expect(pane.getFlexScale()).toBeCloseTo(expectedFlexScale, 0.1)
+
+    getResizeElement = (i) ->
+      containerElement.querySelectorAll('atom-pane-resize-handle')[i]
+
+    getPaneElement = (i) ->
+      containerElement.querySelectorAll('atom-pane')[i]
 
     it "adds and removes panes in the direction that the pane is being dragged", ->
       leftPane = container.getActivePane()
+      expectPaneScale [leftPane, 1]
+
       middlePane = leftPane.splitRight()
+      expectPaneScale [leftPane, 1], [middlePane, 1]
 
-      [resizeElements, paneElements] = []
-      reloadElements = ->
-        resizeElements = containerElement.querySelectorAll('atom-pane-resize-handle')
-        paneElements = containerElement.querySelectorAll('atom-pane')
-      reloadElements()
-      expect(resizeElements.length).toBe(1)
-
-      resizeElementMove(resizeElements[0], getElementWidth(paneElements[0]) / 2)
+      dragElementToPosition(
+        getResizeElement(0),
+        getElementWidth(getPaneElement(0)) / 2
+      )
       expectPaneScale [leftPane, 0.5], [middlePane, 1.5]
 
-      # add a new pane
       rightPane = middlePane.splitRight()
-      reloadElements()
-      clientX = getElementWidth(paneElements[0]) + getElementWidth(paneElements[1]) / 2
-      resizeElementMove(resizeElements[1], clientX)
+      expectPaneScale [leftPane, 0.5], [middlePane, 1.5], [rightPane, 1]
+
+      dragElementToPosition(
+        getResizeElement(1),
+        getElementWidth(getPaneElement(0)) + getElementWidth(getPaneElement(1)) / 2
+      )
       expectPaneScale [leftPane, 0.5], [middlePane, 0.75], [rightPane, 1.75]
 
       middlePane.close()
@@ -94,10 +114,16 @@ describe "PaneResizeHandleElement", ->
 
     it "splits or closes panes in orthogonal direction that the pane is being dragged", ->
       leftPane = container.getActivePane()
-      rightPane = leftPane.splitRight()
+      expectPaneScale [leftPane, 1]
 
-      resizeElement = containerElement.querySelector('atom-pane-resize-handle')
-      resizeElementMove(resizeElement, getElementWidth(resizeElement.previousSibling) / 2)
+      rightPane = leftPane.splitRight()
+      expectPaneScale [leftPane, 1], [rightPane, 1]
+
+      dragElementToPosition(
+        getResizeElement(0),
+        getElementWidth(getPaneElement(0)) / 2
+      )
+      expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
 
       # dynamically split pane, pane's flexScale will become to 1
       lowerPane = leftPane.splitDown()

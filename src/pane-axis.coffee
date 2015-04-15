@@ -12,7 +12,7 @@ class PaneAxis extends Model
   container: null
   orientation: null
 
-  constructor: ({@container, @orientation, children, flexScale}) ->
+  constructor: ({@container, @orientation, children, flexScale}={}) ->
     @emitter = new Emitter
     @subscriptionsByChild = new WeakMap
     @subscriptions = new CompositeDisposable
