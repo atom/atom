@@ -71,6 +71,14 @@ class PaneElement extends HTMLElement
     hasFocus = @hasFocus()
     itemView = atom.views.getView(item)
 
+    if itemPath = item.getPath?()
+      path = require 'path'
+      @dataset.activeItemName = path.basename(itemPath)
+      @dataset.activeItemPath = itemPath
+    else
+      delete @dataset.activeItemName
+      delete @dataset.activeItemPath
+
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
       callAttachHooks(itemView)
