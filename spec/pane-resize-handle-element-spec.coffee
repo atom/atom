@@ -32,11 +32,11 @@ describe "PaneResizeHandleElement", ->
 
       # test removeChild
       paneAxis.removeChild(models[2])
-      expectResizeElement(i) for i in [1, 3]
+      expectResizeElement(i) for i in [1]
 
   describe "when user drag the resize element", ->
     [container, containerElement] = []
-    [resizeElementMove, getElementWidth, expectFlexScale] = []
+    [resizeElementMove, getElementWidth, expectPaneScale] = []
 
     beforeEach ->
       container = new PaneContainer
@@ -60,8 +60,8 @@ describe "PaneResizeHandleElement", ->
         element.getBoundingClientRect().width
 
       # assert the pane's flex scale. arguments is list of pane-scale pair
-      expectFlexScale = ->
-        args = Array::slice.apply(arguments, 0)
+      expectPaneScale = ->
+        args = Array::slice.call(arguments, 0)
         for paneScale in args
           expect(paneScale[0].getFlexScale()).toBeCloseTo(paneScale[1], 0.1)
 
@@ -69,14 +69,19 @@ describe "PaneResizeHandleElement", ->
       leftPane = container.getActivePane()
       middlePane = leftPane.splitRight()
 
-      resizeElements = containerElement.querySelectorAll('atom-pane-resize-handle')
-      paneElements = containerElement.querySelectorAll('atom-pane')
-      expect(resizeElements.length).toBe(2)
+      [resizeElements, paneElements] = []
+      reloadElements = ->
+        resizeElements = containerElement.querySelectorAll('atom-pane-resize-handle')
+        paneElements = containerElement.querySelectorAll('atom-pane')
+      reloadElements()
+      expect(resizeElements.length).toBe(1)
 
       resizeElementMove(resizeElements[0], getElementWidth(paneElements[0]) / 2)
       expectPaneScale [leftPane, 0.5], [middlePane, 1.5]
 
+      # add a new pane
       rightPane = middlePane.splitRight()
+      reloadElements()
       clientX = getElementWidth(paneElements[0]) + getElementWidth(paneElements[1]) / 2
       resizeElementMove(resizeElements[1], clientX)
       expectPaneScale [leftPane, 0.5], [middlePane, 0.75], [rightPane, 1.75]
