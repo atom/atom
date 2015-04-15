@@ -3,6 +3,7 @@ ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
 AutoUpdateManager = require './auto-update-manager'
 BrowserWindow = require 'browser-window'
+StorageFolder = require '../storage-folder'
 Menu = require 'menu'
 app = require 'app'
 fs = require 'fs-plus'
@@ -77,6 +78,7 @@ class AtomApplication
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
+    @storageFolder = new StorageFolder(process.env.ATOM_HOME)
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)
@@ -426,29 +428,18 @@ class AtomApplication
             'safeMode'
             'apiPreviewMode'
           ))
-    fs.writeFileSync(@getStatePath(), JSON.stringify(states))
+    @storageFolder.store('application.json', states)
 
   loadState: ->
-    try
-      stateString = fs.readFileSync(@getStatePath(), 'utf8')
-    catch error
-      if error.code is 'ENOENT'
-        return false
-      else
-        throw error
-
-    states = JSON.parse(fs.readFileSync(@getStatePath()))
-    for state in states
-      @openWithOptions({
-        pathsToOpen: state.initialPaths
-        urlsToOpen: []
-        devMode: state.devMode
-        safeMode: state.safeMode
-        apiPreviewMode: state.apiPreviewMode
-      })
-
-  getStatePath: ->
-    path.join(process.env.ATOM_HOME, "storage", "application.json")
+    if states = @storageFolder.load('application.json')
+      for state in states
+        @openWithOptions({
+          pathsToOpen: state.initialPaths
+          urlsToOpen: []
+          devMode: state.devMode
+          safeMode: state.safeMode
+          apiPreviewMode: state.apiPreviewMode
+        })
 
   # Open an atom:// url.
   #
