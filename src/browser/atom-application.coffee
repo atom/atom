@@ -431,7 +431,7 @@ class AtomApplication
     @storageFolder.store('application.json', states)
 
   loadState: ->
-    if states = @storageFolder.load('application.json')
+    if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions({
           pathsToOpen: state.initialPaths
@@ -440,6 +440,9 @@ class AtomApplication
           safeMode: state.safeMode
           apiPreviewMode: state.apiPreviewMode
         })
+      true
+    else
+      false
 
   # Open an atom:// url.
   #
