@@ -119,12 +119,21 @@ describe "PaneView", ->
         expect(pane.itemViews.find('#view-2').length).toBe 1
 
     describe "when the new activeItem implements ::getPath", ->
-      it "adds its file path to the active pane", ->
+      beforeEach ->
         paneModel.activateItem(editor1)
+      it "adds its file path to the active pane", ->
         expect(pane).toHaveAttr('data-active-path')
       it "adds its file name to the active pane", ->
-        paneModel.activateItem(editor1)
         expect(pane).toHaveAttr('data-active-name')
+
+    describe "when the new activeItem does not implement ::getPath", ->
+      beforeEach ->
+        paneModel.activateItem(editor1)
+        paneModel.activateItem(document.createElement('div'))
+      it "removes its file path from the active pane", ->
+        expect(pane).not.toHaveAttr('data-active-path')
+      it "removes its file name from the active pane", ->
+        expect(pane).not.toHaveAttr('data-active-name')
 
   describe "when an item is destroyed", ->
     it "triggers the 'pane:item-removed' event with the item and its former index", ->
