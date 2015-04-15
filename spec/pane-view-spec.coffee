@@ -360,3 +360,30 @@ describe "PaneView", ->
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')
+
+  describe "drag and drop", ->
+    buildDragEvent = (type, files) ->
+      dataTransfer =
+        files: files
+        data: {}
+        setData: (key, value) -> @data[key] = value
+        getData: (key) -> @data[key]
+
+      event = new CustomEvent("drop")
+      event.dataTransfer = dataTransfer
+      event
+
+    describe "when a file is dragged to window", ->
+      it "opens it", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
+        pane[0].dispatchEvent(event)
+        expect(atom.open.callCount).toBe 1
+        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
+
+    describe "when a non-file is dragged to window", ->
+      it "does nothing", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [])
+        pane[0].dispatchEvent(event)
+        expect(atom.open).not.toHaveBeenCalled()
