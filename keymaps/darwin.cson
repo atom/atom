@@ -18,7 +18,6 @@
   'ctrl-d': 'core:delete'
 
   # Atom Specific
-  'cmd-O': 'application:open-dev'
   'cmd-alt-ctrl-s': 'application:run-all-specs'
   'enter': 'core:confirm'
   'escape': 'core:cancel'
@@ -37,6 +36,7 @@
   'cmd-N': 'application:new-window'
   'cmd-W': 'window:close'
   'cmd-o': 'application:open'
+  'cmd-O': 'application:add-project-folder'
   'cmd-T': 'pane:reopen-closed-item'
   'cmd-n': 'application:new-file'
   'cmd-s': 'core:save'

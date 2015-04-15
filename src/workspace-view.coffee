@@ -222,7 +222,6 @@ class WorkspaceView extends View
     for editorElement in @panes.element.querySelectorAll('atom-pane > .item-views > atom-text-editor')
       $(editorElement).view()
 
-
   ###
   Section: Deprecated
   ###

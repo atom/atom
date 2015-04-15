@@ -33,6 +33,10 @@ class AutoUpdateManager
     else
       autoUpdater = require 'auto-updater'
 
+    autoUpdater.on 'error', (event, message) =>
+      @setState(ErrorState)
+      console.error "Error Downloading Update: #{message}"
+
     autoUpdater.setFeedUrl @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
@@ -43,10 +47,6 @@ class AutoUpdateManager
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
-
-    autoUpdater.on 'error', (event, message) =>
-      @setState(ErrorState)
-      console.error "Error Downloading Update: #{message}"
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
@@ -65,6 +65,7 @@ class AutoUpdateManager
     return unless @releaseVersion?
     for atomWindow in windows
       atomWindow.sendMessage('update-available', {@releaseVersion})
+    return
 
   setState: (state) ->
     return if @state is state

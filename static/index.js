@@ -34,6 +34,8 @@ window.onload = function() {
     ModuleCache.register(loadSettings);
     ModuleCache.add(loadSettings.resourcePath);
 
+    require('grim').includeDeprecatedAPIs = !loadSettings.apiPreviewMode;
+
     // Start the crash reporter before anything else.
     require('crash-reporter').start({
       productName: 'Atom',
@@ -47,6 +49,7 @@ window.onload = function() {
     setupCsonCache(cacheDir);
     setupSourceMapCache(cacheDir);
     setupBabel(cacheDir);
+    setupTypeScript(cacheDir);
 
     require(loadSettings.bootstrapScript);
     require('ipc').sendChannel('window-command', 'window:loaded');
@@ -93,6 +96,12 @@ var setupBabel = function(cacheDir) {
   var babel = require('../src/babel');
   babel.setCacheDirectory(path.join(cacheDir, 'js', 'babel'));
   babel.register();
+}
+
+var setupTypeScript = function(cacheDir) {
+  var typescript = require('../src/typescript');
+  typescript.setCacheDirectory(path.join(cacheDir, 'typescript'));
+  typescript.register();
 }
 
 var setupCsonCache = function(cacheDir) {

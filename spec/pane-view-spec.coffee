@@ -14,9 +14,9 @@ describe "PaneView", ->
     @content: ({id, text}) -> @div class: 'test-view', id: id, tabindex: -1, text
     initialize: ({@id, @text}) ->
       @emitter = new Emitter
-    serialize: -> { deserializer: 'TestView', @id, @text }
+    serialize: -> {deserializer: 'TestView', @id, @text}
     getURI: -> @id
-    isEqual: (other) -> other? and @id == other.id and @text == other.text
+    isEqual: (other) -> other? and @id is other.id and @text is other.text
     changeTitle: ->
       @emitter.emit 'did-change-title', 'title'
     onDidChangeTitle: (callback) ->
@@ -222,7 +222,7 @@ describe "PaneView", ->
         fs.removeSync(filePath)
 
       waitsFor ->
-        pane.items.length == 4
+        pane.items.length is 4
 
   describe "when a pane is destroyed", ->
     [pane2, pane2Model] = []

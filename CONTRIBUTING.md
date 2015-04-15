@@ -4,14 +4,15 @@
 
 The following is a set of guidelines for contributing to Atom and its packages,
 which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
-If you're unsure which package is causing your problem or if you're having an
-issue with Atom core, please open an issue on the [main atom repository](https://github.com/atom/atom/issues).
-These are just guidelines, not rules, use your best judgement and feel free to
+These are just guidelines, not rules, use your best judgment and feel free to
 propose changes to this document in a pull request.
 
 ## Submitting Issues
 
-* Check the [debugging guide](https://atom.io/docs/latest/debugging) for tips
+* You can create an issue [here](https://github.com/atom/atom/issues/new), but
+  before doing that please read the notes below on debugging and submitting issues,
+  and include as many details as possible with your report.
+* Check the [debugging guide](https://atom.io/docs/latest/hacking-atom-debugging) for tips
   on debugging. You might be able to find the cause of the problem and fix
   things yourself.
 * Include the version of Atom you are using and the OS.
@@ -24,7 +25,8 @@ propose changes to this document in a pull request.
   will be logged. If you can reproduce the error, use this approach to get the
   full stack trace and include it in the issue.
 * On Mac, check Console.app for stack traces to include if reporting a crash.
-* Perform a cursory search to see if a similar issue has already been submitted.
+* Perform a [cursory search](https://github.com/issues?q=+is%3Aissue+user%3Aatom)
+  to see if a similar issue has already been submitted.
 * Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
   to make yourself recognizable and so we can all get to know each other better.
 
@@ -38,8 +40,12 @@ many packages and themes that are stored in other repos under the
 [language-javascript](https://github.com/atom/language-javascript), and
 [atom-light-ui](https://github.com/atom/atom-light-ui).
 
+If your issue is related to a specific package, open an issue on that package's
+issue tracker. If you're unsure which package is causing your problem or if
+you're having an issue with Atom core, open an issue on this repository.
+
 For more information on how to work with Atom's official packages, see
-[Contributing to Atom Packages](https://atom.io/docs/latest/contributing-to-packages.html)
+[Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md)
 
 ## Pull Requests
 
@@ -48,7 +54,7 @@ For more information on how to work with Atom's official packages, see
   [JavaScript](https://github.com/styleguide/javascript),
   and [CSS](https://github.com/styleguide/css) styleguides.
 * Include thoughtfully-worded, well-structured
-  [Jasmine](http://jasmine.github.io/) specs.
+  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`. See the [Specs Styleguide](#specs-styleguide) below.
 * Document new code based on the
   [Documentation Styleguide](#documentation-styleguide)
 * End files with a newline.
@@ -60,7 +66,7 @@ For more information on how to work with Atom's official packages, see
     * Class methods and properties (methods starting with a `@`)
     * Instance methods and properties
 * Avoid platform-dependent code:
-    * Use `require('atom').fs.getHomeDirectory()` to get the home directory.
+    * Use `require('fs-plus').getHomeDirectory()` to get the home directory.
     * Use `path.join()` to concatenate filenames.
     * Use `os.tmpdir()` rather than `/tmp` when you need to reference the
       temporary directory.
@@ -104,6 +110,27 @@ For more information on how to work with Atom's official packages, see
   should be lower-case:
   * `getURI` instead of `getUri`
   * `uriToOpen` instead of `URIToOpen`
+* Use `slice()` to copy an array
+* Add an explicit `return` when your function ends with a `for`/`while` loop and
+  you don't want it to return a collected array.
+
+## Specs Styleguide
+
+- Include thoughtfully-worded, well-structured
+  [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
+- treat `describe` as a noun or situation.
+- treat `it` as a statement about state or how an operation changes state.
+
+### Example
+
+```coffee
+describe 'a dog', ->
+ it 'barks', ->
+ # spec here
+ describe 'when the dog is happy', ->
+  it 'wags its tail', ->
+  # spec here
+```
 
 ## Documentation Styleguide
 

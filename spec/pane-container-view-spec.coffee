@@ -15,7 +15,7 @@ describe "PaneContainerView", ->
       @deserialize: ({name}) -> new TestView(name)
       @content: -> @div tabindex: -1
       initialize: (@name) -> @text(@name)
-      serialize: -> { deserializer: 'TestView', @name }
+      serialize: -> {deserializer: 'TestView', @name}
       getURI: -> path.join(temp.dir, @name)
       save: -> @saved = true
       isEqual: (other) -> @name is other?.name

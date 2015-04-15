@@ -1,11 +1,9 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-{specificity} = require 'clear-cut'
+{calculateSpecificity, validateSelector} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
-{validateSelector} = require './selector-validator'
 
 SequenceCount = 0
-SpecificityCache = {}
 
 # Public: Associates listener functions with commands in a
 # context-sensitive way using CSS selectors. You can access a global instance of
@@ -50,6 +48,7 @@ class CommandRegistry
   destroy: ->
     for commandName of @registeredCommands
       window.removeEventListener(commandName, @handleCommandEvent, true)
+    return
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -187,6 +186,7 @@ class CommandRegistry
     @selectorBasedListenersByCommandName = {}
     for commandName, listeners of snapshot
       @selectorBasedListenersByCommandName[commandName] = listeners.slice()
+    return
 
   handleCommandEvent: (originalEvent) =>
     propagationStopped = false
@@ -239,7 +239,7 @@ class CommandRegistry
 
 class SelectorBasedListener
   constructor: (@selector, @callback) ->
-    @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
+    @specificity = calculateSpecificity(@selector)
     @sequenceNumber = SequenceCount++
 
   compare: (other) ->

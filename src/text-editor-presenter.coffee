@@ -9,9 +9,10 @@ class TextEditorPresenter
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
   scopedCharacterWidthsChangeCount: 0
+  overlayDimensions: {}
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft} = params
+    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
@@ -61,6 +62,7 @@ class TextEditorPresenter
       @[flagName] = true
     else
       fn.apply(this)
+      @[flagName] = false
 
     @emitDidUpdateState()
 
@@ -68,6 +70,11 @@ class TextEditorPresenter
   # Returns a state {Object}, useful for rendering to screen.
   getState: ->
     @updating = true
+
+    @updateContentDimensions()
+    @updateScrollbarDimensions()
+    @updateStartRow()
+    @updateEndRow()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -82,20 +89,6 @@ class TextEditorPresenter
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateGutterState() if @shouldUpdateGutterState
     @updateLineNumbersState() if @shouldUpdateLineNumbersState
-
-    @shouldUpdateFocusedState = false
-    @shouldUpdateHeightState = false
-    @shouldUpdateVerticalScrollState = false
-    @shouldUpdateHorizontalScrollState = false
-    @shouldUpdateScrollbarsState = false
-    @shouldUpdateHiddenInputState = false
-    @shouldUpdateContentState = false
-    @shouldUpdateDecorations = false
-    @shouldUpdateLinesState = false
-    @shouldUpdateCursorsState = false
-    @shouldUpdateOverlaysState = false
-    @shouldUpdateGutterState = false
-    @shouldUpdateLineNumbersState = false
 
     @updating = false
 
@@ -132,6 +125,7 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
+    return
 
   observeConfig: ->
     configParams = {scope: @model.getRootScopeDescriptor()}
@@ -281,6 +275,7 @@ class TextEditorPresenter
     for id, line of @state.content.lines
       unless visibleLineIds.hasOwnProperty(id)
         delete @state.content.lines[id]
+    return
 
   updateLineState: (row, line) ->
     lineState = @state.content.lines[line.id]
@@ -304,6 +299,7 @@ class TextEditorPresenter
   updateCursorsState: -> @batch "shouldUpdateCursorsState", ->
     @state.content.cursors = {}
     @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
+    return
 
   updateCursorState: (cursor, destroyOnly = false) ->
     delete @state.content.cursors[cursor.id]
@@ -319,7 +315,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   updateOverlaysState: -> @batch "shouldUpdateOverlaysState", ->
-    return unless @hasPixelRectRequirements()
+    return unless @hasOverlayPositionRequirements()
 
     visibleDecorationIds = {}
 
@@ -332,12 +328,40 @@ class TextEditorPresenter
       else
         screenPosition = decoration.getMarker().getHeadScreenPosition()
 
+      pixelPosition = @pixelPositionForScreenPosition(screenPosition)
+
+      {scrollTop, scrollLeft} = @state.content
+      gutterWidth = @boundingClientRect.width - @contentFrameWidth
+
+      top = pixelPosition.top + @lineHeight - scrollTop
+      left = pixelPosition.left + gutterWidth - scrollLeft
+
+      if overlayDimensions = @overlayDimensions[decoration.id]
+        {itemWidth, itemHeight, contentMargin} = overlayDimensions
+
+        rightDiff = left + @boundingClientRect.left + itemWidth + contentMargin - @windowWidth
+        left -= rightDiff if rightDiff > 0
+
+        leftDiff = left + @boundingClientRect.left + contentMargin
+        left -= leftDiff if leftDiff < 0
+
+        if top + @boundingClientRect.top + itemHeight > @windowHeight and top - (itemHeight + @lineHeight) >= 0
+          top -= itemHeight + @lineHeight
+
+      pixelPosition.top = top
+      pixelPosition.left = left
+
       @state.content.overlays[decoration.id] ?= {item}
-      @state.content.overlays[decoration.id].pixelPosition = @pixelPositionForScreenPosition(screenPosition)
+      @state.content.overlays[decoration.id].pixelPosition = pixelPosition
       visibleDecorationIds[decoration.id] = true
 
     for id of @state.content.overlays
       delete @state.content.overlays[id] unless visibleDecorationIds[id]
+
+    for id of @overlayDimensions
+      delete @overlayDimensions[id] unless visibleDecorationIds[id]
+
+    return
 
   updateGutterState: -> @batch "shouldUpdateGutterState", ->
     @state.gutter.visible = not @model.isMini() and (@model.isGutterVisible() ? true) and @showLineNumbers
@@ -389,6 +413,8 @@ class TextEditorPresenter
 
     for id of @state.gutter.lineNumbers
       delete @state.gutter.lineNumbers[id] unless visibleLineNumberIds[id]
+
+    return
 
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
@@ -567,6 +593,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateCursorsState()
       @updateLineNumbersState()
+      @updateOverlaysState()
 
   didStartScrolling: ->
     if @stoppedScrollingTimeoutId?
@@ -594,6 +621,7 @@ class TextEditorPresenter
       @updateHorizontalScrollState()
       @updateHiddenInputState()
       @updateCursorsState() unless oldScrollLeft?
+      @updateOverlaysState()
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
@@ -657,6 +685,24 @@ class TextEditorPresenter
       @updateDecorations()
       @updateLinesState()
       @updateCursorsState() unless oldContentFrameWidth?
+
+  setBoundingClientRect: (boundingClientRect) ->
+    unless @clientRectsEqual(@boundingClientRect, boundingClientRect)
+      @boundingClientRect = boundingClientRect
+      @updateOverlaysState()
+
+  clientRectsEqual: (clientRectA, clientRectB) ->
+    clientRectA? and clientRectB? and
+      clientRectA.top is clientRectB.top and
+      clientRectA.left is clientRectB.left and
+      clientRectA.width is clientRectB.width and
+      clientRectA.height is clientRectB.height
+
+  setWindowSize: (width, height) ->
+    if @windowWidth isnt width or @windowHeight isnt height
+      @windowWidth = width
+      @windowHeight = height
+      @updateOverlaysState()
 
   setBackgroundColor: (backgroundColor) ->
     unless @backgroundColor is backgroundColor
@@ -778,6 +824,9 @@ class TextEditorPresenter
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?
 
+  hasOverlayPositionRequirements: ->
+    @hasPixelRectRequirements() and @boundingClientRect? and @windowWidth and @windowHeight
+
   pixelRectForScreenRange: (screenRange) ->
     if screenRange.end.row > screenRange.start.row
       top = @pixelPositionForScreenPosition(screenRange.start).top
@@ -881,11 +930,13 @@ class TextEditorPresenter
       unless visibleHighlights[id]
         delete @state.content.highlights[id]
 
+    return
 
   removeFromLineDecorationCaches: (decoration, range) ->
     for row in [range.start.row..range.end.row] by 1
       delete @lineDecorationsByScreenRow[row]?[decoration.id]
       delete @lineNumberDecorationsByScreenRow[row]?[decoration.id]
+    return
 
   addToLineDecorationCaches: (decoration, range) ->
     marker = decoration.getMarker()
@@ -910,6 +961,8 @@ class TextEditorPresenter
       if decoration.isType('line-number')
         @lineNumberDecorationsByScreenRow[row] ?= {}
         @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
+
+    return
 
   updateHighlightState: (decoration) ->
     return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
@@ -990,6 +1043,18 @@ class TextEditorPresenter
         )
 
       regions
+
+  setOverlayDimensions: (decorationId, itemWidth, itemHeight, contentMargin) ->
+    @overlayDimensions[decorationId] ?= {}
+    overlayState = @overlayDimensions[decorationId]
+    dimensionsAreEqual = overlayState.itemWidth is itemWidth and
+      overlayState.itemHeight is itemHeight and
+      overlayState.contentMargin is contentMargin
+    unless dimensionsAreEqual
+      overlayState.itemWidth = itemWidth
+      overlayState.itemHeight = itemHeight
+      overlayState.contentMargin = contentMargin
+      @updateOverlaysState()
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>

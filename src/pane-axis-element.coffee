@@ -53,7 +53,7 @@ class PaneAxisElement extends HTMLElement
       siblingView.remove()
     view.remove()
 
-  childReplaced:  ({index, oldChild, newChild}) ->
+  childReplaced: ({index, oldChild, newChild}) ->
     focusedElement = document.activeElement if @hasFocus()
     @childRemoved({child: oldChild, index})
     @childAdded({child: newChild, index})

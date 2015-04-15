@@ -84,7 +84,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', [])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -92,7 +92,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', ['atom-dark-ui'])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -101,7 +101,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', ['atom-light-ui', 'atom-dark-ui'])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -111,7 +111,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', [])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -120,7 +120,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         expect($('style[priority=1]')).toHaveLength 2
@@ -129,6 +129,7 @@ describe "ThemeManager", ->
         expect(importPaths[0]).toContain 'atom-dark-ui'
 
     it 'adds theme-* classes to the workspace for each active theme', ->
+      atom.config.set('core.themes', ['atom-dark-ui', 'atom-dark-syntax'])
       workspaceElement = atom.views.getView(atom.workspace)
       themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
 

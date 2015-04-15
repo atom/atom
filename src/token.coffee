@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-{deprecate} = require 'grim'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
@@ -28,7 +27,7 @@ class Token
 
   isEqual: (other) ->
     # TODO: scopes is deprecated. This is here for the sake of lang package tests
-    @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic
+    @value is other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic is !!other.isAtomic
 
   isBracket: ->
     /^meta\.brace\b/.test(_.last(@scopes))

@@ -213,7 +213,7 @@ describe "TokenizedBuffer.", ->
 
     beforeEach ->
       editor = benchmarkFixturesProject.openSync('medium.coffee')
-      { languageMode, buffer } = editor
+      {languageMode, buffer} = editor
 
     benchmark "construction", 20, ->
-      new TokenizedBuffer(buffer, { languageMode, tabLength: 2})
+      new TokenizedBuffer(buffer, {languageMode, tabLength: 2})

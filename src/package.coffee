@@ -4,25 +4,19 @@ _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
-EmitterMixin = require('emissary').Emitter
 {Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
-{deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
-try
-  packagesCache = require('../package.json')?._atomPackages ? {}
-catch error
-  packagesCache = {}
+packagesCache = require('../package.json')?._atomPackages ? {}
 
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
-  EmitterMixin.includeInto(this)
-
   @isBundledPackagePath: (packagePath) ->
     if atom.packages.devMode
       return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
@@ -43,11 +37,11 @@ class Package
     metadata ?= {}
     metadata.name = packageName
 
-    if metadata.stylesheetMain?
+    if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
       metadata.mainStyleSheet = metadata.stylesheetMain
 
-    if metadata.stylesheets?
+    if includeDeprecatedAPIs and metadata.stylesheets?
       deprecate("Use the `styleSheets` key instead of `stylesheets` in the `package.json` of `#{packageName}`", {packageName})
       metadata.styleSheets = metadata.stylesheets
 
@@ -86,14 +80,6 @@ class Package
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDeactivate: (callback) ->
     @emitter.on 'did-deactivate', callback
-
-  on: (eventName) ->
-    switch eventName
-      when 'deactivated'
-        deprecate 'Use Package::onDidDeactivate instead'
-      else
-        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
 
   ###
   Section: Instance Methods
@@ -174,9 +160,9 @@ class Package
     if @mainModule?
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
-      else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
+      else if includeDeprecatedAPIs and @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
         deprecate """Use a config schema instead. See the configuration section
-        of https://atom.io/docs/latest/creating-a-package and
+        of https://atom.io/docs/latest/hacking-atom-package-word-count and
         https://atom.io/docs/api/latest/Config for more details"""
         atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
@@ -223,12 +209,16 @@ class Package
 
   activateServices: ->
     for name, {versions} of @metadata.providedServices
+      servicesByVersion = {}
       for version, methodName of versions
-        @activationDisposables.add atom.packages.serviceHub.provide(name, version, @mainModule[methodName]())
+        if typeof @mainModule[methodName] is 'function'
+          servicesByVersion[version] = @mainModule[methodName]()
+      @activationDisposables.add atom.packages.serviceHub.provide(name, servicesByVersion)
 
     for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
-        @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
+        if typeof @mainModule[methodName] is 'function'
+          @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
     return
 
   loadKeymaps: ->
@@ -236,12 +226,14 @@ class Package
       @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
+    return
 
   loadMenus: ->
     if @bundledPackage and packagesCache[@name]?
       @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
     else
       @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
+    return
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
@@ -262,7 +254,7 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
+    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'stylesheets'))
       deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
       path.join(@path, 'stylesheets')
     else
@@ -333,7 +325,7 @@ class Package
 
     deferred = Q.defer()
 
-    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
       deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
     else
@@ -361,7 +353,7 @@ class Package
         @mainModule?.deactivate?()
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
-    @emit 'deactivated'
+    @emit 'deactivated' if includeDeprecatedAPIs
     @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
@@ -445,6 +437,8 @@ class Package
                 @activateNow()
                 break
               currentTarget = currentTarget.parentElement
+            return
+    return
 
   getActivationCommands: ->
     return @activationCommands if @activationCommands?
@@ -459,7 +453,7 @@ class Package
         else if _.isArray(commands)
           @activationCommands[selector].push(commands...)
 
-    if @metadata.activationEvents?
+    if includeDeprecatedAPIs and @metadata.activationEvents?
       deprecate """
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
@@ -503,6 +497,7 @@ class Package
         for modulePath in fs.listSync(nodeModulesPath)
           nativeModulePaths.push(modulePath) if @isNativeModule(modulePath)
           traversePath(path.join(modulePath, 'node_modules'))
+      return
 
     traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths
@@ -563,8 +558,28 @@ class Package
         SyntaxError: #{error.message}
           at #{location}
       """
+    else if error.less and error.filename and error.column? and error.line?
+      # Less errors
+      location = "#{error.filename}:#{error.line}:#{error.column}"
+      detail = "#{error.message} in #{location}"
+      stack = """
+        LessError: #{error.message}
+          at #{location}
+      """
     else
       detail = error.message
       stack = error.stack ? error
 
     atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
+
+if includeDeprecatedAPIs
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(Package)
+
+  Package::on = (eventName) ->
+    switch eventName
+      when 'deactivated'
+        deprecate 'Use Package::onDidDeactivate instead'
+      else
+        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)

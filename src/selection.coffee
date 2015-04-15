@@ -1,8 +1,8 @@
 {Point, Range} = require 'text-buffer'
-{Model} = require 'theorist'
-{pick} = require 'underscore-plus'
+{pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
+Model = require './model'
 
 NonWhitespaceRegExp = /\S/
 
@@ -14,7 +14,6 @@ class Selection extends Model
   editor: null
   initialScreenRange: null
   wordwise: false
-  needsAutoscroll: null
 
   constructor: ({@cursor, @marker, @editor, id}) ->
     @emitter = new Emitter
@@ -28,12 +27,15 @@ class Selection extends Model
       unless @editor.isDestroyed()
         @destroyed = true
         @editor.removeSelection(this)
-        @emit 'destroyed'
+        @emit 'destroyed' if Grim.includeDeprecatedAPIs
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
   destroy: ->
     @marker.destroy()
+
+  isLastSelection: ->
+    this is @editor.getLastSelection()
 
   ###
   Section: Event Subscription
@@ -61,16 +63,6 @@ class Selection extends Model
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
-  on: (eventName) ->
-    switch eventName
-      when 'screen-range-changed'
-        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
-      when 'destroyed'
-        Grim.deprecate("Use Selection::onDidDestroy instead.")
-
-    super
-
-
   ###
   Section: Managing the selection range
   ###
@@ -94,19 +86,20 @@ class Selection extends Model
   #
   # * `screenRange` The new {Range} to select.
   # * `options` (optional) {Object} with the keys:
-  #   * `preserveFolds` if `true`, the fold settings are preserved after the selection moves.
-  #   * `autoscroll` if `true`, the {TextEditor} scrolls to the new selection.
+  #   * `preserveFolds` if `true`, the fold settings are preserved after the
+  #     selection moves.
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     range. Defaults to `true` if this is the most recently added selection,
+  #     `false` otherwise.
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
-    @needsAutoscroll = options.autoscroll
     options.reversed ?= @isReversed()
-    @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
+    @editor.destroyFoldsContainingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
-      @cursor.needsAutoscroll = false if @needsAutoscroll?
       @marker.setBufferRange(bufferRange, options)
-      @autoscroll() if @needsAutoscroll and @editor.manageScrollPosition
+      @autoscroll() if options?.autoscroll ? @isLastSelection()
       @decoration.flash('flash', @editor.selectionFlashDuration) if needsFlash
 
   # Public: Returns the starting and ending buffer rows the selection is
@@ -117,7 +110,7 @@ class Selection extends Model
     range = @getBufferRange()
     start = range.start.row
     end = range.end.row
-    end = Math.max(start, end - 1) if range.end.column == 0
+    end = Math.max(start, end - 1) if range.end.column is 0
     [start, end]
 
   getTailScreenPosition: ->
@@ -182,9 +175,15 @@ class Selection extends Model
   ###
 
   # Public: Clears the selection, moving the marker to the head.
-  clear: ->
-    @marker.setProperties(goalBufferRange: null)
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
+  #     range. Defaults to `true` if this is the most recently added selection,
+  #     `false` otherwise.
+  clear: (options) ->
+    @marker.setProperties(goalScreenRange: null)
     @marker.clearTail() unless @retainSelection
+    @autoscroll() if options?.autoscroll ? @isLastSelection()
     @finalize()
 
   # Public: Selects the text from the current cursor position to a given screen
@@ -251,8 +250,7 @@ class Selection extends Model
 
   # Public: Selects all the text in the buffer.
   selectAll: ->
-    @editor.unfoldAll()
-    @setBufferRange(@editor.buffer.getRange(), autoscroll: false, preserveFolds: true)
+    @setBufferRange(@editor.buffer.getRange(), autoscroll: false)
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the line.
@@ -358,7 +356,6 @@ class Selection extends Model
     @editor.unfoldBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
-    @cursor.needsAutoscroll = @cursor.isLastCursor()
 
     autoIndentFirstLine = false
     precedingText = @editor.getTextInRange([[oldBufferRange.start.row, 0], oldBufferRange.start])
@@ -384,18 +381,20 @@ class Selection extends Model
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
     else
-      @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
+      @cursor.setBufferPosition(newBufferRange.end, clip: 'forward') if wasReversed
 
     if autoIndentFirstLine
       @editor.setIndentationForBufferRow(oldBufferRange.start.row, desiredIndentLevel)
 
-    if options.autoIndentNewline and text == '\n'
+    if options.autoIndentNewline and text is '\n'
       currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
       @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
       if @editor.indentationForBufferRow(newBufferRange.end.row) < currentIndentation
         @editor.setIndentationForBufferRow(newBufferRange.end.row, currentIndentation)
     else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
+
+    @autoscroll() if @isLastSelection()
 
     newBufferRange
 
@@ -404,16 +403,6 @@ class Selection extends Model
   backspace: ->
     @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
-
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  backspaceToBeginningOfWord: ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  backspaceToBeginningOfLine: ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
 
   # Public: Removes from the start of the selection to the beginning of the
   # current word if the selection is empty otherwise it deletes the selection.
@@ -537,6 +526,7 @@ class Selection extends Model
     for row in [start..end]
       if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
         buffer.delete [[row, 0], [row, matchLength]]
+    return
 
   # Public: Sets the indentation level of all selected rows to values suggested
   # by the relevant grammars.
@@ -611,7 +601,7 @@ class Selection extends Model
   # of levels. Leaves the first line unchanged.
   adjustIndent: (lines, indentAdjustment) ->
     for line, i in lines
-      if indentAdjustment == 0 or line is ''
+      if indentAdjustment is 0 or line is ''
         continue
       else if indentAdjustment > 0
         lines[i] = @editor.buildIndentString(indentAdjustment) + line
@@ -619,6 +609,7 @@ class Selection extends Model
         currentIndentLevel = @editor.indentLevelForLine(lines[i])
         indentLevel = Math.max(0, currentIndentLevel + indentAdjustment)
         lines[i] = line.replace(/^[\t ]+/, @editor.buildIndentString(indentLevel))
+    return
 
   # Indent the current line(s).
   #
@@ -629,8 +620,8 @@ class Selection extends Model
   # * `options` (optional) {Object} with the keys:
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
   #     level. Otherwise, {TextEditor::getTabText} is inserted.
-  indent: ({ autoIndent }={}) ->
-    { row, column } = @cursor.getBufferPosition()
+  indent: ({autoIndent}={}) ->
+    {row, column} = @cursor.getBufferPosition()
 
     if @isEmpty()
       @cursor.skipLeadingWhitespace()
@@ -649,7 +640,8 @@ class Selection extends Model
   indentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     for row in [start..end]
-      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
+      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) is 0
+    return
 
   ###
   Section: Managing multiple selections
@@ -657,39 +649,43 @@ class Selection extends Model
 
   # Public: Moves the selection down one row.
   addSelectionBelow: ->
-    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
+    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
     nextRow = range.end.row + 1
 
-    for row in [nextRow..@editor.getLastBufferRow()]
+    for row in [nextRow..@editor.getLastScreenRow()]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editor.clipBufferRange(range)
+      clippedRange = @editor.clipScreenRange(range, skipSoftWrapIndentation: true)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
+      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
       break
+
+    return
 
   # Public: Moves the selection up one row.
   addSelectionAbove: ->
-    range = (@getGoalBufferRange() ? @getBufferRange()).copy()
+    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
     previousRow = range.end.row - 1
 
     for row in [previousRow..0]
       range.start.row = row
       range.end.row = row
-      clippedRange = @editor.clipBufferRange(range)
+      clippedRange = @editor.clipScreenRange(range, skipSoftWrapIndentation: true)
 
       if range.isEmpty()
         continue if range.end.column > 0 and clippedRange.end.column is 0
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForBufferRange(range, goalBufferRange: range)
+      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
       break
+
+    return
 
   # Public: Combines the given selection into this selection and then destroys
   # the given selection.
@@ -697,13 +693,15 @@ class Selection extends Model
   # * `otherSelection` A {Selection} to merge with.
   # * `options` (optional) {Object} options matching those found in {::setBufferRange}.
   merge: (otherSelection, options) ->
-    myGoalBufferRange = @getGoalBufferRange()
-    otherGoalBufferRange = otherSelection.getGoalBufferRange()
-    if myGoalBufferRange? and otherGoalBufferRange?
-      options.goalBufferRange = myGoalBufferRange.union(otherGoalBufferRange)
+    myGoalScreenRange = @getGoalScreenRange()
+    otherGoalScreenRange = otherSelection.getGoalScreenRange()
+
+    if myGoalScreenRange? and otherGoalScreenRange?
+      options.goalScreenRange = myGoalScreenRange.union(otherGoalScreenRange)
     else
-      options.goalBufferRange = myGoalBufferRange ? otherGoalBufferRange
-    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
+      options.goalScreenRange = myGoalScreenRange ? otherGoalScreenRange
+
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), _.extend(autoscroll: false, options))
     otherSelection.destroy()
 
   ###
@@ -734,7 +732,7 @@ class Selection extends Model
       newScreenRange: @getScreenRange()
       selection: this
 
-    @emit 'screen-range-changed', @getScreenRange() # old event
+    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-range'
     @editor.selectionRangeChanged(eventObject)
 
@@ -745,10 +743,12 @@ class Selection extends Model
       @linewise = false
 
   autoscroll: ->
-    @editor.scrollToScreenRange(@getScreenRange())
+    if @marker.hasTail()
+      @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
+    else
+      @cursor.autoscroll()
 
   clearAutoscroll: ->
-    @needsAutoscroll = null
 
   modifySelection: (fn) ->
     @retainSelection = true
@@ -764,6 +764,28 @@ class Selection extends Model
   plantTail: ->
     @marker.plantTail()
 
-  getGoalBufferRange: ->
-    if goalBufferRange = @marker.getProperties().goalBufferRange
-      Range.fromObject(goalBufferRange)
+  getGoalScreenRange: ->
+    if goalScreenRange = @marker.getProperties().goalScreenRange
+      Range.fromObject(goalScreenRange)
+
+if Grim.includeDeprecatedAPIs
+  Selection::on = (eventName) ->
+    switch eventName
+      when 'screen-range-changed'
+        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
+      when 'destroyed'
+        Grim.deprecate("Use Selection::onDidDestroy instead.")
+      else
+        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
+
+    super
+
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  Selection::backspaceToBeginningOfWord = ->
+    deprecate("Use Selection::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  Selection::backspaceToBeginningOfLine = ->
+    deprecate("Use Selection::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()

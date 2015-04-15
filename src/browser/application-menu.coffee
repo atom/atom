@@ -82,19 +82,20 @@ class ApplicationMenu
   #          window specific items.
   enableWindowSpecificItems: (enable) ->
     for item in @flattenMenuItems(@menu)
-      item.enabled = enable if item.metadata?['windowSpecific']
+      item.enabled = enable if item.metadata?.windowSpecific
+    return
 
   # Replaces VERSION with the current version.
   substituteVersion: (template) ->
-    if (item = _.find(@flattenMenuTemplate(template), ({label}) -> label == 'VERSION'))
+    if (item = _.find(@flattenMenuTemplate(template), ({label}) -> label is 'VERSION'))
       item.label = "Version #{@version}"
 
   # Sets the proper visible state the update menu items
   showUpdateMenuItem: (state) ->
-    checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Check for Update')
-    checkingForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Checking for Update')
-    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Downloading Update')
-    installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Restart and Install Update')
+    checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Check for Update')
+    checkingForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Checking for Update')
+    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Downloading Update')
+    installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Restart and Install Update')
 
     return unless checkForUpdateItem? and checkingForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
 
@@ -120,11 +121,11 @@ class ApplicationMenu
     [
       label: "Atom"
       submenu: [
-          { label: "Check for Update", metadata: {autoUpdate: true}}
-          { label: 'Reload', accelerator: 'Command+R', click: => @focusedWindow()?.reload() }
-          { label: 'Close Window', accelerator: 'Command+Shift+W', click: => @focusedWindow()?.close() }
-          { label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: => @focusedWindow()?.toggleDevTools() }
-          { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
+          {label: "Check for Update", metadata: {autoUpdate: true}}
+          {label: 'Reload', accelerator: 'Command+R', click: => @focusedWindow()?.reload()}
+          {label: 'Close Window', accelerator: 'Command+Shift+W', click: => @focusedWindow()?.close()}
+          {label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: => @focusedWindow()?.toggleDevTools()}
+          {label: 'Quit', accelerator: 'Command+Q', click: -> app.quit()}
       ]
     ]
 
@@ -145,7 +146,7 @@ class ApplicationMenu
       if item.command
         item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
         item.click = -> global.atomApplication.sendCommand(item.command)
-        item.metadata['windowSpecific'] = true unless /^application:/.test(item.command)
+        item.metadata.windowSpecific = true unless /^application:/.test(item.command)
       @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
 

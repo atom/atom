@@ -9,7 +9,7 @@ module.exports =
     properties:
       ignoredNames:
         type: 'array'
-        default: [".git", ".hg", ".svn", ".DS_Store", "Thumbs.db"]
+        default: [".git", ".hg", ".svn", ".DS_Store", "._*", "Thumbs.db"]
         items:
           type: 'string'
       excludeVcsIgnoredPaths:
@@ -18,7 +18,7 @@ module.exports =
         title: 'Exclude VCS Ignored Paths'
       followSymlinks:
         type: 'boolean'
-        default: false
+        default: true
         title: 'Follow symlinks'
         description: 'Used when searching and when opening files with the fuzzy finder.'
       disabledPackages:
@@ -28,7 +28,7 @@ module.exports =
           type: 'string'
       themes:
         type: 'array'
-        default: ['atom-dark-ui', 'atom-dark-syntax']
+        default: ['one-dark-ui', 'one-dark-syntax']
         items:
           type: 'string'
       projectHome:
@@ -99,9 +99,7 @@ module.exports =
 
       # These can be used as globals or scoped, thus defaults.
       completions:
-        type: "array"
-        items:
-          type: "string"
+        type: ['array', 'object']
         default: []
       fontFamily:
         type: 'string'
@@ -149,6 +147,10 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
+      softWrapHangingIndent:
+        type: 'integer'
+        default: 0
+        minimum: 0
       scrollSensitivity:
         type: 'integer'
         default: 40

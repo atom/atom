@@ -330,32 +330,32 @@ describe "PackageManager", ->
           element2 = $$ -> @div class: 'test-2'
           element3 = $$ -> @div class: 'test-3'
 
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe "test-1"
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])[0].command).toBe "test-2"
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe "test-1"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])[0].command).toBe "test-2"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
 
       describe "when the metadata contains a 'keymaps' manifest", ->
         it "loads only the keymaps specified by the manifest, in the specified order", ->
           element1 = $$ -> @div class: 'test-1'
           element3 = $$ -> @div class: 'test-3'
 
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe 'keymap-1'
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-n', target:element1[0])[0].command).toBe 'keymap-2'
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-y', target:element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-n', target: element1[0])[0].command).toBe 'keymap-2'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-y', target: element3[0])).toHaveLength 0
 
       describe "when the keymap file is empty", ->
         it "does not throw an error on activation", ->
@@ -522,6 +522,7 @@ describe "PackageManager", ->
           atom.packages.activatePackage("package-with-provided-services")
 
         runs ->
+          expect(consumerModule.consumeFirstServiceV3.callCount).toBe(1)
           expect(consumerModule.consumeFirstServiceV3).toHaveBeenCalledWith('first-service-v3')
           expect(consumerModule.consumeFirstServiceV4).toHaveBeenCalledWith('first-service-v4')
           expect(consumerModule.consumeSecondService).toHaveBeenCalledWith('second-service')
@@ -545,6 +546,21 @@ describe "PackageManager", ->
           expect(consumerModule.consumeFirstServiceV3).not.toHaveBeenCalled()
           expect(consumerModule.consumeFirstServiceV4).not.toHaveBeenCalled()
           expect(consumerModule.consumeSecondService).not.toHaveBeenCalled()
+
+      it "ignores provided and consumed services that do not exist", ->
+        addErrorHandler = jasmine.createSpy()
+        atom.notifications.onDidAddNotification(addErrorHandler)
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-missing-consumed-services")
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-missing-provided-services")
+
+        runs ->
+          expect(atom.packages.isPackageActive("package-with-missing-consumed-services")).toBe true
+          expect(atom.packages.isPackageActive("package-with-missing-provided-services")).toBe true
+          expect(addErrorHandler.callCount).toBe 0
 
   describe "::deactivatePackage(id)", ->
     afterEach ->
@@ -629,8 +645,8 @@ describe "PackageManager", ->
 
       runs ->
         atom.packages.deactivatePackage('package-with-keymaps')
-        expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
-        expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
 
     it "removes the package's stylesheets", ->
       waitsForPromise ->

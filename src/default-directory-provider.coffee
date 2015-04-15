@@ -16,7 +16,7 @@ class DefaultDirectoryProvider
   directoryForURISync: (uri) ->
     projectPath = path.normalize(uri)
 
-    directoryPath = if !fs.isDirectorySync(projectPath) and fs.isDirectorySync(path.dirname(projectPath))
+    directoryPath = if not fs.isDirectorySync(projectPath) and fs.isDirectorySync(path.dirname(projectPath))
       path.dirname(projectPath)
     else
       projectPath

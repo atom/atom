@@ -1,7 +1,8 @@
 {find, flatten} = require 'underscore-plus'
-{Model} = require 'theorist'
+Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
+Model = require './model'
 Pane = require './pane'
 PaneElement = require './pane-element'
 PaneContainerElement = require './pane-container-element'
@@ -18,18 +19,13 @@ class PaneContainer extends Model
 
   @version: 1
 
-  @properties
-    activePane: null
-
   root: null
-
-  @behavior 'activePaneItem', ->
-    @$activePane
-      .switch((activePane) -> activePane?.$activeItem)
-      .distinctUntilChanged()
 
   constructor: (params) ->
     super
+
+    unless Grim.includeDeprecatedAPIs
+      @activePane = params?.activePane
 
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
@@ -151,6 +147,7 @@ class PaneContainer extends Model
 
   saveAll: ->
     pane.saveItems() for pane in @getPanes()
+    return
 
   confirmClose: (options) ->
     allSaved = true
@@ -186,6 +183,7 @@ class PaneContainer extends Model
 
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
+    return
 
   willDestroyPaneItem: (event) ->
     @emitter.emit 'will-destroy-pane-item', event
@@ -234,3 +232,12 @@ class PaneContainer extends Model
 
   removedPaneItem: (item) ->
     @itemRegistry.removeItem(item)
+
+if Grim.includeDeprecatedAPIs
+  PaneContainer.properties
+    activePane: null
+
+  PaneContainer.behavior 'activePaneItem', ->
+    @$activePane
+      .switch((activePane) -> activePane?.$activeItem)
+      .distinctUntilChanged()

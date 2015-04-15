@@ -112,6 +112,7 @@ class RowMap
           @regions.splice index - 1, 2,
             bufferRows: leftRegion.bufferRows + rightRegion.bufferRows
             screenRows: leftRegion.screenRows + rightRegion.screenRows
+    return
 
   # Public: Returns an array of strings describing the map's regions.
   inspect: ->

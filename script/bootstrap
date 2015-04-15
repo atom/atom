@@ -35,7 +35,7 @@ function bootstrap() {
 
   var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
   var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
-  var npmFlags = ' --userconfig=' + path.resolve('.npmrc') + ' ';
+  var npmFlags = ' --userconfig=' + path.resolve(__dirname, '..', 'build', '.npmrc') + ' ';
 
   var packagesToDedupe = [
     'abbrev',

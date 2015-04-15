@@ -27,9 +27,9 @@ class Notification
   getDetail: -> @options.detail
 
   isEqual: (other) ->
-    @getMessage() == other.getMessage() \
-      and @getType() == other.getType() \
-      and @getDetail() == other.getDetail()
+    @getMessage() is other.getMessage() \
+      and @getType() is other.getType() \
+      and @getDetail() is other.getDetail()
 
   dismiss: ->
     return unless @isDismissable() and not @isDismissed()

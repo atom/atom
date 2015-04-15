@@ -4,7 +4,6 @@ _ = require 'underscore-plus'
 
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
-OverlayManager = require './overlay-manager'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -39,13 +38,6 @@ class LinesComponent
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
       @domNode.appendChild(insertionPoint)
-
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', 'atom-overlay')
-      @overlayManager = new OverlayManager(@presenter, @hostElement)
-      @domNode.appendChild(insertionPoint)
-    else
-      @overlayManager = new OverlayManager(@presenter, @domNode)
 
   updateSync: (state) ->
     @newState = state.content
@@ -82,13 +74,12 @@ class LinesComponent
     @cursorsComponent.updateSync(state)
     @highlightsComponent.updateSync(state)
 
-    @overlayManager?.render(state)
-
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
 
   removeLineNodes: ->
     @removeLineNode(id) for id of @oldState.lines
+    return
 
   removeLineNode: (id) ->
     @lineNodesByLineId[id].remove()
@@ -125,6 +116,8 @@ class LinesComponent
       lineNode = newLineNodes[i]
       @lineNodesByLineId[id] = lineNode
       @domNode.appendChild(lineNode)
+
+    return
 
   buildLineHTML: (id) ->
     {scrollWidth} = @newState
