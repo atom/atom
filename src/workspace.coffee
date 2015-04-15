@@ -792,10 +792,10 @@ class Workspace extends Model
 
     searchOptions =
       ignoreCase: regex.ignoreCase
-      inclusions: options.paths
+      inclusions: (path for path in options.paths when path[0]!="!" && path[0]!="~")
       includeHidden: true
       excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-      exclusions: atom.config.get('core.ignoredNames')
+      exclusions: atom.config.get('core.ignoredNames').concat(path.substring(1) for path in options.paths when path[0]=="!" || path[0]=="~")
       follow: atom.config.get('core.followSymlinks')
 
     task = Task.once require.resolve('./scan-handler'), atom.project.getPaths(), regex.source, searchOptions, ->

@@ -878,6 +878,24 @@ describe "Workspace", ->
           runs ->
             expect(resultPaths.sort()).toEqual([file1, file2].sort())
 
+        describe "when an inclusion path starts with either a tilde or exclamation mark", ->
+          it "the path is used as part of the exclusion array, instead of inclusion", ->
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths:["dir"], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).equalTo([file1])
+                  
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths:["!dir"], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).equalTo([])
+
         describe "when an inclusion path starts with the basename of a root directory", ->
           it "interprets the inclusion path as starting from that directory", ->
             waitsForPromise ->
