@@ -14,6 +14,7 @@ class ThemePackage extends Package
     atom.config.removeAtKeyPath('core.themes', @name)
 
   load: ->
+    @loadTime = 0
     this
 
   activate: ->
