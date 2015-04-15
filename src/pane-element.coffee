@@ -76,8 +76,8 @@ class PaneElement extends HTMLElement
       @dataset.activeItemName = path.basename(itemPath)
       @dataset.activeItemPath = itemPath
     else
-      delete @dataset.activeName
-      delete @dataset.activePath
+      delete @dataset.activeItemName
+      delete @dataset.activeItemPath
 
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
