@@ -28,19 +28,15 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  constructor: ({path, paths, @buffers}={}) ->
+  constructor: ({path, paths, @buffers, dynamicRootPaths}={}) ->
     @emitter = new Emitter
     @buffers ?= []
+    @dynamicRootPathsToRestore = dynamicRootPaths ? []
     @rootDirectories = []
+    # Keys are members of @getPaths(); values are booleans indicating whether
+    # each path's Directory was created by DefaultDirectoryProvider.
+    @isCreatedByDefaultDirectoryProviderForPath = {}
     @repositories = []
-
-    @directoryProviders = [new DefaultDirectoryProvider()]
-    atom.packages.serviceHub.consume(
-      'atom.directory-provider',
-      '^0.1.0',
-      # New providers are added to the front of @directoryProviders because
-      # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
-      (provider) => @directoryProviders.unshift(provider))
 
     # Mapping from the real path of a {Directory} to a {Promise} that resolves
     # to either a {Repository} or null. Ideally, the {Directory} would be used
@@ -70,7 +66,36 @@ class Project extends Model
       Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor")
 
     paths ?= _.compact([path])
+    @directoryProviders = [new DefaultDirectoryProvider()]
     @setPaths(paths)
+
+    # Now that the initial set of root folders is set up, register a callback
+    # that may append additional root folders as a side-effect of registering a
+    # DirectoryProvider.
+    atom.packages.serviceHub.consume(
+      'atom.directory-provider',
+      '^0.1.0',
+      (provider) =>
+        # New providers are added to the front of @directoryProviders because
+        # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
+        @directoryProviders.unshift(provider)
+
+        # See if any of the paths in @dynamicRootPathsToRestore should be
+        # restored by the new DirectoryProvider.
+        for projectPath in @dynamicRootPathsToRestore
+          # Use the async API of DirectoryProvider to give the provider the
+          # flexibility to determine whether it can restore a Directory from
+          # the path from the previous session. If so, add the corresponding
+          # path as a root folder via @addPath, which will exercise the
+          # sync API of the DirectoryProvider. Ideally, the provider should
+          # be implemented such that the async method will cache the result
+          # so it is available when the sync method is invoked.
+          provider.directoryForURI(projectPath).then (restoredDirectory) =>
+            if restoredDirectory
+              indexToRemove = @dynamicRootPathsToRestore.indexOf(projectPath)
+              @dynamicRootPathsToRestore.splice(indexToRemove, 1)
+              @addPath(projectPath)
+    )
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
@@ -84,9 +109,23 @@ class Project extends Model
   Section: Serialization
   ###
 
+  getLocalPaths: ->
+    @getPaths().filter((path) => @isCreatedByDefaultDirectoryProviderForPath[path])
+
   serializeParams: ->
-    paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+    dynamicRootPaths = []
+    localRootPaths = []
+    for projectPath in @getPaths()
+      if @isCreatedByDefaultDirectoryProviderForPath[projectPath]
+        localRootPaths.push(projectPath)
+      else
+        dynamicRootPaths.push(projectPath)
+
+    return {
+      paths: localRootPaths
+      dynamicRootPaths
+      buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+    }
 
   deserializeParams: (params) ->
     params.buffers = _.compact params.buffers.map (bufferState) ->
@@ -175,6 +214,7 @@ class Project extends Model
 
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
+    @isCreatedByDefaultDirectoryProviderForPath = {}
     @repositories = []
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
@@ -199,6 +239,8 @@ class Project extends Model
       # return a Directory.
       throw new Error(projectPath + ' could not be resolved to a directory')
     @rootDirectories.push(directory)
+    @isCreatedByDefaultDirectoryProviderForPath[projectPath] =
+        provider instanceof DefaultDirectoryProvider
 
     repo = null
     for provider in @repositoryProviders
@@ -225,6 +267,7 @@ class Project extends Model
 
     if indexToRemove?
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
+      delete @isCreatedByDefaultDirectoryProviderForPath[projectPath]
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedDirectory.off() if includeDeprecatedAPIs
       removedRepository?.destroy() unless removedRepository in @repositories
