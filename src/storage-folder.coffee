@@ -10,18 +10,18 @@ class StorageFolder
     fs.writeFileSync(@pathForKey(name), JSON.stringify(object), 'utf8')
 
   load: (name) ->
+    statePath = @pathForKey(name)
     try
-      stateString = fs.readFileSync(@pathForKey(name), 'utf8')
+      stateString = fs.readFileSync(statePath, 'utf8')
     catch error
-      if error.code is 'ENOENT'
-        return undefined
-      else
-        throw error
+      unless error.code is 'ENOENT'
+        console.warn "Error reading state file: #{statePath}", error.stack, error
+      return undefined
 
     try
       JSON.parse(stateString)
     catch error
-      console.warn "Error reading state file: #{statePath}", error.stack, error
+      console.warn "Error parsing state file: #{statePath}", error.stack, error
 
   pathForKey: (name) -> path.join(@getPath(), name)
   getPath: -> @path
