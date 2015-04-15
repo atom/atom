@@ -73,8 +73,8 @@ class PaneElement extends HTMLElement
 
     if itemPath = item.getPath?()
       path = require 'path'
-      @dataset.activeName = path.basename(itemPath)
-      @dataset.activePath = itemPath
+      @dataset.activeItemName = path.basename(itemPath)
+      @dataset.activeItemPath = itemPath
     else
       delete @dataset.activeName
       delete @dataset.activePath
