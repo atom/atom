@@ -128,6 +128,12 @@ describe "PaneView", ->
       it "adds the file name as a data attribute to the pane", ->
         expect(pane).toHaveAttr('data-active-item-name')
 
+      describe "when the activeItem is destroyed", ->
+        it "removes the data attributes", ->
+          pane.destroyItems()
+          expect(pane).not.toHaveAttr('data-active-item-path')
+          expect(pane).not.toHaveAttr('data-active-item-name')
+
     describe "when the new activeItem does not implement ::getPath", ->
       beforeEach ->
         paneModel.activateItem(editor1)

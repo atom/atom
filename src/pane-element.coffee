@@ -67,6 +67,9 @@ class PaneElement extends HTMLElement
       @classList.remove('active')
 
   activeItemChanged: (item) ->
+    delete @dataset.activeItemName
+    delete @dataset.activeItemPath
+
     return unless item?
 
     hasFocus = @hasFocus()
@@ -75,9 +78,6 @@ class PaneElement extends HTMLElement
     if itemPath = item.getPath?()
       @dataset.activeItemName = path.basename(itemPath)
       @dataset.activeItemPath = itemPath
-    else
-      delete @dataset.activeItemName
-      delete @dataset.activeItemPath
 
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
