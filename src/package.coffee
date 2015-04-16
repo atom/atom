@@ -305,8 +305,11 @@ class Package
 
     deferred = Q.defer()
     grammarsDirPath = path.join(@path, 'grammars')
-    fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
-      async.each grammarPaths, loadGrammar, -> deferred.resolve()
+    fs.exists grammarsDirPath, (grammarsDirExists) ->
+      return deferred.resolve() unless grammarsDirExists
+
+      fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
+        async.each grammarPaths, loadGrammar, ->
     deferred.promise
 
   loadSettings: ->
@@ -331,8 +334,11 @@ class Package
     else
       settingsDirPath = path.join(@path, 'settings')
 
-    fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
-      async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
+    fs.exists settingsDirPath, (settingsDirExists) ->
+      return deferred.resolve() unless settingsDirExists
+
+      fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
+        async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
     deferred.promise
 
   serialize: ->
