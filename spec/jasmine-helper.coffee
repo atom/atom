@@ -7,7 +7,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
 
   {TerminalReporter} = require 'jasmine-tagged'
 
-  disableFocusMethods() if process.env.JANKY_SHA1
+  disableFocusMethods() if process.env.JANKY_SHA1 or process.env.CI
 
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
