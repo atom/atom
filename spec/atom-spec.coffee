@@ -139,7 +139,7 @@ describe "the `atom` global", ->
         windowState: null
 
       spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
-      spyOn(Atom, 'getStorageDirPath').andReturn(temp.mkdirSync("storage-dir-"))
+      spyOn(Atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
 
       atom.mode = "editor"
       atom.state.stuff = "cool"

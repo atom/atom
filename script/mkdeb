@@ -33,7 +33,7 @@ cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
 
 # Copy generated LICENSE.md to /usr/share/doc/atom/copyright
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/doc/atom"
-cp "$TARGET/usr/share/atom/resources/app/LICENSE.md" "$TARGET/usr/share/doc/atom/copyright"
+cp "$TARGET/usr/share/atom/resources/LICENSE.md" "$TARGET/usr/share/doc/atom/copyright"
 
 # Add lintian overrides
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/lintian/overrides"

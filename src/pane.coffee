@@ -28,6 +28,7 @@ class Pane extends Model
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
+    @setFlexScale(params?.flexScale ? 1)
 
   # Called by the Serializable mixin during serialization.
   serializeParams: ->
@@ -40,6 +41,7 @@ class Pane extends Model
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemURI: activeItemURI
     focused: @focused
+    flexScale: @flexScale
 
   # Called by the Serializable mixin during deserialization.
   deserializeParams: (params) ->
@@ -66,9 +68,35 @@ class Pane extends Model
       @container = container
       container.didAddPane({pane: this})
 
+  setFlexScale: (@flexScale) ->
+    @emitter.emit 'did-change-flex-scale', @flexScale
+    @flexScale
+
+  getFlexScale: -> @flexScale
   ###
   Section: Event Subscription
   ###
+
+  # Public: Invoke the given callback when the pane resize
+  #
+  # the callback will be invoked when pane's flexScale property changes
+  #
+  # * `callback` {Function} to be called when the pane is resized
+  #
+  # Returns a {Disposable} on which '.dispose()' can be called to unsubscribe.
+  onDidChangeFlexScale: (callback) ->
+    @emitter.on 'did-change-flex-scale', callback
+
+  # Public: Invoke the given callback with all current and future items.
+  #
+  # * `callback` {Function} to be called with current and future items.
+  #   * `item` An item that is present in {::getItems} at the time of
+  #     subscription or that is added at some later time.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeFlexScale: (callback) ->
+    callback(@flexScale)
+    @onDidChangeFlexScale(callback)
 
   # Public: Invoke the given callback when the pane is activated.
   #
@@ -591,7 +619,8 @@ class Pane extends Model
       params.items.push(@copyActiveItem())
 
     if @parent.orientation isnt orientation
-      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this]}))
+      @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
+      @setFlexScale(1)
 
     newPane = new @constructor(params)
     switch side

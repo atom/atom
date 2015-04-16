@@ -141,33 +141,6 @@ describe "Window", ->
 
         expect(buffer.getSubscriptionCount()).toBe 0
 
-  describe "drag and drop", ->
-    buildDragEvent = (type, files) ->
-      dataTransfer =
-        files: files
-        data: {}
-        setData: (key, value) -> @data[key] = value
-        getData: (key) -> @data[key]
-
-      event = new CustomEvent("drop")
-      event.dataTransfer = dataTransfer
-      event
-
-    describe "when a file is dragged to window", ->
-      it "opens it", ->
-        spyOn(atom, "open")
-        event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
-        document.dispatchEvent(event)
-        expect(atom.open.callCount).toBe 1
-        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
-
-    describe "when a non-file is dragged to window", ->
-      it "does nothing", ->
-        spyOn(atom, "open")
-        event = buildDragEvent("drop", [])
-        document.dispatchEvent(event)
-        expect(atom.open).not.toHaveBeenCalled()
-
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
       shell = require 'shell'

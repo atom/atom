@@ -108,6 +108,15 @@ buildAtomClient = (args, env) ->
           ]), env: extend({}, process.env, env))
         done()
 
+    .addCommand "dispatchCommand", (command, done) ->
+      @execute "atom.commands.dispatch(document.activeElement, '#{command}')"
+      .call(done)
+
+    .addCommand "simulateQuit", (done) ->
+      @execute -> atom.unloadEditorWindow()
+      .execute -> require("remote").require("app").emit("before-quit")
+      .call(done)
+
 module.exports = (args, env, fn) ->
   [chromedriver, chromedriverLogs, chromedriverExit] = []
 
@@ -133,6 +142,7 @@ module.exports = (args, env, fn) ->
   waitsFor("webdriver to finish", (done) ->
     finish = once ->
       client
+        .simulateQuit()
         .end()
         .then(-> chromedriver.kill())
         .then(chromedriverExit.then(
@@ -147,7 +157,7 @@ module.exports = (args, env, fn) ->
     client = buildAtomClient(args, env)
 
     client.on "error", (err) ->
-      jasmine.getEnv().currentSpec.fail(JSON.stringify(err))
+      jasmine.getEnv().currentSpec.fail(new Error(err.response?.body?.value?.message))
       finish()
 
     fn(client.init()).then(finish)

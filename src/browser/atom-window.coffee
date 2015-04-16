@@ -87,8 +87,9 @@ class AtomWindow
       hash: encodeURIComponent(JSON.stringify(loadSettings))
 
   getLoadSettings: ->
-    hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
-    JSON.parse(decodeURIComponent(hash))
+    if @browserWindow.webContents.loaded
+      hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
+      JSON.parse(decodeURIComponent(hash))
 
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
 
@@ -105,7 +106,7 @@ class AtomWindow
     true
 
   containsPath: (pathToCheck) ->
-    @getLoadSettings().initialPaths?.some (projectPath) ->
+    @getLoadSettings()?.initialPaths?.some (projectPath) ->
       if not projectPath
         false
       else if not pathToCheck

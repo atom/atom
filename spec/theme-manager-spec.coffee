@@ -390,6 +390,13 @@ describe "ThemeManager", ->
         expect(note.getType()).toBe 'error'
         expect(note.getMessage()).toContain 'Unable to watch path'
 
+    it "adds a notification when a theme's stylesheet is invalid", ->
+      addErrorHandler = jasmine.createSpy()
+      atom.notifications.onDidAddNotification(addErrorHandler)
+      expect(-> atom.packages.activatePackage('theme-with-invalid-styles')).not.toThrow()
+      expect(addErrorHandler.callCount).toBe 2
+      expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to activate the theme-with-invalid-styles theme")
+
   describe "when a non-existent theme is present in the config", ->
     beforeEach ->
       spyOn(console, 'warn')
