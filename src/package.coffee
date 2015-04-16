@@ -309,7 +309,7 @@ class Package
       return deferred.resolve() unless grammarsDirExists
 
       fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
-        async.each grammarPaths, loadGrammar, ->
+        async.each grammarPaths, loadGrammar, -> deferred.resolve()
     deferred.promise
 
   loadSettings: ->
