@@ -1,3 +1,6 @@
+git:
+  depth: 10
+
 env:
   - NODE_VERSION=0.10
   - NODE_VERSION=0.12
