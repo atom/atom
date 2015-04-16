@@ -86,25 +86,23 @@ module.exports = (grunt) ->
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
 
-    # Integration tests require a fast machine and, for now, we cannot afford to
-    # run them on Travis.
-    env = _.extend({}, process.env,
-      ATOM_INTEGRATION_TESTS_ENABLED: not process.env.TRAVIS
-    )
-
     if process.platform in ['darwin', 'linux']
       options =
         cmd: appPath
         args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
         opts:
-          env: env
+          env: _.extend({}, process.env,
+            ATOM_INTEGRATION_TESTS_ENABLED: true
+          )
 
     else if process.platform is 'win32'
       options =
         cmd: process.env.comspec
         args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=ci.log"]
         opts:
-          env: env
+          env: _.extend({}, process.env,
+            ATOM_INTEGRATION_TESTS_ENABLED: true
+          )
 
     grunt.log.ok "Launching core specs."
     spawn options, (error, results, code) ->
