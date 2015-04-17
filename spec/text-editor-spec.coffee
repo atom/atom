@@ -1,4 +1,4 @@
-clipboard = require 'clipboard'
+clipboard = require '../src/safe-clipboard'
 TextEditor = require '../src/text-editor'
 
 describe "TextEditor", ->
@@ -547,7 +547,7 @@ describe "TextEditor", ->
             lastLine = buffer.lineForRow(lastLineIndex)
             expect(lastLine.length).toBeGreaterThan(0)
 
-            lastPosition = { row: lastLineIndex, column: lastLine.length }
+            lastPosition = {row: lastLineIndex, column: lastLine.length}
             editor.setCursorScreenPosition(lastPosition)
             editor.moveRight()
 
@@ -831,35 +831,29 @@ describe "TextEditor", ->
 
     describe ".moveToBeginningOfNextParagraph()", ->
       it "moves the cursor before the first line of the next paragraph", ->
-        editor.setCursorBufferPosition [0,6]
-        cursor = editor.getLastCursor()
+        editor.setCursorBufferPosition [0, 6]
+        editor.foldBufferRow(4)
 
         editor.moveToBeginningOfNextParagraph()
-
-        expect(cursor.getBufferPosition()).toEqual  { row : 10, column : 0 }
+        expect(editor.getCursorBufferPosition()).toEqual  [10, 0]
 
         editor.setText("")
-        editor.setCursorBufferPosition [0,0]
-        cursor = editor.getLastCursor()
+        editor.setCursorBufferPosition [0, 0]
         editor.moveToBeginningOfNextParagraph()
-
-        expect(cursor.getBufferPosition()).toEqual [0, 0]
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
     describe ".moveToBeginningOfPreviousParagraph()", ->
       it "moves the cursor before the first line of the pevious paragraph", ->
-        editor.setCursorBufferPosition [10,0]
-        cursor = editor.getLastCursor()
+        editor.setCursorBufferPosition [10, 0]
+        editor.foldBufferRow(4)
 
         editor.moveToBeginningOfPreviousParagraph()
-
-        expect(cursor.getBufferPosition()).toEqual  { row : 0, column : 0 }
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
         editor.setText("")
-        editor.setCursorBufferPosition [0,0]
-        cursor = editor.getLastCursor()
+        editor.setCursorBufferPosition [0, 0]
         editor.moveToBeginningOfPreviousParagraph()
-
-        expect(cursor.getBufferPosition()).toEqual [0, 0]
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
     describe ".getCurrentParagraphBufferRange()", ->
       it "returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file", ->
@@ -2730,6 +2724,20 @@ describe "TextEditor", ->
 
             """
 
+        describe "when many selections get added in shuffle order", ->
+          it "cuts them in order", ->
+            editor.setSelectedBufferRanges([
+              [[2,8], [2, 13]]
+              [[0,4], [0,13]],
+              [[1,6], [1, 10]],
+            ])
+            editor.cutSelectedText()
+            expect(atom.clipboard.read()).toEqual """
+              quicksort
+              sort
+              items
+            """
+
       describe ".cutToEndOfLine()", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
@@ -2791,6 +2799,20 @@ describe "TextEditor", ->
               [[1, 5], [1, 5]],
               [[5, 8], [5, 8]]
             ])
+
+        describe "when many selections get added in shuffle order", ->
+          it "copies them in order", ->
+            editor.setSelectedBufferRanges([
+              [[2,8], [2, 13]]
+              [[0,4], [0,13]],
+              [[1,6], [1, 10]],
+            ])
+            editor.copySelectedText()
+            expect(atom.clipboard.read()).toEqual """
+              quicksort
+              sort
+              items
+            """
 
       describe ".pasteText()", ->
         copyText = (text, {startColumn, textEditor}={}) ->
@@ -2886,8 +2908,12 @@ describe "TextEditor", ->
             editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
             editor.copySelectedText()
 
-          it "pastes each selection separately into the buffer", ->
-            editor.copySelectedText()
+          it "pastes each selection in order separately into the buffer", ->
+            editor.setSelectedBufferRanges([
+              [[1, 6], [1, 10]]
+              [[0, 4], [0, 13]],
+            ])
+
             editor.moveRight()
             editor.insertText("_")
             editor.pasteText()
@@ -3343,6 +3369,20 @@ describe "TextEditor", ->
       editor.deleteLine()
       expect(buffer.lineForRow(0)).toBe(line2)
       expect(buffer.getLineCount()).toBe(count - 2)
+
+    it "deletes a line only once when multiple selections are on the same line", ->
+      line1 = buffer.lineForRow(1)
+      count = buffer.getLineCount()
+      editor.setSelectedBufferRanges([
+        [[0, 1], [0, 2]],
+        [[0, 4], [0, 5]]
+      ])
+      expect(buffer.lineForRow(0)).not.toBe(line1)
+
+      editor.deleteLine()
+
+      expect(buffer.lineForRow(0)).toBe(line1)
+      expect(buffer.getLineCount()).toBe(count - 1)
 
     it "only deletes first line if only newline is selected on second line", ->
       editor.setSelectedBufferRange([[0, 2], [1, 0]])

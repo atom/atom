@@ -3,6 +3,7 @@
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
+Grim = require 'grim'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 TextEditorView = null
@@ -20,7 +21,7 @@ class TextEditorElement extends HTMLElement
   createdCallback: ->
     @emitter = new Emitter
     @initializeContent()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
@@ -86,7 +87,7 @@ class TextEditorElement extends HTMLElement
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
   getModel: ->

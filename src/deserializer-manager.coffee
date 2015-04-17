@@ -37,11 +37,6 @@ class DeserializerManager
       delete @deserializers[deserializer.name] for deserializer in deserializers
       return
 
-  remove: (classes...) ->
-    Grim.deprecate("Call .dispose() on the Disposable return from ::add instead")
-    delete @deserializers[name] for {name} in classes
-    return
-
   # Public: Deserialize the state and params.
   #
   # * `state` The state {Object} to deserialize.
@@ -65,3 +60,9 @@ class DeserializerManager
 
     name = state.get?('deserializer') ? state.deserializer
     @deserializers[name]
+
+if Grim.includeDeprecatedAPIs
+  DeserializerManager::remove = (classes...) ->
+    Grim.deprecate("Call .dispose() on the Disposable return from ::add instead")
+    delete @deserializers[name] for {name} in classes
+    return

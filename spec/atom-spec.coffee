@@ -55,7 +55,7 @@ describe "the `atom` global", ->
   describe "loading default config", ->
     it 'loads the default core config', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
-      expect(atom.config.get('core.followSymlinks')).toBe false
+      expect(atom.config.get('core.followSymlinks')).toBe true
       expect(atom.config.get('editor.showInvisibles')).toBe false
 
   describe "window onerror handler", ->
@@ -139,7 +139,7 @@ describe "the `atom` global", ->
         windowState: null
 
       spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
-      spyOn(Atom, 'getStorageDirPath').andReturn(temp.mkdirSync("storage-dir-"))
+      spyOn(Atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
 
       atom.mode = "editor"
       atom.state.stuff = "cool"
@@ -180,3 +180,19 @@ describe "the `atom` global", ->
       it "does not open an empty buffer", ->
         atom.openInitialEmptyEditorIfNecessary()
         expect(atom.workspace.open).not.toHaveBeenCalled()
+
+  describe "adding a project folder", ->
+    it "adds a second path to the project", ->
+      initialPaths = atom.project.getPaths()
+      tempDirectory = temp.mkdirSync("a-new-directory")
+      spyOn(atom, "pickFolder").andCallFake (callback) ->
+        callback([tempDirectory])
+      atom.addProjectFolder()
+      expect(atom.project.getPaths()).toEqual(initialPaths.concat([tempDirectory]))
+
+    it "does nothing if the user dismisses the file picker", ->
+      initialPaths = atom.project.getPaths()
+      tempDirectory = temp.mkdirSync("a-new-directory")
+      spyOn(atom, "pickFolder").andCallFake (callback) -> callback(null)
+      atom.addProjectFolder()
+      expect(atom.project.getPaths()).toEqual(initialPaths)

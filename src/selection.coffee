@@ -1,8 +1,8 @@
 {Point, Range} = require 'text-buffer'
-{Model} = require 'theorist'
 {pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
+Model = require './model'
 
 NonWhitespaceRegExp = /\S/
 
@@ -27,7 +27,7 @@ class Selection extends Model
       unless @editor.isDestroyed()
         @destroyed = true
         @editor.removeSelection(this)
-        @emit 'destroyed'
+        @emit 'destroyed' if Grim.includeDeprecatedAPIs
         @emitter.emit 'did-destroy'
         @emitter.dispose()
 
@@ -62,18 +62,6 @@ class Selection extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
-
-  on: (eventName) ->
-    switch eventName
-      when 'screen-range-changed'
-        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
-      when 'destroyed'
-        Grim.deprecate("Use Selection::onDidDestroy instead.")
-      else
-        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
 
   ###
   Section: Managing the selection range
@@ -122,7 +110,7 @@ class Selection extends Model
     range = @getBufferRange()
     start = range.start.row
     end = range.end.row
-    end = Math.max(start, end - 1) if range.end.column == 0
+    end = Math.max(start, end - 1) if range.end.column is 0
     [start, end]
 
   getTailScreenPosition: ->
@@ -398,7 +386,7 @@ class Selection extends Model
     if autoIndentFirstLine
       @editor.setIndentationForBufferRow(oldBufferRange.start.row, desiredIndentLevel)
 
-    if options.autoIndentNewline and text == '\n'
+    if options.autoIndentNewline and text is '\n'
       currentIndentation = @editor.indentationForBufferRow(newBufferRange.start.row)
       @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
       if @editor.indentationForBufferRow(newBufferRange.end.row) < currentIndentation
@@ -415,16 +403,6 @@ class Selection extends Model
   backspace: ->
     @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
-
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  backspaceToBeginningOfWord: ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  backspaceToBeginningOfLine: ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
 
   # Public: Removes from the start of the selection to the beginning of the
   # current word if the selection is empty otherwise it deletes the selection.
@@ -623,7 +601,7 @@ class Selection extends Model
   # of levels. Leaves the first line unchanged.
   adjustIndent: (lines, indentAdjustment) ->
     for line, i in lines
-      if indentAdjustment == 0 or line is ''
+      if indentAdjustment is 0 or line is ''
         continue
       else if indentAdjustment > 0
         lines[i] = @editor.buildIndentString(indentAdjustment) + line
@@ -642,8 +620,8 @@ class Selection extends Model
   # * `options` (optional) {Object} with the keys:
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
   #     level. Otherwise, {TextEditor::getTabText} is inserted.
-  indent: ({ autoIndent }={}) ->
-    { row, column } = @cursor.getBufferPosition()
+  indent: ({autoIndent}={}) ->
+    {row, column} = @cursor.getBufferPosition()
 
     if @isEmpty()
       @cursor.skipLeadingWhitespace()
@@ -662,7 +640,7 @@ class Selection extends Model
   indentSelectedRows: ->
     [start, end] = @getBufferRowRange()
     for row in [start..end]
-      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) == 0
+      @editor.buffer.insert([row, 0], @editor.getTabText()) unless @editor.buffer.lineLengthForRow(row) is 0
     return
 
   ###
@@ -754,7 +732,7 @@ class Selection extends Model
       newScreenRange: @getScreenRange()
       selection: this
 
-    @emit 'screen-range-changed', @getScreenRange() # old event
+    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-range'
     @editor.selectionRangeChanged(eventObject)
 
@@ -789,3 +767,25 @@ class Selection extends Model
   getGoalScreenRange: ->
     if goalScreenRange = @marker.getProperties().goalScreenRange
       Range.fromObject(goalScreenRange)
+
+if Grim.includeDeprecatedAPIs
+  Selection::on = (eventName) ->
+    switch eventName
+      when 'screen-range-changed'
+        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
+      when 'destroyed'
+        Grim.deprecate("Use Selection::onDidDestroy instead.")
+      else
+        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
+
+    super
+
+  # Deprecated: Use {::deleteToBeginningOfWord} instead.
+  Selection::backspaceToBeginningOfWord = ->
+    deprecate("Use Selection::deleteToBeginningOfWord() instead")
+    @deleteToBeginningOfWord()
+
+  # Deprecated: Use {::deleteToBeginningOfLine} instead.
+  Selection::backspaceToBeginningOfLine = ->
+    deprecate("Use Selection::deleteToBeginningOfLine() instead")
+    @deleteToBeginningOfLine()

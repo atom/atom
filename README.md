@@ -1,5 +1,7 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
+[![Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom)
+
 Atom is a hackable text editor for the 21st century, built on [atom-shell](https://github.com/atom/atom-shell), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
 Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
@@ -12,7 +14,6 @@ about the Atom 1.0 roadmap.
 If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
 
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
-
 
 ## Installing
 

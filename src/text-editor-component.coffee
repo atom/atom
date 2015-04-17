@@ -118,7 +118,7 @@ class TextEditorComponent
 
     shouldMeasure = @isVisible()
 
-    if @editor.getLastSelection()? and !@editor.getLastSelection().isEmpty()
+    if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
     else
       @domNode.classList.remove('has-selection')
@@ -163,9 +163,10 @@ class TextEditorComponent
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
-      @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
-      @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
-      @hostElement.__spacePenView.trigger 'editor:display-updated'
+      if grim.includeDeprecatedAPIs
+        @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
+        @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
+        @hostElement.__spacePenView.trigger 'editor:display-updated'
 
   readAfterUpdateSync: =>
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
@@ -565,7 +566,7 @@ class TextEditorComponent
 
     pasteSelectionClipboard = (event) =>
       if event?.which is 2 and process.platform is 'linux'
-        if selection = require('clipboard').readText('selection')
+        if selection = require('./safe-clipboard').readText('selection')
           @editor.insertText(selection)
 
     window.addEventListener('mousemove', onMouseMove)
@@ -629,6 +630,10 @@ class TextEditorComponent
 
   measureWindowSize: ->
     return unless @mounted
+
+    # FIXME: on Ubuntu (via xvfb) `window.innerWidth` reports an incorrect value
+    # when window gets resized through `atom.setWindowDimensions({width:
+    # windowWidth, height: windowHeight})`.
     @presenter.setWindowSize(window.innerWidth, window.innerHeight)
 
   sampleFontStyling: =>
@@ -757,15 +762,6 @@ class TextEditorComponent
   setShowIndentGuide: (showIndentGuide) ->
     atom.config.set("editor.showIndentGuide", showIndentGuide)
 
-  # Deprecated
-  setInvisibles: (invisibles={}) ->
-    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
-    atom.config.set('editor.invisibles', invisibles)
-
-  # Deprecated
-  setShowInvisibles: (showInvisibles) ->
-    atom.config.set('editor.showInvisibles', showInvisibles)
-
   setScrollSensitivity: (scrollSensitivity) =>
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
@@ -798,3 +794,12 @@ class TextEditorComponent
   updateParentViewMiniClass: ->
     @hostElement.classList.toggle('mini', @editor.isMini())
     @rootElement.classList.toggle('mini', @editor.isMini())
+
+if grim.includeDeprecatedAPIs
+  TextEditorComponent::setInvisibles = (invisibles={}) ->
+    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
+    atom.config.set('editor.invisibles', invisibles)
+
+  TextEditorComponent::setShowInvisibles = (showInvisibles) ->
+    grim.deprecate "Use config.set('editor.showInvisibles', showInvisibles) instead"
+    atom.config.set('editor.showInvisibles', showInvisibles)

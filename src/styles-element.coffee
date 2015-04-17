@@ -1,4 +1,5 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
+{includeDeprecatedAPIs} = require 'grim'
 
 class StylesElement extends HTMLElement
   subscriptions: null
@@ -18,7 +19,7 @@ class StylesElement extends HTMLElement
     @styleElementClonesByOriginalElement = new WeakMap
 
   attachedCallback: ->
-    if @context is 'atom-text-editor'
+    if includeDeprecatedAPIs and @context is 'atom-text-editor'
       for styleElement in @children
         @upgradeDeprecatedSelectors(styleElement)
     @initialize()
@@ -66,7 +67,7 @@ class StylesElement extends HTMLElement
 
     @insertBefore(styleElementClone, insertBefore)
 
-    if @context is 'atom-text-editor'
+    if includeDeprecatedAPIs and @context is 'atom-text-editor'
       @upgradeDeprecatedSelectors(styleElementClone)
 
     @emitter.emit 'did-add-style-element', styleElementClone

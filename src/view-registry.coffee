@@ -186,6 +186,7 @@ class ViewRegistry
     @documentWriters = []
     @documentPollers = []
     @documentUpdateRequested = false
+    @stopPollingDocument()
 
   requestDocumentUpdate: ->
     unless @documentUpdateRequested

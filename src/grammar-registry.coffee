@@ -1,13 +1,6 @@
-_ = require 'underscore-plus'
-{deprecate} = require 'grim'
-{specificity} = require 'clear-cut'
-{Subscriber} = require 'emissary'
+{Emitter} = require 'event-kit'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 FirstMate = require 'first-mate'
-{ScopeSelector} = FirstMate
-ScopedPropertyStore = require 'scoped-property-store'
-PropertyAccessors = require 'property-accessors'
-
-{$, $$} = require './space-pen-extensions'
 Token = require './token'
 
 # Extended: Syntax class holding the grammars used for tokenizing.
@@ -18,16 +11,12 @@ Token = require './token'
 # language-specific comment regexes. See {::getProperty} for more details.
 module.exports =
 class GrammarRegistry extends FirstMate.GrammarRegistry
-  PropertyAccessors.includeInto(this)
-  Subscriber.includeInto(this)
-
   @deserialize: ({grammarOverridesByPath}) ->
     grammarRegistry = new GrammarRegistry()
     grammarRegistry.grammarOverridesByPath = grammarOverridesByPath
     grammarRegistry
 
   atom.deserializers.add(this)
-  atom.deserializers.add(name: 'Syntax', deserialize: @deserialize) # Support old serialization
 
   constructor: ->
     super(maxTokensPerLine: 100)
@@ -48,24 +37,38 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   # Returns a {Grammar}, never null.
   selectGrammar: (filePath, fileContents) -> super
 
+  clearObservers: ->
+    @off() if includeDeprecatedAPIs
+    @emitter = new Emitter
+
+if includeDeprecatedAPIs
+  PropertyAccessors = require 'property-accessors'
+  PropertyAccessors.includeInto(GrammarRegistry)
+
+  {Subscriber} = require 'emissary'
+  Subscriber.includeInto(GrammarRegistry)
+
+  # Support old serialization
+  atom.deserializers.add(name: 'Syntax', deserialize: GrammarRegistry.deserialize)
+
   # Deprecated: Used by settings-view to display snippets for packages
-  @::accessor 'propertyStore', ->
+  GrammarRegistry::accessor 'propertyStore', ->
     deprecate("Do not use this. Use a public method on Config")
     atom.config.scopedSettingsStore
 
-  addProperties: (args...) ->
-    args.unshift(null) if args.length == 2
+  GrammarRegistry::addProperties = (args...) ->
+    args.unshift(null) if args.length is 2
     deprecate 'Consider using atom.config.set() instead. A direct (but private) replacement is available at atom.config.addScopedSettings().'
     atom.config.addScopedSettings(args...)
 
-  removeProperties: (name) ->
+  GrammarRegistry::removeProperties = (name) ->
     deprecate 'atom.config.addScopedSettings() now returns a disposable you can call .dispose() on'
     atom.config.scopedSettingsStore.removeProperties(name)
 
-  getProperty: (scope, keyPath) ->
+  GrammarRegistry::getProperty = (scope, keyPath) ->
     deprecate 'A direct (but private) replacement is available at atom.config.getRawScopedValue().'
     atom.config.getRawScopedValue(scope, keyPath)
 
-  propertiesForScope: (scope, keyPath) ->
+  GrammarRegistry::propertiesForScope = (scope, keyPath) ->
     deprecate 'Use atom.config.getAll instead.'
     atom.config.settingsForScopeDescriptor(scope, keyPath)

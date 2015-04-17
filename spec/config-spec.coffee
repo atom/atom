@@ -251,9 +251,9 @@ describe "Config", ->
         it "removes all scoped and unscoped properties for that key-path", ->
           atom.config.setDefaults("foo.bar", baz: 100)
 
-          atom.config.set("foo.bar", { baz: 1, ok: 2 }, scopeSelector: ".a")
-          atom.config.set("foo.bar", { baz: 11, ok: 12 }, scopeSelector: ".b")
-          atom.config.set("foo.bar", { baz: 21, ok: 22 })
+          atom.config.set("foo.bar", {baz: 1, ok: 2}, scopeSelector: ".a")
+          atom.config.set("foo.bar", {baz: 11, ok: 12}, scopeSelector: ".b")
+          atom.config.set("foo.bar", {baz: 21, ok: 22})
 
           atom.config.unset("foo.bar.baz")
 
@@ -987,7 +987,6 @@ describe "Config", ->
             expect(fs.existsSync(atom.config.configDirPath)).toBeTruthy()
             expect(fs.existsSync(path.join(atom.config.configDirPath, 'packages'))).toBeTruthy()
             expect(fs.isFileSync(path.join(atom.config.configDirPath, 'snippets.cson'))).toBeTruthy()
-            expect(fs.isFileSync(path.join(atom.config.configDirPath, 'config.cson'))).toBeTruthy()
             expect(fs.isFileSync(path.join(atom.config.configDirPath, 'init.coffee'))).toBeTruthy()
             expect(fs.isFileSync(path.join(atom.config.configDirPath, 'styles.less'))).toBeTruthy()
 

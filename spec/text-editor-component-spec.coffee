@@ -728,7 +728,7 @@ describe "TextEditorComponent", ->
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{10 * charWidth}px, #{4 * lineHeightInPixels}px)"
       expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{8 * lineHeightInPixels}px)"
 
-      wrapperView.on 'cursor:moved', cursorMovedListener = jasmine.createSpy('cursorMovedListener')
+      editor.onDidChangeCursorPosition cursorMovedListener = jasmine.createSpy('cursorMovedListener')
       cursor3.setScreenPosition([4, 11], autoscroll: false)
       nextAnimationFrame()
       expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{11 * charWidth}px, #{4 * lineHeightInPixels}px)"
@@ -1358,7 +1358,8 @@ describe "TextEditorComponent", ->
       afterEach ->
         atom.restoreWindowDimensions()
 
-      it "slides horizontally left when near the right edge", ->
+      # This spec should actually run on Linux as well, see TextEditorComponent#measureWindowSize for further information.
+      it "slides horizontally left when near the right edge on #win32 and #darwin", ->
         marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
         nextAnimationFrame()
@@ -1436,6 +1437,22 @@ describe "TextEditorComponent", ->
 
     beforeEach ->
       linesNode = componentNode.querySelector('.lines')
+
+    describe "when the mouse is single-clicked above the first line", ->
+      it "moves the cursor to the start of file buffer position", ->
+        editor.setText('foo')
+        editor.setCursorBufferPosition([0, 3])
+        height = 4.5 * lineHeightInPixels
+        wrapperNode.style.height = height + 'px'
+        wrapperNode.style.width = 10 * charWidth + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        coordinates = clientCoordinatesForScreenPosition([0, 2])
+        coordinates.clientY = -1
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
+        nextAnimationFrame()
+        expect(editor.getCursorScreenPosition()).toEqual [0, 0]
 
     describe "when the mouse is single-clicked below the last line", ->
       it "moves the cursor to the end of file buffer position", ->
@@ -2446,7 +2463,7 @@ describe "TextEditorComponent", ->
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
-        component.setFontFamily('sans-serif')
+        component.setFontFamily('serif')
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
         wrapperView.show()
@@ -2455,7 +2472,7 @@ describe "TextEditorComponent", ->
       it "does not re-measure character widths until the editor is shown again", ->
         wrapperView.hide()
 
-        component.setFontFamily('sans-serif')
+        component.setFontFamily('serif')
 
         wrapperView.show()
         editor.setCursorBufferPosition([0, Infinity])
@@ -2817,7 +2834,7 @@ describe "TextEditorComponent", ->
       clipboardWrittenTo = false
       spyOn(require('ipc'), 'send').andCallFake (eventName, selectedText) ->
         if eventName is 'write-text-to-selection-clipboard'
-          require('clipboard').writeText(selectedText, 'selection')
+          require('../src/safe-clipboard').writeText(selectedText, 'selection')
           clipboardWrittenTo = true
 
       atom.clipboard.write('')

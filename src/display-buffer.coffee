@@ -1,12 +1,11 @@
 _ = require 'underscore-plus'
-EmitterMixin = require('emissary').Emitter
 Serializable = require 'serializable'
-{Model} = require 'theorist'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
+Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
@@ -21,19 +20,6 @@ module.exports =
 class DisplayBuffer extends Model
   Serializable.includeInto(this)
 
-  @properties
-    softWrapped: null
-    editorWidthInChars: null
-    lineHeightInPixels: null
-    defaultCharWidth: null
-    height: null
-    width: null
-    scrollTop: 0
-    scrollLeft: 0
-    scrollWidth: 0
-    verticalScrollbarWidth: 15
-    horizontalScrollbarHeight: 15
-
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
   characterWidthsChanged: false
@@ -42,6 +28,7 @@ class DisplayBuffer extends Model
     super
 
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
 
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
@@ -50,10 +37,10 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @subscribe @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
-    @subscribe @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
-    @subscribe @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
-    @subscribe @buffer.onDidCreateMarker @handleBufferMarkerCreated
+    @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
+    @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
+    @disposables.add @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
+    @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
@@ -135,6 +122,20 @@ class DisplayBuffer extends Model
   onDidChangeCharacterWidths: (callback) ->
     @emitter.on 'did-change-character-widths', callback
 
+  onDidChangeScrollTop: (callback) ->
+    @emitter.on 'did-change-scroll-top', callback
+
+  onDidChangeScrollLeft: (callback) ->
+    @emitter.on 'did-change-scroll-left', callback
+
+  observeScrollTop: (callback) ->
+    callback(@scrollTop)
+    @onDidChangeScrollTop(callback)
+
+  observeScrollLeft: (callback) ->
+    callback(@scrollLeft)
+    @onDidChangeScrollLeft(callback)
+
   observeDecorations: (callback) ->
     callback(decoration) for decoration in @getDecorations()
     @onDidAddDecoration(callback)
@@ -151,38 +152,11 @@ class DisplayBuffer extends Model
   onDidUpdateMarkers: (callback) ->
     @emitter.on 'did-update-markers', callback
 
-  on: (eventName) ->
-    switch eventName
-      when 'changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChange instead")
-      when 'grammar-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
-      when 'soft-wrap-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeSoftWrap instead")
-      when 'character-widths-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeCharacterWidths instead")
-      when 'decoration-added'
-        Grim.deprecate("Use DisplayBuffer::onDidAddDecoration instead")
-      when 'decoration-removed'
-        Grim.deprecate("Use DisplayBuffer::onDidRemoveDecoration instead")
-      when 'decoration-changed'
-        Grim.deprecate("Use decoration.getMarker().onDidChange() instead")
-      when 'decoration-updated'
-        Grim.deprecate("Use Decoration::onDidChangeProperties instead")
-      when 'marker-created'
-        Grim.deprecate("Use Decoration::onDidCreateMarker instead")
-      when 'markers-updated'
-        Grim.deprecate("Use Decoration::onDidUpdateMarkers instead")
-      else
-        Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
-
-    EmitterMixin::on.apply(this, arguments)
-
   emitDidChange: (eventProperties, refreshMarkers=true) ->
     if refreshMarkers
       @pauseMarkerChangeEvents()
       @refreshMarkerScreenPositions()
-    @emit 'changed', eventProperties
+    @emit 'changed', eventProperties if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', eventProperties
     @resumeMarkerChangeEvents()
 
@@ -192,7 +166,7 @@ class DisplayBuffer extends Model
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @emitDidChange({ start, end, screenDelta, bufferDelta })
+    @emitDidChange({start, end, screenDelta, bufferDelta})
 
   # Sets the visibility of the tokenized buffer.
   #
@@ -277,7 +251,11 @@ class DisplayBuffer extends Model
 
   getScrollTop: -> @scrollTop
   setScrollTop: (scrollTop) ->
-    @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
+    scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
+    unless scrollTop is @scrollTop
+      @scrollTop = scrollTop
+      @emitter.emit 'did-change-scroll-top', @scrollTop
+    @scrollTop
 
   getMaxScrollTop: ->
     @getScrollHeight() - @getClientHeight()
@@ -289,7 +267,11 @@ class DisplayBuffer extends Model
 
   getScrollLeft: -> @scrollLeft
   setScrollLeft: (scrollLeft) ->
-    @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
+    scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
+    unless scrollLeft is @scrollLeft
+      @scrollLeft = scrollLeft
+      @emitter.emit 'did-change-scroll-left', @scrollLeft
+    @scrollLeft
 
   getMaxScrollLeft: ->
     @getScrollWidth() - @getClientWidth()
@@ -445,7 +427,7 @@ class DisplayBuffer extends Model
       @softWrapped = softWrapped
       @updateWrappedScreenLines()
       softWrapped = @isSoftWrapped()
-      @emit 'soft-wrap-changed', softWrapped
+      @emit 'soft-wrap-changed', softWrapped if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-soft-wrapped', softWrapped
       softWrapped
     else
@@ -686,6 +668,7 @@ class DisplayBuffer extends Model
     targetLeft = pixelPosition.left
     defaultCharWidth = @defaultCharWidth
     row = Math.floor(targetTop / @getLineHeightInPixels())
+    targetLeft = 0 if row < 0
     targetLeft = Infinity if row > @getLastRow()
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)
@@ -754,7 +737,7 @@ class DisplayBuffer extends Model
   screenPositionForBufferPosition: (bufferPosition, options) ->
     throw new Error("This TextEditor has been destroyed") if @isDestroyed()
 
-    { row, column } = @buffer.clipPosition(bufferPosition)
+    {row, column} = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
       screenLine = @screenLines[screenRow]
@@ -788,7 +771,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
-    { row, column } = @clipScreenPosition(Point.fromObject(screenPosition), options)
+    {row, column} = @clipScreenPosition(Point.fromObject(screenPosition), options)
     [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
     new Point(bufferRow, @screenLines[row].bufferColumnForScreenColumn(column))
 
@@ -842,8 +825,8 @@ class DisplayBuffer extends Model
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    { wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation } = options
-    { row, column } = Point.fromObject(screenPosition)
+    {wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation} = options
+    {row, column} = Point.fromObject(screenPosition)
 
     if row < 0
       row = 0
@@ -930,11 +913,11 @@ class DisplayBuffer extends Model
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
-    @subscribe decoration.onDidDestroy => @removeDecoration(decoration)
+    @disposables.add decoration.onDidDestroy => @removeDecoration(decoration)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @decorationsById[decoration.id] = decoration
-    @emit 'decoration-added', decoration
+    @emit 'decoration-added', decoration if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-add-decoration', decoration
     decoration
 
@@ -946,7 +929,7 @@ class DisplayBuffer extends Model
     if index > -1
       decorations.splice(index, 1)
       delete @decorationsById[decoration.id]
-      @emit 'decoration-removed', decoration
+      @emit 'decoration-removed', decoration if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
 
@@ -1098,7 +1081,7 @@ class DisplayBuffer extends Model
 
   resumeMarkerChangeEvents: ->
     marker.resumeChangeEvents() for marker in @getMarkers()
-    @emit 'markers-updated'
+    @emit 'markers-updated' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-update-markers'
 
   refreshMarkerScreenPositions: ->
@@ -1107,9 +1090,9 @@ class DisplayBuffer extends Model
     return
 
   destroyed: ->
-    marker.unsubscribe() for id, marker of @markers
+    marker.disposables.dispose() for id, marker of @markers
     @scopedConfigSubscriptions.dispose()
-    @unsubscribe()
+    @disposables.dispose()
     @tokenizedBuffer.destroy()
 
   logLines: (start=0, end=@getLastRow()) ->
@@ -1240,7 +1223,7 @@ class DisplayBuffer extends Model
     if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
-      @emit 'marker-created', marker
+      @emit 'marker-created', marker if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-create-marker', marker
 
   createFoldForMarker: (marker) ->
@@ -1249,3 +1232,58 @@ class DisplayBuffer extends Model
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
+
+if Grim.includeDeprecatedAPIs
+  DisplayBuffer.properties
+    softWrapped: null
+    editorWidthInChars: null
+    lineHeightInPixels: null
+    defaultCharWidth: null
+    height: null
+    width: null
+    scrollTop: 0
+    scrollLeft: 0
+    scrollWidth: 0
+    verticalScrollbarWidth: 15
+    horizontalScrollbarHeight: 15
+
+  EmitterMixin = require('emissary').Emitter
+
+  DisplayBuffer::on = (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChange instead")
+      when 'grammar-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
+      when 'soft-wrap-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeSoftWrap instead")
+      when 'character-widths-changed'
+        Grim.deprecate("Use DisplayBuffer::onDidChangeCharacterWidths instead")
+      when 'decoration-added'
+        Grim.deprecate("Use DisplayBuffer::onDidAddDecoration instead")
+      when 'decoration-removed'
+        Grim.deprecate("Use DisplayBuffer::onDidRemoveDecoration instead")
+      when 'decoration-changed'
+        Grim.deprecate("Use decoration.getMarker().onDidChange() instead")
+      when 'decoration-updated'
+        Grim.deprecate("Use Decoration::onDidChangeProperties instead")
+      when 'marker-created'
+        Grim.deprecate("Use Decoration::onDidCreateMarker instead")
+      when 'markers-updated'
+        Grim.deprecate("Use Decoration::onDidUpdateMarkers instead")
+      else
+        Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
+else
+  DisplayBuffer::softWrapped = null
+  DisplayBuffer::editorWidthInChars = null
+  DisplayBuffer::lineHeightInPixels = null
+  DisplayBuffer::defaultCharWidth = null
+  DisplayBuffer::height = null
+  DisplayBuffer::width = null
+  DisplayBuffer::scrollTop = 0
+  DisplayBuffer::scrollLeft = 0
+  DisplayBuffer::scrollWidth = 0
+  DisplayBuffer::verticalScrollbarWidth = 15
+  DisplayBuffer::horizontalScrollbarHeight = 15

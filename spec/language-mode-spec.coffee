@@ -124,6 +124,11 @@ describe "LanguageMode", ->
               // lines
               var sort = function(items) {};
               // comment line after fn
+
+              var nosort = function(items) {
+                return item;
+              }
+
             };
           '''
 
@@ -143,6 +148,9 @@ describe "LanguageMode", ->
 
           range = languageMode.rowRangeForParagraphAtBufferRow(15)
           expect(range).toEqual [[15,0], [15,26]]
+
+          range = languageMode.rowRangeForParagraphAtBufferRow(18)
+          expect(range).toEqual [[17,0], [19,3]]
 
   describe "coffeescript", ->
     beforeEach ->

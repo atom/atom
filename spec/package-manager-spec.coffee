@@ -28,6 +28,12 @@ describe "PackageManager", ->
       expect(pack.metadata.name).toBe "package-with-invalid-styles"
       expect(pack.stylesheets.length).toBe 0
 
+      addErrorHandler = jasmine.createSpy()
+      atom.notifications.onDidAddNotification(addErrorHandler)
+      expect(-> pack.reloadStylesheets()).not.toThrow()
+      expect(addErrorHandler.callCount).toBe 2
+      expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to reload the package-with-invalid-styles package stylesheets")
+
     it "returns null if the package has an invalid package.json", ->
       addErrorHandler = jasmine.createSpy()
       atom.notifications.onDidAddNotification(addErrorHandler)
@@ -330,32 +336,32 @@ describe "PackageManager", ->
           element2 = $$ -> @div class: 'test-2'
           element3 = $$ -> @div class: 'test-3'
 
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe "test-1"
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element2[0])[0].command).toBe "test-2"
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe "test-1"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])[0].command).toBe "test-2"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
 
       describe "when the metadata contains a 'keymaps' manifest", ->
         it "loads only the keymaps specified by the manifest, in the specified order", ->
           element1 = $$ -> @div class: 'test-1'
           element3 = $$ -> @div class: 'test-3'
 
-          expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target:element1[0])[0].command).toBe 'keymap-1'
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-n', target:element1[0])[0].command).toBe 'keymap-2'
-            expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-y', target:element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-n', target: element1[0])[0].command).toBe 'keymap-2'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-y', target: element3[0])).toHaveLength 0
 
       describe "when the keymap file is empty", ->
         it "does not throw an error on activation", ->
@@ -645,8 +651,8 @@ describe "PackageManager", ->
 
       runs ->
         atom.packages.deactivatePackage('package-with-keymaps')
-        expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
-        expect(atom.keymaps.findKeyBindings(keystrokes:'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
 
     it "removes the package's stylesheets", ->
       waitsForPromise ->

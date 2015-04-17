@@ -141,33 +141,6 @@ describe "Window", ->
 
         expect(buffer.getSubscriptionCount()).toBe 0
 
-  describe "drag and drop", ->
-    buildDragEvent = (type, files) ->
-      dataTransfer =
-        files: files
-        data: {}
-        setData: (key, value) -> @data[key] = value
-        getData: (key) -> @data[key]
-
-      event = new CustomEvent("drop")
-      event.dataTransfer = dataTransfer
-      event
-
-    describe "when a file is dragged to window", ->
-      it "opens it", ->
-        spyOn(atom, "open")
-        event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
-        document.dispatchEvent(event)
-        expect(atom.open.callCount).toBe 1
-        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
-
-    describe "when a non-file is dragged to window", ->
-      it "does nothing", ->
-        spyOn(atom, "open")
-        event = buildDragEvent("drop", [])
-        document.dispatchEvent(event)
-        expect(atom.open).not.toHaveBeenCalled()
-
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
       shell = require 'shell'
@@ -285,19 +258,35 @@ describe "Window", ->
       it "adds it to the project's paths", ->
         pathToOpen = __filename
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.project.getPaths()[0]).toBe __dirname
+
+        waitsFor ->
+          atom.project.getPaths().length is 1
+
+        runs ->
+          expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path does not exist but its parent directory does", ->
       it "adds the parent directory to the project paths", ->
         pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.project.getPaths()[0]).toBe __dirname
+
+        waitsFor ->
+          atom.project.getPaths().length is 1
+
+        runs ->
+          expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path is a file", ->
       it "opens it in the workspace", ->
         pathToOpen = __filename
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
+        waitsFor ->
+          atom.workspace.open.callCount is 1
+
+        runs ->
+          expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
 
     describe "when the opened path is a directory", ->
       it "does not open it in the workspace", ->

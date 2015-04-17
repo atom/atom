@@ -1,6 +1,5 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
-_ = require 'underscore-plus'
 {Disposable} = require 'event-kit'
 ipc = require 'ipc'
 shell = require 'shell'
@@ -85,7 +84,7 @@ class WindowEventHandler
 
     if process.platform in ['win32', 'linux']
       @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
-        atom.config.set('core.autoHideMenuBar', !atom.config.get('core.autoHideMenuBar'))
+        atom.config.set('core.autoHideMenuBar', not atom.config.get('core.autoHideMenuBar'))
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 
@@ -136,12 +135,11 @@ class WindowEventHandler
   onDrop: (event) ->
     event.preventDefault()
     event.stopPropagation()
-    pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
-    atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
   onDragOver: (event) ->
     event.preventDefault()
     event.stopPropagation()
+    event.dataTransfer.dropEffect = 'none'
 
   openLink: ({target, currentTarget}) ->
     location = target?.getAttribute('href') or currentTarget?.getAttribute('href')
