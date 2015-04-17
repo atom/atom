@@ -3,13 +3,15 @@ breakableRegex = /[\s\u4e00-\u9fff\u3400-\u4dbf\u3041-\u309f\u30a1-\u30ff\u31f0-
 
 module.exports =
 class TextWrapContext
-  canvas: document.createElement("canvas")
-  context: @canvas.getContext("2d")
+  canvas: null
+  context: null
 
   fontFamily: ""
   fontSize: 0
 
-  constructor: ({@fontFamily, @fontSize}) ->
+  constructor: ({@fontFamily, @fontSize} = {}) ->
+    @canvas = document.createElement("canvas")
+    @context = @canvas.getContext("2d")
     @updateCanvas()
 
   setFontFamily: (@fontFamily) ->
@@ -22,7 +24,7 @@ class TextWrapContext
     @fontSize + "px " + @fontFamily
 
   updateCanvas: ->
-    @context.font = stringifyFont()
+    @context.font = @stringifyFont()
 
   findWrapColumn: ({lineWrapWidth, text, firstNonWhitespaceIndex}) ->
     return unless lineWrapWidth?

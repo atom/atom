@@ -10,6 +10,7 @@ Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
 Grim = require 'grim'
+TextWrapContext = require './text-wrap-context'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -26,6 +27,8 @@ class DisplayBuffer extends Model
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
+
+    @textWrapContext = new TextWrapContext
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
