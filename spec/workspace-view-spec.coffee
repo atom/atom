@@ -292,5 +292,8 @@ describe "WorkspaceView", ->
       expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
       expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
 
+      popoverContainer = workspaceElement.querySelector('atom-panel-container.popover')
+      expect(popoverContainer.parentNode).toBe workspaceElement
+
       modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
       expect(modalContainer.parentNode).toBe workspaceElement

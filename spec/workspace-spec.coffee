@@ -645,6 +645,21 @@ describe "Workspace", ->
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
+    describe '::addPopoverPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getPopoverPanels().length).toBe(0)
+        atom.workspace.panelContainers.popover.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addPopoverPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getPopoverPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
     describe '::addModalPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
         expect(atom.workspace.getModalPanels().length).toBe(0)

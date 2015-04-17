@@ -72,6 +72,17 @@ atom-panel.right {
   background-color: @tool-panel-background-color;
 }
 
+// Popover panels
+
+atom-panel-container.popover {
+  position: absolute;
+  top: 0;
+  z-index: 5000;
+  > atom-panel {
+    position: absolute;
+  }
+}
+
 // Modal panels
 
 .overlay, // deprecated .overlay
