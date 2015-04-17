@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom)
 
-Atom is a hackable text editor for the 21st century, built on [atom-shell](https://github.com/atom/atom-shell), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
+Atom is a hackable text editor for the 21st century, built on [electron](https://github.com/atom/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
 Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
 
