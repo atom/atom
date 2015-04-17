@@ -12,7 +12,7 @@ module.exports = (grunt) ->
   packageSpecQueue = null
 
   logDeprecations = (label, {stderr}={}) ->
-    return unless process.env.JANKY_SHA1
+    return unless process.env.JANKY_SHA1 or process.env.CI
     stderr ?= ''
     deprecatedStart = stderr.indexOf('Calls to deprecated functions')
     return if deprecatedStart is -1
@@ -60,7 +60,7 @@ module.exports = (grunt) ->
             cwd: packagePath
             env: _.extend({}, process.env, ATOM_PATH: rootDir)
 
-      grunt.verbose.writeln "Launching #{path.basename(packagePath)} specs."
+      grunt.log.ok "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
         if process.platform is 'win32'
           if error
@@ -104,13 +104,14 @@ module.exports = (grunt) ->
             ATOM_INTEGRATION_TESTS_ENABLED: true
           )
 
+    grunt.log.ok "Launching core specs."
     spawn options, (error, results, code) ->
       if process.platform is 'win32'
         process.stderr.write(fs.readFileSync('ci.log')) if error
         fs.unlinkSync('ci.log')
       else
         # TODO: Restore concurrency on Windows
-        packageSpecQueue.concurrency = concurrency
+        packageSpecQueue?.concurrency = concurrency
         logDeprecations('Core Specs', results)
 
       callback(null, error)

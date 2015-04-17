@@ -51,7 +51,7 @@ Object.defineProperty document, 'title',
 
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
-if process.env.JANKY_SHA1 and process.platform is 'win32'
+if process.env.CI
   jasmine.getEnv().defaultTimeoutInterval = 60000
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
