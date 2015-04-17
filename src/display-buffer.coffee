@@ -299,13 +299,14 @@ class DisplayBuffer extends Model
     @batchingCharacterMeasurement = false
     @handleCharacterWidthsChanged() if @characterWidthsChanged
 
-  setCharWidthsForRow: (row, charWidths) ->
-    @charWidthsByRow[row] = charWidths
+  setCharWidthForPoint: (row, column, charWidth) ->
+    @charWidthsByRow[row] ?= {}
+    @charWidthsByRow[row][column] = charWidth
     @characterWidthsChanged = true
 
-  getCharWidthForRow: (row, index) ->
-    charWidths = @charWidthsByRow[row] ? []
-    charWidths[index] ? @getDefaultCharWidth() * index
+  getCharWidthForPoint: (row, column) ->
+    charWidth = @charWidthsByRow[row]?[column]
+    charWidth ? @getDefaultCharWidth() * column
 
   handleCharacterWidthsChanged: ->
     return unless @characterWidthsChanged
@@ -643,7 +644,6 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    index = 0
 
     for token in tokenizedLine.tokens
       valueIndex = 0
@@ -658,7 +658,7 @@ class DisplayBuffer extends Model
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left = @getCharWidthForRow(targetRow, ++index) unless char is '\0'
+        left = @getCharWidthForPoint(targetRow, column) unless char is '\0'
         column += charLength
 
     {top, left}
@@ -677,7 +677,6 @@ class DisplayBuffer extends Model
 
     left = 0
     column = 0
-    index = 0
 
     for token in tokenizedLine.tokens
       valueIndex = 0
@@ -691,7 +690,7 @@ class DisplayBuffer extends Model
           charLength = 1
           valueIndex++
 
-        nextLeft = @getCharWidthForRow(row, ++index)
+        nextLeft = @getCharWidthForPoint(row, column)
         break if targetLeft <= (left + nextLeft) / 2
         left = nextLeft
         column += charLength

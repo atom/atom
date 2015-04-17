@@ -779,8 +779,8 @@ class TextEditorPresenter
     @batchingCharacterMeasurement = false
     @handleCharacterWidthsChanged()
 
-  setCharWidthsForRow: (row, charWidths) ->
-    @model.setCharWidthsForRow(row, charWidths)
+  setCharWidthForPoint: (row, column, width) ->
+    @model.setCharWidthForPoint(row, column, width)
 
   handleCharacterWidthsChanged: ->
     return unless @characterWidthsChanged
@@ -813,7 +813,6 @@ class TextEditorPresenter
     top = targetRow * @lineHeight
     left = 0
     column = 0
-    index = 0
 
     for token in tokenizedLine.tokens
       valueIndex = 0
@@ -828,7 +827,7 @@ class TextEditorPresenter
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left = @model.getCharWidthForRow(targetRow, ++index) unless char is '\0'
+        left = @model.getCharWidthForPoint(targetRow, column) unless char is '\0'
         column += charLength
 
     {top, left}

@@ -288,8 +288,8 @@ class LinesComponent
       fn()
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    charWidths = [0]
     left = 0
+    column = 0
     for {id, value, scopes, hasPairedCharacter, scopesIdentifier} in tokenizedLine.tokens
       text = ""
       valueIndex = 0
@@ -316,9 +316,7 @@ class LinesComponent
         text += char
         tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
 
-        charWidths.push(left + tokenLeft)
+        @presenter.setCharWidthForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
+        column += charLength
 
       left += tokenLeft
-
-    if charWidths.length isnt 0
-      @presenter.setCharWidthsForRow(tokenizedLine.screenRow, charWidths)
