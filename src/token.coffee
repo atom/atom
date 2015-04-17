@@ -26,6 +26,7 @@ class Token
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
+    @scopesIdentifier = @scopes.join()
 
   isEqual: (other) ->
     # TODO: scopes is deprecated. This is here for the sake of lang package tests

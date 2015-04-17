@@ -290,9 +290,8 @@ class LinesComponent
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
     charWidths = [0]
     left = 0
-    for {id, value, scopes, hasPairedCharacter} in tokenizedLine.tokens
+    for {id, value, scopes, hasPairedCharacter, scopesIdentifier} in tokenizedLine.tokens
       text = ""
-      scopesIdentifier = scopes.join()
       valueIndex = 0
       tokenLeft = 0
       while valueIndex < value.length
