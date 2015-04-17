@@ -576,6 +576,8 @@ class TextEditorComponent
     @domNode.offsetHeight > 0 or @domNode.offsetWidth > 0
 
   pollDOM: =>
+    return if @newState.content.scrollingVertically
+
     unless @checkForVisibilityChange()
       @sampleBackgroundColors()
       @measureDimensions()
