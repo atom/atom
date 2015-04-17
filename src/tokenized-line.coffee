@@ -107,26 +107,13 @@ class TokenizedLine
 
   # Given a boundary column, finds the point where this line would wrap.
   #
-  # maxColumn - The {Number} where you want soft wrapping to occur
+  # textWrapContext - The {TextWrapContext} in which you want soft wrap
+  # lineWrapWidth - The {Number} where you want soft wrapping to occur
   #
   # Returns a {Number} representing the `line` position where the wrap would take place.
   # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (maxColumn) ->
-    return unless maxColumn?
-    return unless @text.length > maxColumn
-
-    if /\s/.test(@text[maxColumn])
-       # search forward for the start of a word past the boundary
-      for column in [maxColumn..@text.length]
-        return column if /\S/.test(@text[column])
-
-      return @text.length
-    else
-      # search backward for the start of the word on the boundary
-      for column in [maxColumn..@firstNonWhitespaceIndex]
-        return column + 1 if /\s/.test(@text[column])
-
-      return maxColumn
+  findWrapColumn: (textWrapContext, lineWrapWidth) ->
+    return textWrapContext.findWrapColumn({ lineWrapWidth, @text, @firstNonWhitespaceIndex })
 
   buildSoftWrapIndentationTokens: (token, hangingIndent) ->
     totalIndentSpaces = (@indentLevel * @tabLength) + hangingIndent
