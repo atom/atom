@@ -13,9 +13,9 @@ describe "GutterContainerComponent", ->
         backgroundColor: 'black'
         sortedDescriptions: sortedDescriptions
         customDecorations: {}
-      lineNumberGutter:
-        maxLineNumberDigits: 10
-        lineNumbers: {}
+        lineNumberGutter:
+          maxLineNumberDigits: 10
+          lineNumbers: {}
     mockTestState
 
   beforeEach ->

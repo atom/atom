@@ -34,7 +34,7 @@ class LineNumberGutterComponent
       @visible = true
 
   updateSync: (state) ->
-    @newState = state.lineNumberGutter
+    @newState = state.gutters.lineNumberGutter
     @oldState ?= {lineNumbers: {}}
 
     @appendDummyLineNumber() unless @dummyLineNumberNode?

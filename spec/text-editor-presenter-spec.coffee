@@ -1771,10 +1771,10 @@ describe "TextEditorPresenter", ->
         it "is set to the number of digits used by the greatest line number", ->
           presenter = buildPresenter()
           expect(editor.getLastBufferRow()).toBe 12
-          expect(presenter.getState().lineNumberGutter.maxLineNumberDigits).toBe 2
+          expect(presenter.getState().gutters.lineNumberGutter.maxLineNumberDigits).toBe 2
 
           editor.setText("1\n2\n3")
-          expect(presenter.getState().lineNumberGutter.maxLineNumberDigits).toBe 1
+          expect(presenter.getState().gutters.lineNumberGutter.maxLineNumberDigits).toBe 1
 
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
@@ -1786,7 +1786,7 @@ describe "TextEditorPresenter", ->
           else
             key = bufferRow
 
-          presenter.getState().lineNumberGutter.lineNumbers[key]
+          presenter.getState().gutters.lineNumberGutter.lineNumbers[key]
 
         it "contains states for line numbers that are visible on screen, plus and minus the overdraw margin", ->
           editor.foldBufferRow(4)

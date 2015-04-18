@@ -183,11 +183,11 @@ class TextEditorPresenter
         lines: {}
         highlights: {}
         overlays: {}
-      lineNumberGutter:
-        lineNumbers: {}
       gutters:
         sortedDescriptions: []
         customDecorations: {}
+        lineNumberGutter:
+          lineNumbers: {}
     @updateState()
 
   updateState: ->
@@ -384,7 +384,7 @@ class TextEditorPresenter
     return
 
   updateLineNumberGutterState: -> @batch "shouldUpdateLineNumberGutterState", ->
-    @state.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
+    @state.gutters.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
 
   updateCommonGutterState: ->
     @state.gutters.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
@@ -481,7 +481,7 @@ class TextEditorPresenter
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        @state.lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        @state.gutters.lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
 
     if @mouseWheelScreenRow?
@@ -491,8 +491,8 @@ class TextEditorPresenter
       id += '-' + wrapCount if wrapCount > 0
       visibleLineNumberIds[id] = true
 
-    for id of @state.lineNumberGutter.lineNumbers
-      delete @state.lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
+    for id of @state.gutters.lineNumberGutter.lineNumbers
+      delete @state.gutters.lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
 
