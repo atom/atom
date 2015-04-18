@@ -7,6 +7,9 @@ class CursorsComponent
     @domNode = document.createElement('div')
     @domNode.classList.add('cursors')
 
+  getDomNode: ->
+    @domNode
+
   updateSync: (state) ->
     newState = state.content
     @oldState ?= {cursors: {}}

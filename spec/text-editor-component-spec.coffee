@@ -46,7 +46,7 @@ describe "TextEditorComponent", ->
 
       lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()
-      componentNode = component.domNode
+      componentNode = component.getDomNode()
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
@@ -2392,7 +2392,7 @@ describe "TextEditorComponent", ->
         wrapperView.appendTo(hiddenParent)
 
         {component} = wrapperView
-        componentNode = component.domNode
+        componentNode = component.getDomNode()
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
         hiddenParent.style.display = 'block'
@@ -2599,7 +2599,7 @@ describe "TextEditorComponent", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
     it "does not have an opaque background on lines", ->
-      expect(component.linesComponent.domNode.getAttribute('style')).not.toContain 'background-color'
+      expect(component.linesComponent.getDomNode().getAttribute('style')).not.toContain 'background-color'
 
     it "does not render invisible characters", ->
       atom.config.set('editor.invisibles', eol: 'E')
