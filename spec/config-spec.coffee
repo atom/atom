@@ -854,7 +854,7 @@ describe "Config", ->
             expect(atom.config.get('foo.bar')).toBe 'baz'
             expect(atom.config.get('foo.baz')).toBe 'ok'
 
-        describe 'when the default value is a complex value', ->
+        describe "when the default value is a complex value", ->
           beforeEach ->
             atom.config.setSchema 'foo.bar',
               type: 'array'
@@ -877,7 +877,7 @@ describe "Config", ->
               expect(atom.config.get('foo.bar')).toEqual ['baz', 'ok']
               expect(atom.config.get('foo.baz')).toBe 'another'
 
-        describe 'when scoped settings are used', ->
+        describe "when scoped settings are used", ->
           it "fires a change event for scoped settings that are removed", ->
             scopedSpy = jasmine.createSpy()
             atom.config.onDidChange('foo.scoped', scope: ['.source.ruby'], scopedSpy)
