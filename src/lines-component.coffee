@@ -36,6 +36,7 @@ class LinesComponent
     @domNode.appendChild(@iframe)
     @iframe.style.display = "none"
     @contextsByScopeIdentifier = {}
+    @measuredTextByScopeIdentifier = {}
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -273,6 +274,7 @@ class LinesComponent
     return unless @presenter.baseCharacterWidth
 
     @contextsByScopeIdentifier = {}
+    @measuredTextByScopeIdentifier = {}
     @measureCharactersInLines(@newState.lines)
 
   measureCharactersInLines: (lines, batch = true) ->
@@ -286,6 +288,14 @@ class LinesComponent
       @presenter.batchCharacterMeasurement(fn)
     else
       fn()
+
+  createCanvasContextForToken: (id) ->
+    element = document.querySelector("html /deep/ #token-#{id}")
+    canvas = @iframe.contentDocument.createElement("canvas")
+    context = canvas.getContext("2d")
+    context.font = getComputedStyle(element).font
+
+    context
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
     left = 0
@@ -306,15 +316,17 @@ class LinesComponent
 
         continue if char is '\0'
 
-        unless @contextsByScopeIdentifier[scopesIdentifier]?
-          element = document.querySelector("html /deep/ #token-#{id}")
-          canvas = @iframe.contentDocument.createElement("canvas")
-          context = canvas.getContext("2d")
-          context.font = getComputedStyle(element).font
-          @contextsByScopeIdentifier[scopesIdentifier] = context
-
         text += char
-        tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
+
+        if @measuredTextByScopeIdentifier[scopesIdentifier]?[text]?
+          tokenLeft = @measuredTextByScopeIdentifier[scopesIdentifier][text]
+        else
+          @contextsByScopeIdentifier[scopesIdentifier] ?= @createCanvasContextForToken(id)
+
+          tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
+
+          @measuredTextByScopeIdentifier[scopesIdentifier] ?= {}
+          @measuredTextByScopeIdentifier[scopesIdentifier][text] = tokenLeft
 
         @presenter.setCharWidthForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
         column += charLength
