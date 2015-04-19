@@ -36,7 +36,6 @@ class CustomGutterComponent
     setDimensionsAndBackground(@oldDimensionsAndBackgroundState, newDimensionsAndBackgroundState, @decorationsNode)
 
     decorationState = state.gutters.customDecorations[@getName()]
-    return if !decorationState
 
     updatedDecorationIds = new Set
     for decorationId, decorationInfo of decorationState
