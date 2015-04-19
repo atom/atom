@@ -2,28 +2,28 @@ CustomGutterComponent = require '../src/custom-gutter-component'
 Gutter = require '../src/gutter'
 
 describe "CustomGutterComponent", ->
-  [customGutterComponent, gutter] = []
+  [gutterComponent, gutter] = []
 
   beforeEach ->
     mockGutterContainer = {}
     gutter = new Gutter(mockGutterContainer, {name: 'test-gutter'})
-    customGutterComponent = new CustomGutterComponent({gutter})
+    gutterComponent = new CustomGutterComponent({gutter})
 
   it "creates a gutter DOM node with only an empty 'custom-decorations' child node when it is initialized", ->
-    expect(customGutterComponent.getDomNode().classList.contains('gutter')).toBe true
-    expect(customGutterComponent.getDomNode().getAttribute('gutter-name')).toBe 'test-gutter'
-    expect(customGutterComponent.getDomNode().children.length).toBe 1
-    decorationsWrapperNode = customGutterComponent.getDomNode().children.item(0)
+    expect(gutterComponent.getDomNode().classList.contains('gutter')).toBe true
+    expect(gutterComponent.getDomNode().getAttribute('gutter-name')).toBe 'test-gutter'
+    expect(gutterComponent.getDomNode().children.length).toBe 1
+    decorationsWrapperNode = gutterComponent.getDomNode().children.item(0)
     expect(decorationsWrapperNode.classList.contains('custom-decorations')).toBe true
 
   it "makes its view accessible from the view registry", ->
-    expect(customGutterComponent.getDomNode()).toBe atom.views.getView(gutter)
+    expect(gutterComponent.getDomNode()).toBe atom.views.getView(gutter)
 
   it "hides its DOM node when ::hideNode is called, and shows its DOM node when ::showNode is called", ->
-    customGutterComponent.hideNode()
-    expect(customGutterComponent.getDomNode().style.display).toBe 'none'
-    customGutterComponent.showNode()
-    expect(customGutterComponent.getDomNode().style.display).toBe ''
+    gutterComponent.hideNode()
+    expect(gutterComponent.getDomNode().style.display).toBe 'none'
+    gutterComponent.showNode()
+    expect(gutterComponent.getDomNode().style.display).toBe ''
 
   describe "::updateSync", ->
     decorationItem1 = document.createElement('div')
@@ -42,12 +42,12 @@ describe "CustomGutterComponent", ->
       mockTestState
 
     it "sets the custom-decoration wrapper's scrollHeight, scrollTop, and background color", ->
-      decorationsWrapperNode = customGutterComponent.getDomNode().children.item(0)
+      decorationsWrapperNode = gutterComponent.getDomNode().children.item(0)
       expect(decorationsWrapperNode.style.height).toBe ''
       expect(decorationsWrapperNode.style['-webkit-transform']).toBe ''
       expect(decorationsWrapperNode.style.backgroundColor).toBe ''
 
-      customGutterComponent.updateSync(buildTestState({}))
+      gutterComponent.updateSync(buildTestState({}))
       expect(decorationsWrapperNode.style.height).not.toBe ''
       expect(decorationsWrapperNode.style['-webkit-transform']).not.toBe ''
       expect(decorationsWrapperNode.style.backgroundColor).not.toBe ''
@@ -60,8 +60,8 @@ describe "CustomGutterComponent", ->
           item: decorationItem1
           class: 'test-class-1'
 
-      customGutterComponent.updateSync(buildTestState(customDecorations))
-      decorationsWrapperNode = customGutterComponent.getDomNode().children.item(0)
+      gutterComponent.updateSync(buildTestState(customDecorations))
+      decorationsWrapperNode = gutterComponent.getDomNode().children.item(0)
       expect(decorationsWrapperNode.children.length).toBe 1
 
       decorationNode = decorationsWrapperNode.children.item(0)
@@ -81,8 +81,8 @@ describe "CustomGutterComponent", ->
           height: 10
           item: decorationItem1
           class: 'test-class-1'
-      customGutterComponent.updateSync(buildTestState(initialCustomDecorations))
-      initialDecorationNode = customGutterComponent.getDomNode().children.item(0).children.item(0)
+      gutterComponent.updateSync(buildTestState(initialCustomDecorations))
+      initialDecorationNode = gutterComponent.getDomNode().children.item(0).children.item(0)
 
       # Change the dimensions and item, remove the class.
       decorationItem2 = document.createElement('div')
@@ -91,8 +91,8 @@ describe "CustomGutterComponent", ->
           top: 10
           height: 20
           item: decorationItem2
-      customGutterComponent.updateSync(buildTestState(changedCustomDecorations))
-      changedDecorationNode = customGutterComponent.getDomNode().children.item(0).children.item(0)
+      gutterComponent.updateSync(buildTestState(changedCustomDecorations))
+      changedDecorationNode = gutterComponent.getDomNode().children.item(0).children.item(0)
       expect(changedDecorationNode).toBe initialDecorationNode
       expect(changedDecorationNode.style.top).toBe '10px'
       expect(changedDecorationNode.style.height).toBe '20px'
@@ -108,8 +108,8 @@ describe "CustomGutterComponent", ->
           top: 10
           height: 20
           class: 'test-class-2'
-      customGutterComponent.updateSync(buildTestState(changedCustomDecorations))
-      changedDecorationNode = customGutterComponent.getDomNode().children.item(0).children.item(0)
+      gutterComponent.updateSync(buildTestState(changedCustomDecorations))
+      changedDecorationNode = gutterComponent.getDomNode().children.item(0).children.item(0)
       expect(changedDecorationNode).toBe initialDecorationNode
       expect(changedDecorationNode.style.top).toBe '10px'
       expect(changedDecorationNode.style.height).toBe '20px'
@@ -123,10 +123,10 @@ describe "CustomGutterComponent", ->
           top: 0
           height: 10
           class: 'test-class-1'
-      customGutterComponent.updateSync(buildTestState(customDecorations))
-      decorationsWrapperNode = customGutterComponent.getDomNode().children.item(0)
+      gutterComponent.updateSync(buildTestState(customDecorations))
+      decorationsWrapperNode = gutterComponent.getDomNode().children.item(0)
       expect(decorationsWrapperNode.children.length).toBe 1
 
       emptyCustomDecorations = 'test-gutter': {}
-      customGutterComponent.updateSync(buildTestState(emptyCustomDecorations))
+      gutterComponent.updateSync(buildTestState(emptyCustomDecorations))
       expect(decorationsWrapperNode.children.length).toBe 0
