@@ -35,6 +35,7 @@ class CustomGutterComponent
     newDimensionsAndBackgroundState = state.gutters
     setDimensionsAndBackground(@oldDimensionsAndBackgroundState, newDimensionsAndBackgroundState, @decorationsNode)
 
+    @oldDecorationPositionState ?= {};
     decorationState = state.gutters.customDecorations[@getName()]
 
     updatedDecorationIds = new Set
@@ -53,6 +54,7 @@ class CustomGutterComponent
         decorationNode.remove()
         delete @decorationNodesById[decorationId]
         delete @decorationItemsById[decorationId]
+        delete @oldDecorationPositionState[decorationId]
 
   ###
   Section: Private Methods
@@ -60,10 +62,13 @@ class CustomGutterComponent
 
   # Builds and returns an HTMLElement to represent the specified decoration.
   buildDecorationHTML: (decorationId, decorationInfo) ->
+    @oldDecorationPositionState[decorationId] = positionState = {};
     newNode = document.createElement('div')
     newNode.classList.add('decoration')
     newNode.style.top = decorationInfo.top + 'px'
+    positionState.top = decorationInfo.top + 'px'
     newNode.style.height = decorationInfo.height + 'px'
+    positionState.height = decorationInfo.height + 'px'
     newNode.style.position = 'absolute'
     if decorationInfo.class
       newNode.classList.add(decorationInfo.class)
@@ -73,11 +78,15 @@ class CustomGutterComponent
   # Updates the existing HTMLNode with the new decoration info. Attempts to
   # minimize changes to the DOM.
   updateDecorationHTML: (existingNode, decorationId, newDecorationInfo) ->
-    if existingNode.style.top isnt newDecorationInfo.top + 'px'
-      existingNode.style.top = newDecorationInfo.top + 'px'
+    oldPositionState = @oldDecorationPositionState[decorationId];
 
-    if existingNode.style.height isnt newDecorationInfo.height + 'px'
+    if oldPositionState.top isnt newDecorationInfo.top + 'px'
+      existingNode.style.top = newDecorationInfo.top + 'px'
+      oldPositionState.top = newDecorationInfo.top + 'px'
+
+    if oldPositionState.height isnt newDecorationInfo.height + 'px'
       existingNode.style.height = newDecorationInfo.height + 'px'
+      oldPositionState.height = newDecorationInfo.height + 'px'
 
     if newDecorationInfo.class and !existingNode.classList.contains(newDecorationInfo.class)
       existingNode.className = 'decoration'
