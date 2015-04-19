@@ -102,14 +102,16 @@ class LinesComponent
     delete @oldState.lines[id]
 
   updateLineNodes: ->
-    for id of @oldState.lines
+    for id in Object.keys(@oldState.lines)
       unless @newState.lines.hasOwnProperty(id)
         @removeLineNode(id)
 
     newLineIds = null
     newLinesHTML = null
 
-    for id, lineState of @newState.lines
+    for id in Object.keys(@newState.lines)
+      lineState = @newState.lines[id]
+
       if @oldState.lines.hasOwnProperty(id)
         @updateLineNode(id)
       else

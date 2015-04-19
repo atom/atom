@@ -58,7 +58,9 @@ class GutterComponent
     newLineNumberIds = null
     newLineNumbersHTML = null
 
-    for id, lineNumberState of @newState.lineNumbers
+    for id in Object.keys(@newState.lineNumbers)
+      lineNumberState = @newState.lineNumbers[id]
+
       if @oldState.lineNumbers.hasOwnProperty(id)
         @updateLineNumberNode(id, lineNumberState)
       else
@@ -78,7 +80,9 @@ class GutterComponent
         @lineNumberNodesById[id] = lineNumberNode
         node.appendChild(lineNumberNode)
 
-    for id, lineNumberState of @oldState.lineNumbers
+    for id in Object.keys(@oldState.lineNumbers)
+      lineNumberState = @oldState.lineNumbers[id]
+
       unless @newState.lineNumbers.hasOwnProperty(id)
         @lineNumberNodesById[id].remove()
         delete @lineNumberNodesById[id]
