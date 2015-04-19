@@ -714,7 +714,7 @@ class TextEditor extends Model
   # * `options` (optional) See {Selection::insertText}.
   #
   # Returns a {Range} when the text has been inserted
-  # Returns a {Bool} false when the text has not been inserted
+  # Returns a {Boolean} false when the text has not been inserted
   insertText: (text, options={}) ->
     willInsert = true
     cancel = -> willInsert = false
