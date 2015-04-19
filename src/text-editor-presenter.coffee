@@ -434,7 +434,7 @@ class TextEditorPresenter
       for gutter in @model.getGutters()
         gutterName = gutter.name
         @state.gutters.customDecorations[gutterName] = {}
-        return if !@gutterIsVisible(gutter)
+        return if not @gutterIsVisible(gutter)
 
         relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
         relevantDecorations.forEach (decoration) =>
@@ -448,7 +448,7 @@ class TextEditorPresenter
   gutterIsVisible: (gutterModel) ->
     isVisible = gutterModel.isVisible()
     if gutterModel.name is 'line-number'
-      isVisible = isVisible && @showLineNumbers
+      isVisible = isVisible and @showLineNumbers
     isVisible
 
   updateLineNumbersState: -> @batch "shouldUpdateLineNumbersState", ->
@@ -649,7 +649,7 @@ class TextEditorPresenter
     decorations = new Set
 
     return decorations if @model.isMini() or gutterName is 'line-number' or
-      !@customGutterDecorationsByGutterNameAndScreenRow[gutterName]
+      not @customGutterDecorationsByGutterNameAndScreenRow[gutterName]
 
     for bufferRow in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
       for id, decoration of @customGutterDecorationsByGutterNameAndScreenRow[gutterName][bufferRow]
@@ -995,8 +995,8 @@ class TextEditorPresenter
         @updateLinesState()
       if decoration.isType('line-number') or Decoration.isType(oldProperties, 'line-number')
         @updateLineNumbersState()
-      if (decoration.isType('gutter') and !decoration.isType('line-number')) or
-      (Decoration.isType(oldProperties, 'gutter') and !Decoration.isType(oldProperties, 'line-number'))
+      if (decoration.isType('gutter') and not decoration.isType('line-number')) or
+      (Decoration.isType(oldProperties, 'gutter') and not Decoration.isType(oldProperties, 'line-number'))
         @updateCustomGutterDecorationState()
     else if decoration.isType('overlay')
       @updateOverlaysState()

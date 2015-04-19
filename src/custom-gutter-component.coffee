@@ -26,7 +26,7 @@ class CustomGutterComponent
       @visible = false
 
   showNode: ->
-    if !@visible
+    if not @visible
       @domNode.style.removeProperty('display')
       @visible = true
 
@@ -50,7 +50,7 @@ class CustomGutterComponent
         @decorationsNode.appendChild(newNode)
 
     for decorationId, decorationNode of @decorationNodesById
-      if !updatedDecorationIds.has(decorationId)
+      if not updatedDecorationIds.has(decorationId)
         decorationNode.remove()
         delete @decorationNodesById[decorationId]
         delete @decorationItemsById[decorationId]
@@ -88,10 +88,10 @@ class CustomGutterComponent
       existingNode.style.height = newDecorationInfo.height + 'px'
       oldPositionState.height = newDecorationInfo.height + 'px'
 
-    if newDecorationInfo.class and !existingNode.classList.contains(newDecorationInfo.class)
+    if newDecorationInfo.class and not existingNode.classList.contains(newDecorationInfo.class)
       existingNode.className = 'decoration'
       existingNode.classList.add(newDecorationInfo.class)
-    else if !newDecorationInfo.class
+    else if not newDecorationInfo.class
       existingNode.className = 'decoration'
 
     @setDecorationItem(newDecorationInfo.item, newDecorationInfo.height, decorationId, existingNode)

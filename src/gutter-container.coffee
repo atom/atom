@@ -44,7 +44,7 @@ class GutterContainer
         @gutters.splice(i, 0, newGutter)
         inserted = true
         break
-    if !inserted
+    if not inserted
       @gutters.push newGutter
     @emitter.emit 'did-add-gutter', newGutter
     return newGutter

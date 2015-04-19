@@ -31,7 +31,7 @@ class GutterContainerComponent
     newGutterComponentsByGutterName = {}
     for {gutter, visible} in newState
       gutterComponent = @gutterComponentsByGutterName[gutter.name]
-      if !gutterComponent
+      if not gutterComponent
         if gutter.name is 'line-number'
           gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, gutter})
           @lineNumberGutterComponent = gutterComponent
@@ -66,7 +66,7 @@ class GutterContainerComponent
           if existingGutterComponent.getName() == gutterComponent.getName()
             matchingGutterFound = true
             break
-        if !matchingGutterFound
+        if not matchingGutterFound
           # If we've reached this point, the gutter previously existed, but its
           # position has moved. Remove it from the DOM and re-insert it.
           gutterComponent.getDomNode().remove()
@@ -80,5 +80,5 @@ class GutterContainerComponent
 
     # Remove any gutters that were not present in the new gutters state.
     for gutterComponent in @gutterComponents
-      if !newGutterComponentsByGutterName[gutterComponent.getName()]
+      if not newGutterComponentsByGutterName[gutterComponent.getName()]
         gutterComponent.getDomNode().remove()

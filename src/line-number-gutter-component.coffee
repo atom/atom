@@ -29,7 +29,7 @@ class LineNumberGutterComponent
       @visible = false
 
   showNode: ->
-    if !@visible
+    if not @visible
       @domNode.style.removeProperty('display')
       @visible = true
 
