@@ -69,6 +69,8 @@ module.exports = (grunt) ->
       expand: true
       src: [
         'src/**/*.coffee'
+        'spec/*.coffee'
+        '!spec/*-spec.coffee'
         'exports/**/*.coffee'
         'static/**/*.coffee'
       ]
@@ -125,10 +127,19 @@ module.exports = (grunt) ->
     {engines, theme} = grunt.file.readJSON(metadataPath)
     if engines?.atom?
       coffeeConfig.glob_to_multiple.src.push("#{directory}/**/*.coffee")
+      coffeeConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.coffee")
+
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
-      prebuildLessConfig.src.push("#{directory}/**/*.less") unless theme
+      lessConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.less")
+
+      unless theme
+        prebuildLessConfig.src.push("#{directory}/**/*.less")
+        prebuildLessConfig.src.push("!#{directory}/spec/**/*.less")
+
       csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
-      pegConfig.glob_to_multiple.src.push("#{directory}/**/*.pegjs")
+      csonConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.cson")
+
+      pegConfig.glob_to_multiple.src.push("#{directory}/lib/*.pegjs")
 
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')

@@ -26,6 +26,7 @@ module.exports = (grunt) ->
 
     cp 'package.json', path.join(appDir, 'package.json')
 
+    packageNames = []
     packageDirectories = []
     nonPackageDirectories = [
       'benchmark'
@@ -39,6 +40,7 @@ module.exports = (grunt) ->
       directory = path.join('node_modules', child)
       if isAtomPackage(directory)
         packageDirectories.push(directory)
+        packageNames.push(child)
       else
         nonPackageDirectories.push(directory)
 
@@ -61,6 +63,8 @@ module.exports = (grunt) ->
       path.join('npm', 'node_modules', '.bin', 'clear')
       path.join('npm', 'node_modules', '.bin', 'starwars')
       path.join('pegjs', 'examples')
+      path.join('get-parameter-names', 'node_modules', 'testla')
+      path.join('get-parameter-names', 'node_modules', '.bin', 'testla')
       path.join('jasmine-reporters', 'ext')
       path.join('jasmine-node', 'node_modules', 'gaze')
       path.join('jasmine-node', 'spec')
@@ -79,19 +83,32 @@ module.exports = (grunt) ->
       path.join('resources', 'win')
 
       # These are only require in dev mode when the grammar isn't precompiled
-      path.join('atom-keymap', 'node_modules', 'loophole')
-      path.join('atom-keymap', 'node_modules', 'pegjs')
-      path.join('atom-keymap', 'node_modules', '.bin', 'pegjs')
       path.join('snippets', 'node_modules', 'loophole')
       path.join('snippets', 'node_modules', 'pegjs')
       path.join('snippets', 'node_modules', '.bin', 'pegjs')
+
+      # These aren't needed since WeakMap is built-in
+      path.join('emissary', 'node_modules', 'es6-weak-map')
+      path.join('property-accessors', 'node_modules', 'es6-weak-map')
 
       '.DS_Store'
       '.jshintrc'
       '.npmignore'
       '.pairs'
       '.travis.yml'
+      'appveyor.yml'
+      '.idea'
+      '.editorconfig'
+      '.lint'
+      '.lintignore'
+      '.eslintrc'
+      '.jshintignore'
+      '.gitattributes'
+      '.gitkeep'
     ]
+
+    packageNames.forEach (packageName) -> ignoredPaths.push(path.join(packageName, 'spec'))
+
     ignoredPaths = ignoredPaths.map (ignoredPath) -> _.escapeRegExp(ignoredPath)
 
     # Add .* to avoid matching hunspell_dictionaries.
@@ -108,6 +125,7 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.join('runas', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('scrollbar-style', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('spellchecker', 'src') + path.sep)}.*\\.(cc|h)*"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('keyboard-layout', 'src') + path.sep)}.*\\.(cc|h|mm)*"
 
     # Ignore build files
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}binding\\.gyp$"
@@ -120,7 +138,7 @@ module.exports = (grunt) ->
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
 
-    testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}te?sts?#{_.escapeRegExp(path.sep)}")
+    testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}_*te?sts?_*#{_.escapeRegExp(path.sep)}")
     exampleFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}examples?#{_.escapeRegExp(path.sep)}")
     benchmarkFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}benchmarks?#{_.escapeRegExp(path.sep)}")
 
@@ -144,7 +162,6 @@ module.exports = (grunt) ->
     for directory in packageDirectories
       cp directory, path.join(appDir, directory), filter: filterPackage
 
-    cp 'spec', path.join(appDir, 'spec'), filter: /fixtures|integration|.+-spec\.coffee/
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
 
