@@ -94,6 +94,10 @@ module.exports = (grunt) ->
       '.travis.yml'
       'appveyor.yml'
       '.idea'
+      '.editorconfig'
+      '.lint'
+      '.lintignore'
+      '.eslintrc'
     ]
 
     packageNames.forEach (packageName) -> ignoredPaths.push(path.join(packageName, 'spec'))
