@@ -98,6 +98,7 @@ module.exports = (grunt) ->
       '.lint'
       '.lintignore'
       '.eslintrc'
+      '.jshintignore'
     ]
 
     packageNames.forEach (packageName) -> ignoredPaths.push(path.join(packageName, 'spec'))
