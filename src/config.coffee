@@ -332,9 +332,16 @@ class Config
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
+    @savePending = false
 
-    @debouncedSave = _.debounce(@save, 100)
-    @debouncedLoad = _.debounce(@loadUserConfig, 100)
+    @requestLoad = _.debounce(@loadUserConfig, 100)
+    @requestSave = =>
+      @savePending = true
+      debouncedSave.call(this)
+    save = =>
+      @savePending = false
+      @save()
+    debouncedSave = _.debounce(save, 100)
 
   ###
   Section: Config Subscription
@@ -605,7 +612,7 @@ class Config
     else
       @setRawValue(keyPath, value)
 
-    @debouncedSave() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
+    @requestSave() if source is @getUserConfigPath() and shouldSave and not @configFileHasErrors
     true
 
   # Essential: Restore the setting at `keyPath` to its default value.
@@ -635,7 +642,7 @@ class Config
           _.setValueForKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
           @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
-          @debouncedSave()
+          @requestSave()
       else
         @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
         @emitChangeEvent()
@@ -757,9 +764,10 @@ class Config
       CSON.writeFileSync(@configFilePath, {})
 
     try
-      userConfig = CSON.readFileSync(@configFilePath)
-      @resetUserSettings(userConfig)
-      @configFileHasErrors = false
+      unless @savePending
+        userConfig = CSON.readFileSync(@configFilePath)
+        @resetUserSettings(userConfig)
+        @configFileHasErrors = false
     catch error
       @configFileHasErrors = true
       message = "Failed to load `#{path.basename(@configFilePath)}`"
@@ -776,7 +784,7 @@ class Config
   observeUserConfig: ->
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
-        @debouncedLoad() if eventType is 'change' and @watchSubscription?
+        @requestLoad() if eventType is 'change' and @watchSubscription?
     catch error
       @notifyFailure """
         Unable to watch path: `#{path.basename(@configFilePath)}`. Make sure you have permissions to
