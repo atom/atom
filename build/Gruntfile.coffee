@@ -129,7 +129,10 @@ module.exports = (grunt) ->
 
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
       lessConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.less")
-      prebuildLessConfig.src.push("#{directory}/**/*.less") unless theme
+
+      unless theme
+        prebuildLessConfig.src.push("#{directory}/**/*.less")
+        prebuildLessConfig.src.push("!#{directory}/spec/**/*.less")
 
       csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
       csonConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.cson")
