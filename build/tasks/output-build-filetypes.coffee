@@ -28,7 +28,7 @@ module.exports = (grunt) ->
 
     if extension = grunt.option('extension')
       types[extension]?.sort().forEach (filePath) ->
-        console.log filePath
+        grunt.log.error filePath
     else
-      extensions.forEach (extension) ->
+      extensions[0...25].forEach (extension) ->
         grunt.log.error "#{extension}: #{types[extension].length}"
