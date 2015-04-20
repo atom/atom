@@ -128,7 +128,7 @@ module.exports = (grunt) ->
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
       prebuildLessConfig.src.push("#{directory}/**/*.less") unless theme
       csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
-      pegConfig.glob_to_multiple.src.push("#{directory}/**/*.pegjs")
+      pegConfig.glob_to_multiple.src.push("#{directory}/lib/*.pegjs")
 
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
