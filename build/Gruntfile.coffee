@@ -125,9 +125,13 @@ module.exports = (grunt) ->
     {engines, theme} = grunt.file.readJSON(metadataPath)
     if engines?.atom?
       coffeeConfig.glob_to_multiple.src.push("#{directory}/**/*.coffee")
+      coffeeConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.coffee")
+
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
       prebuildLessConfig.src.push("#{directory}/**/*.less") unless theme
+
       csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
+
       pegConfig.glob_to_multiple.src.push("#{directory}/lib/*.pegjs")
 
   grunt.initConfig
