@@ -64,7 +64,7 @@ module.exports = (grunt) ->
       path.join('npm', 'node_modules', '.bin', 'starwars')
       path.join('pegjs', 'examples')
       path.join('get-parameter-names', 'node_modules', 'testla')
-      path.join('get-parameter-names', '.bin', 'testla')
+      path.join('get-parameter-names', 'node_modules', '.bin', 'testla')
       path.join('jasmine-reporters', 'ext')
       path.join('jasmine-node', 'node_modules', 'gaze')
       path.join('jasmine-node', 'spec')
