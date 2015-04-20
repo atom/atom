@@ -81,9 +81,6 @@ module.exports = (grunt) ->
       path.join('resources', 'win')
 
       # These are only require in dev mode when the grammar isn't precompiled
-      path.join('atom-keymap', 'node_modules', 'loophole')
-      path.join('atom-keymap', 'node_modules', 'pegjs')
-      path.join('atom-keymap', 'node_modules', '.bin', 'pegjs')
       path.join('snippets', 'node_modules', 'loophole')
       path.join('snippets', 'node_modules', 'pegjs')
       path.join('snippets', 'node_modules', '.bin', 'pegjs')
