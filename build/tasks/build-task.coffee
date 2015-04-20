@@ -162,7 +162,6 @@ module.exports = (grunt) ->
     for directory in packageDirectories
       cp directory, path.join(appDir, directory), filter: filterPackage
 
-    cp 'spec', path.join(appDir, 'spec'), filter: /fixtures|integration|.+-spec\.coffee/
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
 

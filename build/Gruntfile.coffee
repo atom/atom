@@ -69,6 +69,8 @@ module.exports = (grunt) ->
       expand: true
       src: [
         'src/**/*.coffee'
+        'spec/*.coffee'
+        '!spec/*-spec.coffee'
         'exports/**/*.coffee'
         'static/**/*.coffee'
       ]
