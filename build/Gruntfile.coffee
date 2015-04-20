@@ -22,7 +22,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
   grunt.loadNpmTasks('grunt-shell')
-  grunt.loadNpmTasks('grunt-download-atom-shell')
+  grunt.loadNpmTasks('grunt-download-electron')
   grunt.loadNpmTasks('grunt-atom-shell-installer')
   grunt.loadNpmTasks('grunt-peg')
   grunt.loadTasks('tasks')
@@ -42,7 +42,7 @@ module.exports = (grunt) ->
   installDir = grunt.option('install-dir')
 
   home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
-  atomShellDownloadDir = path.join(home, '.atom', 'atom-shell')
+  electronDownloadDir = path.join(home, '.atom', 'electron')
 
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
   shellAppDir = path.join(buildDir, appName)
@@ -193,10 +193,10 @@ module.exports = (grunt) ->
         'static/**/*.less'
       ]
 
-    'download-atom-shell':
-      version: packageJson.atomShellVersion
-      outputDir: 'atom-shell'
-      downloadDir: atomShellDownloadDir
+    'download-electron':
+      version: packageJson.electronVersion
+      outputDir: 'electron'
+      downloadDir: electronDownloadDir
       rebuild: true  # rebuild native modules after atom-shell is updated
       token: process.env.ATOM_ACCESS_TOKEN
 
@@ -221,7 +221,7 @@ module.exports = (grunt) ->
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
 
-  ciTasks = ['output-disk-space', 'download-atom-shell', 'download-atom-shell-chromedriver', 'build']
+  ciTasks = ['output-disk-space', 'download-electron', 'download-electron-chromedriver', 'build']
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
@@ -231,6 +231,6 @@ module.exports = (grunt) ->
   ciTasks.push('publish-build') unless process.env.TRAVIS
   grunt.registerTask('ci', ciTasks)
 
-  defaultTasks = ['download-atom-shell', 'download-atom-shell-chromedriver', 'build', 'set-version', 'generate-asar']
+  defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']
   defaultTasks.push 'install' unless process.platform is 'linux'
   grunt.registerTask('default', defaultTasks)

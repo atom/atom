@@ -9,15 +9,15 @@ module.exports = (grunt) ->
     shellAppDir = grunt.config.get('atom.shellAppDir')
     buildDir = grunt.config.get('atom.buildDir')
     appDir = grunt.config.get('atom.appDir')
-
+    console.log shellAppDir, buildDir, appDir
     rm shellAppDir
     rm path.join(buildDir, 'installer')
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
-      cp 'atom-shell/Atom.app', shellAppDir, filter: /default_app/
+      cp 'electron/Atom.app', shellAppDir, filter: /default_app/
     else
-      cp 'atom-shell', shellAppDir, filter: /default_app/
+      cp 'electron', shellAppDir, filter: /default_app/
 
     mkdir appDir
 
