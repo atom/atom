@@ -744,11 +744,17 @@ class Workspace extends Model
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
-  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
-  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
-  #     (default: true)
-  #   * `priority` (optional) {Number} Determines stacking order. (default: 100)
+  #     `a model with a view registered via {ViewRegistry::addViewProvider}.
+  #     `We recommend the latter. See {ViewRegistry::addViewProvider} for more
+  #     `information.
+  #   * `target` {Element} or {Function} or {Rect} Target rectangle around
+  #     `which popover is placed.
+  #   * `viewport` (optional) {Element} or {Function} or {Rect} Keeps the
+  #     `popover within the viewport rectangle. (default: null)
+  #   * `placement` (optional) {String} How to position the popover. (default:
+  #     `"top center")
+  #   * `visible` (optional) {Boolean} false if you want the panel to
+  #     `initially be hidden (default: true)
   #
   # Returns a {Panel}
   addPopoverPanel: (options={}) ->
