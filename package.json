@@ -22,7 +22,7 @@
     "async": "0.2.6",
     "atom-keymap": "^5.1.2",
     "atom-space-pen-views": "^2.0.4",
-    "babel-core": "^4.0.2",
+    "babel-core": "^5.1.11",
     "bootstrap": "git+https://github.com/atom/bootstrap.git#6af81906189f1747fd6c93479e3d998ebe041372",
     "clear-cut": "^2.0.1",
     "coffee-cash": "0.8.0",
