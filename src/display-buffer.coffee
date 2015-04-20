@@ -10,6 +10,9 @@ Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
 Grim = require 'grim'
+TextWrapContext = require './text-wrap-context'
+
+defaultFontFamily = "Inconsolata, Monaco, Consolas, 'Courier New', Courier"
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -41,6 +44,7 @@ class DisplayBuffer extends Model
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
+    @textWrapContext = new TextWrapContext(@configSettings)
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
@@ -52,11 +56,23 @@ class DisplayBuffer extends Model
 
     oldConfigSettings = @configSettings
     @configSettings =
+      fontFamily: atom.config.get('editor.fontFamily', scope: scopeDescriptor) || defaultFontFamily
+      fontSize: atom.config.get('editor.fontSize', scope: scopeDescriptor)
       scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
       softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
       softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
       softWrapHangingIndent: atom.config.get('editor.softWrapHangingIndent', scope: scopeDescriptor)
       preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
+      
+    subscriptions.add atom.config.onDidChange 'editor.fontFamily', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.fontFamily = newValue || defaultFontFamily
+      @textWrapContext.setFontFamily(newValue.trim() || defaultFontFamily)
+      @updateWrappedScreenLines() if @isSoftWrapped()
+
+    subscriptions.add atom.config.onDidChange 'editor.fontSize', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.fontSize = newValue
+      @textWrapContext.setFontSize(newValue)
+      @updateWrappedScreenLines() if @isSoftWrapped()
 
     subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrap = newValue
@@ -457,12 +473,21 @@ class DisplayBuffer extends Model
 
   # Returns the editor width in characters for soft wrap.
   getEditorWidthInChars: ->
-    width = @width ? @getScrollWidth()
-    width -= @getVerticalScrollbarWidth()
+    width = @getEditorWidth()
     if width? and @defaultCharWidth > 0
       Math.max(0, Math.floor(width / @defaultCharWidth))
     else
       @editorWidthInChars
+
+  getEdiorWidth: ->
+    width = @width ? @getScrollWidth()
+    width -= @getVerticalScrollbarWidth()
+
+  getSoftWrapWidth: ->
+    if @configSettings.softWrapAtPreferredLineLength
+      Math.min(@getEdiorWidth(), @configSettings.preferredLineLength * @defaultCharWidth)
+    else
+      @getEdiorWidth()
 
   getSoftWrapColumn: ->
     if @configSettings.softWrapAtPreferredLineLength
@@ -1162,7 +1187,7 @@ class DisplayBuffer extends Model
       else
         softWraps = 0
         if @isSoftWrapped()
-          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
+          while wrapScreenColumn = tokenizedLine.findWrapColumn(@textWrapContext, @getSoftWrapWidth())
             [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
               wrapScreenColumn,
               @configSettings.softWrapHangingIndent
