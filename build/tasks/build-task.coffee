@@ -26,6 +26,7 @@ module.exports = (grunt) ->
 
     cp 'package.json', path.join(appDir, 'package.json')
 
+    packageNames = []
     packageDirectories = []
     nonPackageDirectories = [
       'benchmark'
@@ -39,6 +40,7 @@ module.exports = (grunt) ->
       directory = path.join('node_modules', child)
       if isAtomPackage(directory)
         packageDirectories.push(directory)
+        packageNames.push(child)
       else
         nonPackageDirectories.push(directory)
 
@@ -92,6 +94,9 @@ module.exports = (grunt) ->
       '.pairs'
       '.travis.yml'
     ]
+
+    packageNames.forEach (packageName) -> ignoredPaths.push(path.join(packageName, 'spec'))
+
     ignoredPaths = ignoredPaths.map (ignoredPath) -> _.escapeRegExp(ignoredPath)
 
     # Add .* to avoid matching hunspell_dictionaries.
