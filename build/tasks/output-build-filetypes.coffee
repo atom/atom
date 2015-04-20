@@ -8,8 +8,8 @@ module.exports = (grunt) ->
     types = {}
     registerFile = (filePath) ->
       extension = path.extname(filePath) or path.basename(filePath)
-      types[extension] ?= 0
-      types[extension]++
+      types[extension] ?= []
+      types[extension].push(filePath)
 
       if extension is '.asar'
         asar.listPackage(filePath).forEach (archivePath) ->
@@ -20,11 +20,15 @@ module.exports = (grunt) ->
     grunt.file.recurse shellAppDir, (absolutePath, rootPath, relativePath, fileName) -> registerFile(absolutePath)
 
     extensions = Object.keys(types).sort (extension1, extension2) ->
-      diff = types[extension2] - types[extension1]
+      diff = types[extension2].length - types[extension1].length
       if diff is 0
         extension1.toLowerCase().localeCompare(extension2.toLowerCase())
       else
         diff
 
-    extensions.forEach (extension) ->
-      grunt.log.error "#{extension}: #{types[extension]}"
+    if extension = grunt.option('extension')
+      types[extension]?.sort().forEach (filePath) ->
+        console.log filePath
+    else
+      extensions.forEach (extension) ->
+        grunt.log.error "#{extension}: #{types[extension].length}"
