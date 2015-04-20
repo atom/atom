@@ -92,6 +92,7 @@ module.exports = (grunt) ->
       '.npmignore'
       '.pairs'
       '.travis.yml'
+      'appveyor.yml'
     ]
 
     packageNames.forEach (packageName) -> ignoredPaths.push(path.join(packageName, 'spec'))
