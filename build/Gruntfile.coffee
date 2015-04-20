@@ -128,9 +128,11 @@ module.exports = (grunt) ->
       coffeeConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.coffee")
 
       lessConfig.glob_to_multiple.src.push("#{directory}/**/*.less")
+      lessConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.less")
       prebuildLessConfig.src.push("#{directory}/**/*.less") unless theme
 
       csonConfig.glob_to_multiple.src.push("#{directory}/**/*.cson")
+      csonConfig.glob_to_multiple.src.push("!#{directory}/spec/**/*.cson")
 
       pegConfig.glob_to_multiple.src.push("#{directory}/lib/*.pegjs")
 
