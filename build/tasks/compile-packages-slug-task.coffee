@@ -54,15 +54,19 @@ module.exports = (grunt) ->
         mainPath = require.resolve(path.resolve(moduleDirectory, metadata.main))
         pack.main = path.relative(appDir, mainPath)
 
-      for keymapPath in fs.listSync(path.join(moduleDirectory, 'keymaps'), ['.cson', '.json'])
+      keymapsPath = path.join(moduleDirectory, 'keymaps')
+      for keymapPath in fs.listSync(keymapsPath, ['.cson', '.json'])
         relativePath = path.relative(appDir, keymapPath)
         pack.keymaps[relativePath] = CSON.readFileSync(keymapPath)
         rm keymapPath
+      rm keymapsPath if fs.listSync(keymapsPath).length is 0
 
-      for menuPath in fs.listSync(path.join(moduleDirectory, 'menus'), ['.cson', '.json'])
+      menusPath = path.join(moduleDirectory, 'menus')
+      for menuPath in fs.listSync(menusPath, ['.cson', '.json'])
         relativePath = path.relative(appDir, menuPath)
         pack.menus[relativePath] = CSON.readFileSync(menuPath)
         rm menuPath
+      rm menusPath if fs.listSync(menusPath).length is 0
 
       packages[metadata.name] = pack
 
