@@ -1,3 +1,4 @@
+asar = require 'asar'
 path = require 'path'
 
 module.exports = (grunt) ->
@@ -5,10 +6,18 @@ module.exports = (grunt) ->
     shellAppDir = grunt.config.get('atom.shellAppDir')
 
     types = {}
-    grunt.file.recurse shellAppDir, (absolutePath, rootPath, relativePath, fileName) ->
-      extension = path.extname(fileName) or fileName
+    registerFile = (filePath) ->
+      extension = path.extname(filePath) or path.basename(filePath)
       types[extension] ?= 0
       types[extension]++
+
+      if extension is '.asar'
+        asar.listPackage(filePath).forEach (archivePath) ->
+          archivePath = archivePath.substring(1)
+          unless asar.statFile(filePath, archivePath, true).files
+            registerFile(archivePath)
+
+    grunt.file.recurse shellAppDir, (absolutePath, rootPath, relativePath, fileName) -> registerFile(absolutePath)
 
     extensions = Object.keys(types).sort (extension1, extension2) ->
       diff = types[extension2] - types[extension1]
