@@ -32,7 +32,7 @@ class CustomGutterComponent
     newDimensionsAndBackgroundState = state.gutters
     setDimensionsAndBackground(@oldDimensionsAndBackgroundState, newDimensionsAndBackgroundState, @decorationsNode)
 
-    @oldDecorationPositionState ?= {};
+    @oldDecorationPositionState ?= {}
     decorationState = state.gutters.customDecorations[@gutter.name]
 
     updatedDecorationIds = new Set
@@ -59,7 +59,7 @@ class CustomGutterComponent
 
   # Builds and returns an HTMLElement to represent the specified decoration.
   buildDecorationNode: (decorationId, decorationInfo) ->
-    @oldDecorationPositionState[decorationId] = {};
+    @oldDecorationPositionState[decorationId] = {}
     newNode = document.createElement('div')
     newNode.style.position = 'absolute'
     @updateDecorationNode(newNode, decorationId, decorationInfo)
@@ -68,7 +68,7 @@ class CustomGutterComponent
   # Updates the existing HTMLNode with the new decoration info. Attempts to
   # minimize changes to the DOM.
   updateDecorationNode: (node, decorationId, newDecorationInfo) ->
-    oldPositionState = @oldDecorationPositionState[decorationId];
+    oldPositionState = @oldDecorationPositionState[decorationId]
 
     if oldPositionState.top isnt newDecorationInfo.top + 'px'
       node.style.top = newDecorationInfo.top + 'px'

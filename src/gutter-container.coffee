@@ -30,7 +30,7 @@ class GutterContainer
   addGutter: (options) ->
     options = options ? {}
     gutterName = options.name
-    if gutterName == null
+    if gutterName is null
       throw new Error('A name is required to create a gutter.')
     if @gutterWithName(gutterName)
       throw new Error('Tried to create a gutter with a name that is already in use.')
@@ -54,7 +54,7 @@ class GutterContainer
 
   gutterWithName: (name) ->
     for gutter in @gutters
-      if gutter.name == name then return gutter
+      if gutter.name is name then return gutter
     null
 
   ###

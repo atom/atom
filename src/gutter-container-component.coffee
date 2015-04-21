@@ -72,7 +72,7 @@ class GutterContainerComponent
           existingGutterComponentDescription = @gutterComponents[indexInOldGutters]
           existingGutterComponent = existingGutterComponentDescription.component
           indexInOldGutters++
-          if existingGutterComponent == gutterComponent
+          if existingGutterComponent is gutterComponent
             matchingGutterFound = true
             break
         if not matchingGutterFound
@@ -82,7 +82,7 @@ class GutterContainerComponent
           @domNode.appendChild(gutterComponent.getDomNode())
 
       else
-        if indexInOldGutters == oldGuttersLength
+        if indexInOldGutters is oldGuttersLength
           @domNode.appendChild(gutterComponent.getDomNode())
         else
           @domNode.insertBefore(gutterComponent.getDomNode(), @domNode.children[indexInOldGutters])

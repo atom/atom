@@ -1373,7 +1373,7 @@ describe "DisplayBuffer", ->
       [marker] = []
 
       beforeEach ->
-        marker = displayBuffer.markBufferRange([[1, 0], [1, 0]]);
+        marker = displayBuffer.markBufferRange([[1, 0], [1, 0]])
 
       it "creates a decoration that is both of 'line-number' and 'gutter' type when called with the 'line-number' type", ->
         decorationProperties = {type: 'line-number', class: 'one'}
@@ -1384,7 +1384,7 @@ describe "DisplayBuffer", ->
         expect(decoration.getProperties().class).toBe 'one'
 
       it "creates a decoration that is only of 'gutter' type if called with the 'gutter' type and a 'gutterName'", ->
-        decorationProperties = {type: 'gutter', gutterName:'test-gutter', class: 'one'}
+        decorationProperties = {type: 'gutter', gutterName: 'test-gutter', class: 'one'}
         decoration = displayBuffer.decorateMarker(marker, decorationProperties)
         expect(decoration.isType('gutter')).toBe true
         expect(decoration.isType('line-number')).toBe false

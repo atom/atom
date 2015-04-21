@@ -46,9 +46,9 @@ describe 'Gutter', ->
     [mockGutterContainer, mockGutterContainerRemovedGutters] = []
 
     beforeEach ->
-      mockGutterContainerRemovedGutters = [];
+      mockGutterContainerRemovedGutters = []
       mockGutterContainer = removeGutter: (destroyedGutter) ->
-         mockGutterContainerRemovedGutters.push destroyedGutter
+        mockGutterContainerRemovedGutters.push destroyedGutter
 
     it 'removes the gutter from its container.', ->
       gutter = new Gutter mockGutterContainer, {name}

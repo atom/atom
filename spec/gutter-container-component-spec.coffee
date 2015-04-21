@@ -86,14 +86,14 @@ describe "GutterContainerComponent", ->
       expect(gutterContainerComponent.getDomNode().children.item(0)).toBe expectedCustomGutterNode
 
   it "removes a gutter from the DOM if it does not appear in the latest state update", ->
-      lineNumberGutter = new Gutter(mockGutterContainer, {name: 'line-number'})
-      testState = buildTestState([{gutter: lineNumberGutter, visible: true}])
-      gutterContainerComponent.updateSync(testState)
+    lineNumberGutter = new Gutter(mockGutterContainer, {name: 'line-number'})
+    testState = buildTestState([{gutter: lineNumberGutter, visible: true}])
+    gutterContainerComponent.updateSync(testState)
 
-      expect(gutterContainerComponent.getDomNode().children.length).toBe 1
-      testState = buildTestState([])
-      gutterContainerComponent.updateSync(testState)
-      expect(gutterContainerComponent.getDomNode().children.length).toBe 0
+    expect(gutterContainerComponent.getDomNode().children.length).toBe 1
+    testState = buildTestState([])
+    gutterContainerComponent.updateSync(testState)
+    expect(gutterContainerComponent.getDomNode().children.length).toBe 0
 
   describe "when updated with multiple gutters", ->
     it "positions (and repositions) the gutters to match the order they appear in each state update", ->

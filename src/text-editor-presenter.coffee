@@ -388,9 +388,9 @@ class TextEditorPresenter
 
   updateCommonGutterState: ->
     @state.gutters.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
-        @gutterBackgroundColor
-      else
-        @backgroundColor
+      @gutterBackgroundColor
+    else
+      @backgroundColor
 
   didAddGutter: (gutter) ->
     gutterDisposables = new CompositeDisposable
