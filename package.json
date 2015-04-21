@@ -58,7 +58,7 @@
     "scoped-property-store": "^0.17.0",
     "scrollbar-style": "^2.0.0",
     "season": "^5.1.4",
-    "semver": "~4.2",
+    "semver": "^4.3.3",
     "serializable": "^1",
     "service-hub": "^0.5.0",
     "space-pen": "3.8.2",
