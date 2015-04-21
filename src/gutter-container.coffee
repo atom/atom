@@ -1,12 +1,10 @@
 {Emitter} = require 'event-kit'
-{Subscriber} = require 'emissary'
 Gutter = require './gutter'
 
 # This class encapsulates the logic for adding and modifying a set of gutters.
 
 module.exports =
 class GutterContainer
-  Subscriber.includeInto(this)
 
   # * `textEditor` The {TextEditor} to which this {GutterContainer} belongs.
   constructor: (textEditor) ->
@@ -17,7 +15,6 @@ class GutterContainer
   destroy: ->
     @gutters = null
     @emitter.dispose()
-    @unsubscribe()
 
   # Creates and returns a {Gutter}.
   # * `options` An {Object} with the following fields:
@@ -84,7 +81,6 @@ class GutterContainer
     index = @gutters.indexOf(gutter)
     if index > -1
       @gutters.splice(index, 1)
-      @unsubscribe gutter
       @emitter.emit 'did-remove-gutter', gutter.name
     else
       throw new Error 'The given gutter cannot be removed because it is not ' +
