@@ -62,39 +62,32 @@ class CustomGutterComponent
 
   # Builds and returns an HTMLElement to represent the specified decoration.
   buildDecorationNode: (decorationId, decorationInfo) ->
-    @oldDecorationPositionState[decorationId] = positionState = {};
+    @oldDecorationPositionState[decorationId] = {};
     newNode = document.createElement('div')
-    newNode.classList.add('decoration')
-    newNode.style.top = decorationInfo.top + 'px'
-    positionState.top = decorationInfo.top + 'px'
-    newNode.style.height = decorationInfo.height + 'px'
-    positionState.height = decorationInfo.height + 'px'
     newNode.style.position = 'absolute'
-    if decorationInfo.class
-      newNode.classList.add(decorationInfo.class)
-    @setDecorationItem(decorationInfo.item, decorationInfo.height, decorationId, newNode)
+    @updateDecorationNode(newNode, decorationId, decorationInfo)
     newNode
 
   # Updates the existing HTMLNode with the new decoration info. Attempts to
   # minimize changes to the DOM.
-  updateDecorationNode: (existingNode, decorationId, newDecorationInfo) ->
+  updateDecorationNode: (node, decorationId, newDecorationInfo) ->
     oldPositionState = @oldDecorationPositionState[decorationId];
 
     if oldPositionState.top isnt newDecorationInfo.top + 'px'
-      existingNode.style.top = newDecorationInfo.top + 'px'
+      node.style.top = newDecorationInfo.top + 'px'
       oldPositionState.top = newDecorationInfo.top + 'px'
 
     if oldPositionState.height isnt newDecorationInfo.height + 'px'
-      existingNode.style.height = newDecorationInfo.height + 'px'
+      node.style.height = newDecorationInfo.height + 'px'
       oldPositionState.height = newDecorationInfo.height + 'px'
 
-    if newDecorationInfo.class and not existingNode.classList.contains(newDecorationInfo.class)
-      existingNode.className = 'decoration'
-      existingNode.classList.add(newDecorationInfo.class)
+    if newDecorationInfo.class and not node.classList.contains(newDecorationInfo.class)
+      node.className = 'decoration'
+      node.classList.add(newDecorationInfo.class)
     else if not newDecorationInfo.class
-      existingNode.className = 'decoration'
+      node.className = 'decoration'
 
-    @setDecorationItem(newDecorationInfo.item, newDecorationInfo.height, decorationId, existingNode)
+    @setDecorationItem(newDecorationInfo.item, newDecorationInfo.height, decorationId, node)
 
   # Sets the decorationItem on the decorationNode.
   # If `decorationItem` is undefined, the decorationNode's child item will be cleared.
