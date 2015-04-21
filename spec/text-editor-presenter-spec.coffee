@@ -2468,19 +2468,6 @@ describe "TextEditorPresenter", ->
           expect(decorationState[decoration3.id]).toBeUndefined()
           expect(decorationState[decoration4.id].top).toBeDefined()
 
-        it "does not update when a gutter is destroyed (because it's unnecessary)", ->
-          gutter.destroy()
-          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
-          expect(decorationState[decoration1.id].top).toBeDefined()
-          expect(decorationState[decoration2.id].top).toBeDefined()
-          expect(decorationState[decoration3.id]).toBeUndefined()
-
-          # However, the decoration state of the destroyed gutter should be
-          # cleared whenever ::updateCustomGutterDecorationState is next called.
-          expectStateUpdate presenter, -> editor.addGutter({name: 'a-different-gutter'})
-          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
-          expect(decorationState).toBeUndefined()
-
         it "updates when editor lines are folded", ->
           oldDimensionsForDecoration1 =
             top: lineHeight * marker1.getScreenRange().start.row

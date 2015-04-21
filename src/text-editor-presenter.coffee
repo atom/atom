@@ -401,6 +401,9 @@ class TextEditorPresenter
       @disposables.remove(gutterDisposables)
       gutterDisposables.dispose()
       @updateCustomGutterState()
+      # It is not necessary to @updateCustomGutterDecorationState here.
+      # The destroyed gutter will be removed from the list of gutters in @state,
+      # and thus will be removed from the DOM.
     @disposables.add(gutterDisposables)
     @updateCustomGutterState()
     @updateCustomGutterDecorationState()
