@@ -38,10 +38,11 @@ class GutterContainerComponent
         else
           gutterComponent = new CustomGutterComponent({gutter})
       if visible then gutterComponent.showNode() else gutterComponent.hideNode()
+      gutterComponent.updateSync(state)
       newGutterComponents.push(gutterComponent)
       newGutterComponentsByGutterName[gutter.name] = gutterComponent
 
-    @updateChildGutters(state, newGutterComponents, newGutterComponentsByGutterName)
+    @reorderGutters(newGutterComponents, newGutterComponentsByGutterName)
 
     @gutterComponents = newGutterComponents
     @gutterComponentsByGutterName = newGutterComponentsByGutterName
@@ -50,12 +51,12 @@ class GutterContainerComponent
   Section: Private Methods
   ###
 
-  updateChildGutters: (state, newGutterComponents, newGutterComponentsByGutterName) ->
+  reorderGutters: (newGutterComponents, newGutterComponentsByGutterName) ->
     # First, insert new gutters into the DOM.
     indexInOldGutters = 0
     oldGuttersLength = @gutterComponents.length
+
     for gutterComponent in newGutterComponents
-      gutterComponent.updateSync(state)
       if @gutterComponentsByGutterName[gutterComponent.getName()]
         # If the gutter existed previously, we first try to move the cursor to
         # the point at which it occurs in the previous gutters.
