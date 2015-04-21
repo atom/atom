@@ -654,8 +654,8 @@ class TextEditorPresenter
     return decorations if @model.isMini() or gutterName is 'line-number' or
       not @customGutterDecorationsByGutterNameAndScreenRow[gutterName]
 
-    for bufferRow in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
-      for id, decoration of @customGutterDecorationsByGutterNameAndScreenRow[gutterName][bufferRow]
+    for screenRow in [@startRow..@endRow - 1]
+      for id, decoration of @customGutterDecorationsByGutterNameAndScreenRow[gutterName][screenRow]
         decorations.add(decoration)
     decorations
 

@@ -2483,9 +2483,11 @@ describe "TextEditorPresenter", ->
           decorationState = decorationStateForGutterName(presenter, 'test-gutter')
           expect(decorationState[decoration1.id].top).toBe oldDimensionsForDecoration1.top
           expect(decorationState[decoration1.id].height).not.toBe oldDimensionsForDecoration1.height
+          # Due to the issue described here: https://github.com/atom/atom/issues/6454, decoration2
+          # will be bumped up to the row that was folded and still made visible, instead of being
+          # entirely collapsed. (The same thing will happen to decoration3.)
           expect(decorationState[decoration2.id].top).not.toBe oldDimensionsForDecoration2.top
           expect(decorationState[decoration2.id].height).not.toBe oldDimensionsForDecoration2.height
-          expect(decorationState[decoration3.id]).toBeUndefined()
 
   # disabled until we fix an issue with display buffer markers not updating when
   # they are moved on screen but not in the buffer
