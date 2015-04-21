@@ -42,7 +42,7 @@
     "jasmine-tagged": "^1.1.4",
     "jquery": "^2.1.1",
     "less-cache": "0.22",
-    "marked": "^0.3",
+    "marked": "^0.3.3",
     "mixto": "^1",
     "nslog": "^2.0.0",
     "oniguruma": "^4.1",
