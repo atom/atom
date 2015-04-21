@@ -4,7 +4,10 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 
-concurrency = 2
+if process.env.TRAVIS
+  concurrency = 1
+else
+  concurrency = 2
 
 module.exports = (grunt) ->
   {isAtomPackage, spawn} = require('./task-helpers')(grunt)
@@ -78,7 +81,7 @@ module.exports = (grunt) ->
       continue unless isAtomPackage(packagePath)
       packageSpecQueue.push(packagePath)
 
-    packageSpecQueue.concurrency = concurrency - 1
+    packageSpecQueue.concurrency = Math.max(1, concurrency - 1)
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
   runCoreSpecs = (callback) ->
@@ -122,10 +125,10 @@ module.exports = (grunt) ->
 
     # TODO: This should really be parallel on both platforms, however our
     # fixtures step on each others toes currently.
-    if process.platform in ['darwin', 'linux']
-      method = async.parallel
-    else if process.platform is 'win32'
+    if concurrency is 1 or process.platform is 'win32'
       method = async.series
+    else if process.platform in ['darwin', 'linux']
+      method = async.parallel
 
     method [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecFailed, failedPackages] = results
