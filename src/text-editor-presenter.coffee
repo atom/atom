@@ -90,7 +90,7 @@ class TextEditorPresenter
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
     @updateLineNumbersState() if @shouldUpdateLineNumbersState
-    @updateCustomGutterState() if @shouldUpdateCustomGutterState
+    @updateGutterOrderState() if @shouldUpdateGutterOrderState
     @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
     @updating = false
 
@@ -109,7 +109,7 @@ class TextEditorPresenter
       @updateLinesState()
       @updateLineNumberGutterState()
       @updateLineNumbersState()
-      @updateCustomGutterState()
+      @updateGutterOrderState()
       @updateCustomGutterDecorationState()
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
@@ -122,12 +122,12 @@ class TextEditorPresenter
       @updateLineNumberGutterState()
       @updateLineNumbersState()
       @updateCommonGutterState()
-      @updateCustomGutterState()
+      @updateGutterOrderState()
       @updateCustomGutterDecorationState()
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @updateLineNumberGutterState()
       @updateCommonGutterState()
-      @updateCustomGutterState()
+      @updateGutterOrderState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
@@ -163,14 +163,14 @@ class TextEditorPresenter
       @showLineNumbers = newValue
       @updateLineNumberGutterState()
       @updateCommonGutterState()
-      @updateCustomGutterState()
+      @updateGutterOrderState()
 
   didChangeGrammar: ->
     @observeConfig()
     @updateContentState()
     @updateLineNumberGutterState()
     @updateCommonGutterState()
-    @updateCustomGutterState()
+    @updateGutterOrderState()
 
   buildState: ->
     @state =
@@ -210,7 +210,7 @@ class TextEditorPresenter
     @updateLineNumberGutterState()
     @updateLineNumbersState()
     @updateCommonGutterState()
-    @updateCustomGutterState()
+    @updateGutterOrderState()
     @updateCustomGutterDecorationState()
 
   updateFocusedState: -> @batch "shouldUpdateFocusedState", ->
@@ -395,21 +395,21 @@ class TextEditorPresenter
   didAddGutter: (gutter) ->
     gutterDisposables = new CompositeDisposable
     gutterDisposables.add gutter.onDidChangeVisible =>
-      @updateCustomGutterState()
+      @updateGutterOrderState()
       @updateCustomGutterDecorationState()
     gutterDisposables.add gutter.onDidDestroy =>
       @disposables.remove(gutterDisposables)
       gutterDisposables.dispose()
-      @updateCustomGutterState()
+      @updateGutterOrderState()
       # It is not necessary to @updateCustomGutterDecorationState here.
       # The destroyed gutter will be removed from the list of gutters in @state,
       # and thus will be removed from the DOM.
     @disposables.add(gutterDisposables)
-    @updateCustomGutterState()
+    @updateGutterOrderState()
     @updateCustomGutterDecorationState()
 
-  updateCustomGutterState: ->
-    @batch "shouldUpdateCustomGutterState", ->
+  updateGutterOrderState: ->
+    @batch "shouldUpdateGutterOrderState", ->
       @state.gutters.sortedDescriptions = []
       if @model.isMini()
         return
@@ -808,14 +808,14 @@ class TextEditorPresenter
       @updateContentState()
       @updateLineNumberGutterState()
       @updateCommonGutterState()
-      @updateCustomGutterState()
+      @updateGutterOrderState()
 
   setGutterBackgroundColor: (gutterBackgroundColor) ->
     unless @gutterBackgroundColor is gutterBackgroundColor
       @gutterBackgroundColor = gutterBackgroundColor
       @updateLineNumberGutterState()
       @updateCommonGutterState()
-      @updateCustomGutterState()
+      @updateGutterOrderState()
 
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
