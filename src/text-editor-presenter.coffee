@@ -989,7 +989,7 @@ class TextEditorPresenter
   decorationPropertiesDidChange: (decoration, event) ->
     {oldProperties} = event
     if decoration.isType('line') or decoration.isType('gutter')
-      @removeDecorationInfoFromLineDecorationCaches(
+      @removePropertiesFromLineDecorationCaches(
         decoration.id,
         oldProperties,
         decoration.getMarker().getScreenRange())
@@ -1066,9 +1066,9 @@ class TextEditorPresenter
     return
 
   removeFromLineDecorationCaches: (decoration, range) ->
-    @removeDecorationInfoFromLineDecorationCaches(decoration.id, decoration.getProperties(), range)
+    @removePropertiesFromLineDecorationCaches(decoration.id, decoration.getProperties(), range)
 
-  removeDecorationInfoFromLineDecorationCaches: (decorationId, decorationProperties, range) ->
+  removePropertiesFromLineDecorationCaches: (decorationId, decorationProperties, range) ->
     gutterName = decorationProperties.gutterName
     for row in [range.start.row..range.end.row] by 1
       delete @lineDecorationsByScreenRow[row]?[decorationId]
