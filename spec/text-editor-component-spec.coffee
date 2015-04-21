@@ -2624,7 +2624,7 @@ describe "TextEditorComponent", ->
       expect(componentNode.querySelector('.placeholder-text')).toBeNull()
 
   describe "legacy editor compatibility", ->
-    it "triggers the screen-lines-changed event before the editor:display-update event", ->
+    it "triggers the screen-lines-changed event before the editor:display-updated event", ->
       editor.setSoftWrapped(true)
 
       callingOrder = []
@@ -2633,7 +2633,7 @@ describe "TextEditorComponent", ->
       editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
       nextAnimationFrame()
 
-      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
+      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated', 'editor:display-updated']
 
     it "works with the ::setEditorHeightInLines and ::setEditorWidthInChars helpers", ->
       setEditorHeightInLines(wrapperView, 7)
