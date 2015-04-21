@@ -4,7 +4,10 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 
-if process.env.TRAVIS
+# TODO: This should really be parallel on every platform, however:
+# - On Windows, our fixtures step on each others toes.
+# - On Travis, Mac workers haven't enough horsepower.
+if process.env.TRAVIS or process.platform is 'win32'
   concurrency = 1
 else
   concurrency = 2
@@ -122,13 +125,11 @@ module.exports = (grunt) ->
   grunt.registerTask 'run-specs', 'Run the specs', ->
     done = @async()
     startTime = Date.now()
-
-    # TODO: This should really be parallel on both platforms, however our
-    # fixtures step on each others toes currently.
-    if concurrency is 1 or process.platform is 'win32'
-      method = async.series
-    else if process.platform in ['darwin', 'linux']
-      method = async.parallel
+    method =
+      if concurrency is 1
+        async.series
+      else
+        async.parallel
 
     method [runCoreSpecs, runPackageSpecs], (error, results) ->
       [coreSpecFailed, failedPackages] = results
