@@ -43,9 +43,9 @@ class CustomGutterComponent
       updatedDecorationIds.add(decorationId)
       existingDecoration = @decorationNodesById[decorationId]
       if existingDecoration
-        @updateDecorationHTML(existingDecoration, decorationId, decorationInfo)
+        @updateDecorationNode(existingDecoration, decorationId, decorationInfo)
       else
-        newNode = @buildDecorationHTML(decorationId, decorationInfo)
+        newNode = @buildDecorationNode(decorationId, decorationInfo)
         @decorationNodesById[decorationId] = newNode
         @decorationsNode.appendChild(newNode)
 
@@ -61,7 +61,7 @@ class CustomGutterComponent
   ###
 
   # Builds and returns an HTMLElement to represent the specified decoration.
-  buildDecorationHTML: (decorationId, decorationInfo) ->
+  buildDecorationNode: (decorationId, decorationInfo) ->
     @oldDecorationPositionState[decorationId] = positionState = {};
     newNode = document.createElement('div')
     newNode.classList.add('decoration')
@@ -77,7 +77,7 @@ class CustomGutterComponent
 
   # Updates the existing HTMLNode with the new decoration info. Attempts to
   # minimize changes to the DOM.
-  updateDecorationHTML: (existingNode, decorationId, newDecorationInfo) ->
+  updateDecorationNode: (existingNode, decorationId, newDecorationInfo) ->
     oldPositionState = @oldDecorationPositionState[decorationId];
 
     if oldPositionState.top isnt newDecorationInfo.top + 'px'
