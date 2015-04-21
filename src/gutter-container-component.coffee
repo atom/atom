@@ -8,6 +8,7 @@ module.exports =
 class GutterContainerComponent
 
   constructor: ({@onLineNumberGutterMouseDown, @editor}) ->
+    # An array of objects of the form: {name: {String}, component: {Object}}
     @gutterComponents = []
     @gutterComponentsByGutterName = {}
     @lineNumberGutterComponent = null
@@ -39,7 +40,10 @@ class GutterContainerComponent
           gutterComponent = new CustomGutterComponent({gutter})
       if visible then gutterComponent.showNode() else gutterComponent.hideNode()
       gutterComponent.updateSync(state)
-      newGutterComponents.push(gutterComponent)
+      newGutterComponents.push({
+        name: gutter.name,
+        component: gutterComponent,
+      })
       newGutterComponentsByGutterName[gutter.name] = gutterComponent
 
     @reorderGutters(newGutterComponents, newGutterComponentsByGutterName)
@@ -56,15 +60,19 @@ class GutterContainerComponent
     indexInOldGutters = 0
     oldGuttersLength = @gutterComponents.length
 
-    for gutterComponent in newGutterComponents
-      if @gutterComponentsByGutterName[gutterComponent.getName()]
+    for gutterComponentDescription in newGutterComponents
+      gutterComponent = gutterComponentDescription.component
+      gutterName = gutterComponentDescription.name
+
+      if @gutterComponentsByGutterName[gutterName]
         # If the gutter existed previously, we first try to move the cursor to
         # the point at which it occurs in the previous gutters.
         matchingGutterFound = false
         while indexInOldGutters < oldGuttersLength
-          existingGutterComponent = @gutterComponents[indexInOldGutters]
+          existingGutterComponentDescription = @gutterComponents[indexInOldGutters]
+          existingGutterComponent = existingGutterComponentDescription.component
           indexInOldGutters++
-          if existingGutterComponent.getName() == gutterComponent.getName()
+          if existingGutterComponent == gutterComponent
             matchingGutterFound = true
             break
         if not matchingGutterFound
@@ -80,6 +88,7 @@ class GutterContainerComponent
           @domNode.insertBefore(gutterComponent.getDomNode(), @domNode.children[indexInOldGutters])
 
     # Remove any gutters that were not present in the new gutters state.
-    for gutterComponent in @gutterComponents
-      if not newGutterComponentsByGutterName[gutterComponent.getName()]
+    for gutterComponentDescription in @gutterComponents
+      if not newGutterComponentsByGutterName[gutterComponentDescription.name]
+        gutterComponent = gutterComponentDescription.component
         gutterComponent.getDomNode().remove()

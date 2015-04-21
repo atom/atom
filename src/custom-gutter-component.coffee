@@ -17,9 +17,6 @@ class CustomGutterComponent
   getDomNode: ->
     @domNode
 
-  getName: ->
-    @gutter.name
-
   hideNode: ->
     if @visible
       @domNode.style.display = 'none'
@@ -36,7 +33,7 @@ class CustomGutterComponent
     setDimensionsAndBackground(@oldDimensionsAndBackgroundState, newDimensionsAndBackgroundState, @decorationsNode)
 
     @oldDecorationPositionState ?= {};
-    decorationState = state.gutters.customDecorations[@getName()]
+    decorationState = state.gutters.customDecorations[@gutter.name]
 
     updatedDecorationIds = new Set
     for decorationId, decorationInfo of decorationState

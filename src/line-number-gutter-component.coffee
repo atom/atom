@@ -20,9 +20,6 @@ class LineNumberGutterComponent
   getDomNode: ->
     @domNode
 
-  getName: ->
-    @gutter.name
-
   hideNode: ->
     if @visible
       @domNode.style.display = 'none'
