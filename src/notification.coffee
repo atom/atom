@@ -18,10 +18,10 @@ class Notification
 
   getOptions: -> @options
 
-  # Public: Retrieves the {String} notification type.
+  # Public: Retrieves the {String} type.
   getType: -> @type
 
-  # Public: Retrieves the {String} notification message.
+  # Public: Retrieves the {String} message.
   getMessage: -> @message
 
   getTimestamp: -> @timestamp
