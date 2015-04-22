@@ -44,6 +44,7 @@ module.exports =
 class ViewRegistry
   documentPollingInterval: 200
   documentUpdateRequested: false
+  documentReadInProgress: false
   performDocumentPollAfterUpdate: false
   pollIntervalHandle: null
 
@@ -161,7 +162,7 @@ class ViewRegistry
 
   updateDocument: (fn) ->
     @documentWriters.push(fn)
-    @requestDocumentUpdate()
+    @requestDocumentUpdate() unless @documentReadInProgress
     new Disposable =>
       @documentWriters = @documentWriters.filter (writer) -> writer isnt fn
 
@@ -196,9 +197,15 @@ class ViewRegistry
   performDocumentUpdate: =>
     @documentUpdateRequested = false
     writer() while writer = @documentWriters.shift()
+
+    @documentReadInProgress = true
     reader() while reader = @documentReaders.shift()
     @performDocumentPoll() if @performDocumentPollAfterUpdate
     @performDocumentPollAfterUpdate = false
+    @documentReadInProgress = false
+
+    # process updates requested as a result of reads
+    writer() while writer = @documentWriters.shift()
 
   startPollingDocument: ->
     @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
