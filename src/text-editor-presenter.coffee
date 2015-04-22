@@ -22,6 +22,7 @@ class TextEditorPresenter
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @characterWidthsByScope = {}
+    @measuredLines = new Set
     @transferMeasurementsToModel()
     @observeModel()
     @observeConfig()
@@ -69,8 +70,6 @@ class TextEditorPresenter
   getPreMeasureState: ->
     @updating = true
 
-    @state.content.changedLines = {}
-
     @updateContentDimensions()
     @updateScrollbarDimensions()
     @updateStartRow()
@@ -103,6 +102,7 @@ class TextEditorPresenter
     @updateOverlaysState() if @shouldUpdateOverlaysState
 
     @updating = false
+    @measureNewlyBuiltLines = false
 
     @state
 
@@ -114,6 +114,8 @@ class TextEditorPresenter
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
+      @measureNewlyBuiltLines = true
+
       @updateContentDimensions()
       @updateEndRow()
       @updateHeightState()
@@ -188,7 +190,6 @@ class TextEditorPresenter
         scrollingVertically: false
         cursorsVisible: false
         lines: {}
-        changedLines: {}
         highlights: {}
         overlays: {}
       gutter:
@@ -304,9 +305,10 @@ class TextEditorPresenter
     lineState.screenRow = row
     lineState.top = row * @lineHeight
     lineState.decorationClasses = @lineDecorationClassesForRow(row)
+    lineState.updatesCount++
+    lineState.shouldMeasure = not @measuredLines.has(line.id) and lineState.updatesCount is 2
 
-    unless @state.content.scrollingVertically
-      @state.content.changedLines[line.id] = @state.content.lines[line.id]
+    @measuredLines.add(line.id) if lineState.shouldMeasure
 
   buildLineState: (row, line) ->
     @state.content.lines[line.id] =
@@ -320,8 +322,10 @@ class TextEditorPresenter
       fold: line.fold
       top: row * @lineHeight
       decorationClasses: @lineDecorationClassesForRow(row)
+      shouldMeasure: @measureNewlyBuiltLines or not @state.content.scrollingVertically
+      updatesCount: 0
 
-    @state.content.changedLines[line.id] = @state.content.lines[line.id]
+    @measuredLines.add(line.id) if @state.content.lines[line.id].shouldMeasure
 
   updateCursorsState: -> @batch "shouldUpdateCursorsState", ->
     @state.content.cursors = {}
@@ -1073,6 +1077,8 @@ class TextEditorPresenter
       @pauseCursorBlinking()
       @updateCursorsState()
 
+      @measureNewlyBuiltLines = true
+
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
       @updateCursorsState()
 
@@ -1092,6 +1098,8 @@ class TextEditorPresenter
     @updateHiddenInputState()
     @pauseCursorBlinking()
     @updateCursorsState()
+
+    @measureNewlyBuiltLines = true
 
   startBlinkingCursors: ->
     unless @toggleCursorBlinkHandle

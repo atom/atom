@@ -50,8 +50,7 @@ class LinesComponent
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
 
-    if shouldMeasure
-      @measureCharactersInLines(@newState.changedLines, false)
+    @measureCharactersInLines(false) if shouldMeasure
 
   postMeasureUpdateSync: (state) ->
     @newState = state.content
@@ -277,13 +276,17 @@ class LinesComponent
 
     @contextsByScopeIdentifier = {}
     @measuredTextByScopeIdentifier = {}
-    @measureCharactersInLines(@newState.lines)
+    @measureCharactersInLines()
 
-  measureCharactersInLines: (lines, batch = true) ->
+  measureCharactersInLines: (batch = true) ->
     fn = =>
-      for id, lineState of lines
+      for id, lineState of @newState.lines
         lineNode = @lineNodesByLineId[id]
-        @measureCharactersInLine(id, lineState, lineNode) if lineNode?
+
+        continue unless lineNode?
+        continue unless lineState.shouldMeasure
+
+        @measureCharactersInLine(id, lineState, lineNode)
       return
 
     if batch

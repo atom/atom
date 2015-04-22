@@ -860,6 +860,58 @@ describe "TextEditorPresenter", ->
           editor.setText('')
 
         describe "[lineId]", -> # line state objects
+          describe ".shouldMeasure", ->
+            presenter = null
+
+            beforeEach ->
+              presenter = buildPresenter(explicitHeight: 30, scrollTop: 0, lineHeight: 10)
+
+            describe "when the model is changed", ->
+              it "is true when line is first built (not scrolling)", ->
+                expect(lineStateForScreenRow(presenter, 0).shouldMeasure).toBe(true)
+
+              it "is true when line gets built after scrolling because of an insertion", ->
+                editor.setText("")
+                editor.insertNewline()
+                editor.insertNewline()
+                editor.insertNewline()
+
+                expect(lineStateForScreenRow(presenter, 2).shouldMeasure).toBe(true)
+
+              it "is true when line gets built after scrolling because a cursor has been moved", ->
+                editor.setCursorScreenPosition([4, 0], autoscroll: true)
+
+                expect(lineStateForScreenRow(presenter, 4).shouldMeasure).toBe(true)
+
+              it "is true when line gets built after scrolling because a cursor has been added", ->
+                editor.addCursorAtScreenPosition([4, 0])
+
+                expect(lineStateForScreenRow(presenter, 4).shouldMeasure).toBe(true)
+
+              it "is true when line gets built after scrolling because a selection has been added", ->
+                editor.setSelectedScreenRanges([
+                  [[0, 0], [0, 2]],
+                  [[4, 0], [4, 2]]
+                ])
+
+                expect(lineStateForScreenRow(presenter, 4).shouldMeasure).toBe(true)
+
+            describe "when the model is not changed", ->
+              it "is false by default, and becomes true only when the line stays on screen for a sufficient number of times", ->
+                presenter.setScrollTop(10)
+                expect(lineStateForScreenRow(presenter, 4).shouldMeasure).toBe(false)
+                presenter.setScrollTop(20)
+                expect(lineStateForScreenRow(presenter, 4).shouldMeasure).toBe(false)
+                presenter.setScrollTop(30)
+                expect(lineStateForScreenRow(presenter, 4).shouldMeasure).toBe(true)
+
+            it "is false if it has already been measured", ->
+              editor.setText("Hello")
+              editor.insertNewline()
+              expect(lineStateForScreenRow(presenter, 0).shouldMeasure).toBe(true)
+              editor.insertNewline()
+              expect(lineStateForScreenRow(presenter, 0).shouldMeasure).toBe(false)
+
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
