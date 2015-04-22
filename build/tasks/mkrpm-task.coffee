@@ -33,7 +33,7 @@ module.exports = (grunt) ->
     installDir = grunt.config.get('atom.installDir')
     shareDir = path.join(installDir, 'share', 'atom')
     iconName = 'atom'
-    executable = 'atom'
+    executable = path.join(shareDir, 'atom')
 
     data = {name, version, description, installDir, iconName, executable}
     specFilePath = fillTemplate(path.join('resources', 'linux', 'redhat', 'atom.spec'), data)
