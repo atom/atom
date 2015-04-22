@@ -5,6 +5,13 @@ Grim = require 'grim'
 idCounter = 0
 nextId = -> idCounter++
 
+# Applies changes to a decorationsParam {Object} to make it possible to
+# differentiate decorations on custom gutters versus the line-number gutter.
+translateDecorationParamsOldToNew = (decorationParams) ->
+  if decorationParams.type is 'line-number'
+    decorationParams.gutterName = 'line-number'
+  decorationParams
+
 # Essential: Represents a decoration that follows a {Marker}. A decoration is
 # basically a visual representation of a marker. It allows you to add CSS
 # classes to line numbers in the gutter, lines, and add selection-line regions
@@ -38,19 +45,29 @@ class Decoration
   #   type matches any in the array.
   #
   # Returns {Boolean}
+  # Note: 'line-number' is a special subtype of the 'gutter' type. I.e., a
+  # 'line-number' is a 'gutter', but a 'gutter' is not a 'line-number'.
   @isType: (decorationProperties, type) ->
+    # 'line-number' is a special case of 'gutter'.
     if _.isArray(decorationProperties.type)
-      type in decorationProperties.type
+      return true if type in decorationProperties.type
+      if type is 'gutter'
+        return true if 'line-number' in decorationProperties.type
+      return false
     else
-      type is decorationProperties.type
+      if type is 'gutter'
+        return true if decorationProperties.type in ['gutter', 'line-number']
+      else
+        type is decorationProperties.type
 
   ###
   Section: Construction and Destruction
   ###
 
-  constructor: (@marker, @displayBuffer, @properties) ->
+  constructor: (@marker, @displayBuffer, properties) ->
     @emitter = new Emitter
     @id = nextId()
+    @setProperties properties
     @properties.id = @id
     @flashQueue = null
     @destroyed = false
@@ -134,7 +151,7 @@ class Decoration
   setProperties: (newProperties) ->
     return if @destroyed
     oldProperties = @properties
-    @properties = newProperties
+    @properties = translateDecorationParamsOldToNew(newProperties)
     @properties.id = @id
     @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}

@@ -6,7 +6,7 @@ grim = require 'grim'
 ipc = require 'ipc'
 
 TextEditorPresenter = require './text-editor-presenter'
-GutterComponent = require './gutter-component'
+GutterContainerComponent = require './gutter-container-component'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
@@ -70,22 +70,22 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @mountGutterComponent() if @presenter.getState().gutter.visible
+    @mountGutterContainerComponent() if @presenter.getState().gutters.sortedDescriptions.length
 
     @hiddenInputComponent = new InputComponent
-    @scrollViewNode.appendChild(@hiddenInputComponent.domNode)
+    @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM})
-    @scrollViewNode.appendChild(@linesComponent.domNode)
+    @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
-    @scrollViewNode.appendChild(@horizontalScrollbarComponent.domNode)
+    @scrollViewNode.appendChild(@horizontalScrollbarComponent.getDomNode())
 
     @verticalScrollbarComponent = new ScrollbarComponent({orientation: 'vertical', onScroll: @onVerticalScroll})
-    @domNode.appendChild(@verticalScrollbarComponent.domNode)
+    @domNode.appendChild(@verticalScrollbarComponent.getDomNode())
 
     @scrollbarCornerComponent = new ScrollbarCornerComponent
-    @domNode.appendChild(@scrollbarCornerComponent.domNode)
+    @domNode.appendChild(@scrollbarCornerComponent.getDomNode())
 
     @observeEditor()
     @listenForDOMEvents()
@@ -107,6 +107,9 @@ class TextEditorComponent
     @disposables.dispose()
     @presenter.destroy()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
+
+  getDomNode: ->
+    @domNode
 
   updateSync: ->
     @oldState ?= {}
@@ -134,12 +137,12 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
-    if @newState.gutter.visible
-      @mountGutterComponent() unless @gutterComponent?
-      @gutterComponent.updateSync(@newState)
+    if @newState.gutters.sortedDescriptions.length
+      @mountGutterContainerComponent() unless @gutterContainerComponent?
+      @gutterContainerComponent.updateSync(@newState)
     else
-      @gutterComponent?.domNode?.remove()
-      @gutterComponent = null
+      @gutterContainerComponent?.getDomNode()?.remove()
+      @gutterContainerComponent = null
 
     @hiddenInputComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
@@ -161,9 +164,9 @@ class TextEditorComponent
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
     @overlayManager?.measureOverlays()
 
-  mountGutterComponent: ->
-    @gutterComponent = new GutterComponent({@editor, onMouseDown: @onGutterMouseDown})
-    @domNode.insertBefore(@gutterComponent.domNode, @domNode.firstChild)
+  mountGutterContainerComponent: ->
+    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown})
+    @domNode.insertBefore(@gutterContainerComponent.getDomNode(), @domNode.firstChild)
 
   becameVisible: ->
     @updatesPaused = true
@@ -282,7 +285,7 @@ class TextEditorComponent
   focused: ->
     if @mounted
       @presenter.setFocused(true)
-      @hiddenInputComponent.domNode.focus()
+      @hiddenInputComponent.getDomNode().focus()
 
   blurred: ->
     if @mounted
@@ -401,7 +404,7 @@ class TextEditorComponent
     @handleDragUntilMouseUp event, (screenPosition) =>
       @editor.selectToScreenPosition(screenPosition)
 
-  onGutterMouseDown: (event) =>
+  onLineNumberGutterMouseDown: (event) =>
     return unless event.button is 0 # only handle the left mouse button
 
     {shiftKey, metaKey, ctrlKey} = event
@@ -644,8 +647,9 @@ class TextEditorComponent
 
     @presenter.setBackgroundColor(backgroundColor)
 
-    if @gutterComponent?
-      gutterBackgroundColor = getComputedStyle(@gutterComponent.domNode).backgroundColor
+    lineNumberGutter = @gutterContainerComponent?.getLineNumberGutterComponent()
+    if lineNumberGutter
+      gutterBackgroundColor = getComputedStyle(lineNumberGutter.getDomNode()).backgroundColor
       @presenter.setGutterBackgroundColor(gutterBackgroundColor)
 
   measureLineHeightAndDefaultCharWidth: ->
@@ -665,7 +669,7 @@ class TextEditorComponent
   measureScrollbars: ->
     @measureScrollbarsWhenShown = false
 
-    cornerNode = @scrollbarCornerComponent.domNode
+    cornerNode = @scrollbarCornerComponent.getDomNode()
     originalDisplayValue = cornerNode.style.display
 
     cornerNode.style.display = 'block'
@@ -691,9 +695,9 @@ class TextEditorComponent
       @measureScrollbarsWhenShown = true
       return
 
-    verticalNode = @verticalScrollbarComponent.domNode
-    horizontalNode = @horizontalScrollbarComponent.domNode
-    cornerNode = @scrollbarCornerComponent.domNode
+    verticalNode = @verticalScrollbarComponent.getDomNode()
+    horizontalNode = @horizontalScrollbarComponent.getDomNode()
+    cornerNode = @scrollbarCornerComponent.getDomNode()
 
     originalVerticalDisplayValue = verticalNode.style.display
     originalHorizontalDisplayValue = horizontalNode.style.display
@@ -722,7 +726,7 @@ class TextEditorComponent
 
   lineNodeForScreenRow: (screenRow) -> @linesComponent.lineNodeForScreenRow(screenRow)
 
-  lineNumberNodeForScreenRow: (screenRow) -> @gutterComponent.lineNumberNodeForScreenRow(screenRow)
+  lineNumberNodeForScreenRow: (screenRow) -> @gutterContainerComponent.getLineNumberGutterComponent().lineNumberNodeForScreenRow(screenRow)
 
   screenRowForNode: (node) ->
     while node?
@@ -763,7 +767,7 @@ class TextEditorComponent
   pixelPositionForMouseEvent: (event) ->
     {clientX, clientY} = event
 
-    linesClientRect = @linesComponent.domNode.getBoundingClientRect()
+    linesClientRect = @linesComponent.getDomNode().getBoundingClientRect()
     top = clientY - linesClientRect.top
     left = clientX - linesClientRect.left
     {top, left}

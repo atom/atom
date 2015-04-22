@@ -1,40 +1,43 @@
 _ = require 'underscore-plus'
+{setDimensionsAndBackground} = require './gutter-component-helpers'
 
 WrapperDiv = document.createElement('div')
 
 module.exports =
-class GutterComponent
+class LineNumberGutterComponent
   dummyLineNumberNode: null
 
-  constructor: ({@presenter, @onMouseDown, @editor}) ->
+  constructor: ({@onMouseDown, @editor, @gutter}) ->
     @lineNumberNodesById = {}
+    @visible = true
 
-    @domNode = document.createElement('div')
-    @domNode.classList.add('gutter')
-    @lineNumbersNode = document.createElement('div')
-    @lineNumbersNode.classList.add('line-numbers')
-    @domNode.appendChild(@lineNumbersNode)
+    @domNode = atom.views.getView(@gutter)
+    @lineNumbersNode = @domNode.firstChild
 
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
 
+  getDomNode: ->
+    @domNode
+
+  hideNode: ->
+    if @visible
+      @domNode.style.display = 'none'
+      @visible = false
+
+  showNode: ->
+    if not @visible
+      @domNode.style.removeProperty('display')
+      @visible = true
+
   updateSync: (state) ->
-    @newState = state.gutter
+    @newState = state.gutters.lineNumberGutter
     @oldState ?= {lineNumbers: {}}
 
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    if @newState.scrollHeight isnt @oldState.scrollHeight
-      @lineNumbersNode.style.height = @newState.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
-
-    if @newState.scrollTop isnt @oldState.scrollTop
-      @lineNumbersNode.style['-webkit-transform'] = "translate3d(0px, #{-@newState.scrollTop}px, 0px)"
-      @oldState.scrollTop = @newState.scrollTop
-
-    if @newState.backgroundColor isnt @oldState.backgroundColor
-      @lineNumbersNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
+    newDimensionsAndBackgroundState = state.gutters
+    setDimensionsAndBackground(@oldState, newDimensionsAndBackgroundState, @lineNumbersNode)
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
@@ -43,6 +46,10 @@ class GutterComponent
       @lineNumberNodesById = {}
 
     @updateLineNumbers()
+
+  ###
+  Section: Private Methods
+  ###
 
   # This dummy line number element holds the gutter to the appropriate width,
   # since the real line numbers are absolutely positioned for performance reasons.

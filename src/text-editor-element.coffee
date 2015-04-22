@@ -100,7 +100,7 @@ class TextEditorElement extends HTMLElement
       tabLength: 2
       softTabs: true
       mini: @hasAttribute('mini')
-      gutterVisible: not @hasAttribute('gutter-hidden')
+      lineNumberGutterVisible: not @hasAttribute('gutter-hidden')
       placeholderText: @getAttribute('placeholder-text')
     ))
 
@@ -113,12 +113,12 @@ class TextEditorElement extends HTMLElement
       lineOverdrawMargin: @lineOverdrawMargin
       useShadowDOM: @useShadowDOM
     )
-    @rootElement.appendChild(@component.domNode)
+    @rootElement.appendChild(@component.getDomNode())
 
     if @useShadowDOM
       @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
     else
-      inputNode = @component.hiddenInputComponent.domNode
+      inputNode = @component.hiddenInputComponent.getDomNode()
       inputNode.addEventListener 'focus', @focused.bind(this)
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
@@ -126,7 +126,7 @@ class TextEditorElement extends HTMLElement
     callRemoveHooks(this)
     if @component?
       @component.destroy()
-      @component.domNode.remove()
+      @component.getDomNode().remove()
       @component = null
 
   focused: ->
@@ -134,7 +134,7 @@ class TextEditorElement extends HTMLElement
 
   blurred: (event) ->
     unless @useShadowDOM
-      if event.relatedTarget is @component.hiddenInputComponent.domNode
+      if event.relatedTarget is @component.hiddenInputComponent.getDomNode()
         event.stopImmediatePropagation()
         return
 

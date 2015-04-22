@@ -7,6 +7,9 @@ class ScrollbarCornerComponent
     @contentNode = document.createElement('div')
     @domNode.appendChild(@contentNode)
 
+  getDomNode: ->
+    @domNode
+
   updateSync: (state) ->
     @oldState ?= {}
     @newState ?= {}

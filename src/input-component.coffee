@@ -7,6 +7,9 @@ class InputComponent
     @domNode.style['-webkit-transform'] = 'translateZ(0)'
     @domNode.addEventListener 'paste', (event) -> event.preventDefault()
 
+  getDomNode: ->
+    @domNode
+
   updateSync: (state) ->
     @oldState ?= {}
     newState = state.hiddenInput

@@ -23,7 +23,7 @@ describe "TextEditorElement", ->
     it "honors the 'gutter-hidden' attribute", ->
       jasmineContent.innerHTML = "<atom-text-editor gutter-hidden>"
       element = jasmineContent.firstChild
-      expect(element.getModel().isGutterVisible()).toBe false
+      expect(element.getModel().isLineNumberGutterVisible()).toBe false
 
     it "honors the text content", ->
       jasmineContent.innerHTML = "<atom-text-editor>testing</atom-text-editor>"

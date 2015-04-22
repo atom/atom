@@ -1766,107 +1766,15 @@ describe "TextEditorPresenter", ->
                 pixelPosition: {top: 10, left: 0}
               }
 
-
-    describe ".gutter", ->
-      describe ".scrollHeight", ->
-        it "is initialized based on ::lineHeight, the number of lines, and ::explicitHeight", ->
-          presenter = buildPresenter()
-          expect(presenter.getState().gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
-
-          presenter = buildPresenter(explicitHeight: 500)
-          expect(presenter.getState().gutter.scrollHeight).toBe 500
-
-        it "updates when the ::lineHeight changes", ->
-          presenter = buildPresenter()
-          expectStateUpdate presenter, -> presenter.setLineHeight(20)
-          expect(presenter.getState().gutter.scrollHeight).toBe editor.getScreenLineCount() * 20
-
-        it "updates when the line count changes", ->
-          presenter = buildPresenter()
-          expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
-          expect(presenter.getState().gutter.scrollHeight).toBe editor.getScreenLineCount() * 10
-
-        it "updates when ::explicitHeight changes", ->
-          presenter = buildPresenter()
-          expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
-          expect(presenter.getState().gutter.scrollHeight).toBe 500
-
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutter.scrollHeight).toBe presenter.contentHeight
-
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-          expect(presenter.getState().gutter.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
-
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().gutter.scrollHeight).toBe presenter.contentHeight
-
-      describe ".scrollTop", ->
-        it "tracks the value of ::scrollTop", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 20)
-          expect(presenter.getState().gutter.scrollTop).toBe 10
-          expectStateUpdate presenter, -> presenter.setScrollTop(50)
-          expect(presenter.getState().gutter.scrollTop).toBe 50
-
-        it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
-
-          expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
-
-          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
-
-          expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
-
-          # Scroll top only gets smaller when needed as dimensions change, never bigger
-          scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
-          expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
-          expect(presenter.getState().gutter.scrollTop).toBe scrollTopBefore
-
-        it "never goes negative", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(-100)
-          expect(presenter.getState().gutter.scrollTop).toBe 0
-
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
-
-          atom.config.set("editor.scrollPastEnd", true)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
-
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().gutter.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
-
-      describe ".backgroundColor", ->
-        it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
-          presenter = buildPresenter(backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(0, 255, 0, 0)"
-
-          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 255, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
-
-          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(255, 0, 0, 0)"
-
-          expectStateUpdate presenter, -> presenter.setBackgroundColor("rgba(0, 0, 255, 0)")
-          expect(presenter.getState().gutter.backgroundColor).toBe "rgba(0, 0, 255, 0)"
-
+    describe ".lineNumberGutter", ->
       describe ".maxLineNumberDigits", ->
         it "is set to the number of digits used by the greatest line number", ->
           presenter = buildPresenter()
           expect(editor.getLastBufferRow()).toBe 12
-          expect(presenter.getState().gutter.maxLineNumberDigits).toBe 2
+          expect(presenter.getState().gutters.lineNumberGutter.maxLineNumberDigits).toBe 2
 
           editor.setText("1\n2\n3")
-          expect(presenter.getState().gutter.maxLineNumberDigits).toBe 1
+          expect(presenter.getState().gutters.lineNumberGutter.maxLineNumberDigits).toBe 1
 
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
@@ -1878,7 +1786,7 @@ describe "TextEditorPresenter", ->
           else
             key = bufferRow
 
-          presenter.getState().gutter.lineNumbers[key]
+          presenter.getState().gutters.lineNumberGutter.lineNumbers[key]
 
         it "contains states for line numbers that are visible on screen, plus and minus the overdraw margin", ->
           editor.foldBufferRow(4)
@@ -2165,42 +2073,6 @@ describe "TextEditorPresenter", ->
             editor.undo()
             expect(lineNumberStateForScreenRow(presenter, 11).foldable).toBe false
 
-      describe ".visible", ->
-        it "is true iff the editor isn't mini, ::isGutterVisible is true on the editor, and 'editor.showLineNumbers' is enabled in config", ->
-          presenter = buildPresenter()
-
-          expect(editor.isGutterVisible()).toBe true
-          expect(presenter.getState().gutter.visible).toBe true
-
-          expectStateUpdate presenter, -> editor.setMini(true)
-          expect(presenter.getState().gutter.visible).toBe false
-
-          expectStateUpdate presenter, -> editor.setMini(false)
-          expect(presenter.getState().gutter.visible).toBe true
-
-          expectStateUpdate presenter, -> editor.setGutterVisible(false)
-          expect(presenter.getState().gutter.visible).toBe false
-
-          expectStateUpdate presenter, -> editor.setGutterVisible(true)
-          expect(presenter.getState().gutter.visible).toBe true
-
-          expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
-          expect(presenter.getState().gutter.visible).toBe false
-
-        it "updates when the editor's grammar changes", ->
-          presenter = buildPresenter()
-
-          atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
-          expect(presenter.getState().gutter.visible).toBe true
-          stateUpdated = false
-          presenter.onDidUpdateState -> stateUpdated = true
-
-          waitsForPromise -> atom.packages.activatePackage('language-javascript')
-
-          runs ->
-            expect(stateUpdated).toBe true
-            expect(presenter.getState().gutter.visible).toBe false
-
     describe ".height", ->
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null, autoHeight: true)
@@ -2226,6 +2098,396 @@ describe "TextEditorPresenter", ->
         expect(presenter.getState().focused).toBe true
         expectStateUpdate presenter, -> presenter.setFocused(false)
         expect(presenter.getState().focused).toBe false
+
+    describe ".gutters", ->
+      describe ".scrollHeight", ->
+        it "is initialized based on ::lineHeight, the number of lines, and ::explicitHeight", ->
+          presenter = buildPresenter()
+          expect(presenter.getState().gutters.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+          presenter = buildPresenter(explicitHeight: 500)
+          expect(presenter.getState().gutters.scrollHeight).toBe 500
+
+        it "updates when the ::lineHeight changes", ->
+          presenter = buildPresenter()
+          expectStateUpdate presenter, -> presenter.setLineHeight(20)
+          expect(presenter.getState().gutters.scrollHeight).toBe editor.getScreenLineCount() * 20
+
+        it "updates when the line count changes", ->
+          presenter = buildPresenter()
+          expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
+          expect(presenter.getState().gutters.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+        it "updates when ::explicitHeight changes", ->
+          presenter = buildPresenter()
+          expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
+          expect(presenter.getState().gutters.scrollHeight).toBe 500
+
+        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.getState().gutters.scrollHeight).toBe presenter.contentHeight
+
+          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+          expect(presenter.getState().gutters.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+
+          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expect(presenter.getState().gutters.scrollHeight).toBe presenter.contentHeight
+
+      describe ".scrollTop", ->
+        it "tracks the value of ::scrollTop", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 20)
+          expect(presenter.getState().gutters.scrollTop).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollTop(50)
+          expect(presenter.getState().gutters.scrollTop).toBe 50
+
+        it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(100)
+          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+
+          expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
+          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+
+          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
+          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+
+          expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
+          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+
+          # Scroll top only gets smaller when needed as dimensions change, never bigger
+          scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
+          expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
+          expect(presenter.getState().gutters.scrollTop).toBe scrollTopBefore
+
+        it "never goes negative", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(-100)
+          expect(presenter.getState().gutters.scrollTop).toBe 0
+
+        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.getState().gutters.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+
+          atom.config.set("editor.scrollPastEnd", true)
+          expectStateUpdate presenter, -> presenter.setScrollTop(300)
+          expect(presenter.getState().gutters.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
+
+          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expect(presenter.getState().gutters.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+
+      describe ".backgroundColor", ->
+        it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
+          presenter = buildPresenter(backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
+          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(0, 255, 0, 0)"
+
+          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 255, 0)")
+          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+
+          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
+          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(255, 0, 0, 0)"
+
+          expectStateUpdate presenter, -> presenter.setBackgroundColor("rgba(0, 0, 255, 0)")
+          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+
+      describe ".sortedDescriptions", ->
+        gutterDescriptionWithName = (presenter, name) ->
+          for gutterDesc in presenter.getState().gutters.sortedDescriptions
+            return gutterDesc if gutterDesc.gutter.name is name
+          undefined
+
+        describe "the line-number gutter", ->
+          it "is present iff the editor isn't mini, ::isLineNumberGutterVisible is true on the editor, and 'editor.showLineNumbers' is enabled in config", ->
+            presenter = buildPresenter()
+
+            expect(editor.isLineNumberGutterVisible()).toBe true
+            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
+
+            expectStateUpdate presenter, -> editor.setMini(true)
+            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeUndefined()
+
+            expectStateUpdate presenter, -> editor.setMini(false)
+            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
+
+            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
+            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe false
+
+            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
+            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
+
+            expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
+            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe false
+
+          it "gets updated when the editor's grammar changes", ->
+            presenter = buildPresenter()
+
+            atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
+            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
+            stateUpdated = false
+            presenter.onDidUpdateState -> stateUpdated = true
+
+            waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+            runs ->
+              expect(stateUpdated).toBe true
+              expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe false
+
+        it "updates when gutters are added to the editor model, and keeps the gutters sorted by priority", ->
+          presenter = buildPresenter()
+          gutter1 = editor.addGutter({name: 'test-gutter-1', priority: -100, visible: true})
+          gutter2 = editor.addGutter({name: 'test-gutter-2', priority: 100, visible: false})
+          expectedState = [
+            {gutter: gutter1, visible: true},
+            {gutter: editor.gutterWithName('line-number'), visible: true},
+            {gutter: gutter2, visible: false},
+          ]
+          expect(presenter.getState().gutters.sortedDescriptions).toEqual expectedState
+
+        it "updates when the visibility of a gutter changes", ->
+          presenter = buildPresenter()
+          gutter = editor.addGutter({name: 'test-gutter', visible: true})
+          expect(gutterDescriptionWithName(presenter, 'test-gutter').visible).toBe true
+          gutter.hide()
+          expect(gutterDescriptionWithName(presenter, 'test-gutter').visible).toBe false
+
+        it "updates when a gutter is removed", ->
+          presenter = buildPresenter()
+          gutter = editor.addGutter({name: 'test-gutter', visible: true})
+          expect(gutterDescriptionWithName(presenter, 'test-gutter').visible).toBe true
+          gutter.destroy()
+          expect(gutterDescriptionWithName(presenter, 'test-gutter')).toBeUndefined()
+
+      describe ".customDecorations", ->
+        [presenter, gutter, decorationItem, decorationParams] = []
+        [marker1, decoration1, marker2, decoration2, marker3, decoration3] = []
+
+        # Set the scrollTop to 0 to show the very top of the file.
+        # Set the explicitHeight to make 10 lines visible.
+        scrollTop = 0
+        lineHeight = 10
+        explicitHeight = lineHeight * 10
+        lineOverdrawMargin = 1
+
+        decorationStateForGutterName = (presenter, gutterName) ->
+          presenter.getState().gutters.customDecorations[gutterName]
+
+        beforeEach ->
+          # At the beginning of each test, decoration1 and decoration2 are in visible range,
+          # but not decoration3.
+          presenter = buildPresenter({explicitHeight, scrollTop, lineHeight, lineOverdrawMargin})
+          gutter = editor.addGutter({name: 'test-gutter', visible: true})
+          decorationItem = document.createElement('div')
+          decorationItem.class = 'decoration-item'
+          decorationParams =
+            type: 'gutter'
+            gutterName: 'test-gutter'
+            class: 'test-class'
+            item: decorationItem
+          marker1 = editor.markBufferRange([[0,0],[1,0]])
+          decoration1 = editor.decorateMarker(marker1, decorationParams)
+          marker2 = editor.markBufferRange([[9,0],[12,0]])
+          decoration2 = editor.decorateMarker(marker2, decorationParams)
+          marker3 = editor.markBufferRange([[13,0],[14,0]])
+          decoration3 = editor.decorateMarker(marker3, decorationParams)
+
+          # Clear any batched state updates.
+          presenter.getState()
+
+        it "contains all decorations within the visible buffer range", ->
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id].top).toBe lineHeight * marker1.getScreenRange().start.row
+          expect(decorationState[decoration1.id].height).toBe lineHeight * marker1.getScreenRange().getRowCount()
+          expect(decorationState[decoration1.id].item).toBe decorationItem
+          expect(decorationState[decoration1.id].class).toBe 'test-class'
+
+          expect(decorationState[decoration2.id].top).toBe lineHeight * marker2.getScreenRange().start.row
+          expect(decorationState[decoration2.id].height).toBe lineHeight * marker2.getScreenRange().getRowCount()
+          expect(decorationState[decoration2.id].item).toBe decorationItem
+          expect(decorationState[decoration2.id].class).toBe 'test-class'
+
+          expect(decorationState[decoration3.id]).toBeUndefined()
+
+        it "updates when ::scrollTop changes", ->
+          # This update will scroll decoration1 out of view, and decoration3 into view.
+          expectStateUpdate presenter, -> presenter.setScrollTop(scrollTop + lineHeight * 5)
+
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id]).toBeUndefined()
+          expect(decorationState[decoration2.id].top).toBeDefined()
+          expect(decorationState[decoration3.id].top).toBeDefined()
+
+        it "updates when ::explicitHeight changes", ->
+          # This update will make all three decorations visible.
+          expectStateUpdate presenter, -> presenter.setExplicitHeight(explicitHeight + lineHeight * 5)
+
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id].top).toBeDefined()
+          expect(decorationState[decoration2.id].top).toBeDefined()
+          expect(decorationState[decoration3.id].top).toBeDefined()
+
+        it "updates when ::lineHeight changes", ->
+          # This update will make all three decorations visible.
+          expectStateUpdate presenter, -> presenter.setLineHeight(Math.ceil(1.0 * explicitHeight / marker3.getBufferRange().end.row))
+
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id].top).toBeDefined()
+          expect(decorationState[decoration2.id].top).toBeDefined()
+          expect(decorationState[decoration3.id].top).toBeDefined()
+
+        it "updates when the editor's content changes", ->
+          # This update will add enough lines to push decoration2 out of view.
+          expectStateUpdate presenter, -> editor.setTextInBufferRange([[8,0],[9,0]],'\n\n\n\n\n')
+
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id].top).toBeDefined()
+          expect(decorationState[decoration2.id]).toBeUndefined()
+          expect(decorationState[decoration3.id]).toBeUndefined()
+
+        it "updates when a decoration's marker is modified", ->
+          # This update will move decoration1 out of view.
+          expectStateUpdate presenter, ->
+            newRange = new Range([13,0],[14,0])
+            marker1.setBufferRange(newRange)
+
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id]).toBeUndefined()
+          expect(decorationState[decoration2.id].top).toBeDefined()
+          expect(decorationState[decoration3.id]).toBeUndefined()
+
+        describe "when a decoration's properties are modified", ->
+          it "updates the item applied to the decoration, if the decoration item is changed", ->
+            # This changes the decoration class. The visibility of the decoration should not be affected.
+            newItem = document.createElement('div')
+            newItem.class = 'new-decoration-item'
+            newDecorationParams =
+              type: 'gutter'
+              gutterName: 'test-gutter'
+              class: 'test-class'
+              item: newItem
+            expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+
+            decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id].item).toBe newItem
+            expect(decorationState[decoration2.id].item).toBe decorationItem
+            expect(decorationState[decoration3.id]).toBeUndefined()
+
+          it "updates the class applied to the decoration, if the decoration class is changed", ->
+            # This changes the decoration item. The visibility of the decoration should not be affected.
+            newDecorationParams =
+              type: 'gutter'
+              gutterName: 'test-gutter'
+              class: 'new-test-class'
+              item: decorationItem
+            expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+
+            decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id].class).toBe 'new-test-class'
+            expect(decorationState[decoration2.id].class).toBe 'test-class'
+            expect(decorationState[decoration3.id]).toBeUndefined()
+
+          it "updates the type of the decoration, if the decoration type is changed", ->
+            # This changes the type of the decoration. This should remove the decoration from the gutter.
+            newDecorationParams =
+              type: 'line'
+              gutterName: 'test-gutter' # This is an invalid/meaningless option here, but it shouldn't matter.
+              class: 'test-class'
+              item: decorationItem
+            expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+
+            decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id]).toBeUndefined()
+            expect(decorationState[decoration2.id].top).toBeDefined()
+            expect(decorationState[decoration3.id]).toBeUndefined()
+
+          it "updates the gutter the decoration targets, if the decoration gutterName is changed", ->
+            # This changes which gutter this decoration applies to. Since this gutter does not exist,
+            # the decoration should not appear in the customDecorations state.
+            newDecorationParams =
+              type: 'gutter'
+              gutterName: 'test-gutter-2'
+              class: 'new-test-class'
+              item: decorationItem
+            expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+
+            decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id]).toBeUndefined()
+            expect(decorationState[decoration2.id].top).toBeDefined()
+            expect(decorationState[decoration3.id]).toBeUndefined()
+
+            # After adding the targeted gutter, the decoration will appear in the state for that gutter,
+            # since it should be visible.
+            expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
+            newGutterDecorationState = decorationStateForGutterName(presenter, 'test-gutter-2')
+            expect(newGutterDecorationState[decoration1.id].top).toBeDefined()
+            expect(newGutterDecorationState[decoration2.id]).toBeUndefined()
+            expect(newGutterDecorationState[decoration3.id]).toBeUndefined()
+            oldGutterDecorationState = decorationStateForGutterName(presenter, 'test-gutter')
+            expect(oldGutterDecorationState[decoration1.id]).toBeUndefined()
+            expect(oldGutterDecorationState[decoration2.id].top).toBeDefined()
+            expect(oldGutterDecorationState[decoration3.id]).toBeUndefined()
+
+        it "updates when the editor's mini state changes, and is cleared when the editor is mini", ->
+          expectStateUpdate presenter, -> editor.setMini(true)
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState).toBeUndefined()
+
+          # The decorations should return to the original state.
+          expectStateUpdate presenter, -> editor.setMini(false)
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id].top).toBeDefined()
+          expect(decorationState[decoration2.id].top).toBeDefined()
+          expect(decorationState[decoration3.id]).toBeUndefined()
+
+        it "updates when a gutter's visibility changes, and is cleared when the gutter is not visible", ->
+          expectStateUpdate presenter, -> gutter.hide()
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id]).toBeUndefined()
+          expect(decorationState[decoration2.id]).toBeUndefined()
+          expect(decorationState[decoration3.id]).toBeUndefined()
+
+          # The decorations should return to the original state.
+          expectStateUpdate presenter, -> gutter.show()
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id].top).toBeDefined()
+          expect(decorationState[decoration2.id].top).toBeDefined()
+          expect(decorationState[decoration3.id]).toBeUndefined()
+
+        it "updates when a gutter is added to the editor", ->
+          decorationParams =
+            type: 'gutter'
+            gutterName: 'test-gutter-2'
+            class: 'test-class'
+          marker4 = editor.markBufferRange([[0,0],[1,0]])
+          decoration4 = editor.decorateMarker(marker4, decorationParams)
+          expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
+
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter-2')
+          expect(decorationState[decoration1.id]).toBeUndefined()
+          expect(decorationState[decoration2.id]).toBeUndefined()
+          expect(decorationState[decoration3.id]).toBeUndefined()
+          expect(decorationState[decoration4.id].top).toBeDefined()
+
+        it "updates when editor lines are folded", ->
+          oldDimensionsForDecoration1 =
+            top: lineHeight * marker1.getScreenRange().start.row
+            height: lineHeight * marker1.getScreenRange().getRowCount()
+          oldDimensionsForDecoration2 =
+            top: lineHeight * marker2.getScreenRange().start.row
+            height: lineHeight * marker2.getScreenRange().getRowCount()
+
+          # Based on the contents of sample.js, this should affect all but the top
+          # part of decoration1.
+          expectStateUpdate presenter, -> editor.foldBufferRow(0)
+
+          decorationState = decorationStateForGutterName(presenter, 'test-gutter')
+          expect(decorationState[decoration1.id].top).toBe oldDimensionsForDecoration1.top
+          expect(decorationState[decoration1.id].height).not.toBe oldDimensionsForDecoration1.height
+          # Due to the issue described here: https://github.com/atom/atom/issues/6454, decoration2
+          # will be bumped up to the row that was folded and still made visible, instead of being
+          # entirely collapsed. (The same thing will happen to decoration3.)
+          expect(decorationState[decoration2.id].top).not.toBe oldDimensionsForDecoration2.top
+          expect(decorationState[decoration2.id].height).not.toBe oldDimensionsForDecoration2.height
 
   # disabled until we fix an issue with display buffer markers not updating when
   # they are moved on screen but not in the buffer
