@@ -116,7 +116,6 @@ class PaneView extends View
 
     if item.onDidChangeTitle?
       disposable = item.onDidChangeTitle(@activeItemTitleChanged)
-      deprecate 'Please return a Disposable object from your ::onDidChangeTitle method!' unless disposable?.dispose?
       @activeItemDisposables.add(disposable) if disposable?.dispose?
     else if item.on?
       disposable = item.on('title-changed', @activeItemTitleChanged)
@@ -124,7 +123,6 @@ class PaneView extends View
 
     if item.onDidChangeModified?
       disposable = item.onDidChangeModified(@activeItemModifiedChanged)
-      deprecate 'Please return a Disposable object from your ::onDidChangeModified method!' unless disposable?.dispose?
       @activeItemDisposables.add(disposable) if disposable?.dispose?
     else if item.on?
       item.on('modified-status-changed', @activeItemModifiedChanged)
