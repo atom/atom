@@ -1,6 +1,6 @@
 {Emitter} = require 'event-kit'
 
-# Experimental: This will likely change, do not use.
+# Public: A notification to the user containing a message and type.
 module.exports =
 class Notification
   constructor: (@type, @message, @options={}) ->
@@ -18,8 +18,10 @@ class Notification
 
   getOptions: -> @options
 
+  # Public: Retrieves the {String} notification type.
   getType: -> @type
 
+  # Public: Retrieves the {String} notification message.
   getMessage: -> @message
 
   getTimestamp: -> @timestamp
