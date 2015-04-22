@@ -78,7 +78,10 @@ class NotificationManager
   Section: Getting Notifications
   ###
 
-  getNotifications: -> @notifications
+  # Public: Get all the notifications.
+  #
+  # Returns an {Array} of {Notifications}s.
+  getNotifications: -> @notifications.slice()
 
   ###
   Section: Managing Notifications
