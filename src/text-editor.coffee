@@ -1308,7 +1308,7 @@ class TextEditor extends Model
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
-    if decorationParams.type is 'gutter' and not decorationParams.gutterName
+    if includeDeprecatedAPIs and decorationParams.type is 'gutter' and not decorationParams.gutterName
       deprecate("Decorations of `type: 'gutter'` have been renamed to `type: 'line-number'`.")
       decorationParams.type = 'line-number'
     @displayBuffer.decorateMarker(marker, decorationParams)
