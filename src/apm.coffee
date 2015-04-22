@@ -22,14 +22,14 @@ module.exports =
     appFolder = path.dirname(apmFolder)
     if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
       asarPath = "#{appFolder}.asar"
-      if fs.isFileSync(asarPath)
+      if fs.existsSync(asarPath)
         return process.nextTick -> callback(asarPath)
 
     apmFolder = path.resolve(__dirname, '..', '..', '..')
     appFolder = path.dirname(apmFolder)
     if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
       asarPath = "#{appFolder}.asar"
-      if fs.isFileSync(asarPath)
+      if fs.existsSync(asarPath)
         return process.nextTick -> callback(asarPath)
 
     switch process.platform
@@ -40,7 +40,7 @@ module.exports =
           callback("#{appLocation}/Contents/Resources/app.asar")
       when 'linux'
         appLocation = '/usr/local/share/atom/resources/app.asar'
-        unless fs.isFileSync(appLocation)
+        unless fs.existsSync(appLocation)
           appLocation = '/usr/share/atom/resources/app.asar'
         process.nextTick -> callback(appLocation)
       when 'win32'
