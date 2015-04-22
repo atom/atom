@@ -20,13 +20,17 @@ module.exports =
 
     apmFolder = path.resolve(__dirname, '..')
     appFolder = path.dirname(apmFolder)
-    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app.asar'
-      return process.nextTick -> callback(appFolder)
+    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
+      asarPath = "#{appFolder}.asar"
+      if fs.isFileSync(asarPath)
+        return process.nextTick -> callback(asarPath)
 
     apmFolder = path.resolve(__dirname, '..', '..', '..')
     appFolder = path.dirname(apmFolder)
-    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app.asar'
-      return process.nextTick -> callback(appFolder)
+    if path.basename(apmFolder) is 'apm' and path.basename(appFolder) is 'app'
+      asarPath = "#{appFolder}.asar"
+      if fs.isFileSync(asarPath)
+        return process.nextTick -> callback(asarPath)
 
     switch process.platform
       when 'darwin'
@@ -35,7 +39,10 @@ module.exports =
           appLocation = '/Applications/Atom.app' unless appLocation
           callback("#{appLocation}/Contents/Resources/app.asar")
       when 'linux'
-        process.nextTick -> callback('/usr/local/share/atom/resources/app.asar')
+        appLocation = '/usr/local/share/atom/resources/app.asar'
+        unless fs.isFileSync(appLocation)
+          appLocation = '/usr/share/atom/resources/app.asar'
+        process.nextTick -> callback(appLocation)
       when 'win32'
         process.nextTick ->
           programFilesPath = path.join(process.env.ProgramFiles, 'Atom', 'resources', 'app.asar')
