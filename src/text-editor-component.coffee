@@ -95,7 +95,7 @@ class TextEditorComponent
     @disposables.add @stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
     unless atom.themes.isInitialLoadComplete()
       @disposables.add atom.themes.onDidChangeActiveThemes @onAllThemesLoaded
-    @disposables.add scrollbarStyle.changes.onValue @refreshScrollbars
+    @disposables.add scrollbarStyle.onDidChangePreferredScrollbarStyle @refreshScrollbars
 
     @disposables.add atom.views.pollDocument(@pollDOM)
 
