@@ -274,15 +274,15 @@ class LinesComponent
     return unless @presenter.baseCharacterWidth
 
     @contextsByScopeIdentifier = {}
-    @measureCharactersInLines()
+    @measureCharactersInLines(true, true)
 
-  measureCharactersInLines: (batch = true) ->
+  measureCharactersInLines: (batch = true, invalidate = false) ->
     fn = =>
       for id, lineState of @newState.lines
         lineNode = @lineNodesByLineId[id]
 
         continue unless lineNode?
-        continue unless lineState.shouldMeasure
+        continue unless lineState.shouldMeasure or invalidate
 
         @measureCharactersInLine(id, lineState, lineNode)
       return
@@ -317,9 +317,7 @@ class LinesComponent
           charLength = 1
           valueIndex++
 
-        continue if char is '\0'
-
-        text += char
+        text += char unless char is '\0'
 
         @contextsByScopeIdentifier[scopesIdentifier] ?= @createCanvasContextForToken(id)
 

@@ -1,7 +1,7 @@
 DisplayBuffer = require '../src/display-buffer'
 _ = require 'underscore-plus'
 
-ffdescribe "DisplayBuffer", ->
+describe "DisplayBuffer", ->
   [displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
