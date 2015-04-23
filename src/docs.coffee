@@ -1,4 +1,4 @@
-optimist = require 'optimist'
+yargs = require 'yargs'
 open = require 'open'
 
 View = require './view'
@@ -9,7 +9,7 @@ class Docs extends View
   @commandNames: ['docs', 'home', 'open']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm docs [options] <package_name>

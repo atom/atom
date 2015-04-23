@@ -1,7 +1,7 @@
 path = require 'path'
 url = require 'url'
 
-optimist = require 'optimist'
+yargs = require 'yargs'
 Git = require 'git-utils'
 semver = require 'npm/node_modules/semver'
 
@@ -21,7 +21,7 @@ class Publish extends Command
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm publish [<newversion> | major | minor | patch | build]

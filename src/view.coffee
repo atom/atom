@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 semver = require 'npm/node_modules/semver'
 
 Command = require './command'
@@ -12,7 +12,7 @@ class View extends Command
   @commandNames: ['view', 'show']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm view <package_name>

@@ -1,6 +1,6 @@
 path = require 'path'
 
-optimist = require 'optimist'
+yargs = require 'yargs'
 temp = require 'temp'
 
 Command = require './command'
@@ -11,7 +11,7 @@ class Test extends Command
   @commandNames: ['test']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
 
     options.usage """
       Usage:

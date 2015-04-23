@@ -1,6 +1,6 @@
 path = require 'path'
 
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 Command = require './command'
 config = require './apm'
@@ -16,7 +16,7 @@ class Links extends Command
     @packagesPath = path.join(config.getAtomDirectory(), 'packages')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm links

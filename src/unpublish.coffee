@@ -1,7 +1,7 @@
 path = require 'path'
 readline = require 'readline'
 
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 auth = require './auth'
 Command = require './command'
@@ -14,7 +14,7 @@ class Unpublish extends Command
   @commandNames: ['unpublish']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
 
     options.usage """
       Usage: apm unpublish [<package_name>]

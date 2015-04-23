@@ -4,7 +4,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 colors = require 'colors'
 npm = require 'npm'
-optimist = require 'optimist'
+yargs = require 'yargs'
 wordwrap = require 'wordwrap'
 
 # Enable "require" scripts in asar archives
@@ -60,7 +60,7 @@ for commandClass in commandClasses
     commands[name] = commandClass
 
 parseOptions = (args=[]) ->
-  options = optimist(args)
+  options = yargs(args)
   options.usage """
 
     apm - Atom Package Manager powered by https://atom.io

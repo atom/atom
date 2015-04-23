@@ -3,7 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 config = require './apm'
 Command = require './command'
@@ -17,7 +17,7 @@ class Star extends Command
   @commandNames: ['star']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm star <package_name>...

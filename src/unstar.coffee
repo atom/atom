@@ -1,5 +1,5 @@
 async = require 'async'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 config = require './apm'
 Command = require './command'
@@ -11,7 +11,7 @@ class Unstar extends Command
   @commandNames: ['unstar']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm unstar <package_name>...

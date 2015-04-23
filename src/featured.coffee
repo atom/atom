@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 Command = require './command'
 config = require './apm'
@@ -11,7 +11,7 @@ class Featured extends Command
   @commandNames: ['featured']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm featured

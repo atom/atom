@@ -1,6 +1,6 @@
 path = require 'path'
 async = require 'async'
-optimist = require 'optimist'
+yargs = require 'yargs'
 Command = require './command'
 config = require './apm'
 fs = require './fs'
@@ -13,7 +13,7 @@ class RebuildModuleCache extends Command
     @atomPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
     options.usage """
 
       Usage: apm rebuild-module-cache

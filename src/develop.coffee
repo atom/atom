@@ -2,7 +2,7 @@ fs = require 'fs'
 path = require 'path'
 
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 config = require './apm'
 Command = require './command'
@@ -20,7 +20,7 @@ class Develop extends Command
     @atomDevPackagesDirectory = path.join(@atomDirectory, 'dev', 'packages')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv)
 
     options.usage """
       Usage: apm develop <package_name> [<directory>]
