@@ -242,10 +242,15 @@ describe "WorkspaceView", ->
 
   describe "the scrollbar visibility class", ->
     it "has a class based on the style of the scrollbar", ->
+      style = 'legacy'
       scrollbarStyle = require 'scrollbar-style'
-      scrollbarStyle.emitValue 'legacy'
+      spyOn(scrollbarStyle, 'getPreferredScrollbarStyle').andCallFake -> style
+
+      atom.workspaceView.element.observeScrollbarStyle()
       expect(atom.workspaceView).toHaveClass 'scrollbars-visible-always'
-      scrollbarStyle.emitValue 'overlay'
+
+      style = 'overlay'
+      atom.workspaceView.element.observeScrollbarStyle()
       expect(atom.workspaceView).toHaveClass 'scrollbars-visible-when-scrolling'
 
   describe "editor font styling", ->
