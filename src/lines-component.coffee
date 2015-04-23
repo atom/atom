@@ -274,55 +274,50 @@ class LinesComponent
     return unless @presenter.baseCharacterWidth
 
     @contextsByScopeIdentifier = {}
-    @measureCharactersInLines(true, true)
+    @presenter.batchCharacterMeasurement =>
+      @measureCharactersInLines(true)
 
-  measureCharactersInLines: (batch = true, invalidate = false) ->
-    fn = =>
-      for id, lineState of @newState.lines
-        lineNode = @lineNodesByLineId[id]
+  measureCharactersInLines: (invalidate = false) ->
+    for id, lineState of @newState.lines
+      lineNode = @lineNodesByLineId[id]
 
-        continue unless lineNode?
-        continue unless lineState.shouldMeasure or invalidate
+      continue unless lineNode?
+      continue unless lineState.shouldMeasure or invalidate
 
-        @measureCharactersInLine(id, lineState, lineNode)
-      return
+      @measureCharactersInLine(id, lineState, lineNode)
+    return
 
-    if batch
-      @presenter.batchCharacterMeasurement(fn)
-    else
-      fn()
-
-  createCanvasContextForToken: (id) ->
-    element = document.querySelector("html /deep/ #token-#{id}")
+  createCanvasContextForToken: (token) ->
+    element = document.querySelector("html /deep/ #token-#{token.id}")
     canvas = @iframe.contentDocument.createElement("canvas")
     context = canvas.getContext("2d")
     context.font = getComputedStyle(element).font
 
     context
 
-  measureTextWithinToken: (id, text) ->
-    @contextsByScopeIdentifier[scopesIdentifier] ?= @createCanvasContextForToken(id)
-    @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
+  measureTextWithinToken: (token, text) ->
+    @contextsByScopeIdentifier[token.scopesIdentifier] ?= @createCanvasContextForToken(token)
+    @contextsByScopeIdentifier[token.scopesIdentifier].measureText(text).width
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
     left = 0
     column = 0
-    for {id, value, scopes, hasPairedCharacter, scopesIdentifier} in tokenizedLine.tokens
+    for token in tokenizedLine.tokens
       text = ""
       valueIndex = 0
       tokenLeft = 0
-      while valueIndex < value.length
-        if hasPairedCharacter
-          char = value.substr(valueIndex, 2)
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2
         else
-          char = value[valueIndex]
+          char = token.value[valueIndex]
           charLength = 1
           valueIndex++
 
         text += char unless char is '\0'
-        tokenLeft = @measureTextWithinToken(id, text)
+        tokenLeft = @measureTextWithinToken(token, text)
         @presenter.setCharLeftPositionForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
         column += charLength
 

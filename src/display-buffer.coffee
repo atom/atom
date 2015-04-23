@@ -303,7 +303,6 @@ class DisplayBuffer extends Model
     @charWidthsByRow[row] ?= {}
     @charWidthsByRow[row][column] = charWidth
     @characterWidthsChanged = true
-    @handleCharacterWidthsChanged() unless @batchingCharacterMeasurement
 
   getCharLeftPositionForPoint: (row, column) ->
     rowCharWidths = @charWidthsByRow[row]

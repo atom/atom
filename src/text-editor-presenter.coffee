@@ -8,7 +8,7 @@ class TextEditorPresenter
   startBlinkingCursorsAfterDelay: null
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
-  characterWidthsDidChange: false
+  characterWidthsChanged: false
   overlayDimensions: {}
 
   constructor: (params) ->
@@ -181,7 +181,6 @@ class TextEditorPresenter
     @updateGutterState()
 
   buildState: ->
-    @linesToChangeOnUpdate = {}
     @state =
       horizontalScrollbar: {}
       verticalScrollbar: {}
@@ -774,22 +773,19 @@ class TextEditorPresenter
     unless @baseCharacterWidth is baseCharacterWidth
       @baseCharacterWidth = baseCharacterWidth
       @model.setDefaultCharWidth(baseCharacterWidth)
-      @characterWidthsChanged = true
       @handleCharacterWidthsChanged()
 
   batchCharacterMeasurement: (fn) ->
     @batchingCharacterMeasurement = true
     @model.batchCharacterMeasurement(fn)
     @batchingCharacterMeasurement = false
-    @handleCharacterWidthsChanged()
+    @handleCharacterWidthsChanged() if @characterWidthsChanged
 
   setCharLeftPositionForPoint: (row, column, width) ->
     @model.setCharLeftPositionForPoint(row, column, width)
+    @characterWidthsChanged = true
 
   handleCharacterWidthsChanged: ->
-    return unless @characterWidthsChanged
-    @characterWidthsChanged = false
-
     @updateContentDimensions()
 
     @updateHorizontalScrollState()
