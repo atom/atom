@@ -36,7 +36,6 @@ class LinesComponent
     @domNode.appendChild(@iframe)
     @iframe.style.display = "none"
     @contextsByScopeIdentifier = {}
-    @measuredTextByScopeIdentifier = {}
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -275,7 +274,6 @@ class LinesComponent
     return unless @presenter.baseCharacterWidth
 
     @contextsByScopeIdentifier = {}
-    @measuredTextByScopeIdentifier = {}
     @measureCharactersInLines()
 
   measureCharactersInLines: (batch = true) ->
@@ -323,15 +321,9 @@ class LinesComponent
 
         text += char
 
-        if @measuredTextByScopeIdentifier[scopesIdentifier]?[text]?
-          tokenLeft = @measuredTextByScopeIdentifier[scopesIdentifier][text]
-        else
-          @contextsByScopeIdentifier[scopesIdentifier] ?= @createCanvasContextForToken(id)
+        @contextsByScopeIdentifier[scopesIdentifier] ?= @createCanvasContextForToken(id)
 
-          tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
-
-          @measuredTextByScopeIdentifier[scopesIdentifier] ?= {}
-          @measuredTextByScopeIdentifier[scopesIdentifier][text] = tokenLeft
+        tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
 
         @presenter.setCharWidthForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
         column += charLength
