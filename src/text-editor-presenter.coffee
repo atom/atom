@@ -783,8 +783,8 @@ class TextEditorPresenter
     @batchingCharacterMeasurement = false
     @handleCharacterWidthsChanged()
 
-  setCharWidthForPoint: (row, column, width) ->
-    @model.setCharWidthForPoint(row, column, width)
+  setCharLeftPositionForPoint: (row, column, width) ->
+    @model.setCharLeftPositionForPoint(row, column, width)
 
   handleCharacterWidthsChanged: ->
     return unless @characterWidthsChanged
@@ -831,7 +831,7 @@ class TextEditorPresenter
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left = @model.getCharWidthForPoint(targetRow, column) unless char is '\0'
+        left = @model.getCharLeftPositionForPoint(targetRow, column) unless char is '\0'
         column += charLength
 
     {top, left}

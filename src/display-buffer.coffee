@@ -299,13 +299,13 @@ class DisplayBuffer extends Model
     @batchingCharacterMeasurement = false
     @handleCharacterWidthsChanged() if @characterWidthsChanged
 
-  setCharWidthForPoint: (row, column, charWidth) ->
+  setCharLeftPositionForPoint: (row, column, charWidth) ->
     @charWidthsByRow[row] ?= {}
     @charWidthsByRow[row][column] = charWidth
     @characterWidthsChanged = true
     @handleCharacterWidthsChanged() unless @batchingCharacterMeasurement
 
-  getCharWidthForPoint: (row, column) ->
+  getCharLeftPositionForPoint: (row, column) ->
     rowCharWidths = @charWidthsByRow[row]
 
     return @getDefaultCharWidth() * (column + 1) unless rowCharWidths?
@@ -669,7 +669,7 @@ class DisplayBuffer extends Model
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left = @getCharWidthForPoint(targetRow, column) unless char is '\0'
+        left = @getCharLeftPositionForPoint(targetRow, column) unless char is '\0'
         column += charLength
 
     {top, left}
@@ -701,7 +701,7 @@ class DisplayBuffer extends Model
           charLength = 1
           valueIndex++
 
-        nextLeft = @getCharWidthForPoint(row, column)
+        nextLeft = @getCharLeftPositionForPoint(row, column)
         break if targetLeft <= (left + nextLeft) / 2
         left = nextLeft
         column += charLength

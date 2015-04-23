@@ -1159,7 +1159,7 @@ describe "DisplayBuffer", ->
 
         displayBuffer.setLineHeightInPixels(20)
         displayBuffer.setDefaultCharWidth(10)
-        displayBuffer.setCharWidthForPoint(5, i - 1, i * 11) for i in [1..6]
+        displayBuffer.setCharLeftPositionForPoint(5, i - 1, i * 11) for i in [1..6]
 
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
@@ -1325,7 +1325,7 @@ describe "DisplayBuffer", ->
 
     it "recomputes the scroll width when character widths change", ->
       charWidth = 20
-      displayBuffer.setCharWidthForPoint(6, 0, charWidth)
+      displayBuffer.setCharLeftPositionForPoint(6, 0, charWidth)
       expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + charWidth + cursorWidth
 
     it "recomputes the scroll width when widths change in a batch", ->
@@ -1334,9 +1334,9 @@ describe "DisplayBuffer", ->
       displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
 
       displayBuffer.batchCharacterMeasurement ->
-        displayBuffer.setCharWidthForPoint(6, 0, charWidth)
-        displayBuffer.setCharWidthForPoint(6, 0, charWidth)
-        displayBuffer.setCharWidthForPoint(6, 1, charWidth * 2)
+        displayBuffer.setCharLeftPositionForPoint(6, 0, charWidth)
+        displayBuffer.setCharLeftPositionForPoint(6, 0, charWidth)
+        displayBuffer.setCharLeftPositionForPoint(6, 1, charWidth * 2)
 
 
       expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + charWidth * 2 + cursorWidth

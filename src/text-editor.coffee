@@ -2797,11 +2797,11 @@ class TextEditor extends Model
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
   setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
 
-  setCharWidthForPoint: (row, column, width) ->
-    @displayBuffer.setCharWidthForPoint(row, column, width)
+  setCharLeftPositionForPoint: (row, column, width) ->
+    @displayBuffer.setCharLeftPositionForPoint(row, column, width)
 
-  getCharWidthForPoint: (row, column) ->
-    @displayBuffer.getCharWidthForPoint(row, column)
+  getCharLeftPositionForPoint: (row, column) ->
+    @displayBuffer.getCharLeftPositionForPoint(row, column)
 
   setHeight: (height) -> @displayBuffer.setHeight(height)
   getHeight: -> @displayBuffer.getHeight()

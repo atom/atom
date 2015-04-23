@@ -323,7 +323,7 @@ class LinesComponent
 
         tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
 
-        @presenter.setCharWidthForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
+        @presenter.setCharLeftPositionForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
         column += charLength
 
       left += tokenLeft
