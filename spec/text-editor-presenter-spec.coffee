@@ -156,7 +156,8 @@ describe "TextEditorPresenter", ->
 
             expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
 
-            editor.setCharWidthsForRow(6, [20, 20])
+            editor.setCharWidthForPoint(6, 0, 20)
+            editor.setCharWidthForPoint(6, 1, 40)
             editor.setScrollLeft(1) # triggers a state update
 
             expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
@@ -389,7 +390,9 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
             expect(presenter.getState().hiddenInput.width).toBe 15
 
-            presenter.setCharWidthsForRow(3, [15, 15, 15, 15, 15, 15, 20])
+            presenter.setCharWidthForPoint(3, i - 1, i * 15) for i in [1..6]
+            presenter.setCharWidthForPoint(3, 6, 6 * 15 + 20)
+
             editor.setScrollLeft(1) # triggers a state update
             expect(presenter.getState().hiddenInput.width).toBe 20
 
@@ -482,7 +485,8 @@ describe "TextEditorPresenter", ->
 
             expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
 
-            editor.setCharWidthsForRow(6, [20, 20])
+            editor.setCharWidthForPoint(6, 0, 20)
+            editor.setCharWidthForPoint(6, 1, 40)
             editor.setScrollLeft(1) # triggers a state update
 
             expect(presenter.getState().content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
@@ -1154,11 +1158,14 @@ describe "TextEditorPresenter", ->
             editor.setCursorBufferPosition([1, 4])
             presenter = buildPresenter(explicitHeight: 20)
 
-            presenter.setCharWidthsForRow(1, [10, 10, 20])
+            presenter.setCharWidthForPoint(1, 0, 10)
+            presenter.setCharWidthForPoint(1, 1, 20)
+            presenter.setCharWidthForPoint(1, 2, 40)
             presenter.setScrollTop(1) # triggers a state update
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
 
-            presenter.setCharWidthsForRow(1, [10, 10, 20, 10, 20])
+            presenter.setCharWidthForPoint(1, 3, 50)
+            presenter.setCharWidthForPoint(1, 4, 70)
             presenter.setScrollTop(0) # triggers a state update
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
@@ -1464,7 +1471,8 @@ describe "TextEditorPresenter", ->
               regions: [{top: 2 * 10, left: 4 * 10, width: 2 * 10, height: 10}]
             }
 
-            editor.setCharWidthsForRow(2, [10, 10, 10, 10, 20])
+            presenter.setCharWidthForPoint(2, i - 1, i * 10) for i in [1..4]
+            presenter.setCharWidthForPoint(2, 4, 60)
             editor.setScrollTop(1) # triggers a state update
             expectValues stateForSelection(presenter, 0), {
               regions: [{top: 2 * 10, left: 4 * 10, width: 20 + 10, height: 10}]
