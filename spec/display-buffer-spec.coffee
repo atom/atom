@@ -1,7 +1,7 @@
 DisplayBuffer = require '../src/display-buffer'
 _ = require 'underscore-plus'
 
-describe "DisplayBuffer", ->
+ffdescribe "DisplayBuffer", ->
   [displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
@@ -1159,7 +1159,7 @@ describe "DisplayBuffer", ->
 
         displayBuffer.setLineHeightInPixels(20)
         displayBuffer.setDefaultCharWidth(10)
-        displayBuffer.setCharWidthsForRow(5, [11, 11, 11, 11, 11, 11])
+        displayBuffer.setCharWidthForPoint(5, i - 1, i * 11) for i in [1..6]
 
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
@@ -1325,7 +1325,7 @@ describe "DisplayBuffer", ->
 
     it "recomputes the scroll width when character widths change", ->
       charWidth = 20
-      displayBuffer.setCharWidthsForRow 6, [charWidth]
+      displayBuffer.setCharWidthForPoint(6, 0, charWidth)
       expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + charWidth + cursorWidth
 
     it "recomputes the scroll width when widths change in a batch", ->
@@ -1334,8 +1334,10 @@ describe "DisplayBuffer", ->
       displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
 
       displayBuffer.batchCharacterMeasurement ->
-        displayBuffer.setCharWidthsForRow 6, [charWidth]
-        displayBuffer.setCharWidthsForRow 6, [charWidth, charWidth]
+        displayBuffer.setCharWidthForPoint(6, 0, charWidth)
+        displayBuffer.setCharWidthForPoint(6, 0, charWidth)
+        displayBuffer.setCharWidthForPoint(6, 1, charWidth * 2)
+
 
       expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + charWidth * 2 + cursorWidth
       expect(changedSpy.callCount).toBe 1

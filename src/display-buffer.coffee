@@ -303,10 +303,21 @@ class DisplayBuffer extends Model
     @charWidthsByRow[row] ?= {}
     @charWidthsByRow[row][column] = charWidth
     @characterWidthsChanged = true
+    @handleCharacterWidthsChanged() unless @batchingCharacterMeasurement
 
   getCharWidthForPoint: (row, column) ->
-    charWidth = @charWidthsByRow[row]?[column]
-    charWidth ? @getDefaultCharWidth() * column
+    rowCharWidths = @charWidthsByRow[row]
+
+    return @getDefaultCharWidth() * (column + 1) unless rowCharWidths?
+
+    measuredCharWidth = rowCharWidths[column]
+    if measuredCharWidth?
+      measuredCharWidth
+    else
+      # TODO: should really keep this stuff here? We should *never* have a
+      # situation where a character is not yet measured.
+      [..., last] = Object.keys(rowCharWidths)
+      rowCharWidths[last] + @getDefaultCharWidth() * (column - last)
 
   handleCharacterWidthsChanged: ->
     return unless @characterWidthsChanged
