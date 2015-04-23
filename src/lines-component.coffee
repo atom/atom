@@ -300,6 +300,10 @@ class LinesComponent
 
     context
 
+  measureTextWithinToken: (id, text) ->
+    @contextsByScopeIdentifier[scopesIdentifier] ?= @createCanvasContextForToken(id)
+    @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
+
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
     left = 0
     column = 0
@@ -318,11 +322,7 @@ class LinesComponent
           valueIndex++
 
         text += char unless char is '\0'
-
-        @contextsByScopeIdentifier[scopesIdentifier] ?= @createCanvasContextForToken(id)
-
-        tokenLeft = @contextsByScopeIdentifier[scopesIdentifier].measureText(text).width
-
+        tokenLeft = @measureTextWithinToken(id, text)
         @presenter.setCharLeftPositionForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
         column += charLength
 
