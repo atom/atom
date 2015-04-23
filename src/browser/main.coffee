@@ -4,7 +4,7 @@ crashReporter = require 'crash-reporter'
 app = require 'app'
 fs = require 'fs-plus'
 path = require 'path'
-optimist = require 'optimist'
+yargs = require 'yargs'
 nslog = require 'nslog'
 
 console.log = nslog
@@ -85,7 +85,7 @@ setupCoffeeCache = ->
 
 parseCommandLine = ->
   version = app.getVersion()
-  options = optimist(process.argv[1..])
+  options = yargs(process.argv[1..])
   options.usage """
     Atom Editor v#{version}
 
