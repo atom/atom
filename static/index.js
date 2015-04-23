@@ -5,6 +5,10 @@ window.onload = function() {
   try {
     var startTime = Date.now();
 
+    process.on('unhandledRejection', function(error, promise) {
+      console.error('Unhandled promise rejection %o with error: %o', promise, error);
+    });
+
     // Ensure ATOM_HOME is always set before anything else is required
     setupAtomHome();
 
