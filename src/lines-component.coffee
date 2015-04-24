@@ -259,16 +259,16 @@ class LinesComponent
       @measureCharactersInLine(id, lineState, lineNode)
     return
 
-  createCanvasContextForToken: (token) ->
-    element = document.querySelector("html /deep/ #token-#{token.id}")
+  createCanvasContextForTokenInLineNode: (lineNode, token) ->
+    element = lineNode.querySelector("#token-#{token.id}")
     canvas = @iframe.contentDocument.createElement("canvas")
     context = canvas.getContext("2d")
     context.font = getComputedStyle(element).font
 
     context
 
-  measureTextWithinToken: (token, text) ->
-    @contextsByScopeIdentifier[token.scopesIdentifier] ?= @createCanvasContextForToken(token)
+  measureTextWithinTokenInLineNode: (lineNode, token, text) ->
+    @contextsByScopeIdentifier[token.scopesIdentifier] ?= @createCanvasContextForTokenInLineNode(lineNode, token)
     @contextsByScopeIdentifier[token.scopesIdentifier].measureText(text).width
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
@@ -289,7 +289,7 @@ class LinesComponent
           valueIndex++
 
         text += char unless char is '\0'
-        tokenLeft = @measureTextWithinToken(token, text)
+        tokenLeft = @measureTextWithinTokenInLineNode(lineNode, token, text)
         @presenter.setCharLeftPositionForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
         column += charLength
 
