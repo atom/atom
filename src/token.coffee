@@ -26,7 +26,8 @@ class Token
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
-    @scopesIdentifier = @scopes.join()
+    @scopesIdentifier = @scopes.join(".")
+    @class = @scopesIdentifier.replace(/\.+/g, ' ')
 
   isEqual: (other) ->
     # TODO: scopes is deprecated. This is here for the sake of lang package tests
@@ -211,7 +212,7 @@ class Token
 
       html += trailingHtml
 
-    "<span id='token-#{@id}'>" + html + "</span>"
+    "<span id='token-#{@id}' class='#{@class}'>" + html + "</span>"
 
   escapeString: (str, startIndex, endIndex) ->
     strLength = str.length

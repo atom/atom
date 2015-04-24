@@ -181,13 +181,10 @@ class LinesComponent
     {tokens, text, isOnlyWhitespace} = @newState.lines[id]
     innerHTML = ""
 
-    scopeStack = []
     for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and isOnlyWhitespace))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
-    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
     innerHTML += @buildEndOfLineHTML(id)
     innerHTML
 
@@ -199,31 +196,6 @@ class LinesComponent
       for invisible in endOfLineInvisibles
         html += "<span class='invisible-character'>#{invisible}</span>"
     html
-
-  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
-    html = ""
-
-    # Find a common prefix
-    for scope, i in desiredScopeDescriptor
-      break unless scopeStack[i] is desiredScopeDescriptor[i]
-
-    # Pop scopeDescriptor until we're at the common prefx
-    until scopeStack.length is i
-      html += @popScope(scopeStack)
-
-    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
-    for j in [i...desiredScopeDescriptor.length]
-      html += @pushScope(scopeStack, desiredScopeDescriptor[j])
-
-    html
-
-  popScope: (scopeStack) ->
-    scopeStack.pop()
-    "</span>"
-
-  pushScope: (scopeStack, scope) ->
-    scopeStack.push(scope)
-    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
     oldLineState = @oldState.lines[id]
