@@ -200,14 +200,14 @@ registerBuiltins = (devMode) ->
     cache.builtins.atom = atomCoffeePath if fs.isFileSync(atomCoffeePath)
   cache.builtins.atom ?= path.join(cache.resourcePath, 'exports', 'atom.js')
 
-  atomShellRoot = path.join(process.resourcesPath, 'atom.asar')
+  electronRoot = path.join(process.resourcesPath, 'atom.asar')
 
-  commonRoot = path.join(atomShellRoot, 'common', 'api', 'lib')
+  commonRoot = path.join(electronRoot, 'common', 'api', 'lib')
   commonBuiltins = ['callbacks-registry', 'clipboard', 'crash-reporter', 'screen', 'shell']
   for builtin in commonBuiltins
     cache.builtins[builtin] = path.join(commonRoot, "#{builtin}.js")
 
-  rendererRoot = path.join(atomShellRoot, 'renderer', 'api', 'lib')
+  rendererRoot = path.join(electronRoot, 'renderer', 'api', 'lib')
   rendererBuiltins = ['ipc', 'remote']
   for builtin in rendererBuiltins
     cache.builtins[builtin] = path.join(rendererRoot, "#{builtin}.js")

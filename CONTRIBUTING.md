@@ -60,7 +60,7 @@ For more information on how to work with Atom's official packages, see
 * End files with a newline.
 * Place requires in the following order:
     * Built in Node Modules (such as `path`)
-    * Built in Atom and Atom Shell Modules (such as `atom`, `shell`)
+    * Built in Atom and Electron Modules (such as `atom`, `shell`)
     * Local Modules (using relative paths)
 * Place class properties in the following order:
     * Class methods and properties (methods starting with a `@`)
