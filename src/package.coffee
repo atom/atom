@@ -465,7 +465,7 @@ class Package
           @activationCommands[selector].push(commands...)
 
     if includeDeprecatedAPIs and @metadata.activationEvents?
-      deprecate """
+      deprecate("""
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
         ```json
@@ -474,7 +474,7 @@ class Package
             "atom-text-editor": ["foo:quux"]
           }
         ```
-      """
+      """, {packageName: @name})
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
           @activationCommands['atom-workspace'] ?= []
