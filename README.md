@@ -7,7 +7,8 @@ Atom is a hackable text editor for the 21st century, built on [Electron](https:/
 
 Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
 
-:bird: Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter. :bird:
+Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
+announcements.
 
 Visit [issue #3684](https://github.com/atom/atom/issues/3684) to learn more
 about the Atom 1.0 roadmap.
