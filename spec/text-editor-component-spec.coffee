@@ -293,7 +293,7 @@ describe "TextEditorComponent", ->
         editor.setText "var\n"
         nextAnimationFrame()
         tokenId = editor.tokenizedLineForScreenRow(0).tokens[0].id
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\"><span id=\"token-#{tokenId}\">var</span></span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span id=\"token-#{tokenId}\" class=\"source js storage modifier js\">var</span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "displays trailing carriage returns using a visible, non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
@@ -750,7 +750,7 @@ describe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild.firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -768,7 +768,7 @@ describe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js')
+      cursorLocationTextNode = component.lineNodeForScreenRow(0)
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 2)
       range.setEnd(cursorLocationTextNode, 3)
@@ -786,7 +786,7 @@ describe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js')
+      cursorLocationTextNode = component.lineNodeForScreenRow(0)
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 2)
       range.setEnd(cursorLocationTextNode, 3)
@@ -810,7 +810,7 @@ describe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild.firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
