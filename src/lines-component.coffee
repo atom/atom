@@ -28,10 +28,10 @@ class LinesComponent
     @domNode.classList.add('lines')
 
     @cursorsComponent = new CursorsComponent(@presenter)
-    @domNode.appendChild(@cursorsComponent.domNode)
+    @domNode.appendChild(@cursorsComponent.getDomNode())
 
     @highlightsComponent = new HighlightsComponent(@presenter)
-    @domNode.appendChild(@highlightsComponent.domNode)
+    @domNode.appendChild(@highlightsComponent.getDomNode())
     @iframe = document.createElement("iframe")
     @domNode.appendChild(@iframe)
     @iframe.style.display = "none"
@@ -41,6 +41,9 @@ class LinesComponent
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
       @domNode.appendChild(insertionPoint)
+
+  getDomNode: ->
+    @domNode
 
   preMeasureUpdateSync: (state, shouldMeasure) ->
     @newState = state.content

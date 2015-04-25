@@ -12,6 +12,7 @@ Model = require './model'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
+GutterContainer = require './gutter-container'
 
 # Public: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -68,12 +69,13 @@ class TextEditor extends Model
   suppressSelectionMerging: false
   updateBatchDepth: 0
   selectionFlashDuration: 500
+  gutterContainer: null
 
   @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, @gutterVisible}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}) ->
     super
 
     @emitter = new Emitter
@@ -111,6 +113,12 @@ class TextEditor extends Model
     @disposables.add @displayBuffer.onDidChangeScrollLeft (scrollLeft) =>
       @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
       @emitter.emit 'did-change-scroll-left', scrollLeft
+
+    @gutterContainer = new GutterContainer(this)
+    @lineNumberGutter = @gutterContainer.addGutter
+      name: 'line-number'
+      priority: 0
+      visible: lineNumberGutterVisible
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -181,6 +189,7 @@ class TextEditor extends Model
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
+    @gutterContainer.destroy()
     @emitter.emit 'did-destroy'
 
   ###
@@ -488,16 +497,60 @@ class TextEditor extends Model
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
 
-  setGutterVisible: (gutterVisible) ->
-    unless gutterVisible is @gutterVisible
-      @gutterVisible = gutterVisible
-      @emitter.emit 'did-change-gutter-visible', @gutterVisible
-    @gutterVisible
+  setLineNumberGutterVisible: (lineNumberGutterVisible) ->
+    unless lineNumberGutterVisible is @lineNumberGutter.isVisible()
+      if lineNumberGutterVisible
+        @lineNumberGutter.show()
+      else
+        @lineNumberGutter.hide()
+      @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutter.isVisible()
+    @lineNumberGutter.isVisible()
 
-  isGutterVisible: -> @gutterVisible ? true
+  isLineNumberGutterVisible: -> @lineNumberGutter.isVisible()
 
-  onDidChangeGutterVisible: (callback) ->
-    @emitter.on 'did-change-gutter-visible', callback
+  onDidChangeLineNumberGutterVisible: (callback) ->
+    @emitter.on 'did-change-line-number-gutter-visible', callback
+
+  # Public: Creates and returns a {Gutter}.
+  # See {GutterContainer::addGutter} for more details.
+  addGutter: (options) ->
+    @gutterContainer.addGutter(options)
+
+  # Public: Returns the {Array} of all gutters on this editor.
+  getGutters: ->
+    @gutterContainer.getGutters()
+
+  # Public: Returns the {Gutter} with the given name, or null if it doesn't exist.
+  gutterWithName: (name) ->
+    @gutterContainer.gutterWithName(name)
+
+  # Calls your `callback` when a {Gutter} is added to the editor.
+  # Immediately calls your callback for each existing gutter.
+  #
+  # * `callback` {Function}
+  #   * `gutter` {Gutter} that currently exists/was added.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeGutters: (callback) ->
+    @gutterContainer.observeGutters callback
+
+  # Calls your `callback` when a {Gutter} is added to the editor.
+  #
+  # * `callback` {Function}
+  #   * `gutter` {Gutter} that was added.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidAddGutter: (callback) ->
+    @gutterContainer.onDidAddGutter callback
+
+  # Calls your `callback` when a {Gutter} is removed from the editor.
+  #
+  # * `callback` {Function}
+  #   * `name` The name of the {Gutter} that was removed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidRemoveGutter: (callback) ->
+    @gutterContainer.onDidRemoveGutter callback
 
   # Set the number of characters that can be displayed horizontally in the
   # editor.
@@ -1250,10 +1303,12 @@ class TextEditor extends Model
   #   * `position` (optional) Only applicable to decorations of type `overlay`,
   #     controls where the overlay view is positioned relative to the marker.
   #     Values can be `'head'` (the default), or `'tail'`.
+  #   * `gutterName` (optional) Only applicable to the `gutter` type. If provided,
+  #     the decoration will be applied to the gutter with the specified name.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
-    if includeDeprecatedAPIs and decorationParams.type is 'gutter'
+    if includeDeprecatedAPIs and decorationParams.type is 'gutter' and not decorationParams.gutterName
       deprecate("Decorations of `type: 'gutter'` have been renamed to `type: 'line-number'`.")
       decorationParams.type = 'line-number'
     @displayBuffer.decorateMarker(marker, decorationParams)

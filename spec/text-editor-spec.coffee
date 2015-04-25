@@ -4242,3 +4242,135 @@ describe "TextEditor", ->
         editor.checkoutHeadRevision()
 
         waitsForPromise -> editor.checkoutHeadRevision()
+
+  describe 'gutters', ->
+    describe 'the TextEditor constructor', ->
+      it 'creates a line-number gutter', ->
+        expect(editor.getGutters().length).toBe 1
+        lineNumberGutter = editor.gutterWithName('line-number')
+        expect(lineNumberGutter.name).toBe 'line-number'
+        expect(lineNumberGutter.priority).toBe 0
+
+    describe '::addGutter', ->
+      it 'can add a gutter', ->
+        expect(editor.getGutters().length).toBe 1 # line-number gutter
+        options =
+          name: 'test-gutter'
+          priority: 1
+        gutter = editor.addGutter options
+        expect(editor.getGutters().length).toBe 2
+        expect(editor.getGutters()[1]).toBe gutter
+
+      it "does not allow a custom gutter with the 'line-number' name.", ->
+        expect(editor.addGutter.bind(editor, {name: 'line-number'})).toThrow()
+
+  describe '::decorateMarker', ->
+    [marker] = []
+
+    beforeEach ->
+      marker = editor.markBufferRange([[1, 0], [1, 0]])
+
+    it "casts 'gutter' type to 'line-number' unless a gutter name is specified.", ->
+      jasmine.snapshotDeprecations()
+
+      lineNumberDecoration = editor.decorateMarker(marker, {type: 'gutter'})
+      customGutterDecoration = editor.decorateMarker(marker, {type: 'gutter', gutterName: 'custom'})
+      expect(lineNumberDecoration.getProperties().type).toBe 'line-number'
+      expect(lineNumberDecoration.getProperties().gutterName).toBe 'line-number'
+      expect(customGutterDecoration.getProperties().type).toBe 'gutter'
+      expect(customGutterDecoration.getProperties().gutterName).toBe 'custom'
+
+      jasmine.restoreDeprecationsSnapshot()
+
+    it 'reflects an added decoration when one of its custom gutters is decorated.', ->
+      gutter = editor.addGutter {'name': 'custom-gutter'}
+      decoration = gutter.decorateMarker marker, {class: 'custom-class'}
+      gutterDecorations = editor.getDecorations
+        type: 'gutter'
+        gutterName: 'custom-gutter'
+        class: 'custom-class'
+      expect(gutterDecorations.length).toBe 1
+      expect(gutterDecorations[0]).toBe decoration
+
+    it 'reflects an added decoration when its line-number gutter is decorated.', ->
+      decoration = editor.gutterWithName('line-number').decorateMarker marker, {class: 'test-class'}
+      gutterDecorations = editor.getDecorations
+        type: 'line-number'
+        gutterName: 'line-number'
+        class: 'test-class'
+      expect(gutterDecorations.length).toBe 1
+      expect(gutterDecorations[0]).toBe decoration
+
+  describe '::observeGutters', ->
+    [payloads, callback] = []
+
+    beforeEach ->
+      payloads = []
+      callback = (payload) ->
+        payloads.push(payload)
+
+    it 'calls the callback immediately with each existing gutter, and with each added gutter after that.', ->
+      lineNumberGutter = editor.gutterWithName('line-number')
+      editor.observeGutters(callback)
+      expect(payloads).toEqual [lineNumberGutter]
+      gutter1 = editor.addGutter({name: 'test-gutter-1'})
+      expect(payloads).toEqual [lineNumberGutter, gutter1]
+      gutter2 = editor.addGutter({name: 'test-gutter-2'})
+      expect(payloads).toEqual [lineNumberGutter, gutter1, gutter2]
+
+    it 'does not call the callback when a gutter is removed.', ->
+      gutter = editor.addGutter({name: 'test-gutter'})
+      editor.observeGutters(callback)
+      payloads = []
+      gutter.destroy()
+      expect(payloads).toEqual []
+
+    it 'does not call the callback after the subscription has been disposed.', ->
+      subscription = editor.observeGutters(callback)
+      payloads = []
+      subscription.dispose()
+      editor.addGutter({name: 'test-gutter'})
+      expect(payloads).toEqual []
+
+  describe '::onDidAddGutter', ->
+    [payloads, callback] = []
+
+    beforeEach ->
+      payloads = []
+      callback = (payload) ->
+        payloads.push(payload)
+
+    it 'calls the callback with each newly-added gutter, but not with existing gutters.', ->
+      editor.onDidAddGutter(callback)
+      expect(payloads).toEqual []
+      gutter = editor.addGutter({name: 'test-gutter'})
+      expect(payloads).toEqual [gutter]
+
+    it 'does not call the callback after the subscription has been disposed.', ->
+      subscription = editor.onDidAddGutter(callback)
+      payloads = []
+      subscription.dispose()
+      editor.addGutter({name: 'test-gutter'})
+      expect(payloads).toEqual []
+
+  describe '::onDidRemoveGutter', ->
+    [payloads, callback] = []
+
+    beforeEach ->
+      payloads = []
+      callback = (payload) ->
+        payloads.push(payload)
+
+    it 'calls the callback when a gutter is removed.', ->
+      gutter = editor.addGutter({name: 'test-gutter'})
+      editor.onDidRemoveGutter(callback)
+      expect(payloads).toEqual []
+      gutter.destroy()
+      expect(payloads).toEqual ['test-gutter']
+
+    it 'does not call the callback after the subscription has been disposed.', ->
+      gutter = editor.addGutter({name: 'test-gutter'})
+      subscription = editor.onDidRemoveGutter(callback)
+      subscription.dispose()
+      gutter.destroy()
+      expect(payloads).toEqual []

@@ -161,9 +161,9 @@ class Package
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
       else if includeDeprecatedAPIs and @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
-        deprecate """Use a config schema instead. See the configuration section
+        deprecate("""Use a config schema instead. See the configuration section
         of https://atom.io/docs/latest/hacking-atom-package-word-count and
-        https://atom.io/docs/api/latest/Config for more details"""
+        https://atom.io/docs/api/latest/Config for more details""", {packageName: @name})
         atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
@@ -465,7 +465,7 @@ class Package
           @activationCommands[selector].push(commands...)
 
     if includeDeprecatedAPIs and @metadata.activationEvents?
-      deprecate """
+      deprecate("""
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
         ```json
@@ -474,7 +474,7 @@ class Package
             "atom-text-editor": ["foo:quux"]
           }
         ```
-      """
+      """, {packageName: @name})
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
           @activationCommands['atom-workspace'] ?= []

@@ -17,6 +17,9 @@ class HighlightsComponent
       insertionPoint.setAttribute('select', '.underlayer')
       @domNode.appendChild(insertionPoint)
 
+  getDomNode: ->
+    @domNode
+
   updateSync: (state) ->
     newState = state.content.highlights
     @oldState ?= {}

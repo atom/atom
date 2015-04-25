@@ -151,7 +151,7 @@ class Atom extends Model
   # Public: A {TooltipManager} instance
   tooltips: null
 
-  # Experimental: A {NotificationManager} instance
+  # Public: A {NotificationManager} instance
   notifications: null
 
   # Public: A {Project} instance
