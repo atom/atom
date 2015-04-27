@@ -124,6 +124,10 @@
         ]
       }
       { type: 'separator' }
+      { label: '&Increase Font Size', command: 'window:increase-font-size' }
+      { label: '&Decrease Font Size', command: 'window:decrease-font-size' }
+      { label: '&Reset Font Size', command: 'window:reset-font-size' }
+      { type: 'separator' }
       { label: 'Toggle Soft &Wrap', command: 'editor:toggle-soft-wrap' }
     ]
   }
