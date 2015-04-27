@@ -612,16 +612,18 @@ class Workspace extends Model
 
   # Increase the editor font size by 1px.
   increaseFontSize: ->
+    @originalFontSize ?= atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
   # Decrease the editor font size by 1px.
   decreaseFontSize: ->
+    @originalFontSize ?= atom.config.get("editor.fontSize")
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
-  # Restore to a default editor font size.
+  # Restore to the window's original editor font size.
   resetFontSize: ->
-    atom.config.unset("editor.fontSize")
+    atom.config.set("editor.fontSize", @originalFontSize)
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->

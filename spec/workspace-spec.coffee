@@ -425,6 +425,19 @@ describe "Workspace", ->
       expect(atom.config.get('editor.fontSize')).toBe 1
       workspace.decreaseFontSize()
       expect(atom.config.get('editor.fontSize')).toBe 1
+  describe "::resetFontSize()", ->
+    it "resets the font size to the window's starting font size", ->
+      originalFontSize = 6
+
+      atom.config.set('editor.fontSize', originalFontSize)
+      workspace.increaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize + 1
+      workspace.resetFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize - 1
+      workspace.resetFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize
 
   describe "::openLicense()", ->
     it "opens the license as plain-text in a buffer", ->
