@@ -164,6 +164,8 @@ class BufferedProcess
   # This is required since killing the cmd.exe does not terminate child
   # processes.
   killOnWindows: ->
+    return unless @process?
+
     parentPid = @process.pid
     cmd = 'wmic'
     args = [
