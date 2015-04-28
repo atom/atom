@@ -72,37 +72,9 @@ class BufferedProcess
       @process = @spawn(@getCmdPath(), cmdArgs, cmdOptions)
     else
       @process = @spawn(command, args, options)
+
     @killed = false
-
-    stdoutClosed = true
-    stderrClosed = true
-    processExited = true
-    exitCode = 0
-    triggerExitCallback = ->
-      return if @killed
-      if stdoutClosed and stderrClosed and processExited
-        exit?(exitCode)
-
-    if stdout
-      stdoutClosed = false
-      @bufferStream @process.stdout, stdout, ->
-        stdoutClosed = true
-        triggerExitCallback()
-
-    if stderr
-      stderrClosed = false
-      @bufferStream @process.stderr, stderr, ->
-        stderrClosed = true
-        triggerExitCallback()
-
-    if exit
-      processExited = false
-      @process.on 'exit', (code) ->
-        exitCode = code
-        processExited = true
-        triggerExitCallback()
-
-    @process.on 'error', (error) => @handleError(error)
+    @handeEvents(stdout, stderr, exit) if @process?
 
   ###
   Section: Event Subscription
@@ -219,6 +191,38 @@ class BufferedProcess
     catch spawnError
       process.nextTick => @handleError(spawnError)
     process
+
+  handleEvents: (stdout, stderr, exit) ->
+    stdoutClosed = true
+    stderrClosed = true
+    processExited = true
+    exitCode = 0
+    triggerExitCallback = ->
+      return if @killed
+      if stdoutClosed and stderrClosed and processExited
+        exit?(exitCode)
+
+    if stdout
+      stdoutClosed = false
+      @bufferStream @process.stdout, stdout, ->
+        stdoutClosed = true
+        triggerExitCallback()
+
+    if stderr
+      stderrClosed = false
+      @bufferStream @process.stderr, stderr, ->
+        stderrClosed = true
+        triggerExitCallback()
+
+    if exit
+      processExited = false
+      @process.on 'exit', (code) ->
+        exitCode = code
+        processExited = true
+        triggerExitCallback()
+
+    @process.on 'error', (error) => @handleError(error)
+    return
 
   handleError: (error) ->
     handled = false
