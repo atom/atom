@@ -187,10 +187,10 @@ class BufferedProcess
 
   spawn: (command, args, options) ->
     try
-      process = ChildProcess.spawn(command, args, options)
+      spawned = ChildProcess.spawn(command, args, options)
     catch spawnError
       process.nextTick => @handleError(spawnError)
-    process
+    spawned
 
   handleEvents: (stdout, stderr, exit) ->
     stdoutClosed = true

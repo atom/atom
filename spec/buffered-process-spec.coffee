@@ -13,21 +13,44 @@ describe "BufferedProcess", ->
       window.onerror = oldOnError
 
     describe "when there is an error handler specified", ->
-      it "calls the error handler and does not throw an exception", ->
-        process = new BufferedProcess
-          command: 'bad-command-nope'
-          args: ['nothing']
-          options: {}
+      describe "when an error event is emitted by the process", ->
+        it "calls the error handler and does not throw an exception", ->
+          process = new BufferedProcess
+            command: 'bad-command-nope'
+            args: ['nothing']
+            options: {}
 
-        errorSpy = jasmine.createSpy().andCallFake (error) -> error.handle()
-        process.onWillThrowError(errorSpy)
+          errorSpy = jasmine.createSpy().andCallFake (error) -> error.handle()
+          process.onWillThrowError(errorSpy)
 
-        waitsFor -> errorSpy.callCount > 0
+          waitsFor -> errorSpy.callCount > 0
 
-        runs ->
-          expect(window.onerror).not.toHaveBeenCalled()
-          expect(errorSpy).toHaveBeenCalled()
-          expect(errorSpy.mostRecentCall.args[0].error.message).toContain 'spawn bad-command-nope ENOENT'
+          runs ->
+            expect(window.onerror).not.toHaveBeenCalled()
+            expect(errorSpy).toHaveBeenCalled()
+            expect(errorSpy.mostRecentCall.args[0].error.message).toContain 'spawn bad-command-nope ENOENT'
+
+      describe "when an error is thrown spawning the process", ->
+        it "calls the error handler and does not throw an exception", ->
+          spyOn(ChildProcess, 'spawn').andCallFake ->
+            error = new Error('Something is really wrong')
+            error.code = 'EAGAIN'
+            throw error
+
+          process = new BufferedProcess
+            command: 'ls'
+            args: []
+            options: {}
+
+          errorSpy = jasmine.createSpy().andCallFake (error) -> error.handle()
+          process.onWillThrowError(errorSpy)
+
+          waitsFor -> errorSpy.callCount > 0
+
+          runs ->
+            expect(window.onerror).not.toHaveBeenCalled()
+            expect(errorSpy).toHaveBeenCalled()
+            expect(errorSpy.mostRecentCall.args[0].error.message).toContain 'Something is really wrong'
 
     describe "when there is not an error handler specified", ->
       it "calls the error handler and does not throw an exception", ->
