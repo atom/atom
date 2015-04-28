@@ -100,34 +100,34 @@ class TextEditorPresenter
     @disposables.add @model.onDidChange =>
       @updateContentDimensions()
       @updateEndRow()
-      @updateHeightState()
-      @updateVerticalScrollState()
-      @updateHorizontalScrollState()
-      @updateScrollbarsState()
-      @updateContentState()
-      @updateDecorations()
-      @updateLinesState()
-      @updateLineNumberGutterState()
-      @updateLineNumbersState()
-      @updateGutterOrderState()
-      @updateCustomGutterDecorationState()
+      @shouldUpdateHeightState = true
+      @shouldUpdateVerticalScrollState = true
+      @shouldUpdateHorizontalScrollState = true
+      @shouldUpdateScrollbarsState = true
+      @shouldUpdateContentState = true
+      @shouldUpdateDecorations = true
+      @shouldUpdateLinesState = true
+      @shouldUpdateLineNumberGutterState = true
+      @shouldUpdateLineNumbersState = true
+      @shouldUpdateGutterOrderState = true
+      @updateCustomGutterDecorationState() # FIXME: use `shouldUpdate...`
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
-      @updateScrollbarDimensions()
-      @updateScrollbarsState()
-      @updateContentState()
-      @updateDecorations()
-      @updateLinesState()
-      @updateLineNumberGutterState()
-      @updateLineNumbersState()
-      @updateCommonGutterState()
-      @updateGutterOrderState()
-      @updateCustomGutterDecorationState()
+      @shouldUpdateScrollbarDimensions = true
+      @shouldUpdateScrollbarsState = true
+      @shouldUpdateContentState = true
+      @shouldUpdateDecorations = true
+      @shouldUpdateLinesState = true
+      @shouldUpdateLineNumberGutterState = true
+      @shouldUpdateLineNumbersState = true
+      @updateCommonGutterState() # TODO: check out later...
+      @updateGutterOrderState() # FIXME: use `shouldUpdate...`
+      @updateCustomGutterDecorationState() # FIXME: use `shouldUpdate...`
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
-      @updateLineNumberGutterState()
-      @updateCommonGutterState()
-      @updateGutterOrderState()
+      @shouldUpdateLineNumberGutterState = true
+      @updateCommonGutterState() # TODO: check out later...
+      @updateGutterOrderState() # FIXME: use `shouldUpdate...`
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
