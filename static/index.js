@@ -146,7 +146,7 @@ var profileStartup = function(cacheDir, loadSettings) {
         handleSetupError(error);
       } finally {
         console.profileEnd('startup');
-        console.log("Switch to the Profiles tab to view the startup profile")
+        console.log("Switch to the Profiles tab to view the created startup profile")
       }
     }, 100);
   });
