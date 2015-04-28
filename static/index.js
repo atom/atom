@@ -135,19 +135,25 @@ var setupVmCompatibility = function() {
 }
 
 var profileStartup = function(cacheDir, loadSettings) {
+  var profile = function() {
+    console.profile('startup');
+    try {
+      setupWindow(cacheDir, loadSettings);
+    } catch (error) {
+      handleSetupError(error);
+    } finally {
+      console.profileEnd('startup');
+      console.log("Switch to the Profiles tab to view the created startup profile")
+    }
+  };
+
   var currentWindow = require('remote').getCurrentWindow();
-  currentWindow.openDevTools();
-  currentWindow.once('devtools-opened', function() {
-    setTimeout(function() {
-      console.profile('startup');
-      try {
-        setupWindow(cacheDir, loadSettings);
-      } catch (error) {
-        handleSetupError(error);
-      } finally {
-        console.profileEnd('startup');
-        console.log("Switch to the Profiles tab to view the created startup profile")
-      }
-    }, 100);
-  });
+  if (currentWindow.devToolsWebContents) {
+    profile();
+  } else {
+    currentWindow.openDevTools();
+    currentWindow.once('devtools-opened', function() {
+      setTimeout(profile, 100);
+    });
+  }
 }
