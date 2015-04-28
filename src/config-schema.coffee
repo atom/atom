@@ -108,6 +108,7 @@ module.exports =
         type: 'integer'
         default: 16
         minimum: 1
+        maximum: 100
       lineHeight:
         type: ['string', 'number']
         default: 1.3
