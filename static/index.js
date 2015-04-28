@@ -32,44 +32,56 @@ window.onload = function() {
 
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
-    setupCoffeeCache(cacheDir);
-
-    ModuleCache = require('../src/module-cache');
-    ModuleCache.register(loadSettings);
-    ModuleCache.add(loadSettings.resourcePath);
-
-    require('grim').includeDeprecatedAPIs = !loadSettings.apiPreviewMode;
-
-    // Start the crash reporter before anything else.
-    require('crash-reporter').start({
-      productName: 'Atom',
-      companyName: 'GitHub',
-      // By explicitly passing the app version here, we could save the call
-      // of "require('remote').require('app').getVersion()".
-      extra: {_version: loadSettings.appVersion}
-    });
-
-    setupVmCompatibility();
-    setupCsonCache(cacheDir);
-    setupSourceMapCache(cacheDir);
-    setupBabel(cacheDir);
-    setupTypeScript(cacheDir);
-
-    require(loadSettings.bootstrapScript);
-    require('ipc').sendChannel('window-command', 'window:loaded');
+    if (loadSettings.profileStartup) {
+      profileStartup(cacheDir, loadSettings);
+    } else {
+      setupWindow(cacheDir, loadSettings);
+    }
 
     if (global.atom) {
       global.atom.loadTime = Date.now() - startTime;
       console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms');
     }
   } catch (error) {
-    var currentWindow = require('remote').getCurrentWindow();
-    currentWindow.setSize(800, 600);
-    currentWindow.center();
-    currentWindow.show();
-    currentWindow.openDevTools();
-    console.error(error.stack || error);
+    handleSetupError(error);
   }
+}
+
+var handleSetupError = function(error) {
+  var currentWindow = require('remote').getCurrentWindow();
+  currentWindow.setSize(800, 600);
+  currentWindow.center();
+  currentWindow.show();
+  currentWindow.openDevTools();
+  console.error(error.stack || error);
+}
+
+var setupWindow = function(cacheDir, loadSettings) {
+  setupCoffeeCache(cacheDir);
+
+  ModuleCache = require('../src/module-cache');
+  ModuleCache.register(loadSettings);
+  ModuleCache.add(loadSettings.resourcePath);
+
+  require('grim').includeDeprecatedAPIs = !loadSettings.apiPreviewMode;
+
+  // Start the crash reporter before anything else.
+  require('crash-reporter').start({
+    productName: 'Atom',
+    companyName: 'GitHub',
+    // By explicitly passing the app version here, we could save the call
+    // of "require('remote').require('app').getVersion()".
+    extra: {_version: loadSettings.appVersion}
+  });
+
+  setupVmCompatibility();
+  setupCsonCache(cacheDir);
+  setupSourceMapCache(cacheDir);
+  setupBabel(cacheDir);
+  setupTypeScript(cacheDir);
+
+  require(loadSettings.bootstrapScript);
+  require('ipc').sendChannel('window-command', 'window:loaded');
 }
 
 var setupCoffeeCache = function(cacheDir) {
@@ -120,4 +132,22 @@ var setupVmCompatibility = function() {
   var vm = require('vm');
   if (!vm.Script.createContext)
     vm.Script.createContext = vm.createContext;
+}
+
+var profileStartup = function(cacheDir, loadSettings) {
+  var currentWindow = require('remote').getCurrentWindow();
+  currentWindow.openDevTools();
+  currentWindow.once('devtools-opened', function() {
+    setTimeout(function() {
+      console.profile('startup');
+      try {
+        setupWindow(cacheDir, loadSettings);
+      } catch (error) {
+        handleSetupError(error);
+      } finally {
+        console.profileEnd('startup');
+        console.log("Switch to the Profiles tab to view the startup profile")
+      }
+    }, 100);
+  });
 }
