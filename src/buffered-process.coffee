@@ -102,17 +102,7 @@ class BufferedProcess
         processExited = true
         triggerExitCallback()
 
-    @process.on 'error', (error) =>
-      handled = false
-      handle = -> handled = true
-
-      @emitter.emit 'will-throw-error', {error, handle}
-
-      if error.code is 'ENOENT' and error.syscall.indexOf('spawn') is 0
-        error = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
-        error.name = 'BufferedProcessError'
-
-      throw error unless handled
+    @process.on 'error', (error) => @handleError(error)
 
   ###
   Section: Event Subscription
@@ -222,3 +212,15 @@ class BufferedProcess
       @killProcess()
 
     undefined
+
+  handleError: (error) ->
+    handled = false
+    handle = -> handled = true
+
+    @emitter.emit 'will-throw-error', {error, handle}
+
+    if error.code is 'ENOENT' and error.syscall.indexOf('spawn') is 0
+      error = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
+      error.name = 'BufferedProcessError'
+
+    throw error unless handled
