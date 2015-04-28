@@ -191,7 +191,20 @@ class Package
 
     for [menuPath, map] in @menus when map['context-menu']?
       try
-        @activationDisposables.add(atom.contextMenu.add(map['context-menu']))
+        itemsBySelector = map['context-menu']
+
+        if includeDeprecatedAPIs
+          # Detect deprecated format for items object
+          for key, value of itemsBySelector
+            unless _.isArray(value)
+              deprecate("""
+                The context menu CSON format has changed. Please see
+                https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format
+                for more info.
+              """, {packageName: @name})
+              itemsBySelector = atom.contextMenu.convertLegacyItemsBySelector(itemsBySelector)
+
+        @activationDisposables.add(atom.contextMenu.add(itemsBySelector))
       catch error
         if error.code is 'EBADSELECTOR'
           error.message += " in #{menuPath}"
