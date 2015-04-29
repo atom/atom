@@ -13,7 +13,7 @@ class TextEditorPresenter
   overlayDimensions: {}
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight} = params
+    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
@@ -351,10 +351,9 @@ class TextEditorPresenter
       pixelPosition = @pixelPositionForScreenPosition(screenPosition)
 
       {scrollTop, scrollLeft} = @state.content
-      gutterWidth = @boundingClientRect.width - @contentFrameWidth
 
       top = pixelPosition.top + @lineHeight - scrollTop
-      left = pixelPosition.left + gutterWidth - scrollLeft
+      left = pixelPosition.left + @gutterWidth - scrollLeft
 
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
@@ -816,6 +815,11 @@ class TextEditorPresenter
       @updateLineNumberGutterState()
       @updateCommonGutterState()
       @updateGutterOrderState()
+
+  setGutterWidth: (gutterWidth) ->
+    if @gutterWidth isnt gutterWidth
+      @gutterWidth = gutterWidth
+      @updateOverlaysState()
 
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight

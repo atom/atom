@@ -619,6 +619,7 @@ class TextEditorComponent
     if clientWidth > 0
       @presenter.setContentFrameWidth(clientWidth)
 
+    @presenter.setGutterWidth(@gutterContainerComponent?.getDomNode().offsetWidth ? 0)
     @presenter.setBoundingClientRect(@hostElement.getBoundingClientRect())
 
   measureWindowSize: ->
