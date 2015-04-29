@@ -19,6 +19,7 @@ class TextEditorPresenter
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
+    @gutterWidth ?= 0
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
