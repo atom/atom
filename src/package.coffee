@@ -1,4 +1,5 @@
 path = require 'path'
+hostedGitInfo = require 'hosted-git-info'
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -34,6 +35,15 @@ class Package
           metadata = CSON.readFileSync(metadataPath)
         catch error
           throw error unless ignoreErrors
+
+        repoUrl = metadata.repository.url
+        if repoUrl
+          r = hostedGitInfo.fromUrl(repoUrl)
+          hosted = r.getDefaultRepresentation()
+          if hosted is 'shortcut'
+            metadata.repository.url = r.https()
+          else metadata.repository.url = r.toString()
+            
     metadata ?= {}
     metadata.name = packageName
 
