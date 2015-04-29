@@ -627,7 +627,7 @@ class Workspace extends Model
       atom.config.set("editor.fontSize", @originalFontSize)
 
   subscribeToFontSize: ->
-    atom.config.onDidChange 'editor.fontSize', ({newValue, oldValue}) =>
+    atom.config.onDidChange 'editor.fontSize', ({oldValue}) =>
       @originalFontSize ?= oldValue
 
   # Removes the item's uri from the list of potential items to reopen.
