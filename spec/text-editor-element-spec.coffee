@@ -79,6 +79,21 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
       expect(element.shadowRoot.querySelectorAll('.line-number').length).toBe initialCount
 
+    it "does not render duplicate decorations in custom gutters", ->
+      editor = new TextEditor
+      editor.setText('1\n2\n3')
+      editor.addGutter({name: 'test-gutter'})
+      marker = editor.markBufferRange([[0,0],[2,0]])
+      editor.decorateMarker(marker, {type: 'gutter', gutterName: 'test-gutter'})
+      element = atom.views.getView(editor)
+
+      jasmine.attachToDOM(element)
+      initialDecorationCount = element.shadowRoot.querySelectorAll('.decoration').length
+
+      element.remove()
+      jasmine.attachToDOM(element)
+      expect(element.shadowRoot.querySelectorAll('.decoration').length).toBe initialDecorationCount
+
   describe "focus and blur handling", ->
     describe "when the editor.useShadowDOM config option is true", ->
       it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
