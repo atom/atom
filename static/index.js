@@ -143,11 +143,11 @@ var profileStartup = function(cacheDir, loadSettings, initialTime) {
     try {
       var startTime = Date.now()
       setupWindow(cacheDir, loadSettings);
+      setLoadTime(Date.now() - startTime + initialTime);
     } catch (error) {
       handleSetupError(error);
     } finally {
       console.profileEnd('startup');
-      setLoadTime(Date.now() - startTime + initialTime);
       console.log("Switch to the Profiles tab to view the created startup profile")
     }
   };
