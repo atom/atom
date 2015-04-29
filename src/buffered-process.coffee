@@ -48,6 +48,7 @@ class BufferedProcess
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     @emitter = new Emitter
     options ?= {}
+    @command = command
     # Related to joyent/node#2318
     if process.platform is 'win32'
       # Quote all arguments and escapes inner quotes
@@ -232,7 +233,7 @@ class BufferedProcess
     @emitter.emit 'will-throw-error', {error, handle}
 
     if error.code is 'ENOENT' and error.syscall.indexOf('spawn') is 0
-      error = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
+      error = new Error("Failed to spawn command `#{@command}`. Make sure `#{@command}` is installed and on your PATH", error.path)
       error.name = 'BufferedProcessError'
 
     throw error unless handled
