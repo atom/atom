@@ -541,7 +541,8 @@ class TextEditorPresenter
 
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
-      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+      clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
+      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
     if @contentHeight isnt oldContentHeight
@@ -691,6 +692,9 @@ class TextEditorPresenter
       @updateCustomGutterDecorationState()
       @updateOverlaysState()
 
+  getScrollTop: ->
+    @scrollTop
+
   didStartScrolling: ->
     if @stoppedScrollingTimeoutId?
       clearTimeout(@stoppedScrollingTimeoutId)
@@ -719,6 +723,9 @@ class TextEditorPresenter
       @updateHiddenInputState()
       @updateCursorsState() unless oldScrollLeft?
       @updateOverlaysState()
+
+  getScrollLeft: ->
+    @scrollLeft
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
