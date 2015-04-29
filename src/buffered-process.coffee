@@ -139,7 +139,12 @@ class BufferedProcess
       'processid'
     ]
 
-    wmicProcess = ChildProcess.spawn(cmd, args)
+    try
+      wmicProcess = ChildProcess.spawn(cmd, args)
+    catch spawnError
+      @killProcess()
+      return
+
     wmicProcess.on 'error', -> # ignore errors
     output = ''
     wmicProcess.stdout.on 'data', (data) -> output += data
