@@ -55,18 +55,6 @@ class TextEditorPresenter
   isBatching: ->
     @updating is false
 
-  # Private: Executes `fn` if `isBatching()` is false, otherwise sets `@[flagName]` to `true` for later processing. In either cases, it calls `emitDidUpdateState`.
-  # * `flagName` {String} name of a property of this presenter
-  # * `fn` {Function} to call when not batching.
-  batch: (flagName, fn) ->
-    if @isBatching()
-      @[flagName] = true
-    else
-      fn.apply(this)
-      @[flagName] = false
-
-    @emitDidUpdateState()
-
   # Public: Gets this presenter's state, updating it just in time before returning from this function.
   # Returns a state {Object}, useful for rendering to screen.
   getState: ->
@@ -133,7 +121,10 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
-    @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
+    @disposables.add @model.onDidChangePlaceholderText =>
+      @shouldUpdateContentState = true
+
+      @emitDidUpdateState()
     @disposables.add @model.onDidChangeMini =>
       @updateScrollbarDimensions()
       @shouldUpdateScrollbarsState = true
@@ -248,16 +239,16 @@ class TextEditorPresenter
 
     @resetShouldUpdateStates()
 
-  updateFocusedState: -> @batch "shouldUpdateFocusedState", ->
+  updateFocusedState: ->
     @state.focused = @focused
 
-  updateHeightState: -> @batch "shouldUpdateHeightState", ->
+  updateHeightState: ->
     if @autoHeight
       @state.height = @contentHeight
     else
       @state.height = null
 
-  updateVerticalScrollState: -> @batch "shouldUpdateVerticalScrollState", ->
+  updateVerticalScrollState: ->
     @state.content.scrollHeight = @scrollHeight
     @state.gutters.scrollHeight = @scrollHeight
     @state.verticalScrollbar.scrollHeight = @scrollHeight
@@ -266,14 +257,14 @@ class TextEditorPresenter
     @state.gutters.scrollTop = @scrollTop
     @state.verticalScrollbar.scrollTop = @scrollTop
 
-  updateHorizontalScrollState: -> @batch "shouldUpdateHorizontalScrollState", ->
+  updateHorizontalScrollState: ->
     @state.content.scrollWidth = @scrollWidth
     @state.horizontalScrollbar.scrollWidth = @scrollWidth
 
     @state.content.scrollLeft = @scrollLeft
     @state.horizontalScrollbar.scrollLeft = @scrollLeft
 
-  updateScrollbarsState: -> @batch "shouldUpdateScrollbarsState", ->
+  updateScrollbarsState: ->
     @state.horizontalScrollbar.visible = @horizontalScrollbarHeight > 0
     @state.horizontalScrollbar.height = @measuredHorizontalScrollbarHeight
     @state.horizontalScrollbar.right = @verticalScrollbarWidth
@@ -282,7 +273,7 @@ class TextEditorPresenter
     @state.verticalScrollbar.width = @measuredVerticalScrollbarWidth
     @state.verticalScrollbar.bottom = @horizontalScrollbarHeight
 
-  updateHiddenInputState: -> @batch "shouldUpdateHiddenInputState", ->
+  updateHiddenInputState: ->
     return unless lastCursor = @model.getLastCursor()
 
     {top, left, height, width} = @pixelRectForScreenRange(lastCursor.getScreenRange())
@@ -299,14 +290,14 @@ class TextEditorPresenter
     @state.hiddenInput.height = height
     @state.hiddenInput.width = Math.max(width, 2)
 
-  updateContentState: -> @batch "shouldUpdateContentState", ->
+  updateContentState: ->
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
     @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
-  updateLinesState: -> @batch "shouldUpdateLinesState", ->
+  updateLinesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
     visibleLineIds = {}
@@ -351,7 +342,7 @@ class TextEditorPresenter
       top: row * @lineHeight
       decorationClasses: @lineDecorationClassesForRow(row)
 
-  updateCursorsState: -> @batch "shouldUpdateCursorsState", ->
+  updateCursorsState: ->
     @state.content.cursors = {}
     @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
     return
@@ -369,7 +360,7 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  updateOverlaysState: -> @batch "shouldUpdateOverlaysState", ->
+  updateOverlaysState: ->
     return unless @hasOverlayPositionRequirements()
 
     visibleDecorationIds = {}
@@ -418,7 +409,7 @@ class TextEditorPresenter
 
     return
 
-  updateLineNumberGutterState: -> @batch "shouldUpdateLineNumberGutterState", ->
+  updateLineNumberGutterState: ->
     @state.gutters.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
 
   updateCommonGutterState: ->
@@ -450,13 +441,12 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   updateGutterOrderState: ->
-    @batch "shouldUpdateGutterOrderState", ->
-      @state.gutters.sortedDescriptions = []
-      if @model.isMini()
-        return
-      for gutter in @model.getGutters()
-        isVisible = @gutterIsVisible(gutter)
-        @state.gutters.sortedDescriptions.push({gutter, visible: isVisible})
+    @state.gutters.sortedDescriptions = []
+    if @model.isMini()
+      return
+    for gutter in @model.getGutters()
+      isVisible = @gutterIsVisible(gutter)
+      @state.gutters.sortedDescriptions.push({gutter, visible: isVisible})
 
   # Updates the decoration state for the gutter with the given gutterName.
   # @state.gutters.customDecorations is an {Object}, with the form:
@@ -469,25 +459,24 @@ class TextEditorPresenter
   #     }
   #   }
   updateCustomGutterDecorationState: ->
-    @batch 'shouldUpdateCustomGutterDecorationState', =>
-      return unless @startRow? and @endRow? and @lineHeight?
+    return unless @startRow? and @endRow? and @lineHeight?
 
-      @state.gutters.customDecorations = {}
-      return if @model.isMini()
+    @state.gutters.customDecorations = {}
+    return if @model.isMini()
 
-      for gutter in @model.getGutters()
-        gutterName = gutter.name
-        @state.gutters.customDecorations[gutterName] = {}
-        return if not @gutterIsVisible(gutter)
+    for gutter in @model.getGutters()
+      gutterName = gutter.name
+      @state.gutters.customDecorations[gutterName] = {}
+      return if not @gutterIsVisible(gutter)
 
-        relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
-        relevantDecorations.forEach (decoration) =>
-          decorationRange = decoration.getMarker().getScreenRange()
-          @state.gutters.customDecorations[gutterName][decoration.id] =
-            top: @lineHeight * decorationRange.start.row
-            height: @lineHeight * decorationRange.getRowCount()
-            item: decoration.getProperties().item
-            class: decoration.getProperties().class
+      relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
+      relevantDecorations.forEach (decoration) =>
+        decorationRange = decoration.getMarker().getScreenRange()
+        @state.gutters.customDecorations[gutterName][decoration.id] =
+          top: @lineHeight * decorationRange.start.row
+          height: @lineHeight * decorationRange.getRowCount()
+          item: decoration.getProperties().item
+          class: decoration.getProperties().class
 
   gutterIsVisible: (gutterModel) ->
     isVisible = gutterModel.isVisible()
@@ -495,7 +484,7 @@ class TextEditorPresenter
       isVisible = isVisible and @showLineNumbers
     isVisible
 
-  updateLineNumbersState: -> @batch "shouldUpdateLineNumbersState", ->
+  updateLineNumbersState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
     visibleLineNumberIds = {}
@@ -750,7 +739,7 @@ class TextEditorPresenter
       @mouseWheelScreenRow = null
       @shouldUpdateLinesState = true
       @shouldUpdateLineNumbersState = true
-      @updateCustomGutterDecorationState()
+      @shouldUpdateCustomGutterDecorationState = true
 
     @emitDidUpdateState()
 
@@ -1119,7 +1108,7 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  updateDecorations: -> @batch "shouldUpdateDecorations", ->
+  updateDecorations: ->
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
