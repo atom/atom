@@ -69,9 +69,9 @@ class BufferedProcess
       cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
       cmdOptions = _.clone(options)
       cmdOptions.windowsVerbatimArguments = true
-      @process = @spawn(@getCmdPath(), cmdArgs, cmdOptions)
+      @spawn(@getCmdPath(), cmdArgs, cmdOptions)
     else
-      @process = @spawn(command, args, options)
+      @spawn(command, args, options)
 
     @killed = false
     @handleEvents(stdout, stderr, exit) if @process?
@@ -187,10 +187,9 @@ class BufferedProcess
 
   spawn: (command, args, options) ->
     try
-      spawned = ChildProcess.spawn(command, args, options)
+      @process = ChildProcess.spawn(command, args, options)
     catch spawnError
       process.nextTick => @handleError(spawnError)
-    spawned
 
   handleEvents: (stdout, stderr, exit) ->
     stdoutClosed = true
