@@ -82,11 +82,11 @@ class TextEditorPresenter
     @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
     @updating = false
 
-    @resetShouldUpdateStates()
+    @resetTrackedUpdates()
 
     @state
 
-  resetShouldUpdateStates: ->
+  resetTrackedUpdates: ->
     @shouldUpdateFocusedState = false
     @shouldUpdateHeightState = false
     @shouldUpdateVerticalScrollState = false
@@ -126,7 +126,6 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
     @disposables.add @model.onDidChangeMini =>
-      @updateScrollbarDimensions()
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
@@ -135,13 +134,14 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
       @shouldUpdateCustomGutterDecorationState = true
-      @updateCommonGutterState() # TODO: check out later...
+      @updateScrollbarDimensions()
+      @updateCommonGutterState()
 
       @emitDidUpdateState()
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
-      @updateCommonGutterState() # TODO: check out later...
+      @updateCommonGutterState()
 
       @emitDidUpdateState()
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
@@ -183,7 +183,7 @@ class TextEditorPresenter
       @showLineNumbers = newValue
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
-      @updateCommonGutterState() # TODO: check this out
+      @updateCommonGutterState()
 
       @emitDidUpdateState()
 
@@ -192,7 +192,7 @@ class TextEditorPresenter
     @shouldUpdateContentState = true
     @shouldUpdateLineNumberGutterState = true
     @shouldUpdateGutterOrderState = true
-    @updateCommonGutterState() # TODO: check this out
+    @updateCommonGutterState()
 
     @emitDidUpdateState()
 
@@ -237,7 +237,7 @@ class TextEditorPresenter
     @updateGutterOrderState()
     @updateCustomGutterDecorationState()
 
-    @resetShouldUpdateStates()
+    @resetTrackedUpdates()
 
   updateFocusedState: ->
     @state.focused = @focused
