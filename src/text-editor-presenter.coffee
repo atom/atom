@@ -94,9 +94,26 @@ class TextEditorPresenter
     @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
     @updating = false
 
-    throw new Error("Reset @shouldUpdateBlaBla variables to `false`!!!")
+    @resetShouldUpdateStates()
 
     @state
+
+  resetShouldUpdateStates: ->
+    @shouldUpdateFocusedState = false
+    @shouldUpdateHeightState = false
+    @shouldUpdateVerticalScrollState = false
+    @shouldUpdateHorizontalScrollState = false
+    @shouldUpdateScrollbarsState = false
+    @shouldUpdateHiddenInputState = false
+    @shouldUpdateContentState = false
+    @shouldUpdateDecorations = false
+    @shouldUpdateLinesState = false
+    @shouldUpdateCursorsState = false
+    @shouldUpdateOverlaysState = false
+    @shouldUpdateLineNumberGutterState = false
+    @shouldUpdateLineNumbersState = false
+    @shouldUpdateGutterOrderState = false
+    @shouldUpdateCustomGutterDecorationState = false
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
@@ -228,6 +245,8 @@ class TextEditorPresenter
     @updateCommonGutterState()
     @updateGutterOrderState()
     @updateCustomGutterDecorationState()
+
+    @resetShouldUpdateStates()
 
   updateFocusedState: -> @batch "shouldUpdateFocusedState", ->
     @state.focused = @focused
