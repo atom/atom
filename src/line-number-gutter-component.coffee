@@ -13,6 +13,7 @@ class LineNumberGutterComponent
 
     @domNode = atom.views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
+    @lineNumbersNode.innerHTML = ''
 
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
