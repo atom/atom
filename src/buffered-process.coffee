@@ -74,7 +74,7 @@ class BufferedProcess
       @spawn(command, args, options)
 
     @killed = false
-    @handleEvents(stdout, stderr, exit) if @process?
+    @handleEvents(stdout, stderr, exit)
 
   ###
   Section: Event Subscription
@@ -192,6 +192,8 @@ class BufferedProcess
       process.nextTick => @handleError(spawnError)
 
   handleEvents: (stdout, stderr, exit) ->
+    return unless @process?
+
     stdoutClosed = true
     stderrClosed = true
     processExited = true
