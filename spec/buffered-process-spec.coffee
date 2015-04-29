@@ -96,3 +96,21 @@ describe "BufferedProcess", ->
       expect(ChildProcess.spawn.argsForCall[0][1][0]).toBe '/s'
       expect(ChildProcess.spawn.argsForCall[0][1][1]).toBe '/c'
       expect(ChildProcess.spawn.argsForCall[0][1][2]).toBe '"dir"'
+
+  it "calls the specified stdout, stderr, and exit callbacks ", ->
+    stdout = ''
+    stderr = ''
+    exitCallback = jasmine.createSpy('exit callback')
+    process = new BufferedProcess
+      command: atom.packages.getApmPath()
+      args: ['-h']
+      options: {}
+      stdout: (lines) -> stdout += lines
+      stderr: (lines) -> stderr += lines
+      exit: exitCallback
+
+    waitsFor -> exitCallback.callCount is 1
+
+    runs ->
+      expect(stderr).toContain 'apm - Atom Package Manager'
+      expect(stdout).toEqual ''
