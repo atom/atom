@@ -75,6 +75,8 @@ class Workspace extends Model
     atom.views.addViewProvider Panel, (model) ->
       new PanelElement().initialize(model)
 
+    @subscribeToFontSize()
+
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     for packageName in params.packagesWithActiveGrammars ? []
@@ -612,12 +614,10 @@ class Workspace extends Model
 
   # Increase the editor font size by 1px.
   increaseFontSize: ->
-    @originalFontSize ?= atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
 
   # Decrease the editor font size by 1px.
   decreaseFontSize: ->
-    @originalFontSize ?= atom.config.get("editor.fontSize")
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
@@ -625,6 +625,10 @@ class Workspace extends Model
   resetFontSize: ->
     if @originalFontSize
       atom.config.set("editor.fontSize", @originalFontSize)
+
+  subscribeToFontSize: ->
+    atom.config.onDidChange 'editor.fontSize', ({newValue, oldValue}) =>
+      @originalFontSize ?= oldValue
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
