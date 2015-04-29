@@ -65,6 +65,20 @@ describe "TextEditorElement", ->
         element.getModel().destroy()
         expect(component.mounted).toBe false
 
+  describe "when the editor is detached from the DOM and then reattached", ->
+    it "does not render duplicate line numbers", ->
+      editor = new TextEditor
+      editor.setText('1\n2\n3')
+      element = atom.views.getView(editor)
+
+      jasmine.attachToDOM(element)
+
+      initialCount = element.shadowRoot.querySelectorAll('.line-number').length
+
+      element.remove()
+      jasmine.attachToDOM(element)
+      expect(element.shadowRoot.querySelectorAll('.line-number').length).toBe initialCount
+
   describe "focus and blur handling", ->
     describe "when the editor.useShadowDOM config option is true", ->
       it "proxies focus/blur events to/from the hidden input inside the shadow root", ->

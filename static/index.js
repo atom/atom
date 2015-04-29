@@ -33,17 +33,20 @@ window.onload = function() {
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
     if (loadSettings.profileStartup) {
-      profileStartup(cacheDir, loadSettings);
+      profileStartup(cacheDir, loadSettings, Date.now() - startTime);
     } else {
       setupWindow(cacheDir, loadSettings);
-    }
-
-    if (global.atom) {
-      global.atom.loadTime = Date.now() - startTime;
-      console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms');
+      setLoadTime(Date.now() - startTime);
     }
   } catch (error) {
     handleSetupError(error);
+  }
+}
+
+var setLoadTime = function(loadTime) {
+  if (global.atom) {
+    global.atom.loadTime = loadTime;
+    console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms');
   }
 }
 
@@ -134,11 +137,13 @@ var setupVmCompatibility = function() {
     vm.Script.createContext = vm.createContext;
 }
 
-var profileStartup = function(cacheDir, loadSettings) {
+var profileStartup = function(cacheDir, loadSettings, initialTime) {
   var profile = function() {
     console.profile('startup');
     try {
+      var startTime = Date.now()
       setupWindow(cacheDir, loadSettings);
+      setLoadTime(Date.now() - startTime + initialTime);
     } catch (error) {
       handleSetupError(error);
     } finally {
