@@ -74,7 +74,7 @@ class BufferedProcess
       @process = @spawn(command, args, options)
 
     @killed = false
-    @handeEvents(stdout, stderr, exit) if @process?
+    @handleEvents(stdout, stderr, exit) if @process?
 
   ###
   Section: Event Subscription
