@@ -35,7 +35,7 @@ class Package
     if repoUrl
       info = hostedGitInfo.fromUrl(repoUrl)
       if info.getDefaultRepresentation() is 'shortcut'
-        metadata.repository.url = info.https()
+        metadata.repository.url = info.https().replace(/^git\+/, '')
       else
         metadata.repository.url = info.toString()
 

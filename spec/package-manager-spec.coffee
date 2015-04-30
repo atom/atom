@@ -44,7 +44,7 @@ describe "PackageManager", ->
     it "normalizes short repository urls in package.json", ->
       {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
       expect(metadata.repository.type).toBe "git"
-      expect(metadata.repository.url).toBe "git+https://github.com/example/repo.git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo.git"
 
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')
