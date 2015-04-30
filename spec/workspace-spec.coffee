@@ -430,7 +430,6 @@ describe "Workspace", ->
     it "resets the font size to the window's starting font size", ->
       originalFontSize = atom.config.get('editor.fontSize')
 
-      atom.config.set('editor.fontSize', originalFontSize)
       workspace.increaseFontSize()
       expect(atom.config.get('editor.fontSize')).toBe originalFontSize + 1
       workspace.resetFontSize()
@@ -443,7 +442,6 @@ describe "Workspace", ->
     it "does nothing if the font size has not been changed", ->
       originalFontSize = atom.config.get('editor.fontSize')
 
-      atom.config.set('editor.fontSize', originalFontSize)
       workspace.resetFontSize()
       expect(atom.config.get('editor.fontSize')).toBe originalFontSize
 
