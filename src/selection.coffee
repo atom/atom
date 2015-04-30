@@ -404,24 +404,16 @@ class Selection extends Model
     @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
     @deleteSelectedText()
 
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  backspaceToBeginningOfWord: ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  backspaceToBeginningOfLine: ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
-
-  # Public: Removes the selection or all characters from the start of the
-  # selection back to the previous word boundary if nothing is selected.
+  # Public: Removes the selection or, if nothing is selected, then all
+  # characters from the start of the selection back to the previous word
+  # boundary.
   deleteToPreviousWordBoundary: ->
     @selectToPreviousWordBoundary() if @isEmpty()
     @deleteSelectedText()
 
-  # Public: Removes the selection or all characters from the start of the
-  # selection up to the next word boundary if nothing is selected.
+  # Public: Removes the selection or, if nothing is selected, then all
+  # characters from the start of the selection up to the next word
+  # boundary.
   deleteToNextWordBoundary: ->
     @selectToNextWordBoundary() if @isEmpty()
     @deleteSelectedText()
