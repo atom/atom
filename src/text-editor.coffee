@@ -1057,11 +1057,13 @@ class TextEditor extends Model
   deleteToBeginningOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
 
-  # Similar to above, but deletes back to the previous word boundary
+  # Extended: Similar to {::deleteToBeginningOfWord}, but deletes only back to the
+  # previous word boundary.
   deleteToPreviousWordBoundary: ->
     @mutateSelectedText (selection) -> selection.deleteToPreviousWordBoundary()
 
-  # Similar to above, but deletes up to the next word boundary
+  # Extended: Similar to {::deleteToEndOfWord}, but deletes only up to the
+  # next word boundary.
   deleteToNextWordBoundary: ->
     @mutateSelectedText (selection) -> selection.deleteToNextWordBoundary()
 
