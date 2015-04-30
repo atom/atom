@@ -2343,7 +2343,7 @@ describe "TextEditor", ->
           editor.backspace()
           expect(editor.lineTextForBufferRow(0)).toBe 'var  =  () {'
 
-    describe ".deleteToPreviousWordBoundary()", ->
+    fdescribe ".deleteToPreviousWordBoundary()", ->
       describe "when no text is selected", ->
         it "deletes to the previous word boundary", ->
           editor.setCursorBufferPosition([0, 16])
@@ -2351,14 +2351,14 @@ describe "TextEditor", ->
           [cursor1, cursor2] = editor.getCursors()
 
           editor.deleteToPreviousWordBoundary()
-          expect(buffer.lineForRow(1)).toBe 'var quicksort =function () {'
-          expect(buffer.lineForRow(2)).toBe '  var sort = (items) {'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort =function () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = (items) {'
           expect(cursor1.getBufferPosition()).toEqual [0, 15]
           expect(cursor2.getBufferPosition()).toEqual [1, 13]
 
           editor.deleteToPreviousWordBoundary()
-          expect(buffer.lineForRow(1)).toBe 'var quicksort function () {'
-          expect(buffer.lineForRow(2)).toBe '  var sort =(items) {'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort function () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort =(items) {'
           expect(cursor1.getBufferPosition()).toEqual [0, 14]
           expect(cursor2.getBufferPosition()).toEqual [1, 12]
 
@@ -2368,7 +2368,7 @@ describe "TextEditor", ->
           editor.deleteToPreviousWordBoundary()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
-    describe ".deleteToNextWordBoundary()", ->
+    fdescribe ".deleteToNextWordBoundary()", ->
       describe "when no text is selected", ->
         it "deletes to the next word boundary", ->
           editor.setCursorBufferPosition([0, 15])
@@ -2376,21 +2376,22 @@ describe "TextEditor", ->
           [cursor1, cursor2] = editor.getCursors()
 
           editor.deleteToNextWordBoundary()
-          expect(buffer.lineForRow(1)).toBe 'var quicksort =function () {'
-          expect(buffer.lineForRow(2)).toBe '  var sort = function(it) {'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort =function () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(cursor1.getBufferPosition()).toEqual [0, 15]
           expect(cursor2.getBufferPosition()).toEqual [1, 24]
 
           editor.deleteToNextWordBoundary()
-          expect(buffer.lineForRow(1)).toBe 'var quicksort = () {'
-          expect(buffer.lineForRow(2)).toBe '  var sort = function(it {'
-          expect(cursor1.getBufferPosition()).toEqual [1, 24]
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it {'
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 24]
 
           editor.deleteToNextWordBoundary()
-          expect(buffer.lineForRow(1)).toBe 'var quicksort = () {'
-          expect(buffer.lineForRow(2)).toBe '  var sort = function(it {'
-          expect(cursor1.getBufferPosition()).toEqual [1, 24]
-          expect(cursor2.getBufferPosition()).toEqual [2, 5]
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it {'
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 24]
 
       describe "when text is selected", ->
         it "deletes only selected text", ->
