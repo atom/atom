@@ -36,8 +36,6 @@ class Package
       info = hostedGitInfo.fromUrl(repoUrl)
       if info.getDefaultRepresentation() is 'shortcut'
         metadata.repository.url = info.https().replace(/^git\+/, '')
-      else
-        metadata.repository.url = info.toString()
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
