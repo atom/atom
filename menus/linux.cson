@@ -55,6 +55,8 @@
           { label: '&Lower Case', command: 'editor:lower-case' }
           { type: 'separator' }
           { label: 'Delete to End of &Word', command: 'editor:delete-to-end-of-word' }
+          { label: 'Delete to Previous Word Boundary', command: 'editor:delete-to-previous-word-boundary' }
+          { label: 'Delete to Next Word Boundary', command: 'editor:delete-to-next-word-boundary' }
           { label: '&Delete Line', command: 'editor:delete-line' }
           { type: 'separator' }
           { label: '&Transpose', command: 'editor:transpose' }
