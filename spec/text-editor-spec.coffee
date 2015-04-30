@@ -2388,8 +2388,8 @@ describe "TextEditor", ->
           expect(cursor2.getBufferPosition()).toEqual [1, 24]
 
           editor.deleteToNextWordBoundary()
-          expect(buffer.lineForRow(0)).toBe 'var quicksort = () {'
-          expect(buffer.lineForRow(1)).toBe '  var sort = function(it {'
+          expect(buffer.lineForRow(0)).toBe 'var quicksort =() {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it{'
           expect(cursor1.getBufferPosition()).toEqual [0, 15]
           expect(cursor2.getBufferPosition()).toEqual [1, 24]
 
