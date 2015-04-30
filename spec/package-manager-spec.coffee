@@ -41,6 +41,11 @@ describe "PackageManager", ->
       expect(addErrorHandler.callCount).toBe 1
       expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-broken-package-json package")
 
+    it "normalizes short repository urls in package.json", ->
+      {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
+      expect(metadata.repository.type).toBe "git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo.git"
+
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')
       expect(atom.packages.loadPackage("this-package-cannot-be-found")).toBeNull()
