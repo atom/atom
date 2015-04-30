@@ -1,4 +1,5 @@
 path = require 'path'
+hostedGitInfo = require 'hosted-git-info'
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -24,6 +25,20 @@ class Package
     @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
+  @normalizeMetadata: (metadata) ->
+    if typeof metadata.repository is 'string'
+      metadata.repository =
+        type: 'git'
+        url: metadata.repository
+
+    repoUrl = metadata.repository?.url
+    if repoUrl
+      info = hostedGitInfo.fromUrl(repoUrl)
+      if info.getDefaultRepresentation() is 'shortcut'
+        metadata.repository.url = info.https().replace(/^git\+/, '')
+      else
+        metadata.repository.url = info.toString()
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
     if @isBundledPackagePath(packagePath)
@@ -34,8 +49,10 @@ class Package
           metadata = CSON.readFileSync(metadataPath)
         catch error
           throw error unless ignoreErrors
+
     metadata ?= {}
     metadata.name = packageName
+    @normalizeMetadata(metadata)
 
     if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
