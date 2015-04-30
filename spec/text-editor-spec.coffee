@@ -2343,7 +2343,7 @@ describe "TextEditor", ->
           editor.backspace()
           expect(editor.lineTextForBufferRow(0)).toBe 'var  =  () {'
 
-    fdescribe ".deleteToPreviousWordBoundary()", ->
+    describe ".deleteToPreviousWordBoundary()", ->
       describe "when no text is selected", ->
         it "deletes to the previous word boundary", ->
           editor.setCursorBufferPosition([0, 16])
@@ -2368,7 +2368,7 @@ describe "TextEditor", ->
           editor.deleteToPreviousWordBoundary()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
-    fdescribe ".deleteToNextWordBoundary()", ->
+    describe ".deleteToNextWordBoundary()", ->
       describe "when no text is selected", ->
         it "deletes to the next word boundary", ->
           editor.setCursorBufferPosition([0, 15])
