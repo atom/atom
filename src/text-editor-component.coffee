@@ -349,15 +349,15 @@ class TextEditorComponent
 
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
-      previousScrollLeft = @editor.getScrollLeft()
+      previousScrollLeft = @presenter.getScrollLeft()
       @presenter.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
-      event.preventDefault() unless previousScrollLeft is @editor.getScrollLeft()
+      event.preventDefault() unless previousScrollLeft is @presenter.getScrollLeft()
     else
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
-      previousScrollTop = @presenter.scrollTop
+      previousScrollTop = @presenter.getScrollTop()
       @presenter.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
-      event.preventDefault() unless previousScrollTop is @editor.getScrollTop()
+      event.preventDefault() unless previousScrollTop is @presenter.getScrollTop()
 
   onScrollViewScroll: =>
     if @mounted

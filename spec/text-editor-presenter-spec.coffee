@@ -499,6 +499,11 @@ describe "TextEditorPresenter", ->
 
           expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
+        it "isn't clipped to 0 when the longest line is folded (regression)", ->
+          presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
+          editor.foldBufferRow(0)
+          expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 20)
