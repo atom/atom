@@ -281,6 +281,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'core:cut': -> @cutSelectedText()
   'core:copy': -> @copySelectedText()
   'core:paste': -> @pasteText()
+  'editor:delete-to-previous-word-boundary': -> @deleteToPreviousWordBoundary()
+  'editor:delete-to-next-word-boundary': -> @deleteToNextWordBoundary()
   'editor:delete-to-beginning-of-word': -> @deleteToBeginningOfWord()
   'editor:delete-to-beginning-of-line': -> @deleteToBeginningOfLine()
   'editor:delete-to-end-of-line': -> @deleteToEndOfLine()
