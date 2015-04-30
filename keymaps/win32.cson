@@ -77,6 +77,15 @@
   'ctrl-k ctrl-down':  'window:focus-pane-below'
   'ctrl-k ctrl-left':  'window:focus-pane-on-left'
   'ctrl-k ctrl-right': 'window:focus-pane-on-right'
+  'alt-1': 'pane:show-item-1'
+  'alt-2': 'pane:show-item-2'
+  'alt-3': 'pane:show-item-3'
+  'alt-4': 'pane:show-item-4'
+  'alt-5': 'pane:show-item-5'
+  'alt-6': 'pane:show-item-6'
+  'alt-7': 'pane:show-item-7'
+  'alt-8': 'pane:show-item-8'
+  'alt-9': 'pane:show-item-9'
 
 'atom-workspace atom-text-editor':
   # Platform Bindings

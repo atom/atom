@@ -32,6 +32,7 @@ describe "TextEditorPresenter", ->
         windowWidth: 500
         windowHeight: 130
         boundingClientRect: {left: 0, top: 0, width: 500, height: 130}
+        gutterWidth: 0
         lineHeight: 10
         baseCharacterWidth: 10
         horizontalScrollbarHeight: 10
@@ -1628,7 +1629,7 @@ describe "TextEditorPresenter", ->
             marker = editor.markBufferPosition([0, 26], invalidate: 'never')
             decoration = editor.decorateMarker(marker, {type: 'overlay', item})
 
-            presenter = buildPresenter({scrollLeft, windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+            presenter = buildPresenter({scrollLeft, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
             expectStateUpdate presenter, ->
               presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
 
@@ -1654,7 +1655,7 @@ describe "TextEditorPresenter", ->
             marker = editor.markBufferPosition([5, 0], invalidate: 'never')
             decoration = editor.decorateMarker(marker, {type: 'overlay', item})
 
-            presenter = buildPresenter({scrollTop, windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+            presenter = buildPresenter({scrollTop, windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
             expectStateUpdate presenter, ->
               presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
 
@@ -1682,7 +1683,7 @@ describe "TextEditorPresenter", ->
               marker = cursor.marker
               decoration = editor.decorateMarker(marker, {type: 'overlay', item})
 
-              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
               expectStateUpdate presenter, ->
                 presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
 
@@ -1715,7 +1716,7 @@ describe "TextEditorPresenter", ->
               marker = editor.markBufferPosition([1, 0], invalidate: 'never')
               decoration = editor.decorateMarker(marker, {type: 'overlay', item})
 
-              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
               expectStateUpdate presenter, ->
                 presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
 
@@ -1736,7 +1737,7 @@ describe "TextEditorPresenter", ->
               marker = editor.markBufferPosition([0, 0], invalidate: 'never')
               decoration = editor.decorateMarker(marker, {type: 'overlay', item})
 
-              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect})
+              presenter = buildPresenter({windowWidth, windowHeight, contentFrameWidth, boundingClientRect, gutterWidth})
               expectStateUpdate presenter, ->
                 presenter.setOverlayDimensions(decoration.id, itemWidth, itemHeight, contentMargin)
 
