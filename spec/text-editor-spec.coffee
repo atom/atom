@@ -2384,13 +2384,14 @@ describe "TextEditor", ->
           editor.deleteToNextWordBoundary()
           expect(buffer.lineForRow(1)).toBe 'var quicksort = () {'
           expect(buffer.lineForRow(2)).toBe '  var sort = function(it {'
-          expect(cursor1.getBufferPosition()).toEqual [1, 24]
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 24]
 
           editor.deleteToNextWordBoundary()
-          expect(buffer.lineForRow(1)).toBe 'var quicksort = () {'
-          expect(buffer.lineForRow(2)).toBe '  var sort = function(it {'
-          expect(cursor1.getBufferPosition()).toEqual [1, 24]
-          expect(cursor2.getBufferPosition()).toEqual [2, 5]
+          expect(buffer.lineForRow(1)).toBe 'var quicksort = {'
+          expect(buffer.lineForRow(2)).toBe '  var sort = function(it'
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 24]
 
       describe "when text is selected", ->
         it "deletes only selected text", ->
