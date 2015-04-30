@@ -2365,7 +2365,7 @@ describe "TextEditor", ->
       describe "when text is selected", ->
         it "deletes only selected text", ->
           editor.setSelectedBufferRange([[1, 24], [1, 27]])
-          editor.deleteToEndOfWord()
+          editor.deleteToPreviousWordBoundary()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
     describe ".deleteToNextWordBoundary()", ->
@@ -2395,7 +2395,7 @@ describe "TextEditor", ->
       describe "when text is selected", ->
         it "deletes only selected text", ->
           editor.setSelectedBufferRange([[1, 24], [1, 27]])
-          editor.deleteToEndOfWord()
+          editor.deleteToNextWordBoundary()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
     describe ".deleteToBeginningOfWord()", ->
