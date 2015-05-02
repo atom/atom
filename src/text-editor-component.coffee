@@ -112,13 +112,14 @@ class TextEditorComponent
     @domNode
 
   updateSync: ->
-    @oldState ?= {}
-    @newState = @presenter.getState()
+    @preMeasureUpdateSync()
+    @postMeasureUpdateSync()
 
-    cursorMoved = @cursorMoved
-    selectionChanged = @selectionChanged
-    @cursorMoved = false
-    @selectionChanged = false
+  preMeasureUpdateSync: ->
+    @oldState ?= {}
+    @newState = @presenter.getPreMeasureState()
+
+    shouldMeasure = @isVisible()
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
@@ -145,11 +146,21 @@ class TextEditorComponent
       @gutterContainerComponent = null
 
     @hiddenInputComponent.updateSync(@newState)
-    @linesComponent.updateSync(@newState)
+    @linesComponent.preMeasureUpdateSync(@newState, shouldMeasure)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
 
+  postMeasureUpdateSync: ->
+    @oldState ?= {}
+    @newState = @presenter.getPostMeasureState()
+
+    cursorMoved = @cursorMoved
+    selectionChanged = @selectionChanged
+    @cursorMoved = false
+    @selectionChanged = false
+
+    @linesComponent.postMeasureUpdateSync(@newState)
     @overlayManager?.render(@newState)
 
     if @editor.isAlive()
@@ -196,7 +207,6 @@ class TextEditorComponent
       atom.views.updateDocument =>
         @updateRequested = false
         @updateSync() if @editor.isAlive()
-      atom.views.readDocument(@readAfterUpdateSync)
 
   canUpdate: ->
     @mounted and @editor.isAlive()
@@ -569,6 +579,8 @@ class TextEditorComponent
     @domNode.offsetHeight > 0 or @domNode.offsetWidth > 0
 
   pollDOM: =>
+    return if @newState.content.scrollingVertically
+
     unless @checkForVisibilityChange()
       @sampleBackgroundColors()
       @measureDimensions()

@@ -19,7 +19,6 @@ class LinesComponent
   placeholderTextDiv: null
 
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
-    @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
@@ -33,6 +32,10 @@ class LinesComponent
 
     @highlightsComponent = new HighlightsComponent(@presenter)
     @domNode.appendChild(@highlightsComponent.getDomNode())
+    @iframe = document.createElement("iframe")
+    @domNode.appendChild(@iframe)
+    @iframe.style.display = "none"
+    @contextsByScopeIdentifier = {}
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -42,7 +45,16 @@ class LinesComponent
   getDomNode: ->
     @domNode
 
-  updateSync: (state) ->
+  preMeasureUpdateSync: (state, shouldMeasure) ->
+    @newState = state.content
+    @oldState ?= {lines: {}}
+
+    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
+    @updateLineNodes()
+
+    @measureCharactersInLines(false) if shouldMeasure
+
+  postMeasureUpdateSync: (state) ->
     @newState = state.content
     @oldState ?= {lines: {}}
 
@@ -67,9 +79,6 @@ class LinesComponent
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
 
-    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
-    @updateLineNodes()
-
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'
       @oldState.scrollWidth = @newState.scrollWidth
@@ -85,21 +94,25 @@ class LinesComponent
     return
 
   removeLineNode: (id) ->
+    screenRow = @screenRowsByLineId[id]
+
     @lineNodesByLineId[id].remove()
     delete @lineNodesByLineId[id]
-    delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
+    delete @lineIdsByScreenRow[screenRow]
     delete @screenRowsByLineId[id]
     delete @oldState.lines[id]
 
   updateLineNodes: ->
-    for id of @oldState.lines
+    for id in Object.keys(@oldState.lines)
       unless @newState.lines.hasOwnProperty(id)
         @removeLineNode(id)
 
     newLineIds = null
     newLinesHTML = null
 
-    for id, lineState of @newState.lines
+    for id in Object.keys(@newState.lines)
+      lineState = @newState.lines[id]
+
       if @oldState.lines.hasOwnProperty(id)
         @updateLineNode(id)
       else
@@ -171,13 +184,10 @@ class LinesComponent
     {tokens, text, isOnlyWhitespace} = @newState.lines[id]
     innerHTML = ""
 
-    scopeStack = []
     for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopes)
       hasIndentGuide = indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and isOnlyWhitespace))
       innerHTML += token.getValueAsHtml({hasIndentGuide})
 
-    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
     innerHTML += @buildEndOfLineHTML(id)
     innerHTML
 
@@ -189,31 +199,6 @@ class LinesComponent
       for invisible in endOfLineInvisibles
         html += "<span class='invisible-character'>#{invisible}</span>"
     html
-
-  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
-    html = ""
-
-    # Find a common prefix
-    for scope, i in desiredScopeDescriptor
-      break unless scopeStack[i] is desiredScopeDescriptor[i]
-
-    # Pop scopeDescriptor until we're at the common prefx
-    until scopeStack.length is i
-      html += @popScope(scopeStack)
-
-    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
-    for j in [i...desiredScopeDescriptor.length]
-      html += @pushScope(scopeStack, desiredScopeDescriptor[j])
-
-    html
-
-  popScope: (scopeStack) ->
-    scopeStack.pop()
-    "</span>"
-
-  pushScope: (scopeStack, scope) ->
-    scopeStack.push(scope)
-    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
     oldLineState = @oldState.lines[id]
@@ -241,7 +226,7 @@ class LinesComponent
 
     if newLineState.top isnt oldLineState.top
       lineNode.style.top = newLineState.top + 'px'
-      oldLineState.top = newLineState.cop
+      oldLineState.top = newLineState.top
 
     if newLineState.screenRow isnt oldLineState.screenRow
       lineNode.dataset.screenRow = newLineState.screenRow
@@ -263,61 +248,52 @@ class LinesComponent
   remeasureCharacterWidths: ->
     return unless @presenter.baseCharacterWidth
 
-    @clearScopedCharWidths()
-    @measureCharactersInNewLines()
-
-  measureCharactersInNewLines: ->
+    @contextsByScopeIdentifier = {}
     @presenter.batchCharacterMeasurement =>
-      for id, lineState of @oldState.lines
-        unless @measuredLines.has(id)
-          lineNode = @lineNodesByLineId[id]
-          @measureCharactersInLine(id, lineState, lineNode)
-      return
+      @measureCharactersInLines(true)
+
+  measureCharactersInLines: (invalidate = false) ->
+    for id, lineState of @newState.lines
+      lineNode = @lineNodesByLineId[id]
+
+      continue unless lineNode?
+      continue unless lineState.shouldMeasure or invalidate
+
+      @measureCharactersInLine(id, lineState, lineNode)
+    return
+
+  createCanvasContextForTokenInLineNode: (lineNode, token) ->
+    element = lineNode.querySelector("#token-#{token.id}")
+    canvas = @iframe.contentDocument.createElement("canvas")
+    context = canvas.getContext("2d")
+    context.font = getComputedStyle(element).font
+
+    context
+
+  measureTextWithinTokenInLineNode: (lineNode, token, text) ->
+    @contextsByScopeIdentifier[token.scopesIdentifier] ?= @createCanvasContextForTokenInLineNode(lineNode, token)
+    @contextsByScopeIdentifier[token.scopesIdentifier].measureText(text).width
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    rangeForMeasurement = null
-    iterator = null
-    charIndex = 0
-
-    for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
-      charWidths = @presenter.getScopedCharacterWidths(scopes)
-
+    left = 0
+    column = 0
+    for token in tokenizedLine.tokens
+      text = ""
       valueIndex = 0
-      while valueIndex < value.length
-        if hasPairedCharacter
-          char = value.substr(valueIndex, 2)
+      tokenLeft = 0
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2
         else
-          char = value[valueIndex]
+          char = token.value[valueIndex]
           charLength = 1
           valueIndex++
 
-        continue if char is '\0'
+        text += char unless char is '\0'
+        tokenLeft = @measureTextWithinTokenInLineNode(lineNode, token, text)
+        @presenter.setCharLeftPositionForPoint(tokenizedLine.screenRow, column, left + tokenLeft)
+        column += charLength
 
-        unless charWidths[char]?
-          unless textNode?
-            rangeForMeasurement ?= document.createRange()
-            iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
-            textNode = iterator.nextNode()
-            textNodeIndex = 0
-            nextTextNodeIndex = textNode.textContent.length
-
-          while nextTextNodeIndex <= charIndex
-            textNode = iterator.nextNode()
-            textNodeIndex = nextTextNodeIndex
-            nextTextNodeIndex = textNodeIndex + textNode.textContent.length
-
-          i = charIndex - textNodeIndex
-          rangeForMeasurement.setStart(textNode, i)
-          rangeForMeasurement.setEnd(textNode, i + charLength)
-          charWidth = rangeForMeasurement.getBoundingClientRect().width
-          @presenter.setScopedCharacterWidth(scopes, char, charWidth)
-
-        charIndex += charLength
-
-    @measuredLines.add(lineId)
-
-  clearScopedCharWidths: ->
-    @measuredLines.clear()
-    @presenter.clearScopedCharacterWidths()
+      left += tokenLeft

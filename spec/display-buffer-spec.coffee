@@ -1159,9 +1159,7 @@ describe "DisplayBuffer", ->
 
         displayBuffer.setLineHeightInPixels(20)
         displayBuffer.setDefaultCharWidth(10)
-
-        for char in ['r', 'e', 't', 'u', 'r', 'n']
-          displayBuffer.setScopedCharWidth(["source.js", "keyword.control.js"], char, 11)
+        displayBuffer.setCharLeftPositionForPoint(5, i - 1, i * 11) for i in [1..6]
 
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
@@ -1325,21 +1323,23 @@ describe "DisplayBuffer", ->
       buffer.delete([[6, 10], [6, 12]], ' ')
       expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + cursorWidth
 
-    it "recomputes the scroll width when the scoped character widths change", ->
-      operatorWidth = 20
-      displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + operatorWidth + cursorWidth
+    it "recomputes the scroll width when character widths change", ->
+      charWidth = 20
+      displayBuffer.setCharLeftPositionForPoint(6, 0, charWidth)
+      expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + charWidth + cursorWidth
 
-    it "recomputes the scroll width when the scoped character widths change in a batch", ->
-      operatorWidth = 20
+    it "recomputes the scroll width when widths change in a batch", ->
+      charWidth = 20
 
       displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
 
       displayBuffer.batchCharacterMeasurement ->
-        displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)
-        displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '?', operatorWidth)
+        displayBuffer.setCharLeftPositionForPoint(6, 0, charWidth)
+        displayBuffer.setCharLeftPositionForPoint(6, 0, charWidth)
+        displayBuffer.setCharLeftPositionForPoint(6, 1, charWidth * 2)
 
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + operatorWidth * 2 + cursorWidth
+
+      expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + charWidth * 2 + cursorWidth
       expect(changedSpy.callCount).toBe 1
 
   describe "::getVisibleRowRange()", ->

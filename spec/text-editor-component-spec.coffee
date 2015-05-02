@@ -250,8 +250,8 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
-      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
+      expect(leafNodes[1].classList.contains('trailing-whitespace')).toBe true
+      expect(leafNodes[1].classList.contains('leading-whitespace')).toBe false
 
     describe "when showInvisibles is enabled", ->
       invisibles = null
@@ -292,7 +292,8 @@ describe "TextEditorComponent", ->
       it "displays newlines as their own token outside of the other tokens' scopeDescriptor", ->
         editor.setText "var\n"
         nextAnimationFrame()
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
+        tokenId = editor.tokenizedLineForScreenRow(0).tokens[0].id
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span id=\"token-#{tokenId}\" class=\"source js storage modifier js\">var</span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "displays trailing carriage returns using a visible, non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
@@ -767,10 +768,28 @@ describe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0)
       range = document.createRange()
-      range.setStart(cursorLocationTextNode, 3)
-      range.setEnd(cursorLocationTextNode, 4)
+      range.setStart(cursorLocationTextNode, 2)
+      range.setEnd(cursorLocationTextNode, 3)
+      rangeRect = range.getBoundingClientRect()
+
+      expect(cursorRect.left).toBe rangeRect.left
+      expect(cursorRect.width).toBe rangeRect.width
+
+    it "accounts for the width of larger characters when positioning cursors", ->
+      atom.config.set('editor.fontFamily', 'sans-serif')
+      editor.setText('a👊b')
+      editor.setCursorBufferPosition([0, 3])
+      nextAnimationFrame()
+
+      cursor = componentNode.querySelector('.cursor')
+      cursorRect = cursor.getBoundingClientRect()
+
+      cursorLocationTextNode = component.lineNodeForScreenRow(0)
+      range = document.createRange()
+      range.setStart(cursorLocationTextNode, 2)
+      range.setEnd(cursorLocationTextNode, 3)
       rangeRect = range.getBoundingClientRect()
 
       expect(cursorRect.left).toBe rangeRect.left

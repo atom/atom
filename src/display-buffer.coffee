@@ -22,7 +22,7 @@ class DisplayBuffer extends Model
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  scopedCharacterWidthsChangeCount: 0
+  characterWidthsChanged: false
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
     super
@@ -32,7 +32,7 @@ class DisplayBuffer extends Model
 
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
     @buffer = @tokenizedBuffer.buffer
-    @charWidthsByScope = {}
+    @charWidthsByRow = {}
     @markers = {}
     @foldsByMarkerId = {}
     @decorationsById = {}
@@ -293,36 +293,39 @@ class DisplayBuffer extends Model
 
   getCursorWidth: -> 1
 
-  getScopedCharWidth: (scopeNames, char) ->
-    @getScopedCharWidths(scopeNames)[char]
-
-  getScopedCharWidths: (scopeNames) ->
-    scope = @charWidthsByScope
-    for scopeName in scopeNames
-      scope[scopeName] ?= {}
-      scope = scope[scopeName]
-    scope.charWidths ?= {}
-    scope.charWidths
-
   batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @scopedCharacterWidthsChangeCount
     @batchingCharacterMeasurement = true
     fn()
     @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
+    @handleCharacterWidthsChanged() if @characterWidthsChanged
 
-  setScopedCharWidth: (scopeNames, char, width) ->
-    @getScopedCharWidths(scopeNames)[char] = width
-    @scopedCharacterWidthsChangeCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
+  setCharLeftPositionForPoint: (row, column, charWidth) ->
+    @charWidthsByRow[row] ?= {}
+    @charWidthsByRow[row][column] = charWidth
+    @characterWidthsChanged = true
+    @handleCharacterWidthsChanged() unless @batchingCharacterMeasurement
 
-  characterWidthsChanged: ->
+  getCharLeftPositionForPoint: (row, column) ->
+    rowCharWidths = @charWidthsByRow[row]
+
+    return @getDefaultCharWidth() * (column + 1) unless rowCharWidths?
+
+    measuredCharWidth = rowCharWidths[column]
+    if measuredCharWidth?
+      measuredCharWidth
+    else
+      # TODO: should really keep this stuff here? We should *never* have a
+      # situation where a character is not yet measured.
+      [..., last] = Object.keys(rowCharWidths)
+      rowCharWidths[last] + @getDefaultCharWidth() * (column - last)
+
+  handleCharacterWidthsChanged: ->
+    return unless @characterWidthsChanged
+    @characterWidthsChanged = false
+
     @computeScrollWidth()
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
-
-  clearScopedCharWidths: ->
-    @charWidthsByScope = {}
+    @emit 'character-widths-changed'
+    @emitter.emit 'did-change-character-widths'
 
   getScrollHeight: ->
     lineHeight = @getLineHeightInPixels()
@@ -646,13 +649,14 @@ class DisplayBuffer extends Model
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
-    defaultCharWidth = @defaultCharWidth
+
+    tokenizedLine = @tokenizedLineForScreenRow(targetRow)
 
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    for token in @tokenizedLineForScreenRow(targetRow).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
+
+    for token in tokenizedLine.tokens
       valueIndex = 0
       while valueIndex < token.value.length
         if token.hasPairedCharacter
@@ -665,8 +669,9 @@ class DisplayBuffer extends Model
           valueIndex++
 
         return {top, left} if column is targetColumn
-        left += charWidths[char] ? defaultCharWidth unless char is '\0'
+        left = @getCharLeftPositionForPoint(targetRow, column) unless char is '\0'
         column += charLength
+
     {top, left}
 
   screenPositionForPixelPosition: (pixelPosition) ->
@@ -679,10 +684,12 @@ class DisplayBuffer extends Model
     row = Math.min(row, @getLastRow())
     row = Math.max(0, row)
 
+    tokenizedLine = @tokenizedLineForScreenRow(row)
+
     left = 0
     column = 0
-    for token in @tokenizedLineForScreenRow(row).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
+
+    for token in tokenizedLine.tokens
       valueIndex = 0
       while valueIndex < token.value.length
         if token.hasPairedCharacter
@@ -694,9 +701,9 @@ class DisplayBuffer extends Model
           charLength = 1
           valueIndex++
 
-        charWidth = charWidths[char] ? defaultCharWidth
-        break if targetLeft <= left + (charWidth / 2)
-        left += charWidth
+        nextLeft = @getCharLeftPositionForPoint(row, column)
+        break if targetLeft <= (left + nextLeft) / 2
+        left = nextLeft
         column += charLength
 
     new Point(row, column)

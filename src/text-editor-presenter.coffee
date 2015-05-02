@@ -9,7 +9,7 @@ class TextEditorPresenter
   startBlinkingCursorsAfterDelay: null
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
-  scopedCharacterWidthsChangeCount: 0
+  characterWidthsChanged: false
   overlayDimensions: {}
 
   constructor: (params) ->
@@ -24,6 +24,7 @@ class TextEditorPresenter
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @characterWidthsByScope = {}
+    @measuredLines = new Set
     @transferMeasurementsToModel()
     @observeModel()
     @observeConfig()
@@ -68,9 +69,7 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  # Public: Gets this presenter's state, updating it just in time before returning from this function.
-  # Returns a state {Object}, useful for rendering to screen.
-  getState: ->
+  getPreMeasureState: ->
     @updating = true
 
     @updateContentDimensions()
@@ -78,27 +77,50 @@ class TextEditorPresenter
     @updateStartRow()
     @updateEndRow()
 
+    shouldUpdateDecorations = @shouldUpdateDecorations
+
+    @updateContentState() if @shouldUpdateContentState
+    @updateDecorations() if @shouldUpdateDecorations
+    @updateLinesState() if @shouldUpdateLinesState
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
     @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
     @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
-    @updateScrollbarsState() if @shouldUpdateScrollbarsState
-    @updateHiddenInputState() if @shouldUpdateHiddenInputState
-    @updateContentState() if @shouldUpdateContentState
-    @updateDecorations() if @shouldUpdateDecorations
-    @updateLinesState() if @shouldUpdateLinesState
-    @updateCursorsState() if @shouldUpdateCursorsState
-    @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
     @updateLineNumbersState() if @shouldUpdateLineNumbersState
     @updateGutterOrderState() if @shouldUpdateGutterOrderState
     @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
+    @updateScrollbarsState() if @shouldUpdateScrollbarsState
+    @updateHiddenInputState() if @shouldUpdateHiddenInputState
+    @updateGutterState() if @shouldUpdateGutterState
+
+    @shouldUpdateDecorations = shouldUpdateDecorations
     @updating = false
 
     @state
 
+  getPostMeasureState: ->
+    @updating = true
+
+    @updateDecorations() if @shouldUpdateDecorations
+    @updateCursorsState() if @shouldUpdateCursorsState
+    @updateOverlaysState() if @shouldUpdateOverlaysState
+
+    @updating = false
+    @measureNewlyBuiltLines = false
+
+    @state
+
+  # Public: Gets this presenter's state, updating it just in time before returning from this function.
+  # Returns a state {Object}, useful for rendering to screen.
+  getState: ->
+    @getPreMeasureState()
+    @getPostMeasureState()
+
   observeModel: ->
     @disposables.add @model.onDidChange =>
+      @measureNewlyBuiltLines = true
+
       @updateContentDimensions()
       @updateEndRow()
       @updateHeightState()
@@ -112,6 +134,8 @@ class TextEditorPresenter
       @updateLineNumbersState()
       @updateGutterOrderState()
       @updateCustomGutterDecorationState()
+    @disposables.add @model.onDidChangeCharacterWidths =>
+      @characterWidthsChanged = true
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@updateContentState.bind(this))
     @disposables.add @model.onDidChangeMini =>
@@ -303,6 +327,10 @@ class TextEditorPresenter
     lineState.screenRow = row
     lineState.top = row * @lineHeight
     lineState.decorationClasses = @lineDecorationClassesForRow(row)
+    lineState.updatesCount++
+    lineState.shouldMeasure = not @measuredLines.has(line.id) and lineState.updatesCount is 2
+
+    @measuredLines.add(line.id) if lineState.shouldMeasure
 
   buildLineState: (row, line) ->
     @state.content.lines[line.id] =
@@ -316,16 +344,19 @@ class TextEditorPresenter
       fold: line.fold
       top: row * @lineHeight
       decorationClasses: @lineDecorationClassesForRow(row)
+      shouldMeasure: @measureNewlyBuiltLines or not @state.content.scrollingVertically
+      updatesCount: 0
+
+    @measuredLines.add(line.id) if @state.content.lines[line.id].shouldMeasure
 
   updateCursorsState: -> @batch "shouldUpdateCursorsState", ->
     @state.content.cursors = {}
     @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
     return
 
-  updateCursorState: (cursor, destroyOnly = false) ->
+  updateCursorState: (cursor) ->
     delete @state.content.cursors[cursor.id]
 
-    return if destroyOnly
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
     return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
 
@@ -859,33 +890,19 @@ class TextEditorPresenter
     unless @baseCharacterWidth is baseCharacterWidth
       @baseCharacterWidth = baseCharacterWidth
       @model.setDefaultCharWidth(baseCharacterWidth)
-      @characterWidthsChanged()
-
-  getScopedCharacterWidth: (scopeNames, char) ->
-    @getScopedCharacterWidths(scopeNames)[char]
-
-  getScopedCharacterWidths: (scopeNames) ->
-    scope = @characterWidthsByScope
-    for scopeName in scopeNames
-      scope[scopeName] ?= {}
-      scope = scope[scopeName]
-    scope.characterWidths ?= {}
-    scope.characterWidths
+      @handleCharacterWidthsChanged()
 
   batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @scopedCharacterWidthsChangeCount
     @batchingCharacterMeasurement = true
     @model.batchCharacterMeasurement(fn)
     @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
+    @handleCharacterWidthsChanged() if @characterWidthsChanged
 
-  setScopedCharacterWidth: (scopeNames, character, width) ->
-    @getScopedCharacterWidths(scopeNames)[character] = width
-    @model.setScopedCharWidth(scopeNames, character, width)
-    @scopedCharacterWidthsChangeCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
+  setCharLeftPositionForPoint: (row, column, width) ->
+    @model.setCharLeftPositionForPoint(row, column, width)
+    @characterWidthsChanged = true
 
-  characterWidthsChanged: ->
+  handleCharacterWidthsChanged: ->
     @updateContentDimensions()
 
     @updateHorizontalScrollState()
@@ -898,10 +915,6 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateOverlaysState()
 
-  clearScopedCharacterWidths: ->
-    @characterWidthsByScope = {}
-    @model.clearScopedCharWidths()
-
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
@@ -911,14 +924,14 @@ class TextEditorPresenter
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
-    baseCharacterWidth = @baseCharacterWidth
+
+    tokenizedLine = @model.tokenizedLineForScreenRow(targetRow)
 
     top = targetRow * @lineHeight
     left = 0
     column = 0
-    for token in @model.tokenizedLineForScreenRow(targetRow).tokens
-      characterWidths = @getScopedCharacterWidths(token.scopes)
 
+    for token in tokenizedLine.tokens
       valueIndex = 0
       while valueIndex < token.value.length
         if token.hasPairedCharacter
@@ -931,9 +944,9 @@ class TextEditorPresenter
           valueIndex++
 
         return {top, left} if column is targetColumn
-
-        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
+        left = @model.getCharLeftPositionForPoint(targetRow, column) unless char is '\0'
         column += charLength
+
     {top, left}
 
   hasPixelRectRequirements: ->
@@ -1215,17 +1228,19 @@ class TextEditorPresenter
     didChangePositionDisposable = cursor.onDidChangePosition =>
       @updateHiddenInputState() if cursor.isLastCursor()
       @pauseCursorBlinking()
-      @updateCursorState(cursor)
+      @updateCursorsState()
+
+      @measureNewlyBuiltLines = true
 
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
-      @updateCursorState(cursor)
+      @updateCursorsState()
 
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
       @updateHiddenInputState()
-      @updateCursorState(cursor, true)
+      @updateCursorsState()
 
     @disposables.add(didChangePositionDisposable)
     @disposables.add(didChangeVisibilityDisposable)
@@ -1235,7 +1250,9 @@ class TextEditorPresenter
     @observeCursor(cursor)
     @updateHiddenInputState()
     @pauseCursorBlinking()
-    @updateCursorState(cursor)
+    @updateCursorsState()
+
+    @measureNewlyBuiltLines = true
 
   startBlinkingCursors: ->
     unless @toggleCursorBlinkHandle
