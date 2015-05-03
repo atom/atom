@@ -932,6 +932,25 @@ class TextEditor extends Model
 
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true, autoscroll: true)
 
+  moveSelectionRight: ->
+    selections = @getSelectedBufferRanges()
+
+    translationDelta = [0, 1]
+    translatedRanges = []
+
+    @transact =>
+      for selection in selections
+        range = new Range(selection.end, selection.end.translate(translationDelta))
+
+        insertionPoint = selection.start
+        text = @buffer.getTextInRange(range)
+
+        @buffer.delete(range)
+        @buffer.insert(insertionPoint, text)
+        translatedRanges.push(selection.translate(translationDelta))
+
+      @setSelectedBufferRanges(translatedRanges)
+
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
     @transact =>

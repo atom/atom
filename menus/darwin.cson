@@ -128,6 +128,7 @@
       { label: 'Select to First Character of Line', command: 'editor:select-to-first-character-of-line' }
       { label: 'Select to End of Word', command: 'editor:select-to-end-of-word' }
       { label: 'Select to End of Line', command: 'editor:select-to-end-of-line' }
+      { label: 'Move Selection Right', command: 'editor:move-selection-right' }
     ]
   }
 
