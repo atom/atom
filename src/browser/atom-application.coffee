@@ -518,11 +518,11 @@ class AtomApplication
 
     [fileToOpen, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
     return {pathToOpen} unless initialLine
-    return {pathToOpen} unless parseInt(initialLine) > 0
+    return {pathToOpen} unless parseInt(initialLine) >= 0
 
     # Convert line numbers to a base of 0
-    initialLine -= 1 if initialLine
-    initialColumn -= 1 if initialColumn
+    initialLine = Math.max(0, initialLine - 1) if initialLine
+    initialColumn = Math.max(0, initialColumn - 1) if initialColumn
     pathToOpen = path.join(path.dirname(pathToOpen), fileToOpen)
     {pathToOpen, initialLine, initialColumn}
 
