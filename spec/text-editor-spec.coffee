@@ -3457,6 +3457,19 @@ describe "TextEditor", ->
         expect(selections[1].getText()).toBe 'sort'
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 3], [0, 12]], [[1, 5], [1, 9]]]
 
+      describe "when a selection is at the first column of a line", ->
+        it "does not change the selection", ->
+          editor.setSelectedBufferRanges([[[0, 0], [0, 3]], [[1, 0], [1, 3]]])
+          selections = editor.getSelections()
+
+          expect(selections[0].getText()).toBe 'var'
+          expect(selections[1].getText()).toBe '  v'
+          editor.moveSelectionLeft()
+          editor.moveSelectionLeft()
+          expect(selections[0].getText()).toBe 'var'
+          expect(selections[1].getText()).toBe '  v'
+          expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]], [[1, 0], [1, 3]]]
+
     describe ".moveSelectionRight()", ->
       it "moves one active selection on one line one column to the right", ->
         editor.setSelectedBufferRange [[0, 4], [0, 13]]
@@ -3486,6 +3499,19 @@ describe "TextEditor", ->
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'sort'
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 5], [0, 14]], [[1, 7], [1, 11]]]
+
+      describe "when a selection is at the last column of a line", ->
+        it "does not change the selection", ->
+          editor.setSelectedBufferRanges([[[2, 34], [2, 40]], [[5, 22], [5, 30]]])
+          selections = editor.getSelections()
+
+          expect(selections[0].getText()).toBe 'items;'
+          expect(selections[1].getText()).toBe 'shift();'
+          editor.moveSelectionRight()
+          editor.moveSelectionRight()
+          expect(selections[0].getText()).toBe 'items;'
+          expect(selections[1].getText()).toBe 'shift();'
+          expect(editor.getSelectedBufferRanges()).toEqual [[[2, 34], [2, 40]], [[5, 22], [5, 30]]]
 
   describe 'reading text', ->
     it '.lineTextForScreenRow(row)', ->
