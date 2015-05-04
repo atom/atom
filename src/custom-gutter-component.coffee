@@ -13,6 +13,8 @@ class CustomGutterComponent
 
     @domNode = atom.views.getView(@gutter)
     @decorationsNode = @domNode.firstChild
+    # Clear the contents in case the domNode is being reused.
+    @decorationsNode.innerHTML = ''
 
   getDomNode: ->
     @domNode

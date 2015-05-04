@@ -13,12 +13,13 @@ class TextEditorPresenter
   overlayDimensions: {}
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight} = params
+    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
+    @gutterWidth ?= 0
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -377,10 +378,9 @@ class TextEditorPresenter
       pixelPosition = @pixelPositionForScreenPosition(screenPosition)
 
       {scrollTop, scrollLeft} = @state.content
-      gutterWidth = @boundingClientRect.width - @contentFrameWidth
 
       top = pixelPosition.top + @lineHeight - scrollTop
-      left = pixelPosition.left + gutterWidth - scrollLeft
+      left = pixelPosition.left + @gutterWidth - scrollLeft
 
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
@@ -571,7 +571,8 @@ class TextEditorPresenter
 
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
-      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), Infinity]).left
+      clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
+      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
     if @contentHeight isnt oldContentHeight
@@ -725,6 +726,9 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
+  getScrollTop: ->
+    @scrollTop
+
   didStartScrolling: ->
     if @stoppedScrollingTimeoutId?
       clearTimeout(@stoppedScrollingTimeoutId)
@@ -755,6 +759,9 @@ class TextEditorPresenter
       @shouldUpdateOverlaysState = true
 
       @emitDidUpdateState()
+
+  getScrollLeft: ->
+    @scrollLeft
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
@@ -870,6 +877,11 @@ class TextEditorPresenter
       @shouldUpdateGutterOrderState = true
 
       @emitDidUpdateState()
+
+  setGutterWidth: (gutterWidth) ->
+    if @gutterWidth isnt gutterWidth
+      @gutterWidth = gutterWidth
+      @updateOverlaysState()
 
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
