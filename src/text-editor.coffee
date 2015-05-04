@@ -945,8 +945,6 @@ class TextEditor extends Model
         insertionPoint = selection.end
         text = @buffer.getTextInRange(range)
 
-        console.log(text)
-
         @buffer.insert(insertionPoint, text)
         @buffer.delete(range)
         translatedRanges.push(selection.translate(translationDelta))
