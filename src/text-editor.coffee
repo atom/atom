@@ -942,14 +942,16 @@ class TextEditor extends Model
       for selection in selections
         charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
 
-        unless charToLeftOfSelection.start.column < 0
+        if charToLeftOfSelection.start.column < 0
+          translatedRanges.push(selection)
+        else
           text = @buffer.getTextInRange(charToLeftOfSelection)
 
           @buffer.insert(selection.end, text)
           @buffer.delete(charToLeftOfSelection)
           translatedRanges.push(selection.translate(translationDelta))
 
-      @setSelectedBufferRanges(translatedRanges) if translatedRanges.length > 0
+      @setSelectedBufferRanges(translatedRanges)
 
   moveSelectionRight: ->
     selections = @getSelectedBufferRanges()
@@ -961,14 +963,16 @@ class TextEditor extends Model
       for selection in selections
         charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
 
-        unless charToRightOfSelection.end.column > @buffer.lineLengthForRow(charToRightOfSelection.end.row)
+        if charToRightOfSelection.end.column > @buffer.lineLengthForRow(charToRightOfSelection.end.row)
+          translatedRanges.push(selection)
+        else
           text = @buffer.getTextInRange(charToRightOfSelection)
 
           @buffer.delete(charToRightOfSelection)
           @buffer.insert(selection.start, text)
           translatedRanges.push(selection.translate(translationDelta))
 
-      @setSelectedBufferRanges(translatedRanges) if translatedRanges.length > 0
+      @setSelectedBufferRanges(translatedRanges)
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
