@@ -946,9 +946,9 @@ class TextEditor extends Model
         if charToLeftOfSelection.start.column < 0
           translatedRanges.push(selection)
         else
-          text = @buffer.getTextInRange(charToLeftOfSelection)
+          charTextToLeftOfSelection = @buffer.getTextInRange(charToLeftOfSelection)
 
-          @buffer.insert(selection.end, text)
+          @buffer.insert(selection.end, charTextToLeftOfSelection)
           @buffer.delete(charToLeftOfSelection)
           translatedRanges.push(selection.translate(translationDelta))
 
@@ -968,10 +968,10 @@ class TextEditor extends Model
         if charToRightOfSelection.end.column > @buffer.lineLengthForRow(charToRightOfSelection.end.row)
           translatedRanges.push(selection)
         else
-          text = @buffer.getTextInRange(charToRightOfSelection)
+          charTextToRightOfSelection = @buffer.getTextInRange(charToRightOfSelection)
 
           @buffer.delete(charToRightOfSelection)
-          @buffer.insert(selection.start, text)
+          @buffer.insert(selection.start, charTextToRightOfSelection)
           translatedRanges.push(selection.translate(translationDelta))
 
       @setSelectedBufferRanges(translatedRanges)
