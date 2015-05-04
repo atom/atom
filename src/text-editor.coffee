@@ -942,14 +942,15 @@ class TextEditor extends Model
       for selection in selections
         charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
 
-        insertionPoint = selection.end
-        text = @buffer.getTextInRange(charToLeftOfSelection)
+        unless charToLeftOfSelection.start.column < 0
+          insertionPoint = selection.end
+          text = @buffer.getTextInRange(charToLeftOfSelection)
 
-        @buffer.insert(insertionPoint, text)
-        @buffer.delete(charToLeftOfSelection)
-        translatedRanges.push(selection.translate(translationDelta))
+          @buffer.insert(insertionPoint, text)
+          @buffer.delete(charToLeftOfSelection)
+          translatedRanges.push(selection.translate(translationDelta))
 
-      @setSelectedBufferRanges(translatedRanges)
+      @setSelectedBufferRanges(translatedRanges) if translatedRanges.length > 0
 
   moveSelectionRight: ->
     selections = @getSelectedBufferRanges()
@@ -961,14 +962,15 @@ class TextEditor extends Model
       for selection in selections
         charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
 
-        insertionPoint = selection.start
-        text = @buffer.getTextInRange(charToRightOfSelection)
+        unless charToRightOfSelection.end.column > @buffer.lineLengthForRow(charToRightOfSelection.end.row)
+          insertionPoint = selection.start
+          text = @buffer.getTextInRange(charToRightOfSelection)
 
-        @buffer.delete(charToRightOfSelection)
-        @buffer.insert(insertionPoint, text)
-        translatedRanges.push(selection.translate(translationDelta))
+          @buffer.delete(charToRightOfSelection)
+          @buffer.insert(insertionPoint, text)
+          translatedRanges.push(selection.translate(translationDelta))
 
-      @setSelectedBufferRanges(translatedRanges)
+      @setSelectedBufferRanges(translatedRanges) if translatedRanges.length > 0
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
