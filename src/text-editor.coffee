@@ -932,6 +932,7 @@ class TextEditor extends Model
 
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true, autoscroll: true)
 
+  # Move any active selections one column to the left.
   moveSelectionLeft: ->
     selections = @getSelectedBufferRanges()
 
@@ -953,6 +954,7 @@ class TextEditor extends Model
 
       @setSelectedBufferRanges(translatedRanges)
 
+  # Move any active selections one column to the right.
   moveSelectionRight: ->
     selections = @getSelectedBufferRanges()
 
