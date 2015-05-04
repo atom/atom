@@ -615,16 +615,19 @@ class Workspace extends Model
   # Increase the editor font size by 1px.
   increaseFontSize: ->
     atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
+    @getActiveEditor()?.scrollToCursorPosition()
 
   # Decrease the editor font size by 1px.
   decreaseFontSize: ->
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+    @getActiveEditor()?.scrollToCursorPosition()
 
   # Restore to the window's original editor font size.
   resetFontSize: ->
     if @originalFontSize
       atom.config.set("editor.fontSize", @originalFontSize)
+      @getActiveEditor()?.scrollToCursorPosition()
 
   subscribeToFontSize: ->
     atom.config.onDidChange 'editor.fontSize', ({oldValue}) =>
