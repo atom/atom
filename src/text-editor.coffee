@@ -940,13 +940,13 @@ class TextEditor extends Model
 
     @transact =>
       for selection in selections
-        range = new Range(selection.start.translate(translationDelta), selection.start)
+        charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
 
         insertionPoint = selection.end
-        text = @buffer.getTextInRange(range)
+        text = @buffer.getTextInRange(charToLeftOfSelection)
 
         @buffer.insert(insertionPoint, text)
-        @buffer.delete(range)
+        @buffer.delete(charToLeftOfSelection)
         translatedRanges.push(selection.translate(translationDelta))
 
       @setSelectedBufferRanges(translatedRanges)
@@ -959,12 +959,12 @@ class TextEditor extends Model
 
     @transact =>
       for selection in selections
-        range = new Range(selection.end, selection.end.translate(translationDelta))
+        charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
 
         insertionPoint = selection.start
-        text = @buffer.getTextInRange(range)
+        text = @buffer.getTextInRange(charToRightOfSelection)
 
-        @buffer.delete(range)
+        @buffer.delete(charToRightOfSelection)
         @buffer.insert(insertionPoint, text)
         translatedRanges.push(selection.translate(translationDelta))
 
