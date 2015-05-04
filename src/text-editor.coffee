@@ -932,6 +932,27 @@ class TextEditor extends Model
 
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true, autoscroll: true)
 
+  moveSelectionLeft: ->
+    selections = @getSelectedBufferRanges()
+
+    translationDelta = [0, -1]
+    translatedRanges = []
+
+    @transact =>
+      for selection in selections
+        range = new Range(selection.start.translate(translationDelta), selection.start)
+
+        insertionPoint = selection.end
+        text = @buffer.getTextInRange(range)
+
+        console.log(text)
+
+        @buffer.insert(insertionPoint, text)
+        @buffer.delete(range)
+        translatedRanges.push(selection.translate(translationDelta))
+
+      @setSelectedBufferRanges(translatedRanges)
+
   moveSelectionRight: ->
     selections = @getSelectedBufferRanges()
 
