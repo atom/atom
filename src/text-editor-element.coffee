@@ -205,6 +205,17 @@ class TextEditorElement extends HTMLElement
   getLastVisibleScreenRow: ->
     @getModel().getLastVisibleScreenRow(true)
 
+  # Extended: Returns whether the cursor is visible in the current viewport.
+  #
+  # * `cursor` (optional) A [Cursor] object. (default: {TextEditor::getLastCursor()})
+  #
+  # Returns a {Boolean}.
+  isCursorOnScreen: (cursor=@getModel().getLastCursor()) ->
+    firstRow = @getFirstVisibleScreenRow()
+    lastRow = @getLastVisibleScreenRow()
+    cursorRow = cursor.getScreenRow()
+    firstRow <= cursorRow <= lastRow
+
   # Extended: call the given `callback` when the editor is attached to the DOM.
   #
   # * `callback` {Function}

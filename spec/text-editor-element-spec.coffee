@@ -233,3 +233,23 @@ describe "TextEditorElement", ->
       element = new TextEditorElement
       jasmine.attachToDOM(element)
       expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
+
+  fdescribe "::isCursorOnScreen", ->
+    [element, model] = []
+
+    beforeEach ->
+      atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('.')])
+
+      waitsForPromise ->
+        atom.workspace.open('two-hundred.txt').then (o) -> model = o
+
+    it "returns true if the cursor is visible on the screen", ->
+      element = atom.views.getView(model)
+      expect(model.getCursorScreenPosition()).toEqual [0, 0]
+      expect(element.isCursorOnScreen()).toBe true
+
+    it "returns false if the cursor is not visible on the screen", ->
+      element = atom.views.getView(model)
+      expect(model.getCursorBufferPosition()).toEqual [0, 0]
+      model.setCursorBufferPosition([element.getLastVisibleScreenRow() + 1, 0], autoscroll: false)
+      expect(element.isCursorOnScreen()).toBe false
