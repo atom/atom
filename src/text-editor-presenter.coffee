@@ -21,6 +21,8 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
+    @tileOverdrawMargin ?= 0
+    @tileCount ?= 4
     @linesPresentersByTileIndex = {}
 
     @disposables = new CompositeDisposable
@@ -303,7 +305,7 @@ class TextEditorPresenter
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    linesPerTile = @height / @lineHeight / @tileCount
+    linesPerTile = Math.floor(@height / @lineHeight / @tileCount)
 
     startIndex = Math.max(
       0, Math.floor(@startRow / linesPerTile) - @tileOverdrawMargin
@@ -328,6 +330,7 @@ class TextEditorPresenter
       tile = @state.content.tiles[index] ?= {}
       tile.top = (index * linesPerTile * @lineHeight) - @scrollTop
       tile.lines = presenter.getState()
+      tile.height = linesPerTile * @lineHeight
 
   updateCursorsState: ->
     @state.content.cursors = {}

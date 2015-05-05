@@ -4,6 +4,7 @@ _ = require 'underscore-plus'
 
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
+TileComponent = require './tile-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -19,11 +20,7 @@ class LinesComponent
   placeholderTextDiv: null
 
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
-    @measuredLines = new Set
-    @lineNodesByLineId = {}
-    @screenRowsByLineId = {}
-    @lineIdsByScreenRow = {}
-    @renderedDecorationsByLineId = {}
+    @tileComponentsByTileId = {}
 
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
@@ -44,15 +41,14 @@ class LinesComponent
 
   updateSync: (state) ->
     @newState = state.content
-    @oldState ?= {lines: {}}
+    @oldState ?= {tiles: {}}
 
     if @newState.scrollHeight isnt @oldState.scrollHeight
       @domNode.style.height = @newState.scrollHeight + 'px'
       @oldState.scrollHeight = @newState.scrollHeight
 
-    if @newState.scrollTop isnt @oldState.scrollTop or @newState.scrollLeft isnt @oldState.scrollLeft
-      @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, #{-@newState.scrollTop}px, 0px)"
-      @oldState.scrollTop = @newState.scrollTop
+    if @newState.scrollLeft isnt @oldState.scrollLeft
+      @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, 0, 0px)"
       @oldState.scrollLeft = @newState.scrollLeft
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
@@ -67,8 +63,8 @@ class LinesComponent
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
 
-    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
-    @updateLineNodes()
+    @removeTileNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
+    @updateTileNodes()
 
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'
@@ -80,176 +76,30 @@ class LinesComponent
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
 
-  removeLineNodes: ->
-    @removeLineNode(id) for id of @oldState.lines
+  removeTileNodes: ->
+    @removeTileNode(id) for id of @oldState.tiles
     return
 
-  removeLineNode: (id) ->
-    @lineNodesByLineId[id].remove()
-    delete @lineNodesByLineId[id]
-    delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
-    delete @screenRowsByLineId[id]
-    delete @oldState.lines[id]
+  removeTileNode: (id) ->
+    @tileComponentsByTileId[id].getDomNode().remove()
+    delete @tileComponentsByTileId[id]
+    delete @oldState.tiles[id]
 
-  updateLineNodes: ->
-    for id of @oldState.lines
-      unless @newState.lines.hasOwnProperty(id)
-        @removeLineNode(id)
+  updateTileNodes: ->
+    for id of @oldState.tiles
+      unless @newState.tiles.hasOwnProperty(id)
+        @removeTileNode(id)
 
-    newLineIds = null
-    newLinesHTML = null
+    for id, tileState of @newState.tiles
+      tileComponent = @tileComponentsByTileId[id] ?= new TileComponent({id, @presenter})
 
-    for id, lineState of @newState.lines
-      if @oldState.lines.hasOwnProperty(id)
-        @updateLineNode(id)
-      else
-        newLineIds ?= []
-        newLinesHTML ?= ""
-        newLineIds.push(id)
-        newLinesHTML += @buildLineHTML(id)
-        @screenRowsByLineId[id] = lineState.screenRow
-        @lineIdsByScreenRow[lineState.screenRow] = id
-        @oldState.lines[id] = cloneObject(lineState)
+      unless @oldState.tiles.hasOwnProperty(id)
+        @domNode.appendChild(tileComponent.getDomNode())
+        @oldState.tiles[id] = cloneObject(tileState)
 
-    return unless newLineIds?
-
-    WrapperDiv.innerHTML = newLinesHTML
-    newLineNodes = _.toArray(WrapperDiv.children)
-    for id, i in newLineIds
-      lineNode = newLineNodes[i]
-      @lineNodesByLineId[id] = lineNode
-      @domNode.appendChild(lineNode)
+      tileComponent.updateSync(@newState)
 
     return
-
-  buildLineHTML: (id) ->
-    {scrollWidth} = @newState
-    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newState.lines[id]
-
-    classes = ''
-    if decorationClasses?
-      for decorationClass in decorationClasses
-        classes += decorationClass + ' '
-    classes += 'line'
-
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{scrollWidth}px;\" data-screen-row=\"#{screenRow}\">"
-
-    if text is ""
-      lineHTML += @buildEmptyLineInnerHTML(id)
-    else
-      lineHTML += @buildLineInnerHTML(id)
-
-    lineHTML += '<span class="fold-marker"></span>' if fold
-    lineHTML += "</div>"
-    lineHTML
-
-  buildEmptyLineInnerHTML: (id) ->
-    {indentGuidesVisible} = @newState
-    {indentLevel, tabLength, endOfLineInvisibles} = @newState.lines[id]
-
-    if indentGuidesVisible and indentLevel > 0
-      invisibleIndex = 0
-      lineHTML = ''
-      for i in [0...indentLevel]
-        lineHTML += "<span class='indent-guide'>"
-        for j in [0...tabLength]
-          if invisible = endOfLineInvisibles?[invisibleIndex++]
-            lineHTML += "<span class='invisible-character'>#{invisible}</span>"
-          else
-            lineHTML += ' '
-        lineHTML += "</span>"
-
-      while invisibleIndex < endOfLineInvisibles?.length
-        lineHTML += "<span class='invisible-character'>#{endOfLineInvisibles[invisibleIndex++]}</span>"
-
-      lineHTML
-    else
-      @buildEndOfLineHTML(id) or '&nbsp;'
-
-  buildLineInnerHTML: (id) ->
-    {indentGuidesVisible} = @newState
-    {tokens, text, isOnlyWhitespace} = @newState.lines[id]
-    innerHTML = ""
-
-    scopeStack = []
-    for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and isOnlyWhitespace))
-      innerHTML += token.getValueAsHtml({hasIndentGuide})
-
-    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
-    innerHTML += @buildEndOfLineHTML(id)
-    innerHTML
-
-  buildEndOfLineHTML: (id) ->
-    {endOfLineInvisibles} = @newState.lines[id]
-
-    html = ''
-    if endOfLineInvisibles?
-      for invisible in endOfLineInvisibles
-        html += "<span class='invisible-character'>#{invisible}</span>"
-    html
-
-  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
-    html = ""
-
-    # Find a common prefix
-    for scope, i in desiredScopeDescriptor
-      break unless scopeStack[i] is desiredScopeDescriptor[i]
-
-    # Pop scopeDescriptor until we're at the common prefx
-    until scopeStack.length is i
-      html += @popScope(scopeStack)
-
-    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
-    for j in [i...desiredScopeDescriptor.length]
-      html += @pushScope(scopeStack, desiredScopeDescriptor[j])
-
-    html
-
-  popScope: (scopeStack) ->
-    scopeStack.pop()
-    "</span>"
-
-  pushScope: (scopeStack, scope) ->
-    scopeStack.push(scope)
-    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
-
-  updateLineNode: (id) ->
-    oldLineState = @oldState.lines[id]
-    newLineState = @newState.lines[id]
-
-    lineNode = @lineNodesByLineId[id]
-
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      lineNode.style.width = @newState.scrollWidth + 'px'
-
-    newDecorationClasses = newLineState.decorationClasses
-    oldDecorationClasses = oldLineState.decorationClasses
-
-    if oldDecorationClasses?
-      for decorationClass in oldDecorationClasses
-        unless newDecorationClasses? and decorationClass in newDecorationClasses
-          lineNode.classList.remove(decorationClass)
-
-    if newDecorationClasses?
-      for decorationClass in newDecorationClasses
-        unless oldDecorationClasses? and decorationClass in oldDecorationClasses
-          lineNode.classList.add(decorationClass)
-
-    oldLineState.decorationClasses = newLineState.decorationClasses
-
-    if newLineState.top isnt oldLineState.top
-      lineNode.style.top = newLineState.top + 'px'
-      oldLineState.top = newLineState.cop
-
-    if newLineState.screenRow isnt oldLineState.screenRow
-      lineNode.dataset.screenRow = newLineState.screenRow
-      oldLineState.screenRow = newLineState.screenRow
-      @lineIdsByScreenRow[newLineState.screenRow] = id
-
-  lineNodeForScreenRow: (screenRow) ->
-    @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
   measureLineHeightAndDefaultCharWidth: ->
     @domNode.appendChild(DummyLineNode)
