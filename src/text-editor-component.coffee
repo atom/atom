@@ -354,7 +354,6 @@ class TextEditorComponent
       event.preventDefault() unless previousScrollLeft is @presenter.getScrollLeft()
     else
       # Scrolling vertically
-      @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = @presenter.getScrollTop()
       @presenter.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
       event.preventDefault() unless previousScrollTop is @presenter.getScrollTop()

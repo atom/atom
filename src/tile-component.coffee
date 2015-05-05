@@ -21,8 +21,12 @@ class TileComponent
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
     @domNode = document.createElement("div")
+    @domNode.addEventListener("mousewheel", @onMouseWheel)
     @domNode.style.position = "absolute"
     @domNode.classList.add("tile")
+
+  onMouseWheel: =>
+    @presenter.setScrollingTile(@id)
 
   getDomNode: ->
     @domNode

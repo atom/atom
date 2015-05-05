@@ -317,9 +317,11 @@ class TextEditorPresenter
     visibleTilesIndexes = [startIndex...endIndex]
 
     for index, tile of @state.content.tiles
-      unless index in visibleTilesIndexes
-        delete @state.content.tiles[index]
-        delete @linesPresentersByTileIndex[index]
+      continue if index is @scrollingTile
+      continue if index in visibleTilesIndexes
+
+      delete @state.content.tiles[index]
+      delete @linesPresentersByTileIndex[index]
 
     for index in visibleTilesIndexes
       presenter = @linesPresentersByTileIndex[index] ?= new LinesPresenter(@)
@@ -728,8 +730,8 @@ class TextEditorPresenter
 
   didStopScrolling: ->
     @state.content.scrollingVertically = false
-    if @mouseWheelScreenRow?
-      @mouseWheelScreenRow = null
+    if @scrollingTile?
+      @scrollingTile = null
       @shouldUpdateTilesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -895,9 +897,9 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setMouseWheelScreenRow: (mouseWheelScreenRow) ->
-    unless @mouseWheelScreenRow is mouseWheelScreenRow
-      @mouseWheelScreenRow = mouseWheelScreenRow
+  setScrollingTile: (tileId) ->
+    if @scrollingTile isnt tileId
+      @scrollingTile = tileId
       @didStartScrolling()
 
   setBaseCharacterWidth: (baseCharacterWidth) ->
