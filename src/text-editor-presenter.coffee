@@ -16,12 +16,11 @@ class TextEditorPresenter
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
-    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor} = params
+    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor, @tileCount, @tileOverdrawMargin} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileCount ?= 3
     @linesPresentersByTileIndex = {}
 
     @disposables = new CompositeDisposable
@@ -306,16 +305,21 @@ class TextEditorPresenter
 
     linesPerTile = @height / @lineHeight / @tileCount
 
-    startIndex = Math.floor(@startRow / linesPerTile)
-    endIndex = Math.ceil(@endRow / linesPerTile)
-    visibleIndexesRange = [startIndex..endIndex]
+    startIndex = Math.max(
+      0, Math.floor(@startRow / linesPerTile) - @tileOverdrawMargin
+    )
+    endIndex = Math.min(
+      Math.ceil(@model.getScreenLineCount() / linesPerTile),
+      Math.ceil(@endRow / linesPerTile) + @tileOverdrawMargin
+    )
+    visibleTilesIndexes = [startIndex...endIndex]
 
     for index, tile of @state.content.tiles
-      unless index in visibleIndexesRange
+      unless index in visibleTilesIndexes
         delete @state.content.tiles[index]
         delete @linesPresentersByTileIndex[index]
 
-    for index in visibleIndexesRange
+    for index in visibleTilesIndexes
       presenter = @linesPresentersByTileIndex[index] ?= new LinesPresenter(@)
       presenter.startRow = Math.floor(index * linesPerTile)
       presenter.endRow = Math.ceil(Math.min(@endRow, (index + 1) * linesPerTile))
@@ -514,7 +518,7 @@ class TextEditorPresenter
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
 
-    startRow = Math.floor(@scrollTop / @lineHeight) - @lineOverdrawMargin
+    startRow = Math.floor(@scrollTop / @lineHeight)
     @startRow = Math.max(0, startRow)
 
   updateEndRow: ->
@@ -522,7 +526,7 @@ class TextEditorPresenter
 
     startRow = Math.max(0, Math.floor(@scrollTop / @lineHeight))
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
-    endRow = startRow + visibleLinesCount + @lineOverdrawMargin
+    endRow = startRow + visibleLinesCount
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
 
   updateScrollWidth: ->

@@ -657,123 +657,96 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.setPlaceholderText("new-placeholder-text")
           expect(presenter.getState().content.placeholderText).toBe "new-placeholder-text"
 
-      describe ".lines", ->
-        lineStateForScreenRow = (presenter, screenRow) ->
-          presenter.getState().content.lines[presenter.model.tokenizedLineForScreenRow(screenRow).id]
+      fdescribe ".tiles", ->
+        it "contains states for tiles that are visible on screen, plus and minus the overdraw margin", ->
+          presenter = buildPresenter(explicitHeight: 3, scrollTop: 1, lineHeight: 1, tileCount: 3, tileOverdrawMargin: 1)
 
-        it "contains states for lines that are visible on screen, plus and minus the overdraw margin", ->
-          presenter = buildPresenter(explicitHeight: 15, scrollTop: 50, lineHeight: 10, lineOverdrawMargin: 1)
-
-          expect(lineStateForScreenRow(presenter, 3)).toBeUndefined()
-
-          line4 = editor.tokenizedLineForScreenRow(4)
-          expectValues lineStateForScreenRow(presenter, 4), {
-            screenRow: 4
-            text: line4.text
-            tokens: line4.tokens
-            top: 10 * 4
+          expectValues presenter.getState().content.tiles[0], {
+            top: -1
           }
-
-          line5 = editor.tokenizedLineForScreenRow(5)
-          expectValues lineStateForScreenRow(presenter, 5), {
-            screenRow: 5
-            text: line5.text
-            tokens: line5.tokens
-            top: 10 * 5
+          expectValues presenter.getState().content.tiles[1], {
+            top: 0
           }
-
-          line6 = editor.tokenizedLineForScreenRow(6)
-          expectValues lineStateForScreenRow(presenter, 6), {
-            screenRow: 6
-            text: line6.text
-            tokens: line6.tokens
-            top: 10 * 6
+          expectValues presenter.getState().content.tiles[2], {
+            top: 1
           }
-
-          line7 = editor.tokenizedLineForScreenRow(7)
-          expectValues lineStateForScreenRow(presenter, 7), {
-            screenRow: 7
-            text: line7.text
-            tokens: line7.tokens
-            top: 10 * 7
+          expectValues presenter.getState().content.tiles[3], {
+            top: 2
           }
-
-          line8 = editor.tokenizedLineForScreenRow(8)
-          expectValues lineStateForScreenRow(presenter, 8), {
-            screenRow: 8
-            text: line8.text
-            tokens: line8.tokens
-            top: 10 * 8
+          expectValues presenter.getState().content.tiles[4], {
+            top: 3
           }
-
-          expect(lineStateForScreenRow(presenter, 9)).toBeUndefined()
+          expectValues presenter.getState().content.tiles[5], {
+            top: 4
+          }
+          expect(presenter.getState().content.tiles[6]).toBeUndefined()
 
         it "does not overdraw above the first row", ->
-          presenter = buildPresenter(explicitHeight: 15, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 2)
-          expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 1)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 2)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 3)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 5)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 6)).toBeUndefined()
+          presenter = buildPresenter(explicitHeight: 3, scrollTop: 0, lineHeight: 1, tileCount: 3, tileOverdrawMargin: 1)
+          expect(presenter.getState().content.tiles[-1]).toBeUndefined()
+          expect(presenter.getState().content.tiles[0]).toBeDefined()
+          expect(presenter.getState().content.tiles[1]).toBeDefined()
+          expect(presenter.getState().content.tiles[2]).toBeDefined()
+          expect(presenter.getState().content.tiles[3]).toBeDefined()
+          expect(presenter.getState().content.tiles[4]).toBeDefined()
+          expect(presenter.getState().content.tiles[5]).toBeUndefined()
 
         it "does not overdraw below the last row", ->
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 105, lineHeight: 10, lineOverdrawMargin: 2)
-          expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
-          expect(lineStateForScreenRow(presenter, 8)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 9)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 10)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 11)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 12)).toBeDefined()
+          presenter = buildPresenter(explicitHeight: 3, scrollTop: 10, lineHeight: 1, tileCount: 3, tileOverdrawMargin: 1)
+          expect(presenter.getState().content.tiles[8]).toBeUndefined()
+          expect(presenter.getState().content.tiles[9]).toBeDefined()
+          expect(presenter.getState().content.tiles[10]).toBeDefined()
+          expect(presenter.getState().content.tiles[11]).toBeDefined()
+          expect(presenter.getState().content.tiles[12]).toBeDefined()
+          expect(presenter.getState().content.tiles[13]).toBeUndefined()
 
-        it "includes state for all lines if no external ::explicitHeight is assigned", ->
-          presenter = buildPresenter(explicitHeight: null)
-          expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 12)).toBeDefined()
+        xit "includes state for all tiles if no external ::explicitHeight is assigned", ->
+          presenter = buildPresenter(explicitHeight: null, tileCount: 12, tileOverdrawMargin: 1)
+          expect(presenter.getState().content.tiles[0]).toBeDefined()
+          expect(presenter.getState().content.tiles[12]).toBeDefined()
 
         it "is empty until all of the required measurements are assigned", ->
-          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null)
-          expect(presenter.getState().content.lines).toEqual({})
+          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null, tileCount: 3, tileOverdrawMargin: 1)
+          expect(presenter.getState().content.tiles).toEqual({})
 
           presenter.setExplicitHeight(25)
-          expect(presenter.getState().content.lines).toEqual({})
+          expect(presenter.getState().content.tiles).toEqual({})
 
           presenter.setLineHeight(10)
-          expect(presenter.getState().content.lines).toEqual({})
+          expect(presenter.getState().content.tiles).toEqual({})
 
           presenter.setScrollTop(0)
-          expect(presenter.getState().content.lines).not.toEqual({})
+          expect(presenter.getState().content.tiles).not.toEqual({})
 
         it "updates when ::scrollTop changes", ->
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(explicitHeight: 3, scrollTop: 0, lineHeight: 1, tileOverdrawMargin: 1, tileCount: 3)
 
-          expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
+          expect(presenter.getState().content.tiles[0]).toBeDefined()
+          expect(presenter.getState().content.tiles[4]).toBeDefined()
+          expect(presenter.getState().content.tiles[5]).toBeUndefined()
 
-          expectStateUpdate presenter, -> presenter.setScrollTop(25)
+          expectStateUpdate presenter, -> presenter.setScrollTop(2)
 
-          expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
-          expect(lineStateForScreenRow(presenter, 1)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 6)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
+          expect(presenter.getState().content.tiles[0]).toBeUndefined()
+          expect(presenter.getState().content.tiles[1]).toBeDefined()
+          expect(presenter.getState().content.tiles[6]).toBeDefined()
+          expect(presenter.getState().content.tiles[7]).toBeUndefined()
 
-        it "updates when ::explicitHeight changes", ->
-          presenter = buildPresenter(explicitHeight: 15, scrollTop: 15, lineHeight: 10, lineOverdrawMargin: 1)
+        xit "updates when ::explicitHeight changes", ->
+          presenter = buildPresenter(explicitHeight: 3, scrollTop: 0, lineHeight: 1, tileOverdrawMargin: 1, tileCount: 3)
 
           line5 = editor.tokenizedLineForScreenRow(5)
 
-          expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
+          expect(presenter.getState().content.tiles[4]).toBeDefined()
+          expect(presenter.getState().content.tiles[5]).toBeUndefined()
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(35)
 
-          expect(lineStateForScreenRow(presenter, 5)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 6)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
+          expect(presenter.getState().content.tiles[5]).toBeDefined()
+          expect(presenter.getState().content.tiles[6]).toBeDefined()
+          expect(presenter.getState().content.tiles[7]).toBeUndefined()
 
-        it "updates when ::lineHeight changes", ->
+        xit "updates when ::lineHeight changes", ->
           presenter = buildPresenter(explicitHeight: 15, scrollTop: 10, lineHeight: 10, lineOverdrawMargin: 0)
 
           expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
@@ -789,28 +762,34 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 5)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 6)).toBeUndefined()
 
-        it "updates when the editor's content changes", ->
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 10, lineHeight: 10)
+        fffit "updates when the editor's content changes", ->
+          lineStateForScreenRow = (presenter, tile, row) ->
+            lineId = presenter.model.tokenizedLineForScreenRow(row).id
+            presenter.getState().content.tiles[tile].lines[lineId]
+
+          presenter = buildPresenter(explicitHeight: 25, scrollTop: 10, lineHeight: 10, tileCount: 3, tileOverdrawMargin: 1)
 
           expectStateUpdate presenter, -> buffer.insert([2, 0], "hello\nworld\n")
 
           line1 = editor.tokenizedLineForScreenRow(1)
-          expectValues lineStateForScreenRow(presenter, 1), {
+          expectValues lineStateForScreenRow(presenter, 1, 1), {
             text: line1.text
             tokens: line1.tokens
           }
 
           line2 = editor.tokenizedLineForScreenRow(2)
-          expectValues lineStateForScreenRow(presenter, 2), {
+          expectValues lineStateForScreenRow(presenter, 2, 2), {
             text: line2.text
             tokens: line2.tokens
           }
 
           line3 = editor.tokenizedLineForScreenRow(3)
-          expectValues lineStateForScreenRow(presenter, 3), {
+          expectValues lineStateForScreenRow(presenter, 3, 3), {
             text: line3.text
             tokens: line3.tokens
           }
+
+      xdescribe ".lines", ->
 
         it "does not remove out-of-view lines corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
           presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
