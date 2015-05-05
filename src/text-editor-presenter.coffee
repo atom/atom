@@ -324,7 +324,7 @@ class TextEditorPresenter
     for index in visibleTilesIndexes
       presenter = @linesPresentersByTileIndex[index] ?= new LinesPresenter(@)
       presenter.startRow = Math.floor(index * linesPerTile)
-      presenter.endRow = Math.ceil(Math.min(@endRow, (index + 1) * linesPerTile))
+      presenter.endRow = Math.ceil(Math.min(@model.getScreenLineCount(), (index + 1) * linesPerTile))
       presenter.lineHeight = @lineHeight
 
       tile = @state.content.tiles[index] ?= {}
