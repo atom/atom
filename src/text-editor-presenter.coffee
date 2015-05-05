@@ -1218,7 +1218,7 @@ class TextEditorPresenter
 
     if spannedRows is 1
       [
-        top: startPixelPosition.top
+        top: startPixelPosition.top - @scrollTop
         height: lineHeightInPixels
         left: startPixelPosition.left
         width: endPixelPosition.left - startPixelPosition.left
@@ -1228,7 +1228,7 @@ class TextEditorPresenter
 
       # First row, extending from selection start to the right side of screen
       regions.push(
-        top: startPixelPosition.top
+        top: startPixelPosition.top - @scrollTop
         left: startPixelPosition.left
         height: lineHeightInPixels
         right: 0
@@ -1237,7 +1237,7 @@ class TextEditorPresenter
       # Middle rows, extending from left side to right side of screen
       if spannedRows > 2
         regions.push(
-          top: startPixelPosition.top + lineHeightInPixels
+          top: startPixelPosition.top + lineHeightInPixels - @scrollTop
           height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
           left: 0
           right: 0
@@ -1246,7 +1246,7 @@ class TextEditorPresenter
       # Last row, extending from left side of screen to selection end
       if screenRange.end.column > 0
         regions.push(
-          top: endPixelPosition.top
+          top: endPixelPosition.top - @scrollTop
           height: lineHeightInPixels
           left: 0
           width: endPixelPosition.left

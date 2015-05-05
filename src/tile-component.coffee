@@ -41,10 +41,6 @@ class TileComponent
       @domNode.style['-webkit-transform'] = "translate3d(0, #{@newState.tiles[@id].top}px, 0px)"
       @oldState.tiles[@id]?.top = @newState.tiles[@id].top
 
-    if @newState.backgroundColor isnt @oldState.backgroundColor
-      @domNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
-
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
 
