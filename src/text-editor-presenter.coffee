@@ -2,6 +2,7 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
+LinesPresenter = require './lines-presenter'
 
 module.exports =
 class TextEditorPresenter
@@ -20,6 +21,8 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
+    @tileCount ?= 3
+    @linesPresentersByTileIndex = {}
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -74,6 +77,7 @@ class TextEditorPresenter
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
+    @updateTilesState() if @shouldUpdateLinesState
     @updateLinesState() if @shouldUpdateLinesState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
@@ -205,6 +209,7 @@ class TextEditorPresenter
       content:
         scrollingVertically: false
         cursorsVisible: false
+        tiles: {}
         lines: {}
         highlights: {}
         overlays: {}
@@ -229,6 +234,7 @@ class TextEditorPresenter
     @updateHiddenInputState()
     @updateContentState()
     @updateDecorations()
+    @updateTilesState()
     @updateLinesState()
     @updateCursorsState()
     @updateOverlaysState()
@@ -297,6 +303,30 @@ class TextEditorPresenter
     @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
+
+  updateTilesState: ->
+    return unless @startRow? and @endRow? and @lineHeight?
+
+    linesPerTile = @height / @lineHeight / @tileCount
+
+    startIndex = Math.floor(@startRow / linesPerTile)
+    endIndex = Math.ceil(@endRow / linesPerTile)
+    visibleIndexesRange = [startIndex..endIndex]
+
+    for index, tile of @state.content.tiles
+      unless index in visibleIndexesRange
+        delete @state.content.tiles[index]
+        delete @linesPresentersByTileIndex[index]
+
+    for index in visibleIndexesRange
+      presenter = @linesPresentersByTileIndex[index] ?= new LinesPresenter(@)
+      presenter.startRow = Math.floor(index * linesPerTile)
+      presenter.endRow = Math.ceil(Math.min(@endRow, (index + 1) * linesPerTile))
+      presenter.lineHeight = @lineHeight
+
+      tile = @state.content.tiles[index] ?= {}
+      tile.top = (index * linesPerTile * @lineHeight) - @scrollTop
+      tile.lines = presenter.getState()
 
   updateLinesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
