@@ -234,7 +234,7 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
       expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
 
-  fdescribe "::isCursorOnScreen", ->
+  describe "::isCursorOnScreen", ->
     [element, model] = []
 
     beforeEach ->
