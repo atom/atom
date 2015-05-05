@@ -2,9 +2,6 @@ _ = require 'underscore-plus'
 {toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
-CursorsComponent = require './cursors-component'
-HighlightsComponent = require './highlights-component'
-
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
@@ -219,7 +216,7 @@ class TileComponent
 
     if newLineState.top isnt oldLineState.top
       lineNode.style.top = newLineState.top + 'px'
-      oldLineState.top = newLineState.cop
+      oldLineState.top = newLineState.top
 
     if newLineState.screenRow isnt oldLineState.screenRow
       lineNode.dataset.screenRow = newLineState.screenRow
@@ -229,28 +226,12 @@ class TileComponent
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
-  measureLineHeightAndDefaultCharWidth: ->
-    @domNode.appendChild(DummyLineNode)
-    lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
-    charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
-    @domNode.removeChild(DummyLineNode)
-
-    @presenter.setLineHeight(lineHeightInPixels)
-    @presenter.setBaseCharacterWidth(charWidth)
-
-  remeasureCharacterWidths: ->
-    return unless @presenter.baseCharacterWidth
-
-    @clearScopedCharWidths()
-    @measureCharactersInNewLines()
-
   measureCharactersInNewLines: ->
-    @presenter.batchCharacterMeasurement =>
-      for id, lineState of @oldState.tiles[@id]?.lines
-        unless @measuredLines.has(id)
-          lineNode = @lineNodesByLineId[id]
-          @measureCharactersInLine(id, lineState, lineNode)
-      return
+    for id, lineState of @oldState.tiles[@id]?.lines
+      unless @measuredLines.has(id)
+        lineNode = @lineNodesByLineId[id]
+        @measureCharactersInLine(id, lineState, lineNode)
+    return
 
   measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
     rangeForMeasurement = null
@@ -296,6 +277,5 @@ class TileComponent
 
     @measuredLines.add(lineId)
 
-  clearScopedCharWidths: ->
+  clearMeasurements: ->
     @measuredLines.clear()
-    @presenter.clearScopedCharacterWidths()

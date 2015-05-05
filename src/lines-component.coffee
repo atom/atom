@@ -118,56 +118,13 @@ class LinesComponent
 
   measureCharactersInNewLines: ->
     @presenter.batchCharacterMeasurement =>
-      for id, lineState of @oldState.lines
-        unless @measuredLines.has(id)
-          lineNode = @lineNodesByLineId[id]
-          @measureCharactersInLine(id, lineState, lineNode)
+      for id, component of @tileComponentsByTileId
+        component.measureCharactersInNewLines()
+
       return
 
-  measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    rangeForMeasurement = null
-    iterator = null
-    charIndex = 0
-
-    for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
-      charWidths = @presenter.getScopedCharacterWidths(scopes)
-
-      valueIndex = 0
-      while valueIndex < value.length
-        if hasPairedCharacter
-          char = value.substr(valueIndex, 2)
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        continue if char is '\0'
-
-        unless charWidths[char]?
-          unless textNode?
-            rangeForMeasurement ?= document.createRange()
-            iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
-            textNode = iterator.nextNode()
-            textNodeIndex = 0
-            nextTextNodeIndex = textNode.textContent.length
-
-          while nextTextNodeIndex <= charIndex
-            textNode = iterator.nextNode()
-            textNodeIndex = nextTextNodeIndex
-            nextTextNodeIndex = textNodeIndex + textNode.textContent.length
-
-          i = charIndex - textNodeIndex
-          rangeForMeasurement.setStart(textNode, i)
-          rangeForMeasurement.setEnd(textNode, i + charLength)
-          charWidth = rangeForMeasurement.getBoundingClientRect().width
-          @presenter.setScopedCharacterWidth(scopes, char, charWidth)
-
-        charIndex += charLength
-
-    @measuredLines.add(lineId)
-
   clearScopedCharWidths: ->
-    @measuredLines.clear()
+    for id, component of @tileComponentsByTileId
+      component.clearMeasurements()
+
     @presenter.clearScopedCharacterWidths()
