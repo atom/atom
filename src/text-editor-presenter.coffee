@@ -977,11 +977,12 @@ class TextEditorPresenter
           charLength = 1
           valueIndex++
 
-        return {top, left} if column is targetColumn
+        break if column is targetColumn
 
         left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
-    {top, left}
+
+    {top: top - @scrollTop, left}
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?
@@ -1218,7 +1219,7 @@ class TextEditorPresenter
 
     if spannedRows is 1
       [
-        top: startPixelPosition.top - @scrollTop
+        top: startPixelPosition.top
         height: lineHeightInPixels
         left: startPixelPosition.left
         width: endPixelPosition.left - startPixelPosition.left
@@ -1228,7 +1229,7 @@ class TextEditorPresenter
 
       # First row, extending from selection start to the right side of screen
       regions.push(
-        top: startPixelPosition.top - @scrollTop
+        top: startPixelPosition.top
         left: startPixelPosition.left
         height: lineHeightInPixels
         right: 0
@@ -1237,7 +1238,7 @@ class TextEditorPresenter
       # Middle rows, extending from left side to right side of screen
       if spannedRows > 2
         regions.push(
-          top: startPixelPosition.top + lineHeightInPixels - @scrollTop
+          top: startPixelPosition.top + lineHeightInPixels
           height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
           left: 0
           right: 0
@@ -1246,7 +1247,7 @@ class TextEditorPresenter
       # Last row, extending from left side of screen to selection end
       if screenRange.end.column > 0
         regions.push(
-          top: endPixelPosition.top - @scrollTop
+          top: endPixelPosition.top
           height: lineHeightInPixels
           left: 0
           width: endPixelPosition.left
