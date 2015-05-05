@@ -25,11 +25,6 @@ class Package
     @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
-  @normalizeMetadata: (metadata) ->
-    if typeof metadata.repository is 'string'
-      normalizePackageData(metadata)
-      metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
-
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
     if @isBundledPackagePath(packagePath)
@@ -38,7 +33,7 @@ class Package
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
           metadata = CSON.readFileSync(metadataPath)
-          @normalizeMetadata(metadata)
+          normalizePackageData(metadata)
         catch error
           throw error unless ignoreErrors
 
