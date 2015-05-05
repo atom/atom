@@ -597,14 +597,6 @@ class Cursor extends Model
   updateVisibility: ->
     @setVisible(@marker.getBufferRange().isEmpty())
 
-  # Public: Returns whether the cursor is visible in the current viewport.
-  isVisibleOnScreen: ->
-    @editorElement ?= atom.views.getView @editor
-    firstRow = @editorElement.getFirstVisibleScreenRow()
-    lastRow = @editorElement.getLastVisibleScreenRow()
-    cursorRow = @editor.getCursorBufferPosition().row
-    firstRow <= cursorRow <= lastRow
-
   ###
   Section: Comparing to another cursor
   ###
