@@ -77,8 +77,7 @@ class TextEditorPresenter
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
-    @updateTilesState() if @shouldUpdateLinesState
-    @updateLinesState() if @shouldUpdateLinesState
+    @updateTilesState() if @shouldUpdateTilesState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
@@ -100,7 +99,7 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = false
     @shouldUpdateContentState = false
     @shouldUpdateDecorations = false
-    @shouldUpdateLinesState = false
+    @shouldUpdateTilesState = false
     @shouldUpdateCursorsState = false
     @shouldUpdateOverlaysState = false
     @shouldUpdateLineNumberGutterState = false
@@ -118,7 +117,7 @@ class TextEditorPresenter
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+      @shouldUpdateTilesState = true
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
@@ -134,7 +133,7 @@ class TextEditorPresenter
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+      @shouldUpdateTilesState = true
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
@@ -210,7 +209,6 @@ class TextEditorPresenter
         scrollingVertically: false
         cursorsVisible: false
         tiles: {}
-        lines: {}
         highlights: {}
         overlays: {}
       gutters:
@@ -235,7 +233,6 @@ class TextEditorPresenter
     @updateContentState()
     @updateDecorations()
     @updateTilesState()
-    @updateLinesState()
     @updateCursorsState()
     @updateOverlaysState()
     @updateLineNumberGutterState()
@@ -327,51 +324,6 @@ class TextEditorPresenter
       tile = @state.content.tiles[index] ?= {}
       tile.top = (index * linesPerTile * @lineHeight) - @scrollTop
       tile.lines = presenter.getState()
-
-  updateLinesState: ->
-    return unless @startRow? and @endRow? and @lineHeight?
-
-    visibleLineIds = {}
-    row = @startRow
-    while row < @endRow
-      line = @model.tokenizedLineForScreenRow(row)
-      unless line?
-        throw new Error("No line exists for row #{row}. Last screen row: #{@model.getLastScreenRow()}")
-
-      visibleLineIds[line.id] = true
-      if @state.content.lines.hasOwnProperty(line.id)
-        @updateLineState(row, line)
-      else
-        @buildLineState(row, line)
-      row++
-
-    if @mouseWheelScreenRow?
-      if preservedLine = @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)
-        visibleLineIds[preservedLine.id] = true
-
-    for id, line of @state.content.lines
-      unless visibleLineIds.hasOwnProperty(id)
-        delete @state.content.lines[id]
-    return
-
-  updateLineState: (row, line) ->
-    lineState = @state.content.lines[line.id]
-    lineState.screenRow = row
-    lineState.top = row * @lineHeight
-    lineState.decorationClasses = @lineDecorationClassesForRow(row)
-
-  buildLineState: (row, line) ->
-    @state.content.lines[line.id] =
-      screenRow: row
-      text: line.text
-      tokens: line.tokens
-      isOnlyWhitespace: line.isOnlyWhitespace()
-      endOfLineInvisibles: line.endOfLineInvisibles
-      indentLevel: line.indentLevel
-      tabLength: line.tabLength
-      fold: line.fold
-      top: row * @lineHeight
-      decorationClasses: @lineDecorationClassesForRow(row)
 
   updateCursorsState: ->
     @state.content.cursors = {}
@@ -748,7 +700,7 @@ class TextEditorPresenter
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHiddenInputState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+      @shouldUpdateTilesState = true
       @shouldUpdateCursorsState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -771,7 +723,7 @@ class TextEditorPresenter
     @state.content.scrollingVertically = false
     if @mouseWheelScreenRow?
       @mouseWheelScreenRow = null
-      @shouldUpdateLinesState = true
+      @shouldUpdateTilesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
 
@@ -834,7 +786,7 @@ class TextEditorPresenter
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateScrollbarsState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+      @shouldUpdateTilesState = true
       @shouldUpdateCursorsState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -862,7 +814,7 @@ class TextEditorPresenter
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+      @shouldUpdateTilesState = true
       @shouldUpdateCursorsState = true unless oldContentFrameWidth?
 
       @emitDidUpdateState()
@@ -928,7 +880,7 @@ class TextEditorPresenter
       @shouldUpdateScrollbarsState = true
       @shouldUpdateHiddenInputState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+      @shouldUpdateTilesState = true
       @shouldUpdateCursorsState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -980,7 +932,7 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = true
     @shouldUpdateContentState = true
     @shouldUpdateDecorations = true
-    @shouldUpdateLinesState = true
+    @shouldUpdateTilesState = true
     @shouldUpdateCursorsState = true
     @shouldUpdateOverlaysState = true
 
@@ -1072,7 +1024,7 @@ class TextEditorPresenter
         intersectsVisibleRowRange = true
 
       if intersectsVisibleRowRange
-        @shouldUpdateLinesState = true if decoration.isType('line')
+        @shouldUpdateTilesState = true if decoration.isType('line')
         if decoration.isType('line-number')
           @shouldUpdateLineNumbersState = true
         else if decoration.isType('gutter')
@@ -1097,7 +1049,7 @@ class TextEditorPresenter
         decoration.getMarker().getScreenRange())
       @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       if decoration.isType('line') or Decoration.isType(oldProperties, 'line')
-        @shouldUpdateLinesState = true
+        @shouldUpdateTilesState = true
       if decoration.isType('line-number') or Decoration.isType(oldProperties, 'line-number')
         @shouldUpdateLineNumbersState = true
       if (decoration.isType('gutter') and not decoration.isType('line-number')) or
@@ -1113,7 +1065,7 @@ class TextEditorPresenter
   didDestroyDecoration: (decoration) ->
     if decoration.isType('line') or decoration.isType('gutter')
       @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
-      @shouldUpdateLinesState = true if decoration.isType('line')
+      @shouldUpdateTilesState = true if decoration.isType('line')
       if decoration.isType('line-number')
         @shouldUpdateLineNumbersState = true
       else if decoration.isType('gutter')
@@ -1138,7 +1090,7 @@ class TextEditorPresenter
 
     if decoration.isType('line') or decoration.isType('gutter')
       @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
-      @shouldUpdateLinesState = true if decoration.isType('line')
+      @shouldUpdateTilesState = true if decoration.isType('line')
       if decoration.isType('line-number')
         @shouldUpdateLineNumbersState = true
       else if decoration.isType('gutter')
