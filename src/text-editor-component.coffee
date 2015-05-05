@@ -763,6 +763,7 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event) ->
     pixelPosition = @pixelPositionForMouseEvent(event)
+    pixelPosition.top += @presenter.scrollTop
     @editor.screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event) ->
