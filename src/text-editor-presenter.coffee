@@ -21,8 +21,8 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileOverdrawMargin ?= 0
-    @tileCount ?= 4
+    @tileOverdrawMargin ?= 1
+    @tileCount ?= 3
     @linesPresentersByTileIndex = {}
 
     @disposables = new CompositeDisposable
