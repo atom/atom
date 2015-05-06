@@ -314,16 +314,9 @@ class TextEditorPresenter
       Math.ceil(@model.getScreenLineCount() / linesPerTile),
       Math.ceil(@endRow / linesPerTile) + @tileOverdrawMargin
     )
-    visibleTilesIndexes = [startIndex...endIndex]
 
-    for index, tile of @state.content.tiles
-      continue if index is @scrollingTile
-      continue if startIndex <= index <= endIndex
-
-      delete @state.content.tiles[index]
-      delete @linesPresentersByTileIndex[index]
-
-    for index in visibleTilesIndexes
+    visibleTiles = {}
+    for index in [startIndex...endIndex]
       presenter = @linesPresentersByTileIndex[index] ?= new LinesPresenter(@)
       presenter.startRow = Math.floor(index * linesPerTile)
       presenter.endRow = Math.ceil(Math.min(@model.getScreenLineCount(), (index + 1) * linesPerTile))
@@ -335,6 +328,19 @@ class TextEditorPresenter
       tile.lines = presenter.getState()
       tile.height = linesPerTile * @lineHeight
       tile.newlyCreated = isNewTile
+      tile.display = "block"
+
+      visibleTiles[index] = true
+
+    for index, tile of @state.content.tiles
+      continue if visibleTiles.hasOwnProperty(index)
+
+      if index is @scrollingTile
+        tile.display = "none"
+      else
+        delete @state.content.tiles[index]
+        delete @linesPresentersByTileIndex[index]
+
 
   updateCursorsState: ->
     @state.content.cursors = {}

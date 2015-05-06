@@ -38,6 +38,10 @@ class TileComponent
       @oldState = {tiles: {}}
       @oldState.tiles[@id] = { lines: {}}
 
+    if @newState.tiles[@id].display isnt @oldState.tiles[@id]?.display
+      @domNode.style.display = @newState.tiles[@id].display
+      @oldState.tiles[@id]?.display = @newState.tiles[@id].display
+
     if @newState.tiles[@id].height isnt @oldState.tiles[@id]?.height
       @domNode.style.height = @newState.tiles[@id].height + 'px'
       @oldState.tiles[@id]?.height = @newState.tiles[@id].height
