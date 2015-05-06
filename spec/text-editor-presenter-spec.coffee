@@ -657,7 +657,7 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.setPlaceholderText("new-placeholder-text")
           expect(presenter.getState().content.placeholderText).toBe "new-placeholder-text"
 
-      fdescribe ".tiles", ->
+      describe ".tiles", ->
         it "contains states for tiles that are visible on screen, plus and minus the overdraw margin", ->
           presenter = buildPresenter(explicitHeight: 3, scrollTop: 1, lineHeight: 1, tileCount: 3, tileOverdrawMargin: 1)
 
@@ -762,7 +762,7 @@ describe "TextEditorPresenter", ->
           expect(lineStateForScreenRow(presenter, 5)).toBeDefined()
           expect(lineStateForScreenRow(presenter, 6)).toBeUndefined()
 
-        fffit "updates when the editor's content changes", ->
+        it "updates when the editor's content changes", ->
           lineStateForScreenRow = (presenter, tile, row) ->
             lineId = presenter.model.tokenizedLineForScreenRow(row).id
             presenter.getState().content.tiles[tile].lines[lineId]

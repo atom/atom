@@ -21,7 +21,7 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileOverdrawMargin ?= 1
+    @tileOverdrawMargin ?= 0
     @tileCount ?= 3
     @linesPresentersByTileIndex = {}
 
