@@ -15,14 +15,15 @@ module.exports =
 class TileComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @id}) ->
+  constructor: ({@presenter, @id, @domNode}) ->
     @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
-    @domNode = document.createElement("div")
+    @domNode ?= document.createElement("div")
     @domNode.addEventListener("mousewheel", @onMouseWheel)
     @domNode.style.position = "absolute"
+    @domNode.style.display = "block"
     @domNode.classList.add("tile")
 
   onMouseWheel: =>
@@ -45,8 +46,27 @@ class TileComponent
       @domNode.style['-webkit-transform'] = "translate3d(0, #{@newState.tiles[@id].top}px, 0px)"
       @oldState.tiles[@id]?.top = @newState.tiles[@id].top
 
-    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
-    @updateLineNodes()
+    if @newState.tiles[@id].newlyCreated
+      newLineIds = []
+      newLinesHTML = ""
+
+      for id, lineState of @newState.tiles[@id].lines
+        newLineIds.push(id)
+        newLinesHTML += @buildLineHTML(id)
+        @screenRowsByLineId[id] = lineState.screenRow
+        @lineIdsByScreenRow[lineState.screenRow] = id
+        @oldState.tiles[@id]?.lines[id] = cloneObject(lineState)
+
+      return if newLineIds.length is 0
+
+      @domNode.innerHTML = newLinesHTML
+      newLineNodes = _.toArray(@domNode.children)
+      for id, i in newLineIds
+        lineNode = newLineNodes[i]
+        @lineNodesByLineId[id] = lineNode
+    else
+      @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
+      @updateLineNodes()
 
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'

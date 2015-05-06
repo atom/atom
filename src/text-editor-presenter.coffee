@@ -318,7 +318,7 @@ class TextEditorPresenter
 
     for index, tile of @state.content.tiles
       continue if index is @scrollingTile
-      continue if index in visibleTilesIndexes
+      continue if startIndex <= index <= endIndex
 
       delete @state.content.tiles[index]
       delete @linesPresentersByTileIndex[index]
@@ -329,10 +329,12 @@ class TextEditorPresenter
       presenter.endRow = Math.ceil(Math.min(@model.getScreenLineCount(), (index + 1) * linesPerTile))
       presenter.lineHeight = @lineHeight
 
+      isNewTile = not @state.content.tiles.hasOwnProperty(index)
       tile = @state.content.tiles[index] ?= {}
       tile.top = (index * linesPerTile * @lineHeight) - @scrollTop
       tile.lines = presenter.getState()
       tile.height = linesPerTile * @lineHeight
+      tile.newlyCreated = isNewTile
 
   updateCursorsState: ->
     @state.content.cursors = {}

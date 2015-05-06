@@ -21,6 +21,7 @@ class LinesComponent
 
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
     @tileComponentsByTileId = {}
+    @freeDomNodes = []
 
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
@@ -81,7 +82,10 @@ class LinesComponent
     return
 
   removeTileNode: (id) ->
-    @tileComponentsByTileId[id].getDomNode().remove()
+    node = @tileComponentsByTileId[id].getDomNode()
+
+    node.style.display = "none"
+    @freeDomNodes.push(node)
     delete @tileComponentsByTileId[id]
     delete @oldState.tiles[id]
 
@@ -91,10 +95,13 @@ class LinesComponent
         @removeTileNode(id)
 
     for id, tileState of @newState.tiles
-      tileComponent = @tileComponentsByTileId[id] ?= new TileComponent({id, @presenter})
+      if @oldState.tiles.hasOwnProperty(id)
+        tileComponent = @tileComponentsByTileId[id]
+      else
+        domNode = @freeDomNodes.pop()
+        tileComponent = @tileComponentsByTileId[id] = new TileComponent({id, @presenter, domNode})
 
-      unless @oldState.tiles.hasOwnProperty(id)
-        @domNode.appendChild(tileComponent.getDomNode())
+        @domNode.appendChild(tileComponent.getDomNode()) unless domNode?
         @oldState.tiles[id] = cloneObject(tileState)
 
       tileComponent.updateSync(@newState)
