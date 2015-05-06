@@ -150,10 +150,12 @@ describe "Starting Atom", ->
           .waitForWindowCount(2, 10000)
           .then ({value: windowHandles}) ->
             @window(windowHandles[0])
+            .waitForExist("atom-workspace")
             .treeViewRootDirectories()
             .then ({value: directories}) -> windowProjectPaths.push(directories)
 
             .window(windowHandles[1])
+            .waitForExist("atom-workspace")
             .treeViewRootDirectories()
             .then ({value: directories}) -> windowProjectPaths.push(directories)
 
