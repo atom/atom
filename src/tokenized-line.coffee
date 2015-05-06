@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 {isPairedCharacter} = require './text-utils'
+Token = require './token'
 
 NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/
@@ -14,9 +15,9 @@ class TokenizedLine
   firstNonWhitespaceIndex: 0
   foldable: false
 
-  constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
+  constructor: ({@parentScopes, @content, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
-    @tokens = @breakOutAtomicTokens(tokens)
+    # @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
     @bufferDelta = @buildBufferDelta()
     @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
@@ -27,6 +28,10 @@ class TokenizedLine
     if @invisibles
       @substituteInvisibleCharacters()
       @buildEndOfLineInvisibles() if @lineEnding?
+
+  Object.defineProperty @prototype, 'tokens', get: ->
+    tokens = atom.grammars.decodeContent(@parentScopes.concat(@content))
+    tokens.map (properties) -> new Token(properties)
 
   buildText: ->
     text = ""

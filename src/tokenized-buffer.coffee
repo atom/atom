@@ -153,7 +153,7 @@ class TokenizedBuffer extends Model
       row = startRow
       loop
         previousStack = @stackForRow(row)
-        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1), @parentScopesForRow(row))
         if --rowsRemaining is 0
           filledRegion = false
           endRow = row
@@ -213,7 +213,7 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1))
+    newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @parentScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
 
     start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)
@@ -234,7 +234,7 @@ class TokenizedBuffer extends Model
     line = @tokenizedLines[row]
     if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
       while line?.isOnlyWhitespace()
-        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1))
+        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1), @parentScopesForRow(row))
         row += increment
         line = @tokenizedLines[row]
 
@@ -276,16 +276,18 @@ class TokenizedBuffer extends Model
       @tokenizedLineForRow(row).isComment() and
       @tokenizedLineForRow(nextRow).isComment()
 
-  buildTokenizedLinesForRows: (startRow, endRow, startingStack) ->
+  buildTokenizedLinesForRows: (startRow, endRow, startingStack, startingParentScopes) ->
     ruleStack = startingStack
+    parentScopes = startingParentScopes
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow]
       if (ruleStack or row is 0) and row < stopTokenizingAt
-        screenLine = @buildTokenizedLineForRow(row, ruleStack)
-        ruleStack = screenLine.ruleStack
+        tokenizedLine = @buildTokenizedLineForRow(row, ruleStack, parentScopes)
+        ruleStack = tokenizedLine.ruleStack
+        parentScopes = @scopesFromContent(parentScopes, tokenizedLine.content)
       else
-        screenLine = @buildPlaceholderTokenizedLineForRow(row)
-      screenLine
+        tokenizedLine = @buildPlaceholderTokenizedLineForRow(row, parentScopes)
+      tokenizedLine
 
     if endRow >= stopTokenizingAt
       @invalidateRow(stopTokenizingAt)
@@ -298,27 +300,46 @@ class TokenizedBuffer extends Model
 
   buildPlaceholderTokenizedLineForRow: (row) ->
     line = @buffer.lineForRow(row)
-    tokens = [new Token(value: line, scopes: [@grammar.scopeName])]
+    parentScopes = [@grammar.idForScope(@grammar.scopeName)]
+    content = [line]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
+    new TokenizedLine({parentScopes, content, tabLength, indentLevel, @invisibles, lineEnding})
 
-  buildTokenizedLineForRow: (row, ruleStack) ->
-    @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack)
+  buildTokenizedLineForRow: (row, ruleStack, parentScopes) ->
+    @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, parentScopes)
 
-  buildTokenizedLineForRowWithText: (row, line, ruleStack = @stackForRow(row - 1)) ->
+  buildTokenizedLineForRowWithText: (row, line, ruleStack = @stackForRow(row - 1), parentScopes = @parentScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
-    {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
+    {content, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
+    new TokenizedLine({parentScopes, content, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
   tokenizedLineForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]
 
   stackForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]?.ruleStack
+
+  parentScopesForRow: (bufferRow) ->
+    if bufferRow > 0
+      precedingLine = @tokenizedLines[bufferRow - 1]
+      @scopesFromContent(precedingLine.parentScopes, precedingLine.content)
+    else
+      []
+
+  scopesFromContent: (startingScopes, content) ->
+    scopes = startingScopes.slice()
+    for symbol in content when typeof symbol is 'number'
+      if symbol > 0
+        scopes.push(symbol)
+      else
+        popped = scopes.pop()
+        unless -popped is symbol
+          throw new Error("Encountered an invalid scope end id. Popped #{popped}, expected to pop #{-symbol}.")
+    scopes
 
   indentLevelForRow: (bufferRow) ->
     line = @buffer.lineForRow(bufferRow)
