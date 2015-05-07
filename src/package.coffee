@@ -34,7 +34,7 @@ class Package
     repoUrl = metadata.repository?.url
     if repoUrl
       info = hostedGitInfo.fromUrl(repoUrl)
-      if info.getDefaultRepresentation() is 'shortcut'
+      if info?.getDefaultRepresentation() is 'shortcut'
         metadata.repository.url = info.https().replace(/^git\+/, '')
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->

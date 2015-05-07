@@ -46,6 +46,10 @@ describe "PackageManager", ->
       expect(metadata.repository.type).toBe "git"
       expect(metadata.repository.url).toBe "https://github.com/example/repo.git"
 
+      {metadata} = atom.packages.loadPackage("package-with-invalid-url-package-json")
+      expect(metadata.repository.type).toBe "git"
+      expect(metadata.repository.url).toBe "foo"
+
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')
       expect(atom.packages.loadPackage("this-package-cannot-be-found")).toBeNull()
