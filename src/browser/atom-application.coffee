@@ -99,7 +99,11 @@ class AtomApplication
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
-    @applicationMenu?.enableWindowSpecificItems(false) if @windows.length is 0
+    if @windows.length is 0
+      @applicationMenu?.enableWindowSpecificItems(false)
+      if process.platform in ['win32', 'linux']
+        app.quit()
+        return
     @saveState()
 
   # Public: Adds the {AtomWindow} to the global window list.
@@ -200,9 +204,6 @@ class AtomApplication
     @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
-
-    app.on 'window-all-closed', ->
-      app.quit() if process.platform in ['win32', 'linux']
 
     app.on 'will-quit', =>
       @killAllProcesses()
