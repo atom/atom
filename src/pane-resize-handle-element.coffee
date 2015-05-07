@@ -12,6 +12,9 @@ class PaneResizeHandleElement extends HTMLElement
     @isHorizontal = @parentElement.classList.contains("horizontal")
     @classList.add if @isHorizontal then 'horizontal' else 'vertical'
 
+  detachedCallback: ->
+    @resizeStopped()
+
   resizeToFitContent: ->
     # clear flex-grow css style of both pane
     @previousSibling.model.setFlexScale(1)
@@ -43,6 +46,7 @@ class PaneResizeHandleElement extends HTMLElement
 
   resizePane: ({clientX, clientY, which}) ->
     return @resizeStopped() unless which is 1
+    return @resizeStopped() unless @previousSibling? and @nextSibling?
 
     if @isHorizontal
       totalWidth = @previousSibling.clientWidth + @nextSibling.clientWidth
