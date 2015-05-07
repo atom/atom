@@ -213,6 +213,7 @@ class AtomApplication
       @deleteSocketFile()
 
     app.on 'will-exit', =>
+      @saveState()
       @killAllProcesses()
       @deleteSocketFile()
 
