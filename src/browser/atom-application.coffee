@@ -100,6 +100,7 @@ class AtomApplication
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
     @applicationMenu?.enableWindowSpecificItems(false) if @windows.length is 0
+    @saveState()
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
@@ -114,6 +115,7 @@ class AtomApplication
       window.browserWindow.once 'closed', =>
         @lastFocusedWindow = null if window is @lastFocusedWindow
         window.browserWindow.removeListener 'focus', focusHandler
+      window.browserWindow.webContents.once 'did-finish-load', => @saveState()
 
   # Creates server to listen for additional atom application launches.
   #
@@ -201,9 +203,6 @@ class AtomApplication
 
     app.on 'window-all-closed', ->
       app.quit() if process.platform in ['win32', 'linux']
-
-    app.on 'before-quit', =>
-      @saveState()
 
     app.on 'will-quit', =>
       @killAllProcesses()
