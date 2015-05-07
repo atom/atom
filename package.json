@@ -1,7 +1,7 @@
 {
   "name": "atom-package-manager",
   "description": "Atom package manager",
-  "version": "0.165.0",
+  "version": "0.166.0",
   "licenses": [
     {
       "type": "MIT",
