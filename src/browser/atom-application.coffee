@@ -115,10 +115,13 @@ class AtomApplication
 
     unless window.isSpec
       focusHandler = => @lastFocusedWindow = window
+      blurHandler = => @saveState()
       window.browserWindow.on 'focus', focusHandler
+      window.browserWindow.on 'blur', blurHandler
       window.browserWindow.once 'closed', =>
         @lastFocusedWindow = null if window is @lastFocusedWindow
         window.browserWindow.removeListener 'focus', focusHandler
+        window.browserWindow.removeListener 'blur', blurHandler
       window.browserWindow.webContents.once 'did-finish-load', => @saveState()
 
   # Creates server to listen for additional atom application launches.
