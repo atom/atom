@@ -9,7 +9,8 @@ builtin cd "`dirname "$apmPath"`"
 binDir=`basename "$apmPath"`
 
 # Detect node binary name
-if [ "`uname`" != 'Darwin' ] && [ "`expr substr $(uname -s) 1 10`" == 'MINGW32_NT' ]; then
+osName=`uname -s`
+if [ "${osName:0:10}" == 'MINGW32_NT' ]; then
   nodeBin="node.exe"
 else
   nodeBin="node"
