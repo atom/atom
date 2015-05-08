@@ -3,6 +3,8 @@ _ = require 'underscore-plus'
 Token = require './token'
 
 SoftTab = Symbol('SoftTab')
+HardTab = Symbol('HardTab')
+PairedCharacter = Symbol('PairedCharacter')
 
 NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/
@@ -54,26 +56,84 @@ class TokenizedLine
 
       character = @text[bufferColumn]
 
+      # split out unicode surrogate pairs
+      if isPairedCharacter(@text, bufferColumn)
+        prefix = tokenOffset
+        suffix = @tags[tokenIndex] - tokenOffset - 2
+        splitTokens = []
+        splitTokens.push(prefix) if prefix > 0
+        splitTokens.push(2)
+        splitTokens.push(suffix) if suffix > 0
+
+        @tags.splice(tokenIndex, 1, splitTokens...)
+
+        text += @text.substr(bufferColumn, 2)
+        screenColumn++
+        bufferColumn += 2
+
+        tokenIndex++ if prefix > 0
+        @specialTokens[tokenIndex] = PairedCharacter
+        tokenIndex++
+        tokenOffset = 0
+
       # split out leading soft tabs
-      if character is ' '
+      else if character is ' ' and inLeadingWhitespace
         if inLeadingWhitespace and (screenColumn + 1) % @tabLength is 0
           @specialTokens[tokenIndex] = SoftTab
-          @tags.splice(tokenIndex, 1, @tabLength, @tags[tokenIndex] - @tabLength)
+          suffix = @tags[tokenIndex] - @tabLength
+          @tags.splice(tokenIndex, 1, @tabLength)
+          @tags.splice(tokenIndex + 1, 0, suffix) if suffix > 0
+
+        text += character
+        screenColumn++
+        bufferColumn++
+        tokenOffset++
+
+      # expand hard tabs to the next tab stop
+      else if character is '\t'
+        tabLength = @tabLength - (screenColumn % @tabLength)
+        text += ' ' for i in [0...tabLength] by 1
+
+        prefix = tokenOffset
+        suffix = @tags[tokenIndex] - tokenOffset - 1
+        splitTokens = []
+        splitTokens.push(prefix) if prefix > 0
+        splitTokens.push(tabLength)
+        splitTokens.push(suffix) if suffix > 0
+
+        @tags.splice(tokenIndex, 1, splitTokens...)
+
+        screenColumn += tabLength
+        bufferColumn++
+
+        tokenIndex++ if prefix > 0
+        @specialTokens[tokenIndex] = HardTab
+        tokenIndex++
+        tokenOffset = 0
+
+      # continue past any other character
       else
         inLeadingWhitespace = false
-
-      text += character
-      bufferColumn++
-      screenColumn++
-      tokenOffset++
+        text += character
+        screenColumn++
+        bufferColumn++
+        tokenOffset++
 
     @text = text
 
   Object.defineProperty @prototype, 'tokens', get: ->
-    tokens = atom.grammars.decodeContent(@text, @tags, @parentScopes.slice())
-    tokens.map (properties, index) =>
-      properties.isAtomic = true if @specialTokens[index] is SoftTab
-      new Token(properties)
+    atom.grammars.decodeContent @text, @tags, @parentScopes.slice(), (tokenProperties, index) =>
+      switch @specialTokens[index]
+        when SoftTab
+          tokenProperties.isAtomic = true
+        when HardTab
+          tokenProperties.isAtomic = true
+          tokenProperties.bufferDelta = 1
+        when PairedCharacter
+          tokenProperties.isAtomic = true
+          tokenProperties.hasPairedCharacter = true
+
+      new Token(tokenProperties)
 
   buildText: ->
     text = ""
