@@ -1,10 +1,10 @@
 # These tests are excluded by default. To run them from the command line:
 #
 # ATOM_INTEGRATION_TESTS_ENABLED=true apm test
-return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
+# return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 # Integration tests require a fast machine and, for now, we cannot afford to
 # run them on Travis.
-return if process.env.TRAVIS
+# return if process.env.TRAVIS
 
 fs = require "fs"
 path = require "path"
@@ -41,21 +41,43 @@ describe "Starting Atom", ->
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
 
-    it "removes all trailing whitespace and colons from the specified path", ->
-      runAtom [path.join(tempDirPath, "new-file:  ")], {ATOM_HOME: atomHome}, (client) ->
+    it "opens the parent directory and creates an empty text editor", ->
+      filePath = path.join(fs.realpathSync(tempDirPath), "new-file")
+      fs.writeFileSync filePath, """
+        1
+        2
+        3
+        4
+      """
+
+      runAtom ["#{filePath}:3"], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
           .waitForExist("atom-workspace", 5000)
           .waitForPaneItemCount(1, 1000)
-
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([tempDirPath])
-
           .waitForExist("atom-text-editor", 5000)
           .then (exists) -> expect(exists).toBe true
-          .click("atom-text-editor")
+
           .execute -> atom.workspace.getActiveTextEditor().getPath()
-          .then ({value}) -> expect(value).toBe path.join(tempDirPath, "new-file")
+          .then ({value}) -> expect(value).toBe filePath
+
+          .execute -> atom.workspace.getActiveTextEditor().getCursorBufferPosition()
+          .then ({value}) ->
+            expect(value.row).toBe 2
+            expect(value.column).toBe 0
+
+    it "removes all trailing whitespace and colons from the specified path", ->
+      filePath = path.join(tempDirPath, "new-file")
+      runAtom ["#{filePath}:  "], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForWindowCount(1, 1000)
+          .waitForExist("atom-workspace", 5000)
+          .waitForPaneItemCount(1, 1000)
+          .waitForExist("atom-text-editor", 5000)
+          .then (exists) -> expect(exists).toBe true
+
+          .execute -> atom.workspace.getActiveTextEditor().getPath()
+          .then ({value}) -> expect(value).toBe filePath
 
   describe "when there is already a window open", ->
     it "reuses that window when opening files, but not when opening directories", ->
