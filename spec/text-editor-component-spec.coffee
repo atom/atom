@@ -871,7 +871,7 @@ describe "TextEditorComponent", ->
       {left} = wrapperNode.pixelPositionForScreenPosition([1, 10])
       expect(cursorNode.style['-webkit-transform']).toBe "translate(#{left}px, #{editor.getLineHeightInPixels()}px)"
 
-  fdescribe "cursor visibility", ->
+  describe "cursor visibility", ->
     describe "when the font size changes", ->
       it "scrolls to the most recent cursor's position", ->
         newHeight = editor.getLineHeightInPixels() + 'px'
