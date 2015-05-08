@@ -284,7 +284,7 @@ class TokenizedBuffer extends Model
       if (ruleStack or row is 0) and row < stopTokenizingAt
         tokenizedLine = @buildTokenizedLineForRow(row, ruleStack, parentScopes)
         ruleStack = tokenizedLine.ruleStack
-        parentScopes = @scopesFromContent(parentScopes, tokenizedLine.content)
+        parentScopes = @scopesFromTags(parentScopes, tokenizedLine.tags)
       else
         tokenizedLine = @buildPlaceholderTokenizedLineForRow(row, parentScopes)
       tokenizedLine
@@ -299,23 +299,23 @@ class TokenizedBuffer extends Model
     @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow]
 
   buildPlaceholderTokenizedLineForRow: (row) ->
-    line = @buffer.lineForRow(row)
     parentScopes = [@grammar.idForScope(@grammar.scopeName)]
-    content = [line]
+    text = @buffer.lineForRow(row)
+    tags = [text.length]
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({parentScopes, content, tabLength, indentLevel, @invisibles, lineEnding})
+    new TokenizedLine({parentScopes, text, tags, tabLength, indentLevel, @invisibles, lineEnding})
 
   buildTokenizedLineForRow: (row, ruleStack, parentScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, parentScopes)
 
-  buildTokenizedLineForRowWithText: (row, line, ruleStack = @stackForRow(row - 1), parentScopes = @parentScopesForRow(row)) ->
+  buildTokenizedLineForRowWithText: (row, text, ruleStack = @stackForRow(row - 1), parentScopes = @parentScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
-    {content, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new TokenizedLine({parentScopes, content, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
+    {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0)
+    new TokenizedLine({parentScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
 
   tokenizedLineForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]
@@ -326,19 +326,20 @@ class TokenizedBuffer extends Model
   parentScopesForRow: (bufferRow) ->
     if bufferRow > 0
       precedingLine = @tokenizedLines[bufferRow - 1]
-      @scopesFromContent(precedingLine.parentScopes, precedingLine.content)
+      @scopesFromTags(precedingLine.parentScopes, precedingLine.tags)
     else
       []
 
-  scopesFromContent: (startingScopes, content) ->
+  scopesFromTags: (startingScopes, tags) ->
     scopes = startingScopes.slice()
-    for symbol in content when typeof symbol is 'number'
-      if symbol > 0
-        scopes.push(symbol)
+    for tag in tags when tag < 0
+      if (tag % 2) is -1
+        scopes.push(tag)
       else
-        popped = scopes.pop()
-        unless -popped is symbol
-          throw new Error("Encountered an invalid scope end id. Popped #{popped}, expected to pop #{-symbol}.")
+        expectedScope = tag + 1
+        poppedScope = scopes.pop()
+        unless poppedScope is expectedScope
+          throw new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
     scopes
 
   indentLevelForRow: (bufferRow) ->

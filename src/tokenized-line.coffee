@@ -15,10 +15,9 @@ class TokenizedLine
   firstNonWhitespaceIndex: 0
   foldable: false
 
-  constructor: ({@parentScopes, @content, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
+  constructor: ({@parentScopes, @text, @tags, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
     # @tokens = @breakOutAtomicTokens(tokens)
-    @text = @buildText()
     @bufferDelta = @buildBufferDelta()
     @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
     @softWrapIndentationDelta = @buildSoftWrapIndentationDelta()
@@ -30,8 +29,10 @@ class TokenizedLine
       @buildEndOfLineInvisibles() if @lineEnding?
 
   Object.defineProperty @prototype, 'tokens', get: ->
-    tokens = atom.grammars.decodeContent(@parentScopes.concat(@content))
-    tokens.map (properties) -> new Token(properties)
+    tokens = atom.grammars.decodeContent(@text, @tags, @parentScopes.slice())
+    tokens.map (properties, index) =>
+      properties.isAtomic = true if @specialTokens[index] is SoftTab
+      new Token(properties)
 
   buildText: ->
     text = ""
