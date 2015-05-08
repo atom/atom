@@ -2,6 +2,7 @@ path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
+normalizePackageData = require 'normalize-package-data'
 
 OtherPlatforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32'].filter (platform) -> platform isnt process.platform
 
@@ -39,6 +40,8 @@ module.exports = (grunt) ->
       metadataPath = path.join(moduleDirectory, 'package.json')
       metadata = grunt.file.readJSON(metadataPath)
       continue unless metadata?.engines?.atom?
+
+      normalizePackageData metadata, (msg) -> console.error(metadata.name, msg)
 
       moduleCache = metadata._atomModuleCache ? {}
 
