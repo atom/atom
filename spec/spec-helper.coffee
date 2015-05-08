@@ -311,7 +311,7 @@ window.waitsForPromise = (args...) ->
     else
       promise.then(moveOn)
       promise.catch.call promise, (error) ->
-        jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
+        jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with: #{error?.message} #{jasmine.pp(error)}")
         moveOn()
 
 window.resetTimeouts = ->
