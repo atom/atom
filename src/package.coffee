@@ -1,5 +1,5 @@
 path = require 'path'
-normalizePackageData = require 'normalize-package-data'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -25,6 +25,11 @@ class Package
     @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
+  @normalizeMetadata: (metadata) ->
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
     if @isBundledPackagePath(packagePath)
@@ -33,7 +38,7 @@ class Package
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
           metadata = CSON.readFileSync(metadataPath)
-          normalizePackageData(metadata)
+          @normalizeMetadata(metadata)
         catch error
           throw error unless ignoreErrors
 
