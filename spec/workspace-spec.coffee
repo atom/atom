@@ -455,33 +455,6 @@ describe "Workspace", ->
       workspace.resetFontSize()
       expect(atom.config.get('editor.fontSize')).toBe originalFontSize
 
-    fdescribe "when the cursor goes off-screen", ->
-      [editor, editorElement, workspaceElement] = []
-
-      beforeEach ->
-        workspaceElement = atom.views.getView(workspace)
-        jasmine.attachToDOM(workspaceElement)
-
-        waitsForPromise ->
-          workspace.open('../two-hundred.txt').then (o) ->
-            editor = o
-            editorElement = atom.views.getView(editor)
-
-      it "scrolls to the most recent cursor's position", ->
-        workspace.increaseFontSize()
-        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
-        editor.setCursorBufferPosition([editorElement.getLastVisibleScreenRow() + 1, 0], autoscroll: false)
-        firstRow = editorElement.getFirstVisibleScreenRow()
-        lastRow = editorElement.getLastVisibleScreenRow()
-        cursorRow = editor.getCursorScreenPosition().row
-        expect(firstRow <= cursorRow <= lastRow).toBe false
-        workspace.resetFontSize()
-        firstRow = editorElement.getFirstVisibleScreenRow()
-        lastRow = editorElement.getLastVisibleScreenRow()
-        cursorRow = editor.getCursorScreenPosition().row
-        expect(firstRow <= cursorRow <= lastRow).toBe true
-
-
   describe "::openLicense()", ->
     it "opens the license as plain-text in a buffer", ->
       waitsForPromise -> workspace.openLicense()
