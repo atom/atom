@@ -512,6 +512,8 @@ class AtomApplication
     return {pathToOpen} unless pathToOpen
     return {pathToOpen} if fs.existsSync(pathToOpen)
 
+    pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
+
     [fileToOpen, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
     return {pathToOpen} unless initialLine
     return {pathToOpen} unless parseInt(initialLine) >= 0
