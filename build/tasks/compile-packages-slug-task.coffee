@@ -33,6 +33,7 @@ module.exports = (grunt) ->
 
     modulesDirectory = path.join(appDir, 'node_modules')
     packages = {}
+    invalidPackages = false
 
     for moduleDirectory in fs.listSync(modulesDirectory)
       continue if path.basename(moduleDirectory) is '.bin'
@@ -41,7 +42,10 @@ module.exports = (grunt) ->
       metadata = grunt.file.readJSON(metadataPath)
       continue unless metadata?.engines?.atom?
 
-      normalizePackageData metadata, (msg) -> console.error(metadata.name, msg)
+      reportPackageError = (msg) ->
+        invalidPackages = true
+        grunt.log.error("#{metadata.name}: #{msg}")
+      normalizePackageData metadata, reportPackageError, true
 
       moduleCache = metadata._atomModuleCache ? {}
 
@@ -82,3 +86,4 @@ module.exports = (grunt) ->
     metadata._atomKeymaps = getKeymaps(appDir)
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
+    not invalidPackages
