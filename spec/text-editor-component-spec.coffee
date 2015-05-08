@@ -871,6 +871,12 @@ describe "TextEditorComponent", ->
       {left} = wrapperNode.pixelPositionForScreenPosition([1, 10])
       expect(cursorNode.style['-webkit-transform']).toBe "translate(#{left}px, #{editor.getLineHeightInPixels()}px)"
 
+  xdescribe "cursor visibility", ->
+    describe "when the font size changes", ->
+      it "scrolls to the most recent cursor's position", ->
+        editor.setCursorBufferPosition([1, 10])
+        component.setFontSize(10)
+
   describe "selection rendering", ->
     [scrollViewNode, scrollViewClientLeft] = []
 

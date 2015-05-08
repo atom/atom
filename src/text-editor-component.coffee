@@ -267,9 +267,17 @@ class TextEditorComponent
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
   observeConfig: ->
-    @disposables.add atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
-    @disposables.add atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
-    @disposables.add atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
+    @disposables.add atom.config.onDidChange 'editor.fontSize', =>
+      @sampleFontStyling()
+      @editor.scrollToCursorPosition()
+
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', =>
+      @sampleFontStyling
+      @editor.scrollToCursorPosition()
+
+    @disposables.add atom.config.onDidChange 'editor.lineHeight', =>
+      @sampleFontStyling
+      @editor.scrollToCursorPosition()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
