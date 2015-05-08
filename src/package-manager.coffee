@@ -303,6 +303,9 @@ class PackageManager
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
+    # TODO: remove after a few atom versions.
+    @uninstallAutocompletePlus()
+
     packagePaths = @getAvailablePackagePaths()
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
@@ -408,6 +411,18 @@ class PackageManager
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
     atom.notifications.addError(message, {stack, detail, dismissable: true})
+
+  # TODO: remove these autocomplete-plus specific helpers after a few versions.
+  uninstallAutocompletePlus: ->
+    packageDir = null
+    devDir = path.join("dev", "packages")
+    for packageDirPath in @packageDirPaths
+      packageDir = packageDirPath if not packageDirPath.endsWith(devDir)
+
+    if packageDir?
+      autocompletePlusPath = path.join(packageDir, 'autocomplete-plus')
+      fs.isDirectory autocompletePlusPath, (isDir, error) ->
+        fs.unlink(autocompletePlusPath) if isDir
 
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
