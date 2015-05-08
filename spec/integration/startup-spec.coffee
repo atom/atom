@@ -9,7 +9,7 @@ return if process.env.TRAVIS
 fs = require "fs"
 path = require "path"
 temp = require("temp").track()
-runAtom = require("./helpers/start-atom")
+runAtom = require "./helpers/start-atom"
 
 describe "Starting Atom", ->
   [tempDirPath, otherTempDirPath, atomHome] = []
