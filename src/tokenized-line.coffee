@@ -2,6 +2,8 @@ _ = require 'underscore-plus'
 {isPairedCharacter} = require './text-utils'
 Token = require './token'
 
+SoftTab = Symbol('SoftTab')
+
 NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/
 TrailingWhitespaceRegex = /\s*$/
@@ -17,6 +19,11 @@ class TokenizedLine
 
   constructor: ({@parentScopes, @text, @tags, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
+
+    @specialTokens = {}
+
+    @subdivideTokens()
+
     # @tokens = @breakOutAtomicTokens(tokens)
     @bufferDelta = @buildBufferDelta()
     @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
@@ -27,6 +34,40 @@ class TokenizedLine
     if @invisibles
       @substituteInvisibleCharacters()
       @buildEndOfLineInvisibles() if @lineEnding?
+
+  subdivideTokens: ->
+    text = ''
+    bufferColumn = 0
+    screenColumn = 0
+    tokenIndex = 0
+    tokenOffset = 0
+    inLeadingWhitespace = true
+
+    while bufferColumn < @text.length
+      # advance to next token if we've iterated over its length
+      if tokenOffset is @tags[tokenIndex]
+        tokenIndex++
+        tokenOffset = 0
+
+      # advance to next token tag
+      tokenIndex++ while @tags[tokenIndex] < 0
+
+      character = @text[bufferColumn]
+
+      # split out leading soft tabs
+      if character is ' '
+        if inLeadingWhitespace and (screenColumn + 1) % @tabLength is 0
+          @specialTokens[tokenIndex] = SoftTab
+          @tags.splice(tokenIndex, 1, @tabLength, @tags[tokenIndex] - @tabLength)
+      else
+        inLeadingWhitespace = false
+
+      text += character
+      bufferColumn++
+      screenColumn++
+      tokenOffset++
+
+    @text = text
 
   Object.defineProperty @prototype, 'tokens', get: ->
     tokens = atom.grammars.decodeContent(@text, @tags, @parentScopes.slice())
