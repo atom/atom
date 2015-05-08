@@ -871,11 +871,27 @@ describe "TextEditorComponent", ->
       {left} = wrapperNode.pixelPositionForScreenPosition([1, 10])
       expect(cursorNode.style['-webkit-transform']).toBe "translate(#{left}px, #{editor.getLineHeightInPixels()}px)"
 
-  xdescribe "cursor visibility", ->
+  fdescribe "cursor visibility", ->
     describe "when the font size changes", ->
       it "scrolls to the most recent cursor's position", ->
-        editor.setCursorBufferPosition([1, 10])
-        component.setFontSize(10)
+        newHeight = editor.getLineHeightInPixels() + 'px'
+        wrapperNode.style.height = newHeight
+
+        advanceClock(atom.views.documentPollingInterval)
+        nextAnimationFrame()
+
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+        atom.config.set('editor.fontSize', 14)
+        editor.setCursorBufferPosition([wrapperNode.getLastVisibleScreenRow() + 1, 0], autoscroll: false)
+        firstRow = wrapperNode.getFirstVisibleScreenRow()
+        lastRow = wrapperNode.getLastVisibleScreenRow()
+        cursorRow = editor.getCursorScreenPosition().row
+        expect(firstRow <= cursorRow <= lastRow).toBe false
+        atom.config.set('editor.fontSize', 16)
+        firstRow = wrapperNode.getFirstVisibleScreenRow()
+        lastRow = wrapperNode.getLastVisibleScreenRow()
+        cursorRow = editor.getCursorScreenPosition().row
+        expect(firstRow <= cursorRow <= lastRow).toBe true
 
   describe "selection rendering", ->
     [scrollViewNode, scrollViewClientLeft] = []
