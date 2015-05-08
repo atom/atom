@@ -886,7 +886,7 @@ class DisplayBuffer extends Model
   getDecorations: (propertyFilter) ->
     allDecorations = []
     for markerId, decorations of @decorationsByMarkerId
-      allDecorations = allDecorations.concat(decorations) if decorations?
+      allDecorations.push(decorations...) if decorations?
     if propertyFilter?
       allDecorations = allDecorations.filter (decoration) ->
         for key, value of propertyFilter
