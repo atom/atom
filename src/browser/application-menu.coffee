@@ -163,7 +163,7 @@ class ApplicationMenu
     return null unless firstKeystroke
 
     modifiers = firstKeystroke.split('-')
-    key = modifiers.pop()
+    key = modifiers.pop().toUpperCase().replace('+', 'Plus')
 
     modifiers = modifiers.map (modifier) ->
       modifier.replace(/shift/ig, "Shift")
@@ -171,5 +171,5 @@ class ApplicationMenu
               .replace(/ctrl/ig, "Ctrl")
               .replace(/alt/ig, "Alt")
 
-    keys = modifiers.concat([key.toUpperCase()])
+    keys = modifiers.concat([key])
     keys.join("+")
