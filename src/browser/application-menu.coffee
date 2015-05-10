@@ -162,7 +162,7 @@ class ApplicationMenu
     firstKeystroke = keystrokesByCommand[command]?[0]
     return null unless firstKeystroke
 
-    modifiers = firstKeystroke.split('-')
+    modifiers = firstKeystroke.split(/-(?=.)/)
     key = modifiers.pop().toUpperCase().replace('+', 'Plus')
 
     modifiers = modifiers.map (modifier) ->
