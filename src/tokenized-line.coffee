@@ -259,23 +259,38 @@ class TokenizedLine
     indentTokens
 
   softWrapAt: (column, hangingIndent) ->
-    return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column is 0
+    return [null, this] if column is 0
 
-    rightTokens = new Array(@tokens...)
-    leftTokens = []
-    leftScreenColumn = 0
+    leftText = @text.substring(0, column)
+    rightText = @text.substring(column)
 
-    while leftScreenColumn < column
-      if leftScreenColumn + rightTokens[0].screenDelta > column
-        rightTokens[0..0] = rightTokens[0].splitAt(column - leftScreenColumn)
-      nextToken = rightTokens.shift()
-      leftScreenColumn += nextToken.screenDelta
-      leftTokens.push nextToken
+    leftTags = []
+    rightParentScopes = @parentScopes.slice()
 
-    indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0], hangingIndent)
+    screenColumn = 0
+    for tag, index in @tags
+      if tag >= 0
+        if screenColumn + tag < column
+          screenColumn += tag
+        else
+          leftTags.push(column - screenColumn)
+          rightTags = @tags.slice(index + 1)
+          rightPrefix = screenColumn + tag - column
+          rightTags.unshift(rightPrefix) if rightPrefix > 0
+          break
+      else if (tag % 2) is -1
+        rightParentScopes.push(tag)
+      else
+        rightParentScopes.pop()
+      leftTags.push(tag)
+
+    softWrapIndent = @indentLevel * @tabLength + (hangingIndent ? 0)
+    rightTags.unshift(softWrapIndent) if softWrapIndent > 0
 
     leftFragment = new TokenizedLine(
-      tokens: leftTokens
+      parentScopes: @parentScopes
+      text: leftText
+      tags: leftTags
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
       invisibles: @invisibles
@@ -284,12 +299,14 @@ class TokenizedLine
       tabLength: @tabLength
     )
     rightFragment = new TokenizedLine(
-      tokens: indentationTokens.concat(rightTokens)
+      parentScopes: rightParentScopes
+      text: rightText
+      tags: rightTags
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       invisibles: @invisibles
-      lineEnding: @lineEnding,
-      indentLevel: @indentLevel,
+      lineEnding: @lineEnding
+      indentLevel: @indentLevel
       tabLength: @tabLength
     )
     [leftFragment, rightFragment]
