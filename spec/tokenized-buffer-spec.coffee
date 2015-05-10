@@ -695,21 +695,6 @@ describe "TokenizedBuffer", ->
       expect(line.tokens[0].firstNonWhitespaceIndex).toBe 2
       expect(line.tokens[line.tokens.length - 1].firstTrailingWhitespaceIndex).toBe 0
 
-    it "sets the ::firstNonWhitespaceIndex and ::firstTrailingWhitespaceIndex correctly when tokens are split for soft-wrapping", ->
-      tokenizedBuffer.setInvisibles(space: 'S')
-      buffer.setText(" token ")
-      fullyTokenize(tokenizedBuffer)
-      token = tokenizedBuffer.tokenizedLines[0].tokens[0]
-
-      [leftToken, rightToken] = token.splitAt(1)
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(leftToken.firstNonWhitespaceIndex).toBe 1
-      expect(leftToken.firstTrailingWhitespaceIndex).toBe null
-
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(rightToken.firstNonWhitespaceIndex).toBe null
-      expect(rightToken.firstTrailingWhitespaceIndex).toBe 5
-
   describe ".indentLevel on tokenized lines", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
