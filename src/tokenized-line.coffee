@@ -122,6 +122,8 @@ class TokenizedLine
     @text = text
 
   Object.defineProperty @prototype, 'tokens', get: ->
+    offset = 0
+
     atom.grammars.decodeContent @text, @tags, @parentScopes.slice(), (tokenProperties, index) =>
       switch @specialTokens[index]
         when SoftTab
@@ -132,6 +134,16 @@ class TokenizedLine
         when PairedCharacter
           tokenProperties.isAtomic = true
           tokenProperties.hasPairedCharacter = true
+
+      if offset < @firstNonWhitespaceIndex
+        tokenProperties.firstNonWhitespaceIndex =
+          Math.min(offset + tokenProperties.value.length, @firstNonWhitespaceIndex - offset)
+
+      if @lineEnding? and (offset + tokenProperties.value.length > @firstTrailingWhitespaceIndex)
+        tokenProperties.firstTrailingWhitespaceIndex =
+          Math.max(0, @firstTrailingWhitespaceIndex - offset)
+
+      offset += tokenProperties.value.length
 
       new Token(tokenProperties)
 
@@ -332,17 +344,8 @@ class TokenizedLine
     @firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
     if @firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, @firstNonWhitespaceIndex - 1)
       @firstNonWhitespaceIndex--
-    firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
-    @lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
-    index = 0
-    for token in @tokens
-      if index < @firstNonWhitespaceIndex
-        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, @firstNonWhitespaceIndex - index)
-      # Only the *last* segment of a soft-wrapped line can have trailing whitespace
-      if @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
-        token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
-      index += token.value.length
-    return
+    @firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
+    @lineIsWhitespaceOnly = @firstTrailingWhitespaceIndex is 0
 
   substituteInvisibleCharacters: ->
     invisibles = @invisibles

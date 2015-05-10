@@ -20,7 +20,11 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndentation}) ->
+  constructor: (properties) ->
+    {@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndentation} = properties
+    @firstNonWhitespaceIndex = properties.firstNonWhitespaceIndex ? null
+    @firstTrailingWhitespaceIndex = properties.firstTrailingWhitespaceIndex ? null
+    
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
