@@ -158,7 +158,7 @@ class TokenizedLine
     delta
 
   copy: ->
-    new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})
+    new TokenizedLine({@parentScopes, @text, @tags, @lineEnding, @ruleStack, @startBufferColumn, @fold})
 
   # This clips a given screen column to a valid column that's within the line
   # and not in the middle of any atomic tokens.
