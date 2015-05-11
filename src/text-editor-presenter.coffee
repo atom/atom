@@ -905,7 +905,7 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setScrollingTile: (tileId) ->
+  setScrollingTileId: (tileId) ->
     if @scrollingTile isnt tileId
       @scrollingTile = tileId
       @didStartScrolling()
