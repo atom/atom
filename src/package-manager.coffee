@@ -417,14 +417,35 @@ class PackageManager
     packageDir = null
     devDir = path.join("dev", "packages")
     for packageDirPath in @packageDirPaths
-      packageDir = packageDirPath if not packageDirPath.endsWith(devDir)
+      if not packageDirPath.endsWith(devDir)
+        packageDir = packageDirPath
+        break
 
     if packageDir?
-      autocompletePlusPath = path.join(packageDir, 'autocomplete-plus')
-      if fs.isSymbolicLinkSync(autocompletePlusPath)
-        fs.unlink(autocompletePlusPath)
-      else if fs.isDirectorySync(autocompletePlusPath)
-        fs.remove(autocompletePlusPath, ->)
+      dirsToRemove = [
+        path.join(packageDir, 'autocomplete-plus')
+        path.join(packageDir, 'autocomplete-atom-api')
+        path.join(packageDir, 'autocomplete-css')
+        path.join(packageDir, 'autocomplete-html')
+      ]
+      for dirToRemove in dirsToRemove
+        @uninstallDirectory(dirToRemove)
+    return
+
+  uninstallDirectory: (directory) ->
+    symlinkPromise = new Promise (resolve) ->
+      fs.isSymbolicLink directory, (isSymLink) -> resolve(isSymLink)
+
+    dirPromise = new Promise (resolve) ->
+      fs.isDirectory directory, (isDir) -> resolve(isDir)
+
+    Promise.all([symlinkPromise, dirPromise]).then (values) ->
+      [isSymLink, isDir] = values
+      console.log directory, isSymLink, isDir
+      if isSymLink
+        fs.unlink(directory)
+      else if isDir
+        fs.remove(directory, ->)
 
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
