@@ -19,23 +19,23 @@ class TokenizedLine
   firstNonWhitespaceIndex: 0
   foldable: false
 
-  constructor: ({@parentScopes, @text, @tags, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
-    @startBufferColumn ?= 0
-
+  constructor: (properties) ->
+    @id = idCounter++
     @specialTokens = {}
 
+    return unless properties?
+
+    {@parentScopes, @text, @tags, @lineEnding, @ruleStack} = properties
+    {@startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles} = properties
+
+    @startBufferColumn ?= 0
+    @bufferDelta = @text.length
+
     @subdivideTokens()
+    @buildEndOfLineInvisibles() if @invisibles? and @lineEnding?
 
-    # @tokens = @breakOutAtomicTokens(tokens)
-    @bufferDelta = @buildBufferDelta()
-    @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
-    @softWrapIndentationDelta = @buildSoftWrapIndentationDelta()
-
-    @id = idCounter++
-    @markLeadingAndTrailingWhitespaceTokens()
-    if @invisibles
-      @substituteInvisibleCharacters()
-      @buildEndOfLineInvisibles() if @lineEnding?
+    # @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
+    # @softWrapIndentationDelta = @buildSoftWrapIndentationDelta()
 
   subdivideTokens: ->
     text = ''
@@ -43,7 +43,8 @@ class TokenizedLine
     screenColumn = 0
     tokenIndex = 0
     tokenOffset = 0
-    inLeadingWhitespace = true
+    firstNonWhitespaceColumn = null
+    lastNonWhitespaceColumn = null
 
     while bufferColumn < @text.length
       # advance to next token if we've iterated over its length
@@ -67,6 +68,9 @@ class TokenizedLine
 
         @tags.splice(tokenIndex, 1, splitTokens...)
 
+        firstNonWhitespaceColumn ?= screenColumn
+        lastNonWhitespaceColumn = screenColumn
+
         text += @text.substr(bufferColumn, 2)
         screenColumn++
         bufferColumn += 2
@@ -77,14 +81,17 @@ class TokenizedLine
         tokenOffset = 0
 
       # split out leading soft tabs
-      else if character is ' ' and inLeadingWhitespace
-        if inLeadingWhitespace and (screenColumn + 1) % @tabLength is 0
-          @specialTokens[tokenIndex] = SoftTab
-          suffix = @tags[tokenIndex] - @tabLength
-          @tags.splice(tokenIndex, 1, @tabLength)
-          @tags.splice(tokenIndex + 1, 0, suffix) if suffix > 0
+      else if character is ' '
+        if firstNonWhitespaceColumn?
+          text += ' '
+        else
+          if (screenColumn + 1) % @tabLength is 0
+            @specialTokens[tokenIndex] = SoftTab
+            suffix = @tags[tokenIndex] - @tabLength
+            @tags.splice(tokenIndex, 1, @tabLength)
+            @tags.splice(tokenIndex + 1, 0, suffix) if suffix > 0
+          text += @invisibles?.space ? ' '
 
-        text += character
         screenColumn++
         bufferColumn++
         tokenOffset++
@@ -92,7 +99,11 @@ class TokenizedLine
       # expand hard tabs to the next tab stop
       else if character is '\t'
         tabLength = @tabLength - (screenColumn % @tabLength)
-        text += ' ' for i in [0...tabLength] by 1
+        if @invisibles?.tab
+          text += @invisibles.tab
+        else
+          text += ' '
+        text += ' ' for i in [1...tabLength] by 1
 
         prefix = tokenOffset
         suffix = @tags[tokenIndex] - tokenOffset - 1
@@ -113,13 +124,28 @@ class TokenizedLine
 
       # continue past any other character
       else
-        inLeadingWhitespace = false
+        firstNonWhitespaceColumn ?= screenColumn
+        lastNonWhitespaceColumn = screenColumn
+
         text += character
         screenColumn++
         bufferColumn++
         tokenOffset++
 
     @text = text
+
+    @firstNonWhitespaceIndex = firstNonWhitespaceColumn
+    if lastNonWhitespaceColumn?
+      if lastNonWhitespaceColumn + 1 < @text.length
+        @firstTrailingWhitespaceIndex = lastNonWhitespaceColumn + 1
+        if @invisibles?.space
+          @text =
+            @text.substring(0, @firstTrailingWhitespaceIndex) +
+              @text.substring(@firstTrailingWhitespaceIndex)
+                .replace(RepeatedSpaceRegex, @invisibles.space)
+    else
+      @lineIsWhitespaceOnly = true
+      @firstTrailingWhitespaceIndex = 0
 
   Object.defineProperty @prototype, 'tokens', get: ->
     offset = 0
@@ -137,7 +163,7 @@ class TokenizedLine
 
       if offset < @firstNonWhitespaceIndex
         tokenProperties.firstNonWhitespaceIndex =
-          Math.min(offset + tokenProperties.value.length, @firstNonWhitespaceIndex - offset)
+          Math.min(tokenProperties.value.length, @firstNonWhitespaceIndex - offset)
 
       if @lineEnding? and (offset + tokenProperties.value.length > @firstTrailingWhitespaceIndex)
         tokenProperties.firstTrailingWhitespaceIndex =
@@ -158,7 +184,20 @@ class TokenizedLine
     delta
 
   copy: ->
-    new TokenizedLine({@parentScopes, @text, @tags, @lineEnding, @ruleStack, @startBufferColumn, @fold})
+    copy = new TokenizedLine
+    copy.indentLevel = @indentLevel
+    copy.parentScopes = @parentScopes
+    copy.text = @text
+    copy.tags = @tags
+    copy.specialTokens = @specialTokens
+    copy.firstNonWhitespaceIndex = @firstNonWhitespaceIndex
+    copy.firstTrailingWhitespaceIndex = @firstTrailingWhitespaceIndex
+    copy.lineEnding = @lineEnding
+    copy.endOfLineInvisibles = @endOfLineInvisibles
+    copy.ruleStack = @ruleStack
+    copy.startBufferColumn = @startBufferColumn
+    copy.fold = @fold
+    copy
 
   # This clips a given screen column to a valid column that's within the line
   # and not in the middle of any atomic tokens.
@@ -315,12 +354,14 @@ class TokenizedLine
     @lineEnding is null
 
   isColumnInsideSoftWrapIndentation: (column) ->
-    return false if @softWrapIndentationTokens.length is 0
-
-    column < @softWrapIndentationDelta
+    false
+    # return false if @softWrapIndentationTokens.length is 0
+    #
+    # column < @softWrapIndentationDelta
 
   getSoftWrapIndentationTokens: ->
-    _.select(@tokens, (token) -> token.isSoftWrapIndentation)
+    []
+    # _.select(@tokens, (token) -> token.isSoftWrapIndentation)
 
   buildSoftWrapIndentationDelta: ->
     _.reduce @softWrapIndentationTokens, ((acc, token) -> acc + token.screenDelta), 0
