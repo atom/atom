@@ -459,12 +459,6 @@ class TokenizedLine
   getTokenCount: ->
     @tokens.length
 
-  bufferColumnForToken: (targetToken) ->
-    column = 0
-    for token in @tokens
-      return column if token is targetToken
-      column += token.bufferDelta
-
   getScopeTree: ->
     return @scopeTree if @scopeTree?
 

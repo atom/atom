@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
+{ScopeSelector} = require 'first-mate'
 Serializable = require 'serializable'
 Model = require './model'
 TokenizedLine = require './tokenized-line'
@@ -390,25 +391,53 @@ class TokenizedBuffer extends Model
     new Point(row, column)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
+    selector = new ScopeSelector(selector.replace(/^\./, ''))
     position = Point.fromObject(position)
-    tokenizedLine = @tokenizedLines[position.row]
-    startIndex = tokenizedLine.tokenIndexAtBufferColumn(position.column)
 
-    for index in [startIndex..0]
-      token = tokenizedLine.tokenAtIndex(index)
-      break unless token.matchesScopeSelector(selector)
-      firstToken = token
+    {parentScopes, tags} = @tokenizedLines[position.row]
+    scopes = parentScopes.map (tag) -> atom.grammars.scopeForId(tag)
 
-    for index in [startIndex...tokenizedLine.getTokenCount()]
-      token = tokenizedLine.tokenAtIndex(index)
-      break unless token.matchesScopeSelector(selector)
-      lastToken = token
+    startColumn = 0
+    for tag, tokenIndex in tags
+      if tag < 0
+        if tag % 2 is -1
+          scopes.push(atom.grammars.scopeForId(tag))
+        else
+          scopes.pop()
+      else
+        endColumn = startColumn + tag
+        if endColumn > position.column
+          break
+        else
+          startColumn = endColumn
 
-    return unless firstToken? and lastToken?
+    return unless selector.matches(scopes)
 
-    startColumn = tokenizedLine.bufferColumnForToken(firstToken)
-    endColumn = tokenizedLine.bufferColumnForToken(lastToken) + lastToken.bufferDelta
-    new Range([position.row, startColumn], [position.row, endColumn])
+    startScopes = scopes.slice()
+    for startTokenIndex in [(tokenIndex - 1)..0] by -1
+      tag = tags[startTokenIndex]
+      if tag < 0
+        if tag % 2 is -1
+          startScopes.pop()
+        else
+          startScopes.push(atom.grammars.scopeForId(tag))
+      else
+        break unless selector.matches(startScopes)
+        startColumn -= tag
+
+    endScopes = scopes.slice()
+    for endTokenIndex in [(tokenIndex + 1)...tags.length] by 1
+      tag = tags[endTokenIndex]
+      if tag < 0
+        if tag % 2 is -1
+          endScopes.push(atom.grammars.scopeForId(tag))
+        else
+          endScopes.pop()
+      else
+        break unless selector.matches(endScopes)
+        endColumn += tag
+
+    new Range(new Point(position.row, startColumn), new Point(position.row, endColumn))
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)

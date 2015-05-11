@@ -580,7 +580,7 @@ describe "TokenizedBuffer", ->
 
     describe "when the selector matches a run of multiple tokens at the position", ->
       it "returns the range covered by all contigous tokens (within a single line)", ->
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.meta.function', [1, 18])).toEqual [[1, 6], [1, 28]]
 
   describe "when the editor.tabLength config value changes", ->
     it "updates the tab length of the tokenized lines", ->
@@ -734,7 +734,7 @@ describe "TokenizedBuffer", ->
       it "updates empty line indent guides when the empty line is the last line", ->
         buffer.insert([12, 2], '\n')
 
-        # The newline and he tab need to be in two different operations to surface the bug
+        # The newline and the tab need to be in two different operations to surface the bug
         buffer.insert([12, 0], '  ')
         expect(tokenizedBuffer.tokenizedLineForRow(13).indentLevel).toBe 1
 
