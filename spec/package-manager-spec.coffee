@@ -824,3 +824,36 @@ describe "PackageManager", ->
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+
+  describe "deleting non-bundled autocomplete packages", ->
+    [autocompleteCSSPath, autocompletePlusPath] = []
+    fs = require 'fs-plus'
+    path = require 'path'
+
+    beforeEach ->
+      fixturePath = path.resolve(__dirname, './fixtures/packages')
+      autocompleteCSSPath = path.join(fixturePath, 'autocomplete-css')
+      autocompletePlusPath = path.join(fixturePath, 'autocomplete-plus')
+
+      try
+        fs.mkdirSync(autocompleteCSSPath)
+        fs.writeFileSync(path.join(autocompleteCSSPath, 'package.json'), '{}')
+        fs.symlinkSync(path.join(fixturePath, 'package-with-main'), autocompletePlusPath, 'dir')
+      catch e
+        ;
+
+      expect(fs.isDirectorySync(autocompleteCSSPath)).toBe true
+      expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
+
+      jasmine.unspy(atom.packages, 'uninstallAutocompletePlus')
+
+    it "removes the packages", ->
+      atom.packages.loadPackages()
+
+      waitsFor ->
+        not fs.isDirectorySync(autocompleteCSSPath) and
+          not fs.isSymbolicLinkSync(autocompletePlusPath)
+
+      runs ->
+        expect(fs.isDirectorySync(autocompleteCSSPath)).toBe false
+        expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe false
