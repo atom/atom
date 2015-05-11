@@ -444,7 +444,7 @@ class PackageManager
       if isSymLink
         fs.unlink(directory)
       else if isDir
-        fs.remove(directory, ->)
+        fs.remove directory, ->
 
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
