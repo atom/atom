@@ -306,6 +306,7 @@ class TextEditorPresenter
     return unless @startRow? and @endRow? and @lineHeight?
 
     linesPerTile = Math.floor(@height / @lineHeight / @tileCount)
+    linesPerTile = Math.max(1, linesPerTile)
 
     startIndex = Math.max(
       0, Math.floor(@startRow / linesPerTile) - @tileOverdrawMargin
