@@ -387,49 +387,6 @@ class TokenizedLine
       delta = nextDelta
     delta
 
-  breakOutAtomicTokens: (inputTokens) ->
-    outputTokens = []
-    breakOutLeadingSoftTabs = true
-    column = @startBufferColumn
-    for token in inputTokens
-      newTokens = token.breakOutAtomicTokens(@tabLength, breakOutLeadingSoftTabs, column)
-      column += newToken.value.length for newToken in newTokens
-      outputTokens.push(newTokens...)
-      breakOutLeadingSoftTabs = token.isOnlyWhitespace() if breakOutLeadingSoftTabs
-    outputTokens
-
-  markLeadingAndTrailingWhitespaceTokens: ->
-    @firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
-    if @firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, @firstNonWhitespaceIndex - 1)
-      @firstNonWhitespaceIndex--
-    @firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
-    @lineIsWhitespaceOnly = @firstTrailingWhitespaceIndex is 0
-
-  substituteInvisibleCharacters: ->
-    invisibles = @invisibles
-    changedText = false
-
-    for token, i in @tokens
-      if token.isHardTab
-        if invisibles.tab
-          token.value = invisibles.tab + token.value.substring(invisibles.tab.length)
-          token.hasInvisibleCharacters = true
-          changedText = true
-      else
-        if invisibles.space
-          if token.hasLeadingWhitespace() and not token.isSoftWrapIndentation
-            token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
-              leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
-            token.hasInvisibleCharacters = true
-            changedText = true
-          if token.hasTrailingWhitespace()
-            token.value = token.value.replace TrailingWhitespaceRegex, (leadingWhitespace) ->
-              leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
-            token.hasInvisibleCharacters = true
-            changedText = true
-
-    @text = @buildText() if changedText
-
   buildEndOfLineInvisibles: ->
     @endOfLineInvisibles = []
     {cr, eol} = @invisibles
