@@ -375,7 +375,7 @@ class TextEditorPresenter
       else
         screenPosition = decoration.getMarker().getHeadScreenPosition()
 
-      pixelPosition = @pixelPositionForScreenPosition(screenPosition)
+      pixelPosition = @pixelPositionForScreenPosition(screenPosition, true, absolute: true)
 
       {scrollTop, scrollLeft} = @state.content
 
@@ -963,7 +963,7 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+  pixelPositionForScreenPosition: (screenPosition, clip=true, {absolute}={}) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
@@ -993,7 +993,8 @@ class TextEditorPresenter
         left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
 
-    {top: top - @scrollTop, left}
+    top -= @scrollTop unless absolute
+    {top, left}
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?
