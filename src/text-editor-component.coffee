@@ -366,7 +366,7 @@ class TextEditorComponent
       @scrollViewNode.scrollLeft = 0
 
   onMouseDown: (event) =>
-    unless event.button is 0 or (event.button is 1 and process.platform is 'linux' and atom.config.get('editor.middleMousePaste'))
+    unless event.button is 0 or (event.button is 1 and process.platform is 'linux' and atom.config.get('editor.selectionClipboard'))
       # Only handle mouse down events for left mouse button on all platforms
       # and middle mouse button on Linux since it pastes the selection clipboard
       return

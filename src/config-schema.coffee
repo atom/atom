@@ -198,7 +198,7 @@ if process.platform in ['win32', 'linux']
     description: 'Automatically hide the menu bar and toggle it by pressing Alt. This is only supported on Windows & Linux.'
 
 if process.platform is 'linux'
-  module.exports.editor.properties.middleMousePaste =
+  module.exports.editor.properties.selectionClipboard =
     type: 'boolean'
     default: true
     description: 'Copy the last selection to the clipboard'
