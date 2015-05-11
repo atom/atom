@@ -421,8 +421,10 @@ class PackageManager
 
     if packageDir?
       autocompletePlusPath = path.join(packageDir, 'autocomplete-plus')
-      fs.isDirectory autocompletePlusPath, (isDir, error) ->
-        fs.unlink(autocompletePlusPath) if isDir
+      if fs.isSymbolicLinkSync(autocompletePlusPath)
+        fs.unlink(autocompletePlusPath)
+      else if fs.isDirectorySync(autocompletePlusPath)
+        fs.remove(autocompletePlusPath, ->)
 
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
