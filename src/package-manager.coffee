@@ -441,7 +441,6 @@ class PackageManager
 
     Promise.all([symlinkPromise, dirPromise]).then (values) ->
       [isSymLink, isDir] = values
-      console.log directory, isSymLink, isDir
       if isSymLink
         fs.unlink(directory)
       else if isDir
