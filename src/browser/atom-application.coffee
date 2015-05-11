@@ -104,7 +104,7 @@ class AtomApplication
       if process.platform in ['win32', 'linux']
         app.quit()
         return
-    @saveState()
+    @saveState() unless window.isSpec
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
