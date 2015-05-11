@@ -886,7 +886,7 @@ class DisplayBuffer extends Model
   getDecorations: (propertyFilter) ->
     allDecorations = []
     for markerId, decorations of @decorationsByMarkerId
-      allDecorations = allDecorations.concat(decorations) if decorations?
+      allDecorations.push(decorations...) if decorations?
     if propertyFilter?
       allDecorations = allDecorations.filter (decoration) ->
         for key, value of propertyFilter
@@ -1120,7 +1120,7 @@ class DisplayBuffer extends Model
     {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
     screenDelta = screenLines.length - (endScreenRow - startScreenRow)
 
-    @screenLines[startScreenRow...endScreenRow] = screenLines
+    _.spliceWithArray(@screenLines, startScreenRow, endScreenRow - startScreenRow, screenLines, 10000)
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
 

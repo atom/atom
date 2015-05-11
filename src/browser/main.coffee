@@ -133,7 +133,6 @@ parseCommandLine = ->
   safeMode = args['safe']
   apiPreviewMode = args['one']
   pathsToOpen = args._
-  pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
   specDirectory = args['spec-directory']
   newWindow = args['new-window']

@@ -87,7 +87,7 @@ class AtomApplication
 
   openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, apiPreviewMode, newWindow, specDirectory, logFile, profileStartup}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
+      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile, apiPreviewMode})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, apiPreviewMode, profileStartup})
     else if urlsToOpen.length > 0
@@ -424,12 +424,7 @@ class AtomApplication
     for window in @windows
       if loadSettings = window.getLoadSettings()
         unless loadSettings.isSpec
-          states.push(_.pick(loadSettings,
-            'initialPaths'
-            'devMode'
-            'safeMode'
-            'apiPreviewMode'
-          ))
+          states.push(initialPaths: loadSettings.initialPaths)
     @storageFolder.store('application.json', states)
 
   loadState: ->
@@ -438,9 +433,9 @@ class AtomApplication
         @openWithOptions({
           pathsToOpen: state.initialPaths
           urlsToOpen: []
-          devMode: state.devMode
-          safeMode: state.safeMode
-          apiPreviewMode: state.apiPreviewMode
+          devMode: @devMode
+          safeMode: @safeMode
+          apiPreviewMode: @apiPreviewMode
         })
       true
     else
@@ -486,7 +481,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode, apiPreviewMode}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -498,7 +493,8 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
+    apiPreviewMode ?= false
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode, apiPreviewMode})
 
   runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try
@@ -516,13 +512,15 @@ class AtomApplication
     return {pathToOpen} unless pathToOpen
     return {pathToOpen} if fs.existsSync(pathToOpen)
 
+    pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
+
     [fileToOpen, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
     return {pathToOpen} unless initialLine
-    return {pathToOpen} unless parseInt(initialLine) > 0
+    return {pathToOpen} unless parseInt(initialLine) >= 0
 
     # Convert line numbers to a base of 0
-    initialLine -= 1 if initialLine
-    initialColumn -= 1 if initialColumn
+    initialLine = Math.max(0, initialLine - 1) if initialLine
+    initialColumn = Math.max(0, initialColumn - 1) if initialColumn
     pathToOpen = path.join(path.dirname(pathToOpen), fileToOpen)
     {pathToOpen, initialLine, initialColumn}
 
