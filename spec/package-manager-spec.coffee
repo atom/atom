@@ -840,7 +840,7 @@ describe "PackageManager", ->
         fs.writeFileSync(path.join(autocompleteCSSPath, 'package.json'), '{}')
         fs.symlinkSync(path.join(fixturePath, 'package-with-main'), autocompletePlusPath, 'dir')
       catch e
-        ;
+        undefined
 
       expect(fs.isDirectorySync(autocompleteCSSPath)).toBe true
       expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
