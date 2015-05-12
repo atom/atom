@@ -224,7 +224,6 @@ class Atom extends Model
     @disposables = new CompositeDisposable
 
     @restoreWindow()
-    @show()
 
     @setBodyPlatformClass()
 
@@ -501,6 +500,8 @@ class Atom extends Model
   # prevent resize glitches.
   restoreWindow: ->
     dimensions = @restoreWindowDimensions()
+    @show()
+
     maximize = dimensions?.maximized and process.platform isnt 'darwin'
 
     setImmediate =>
