@@ -215,6 +215,7 @@ class TextEditorPresenter
           lineNumbers: {}
     # Shared state that is copied into ``@state.gutters`.
     @sharedGutterStyles = {}
+    @customGutterDecorations = {}
 
     @updateState()
 
@@ -457,9 +458,10 @@ class TextEditorPresenter
         visible: isVisible,
         styles: @sharedGutterStyles
       })
+    @state.gutters.customDecorations = @customGutterDecorations # TODO jssln Remove
 
   # Updates the decoration state for the gutter with the given gutterName.
-  # @state.gutters.customDecorations is an {Object}, with the form:
+  # @customGutterDecorations is an {Object}, with the form:
   #   * gutterName : {
   #     decoration.id : {
   #       top: # of pixels from top
@@ -471,18 +473,18 @@ class TextEditorPresenter
   updateCustomGutterDecorationState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    @state.gutters.customDecorations = {}
+    @customGutterDecorations = {}
     return if @model.isMini()
 
     for gutter in @model.getGutters()
       gutterName = gutter.name
-      @state.gutters.customDecorations[gutterName] = {}
+      @customGutterDecorations[gutterName] = {}
       return if not @gutterIsVisible(gutter)
 
       relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
       relevantDecorations.forEach (decoration) =>
         decorationRange = decoration.getMarker().getScreenRange()
-        @state.gutters.customDecorations[gutterName][decoration.id] =
+        @customGutterDecorations[gutterName][decoration.id] =
           top: @lineHeight * decorationRange.start.row
           height: @lineHeight * decorationRange.getRowCount()
           item: decoration.getProperties().item
