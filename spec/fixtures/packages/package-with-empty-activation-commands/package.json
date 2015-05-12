@@ -1,5 +1,5 @@
 {
-  "name": "noevents",
+  "name": "package-with-consumed-services",
   "version": "0.1.0",
   "activationCommands": {"atom-workspace": []}
 }
