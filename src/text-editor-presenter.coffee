@@ -213,6 +213,9 @@ class TextEditorPresenter
         customDecorations: {}
         lineNumberGutter:
           lineNumbers: {}
+    # Shared state that is copied into ``@state.gutters`.
+    @sharedGutterStyles = {}
+
     @updateState()
 
   updateState: ->
@@ -251,11 +254,13 @@ class TextEditorPresenter
 
   updateVerticalScrollState: ->
     @state.content.scrollHeight = @scrollHeight
-    @state.gutters.scrollHeight = @scrollHeight
+    @state.gutters.scrollHeight = @scrollHeight # TODO jssln Remove
+    @sharedGutterStyles.scrollHeight = @scrollHeight
     @state.verticalScrollbar.scrollHeight = @scrollHeight
 
     @state.content.scrollTop = @scrollTop
-    @state.gutters.scrollTop = @scrollTop
+    @state.gutters.scrollTop = @scrollTop # TODO jssln Remove
+    @sharedGutterStyles.scrollTop = @scrollTop
     @state.verticalScrollbar.scrollTop = @scrollTop
 
   updateHorizontalScrollState: ->
@@ -413,10 +418,11 @@ class TextEditorPresenter
     @state.gutters.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
 
   updateCommonGutterState: ->
-    @state.gutters.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
+    @sharedGutterStyles.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
       @gutterBackgroundColor
     else
       @backgroundColor
+    @state.gutters.backgroundColor = @sharedGutterStyles.backgroundColor # TODO jssln Remove
 
   didAddGutter: (gutter) ->
     gutterDisposables = new CompositeDisposable
@@ -446,7 +452,11 @@ class TextEditorPresenter
       return
     for gutter in @model.getGutters()
       isVisible = @gutterIsVisible(gutter)
-      @state.gutters.sortedDescriptions.push({gutter, visible: isVisible})
+      @state.gutters.sortedDescriptions.push({
+        gutter,
+        visible: isVisible,
+        styles: @sharedGutterStyles
+      })
 
   # Updates the decoration state for the gutter with the given gutterName.
   # @state.gutters.customDecorations is an {Object}, with the form:
