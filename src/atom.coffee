@@ -196,6 +196,10 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
+    dimensions = @restoreWindowDimensions()
+    maximize = dimensions?.maximized and process.platform isnt 'darwin'
+    @displayWindow({maximize})
+
     sourceMapCache = {}
 
     window.onerror = =>
@@ -483,7 +487,10 @@ class Atom extends Model
   # Extended: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     ipc.send('call-window-method', 'setFullScreen', fullScreen)
-    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
+    if fullScreen
+      document.body.classList.add("fullscreen")
+    else
+      document.body.classList.remove("fullscreen")
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
@@ -494,8 +501,9 @@ class Atom extends Model
   # This is done in a next tick to prevent a white flicker from occurring
   # if called synchronously.
   displayWindow: ({maximize}={}) ->
+    @show()
+
     setImmediate =>
-      @show()
       @focus()
       @setFullScreen(true) if @workspace.fullScreen
       @maximize() if maximize
@@ -582,7 +590,6 @@ class Atom extends Model
     CommandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
-    dimensions = @restoreWindowDimensions()
     @loadConfig()
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
@@ -601,9 +608,6 @@ class Atom extends Model
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
     @openInitialEmptyEditorIfNecessary()
-
-    maximize = dimensions?.maximized and process.platform isnt 'darwin'
-    @displayWindow({maximize})
 
   unloadEditorWindow: ->
     return if not @project
