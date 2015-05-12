@@ -375,11 +375,11 @@ class TextEditorPresenter
       else
         screenPosition = decoration.getMarker().getHeadScreenPosition()
 
-      pixelPosition = @pixelPositionForScreenPosition(screenPosition, true, absolute: true)
+      pixelPosition = @pixelPositionForScreenPosition(screenPosition, true)
 
-      {scrollTop, scrollLeft} = @state.content
+      {scrollLeft} = @state.content
 
-      top = pixelPosition.top + @lineHeight - scrollTop
+      top = pixelPosition.top + @lineHeight
       left = pixelPosition.left + @gutterWidth - scrollLeft
 
       if overlayDimensions = @overlayDimensions[decoration.id]
@@ -963,7 +963,7 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true, {absolute}={}) ->
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
@@ -993,7 +993,7 @@ class TextEditorPresenter
         left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
 
-    top -= @scrollTop unless absolute
+    top -= @scrollTop
     {top, left}
 
   hasPixelRectRequirements: ->
