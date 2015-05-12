@@ -22,10 +22,10 @@ class TokenizedLine
 
   constructor: (properties) ->
     @id = idCounter++
-    @specialTokens = {}
 
     return unless properties?
 
+    @specialTokens = {}
     {@parentScopes, @text, @tags, @lineEnding, @ruleStack} = properties
     {@startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles} = properties
 
