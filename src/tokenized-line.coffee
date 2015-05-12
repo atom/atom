@@ -155,6 +155,7 @@ class TokenizedLine
         when HardTab
           tokenProperties.isAtomic = true
           tokenProperties.bufferDelta = 1
+          tokenProperties.hasInvisibleCharacters = true if @invisibles?.tab
         when PairedCharacter
           tokenProperties.isAtomic = true
           tokenProperties.hasPairedCharacter = true
@@ -165,10 +166,12 @@ class TokenizedLine
       if offset < @firstNonWhitespaceIndex
         tokenProperties.firstNonWhitespaceIndex =
           Math.min(tokenProperties.value.length, @firstNonWhitespaceIndex - offset)
+        tokenProperties.hasInvisibleCharacters = true if @invisibles?.space
 
       if @lineEnding? and (offset + tokenProperties.value.length > @firstTrailingWhitespaceIndex)
         tokenProperties.firstTrailingWhitespaceIndex =
           Math.max(0, @firstTrailingWhitespaceIndex - offset)
+        tokenProperties.hasInvisibleCharacters = true if @invisibles?.space
 
       offset += tokenProperties.value.length
 

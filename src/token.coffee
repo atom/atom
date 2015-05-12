@@ -21,7 +21,8 @@ class Token
   hasInvisibleCharacters: false
 
   constructor: (properties) ->
-    {@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndentation} = properties
+    {@value, @scopes, @isAtomic, @isHardTab, @bufferDelta} = properties
+    {@hasInvisibleCharacters, @hasPairedCharacter, @isSoftWrapIndentation} = properties
     @firstNonWhitespaceIndex = properties.firstNonWhitespaceIndex ? null
     @firstTrailingWhitespaceIndex = properties.firstTrailingWhitespaceIndex ? null
 
