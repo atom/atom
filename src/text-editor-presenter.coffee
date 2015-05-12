@@ -473,12 +473,20 @@ class TextEditorPresenter
   updateCustomGutterDecorationState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    @customGutterDecorations = {}
-    return if @model.isMini()
+    if @model.isMini()
+      # Mini editors have no gutter decorations.
+      # We clear instead of reassigning to preserve the reference.
+      @clearAllCustomGutterDecorations()
 
     for gutter in @model.getGutters()
       gutterName = gutter.name
-      @customGutterDecorations[gutterName] = {}
+      gutterDecorations = @customGutterDecorations[gutterName]
+      if not gutterDecorations
+        @customGutterDecorations[gutterName] = {}
+      else
+        # Clear the gutter decorations; they are rebuilt.
+        # We clear instead of reassigning to preserve the reference.
+        @clearDecorationsForCustomGutterName(gutterName)
       return if not @gutterIsVisible(gutter)
 
       relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
@@ -489,6 +497,18 @@ class TextEditorPresenter
           height: @lineHeight * decorationRange.getRowCount()
           item: decoration.getProperties().item
           class: decoration.getProperties().class
+
+  clearAllCustomGutterDecorations: ->
+    allGutterNames = Object.keys(@customGutterDecorations)
+    for gutterName in allGutterNames
+      @clearDecorationsForCustomGutterName(gutterName)
+
+  clearDecorationsForCustomGutterName: (gutterName) ->
+    gutterDecorations = @customGutterDecorations[gutterName]
+    if gutterDecorations
+      allDecorationIds = Object.keys(gutterDecorations)
+      for decorationId in allDecorationIds
+        delete gutterDecorations[decorationId]
 
   gutterIsVisible: (gutterModel) ->
     isVisible = gutterModel.isVisible()
