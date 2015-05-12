@@ -443,7 +443,7 @@ class PackageManager
     Promise.all([symlinkPromise, dirPromise]).then (values) ->
       [isSymLink, isDir] = values
       if isSymLink
-        fs.unlink(directory)
+        fs.unlink directory, ->
       else if isDir
         fs.remove directory, ->
 
