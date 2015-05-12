@@ -30,7 +30,7 @@ class Package
       normalizePackageData ?= require 'normalize-package-data'
       normalizePackageData(metadata)
       if metadata.repository?.type is 'git'
-        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
+        metadata.repository.url = metadata.repository.url?.replace(/^git\+/, '')
       metadata
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->
