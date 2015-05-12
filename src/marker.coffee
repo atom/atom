@@ -359,18 +359,6 @@ class Marker
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
 
-  pauseChangeEvents: ->
-    @deferredChangeEvents = []
-
-  resumeChangeEvents: ->
-    if deferredChangeEvents = @deferredChangeEvents
-      @deferredChangeEvents = null
-
-      for event in deferredChangeEvents
-        @emit 'changed', event if Grim.includeDeprecatedAPIs
-        @emitter.emit 'did-change', event
-    return
-
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
 

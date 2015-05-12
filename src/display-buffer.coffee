@@ -39,7 +39,6 @@ class DisplayBuffer extends Model
     @decorationsByMarkerId = {}
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
-    @disposables.add @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @updateAllScreenLines()
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
@@ -153,12 +152,12 @@ class DisplayBuffer extends Model
     @emitter.on 'did-update-markers', callback
 
   emitDidChange: (eventProperties, refreshMarkers=true) ->
-    if refreshMarkers
-      @pauseMarkerChangeEvents()
-      @refreshMarkerScreenPositions()
     @emit 'changed', eventProperties if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', eventProperties
-    @resumeMarkerChangeEvents()
+    if refreshMarkers
+      @refreshMarkerScreenPositions()
+    @emit 'markers-updated' if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-update-markers'
 
   updateWrappedScreenLines: ->
     start = 0
@@ -1078,15 +1077,6 @@ class DisplayBuffer extends Model
   getFoldMarkerAttributes: (attributes={}) ->
     _.extend(attributes, class: 'fold', displayBufferId: @id)
 
-  pauseMarkerChangeEvents: ->
-    marker.pauseChangeEvents() for marker in @getMarkers()
-    return
-
-  resumeMarkerChangeEvents: ->
-    marker.resumeChangeEvents() for marker in @getMarkers()
-    @emit 'markers-updated' if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-update-markers'
-
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
       marker.notifyObservers(textChanged: false)
@@ -1109,7 +1099,7 @@ class DisplayBuffer extends Model
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
-    @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
+    @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
     @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
@@ -1132,11 +1122,7 @@ class DisplayBuffer extends Model
       screenDelta: screenDelta
       bufferDelta: bufferDelta
 
-    if options.delayChangeEvent
-      @pauseMarkerChangeEvents()
-      @pendingChangeEvent = changeEvent
-    else
-      @emitDidChange(changeEvent, options.refreshMarkers)
+    @emitDidChange(changeEvent, options.refreshMarkers)
 
   buildScreenLines: (startBufferRow, endBufferRow) ->
     screenLines = []
@@ -1215,11 +1201,6 @@ class DisplayBuffer extends Model
     @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
     @scrollWidth += 1 unless @isSoftWrapped()
     @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
-
-  handleBufferMarkersUpdated: =>
-    if event = @pendingChangeEvent
-      @pendingChangeEvent = null
-      @emitDidChange(event, false)
 
   handleBufferMarkerCreated: (textBufferMarker) =>
     @createFoldForMarker(textBufferMarker) if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
