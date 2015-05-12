@@ -581,6 +581,8 @@ class Atom extends Model
     @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
   storeWindowBackground: ->
+    return if @inSpecMode()
+
     workspaceElement = @views?.getView(@workspace)
     backgroundColor = window.getComputedStyle(workspaceElement)['background-color']
     window.localStorage.setItem('atom:window-background-color', backgroundColor)
