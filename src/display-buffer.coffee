@@ -1120,7 +1120,7 @@ class DisplayBuffer extends Model
     {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
     screenDelta = screenLines.length - (endScreenRow - startScreenRow)
 
-    @screenLines[startScreenRow...endScreenRow] = screenLines
+    _.spliceWithArray(@screenLines, startScreenRow, endScreenRow - startScreenRow, screenLines, 10000)
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
 

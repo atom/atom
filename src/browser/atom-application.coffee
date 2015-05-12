@@ -424,12 +424,7 @@ class AtomApplication
     for window in @windows
       if loadSettings = window.getLoadSettings()
         unless loadSettings.isSpec
-          states.push(_.pick(loadSettings,
-            'initialPaths'
-            'devMode'
-            'safeMode'
-            'apiPreviewMode'
-          ))
+          states.push(initialPaths: loadSettings.initialPaths)
     @storageFolder.store('application.json', states)
 
   loadState: ->
@@ -438,9 +433,9 @@ class AtomApplication
         @openWithOptions({
           pathsToOpen: state.initialPaths
           urlsToOpen: []
-          devMode: state.devMode
-          safeMode: state.safeMode
-          apiPreviewMode: state.apiPreviewMode
+          devMode: @devMode
+          safeMode: @safeMode
+          apiPreviewMode: @apiPreviewMode
         })
       true
     else
@@ -516,6 +511,8 @@ class AtomApplication
   locationForPathToOpen: (pathToOpen) ->
     return {pathToOpen} unless pathToOpen
     return {pathToOpen} if fs.existsSync(pathToOpen)
+
+    pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
 
     [fileToOpen, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
     return {pathToOpen} unless initialLine
