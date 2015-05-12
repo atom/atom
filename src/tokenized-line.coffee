@@ -148,7 +148,7 @@ class TokenizedLine
   Object.defineProperty @prototype, 'tokens', get: ->
     offset = 0
 
-    atom.grammars.decodeContent @text, @tags, @parentScopes.slice(), (tokenProperties, index) =>
+    atom.grammars.decodeTokens @text, @tags, @parentScopes.slice(), (tokenProperties, index) =>
       switch @specialTokens[index]
         when SoftTab
           tokenProperties.isAtomic = true
