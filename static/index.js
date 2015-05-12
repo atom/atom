@@ -43,7 +43,6 @@ window.onload = function() {
   }
 }
 
-
 var setLoadTime = function(loadTime) {
   if (global.atom) {
     global.atom.loadTime = loadTime;
