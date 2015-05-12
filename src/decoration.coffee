@@ -201,6 +201,6 @@ if Grim.includeDeprecatedAPIs
     Grim.deprecate 'Use Decoration::getProperties instead'
     @getProperties()
 
-  Decoration::update = -> (newProperties) ->
+  Decoration::update = (newProperties) ->
     Grim.deprecate 'Use Decoration::setProperties instead'
     @setProperties(newProperties)
