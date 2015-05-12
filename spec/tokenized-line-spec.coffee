@@ -27,7 +27,7 @@ describe "TokenizedLine", ->
           for child in scopeTree.children
             ensureValidScopeTree(child, scopeDescriptor.concat([scopeTree.scope]))
         else
-          expect(scopeTree).toBe tokens[tokenIndex++]
+          expect(scopeTree).toEqual tokens[tokenIndex++]
           expect(scopeDescriptor).toEqual scopeTree.scopes
 
       waitsForPromise ->
