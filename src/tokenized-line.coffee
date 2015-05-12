@@ -67,10 +67,10 @@ class TokenizedLine
         @tags.splice(tokenIndex, 1, splitTokens...)
 
         firstNonWhitespaceColumn ?= screenColumn
-        lastNonWhitespaceColumn = screenColumn
+        lastNonWhitespaceColumn = screenColumn + 1
 
         text += @text.substr(bufferColumn, 2)
-        screenColumn++
+        screenColumn += 2
         bufferColumn += 2
 
         tokenIndex++ if prefix > 0
