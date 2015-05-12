@@ -223,7 +223,7 @@ class Atom extends Model
     @disposables?.dispose()
     @disposables = new CompositeDisposable
 
-    @restoreWindow()
+    @displayWindow()
 
     @setBodyPlatformClass()
 
@@ -494,11 +494,11 @@ class Atom extends Model
   toggleFullScreen: ->
     @setFullScreen(not @isFullScreen())
 
-  # Restore the window to its previous dimensions.
+  # Restore the window to its previous dimensions and show it.
   #
   # Also restores the full screen and maximized state on the next tick to
   # prevent resize glitches.
-  restoreWindow: ->
+  displayWindow: ->
     dimensions = @restoreWindowDimensions()
     @show()
 
