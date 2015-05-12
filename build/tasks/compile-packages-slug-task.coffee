@@ -47,7 +47,7 @@ module.exports = (grunt) ->
         grunt.log.error("#{metadata.name}: #{msg}")
       normalizePackageData metadata, reportPackageError, true
       if metadata.repository.type is 'git'
-        metadata.repository.url ?= metadata.repository.url?.replace(/^git\+/, '')
+        metadata.repository.url = metadata.repository.url?.replace(/^git\+/, '')
 
       moduleCache = metadata._atomModuleCache ? {}
 
