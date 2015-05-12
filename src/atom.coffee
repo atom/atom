@@ -282,7 +282,9 @@ class Atom extends Model
         deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
         @grammars
 
-    @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
+    @disposables.add @packages.onDidActivateInitialPackages =>
+      @watchThemes()
+      @storeWindowBackground()
 
     Project = require './project'
     TextBuffer = require 'text-buffer'
@@ -580,6 +582,11 @@ class Atom extends Model
     dimensions = @getWindowDimensions()
     @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
+  storeWindowBackground: ->
+    workspaceElement = @views?.getView(@workspace)
+    backgroundColor = window.getComputedStyle(workspaceElement)['background-color']
+    window.localStorage.setItem('atom:window-background-color', backgroundColor)
+
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     {safeMode} = @getLoadSettings()
@@ -751,7 +758,8 @@ class Atom extends Model
       # Only reload stylesheets from non-theme packages
       for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
         pack.reloadStylesheets?()
-      null
+      @storeWindowBackground()
+      return
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->

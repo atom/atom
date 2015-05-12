@@ -43,6 +43,7 @@ window.onload = function() {
   }
 }
 
+
 var setLoadTime = function(loadTime) {
   if (global.atom) {
     global.atom.loadTime = loadTime;
@@ -162,3 +163,26 @@ var profileStartup = function(cacheDir, loadSettings, initialTime) {
     });
   }
 }
+
+var setupWindowBackground = function() {
+  var backgroundColor = window.localStorage.getItem('atom:window-background-color');
+  if (!backgroundColor) {
+    return;
+  }
+
+  var backgroundStylesheet = document.createElement('style');
+  backgroundStylesheet.type = 'text/css';
+  backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + ' }';
+  document.head.appendChild(backgroundStylesheet);
+
+  // Remove once the page loads
+  window.addEventListener("load", function loadWindow() {
+    window.removeEventListener("load", loadWindow, false);
+    setTimeout(function() {
+      backgroundStylesheet.remove();
+      backgroundStylesheet = null;
+    }, 1000);
+  }, false);
+}
+
+setupWindowBackground();
