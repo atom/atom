@@ -43,7 +43,6 @@ class Package
           metadata = CSON.readFileSync(metadataPath)
           @normalizeMetadata(metadata)
         catch error
-          console.log("Thew Error", metadata.name, error)
           throw error unless ignoreErrors
 
     metadata ?= {}
