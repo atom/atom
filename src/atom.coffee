@@ -223,9 +223,8 @@ class Atom extends Model
     @disposables?.dispose()
     @disposables = new CompositeDisposable
 
-    dimensions = @restoreWindowDimensions()
-    maximize = dimensions?.maximized and process.platform isnt 'darwin'
-    @displayWindow({maximize})
+    @restoreWindow()
+    @show()
 
     @setBodyPlatformClass()
 
@@ -496,16 +495,17 @@ class Atom extends Model
   toggleFullScreen: ->
     @setFullScreen(not @isFullScreen())
 
-  # Schedule the window to be shown and focused on the next tick.
+  # Restore the window to its previous dimensions.
   #
-  # This is done in a next tick to prevent a white flicker from occurring
-  # if called synchronously.
-  displayWindow: ({maximize}={}) ->
-    @show()
+  # Also restores the full screen and maximized state on the next tick to
+  # prevent resize glitches.
+  restoreWindow: ->
+    dimensions = @restoreWindowDimensions()
+    maximize = dimensions?.maximized and process.platform isnt 'darwin'
 
     setImmediate =>
       @focus()
-      @setFullScreen(true) if @workspace.fullScreen
+      @setFullScreen(true) if @workspace?.fullScreen
       @maximize() if maximize
 
   # Get the dimensions of this window.
