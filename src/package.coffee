@@ -29,7 +29,7 @@ class Package
     unless metadata?._id
       normalizePackageData ?= require 'normalize-package-data'
       normalizePackageData(metadata)
-      if metadata.repository.type is 'git'
+      if metadata.repository?.type is 'git'
         metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
       metadata
 
@@ -43,6 +43,7 @@ class Package
           metadata = CSON.readFileSync(metadataPath)
           @normalizeMetadata(metadata)
         catch error
+          console.log("Thew Error", metadata.name, error)
           throw error unless ignoreErrors
 
     metadata ?= {}
