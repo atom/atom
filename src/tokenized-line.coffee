@@ -154,6 +154,7 @@ class TokenizedLine
           tokenProperties.isAtomic = true
         when HardTab
           tokenProperties.isAtomic = true
+          tokenProperties.isHardTab = true
           tokenProperties.bufferDelta = 1
           tokenProperties.hasInvisibleCharacters = true if @invisibles?.tab
         when PairedCharacter
