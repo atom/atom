@@ -172,7 +172,7 @@ var setupWindowBackground = function() {
 
   var backgroundStylesheet = document.createElement('style');
   backgroundStylesheet.type = 'text/css';
-  backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + ' }';
+  backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + '; }';
   document.head.appendChild(backgroundStylesheet);
 
   // Remove once the page loads
