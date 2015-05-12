@@ -196,10 +196,6 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    dimensions = @restoreWindowDimensions()
-    maximize = dimensions?.maximized and process.platform isnt 'darwin'
-    @displayWindow({maximize})
-
     sourceMapCache = {}
 
     window.onerror = =>
@@ -226,6 +222,10 @@ class Atom extends Model
 
     @disposables?.dispose()
     @disposables = new CompositeDisposable
+
+    dimensions = @restoreWindowDimensions()
+    maximize = dimensions?.maximized and process.platform isnt 'darwin'
+    @displayWindow({maximize})
 
     @setBodyPlatformClass()
 
