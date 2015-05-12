@@ -361,11 +361,12 @@ class TokenizedLine
 
           softWrapIndent = @indentLevel * @tabLength + (hangingIndent ? 0)
           rightText = ' ' + rightText for i in [0...softWrapIndent] by 1
-          while softWrapIndent > 0
-            indentToken = Math.min(softWrapIndent, @tabLength)
+          remainingSoftWrapIndent = softWrapIndent
+          while remainingSoftWrapIndent > 0
+            indentToken = Math.min(remainingSoftWrapIndent, @tabLength)
             rightSpecialTokens[rightTags.length] = SoftWrapIndent
             rightTags.push(indentToken)
-            softWrapIndent -= indentToken
+            remainingSoftWrapIndent -= indentToken
 
           rightTags.push(rightPrefix) if rightPrefix > 0
 
@@ -421,8 +422,8 @@ class TokenizedLine
     rightFragment.indentLevel = @indentLevel
     rightFragment.tabLength = @tabLength
     rightFragment.endOfLineInvisibles = @endOfLineInvisibles
-    rightFragment.firstNonWhitespaceIndex = Math.max(0, @firstNonWhitespaceIndex - column)
-    rightFragment.firstTrailingWhitespaceIndex = Math.max(0, @firstTrailingWhitespaceIndex - column)
+    rightFragment.firstNonWhitespaceIndex = Math.max(softWrapIndent, @firstNonWhitespaceIndex - column + softWrapIndent)
+    rightFragment.firstTrailingWhitespaceIndex = Math.max(softWrapIndent, @firstTrailingWhitespaceIndex - column + softWrapIndent)
 
     [leftFragment, rightFragment]
 
