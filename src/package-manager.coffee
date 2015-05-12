@@ -427,6 +427,7 @@ class PackageManager
         path.join(packageDir, 'autocomplete-atom-api')
         path.join(packageDir, 'autocomplete-css')
         path.join(packageDir, 'autocomplete-html')
+        path.join(packageDir, 'autocomplete-emojis')
         path.join(packageDir, 'autocomplete-snippets')
       ]
       for dirToRemove in dirsToRemove
