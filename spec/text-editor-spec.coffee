@@ -4112,8 +4112,9 @@ describe "TextEditor", ->
 
       runs ->
         grammar = atom.grammars.selectGrammar("text.js")
-        {tokens} = grammar.tokenizeLine("var i; // http://github.com")
+        {line, tags} = grammar.tokenizeLine("var i; // http://github.com")
 
+        tokens = atom.grammars.decodeContent(line, tags)
         expect(tokens[0].value).toBe "var"
         expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
 
