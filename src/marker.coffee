@@ -48,7 +48,6 @@ class Marker
   oldTailBufferPosition: null
   oldTailScreenPosition: null
   wasValid: true
-  deferredChangeEvents: null
 
   ###
   Section: Construction and Destruction
@@ -332,11 +331,11 @@ class Marker
     newTailScreenPosition = @getTailScreenPosition()
     isValid = @isValid()
 
-    return if _.isEqual(isValid, @wasValid) and
-      _.isEqual(newHeadBufferPosition, @oldHeadBufferPosition) and
-      _.isEqual(newHeadScreenPosition, @oldHeadScreenPosition) and
-      _.isEqual(newTailBufferPosition, @oldTailBufferPosition) and
-      _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
+    return if isValid is @wasValid and
+      newHeadBufferPosition.isEqual(@oldHeadBufferPosition) and
+      newHeadScreenPosition.isEqual(@oldHeadScreenPosition) and
+      newTailBufferPosition.isEqual(@oldTailBufferPosition) and
+      newTailScreenPosition.isEqual(@oldTailScreenPosition)
 
     changeEvent = {
       @oldHeadScreenPosition, newHeadScreenPosition,
@@ -347,11 +346,8 @@ class Marker
       isValid
     }
 
-    if @deferredChangeEvents?
-      @deferredChangeEvents.push(changeEvent)
-    else
-      @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
-      @emitter.emit 'did-change', changeEvent
+    @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change', changeEvent
 
     @oldHeadBufferPosition = newHeadBufferPosition
     @oldHeadScreenPosition = newHeadScreenPosition
