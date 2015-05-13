@@ -73,6 +73,7 @@ class AtomApplication
     unless options.test
       AutoUpdateManager = require './auto-update-manager'
       @autoUpdateManager = new AutoUpdateManager(@version)
+
     @applicationMenu = new ApplicationMenu(@version)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
@@ -111,7 +112,8 @@ class AtomApplication
   addWindow: (window) ->
     @windows.push window
     @applicationMenu?.addWindow(window.browserWindow)
-    if @autoUpdateManager
+
+    if @autoUpdateManager?
       window.once 'window:loaded', =>
         @autoUpdateManager.emitUpdateAvailableEvent(window)
 
@@ -187,8 +189,9 @@ class AtomApplication
     @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
     @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
-    @on 'application:install-update', -> @autoUpdateManager?.install()
-    @on 'application:check-for-update', => @autoUpdateManager?.check()
+    if @autoUpdateManager?
+      @on 'application:install-update', => @autoUpdateManager.install()
+      @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
       @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
