@@ -443,9 +443,7 @@ class PackageManager
 
     Promise.all([symlinkPromise, dirPromise]).then (values) ->
       [isSymLink, isDir] = values
-      if isSymLink
-        fs.unlink directory, ->
-      else if isDir
+      if not isSymLink and isDir
         fs.remove directory, ->
 
 if Grim.includeDeprecatedAPIs

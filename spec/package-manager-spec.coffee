@@ -845,13 +845,16 @@ describe "PackageManager", ->
 
       jasmine.unspy(atom.packages, 'uninstallAutocompletePlus')
 
+    afterEach ->
+      try
+        fs.unlink autocompletePlusPath, ->
+
     it "removes the packages", ->
       atom.packages.loadPackages()
 
       waitsFor ->
-        not fs.isDirectorySync(autocompleteCSSPath) and
-          not fs.isSymbolicLinkSync(autocompletePlusPath)
+        not fs.isDirectorySync(autocompleteCSSPath)
 
       runs ->
         expect(fs.isDirectorySync(autocompleteCSSPath)).toBe false
-        expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe false
+        expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
