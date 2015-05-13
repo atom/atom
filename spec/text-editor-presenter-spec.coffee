@@ -2114,97 +2114,147 @@ describe "TextEditorPresenter", ->
         expect(presenter.getState().focused).toBe false
 
     describe ".gutters", ->
-      describe ".scrollHeight", ->
-        it "is initialized based on ::lineHeight, the number of lines, and ::explicitHeight", ->
-          presenter = buildPresenter()
-          expect(presenter.getState().gutters.scrollHeight).toBe editor.getScreenLineCount() * 10
+      getStateForGutterWithName = (presenter, gutterName) ->
+        gutterDescriptions = presenter.getState().gutters
+        for description in gutterDescriptions
+          gutter = description.gutter
+          return description if gutter.name is gutterName
 
-          presenter = buildPresenter(explicitHeight: 500)
-          expect(presenter.getState().gutters.scrollHeight).toBe 500
+      it "is an array with gutter descriptions appearing in order from left to right", ->
+        # TODO
 
-        it "updates when the ::lineHeight changes", ->
-          presenter = buildPresenter()
-          expectStateUpdate presenter, -> presenter.setLineHeight(20)
-          expect(presenter.getState().gutters.scrollHeight).toBe editor.getScreenLineCount() * 20
+      describe "when gutter description corresponds to a custom gutter", ->
+        # TODO
 
-        it "updates when the line count changes", ->
-          presenter = buildPresenter()
-          expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
-          expect(presenter.getState().gutters.scrollHeight).toBe editor.getScreenLineCount() * 10
+      describe "regardless of what kind of gutter a gutter description corresponds to", ->
+        [customGutter] = []
 
-        it "updates when ::explicitHeight changes", ->
-          presenter = buildPresenter()
-          expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
-          expect(presenter.getState().gutters.scrollHeight).toBe 500
+        getStylesForGutterWithName = (presenter, gutterName) ->
+          fullState = getStateForGutterWithName(presenter, gutterName)
+          return fullState.styles if fullState
 
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutters.scrollHeight).toBe presenter.contentHeight
+        beforeEach ->
+          customGutter = editor.addGutter({name: 'test-gutter', priority: -1, visible: true})
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-          expect(presenter.getState().gutters.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+        afterEach =>
+          customGutter.destroy()
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().gutters.scrollHeight).toBe presenter.contentHeight
+        describe ".scrollHeight", ->
+          it "is initialized based on ::lineHeight, the number of lines, and ::explicitHeight", ->
+            presenter = buildPresenter()
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe editor.getScreenLineCount() * 10
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe editor.getScreenLineCount() * 10
 
-      describe ".scrollTop", ->
-        it "tracks the value of ::scrollTop", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 20)
-          expect(presenter.getState().gutters.scrollTop).toBe 10
-          expectStateUpdate presenter, -> presenter.setScrollTop(50)
-          expect(presenter.getState().gutters.scrollTop).toBe 50
+            presenter = buildPresenter(explicitHeight: 500)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe 500
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe 500
 
-        it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          it "updates when the ::lineHeight changes", ->
+            presenter = buildPresenter()
+            expectStateUpdate presenter, -> presenter.setLineHeight(20)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe editor.getScreenLineCount() * 20
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe editor.getScreenLineCount() * 20
 
-          expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          it "updates when the line count changes", ->
+            presenter = buildPresenter()
+            expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe editor.getScreenLineCount() * 10
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          it "updates when ::explicitHeight changes", ->
+            presenter = buildPresenter()
+            expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe 500
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe 500
 
-          expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.getState().gutters.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+            expectStateUpdate presenter, -> presenter.setScrollTop(300)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight
 
-          # Scroll top only gets smaller when needed as dimensions change, never bigger
-          scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
-          expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
-          expect(presenter.getState().gutters.scrollTop).toBe scrollTopBefore
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-        it "never goes negative", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(-100)
-          expect(presenter.getState().gutters.scrollTop).toBe 0
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight
 
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutters.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+        describe ".scrollTop", ->
+          it "tracks the value of ::scrollTop", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 20)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe 10
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe 10
+            expectStateUpdate presenter, -> presenter.setScrollTop(50)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe 50
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe 50
 
-          atom.config.set("editor.scrollPastEnd", true)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().gutters.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
+          it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+            expectStateUpdate presenter, -> presenter.setScrollTop(100)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().gutters.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+            expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
-      describe ".backgroundColor", ->
-        it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
-          presenter = buildPresenter(backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
-          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(0, 255, 0, 0)"
+            expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
-          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 255, 0)")
-          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+            expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
-          expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
-          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(255, 0, 0, 0)"
+            # Scroll top only gets smaller when needed as dimensions change, never bigger
+            scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
+            expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe scrollTopBefore
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe scrollTopBefore
 
-          expectStateUpdate presenter, -> presenter.setBackgroundColor("rgba(0, 0, 255, 0)")
-          expect(presenter.getState().gutters.backgroundColor).toBe "rgba(0, 0, 255, 0)"
+          it "never goes negative", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+            expectStateUpdate presenter, -> presenter.setScrollTop(-100)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe 0
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe 0
 
+          it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+            expectStateUpdate presenter, -> presenter.setScrollTop(300)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+
+            atom.config.set("editor.scrollPastEnd", true)
+            expectStateUpdate presenter, -> presenter.setScrollTop(300)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
+
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+
+        describe ".backgroundColor", ->
+          it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
+            presenter = buildPresenter(backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
+            expect(getStylesForGutterWithName(presenter, 'line-number').backgroundColor).toBe "rgba(0, 255, 0, 0)"
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').backgroundColor).toBe "rgba(0, 255, 0, 0)"
+
+            expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 255, 0)")
+            expect(getStylesForGutterWithName(presenter, 'line-number').backgroundColor).toBe "rgba(0, 0, 255, 0)"
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').backgroundColor).toBe "rgba(0, 0, 255, 0)"
+
+            expectStateUpdate presenter, -> presenter.setGutterBackgroundColor("rgba(0, 0, 0, 0)")
+            expect(getStylesForGutterWithName(presenter, 'line-number').backgroundColor).toBe "rgba(255, 0, 0, 0)"
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').backgroundColor).toBe "rgba(255, 0, 0, 0)"
+
+            expectStateUpdate presenter, -> presenter.setBackgroundColor("rgba(0, 0, 255, 0)")
+            expect(getStylesForGutterWithName(presenter, 'line-number').backgroundColor).toBe "rgba(0, 0, 255, 0)"
+            expect(getStylesForGutterWithName(presenter, 'test-gutter').backgroundColor).toBe "rgba(0, 0, 255, 0)"
+
+
+      # TODO
       describe ".sortedDescriptions", ->
         gutterDescriptionWithName = (presenter, name) ->
           for gutterDesc in presenter.getState().gutters.sortedDescriptions
