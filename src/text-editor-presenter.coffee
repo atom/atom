@@ -2,7 +2,6 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
-LinesPresenter = require './lines-presenter'
 
 module.exports =
 class TextEditorPresenter
