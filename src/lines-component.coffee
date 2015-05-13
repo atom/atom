@@ -354,19 +354,22 @@ class LinesComponent
     iterator = null
     charIndex = 0
 
-    for {value, scopes, hasPairedCharacter} in tokenizedLine.tokens
+    tokenIterator = TokenIterator.instance.reset(tokenizedLine)
+    while tokenIterator.next()
+      scopes = tokenIterator.getScopes()
+      text = tokenIterator.getText()
       charWidths = @presenter.getScopedCharacterWidths(scopes)
 
-      valueIndex = 0
-      while valueIndex < value.length
-        if hasPairedCharacter
-          char = value.substr(valueIndex, 2)
+      textIndex = 0
+      while textIndex < text.length
+        if tokenIterator.isPairedCharacter()
+          char = text
           charLength = 2
-          valueIndex += 2
+          textIndex += 2
         else
-          char = value[valueIndex]
+          char = text[textIndex]
           charLength = 1
-          valueIndex++
+          textIndex++
 
         continue if char is '\0'
 
