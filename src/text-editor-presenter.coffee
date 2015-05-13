@@ -23,7 +23,6 @@ class TextEditorPresenter
     @gutterWidth ?= 0
     @tileOverdrawMargin ?= 0
     @tileCount ?= 3
-    @linesPresentersByTileIndex = {}
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -318,18 +317,17 @@ class TextEditorPresenter
 
     visibleTiles = {}
     for index in [startIndex...endIndex]
-      presenter = @linesPresentersByTileIndex[index] ?= new LinesPresenter(@)
-      presenter.startRow = Math.floor(index * linesPerTile)
-      presenter.endRow = Math.ceil(Math.min(@model.getScreenLineCount(), (index + 1) * linesPerTile))
-      presenter.lineHeight = @lineHeight
+      startRow = Math.floor(index * linesPerTile)
+      endRow = Math.ceil(Math.min(@model.getScreenLineCount(), (index + 1) * linesPerTile))
 
       isNewTile = not @state.content.tiles.hasOwnProperty(index)
       tile = @state.content.tiles[index] ?= {}
       tile.top = (index * linesPerTile * @lineHeight) - @scrollTop
-      tile.lines = presenter.getState()
       tile.height = linesPerTile * @lineHeight
       tile.newlyCreated = isNewTile
       tile.display = "block"
+
+      @updateLinesState(tile, startRow, endRow)
 
       visibleTiles[index] = true
 
@@ -340,8 +338,39 @@ class TextEditorPresenter
         tile.display = "none"
       else
         delete @state.content.tiles[index]
-        delete @linesPresentersByTileIndex[index]
 
+
+  updateLinesState: (tileState, startRow, endRow) ->
+    tileState.lines ?= {}
+    visibleLineIds = {}
+    row = startRow
+    while row < endRow
+      line = @model.tokenizedLineForScreenRow(row)
+      unless line?
+        throw new Error("No line exists for row #{row}. Last screen row: #{@model.getLastScreenRow()}")
+
+      visibleLineIds[line.id] = true
+      if tileState.lines.hasOwnProperty(line.id)
+        lineState = tileState.lines[line.id]
+        lineState.screenRow = row
+        lineState.top = (row - startRow) * @lineHeight
+        lineState.decorationClasses = @lineDecorationClassesForRow(row)
+      else
+        tileState.lines[line.id] =
+          screenRow: row
+          text: line.text
+          tokens: line.tokens
+          isOnlyWhitespace: line.isOnlyWhitespace()
+          endOfLineInvisibles: line.endOfLineInvisibles
+          indentLevel: line.indentLevel
+          tabLength: line.tabLength
+          fold: line.fold
+          top: (row - startRow) * @lineHeight
+          decorationClasses: @lineDecorationClassesForRow(row)
+      row++
+
+    for id, line of tileState.lines
+      delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
 
   updateCursorsState: ->
     @state.content.cursors = {}
