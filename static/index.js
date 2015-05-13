@@ -1,6 +1,9 @@
 var fs = require('fs');
 var path = require('path');
 
+var loadSettings = null;
+var loadSettingsError = null;
+
 window.onload = function() {
   try {
     var startTime = Date.now();
@@ -18,17 +21,12 @@ window.onload = function() {
       cacheDir = path.join(cacheDir, 'root');
     }
 
-    var rawLoadSettings = decodeURIComponent(location.hash.substr(1));
-    var loadSettings;
-    try {
-      loadSettings = JSON.parse(rawLoadSettings);
-    } catch (error) {
-      console.error("Failed to parse load settings: " + rawLoadSettings);
-      throw error;
-    }
-
     // Normalize to make sure drive letter case is consistent on Windows
     process.resourcesPath = path.normalize(process.resourcesPath);
+
+    if (loadSettingsError) {
+      throw loadSettingsError;
+    }
 
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
@@ -163,7 +161,24 @@ var profileStartup = function(cacheDir, loadSettings, initialTime) {
   }
 }
 
+var parseLoadSettings = function() {
+  var rawLoadSettings = decodeURIComponent(location.hash.substr(1));
+  try {
+    loadSettings = JSON.parse(rawLoadSettings);
+  } catch (error) {
+    loadSettingsError = error;
+  }
+
+  if (!loadSettings || typeof loadSettings !== 'object') {
+    loadSettings = {};
+  }
+}
+
 var setupWindowBackground = function() {
+  if (loadSettings.isSpec) {
+    return;
+  }
+
   var backgroundColor = window.localStorage.getItem('atom:window-background-color');
   if (!backgroundColor) {
     return;
@@ -184,4 +199,5 @@ var setupWindowBackground = function() {
   }, false);
 }
 
+parseLoadSettings();
 setupWindowBackground();
