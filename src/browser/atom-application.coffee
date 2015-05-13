@@ -213,7 +213,7 @@ class AtomApplication
       @deleteSocketFile()
 
     app.on 'will-exit', =>
-      @saveState()
+      @saveState() unless @windows.every (window) -> window.isSpec
       @killAllProcesses()
       @deleteSocketFile()
 
@@ -426,8 +426,8 @@ class AtomApplication
   saveState: ->
     states = []
     for window in @windows
-      if loadSettings = window.getLoadSettings()
-        unless loadSettings.isSpec
+      unless window.isSpec
+        if loadSettings = window.getLoadSettings()
           states.push(initialPaths: loadSettings.initialPaths)
     @storageFolder.store('application.json', states)
 
