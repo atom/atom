@@ -172,6 +172,7 @@ var parseLoadSettings = function() {
   try {
     loadSettings = JSON.parse(rawLoadSettings);
   } catch (error) {
+    console.error("Failed to parse load settings: " + rawLoadSettings);
     loadSettingsError = error;
   }
 }
