@@ -334,7 +334,7 @@ class TokenizedLine
     leftSpecialTokens = {}
     rightSpecialTokens = {}
 
-    rightopenScopes = @openScopes.slice()
+    rightOpenScopes = @openScopes.slice()
 
     screenColumn = 0
 
@@ -378,13 +378,13 @@ class TokenizedLine
       else if (tag % 2) is -1
         if screenColumn < column
           leftTags.push(tag)
-          rightopenScopes.push(tag)
+          rightOpenScopes.push(tag)
         else
           rightTags.push(tag)
       else
         if screenColumn < column
           leftTags.push(tag)
-          rightopenScopes.pop()
+          rightOpenScopes.pop()
         else
           rightTags.push(tag)
 
@@ -406,7 +406,7 @@ class TokenizedLine
     leftFragment.firstTrailingWhitespaceIndex = Math.min(column, @firstTrailingWhitespaceIndex)
 
     rightFragment = new TokenizedLine
-    rightFragment.openScopes = rightopenScopes
+    rightFragment.openScopes = rightOpenScopes
     rightFragment.text = rightText
     rightFragment.tags = rightTags
     rightFragment.specialTokens = rightSpecialTokens
