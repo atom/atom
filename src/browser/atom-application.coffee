@@ -99,7 +99,12 @@ class AtomApplication
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
     @windows.splice @windows.indexOf(window), 1
-    @applicationMenu?.enableWindowSpecificItems(false) if @windows.length is 0
+    if @windows.length is 0
+      @applicationMenu?.enableWindowSpecificItems(false)
+      if process.platform in ['win32', 'linux']
+        app.quit()
+        return
+    @saveState() unless window.isSpec
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
@@ -110,10 +115,14 @@ class AtomApplication
 
     unless window.isSpec
       focusHandler = => @lastFocusedWindow = window
+      blurHandler = => @saveState()
       window.browserWindow.on 'focus', focusHandler
+      window.browserWindow.on 'blur', blurHandler
       window.browserWindow.once 'closed', =>
         @lastFocusedWindow = null if window is @lastFocusedWindow
         window.browserWindow.removeListener 'focus', focusHandler
+        window.browserWindow.removeListener 'blur', blurHandler
+      window.browserWindow.webContents.once 'did-finish-load', => @saveState()
 
   # Creates server to listen for additional atom application launches.
   #
@@ -199,17 +208,12 @@ class AtomApplication
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
-    app.on 'window-all-closed', ->
-      app.quit() if process.platform in ['win32', 'linux']
-
-    app.on 'before-quit', =>
-      @saveState()
-
     app.on 'will-quit', =>
       @killAllProcesses()
       @deleteSocketFile()
 
     app.on 'will-exit', =>
+      @saveState() unless @windows.every (window) -> window.isSpec
       @killAllProcesses()
       @deleteSocketFile()
 
@@ -422,8 +426,8 @@ class AtomApplication
   saveState: ->
     states = []
     for window in @windows
-      if loadSettings = window.getLoadSettings()
-        unless loadSettings.isSpec
+      unless window.isSpec
+        if loadSettings = window.getLoadSettings()
           states.push(initialPaths: loadSettings.initialPaths)
     @storageFolder.store('application.json', states)
 
