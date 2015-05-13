@@ -174,16 +174,6 @@ class TokenizedLine
 
       new Token(tokenProperties)
 
-  buildText: ->
-    text = ""
-    text += token.value for token in @tokens
-    text
-
-  buildBufferDelta: ->
-    delta = 0
-    delta += token.bufferDelta for token in @tokens
-    delta
-
   copy: ->
     copy = new TokenizedLine
     copy.indentLevel = @indentLevel
