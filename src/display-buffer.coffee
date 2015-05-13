@@ -2,14 +2,15 @@ _ = require 'underscore-plus'
 Serializable = require 'serializable'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
+Grim = require 'grim'
 TokenizedBuffer = require './tokenized-buffer'
+TokenIterator = require './token-iterator'
 RowMap = require './row-map'
 Fold = require './fold'
 Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
-Grim = require 'grim'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -651,16 +652,19 @@ class DisplayBuffer extends Model
     top = targetRow * @lineHeightInPixels
     left = 0
     column = 0
-    for token in @tokenizedLineForScreenRow(targetRow).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
+
+    iterator = TokenIterator.instance.reset(@tokenizedLineForScreenRow(targetRow))
+    while iterator.next()
+      charWidths = @getScopedCharWidths(iterator.getScopes())
       valueIndex = 0
-      while valueIndex < token.value.length
-        if token.hasPairedCharacter
-          char = token.value.substr(valueIndex, 2)
+      value = iterator.getText()
+      while valueIndex < value.length
+        if iterator.isPairedCharacter()
+          char = value
           charLength = 2
           valueIndex += 2
         else
-          char = token.value[valueIndex]
+          char = value[valueIndex]
           charLength = 1
           valueIndex++
 
@@ -681,16 +685,19 @@ class DisplayBuffer extends Model
 
     left = 0
     column = 0
-    for token in @tokenizedLineForScreenRow(row).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
+
+    iterator = TokenIterator.instance.reset(@tokenizedLineForScreenRow(row))
+    while iterator.next()
+      charWidths = @getScopedCharWidths(iterator.getScopes())
+      value = iterator.getText()
       valueIndex = 0
-      while valueIndex < token.value.length
-        if token.hasPairedCharacter
-          char = token.value.substr(valueIndex, 2)
+      while valueIndex < value.length
+        if iterator.isPairedCharacter()
+          char = value
           charLength = 2
           valueIndex += 2
         else
-          char = token.value[valueIndex]
+          char = value[valueIndex]
           charLength = 1
           valueIndex++
 
