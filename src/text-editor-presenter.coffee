@@ -550,6 +550,7 @@ class TextEditorPresenter
         @state.gutters.lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
 
+    # FIXME: We should either rely on @mouseWheelScreenRow or convert this to use tiles.
     if @mouseWheelScreenRow?
       bufferRow = @model.bufferRowForScreenRow(@mouseWheelScreenRow)
       wrapCount = @mouseWheelScreenRow - @model.screenRowForBufferRow(bufferRow)
