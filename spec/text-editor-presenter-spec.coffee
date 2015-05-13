@@ -1772,15 +1772,22 @@ describe "TextEditorPresenter", ->
                 pixelPosition: {top: 10, left: 0}
               }
 
-    describe ".lineNumberGutter", ->
+    # TODO jssln Move this under '.gutters'
+    describe "when the gutter is the line-number gutter", ->
+      getLineNumberGutterState = (presenter) ->
+        gutterDescriptions = presenter.getState().gutters
+        for description in gutterDescriptions
+          gutter = description.gutter
+          return description if gutter.name is 'line-number'
+
       describe ".maxLineNumberDigits", ->
         it "is set to the number of digits used by the greatest line number", ->
           presenter = buildPresenter()
           expect(editor.getLastBufferRow()).toBe 12
-          expect(presenter.getState().gutters.lineNumberGutter.maxLineNumberDigits).toBe 2
+          expect(getLineNumberGutterState(presenter).content.maxLineNumberDigits).toBe 2
 
           editor.setText("1\n2\n3")
-          expect(presenter.getState().gutters.lineNumberGutter.maxLineNumberDigits).toBe 1
+          expect(getLineNumberGutterState(presenter).content.maxLineNumberDigits).toBe 1
 
       describe ".lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
@@ -1792,7 +1799,7 @@ describe "TextEditorPresenter", ->
           else
             key = bufferRow
 
-          presenter.getState().gutters.lineNumberGutter.lineNumbers[key]
+          getLineNumberGutterState(presenter).content.lineNumbers[key]
 
         it "contains states for line numbers that are visible on screen, plus and minus the overdraw margin", ->
           editor.foldBufferRow(4)
@@ -2025,13 +2032,14 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter()
             marker = editor.markBufferRange([[0, 0], [0, 0]])
             decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
-            expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+            # A mini editor will have no gutters.
+            expect(getLineNumberGutterState(presenter)).toBeUndefined()
 
             expectStateUpdate presenter, -> editor.setMini(false)
             expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toEqual ['cursor-line', 'cursor-line-no-selection', 'a']
 
             expectStateUpdate presenter, -> editor.setMini(true)
-            expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+            expect(getLineNumberGutterState(presenter)).toBeUndefined()
 
           it "only applies line-number decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
             editor.setText("a line that wraps, ok")
