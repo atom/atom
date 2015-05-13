@@ -943,7 +943,6 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setScrollingTileId: (tileId) ->
-    tileId = tileId.toString()
     if @scrollingTileId isnt tileId
       @scrollingTileId = tileId
       @didStartScrolling()
