@@ -174,14 +174,10 @@ var parseLoadSettings = function() {
   } catch (error) {
     loadSettingsError = error;
   }
-
-  if (!loadSettings || typeof loadSettings !== 'object') {
-    loadSettings = {};
-  }
 }
 
 var setupWindowBackground = function() {
-  if (loadSettings.isSpec) {
+  if (loadSettings && loadSettings.isSpec) {
     return;
   }
 
