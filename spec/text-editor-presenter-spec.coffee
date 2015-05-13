@@ -658,6 +658,11 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.placeholderText).toBe "new-placeholder-text"
 
       describe ".tiles", ->
+        lineStateForScreenRow = (presenter, row) ->
+          lineId  = presenter.model.tokenizedLineForScreenRow(row).id
+          tileRow = presenter.tileForRow(row)
+          presenter.getState().content.tiles[tileRow].lines[lineId]
+
         it "contains states for tiles that are visible on screen", ->
           presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3)
 
@@ -675,7 +680,6 @@ describe "TextEditorPresenter", ->
           }
 
           expect(presenter.getState().content.tiles[8]).toBeUndefined()
-
 
         it "includes state for all tiles if no external ::explicitHeight is assigned", ->
           presenter = buildPresenter(explicitHeight: null, tileCount: 12, tileOverdrawMargin: 1)
@@ -749,80 +753,68 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[6]).toBeUndefined()
 
         it "updates when the editor's content changes", ->
-          lineStateForScreenRow = (presenter, tile, row) ->
-            lineId = presenter.model.tokenizedLineForScreenRow(row).id
-            presenter.getState().content.tiles[tile].lines[lineId]
-
           presenter = buildPresenter(explicitHeight: 25, scrollTop: 10, lineHeight: 10, tileCount: 3, tileOverdrawMargin: 1)
 
           expectStateUpdate presenter, -> buffer.insert([2, 0], "hello\nworld\n")
 
           line1 = editor.tokenizedLineForScreenRow(1)
-          expectValues lineStateForScreenRow(presenter, 1, 1), {
+          expectValues lineStateForScreenRow(presenter, 1), {
             text: line1.text
             tokens: line1.tokens
           }
 
           line2 = editor.tokenizedLineForScreenRow(2)
-          expectValues lineStateForScreenRow(presenter, 2, 2), {
+          expectValues lineStateForScreenRow(presenter, 2), {
             text: line2.text
             tokens: line2.tokens
           }
 
           line3 = editor.tokenizedLineForScreenRow(3)
-          expectValues lineStateForScreenRow(presenter, 3, 3), {
+          expectValues lineStateForScreenRow(presenter, 3), {
             text: line3.text
             tokens: line3.tokens
           }
 
-      xdescribe ".lines", ->
-        it "does not remove out-of-view lines corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+        it "does not remove out-of-view tiles corresponding to ::scrollingTileId until ::stoppedScrollingDelay elapses", ->
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3, stoppedScrollingDelay: 200)
 
-          expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 4)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 5)).toBeUndefined()
+          expect(presenter.getState().content.tiles[0]).toBeDefined()
+          expect(presenter.getState().content.tiles[6]).toBeDefined()
+          expect(presenter.getState().content.tiles[8]).toBeUndefined()
 
-          presenter.setMouseWheelScreenRow(0)
-          expectStateUpdate presenter, -> presenter.setScrollTop(35)
+          presenter.setScrollingTileId(0)
+          expectStateUpdate presenter, -> presenter.setScrollTop(4)
 
-          expect(lineStateForScreenRow(presenter, 0)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 1)).toBeUndefined()
-          expect(lineStateForScreenRow(presenter, 7)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 8)).toBeUndefined()
+          expect(presenter.getState().content.tiles[0]).toBeDefined()
+          expect(presenter.getState().content.tiles[2]).toBeUndefined()
+          expect(presenter.getState().content.tiles[4]).toBeDefined()
+          expect(presenter.getState().content.tiles[12]).toBeUndefined()
 
           expectStateUpdate presenter, -> advanceClock(200)
 
-          expect(lineStateForScreenRow(presenter, 0)).toBeUndefined()
-          expect(lineStateForScreenRow(presenter, 1)).toBeUndefined()
-          expect(lineStateForScreenRow(presenter, 2)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 7)).toBeDefined()
-          expect(lineStateForScreenRow(presenter, 8)).toBeUndefined()
+          expect(presenter.getState().content.tiles[0]).toBeUndefined()
+          expect(presenter.getState().content.tiles[2]).toBeUndefined()
+          expect(presenter.getState().content.tiles[4]).toBeDefined()
+          expect(presenter.getState().content.tiles[12]).toBeUndefined()
+
 
           # should clear ::mouseWheelScreenRow after stoppedScrollingDelay elapses even if we don't scroll first
-          presenter.setMouseWheelScreenRow(2)
+          presenter.setScrollingTileId(4)
           advanceClock(200)
-          expectStateUpdate presenter, -> presenter.setScrollTop(45)
-          expect(lineStateForScreenRow(presenter, 2)).toBeUndefined()
+          expectStateUpdate presenter, -> presenter.setScrollTop(6)
+          expect(presenter.getState().content.tiles[4]).toBeUndefined()
 
-        it "does not preserve on-screen lines even if they correspond to ::mouseWheelScreenRow", ->
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
-          oldLine3 = editor.tokenizedLineForScreenRow(6)
+        it "does not preserve deleted on-screen tiles even if they correspond to ::scrollingTileId", ->
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3, stoppedScrollingDelay: 200)
 
-          presenter.setMouseWheelScreenRow(3)
+          presenter.setScrollingTileId(2)
 
-          expectStateUpdate presenter, -> editor.getBuffer().insert([3, Infinity], 'xyz')
-          newLine3 = editor.tokenizedLineForScreenRow(3)
+          expectStateUpdate presenter, -> editor.setText("")
 
-          expect(presenter.getState().content.lines[oldLine3.id]).toBeUndefined()
-          expect(presenter.getState().content.lines[newLine3.id]).toBeDefined()
+          expect(presenter.getState().content.tiles[2]).toBeUndefined()
+          expect(presenter.getState().content.tiles[0]).toBeDefined()
 
-        it "does not attempt to preserve lines corresponding to ::mouseWheelScreenRow if they have been deleted", ->
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
-          presenter.setMouseWheelScreenRow(10)
-          editor.setText('')
-
-        describe "[lineId]", -> # line state objects
+        describe "[tileId].lines[lineId]", -> # line state objects
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)

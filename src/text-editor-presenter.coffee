@@ -15,12 +15,11 @@ class TextEditorPresenter
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
-    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor, @tileCount, @tileOverdrawMargin} = params
+    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor, @tileCount} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileOverdrawMargin ?= 0
     @tileCount ?= 3
 
     @disposables = new CompositeDisposable
@@ -306,10 +305,9 @@ class TextEditorPresenter
     row - (row % @tileSize)
 
   getVisibleTilesRange: ->
-    startTileRow = Math.max(0, @tileForRow(@startRow) - @tileOverdrawMargin)
+    startTileRow = Math.max(0, @tileForRow(@startRow))
     endTileRow = Math.min(
-      @tileForRow(@model.getScreenLineCount()),
-      @tileForRow(@endRow) + @tileOverdrawMargin
+      @tileForRow(@model.getScreenLineCount()), @tileForRow(@endRow)
     )
 
     [startTileRow..endTileRow]
@@ -332,13 +330,15 @@ class TextEditorPresenter
 
       visibleTiles[startRow] = true
 
+    if @scrollingTileId?
+      if @scrollingTileId <= @tileForRow(@model.getLastScreenRow())
+        visibleTiles[@scrollingTileId] = true
+        @state.content.tiles[@scrollingTileId].display = "none"
+
     for id, tile of @state.content.tiles
       continue if visibleTiles.hasOwnProperty(id)
 
-      if id is @scrollingTileId
-        tile.display = "none"
-      else
-        delete @state.content.tiles[id]
+      delete @state.content.tiles[id]
 
   updateLinesState: (tileState, startRow, endRow) ->
     tileState.lines ?= {}
@@ -943,6 +943,7 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setScrollingTileId: (tileId) ->
+    tileId = tileId.toString()
     if @scrollingTileId isnt tileId
       @scrollingTileId = tileId
       @didStartScrolling()
