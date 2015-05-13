@@ -216,6 +216,8 @@ class TextEditorPresenter
     # Shared state that is copied into ``@state.gutters`.
     @sharedGutterStyles = {}
     @customGutterDecorations = {}
+    @lineNumberGutter =
+      lineNumbers: {}
 
     @updateState()
 
@@ -416,7 +418,7 @@ class TextEditorPresenter
     return
 
   updateLineNumberGutterState: ->
-    @state.gutters.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
+    @lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
 
   updateCommonGutterState: ->
     @sharedGutterStyles.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
@@ -459,6 +461,7 @@ class TextEditorPresenter
         styles: @sharedGutterStyles
       })
     @state.gutters.customDecorations = @customGutterDecorations # TODO jssln Remove
+    @state.gutters.lineNumberGutter = @lineNumberGutter # TODO jssln Remove
 
   # Updates the decoration state for the gutter with the given gutterName.
   # @customGutterDecorations is an {Object}, with the form:
@@ -546,7 +549,7 @@ class TextEditorPresenter
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        @state.gutters.lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        @lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
 
     if @mouseWheelScreenRow?
@@ -556,8 +559,8 @@ class TextEditorPresenter
       id += '-' + wrapCount if wrapCount > 0
       visibleLineNumberIds[id] = true
 
-    for id of @state.gutters.lineNumberGutter.lineNumbers
-      delete @state.gutters.lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
+    for id of @lineNumberGutter.lineNumbers
+      delete @lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
 
