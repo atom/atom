@@ -2,6 +2,7 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
+TokenIterator = require './token-iterator'
 
 module.exports =
 class TextEditorPresenter
@@ -980,17 +981,20 @@ class TextEditorPresenter
     top = targetRow * @lineHeight
     left = 0
     column = 0
-    for token in @model.tokenizedLineForScreenRow(targetRow).tokens
-      characterWidths = @getScopedCharacterWidths(token.scopes)
+
+    iterator = TokenIterator.instance.reset(@model.tokenizedLineForScreenRow(targetRow))
+    while iterator.next()
+      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
 
       valueIndex = 0
-      while valueIndex < token.value.length
-        if token.hasPairedCharacter
-          char = token.value.substr(valueIndex, 2)
+      text = iterator.getText()
+      while valueIndex < text.length
+        if iterator.isPairedCharacter()
+          char = text
           charLength = 2
           valueIndex += 2
         else
-          char = token.value[valueIndex]
+          char = text[valueIndex]
           charLength = 1
           valueIndex++
 
