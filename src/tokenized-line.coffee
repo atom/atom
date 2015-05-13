@@ -488,35 +488,3 @@ class TokenizedLine
 
   getTokenCount: ->
     @tokens.length
-
-  getScopeTree: ->
-    return @scopeTree if @scopeTree?
-
-    scopeStack = []
-    for token in @tokens
-      @updateScopeStack(scopeStack, token.scopes)
-      _.last(scopeStack).children.push(token)
-
-    @scopeTree = scopeStack[0]
-    @updateScopeStack(scopeStack, [])
-    @scopeTree
-
-  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
-    # Find a common prefix
-    for scope, i in desiredScopeDescriptor
-      break unless scopeStack[i]?.scope is desiredScopeDescriptor[i]
-
-    # Pop scopeDescriptor until we're at the common prefx
-    until scopeStack.length is i
-      poppedScope = scopeStack.pop()
-      _.last(scopeStack)?.children.push(poppedScope)
-
-    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
-    for j in [i...desiredScopeDescriptor.length]
-      scopeStack.push(new Scope(desiredScopeDescriptor[j]))
-
-    return
-
-class Scope
-  constructor: (@scope) ->
-    @children = []
