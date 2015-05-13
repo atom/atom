@@ -9,8 +9,8 @@ class TokenIterator
 
   reset: (@line) ->
     @index = null
-    @bufferStart = 0
-    @bufferEnd = 0
+    @bufferStart = @line.startBufferColumn
+    @bufferEnd = @bufferStart
     @screenStart = 0
     @screenEnd = 0
     @scopes = @line.openScopes.map (id) -> atom.grammars.scopeForId(id)

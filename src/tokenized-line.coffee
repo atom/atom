@@ -227,58 +227,30 @@ class TokenizedLine
       column
 
   screenColumnForBufferColumn: (targetBufferColumn, options) ->
-    bufferColumn = @startBufferColumn
-    screenColumn = 0
-    for tag, index in @tags
-      if tag > 0
-        switch @specialTokens[index]
-          when HardTab
-            bufferDelta = 1
-            screenDelta = tag
-          when SoftWrapIndent
-            bufferDelta = 0
-            screenDelta = tag
-          else
-            bufferDelta = screenDelta = tag
-
-        nextBufferColumn = bufferColumn + bufferDelta
-        if nextBufferColumn > targetBufferColumn
-          overshoot = targetBufferColumn - bufferColumn
-          bufferColumn += overshoot
-          screenColumn += Math.min(screenDelta, overshoot)
-          break
-        else
-          bufferColumn = nextBufferColumn
-          screenColumn += screenDelta
-
-    screenColumn
+    iterator = TokenIterator.instance.reset(this)
+    while iterator.next()
+      tokenBufferStart = iterator.getBufferStart()
+      tokenBufferEnd = iterator.getBufferEnd()
+      if tokenBufferStart <= targetBufferColumn < tokenBufferEnd
+        overshoot = targetBufferColumn - tokenBufferStart
+        return Math.min(
+          iterator.getScreenStart() + overshoot,
+          iterator.getScreenEnd()
+        )
+    iterator.getScreenEnd()
 
   bufferColumnForScreenColumn: (targetScreenColumn) ->
-    bufferColumn = @startBufferColumn
-    screenColumn = 0
-    for tag, index in @tags
-      if tag > 0
-        switch @specialTokens[index]
-          when HardTab
-            bufferDelta = 1
-            screenDelta = tag
-          when SoftWrapIndent
-            bufferDelta = 0
-            screenDelta = tag
-          else
-            bufferDelta = screenDelta = tag
-
-        nextScreenColumn = screenColumn + screenDelta
-        if nextScreenColumn > targetScreenColumn
-          overshoot = targetScreenColumn - screenColumn
-          screenColumn += overshoot
-          bufferColumn += Math.min(bufferDelta, overshoot)
-          break
-        else
-          screenColumn = nextScreenColumn
-          bufferColumn += bufferDelta
-
-    bufferColumn
+    iterator = TokenIterator.instance.reset(this)
+    while iterator.next()
+      tokenScreenStart = iterator.getScreenStart()
+      tokenScreenEnd = iterator.getScreenEnd()
+      if tokenScreenStart <= targetScreenColumn < tokenScreenEnd
+        overshoot = targetScreenColumn - tokenScreenStart
+        return Math.min(
+          iterator.getBufferStart() + overshoot,
+          iterator.getBufferEnd()
+        )
+    iterator.getBufferEnd()
 
   getMaxScreenColumn: ->
     if @fold
