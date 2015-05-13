@@ -223,7 +223,7 @@ class Atom extends Model
     @disposables?.dispose()
     @disposables = new CompositeDisposable
 
-    @displayWindow()
+    @displayWindow() unless @inSpecMode()
 
     @setBodyPlatformClass()
 
