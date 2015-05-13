@@ -32,7 +32,7 @@ class ApplicationMenu
       @menu = Menu.buildFromTemplate(_.deepClone(template))
       Menu.setApplicationMenu(@menu)
 
-    @showUpdateMenuItem(@autoUpdateManager.getState()) if @autoUpdateManager?
+    @showUpdateMenuItem(@autoUpdateManager?.getState())
 
   # Register a BrowserWindow with this application menu.
   addWindow: (window) ->
