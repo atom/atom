@@ -1780,7 +1780,43 @@ describe "TextEditorPresenter", ->
           gutter = description.gutter
           return description if gutter.name is 'line-number'
 
-      describe ".maxLineNumberDigits", ->
+      describe ".visible", ->
+        it "is true iff the editor isn't mini, ::isLineNumberGutterVisible is true on the editor, and the 'editor.showLineNumbers' config is enabled", ->
+          presenter = buildPresenter()
+
+          expect(editor.isLineNumberGutterVisible()).toBe true
+          expect(getLineNumberGutterState(presenter).visible).toBe true
+
+          expectStateUpdate presenter, -> editor.setMini(true)
+          expect(getLineNumberGutterState(presenter)).toBeUndefined()
+
+          expectStateUpdate presenter, -> editor.setMini(false)
+          expect(getLineNumberGutterState(presenter).visible).toBe true
+
+          expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
+          expect(getLineNumberGutterState(presenter).visible).toBe false
+
+          expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
+          expect(getLineNumberGutterState(presenter).visible).toBe true
+
+          expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
+          expect(getLineNumberGutterState(presenter).visible).toBe false
+
+        it "gets updated when the editor's grammar changes", ->
+          presenter = buildPresenter()
+
+          atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
+          expect(getLineNumberGutterState(presenter).visible).toBe true
+          stateUpdated = false
+          presenter.onDidUpdateState -> stateUpdated = true
+
+          waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            expect(stateUpdated).toBe true
+            expect(getLineNumberGutterState(presenter).visible).toBe false
+
+      describe ".content.maxLineNumberDigits", ->
         it "is set to the number of digits used by the greatest line number", ->
           presenter = buildPresenter()
           expect(editor.getLastBufferRow()).toBe 12
@@ -1789,7 +1825,7 @@ describe "TextEditorPresenter", ->
           editor.setText("1\n2\n3")
           expect(getLineNumberGutterState(presenter).content.maxLineNumberDigits).toBe 1
 
-      describe ".lineNumbers", ->
+      describe ".content.lineNumbers", ->
         lineNumberStateForScreenRow = (presenter, screenRow) ->
           editor = presenter.model
           bufferRow = editor.bufferRowForScreenRow(screenRow)
@@ -2120,8 +2156,29 @@ describe "TextEditorPresenter", ->
           gutter = description.gutter
           return description if gutter.name is gutterName
 
-      it "is an array with gutter descriptions appearing in order from left to right", ->
-        # TODO
+      describe "the array itself", ->
+        it "updates when gutters are added to the editor model, and keeps the gutters sorted by priority", ->
+          presenter = buildPresenter()
+          gutter1 = editor.addGutter({name: 'test-gutter-1', priority: -100, visible: true})
+          gutter2 = editor.addGutter({name: 'test-gutter-2', priority: 100, visible: false})
+
+          expectedGutterOrder = [gutter1, editor.gutterWithName('line-number'), gutter2]
+          for gutterDescription, index in presenter.getState().gutters
+            expect(gutterDescription.gutter).toEqual expectedGutterOrder[index]
+
+        it "updates when the visibility of a gutter changes", ->
+          presenter = buildPresenter()
+          gutter = editor.addGutter({name: 'test-gutter', visible: true})
+          expect(getStateForGutterWithName(presenter, 'test-gutter').visible).toBe true
+          gutter.hide()
+          expect(getStateForGutterWithName(presenter, 'test-gutter').visible).toBe false
+
+        it "updates when a gutter is removed", ->
+          presenter = buildPresenter()
+          gutter = editor.addGutter({name: 'test-gutter', visible: true})
+          expect(getStateForGutterWithName(presenter, 'test-gutter').visible).toBe true
+          gutter.destroy()
+          expect(getStateForGutterWithName(presenter, 'test-gutter')).toBeUndefined()
 
       describe "when gutter description corresponds to a custom gutter", ->
         # TODO
@@ -2253,75 +2310,7 @@ describe "TextEditorPresenter", ->
             expect(getStylesForGutterWithName(presenter, 'line-number').backgroundColor).toBe "rgba(0, 0, 255, 0)"
             expect(getStylesForGutterWithName(presenter, 'test-gutter').backgroundColor).toBe "rgba(0, 0, 255, 0)"
 
-
       # TODO
-      describe ".sortedDescriptions", ->
-        gutterDescriptionWithName = (presenter, name) ->
-          for gutterDesc in presenter.getState().gutters.sortedDescriptions
-            return gutterDesc if gutterDesc.gutter.name is name
-          undefined
-
-        describe "the line-number gutter", ->
-          it "is present iff the editor isn't mini, ::isLineNumberGutterVisible is true on the editor, and 'editor.showLineNumbers' is enabled in config", ->
-            presenter = buildPresenter()
-
-            expect(editor.isLineNumberGutterVisible()).toBe true
-            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
-
-            expectStateUpdate presenter, -> editor.setMini(true)
-            expect(gutterDescriptionWithName(presenter, 'line-number')).toBeUndefined()
-
-            expectStateUpdate presenter, -> editor.setMini(false)
-            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
-
-            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
-            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe false
-
-            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
-            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
-
-            expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
-            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe false
-
-          it "gets updated when the editor's grammar changes", ->
-            presenter = buildPresenter()
-
-            atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
-            expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe true
-            stateUpdated = false
-            presenter.onDidUpdateState -> stateUpdated = true
-
-            waitsForPromise -> atom.packages.activatePackage('language-javascript')
-
-            runs ->
-              expect(stateUpdated).toBe true
-              expect(gutterDescriptionWithName(presenter, 'line-number').visible).toBe false
-
-        it "updates when gutters are added to the editor model, and keeps the gutters sorted by priority", ->
-          presenter = buildPresenter()
-          gutter1 = editor.addGutter({name: 'test-gutter-1', priority: -100, visible: true})
-          gutter2 = editor.addGutter({name: 'test-gutter-2', priority: 100, visible: false})
-          expectedState = [
-            {gutter: gutter1, visible: true},
-            {gutter: editor.gutterWithName('line-number'), visible: true},
-            {gutter: gutter2, visible: false},
-          ]
-          expect(presenter.getState().gutters.sortedDescriptions).toEqual expectedState
-
-        it "updates when the visibility of a gutter changes", ->
-          presenter = buildPresenter()
-          gutter = editor.addGutter({name: 'test-gutter', visible: true})
-          expect(gutterDescriptionWithName(presenter, 'test-gutter').visible).toBe true
-          gutter.hide()
-          expect(gutterDescriptionWithName(presenter, 'test-gutter').visible).toBe false
-
-        it "updates when a gutter is removed", ->
-          presenter = buildPresenter()
-          gutter = editor.addGutter({name: 'test-gutter', visible: true})
-          expect(gutterDescriptionWithName(presenter, 'test-gutter').visible).toBe true
-          gutter.destroy()
-          expect(gutterDescriptionWithName(presenter, 'test-gutter')).toBeUndefined()
-
       describe ".customDecorations", ->
         [presenter, gutter, decorationItem, decorationParams] = []
         [marker1, decoration1, marker2, decoration2, marker3, decoration3] = []
