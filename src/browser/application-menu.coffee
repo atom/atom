@@ -9,11 +9,10 @@ _ = require 'underscore-plus'
 # and maintain the state of all menu items.
 module.exports =
 class ApplicationMenu
-  constructor: (@version) ->
+  constructor: (@version, @autoUpdateManager) ->
     @windowTemplates = new WeakMap()
     @setActiveTemplate(@getDefaultTemplate())
-    global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
-      @showUpdateMenuItem(state)
+    @autoUpdateManager?.on 'state-changed', (state) => @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
@@ -33,7 +32,7 @@ class ApplicationMenu
       @menu = Menu.buildFromTemplate(_.deepClone(template))
       Menu.setApplicationMenu(@menu)
 
-    @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
+    @showUpdateMenuItem(@autoUpdateManager.getState()) if @autoUpdateManager?
 
   # Register a BrowserWindow with this application menu.
   addWindow: (window) ->

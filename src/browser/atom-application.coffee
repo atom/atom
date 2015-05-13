@@ -74,7 +74,7 @@ class AtomApplication
       AutoUpdateManager = require './auto-update-manager'
       @autoUpdateManager = new AutoUpdateManager(@version)
 
-    @applicationMenu = new ApplicationMenu(@version)
+    @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
