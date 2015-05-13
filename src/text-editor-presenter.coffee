@@ -304,6 +304,11 @@ class TextEditorPresenter
   tileForRow: (row) ->
     row - (row % @tileSize)
 
+  isValidTile: (tileId) ->
+    return false unless tileId?
+
+    tileId <= @tileForRow(@model.getLastScreenRow())
+
   getVisibleTilesRange: ->
     startTileRow = Math.max(0, @tileForRow(@startRow))
     endTileRow = Math.min(
@@ -330,10 +335,9 @@ class TextEditorPresenter
 
       visibleTiles[startRow] = true
 
-    if @scrollingTileId?
-      if @scrollingTileId <= @tileForRow(@model.getLastScreenRow())
-        visibleTiles[@scrollingTileId] = true
-        @state.content.tiles[@scrollingTileId].display = "none"
+    if @isValidTile(@scrollingTileId) and not visibleTiles[@scrollingTileId]?
+      @state.content.tiles[@scrollingTileId].display = "none"
+      visibleTiles[@scrollingTileId] = true
 
     for id, tile of @state.content.tiles
       continue if visibleTiles.hasOwnProperty(id)
