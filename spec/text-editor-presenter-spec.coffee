@@ -782,7 +782,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[6]).toBeDefined()
           expect(presenter.getState().content.tiles[8]).toBeUndefined()
 
-          presenter.setScrollingTileId(0)
+          presenter.setScrollingTileRow(0)
           expectStateUpdate presenter, -> presenter.setScrollTop(4)
 
           expect(presenter.getState().content.tiles[0]).toBeDefined()
@@ -799,7 +799,7 @@ describe "TextEditorPresenter", ->
 
 
           # should clear ::mouseWheelScreenRow after stoppedScrollingDelay elapses even if we don't scroll first
-          presenter.setScrollingTileId(4)
+          presenter.setScrollingTileRow(4)
           advanceClock(200)
           expectStateUpdate presenter, -> presenter.setScrollTop(6)
           expect(presenter.getState().content.tiles[4]).toBeUndefined()
@@ -807,7 +807,7 @@ describe "TextEditorPresenter", ->
         it "does not preserve deleted on-screen tiles even if they correspond to ::scrollingTileId", ->
           presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3, stoppedScrollingDelay: 200)
 
-          presenter.setScrollingTileId(2)
+          presenter.setScrollingTileRow(2)
 
           expectStateUpdate presenter, -> editor.setText("")
 
