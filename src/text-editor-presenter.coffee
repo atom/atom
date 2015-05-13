@@ -208,8 +208,7 @@ class TextEditorPresenter
         lines: {}
         highlights: {}
         overlays: {}
-      gutters:
-        sortedDescriptions: []
+      gutters: []
     # Shared state that is copied into ``@state.gutters`.
     @sharedGutterStyles = {}
     @customGutterDecorations = {}
@@ -444,7 +443,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   updateGutterOrderState: ->
-    @state.gutters.sortedDescriptions = []
+    @state.gutters = []
     if @model.isMini()
       return
     for gutter in @model.getGutters()
@@ -454,7 +453,7 @@ class TextEditorPresenter
       else
         @customGutterDecorations[gutter.name] ?= {}
         content = @customGutterDecorations[gutter.name]
-      @state.gutters.sortedDescriptions.push({
+      @state.gutters.push({
         gutter,
         visible: isVisible,
         styles: @sharedGutterStyles,
