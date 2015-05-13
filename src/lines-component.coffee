@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
-{HardTab} = require './special-token-symbols'
+TokenIterator = require './token-iterator'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
@@ -171,55 +171,50 @@ class LinesComponent
 
   buildLineInnerHTML: (id) ->
     lineState = @newState.lines[id]
-    {text, openScopes, tags, specialTokens, invisibles} = lineState
-    {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex} = lineState
+    {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, invisibles} = lineState
     lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
 
     innerHTML = ""
+    iterator = TokenIterator.instance.reset(lineState)
 
-    tokenStart = 0
-    scopeDepth = openScopes.length
+    debugger if global.debug
+    while iterator.next()
+      for scope in iterator.getScopeEnds()
+        innerHTML += "</span>"
 
-    for tag in openScopes
-      scope = atom.grammars.scopeForId(tag)
-      innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+      for scope in iterator.getScopeStarts()
+        innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-    for tag, index in tags
-      # tag represents start or end of a scope
-      if tag < 0
-        if (tag % 2) is -1
-          scopeDepth++
-          scope = atom.grammars.scopeForId(tag)
-          innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
-        else
-          scopeDepth--
-          innerHTML += "</span>"
+      tokenStart = iterator.getScreenStart()
+      tokenEnd = iterator.getScreenEnd()
+      tokenText = iterator.getText()
+      isHardTab = iterator.isHardTab()
 
-      # tag represents a token
+      if hasLeadingWhitespace = tokenStart < firstNonWhitespaceIndex
+        tokenFirstNonWhitespaceIndex = firstNonWhitespaceIndex - tokenStart
       else
-        tokenEnd = tokenStart + tag
-        tokenText = text.substring(tokenStart, tokenEnd)
-        isHardTab = specialTokens[index] is HardTab
-        if hasLeadingWhitespace = tokenStart < firstNonWhitespaceIndex
-          tokenFirstNonWhitespaceIndex = firstNonWhitespaceIndex - tokenStart
-        else
-          tokenFirstNonWhitespaceIndex = null
-        if hasTrailingWhitespace = tokenEnd > firstTrailingWhitespaceIndex
-          tokenFirstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - tokenStart)
-        else
-          tokenFirstTrailingWhitespaceIndex = null
-        hasIndentGuide = @newState.indentGuidesVisible and (hasLeadingWhitespace or lineIsWhitespaceOnly)
-        hasInvisibleCharacters =
-          (invisibles?.tab and isHardTab) or
-            (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
+        tokenFirstNonWhitespaceIndex = null
 
-        innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
+      if hasTrailingWhitespace = tokenEnd > firstTrailingWhitespaceIndex
+        tokenFirstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - tokenStart)
+      else
+        tokenFirstTrailingWhitespaceIndex = null
 
-        tokenStart = tokenEnd
+      hasIndentGuide =
+        @newState.indentGuidesVisible and
+          (hasLeadingWhitespace or lineIsWhitespaceOnly)
 
-    while scopeDepth > 0
+      hasInvisibleCharacters =
+        (invisibles?.tab and isHardTab) or
+          (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
+
+      innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
+
+    for scope in iterator.getScopeEnds()
       innerHTML += "</span>"
-      scopeDepth--
+
+    for scope in iterator.getScopes()
+      innerHTML += "</span>"
 
     innerHTML += @buildEndOfLineHTML(id)
     innerHTML
