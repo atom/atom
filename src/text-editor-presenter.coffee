@@ -210,9 +210,6 @@ class TextEditorPresenter
         overlays: {}
       gutters:
         sortedDescriptions: []
-        customDecorations: {}
-        lineNumberGutter:
-          lineNumbers: {}
     # Shared state that is copied into ``@state.gutters`.
     @sharedGutterStyles = {}
     @customGutterDecorations = {}
@@ -257,12 +254,10 @@ class TextEditorPresenter
 
   updateVerticalScrollState: ->
     @state.content.scrollHeight = @scrollHeight
-    @state.gutters.scrollHeight = @scrollHeight # TODO jssln Remove
     @sharedGutterStyles.scrollHeight = @scrollHeight
     @state.verticalScrollbar.scrollHeight = @scrollHeight
 
     @state.content.scrollTop = @scrollTop
-    @state.gutters.scrollTop = @scrollTop # TODO jssln Remove
     @sharedGutterStyles.scrollTop = @scrollTop
     @state.verticalScrollbar.scrollTop = @scrollTop
 
@@ -425,7 +420,6 @@ class TextEditorPresenter
       @gutterBackgroundColor
     else
       @backgroundColor
-    @state.gutters.backgroundColor = @sharedGutterStyles.backgroundColor # TODO jssln Remove
 
   didAddGutter: (gutter) ->
     gutterDisposables = new CompositeDisposable
@@ -466,8 +460,6 @@ class TextEditorPresenter
         styles: @sharedGutterStyles,
         content,
       })
-    @state.gutters.customDecorations = @customGutterDecorations # TODO jssln Remove
-    @state.gutters.lineNumberGutter = @lineNumberGutter # TODO jssln Remove
 
   # Updates the decoration state for the gutter with the given gutterName.
   # @customGutterDecorations is an {Object}, with the form:
