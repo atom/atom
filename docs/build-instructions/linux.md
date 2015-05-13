@@ -61,6 +61,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
 3. Build Atom:
 
   ```sh
+  script/bootstrap
   script/build
   ```
 
