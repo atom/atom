@@ -71,8 +71,8 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
-    @autoUpdateManager = new AutoUpdateManager(@version)
-    @applicationMenu = new ApplicationMenu(@version)
+    @autoUpdateManager = new AutoUpdateManager(@version, options.test)
+    @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
     @listenForArgumentsFromNewProcess()
@@ -185,7 +185,7 @@ class AtomApplication
     @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
     @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
-    @on 'application:install-update', -> @autoUpdateManager.install()
+    @on 'application:install-update', => @autoUpdateManager.install()
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
