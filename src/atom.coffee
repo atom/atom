@@ -502,12 +502,10 @@ class Atom extends Model
     dimensions = @restoreWindowDimensions()
     @show()
 
-    maximize = dimensions?.maximized and process.platform isnt 'darwin'
-
     setImmediate =>
       @focus()
       @setFullScreen(true) if @workspace?.fullScreen
-      @maximize() if maximize
+      @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
 
   # Get the dimensions of this window.
   #
