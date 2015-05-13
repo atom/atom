@@ -300,43 +300,48 @@ class TextEditorPresenter
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
+  # REFACTOR: This should be a @field rather than a function.
+  linesPerTile: ->
+    linesPerTile = Math.floor(@height / @lineHeight / @tileCount)
+    Math.max(1, linesPerTile)
+
+  tileForRow: (row) ->
+    row - (row % @linesPerTile())
+
+  getVisibleTileRange: ->
+    startTileRow = Math.max(0, @tileForRow(@startRow) - @tileOverdrawMargin)
+    endTileRow = Math.min(
+      @tileForRow(@model.getScreenLineCount()),
+      @tileForRow(@endRow) + @tileOverdrawMargin
+    )
+
+    [startTileRow..endTileRow]
+
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    linesPerTile = Math.floor(@height / @lineHeight / @tileCount)
-    linesPerTile = Math.max(1, linesPerTile)
-
-    startIndex = Math.max(
-      0, Math.floor(@startRow / linesPerTile) - @tileOverdrawMargin
-    )
-    endIndex = Math.min(
-      Math.ceil(@model.getScreenLineCount() / linesPerTile),
-      Math.ceil(@endRow / linesPerTile) + @tileOverdrawMargin
-    )
-
     visibleTiles = {}
-    for index in [startIndex...endIndex]
-      startRow = Math.floor(index * linesPerTile)
-      endRow = Math.ceil(Math.min(@model.getScreenLineCount(), (index + 1) * linesPerTile))
+    for startRow in @getVisibleTileRange() by @linesPerTile()
+      endRow = Math.min(@model.getScreenLineCount(), startRow + @linesPerTile())
 
-      isNewTile = not @state.content.tiles.hasOwnProperty(index)
-      tile = @state.content.tiles[index] ?= {}
-      tile.top = (index * linesPerTile * @lineHeight) - @scrollTop
-      tile.height = linesPerTile * @lineHeight
+      isNewTile = not @state.content.tiles.hasOwnProperty(startRow)
+      tile = @state.content.tiles[startRow] ?= {}
+      tile.top = startRow * @lineHeight - @scrollTop
+      tile.height = @linesPerTile() * @lineHeight
       tile.newlyCreated = isNewTile
       tile.display = "block"
 
       @updateLinesState(tile, startRow, endRow)
 
-      visibleTiles[index] = true
+      visibleTiles[startRow] = true
 
-    for index, tile of @state.content.tiles
-      continue if visibleTiles.hasOwnProperty(index)
+    for id, tile of @state.content.tiles
+      continue if visibleTiles.hasOwnProperty(id)
 
-      if index is @scrollingTile
+      if id is @scrollingTileId
         tile.display = "none"
       else
-        delete @state.content.tiles[index]
+        delete @state.content.tiles[id]
 
 
   updateLinesState: (tileState, startRow, endRow) ->
@@ -767,8 +772,8 @@ class TextEditorPresenter
 
   didStopScrolling: ->
     @state.content.scrollingVertically = false
-    if @scrollingTile?
-      @scrollingTile = null
+    if @scrollingTileId?
+      @scrollingTileId = null
       @shouldUpdateTilesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -935,8 +940,8 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setScrollingTileId: (tileId) ->
-    if @scrollingTile isnt tileId
-      @scrollingTile = tileId
+    if @scrollingTileId isnt tileId
+      @scrollingTileId = tileId
       @didStartScrolling()
 
   setBaseCharacterWidth: (baseCharacterWidth) ->
