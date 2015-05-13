@@ -223,6 +223,7 @@ class TextEditorPresenter
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
+    @updateTileSize()
 
     @updateFocusedState()
     @updateHeightState()

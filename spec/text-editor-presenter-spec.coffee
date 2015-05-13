@@ -658,28 +658,26 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.placeholderText).toBe "new-placeholder-text"
 
       describe ".tiles", ->
-        it "contains states for tiles that are visible on screen, plus and minus the overdraw margin", ->
-          presenter = buildPresenter(explicitHeight: 3, scrollTop: 1, lineHeight: 1, tileCount: 3, tileOverdrawMargin: 1)
+        fffit "contains states for tiles that are visible on screen", ->
+          presenter = buildPresenter(explicitHeight: 3, scrollTop: 1, lineHeight: 1, tileCount: 3)
 
+          console.log JSON.stringify(presenter.getState().content.tiles)
           expectValues presenter.getState().content.tiles[0], {
-            top: -1
-          }
-          expectValues presenter.getState().content.tiles[1], {
             top: 0
           }
-          expectValues presenter.getState().content.tiles[2], {
+          expectValues presenter.getState().content.tiles[1], {
             top: 1
           }
-          expectValues presenter.getState().content.tiles[3], {
+          expectValues presenter.getState().content.tiles[2], {
             top: 2
           }
-          expectValues presenter.getState().content.tiles[4], {
+          expectValues presenter.getState().content.tiles[3], {
             top: 3
           }
-          expectValues presenter.getState().content.tiles[5], {
+          expectValues presenter.getState().content.tiles[4], {
             top: 4
           }
-          expect(presenter.getState().content.tiles[6]).toBeUndefined()
+          expect(presenter.getState().content.tiles[5]).toBeUndefined()
 
         it "does not overdraw above the first row", ->
           presenter = buildPresenter(explicitHeight: 3, scrollTop: 0, lineHeight: 1, tileCount: 3, tileOverdrawMargin: 1)
