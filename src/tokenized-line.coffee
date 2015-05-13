@@ -26,7 +26,7 @@ class TokenizedLine
     return unless properties?
 
     @specialTokens = {}
-    {@parentScopes, @text, @tags, @lineEnding, @ruleStack} = properties
+    {@openScopes, @text, @tags, @lineEnding, @ruleStack} = properties
     {@startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles} = properties
 
     @startBufferColumn ?= 0
@@ -148,7 +148,7 @@ class TokenizedLine
   Object.defineProperty @prototype, 'tokens', get: ->
     offset = 0
 
-    atom.grammars.decodeTokens @text, @tags, @parentScopes.slice(), (tokenProperties, index) =>
+    atom.grammars.decodeTokens @text, @tags, @openScopes.slice(), (tokenProperties, index) =>
       switch @specialTokens[index]
         when SoftTab
           tokenProperties.isAtomic = true
@@ -191,7 +191,7 @@ class TokenizedLine
   copy: ->
     copy = new TokenizedLine
     copy.indentLevel = @indentLevel
-    copy.parentScopes = @parentScopes
+    copy.openScopes = @openScopes
     copy.text = @text
     copy.tags = @tags
     copy.specialTokens = @specialTokens
@@ -338,7 +338,7 @@ class TokenizedLine
     leftSpecialTokens = {}
     rightSpecialTokens = {}
 
-    rightParentScopes = @parentScopes.slice()
+    rightopenScopes = @openScopes.slice()
 
     screenColumn = 0
 
@@ -382,20 +382,20 @@ class TokenizedLine
       else if (tag % 2) is -1
         if screenColumn < column
           leftTags.push(tag)
-          rightParentScopes.push(tag)
+          rightopenScopes.push(tag)
         else
           rightTags.push(tag)
       else
         if screenColumn < column
           leftTags.push(tag)
-          rightParentScopes.pop()
+          rightopenScopes.pop()
         else
           rightTags.push(tag)
 
     splitBufferColumn = @bufferColumnForScreenColumn(column)
 
     leftFragment = new TokenizedLine
-    leftFragment.parentScopes = @parentScopes
+    leftFragment.openScopes = @openScopes
     leftFragment.text = leftText
     leftFragment.tags = leftTags
     leftFragment.specialTokens = leftSpecialTokens
@@ -410,7 +410,7 @@ class TokenizedLine
     leftFragment.firstTrailingWhitespaceIndex = Math.min(column, @firstTrailingWhitespaceIndex)
 
     rightFragment = new TokenizedLine
-    rightFragment.parentScopes = rightParentScopes
+    rightFragment.openScopes = rightopenScopes
     rightFragment.text = rightText
     rightFragment.tags = rightTags
     rightFragment.specialTokens = rightSpecialTokens
