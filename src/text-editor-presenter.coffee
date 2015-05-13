@@ -334,9 +334,15 @@ class TextEditorPresenter
     @state.content.lines[line.id] =
       screenRow: row
       text: line.text
+      openScopes: line.openScopes
+      tags: line.tags
+      specialTokens: line.specialTokens
+      firstNonWhitespaceIndex: line.firstNonWhitespaceIndex
+      firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
+      invisibles: line.invisibles
+      endOfLineInvisibles: line.endOfLineInvisibles
       tokens: line.tokens
       isOnlyWhitespace: line.isOnlyWhitespace()
-      endOfLineInvisibles: line.endOfLineInvisibles
       indentLevel: line.indentLevel
       tabLength: line.tabLength
       fold: line.fold

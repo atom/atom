@@ -1,11 +1,7 @@
 _ = require 'underscore-plus'
 {isPairedCharacter} = require './text-utils'
 Token = require './token'
-
-SoftTab = Symbol('SoftTab')
-HardTab = Symbol('HardTab')
-PairedCharacter = Symbol('PairedCharacter')
-SoftWrapIndent = Symbol('SoftWrapIndent')
+{SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
 
 NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/

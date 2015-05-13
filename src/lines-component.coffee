@@ -4,10 +4,13 @@ _ = require 'underscore-plus'
 
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
+{HardTab} = require './special-token-symbols'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
+TokenTextEscapeRegex = /[&"'<>]/g
+MaxTokenLength = 20000
 
 cloneObject = (object) ->
   clone = {}
@@ -167,19 +170,121 @@ class LinesComponent
       @buildEndOfLineHTML(id) or '&nbsp;'
 
   buildLineInnerHTML: (id) ->
-    {indentGuidesVisible} = @newState
-    {tokens, text, isOnlyWhitespace} = @newState.lines[id]
+    lineState = @newState.lines[id]
+    {text, openScopes, tags, specialTokens, invisibles} = lineState
+    {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex} = lineState
+    lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
+
     innerHTML = ""
 
-    scopeStack = []
-    for token in tokens
-      innerHTML += @updateScopeStack(scopeStack, token.scopes)
-      hasIndentGuide = indentGuidesVisible and (token.hasLeadingWhitespace() or (token.hasTrailingWhitespace() and isOnlyWhitespace))
-      innerHTML += token.getValueAsHtml({hasIndentGuide})
+    tokenStart = 0
+    scopeDepth = openScopes.length
 
-    innerHTML += @popScope(scopeStack) while scopeStack.length > 0
+    for tag in openScopes
+      scope = atom.grammars.scopeForId(tag)
+      innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+
+    for tag, index in tags
+      # tag represents start or end of a scope
+      if tag < 0
+        if (tag % 2) is -1
+          scopeDepth++
+          scope = atom.grammars.scopeForId(tag)
+          innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+        else
+          scopeDepth--
+          innerHTML += "</span>"
+
+      # tag represents a token
+      else
+        tokenEnd = tokenStart + tag
+        tokenText = text.substring(tokenStart, tokenEnd)
+        isHardTab = specialTokens[index] is HardTab
+        if hasLeadingWhitespace = tokenStart < firstNonWhitespaceIndex
+          tokenFirstNonWhitespaceIndex = firstNonWhitespaceIndex - tokenStart
+        else
+          tokenFirstNonWhitespaceIndex = null
+        if hasTrailingWhitespace = tokenEnd > firstTrailingWhitespaceIndex
+          tokenFirstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - tokenStart)
+        else
+          tokenFirstTrailingWhitespaceIndex = null
+        hasIndentGuide = @newState.indentGuidesVisible and (hasLeadingWhitespace or lineIsWhitespaceOnly)
+        hasInvisibleCharacters =
+          (invisibles?.tab and isHardTab) or
+            (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
+
+        innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
+
+        tokenStart = tokenEnd
+
+    while scopeDepth > 0
+      innerHTML += "</span>"
+      scopeDepth--
+
     innerHTML += @buildEndOfLineHTML(id)
     innerHTML
+
+  buildTokenHTML: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters) ->
+    if isHardTab
+      classes = 'hard-tab'
+      classes += ' leading-whitespace' if firstNonWhitespaceIndex?
+      classes += ' trailing-whitespace' if firstTrailingWhitespaceIndex?
+      classes += ' indent-guide' if hasIndentGuide
+      classes += ' invisible-character' if hasInvisibleCharacters
+      return "<span class='#{classes}'>#{@escapeTokenText(tokenText)}</span>"
+    else
+      startIndex = 0
+      endIndex = tokenText.length
+
+      leadingHtml = ''
+      trailingHtml = ''
+
+      if firstNonWhitespaceIndex?
+        leadingWhitespace = tokenText.substring(0, firstNonWhitespaceIndex)
+
+        classes = 'leading-whitespace'
+        classes += ' indent-guide' if hasIndentGuide
+        classes += ' invisible-character' if hasInvisibleCharacters
+
+        leadingHtml = "<span class='#{classes}'>#{leadingWhitespace}</span>"
+        startIndex = firstNonWhitespaceIndex
+
+      if firstTrailingWhitespaceIndex?
+        tokenIsOnlyWhitespace = firstTrailingWhitespaceIndex is 0
+        trailingWhitespace = tokenText.substring(firstTrailingWhitespaceIndex)
+
+        classes = 'trailing-whitespace'
+        classes += ' indent-guide' if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
+        classes += ' invisible-character' if hasInvisibleCharacters
+
+        trailingHtml = "<span class='#{classes}'>#{trailingWhitespace}</span>"
+
+        endIndex = firstTrailingWhitespaceIndex
+
+      html = leadingHtml
+      if tokenText.length > MaxTokenLength
+        while startIndex < endIndex
+          html += "<span>" + @escapeTokenText(tokenText, startIndex, startIndex + MaxTokenLength) + "</span>"
+          startIndex += MaxTokenLength
+      else
+        html += @escapeTokenText(tokenText, startIndex, endIndex)
+
+      html += trailingHtml
+    html
+
+  escapeTokenText: (tokenText, startIndex, endIndex) ->
+    if startIndex? and endIndex? and startIndex > 0 or endIndex < tokenText.length
+      tokenText = tokenText.slice(startIndex, endIndex)
+    tokenText.replace(TokenTextEscapeRegex, @escapeTokenTextReplace)
+
+  escapeTokenTextReplace: (match) ->
+    switch match
+      when '&' then '&amp;'
+      when '"' then '&quot;'
+      when "'" then '&#39;'
+      when '<' then '&lt;'
+      when '>' then '&gt;'
+      else match
 
   buildEndOfLineHTML: (id) ->
     {endOfLineInvisibles} = @newState.lines[id]
@@ -189,31 +294,6 @@ class LinesComponent
       for invisible in endOfLineInvisibles
         html += "<span class='invisible-character'>#{invisible}</span>"
     html
-
-  updateScopeStack: (scopeStack, desiredScopeDescriptor) ->
-    html = ""
-
-    # Find a common prefix
-    for scope, i in desiredScopeDescriptor
-      break unless scopeStack[i] is desiredScopeDescriptor[i]
-
-    # Pop scopeDescriptor until we're at the common prefx
-    until scopeStack.length is i
-      html += @popScope(scopeStack)
-
-    # Push onto common prefix until scopeStack equals desiredScopeDescriptor
-    for j in [i...desiredScopeDescriptor.length]
-      html += @pushScope(scopeStack, desiredScopeDescriptor[j])
-
-    html
-
-  popScope: (scopeStack) ->
-    scopeStack.pop()
-    "</span>"
-
-  pushScope: (scopeStack, scope) ->
-    scopeStack.push(scope)
-    "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
     oldLineState = @oldState.lines[id]
