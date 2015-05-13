@@ -39,16 +39,20 @@ class GutterContainerComponent
           @lineNumberGutterComponent = gutterComponent
         else
           gutterComponent = new CustomGutterComponent({gutter})
+
       if visible then gutterComponent.showNode() else gutterComponent.hideNode()
+      # Pass the gutter only the state that it needs.
       if gutter.name is 'line-number'
-        # Pass the gutter only the state that it needs.
-        # For ease of use in the gutter component, set the shared 'styles' as a
-        # field under the 'content'.
+        # For ease of use in the line number gutter component, set the shared
+        # 'styles' as a field under the 'content'.
         gutterSubstate = _.clone(content)
         gutterSubstate.styles = styles
-        gutterComponent.updateSync(gutterSubstate)
       else
-        gutterComponent.updateSync(state)
+        # Custom gutter 'content' is keyed on gutter name, so we cannot set
+        # 'styles' as a subfield directly under it.
+        gutterSubstate = {content, styles}
+      gutterComponent.updateSync(gutterSubstate)
+
       newGutterComponents.push({
         name: gutter.name,
         component: gutterComponent,
