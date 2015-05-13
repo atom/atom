@@ -12,7 +12,7 @@ class ApplicationMenu
   constructor: (@version, @autoUpdateManager) ->
     @windowTemplates = new WeakMap()
     @setActiveTemplate(@getDefaultTemplate())
-    @autoUpdateManager?.on 'state-changed', (state) => @showUpdateMenuItem(state)
+    @autoUpdateManager.on 'state-changed', (state) => @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
@@ -32,7 +32,7 @@ class ApplicationMenu
       @menu = Menu.buildFromTemplate(_.deepClone(template))
       Menu.setApplicationMenu(@menu)
 
-    @showUpdateMenuItem(@autoUpdateManager?.getState())
+    @showUpdateMenuItem(@autoUpdateManager.getState())
 
   # Register a BrowserWindow with this application menu.
   addWindow: (window) ->

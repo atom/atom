@@ -1,6 +1,7 @@
 AtomWindow = require './atom-window'
 ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
+AutoUpdateManager = require './auto-update-manager'
 BrowserWindow = require 'browser-window'
 StorageFolder = require '../storage-folder'
 Menu = require 'menu'
@@ -70,10 +71,7 @@ class AtomApplication
     @pathsToOpen ?= []
     @windows = []
 
-    unless options.test
-      AutoUpdateManager = require './auto-update-manager'
-      @autoUpdateManager = new AutoUpdateManager(@version)
-
+    @autoUpdateManager = new AutoUpdateManager(@version, options.test)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
@@ -113,9 +111,8 @@ class AtomApplication
     @windows.push window
     @applicationMenu?.addWindow(window.browserWindow)
 
-    if @autoUpdateManager?
-      window.once 'window:loaded', =>
-        @autoUpdateManager.emitUpdateAvailableEvent(window)
+    window.once 'window:loaded', =>
+      @autoUpdateManager.emitUpdateAvailableEvent(window)
 
     unless window.isSpec
       focusHandler = => @lastFocusedWindow = window
@@ -189,9 +186,8 @@ class AtomApplication
     @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
     @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
-    if @autoUpdateManager?
-      @on 'application:install-update', => @autoUpdateManager.install()
-      @on 'application:check-for-update', => @autoUpdateManager.check()
+    @on 'application:install-update', => @autoUpdateManager.install()
+    @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
       @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
