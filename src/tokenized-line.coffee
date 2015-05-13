@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
 {isPairedCharacter} = require './text-utils'
 Token = require './token'
+TokenIterator = require './token-iterator'
 {SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
 
 NonWhitespaceRegex = /\S/
@@ -28,10 +29,10 @@ class TokenizedLine
     @startBufferColumn ?= 0
     @bufferDelta = @text.length
 
-    @subdivideTokens()
+    @transformContent()
     @buildEndOfLineInvisibles() if @invisibles? and @lineEnding?
 
-  subdivideTokens: ->
+  transformContent: ->
     text = ''
     bufferColumn = 0
     screenColumn = 0
@@ -142,37 +143,36 @@ class TokenizedLine
       @firstTrailingWhitespaceIndex = 0
 
   Object.defineProperty @prototype, 'tokens', get: ->
-    offset = 0
+    iterator = TokenIterator.instance.reset(this)
+    tokens = []
 
-    atom.grammars.decodeTokens @text, @tags, @openScopes.slice(), (tokenProperties, index) =>
-      switch @specialTokens[index]
-        when SoftTab
-          tokenProperties.isAtomic = true
-        when HardTab
-          tokenProperties.isAtomic = true
-          tokenProperties.isHardTab = true
-          tokenProperties.bufferDelta = 1
-          tokenProperties.hasInvisibleCharacters = true if @invisibles?.tab
-        when PairedCharacter
-          tokenProperties.isAtomic = true
-          tokenProperties.hasPairedCharacter = true
-        when SoftWrapIndent
-          tokenProperties.isAtomic = true
-          tokenProperties.isSoftWrapIndentation = true
+    while iterator.next()
+      properties = {
+        value: iterator.getText()
+        scopes: iterator.getScopes().slice()
+        isAtomic: iterator.isAtomic()
+        isHardTab: iterator.isHardTab()
+        hasPairedCharacter: iterator.isPairedCharacter()
+        isSoftWrapIndentation: iterator.isSoftWrapIndentation()
+      }
 
-      if offset < @firstNonWhitespaceIndex
-        tokenProperties.firstNonWhitespaceIndex =
-          Math.min(tokenProperties.value.length, @firstNonWhitespaceIndex - offset)
-        tokenProperties.hasInvisibleCharacters = true if @invisibles?.space
+      if iterator.isHardTab()
+        properties.bufferDelta = 1
+        properties.hasInvisibleCharacters = true if @invisibles?.tab
 
-      if @lineEnding? and (offset + tokenProperties.value.length > @firstTrailingWhitespaceIndex)
-        tokenProperties.firstTrailingWhitespaceIndex =
-          Math.max(0, @firstTrailingWhitespaceIndex - offset)
-        tokenProperties.hasInvisibleCharacters = true if @invisibles?.space
+      if iterator.getScreenStart() < @firstNonWhitespaceIndex
+        properties.firstNonWhitespaceIndex =
+          Math.min(@firstNonWhitespaceIndex, iterator.getScreenEnd()) - iterator.getScreenStart()
+        properties.hasInvisibleCharacters = true if @invisibles?.space
 
-      offset += tokenProperties.value.length
+      if @lineEnding? and iterator.getScreenEnd() > @firstTrailingWhitespaceIndex
+        properties.firstTrailingWhitespaceIndex =
+          Math.max(0, @firstTrailingWhitespaceIndex - iterator.getScreenStart())
+        properties.hasInvisibleCharacters = true if @invisibles?.space
 
-      new Token(tokenProperties)
+      tokens.push(new Token(properties))
+
+    tokens
 
   copy: ->
     copy = new TokenizedLine
