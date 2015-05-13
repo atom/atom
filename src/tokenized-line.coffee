@@ -8,6 +8,7 @@ NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/
 TrailingWhitespaceRegex = /\s*$/
 RepeatedSpaceRegex = /[ ]/g
+CommentScopeRegex = /(\b|\.)comment/
 idCounter = 1
 
 module.exports =
@@ -201,28 +202,30 @@ class TokenizedLine
   #
   # Returns a {Number} representing the clipped column.
   clipScreenColumn: (column, options={}) ->
-    return 0 if @tokens.length is 0
+    return 0 if @tags.length is 0
 
     {clip} = options
     column = Math.min(column, @getMaxScreenColumn())
 
     tokenStartColumn = 0
-    for token in @tokens
-      break if tokenStartColumn + token.screenDelta > column
-      tokenStartColumn += token.screenDelta
 
-    if @isColumnInsideSoftWrapIndentation(tokenStartColumn)
-      @getSoftWrapIndentationDelta()
-    else if token.isAtomic and tokenStartColumn < column
+    iterator = TokenIterator.instance.reset(this)
+    while iterator.next()
+      break if iterator.getScreenEnd() > column
+
+    if iterator.isSoftWrapIndentation()
+      iterator.next() while iterator.isSoftWrapIndentation()
+      iterator.getScreenStart()
+    else if iterator.isAtomic() and iterator.getScreenStart() < column
       if clip is 'forward'
-        tokenStartColumn + token.screenDelta
+        iterator.getScreenEnd()
       else if clip is 'backward'
-        tokenStartColumn
+        iterator.getScreenStart()
       else #'closest'
-        if column > tokenStartColumn + (token.screenDelta / 2)
-          tokenStartColumn + token.screenDelta
+        if column > ((iterator.getScreenStart() + iterator.getScreenEnd()) / 2)
+          iterator.getScreenEnd()
         else
-          tokenStartColumn
+          iterator.getScreenStart()
     else
       column
 
@@ -434,11 +437,13 @@ class TokenizedLine
         @endOfLineInvisibles.push(eol) if eol
 
   isComment: ->
-    for token in @tokens
-      continue if token.scopes.length is 1
-      continue if token.isOnlyWhitespace()
-      for scope in token.scopes
-        return true if _.contains(scope.split('.'), 'comment')
+    iterator = TokenIterator.instance.reset(this)
+    while iterator.next()
+      scopes = iterator.getScopes()
+      continue if scopes.length is 1
+      continue unless NonWhitespaceRegex.test(iterator.getText())
+      for scope in scopes
+        return true if CommentScopeRegex.test(scope)
       break
     false
 
@@ -449,4 +454,6 @@ class TokenizedLine
     @tokens[index]
 
   getTokenCount: ->
-    @tokens.length
+    count = 0
+    count++ for tag in @tags when tag >= 0
+    count

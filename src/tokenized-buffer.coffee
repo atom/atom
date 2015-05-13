@@ -5,6 +5,7 @@ _ = require 'underscore-plus'
 Serializable = require 'serializable'
 Model = require './model'
 TokenizedLine = require './tokenized-line'
+TokenIterator = require './token-iterator'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
 Grim = require 'grim'
@@ -379,7 +380,11 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    new ScopeDescriptor(scopes: @tokenForPosition(position).scopes)
+    {row, column} = Point.fromObject(position)
+    iterator = TokenIterator.instance.reset(@tokenizedLines[row])
+    while iterator.next()
+      break if iterator.getScreenEnd() > column
+    new ScopeDescriptor(scopes: iterator.getScopes().slice())
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)
