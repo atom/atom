@@ -584,7 +584,7 @@ class Atom extends Model
   storeWindowBackground: ->
     return if @inSpecMode()
 
-    workspaceElement = @views?.getView(@workspace)
+    workspaceElement = @views.getView(@workspace)
     backgroundColor = window.getComputedStyle(workspaceElement)['background-color']
     window.localStorage.setItem('atom:window-background-color', backgroundColor)
 
