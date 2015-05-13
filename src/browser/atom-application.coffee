@@ -110,7 +110,6 @@ class AtomApplication
   addWindow: (window) ->
     @windows.push window
     @applicationMenu?.addWindow(window.browserWindow)
-
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
