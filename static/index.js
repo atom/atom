@@ -15,12 +15,6 @@ window.onload = function() {
     // Ensure ATOM_HOME is always set before anything else is required
     setupAtomHome();
 
-    var cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
-    // Use separate compile cache when sudo'ing as root to avoid permission issues
-    if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
-      cacheDir = path.join(cacheDir, 'root');
-    }
-
     // Normalize to make sure drive letter case is consistent on Windows
     process.resourcesPath = path.normalize(process.resourcesPath);
 
@@ -31,14 +25,23 @@ window.onload = function() {
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
     if (loadSettings.profileStartup) {
-      profileStartup(cacheDir, loadSettings, Date.now() - startTime);
+      profileStartup(loadSettings, Date.now() - startTime);
     } else {
-      setupWindow(cacheDir, loadSettings);
+      setupWindow(loadSettings);
       setLoadTime(Date.now() - startTime);
     }
   } catch (error) {
     handleSetupError(error);
   }
+}
+
+var getCacheDirectory = function() {
+  var cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
+  // Use separate compile cache when sudo'ing as root to avoid permission issues
+  if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
+    cacheDir = path.join(cacheDir, 'root');
+  }
+  return cacheDir;
 }
 
 var setLoadTime = function(loadTime) {
@@ -57,7 +60,9 @@ var handleSetupError = function(error) {
   console.error(error.stack || error);
 }
 
-var setupWindow = function(cacheDir, loadSettings) {
+var setupWindow = function(loadSettings) {
+  var cacheDir = getCacheDirectory();
+
   setupCoffeeCache(cacheDir);
 
   ModuleCache = require('../src/module-cache');
@@ -131,16 +136,17 @@ var setupSourceMapCache = function(cacheDir) {
 
 var setupVmCompatibility = function() {
   var vm = require('vm');
-  if (!vm.Script.createContext)
+  if (!vm.Script.createContext) {
     vm.Script.createContext = vm.createContext;
+  }
 }
 
-var profileStartup = function(cacheDir, loadSettings, initialTime) {
+var profileStartup = function(loadSettings, initialTime) {
   var profile = function() {
     console.profile('startup');
     try {
       var startTime = Date.now()
-      setupWindow(cacheDir, loadSettings);
+      setupWindow(loadSettings);
       setLoadTime(Date.now() - startTime + initialTime);
     } catch (error) {
       handleSetupError(error);
