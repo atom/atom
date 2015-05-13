@@ -342,7 +342,6 @@ class TextEditorPresenter
       firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
       invisibles: line.invisibles
       endOfLineInvisibles: line.endOfLineInvisibles
-      tokens: line.tokens
       isOnlyWhitespace: line.isOnlyWhitespace()
       indentLevel: line.indentLevel
       tabLength: line.tabLength
