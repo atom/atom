@@ -75,6 +75,8 @@ class Workspace extends Model
     atom.views.addViewProvider Panel, (model) ->
       new PanelElement().initialize(model)
 
+    @subscribeToFontSize()
+
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     for packageName in params.packagesWithActiveGrammars ? []
@@ -486,6 +488,10 @@ class Workspace extends Model
         item = opener(uri, options)
         if item? and typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
           Grim.deprecate("Pane item with class `#{item.constructor.name}` should implement `::getURI` instead of `::getUri`.", {packageName})
+        if item? and typeof item.on is 'function' and typeof item.onDidChangeTitle isnt 'function'
+          Grim.deprecate("If you would like your pane item with class `#{item.constructor.name}` to support title change behavior, please implement a `::onDidChangeTitle()` method. `::on` methods for items are no longer supported. If not, ignore this message.", {packageName})
+        if item? and typeof item.on is 'function' and typeof item.onDidChangeModified isnt 'function'
+          Grim.deprecate("If you would like your pane item with class `#{item.constructor.name}` to support modified behavior, please implement a `::onDidChangeModified()` method. If not, ignore this message. `::on` methods for items are no longer supported.", {packageName})
         item
 
       @openers.push(wrappedOpener)
@@ -615,9 +621,14 @@ class Workspace extends Model
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
-  # Restore to a default editor font size.
+  # Restore to the window's original editor font size.
   resetFontSize: ->
-    atom.config.unset("editor.fontSize")
+    if @originalFontSize
+      atom.config.set("editor.fontSize", @originalFontSize)
+
+  subscribeToFontSize: ->
+    atom.config.onDidChange 'editor.fontSize', ({oldValue}) =>
+      @originalFontSize ?= oldValue
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->

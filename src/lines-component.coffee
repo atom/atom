@@ -29,15 +29,18 @@ class LinesComponent
     @domNode.classList.add('lines')
 
     @cursorsComponent = new CursorsComponent(@presenter)
-    @domNode.appendChild(@cursorsComponent.domNode)
+    @domNode.appendChild(@cursorsComponent.getDomNode())
 
     @highlightsComponent = new HighlightsComponent(@presenter)
-    @domNode.appendChild(@highlightsComponent.domNode)
+    @domNode.appendChild(@highlightsComponent.getDomNode())
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
       @domNode.appendChild(insertionPoint)
+
+  getDomNode: ->
+    @domNode
 
   updateSync: (state) ->
     @newState = state.content

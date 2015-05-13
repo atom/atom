@@ -46,7 +46,7 @@ describe "TextEditorComponent", ->
 
       lineHeightInPixels = editor.getLineHeightInPixels()
       charWidth = editor.getDefaultCharWidth()
-      componentNode = component.domNode
+      componentNode = component.getDomNode()
       verticalScrollbarNode = componentNode.querySelector('.vertical-scrollbar')
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
@@ -578,28 +578,28 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
 
-    it "hides or shows the gutter based on the '::isGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
-      expect(component.gutterComponent?).toBe true
+    it "hides or shows the gutter based on the '::isLineNumberGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
+      expect(component.gutterContainerComponent.getLineNumberGutterComponent()?).toBe true
 
-      editor.setGutterVisible(false)
+      editor.setLineNumberGutterVisible(false)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeNull()
+      expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
       atom.config.set("editor.showLineNumbers", false)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeNull()
+      expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
-      editor.setGutterVisible(true)
+      editor.setLineNumberGutterVisible(true)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeNull()
+      expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
       atom.config.set("editor.showLineNumbers", true)
       nextAnimationFrame()
 
-      expect(componentNode.querySelector('.gutter')).toBeDefined()
+      expect(componentNode.querySelector('.gutter').style.display).toBe ''
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
 
     describe "fold decorations", ->
@@ -2392,7 +2392,7 @@ describe "TextEditorComponent", ->
         wrapperView.appendTo(hiddenParent)
 
         {component} = wrapperView
-        componentNode = component.domNode
+        componentNode = component.getDomNode()
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
         hiddenParent.style.display = 'block'
@@ -2599,7 +2599,7 @@ describe "TextEditorComponent", ->
       expect(wrapperNode.classList.contains('mini')).toBe true
 
     it "does not have an opaque background on lines", ->
-      expect(component.linesComponent.domNode.getAttribute('style')).not.toContain 'background-color'
+      expect(component.linesComponent.getDomNode().getAttribute('style')).not.toContain 'background-color'
 
     it "does not render invisible characters", ->
       atom.config.set('editor.invisibles', eol: 'E')

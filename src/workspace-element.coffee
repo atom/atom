@@ -44,7 +44,7 @@ class WorkspaceElement extends HTMLElement
     @appendChild(@horizontalAxis)
 
   observeScrollbarStyle: ->
-    @subscriptions.add scrollbarStyle.onValue (style) =>
+    @subscriptions.add scrollbarStyle.observePreferredScrollbarStyle (style) =>
       switch style
         when 'legacy'
           @classList.remove('scrollbars-visible-when-scrolling')
