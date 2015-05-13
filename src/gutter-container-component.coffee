@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 CustomGutterComponent = require './custom-gutter-component'
 LineNumberGutterComponent = require './line-number-gutter-component'
 
@@ -30,7 +31,7 @@ class GutterContainerComponent
 
     newGutterComponents = []
     newGutterComponentsByGutterName = {}
-    for {gutter, visible} in newState
+    for {gutter, visible, styles, content} in newState
       gutterComponent = @gutterComponentsByGutterName[gutter.name]
       if not gutterComponent
         if gutter.name is 'line-number'
@@ -39,7 +40,15 @@ class GutterContainerComponent
         else
           gutterComponent = new CustomGutterComponent({gutter})
       if visible then gutterComponent.showNode() else gutterComponent.hideNode()
-      gutterComponent.updateSync(state)
+      if gutter.name is 'line-number'
+        # Pass the gutter only the state that it needs.
+        # For ease of use in the gutter component, set the shared 'styles' as a
+        # field under the 'content'.
+        gutterSubstate = _.clone(content)
+        gutterSubstate.styles = styles
+        gutterComponent.updateSync(gutterSubstate)
+      else
+        gutterComponent.updateSync(state)
       newGutterComponents.push({
         name: gutter.name,
         component: gutterComponent,
