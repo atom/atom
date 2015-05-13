@@ -455,10 +455,16 @@ class TextEditorPresenter
       return
     for gutter in @model.getGutters()
       isVisible = @gutterIsVisible(gutter)
+      if gutter.name is 'line-number'
+        content = @lineNumberGutter
+      else
+        @customGutterDecorations[gutter.name] ?= {}
+        content = @customGutterDecorations[gutter.name]
       @state.gutters.sortedDescriptions.push({
         gutter,
         visible: isVisible,
-        styles: @sharedGutterStyles
+        styles: @sharedGutterStyles,
+        content,
       })
     @state.gutters.customDecorations = @customGutterDecorations # TODO jssln Remove
     @state.gutters.lineNumberGutter = @lineNumberGutter # TODO jssln Remove
