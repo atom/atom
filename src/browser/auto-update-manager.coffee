@@ -83,7 +83,7 @@ class AutoUpdateManager
     autoUpdater.checkForUpdates() unless @testMode
 
   install: ->
-    autoUpdater.quitAndInstall()
+    autoUpdater.quitAndInstall() unless @testMode
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
