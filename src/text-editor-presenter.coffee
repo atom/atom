@@ -67,6 +67,7 @@ class TextEditorPresenter
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
+    @updateTileSize()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -300,15 +301,10 @@ class TextEditorPresenter
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
-  # REFACTOR: This should be a @field rather than a function.
-  linesPerTile: ->
-    linesPerTile = Math.floor(@height / @lineHeight / @tileCount)
-    Math.max(1, linesPerTile)
-
   tileForRow: (row) ->
-    row - (row % @linesPerTile())
+    row - (row % @tileSize)
 
-  getVisibleTileRange: ->
+  getVisibleTilesRange: ->
     startTileRow = Math.max(0, @tileForRow(@startRow) - @tileOverdrawMargin)
     endTileRow = Math.min(
       @tileForRow(@model.getScreenLineCount()),
@@ -321,13 +317,13 @@ class TextEditorPresenter
     return unless @startRow? and @endRow? and @lineHeight?
 
     visibleTiles = {}
-    for startRow in @getVisibleTileRange() by @linesPerTile()
-      endRow = Math.min(@model.getScreenLineCount(), startRow + @linesPerTile())
+    for startRow in @getVisibleTilesRange() by @tileSize
+      endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
       isNewTile = not @state.content.tiles.hasOwnProperty(startRow)
       tile = @state.content.tiles[startRow] ?= {}
       tile.top = startRow * @lineHeight - @scrollTop
-      tile.height = @linesPerTile() * @lineHeight
+      tile.height = @tileSize * @lineHeight
       tile.newlyCreated = isNewTile
       tile.display = "block"
 
@@ -342,7 +338,6 @@ class TextEditorPresenter
         tile.display = "none"
       else
         delete @state.content.tiles[id]
-
 
   updateLinesState: (tileState, startRow, endRow) ->
     tileState.lines ?= {}
@@ -576,6 +571,12 @@ class TextEditorPresenter
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
+
+  updateTileSize: ->
+    return unless @height? and @lineHeight? and @tileCount?
+
+    @tileSize = Math.floor(@height / @lineHeight / @tileCount)
+    @tileSize = Math.max(1, @tileSize)
 
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
