@@ -1,5 +1,6 @@
 DefaultDirectoryProvider = require "../src/default-directory-provider"
 path = require "path"
+fs = require 'fs-plus'
 temp = require "temp"
 
 describe "DefaultDirectoryProvider", ->
