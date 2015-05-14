@@ -764,15 +764,14 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event) ->
     pixelPosition = @pixelPositionForMouseEvent(event)
-    pixelPosition.top += @presenter.scrollTop
     @editor.screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event) ->
     {clientX, clientY} = event
 
     linesClientRect = @linesComponent.getDomNode().getBoundingClientRect()
-    top = clientY - linesClientRect.top
-    left = clientX - linesClientRect.left
+    top = clientY - linesClientRect.top + @presenter.scrollTop
+    left = clientX - linesClientRect.left + @presenter.scrollLeft
     {top, left}
 
   getModel: ->

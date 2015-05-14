@@ -43,9 +43,10 @@ class TileComponent
       @domNode.style.height = @newState.tiles[@id].height + 'px'
       @oldState.tiles[@id]?.height = @newState.tiles[@id].height
 
-    if @newState.tiles[@id].top isnt @oldState.tiles[@id]?.top
-      @domNode.style['-webkit-transform'] = "translate3d(0, #{@newState.tiles[@id].top}px, 0px)"
+    if (@newState.tiles[@id].top isnt @oldState.tiles[@id]?.top) or (@newState.tiles[@id].left isnt @oldState.tiles[@id]?.left)
+      @domNode.style['-webkit-transform'] = "translate3d(#{@newState.tiles[@id].left}px, #{@newState.tiles[@id].top}px, 0px)"
       @oldState.tiles[@id]?.top = @newState.tiles[@id].top
+      @oldState.tiles[@id]?.left = @newState.tiles[@id].left
 
     if @newState.tiles[@id].newlyCreated
       newLineIds = []

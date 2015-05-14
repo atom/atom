@@ -48,10 +48,6 @@ class LinesComponent
       @domNode.style.height = @newState.scrollHeight + 'px'
       @oldState.scrollHeight = @newState.scrollHeight
 
-    if @newState.scrollLeft isnt @oldState.scrollLeft
-      @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, 0, 0px)"
-      @oldState.scrollLeft = @newState.scrollLeft
-
     if @newState.backgroundColor isnt @oldState.backgroundColor
       @domNode.style.backgroundColor = @newState.backgroundColor
       @oldState.backgroundColor = @newState.backgroundColor

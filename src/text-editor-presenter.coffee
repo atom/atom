@@ -327,6 +327,7 @@ class TextEditorPresenter
       isNewTile = not @state.content.tiles.hasOwnProperty(startRow)
       tile = @state.content.tiles[startRow] ?= {}
       tile.top = startRow * @lineHeight - @scrollTop
+      tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.newlyCreated = isNewTile
       tile.display = "block"
@@ -410,10 +411,8 @@ class TextEditorPresenter
 
       pixelPosition = @pixelPositionForScreenPosition(screenPosition, true)
 
-      {scrollLeft} = @state.content
-
       top = pixelPosition.top + @lineHeight
-      left = pixelPosition.left + @gutterWidth - scrollLeft
+      left = pixelPosition.left + @gutterWidth
 
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
@@ -795,8 +794,10 @@ class TextEditorPresenter
       @model.setScrollLeft(scrollLeft)
       @shouldUpdateHorizontalScrollState = true
       @shouldUpdateHiddenInputState = true
-      @shouldUpdateCursorsState = true unless oldScrollLeft?
+      @shouldUpdateCursorsState = true
       @shouldUpdateOverlaysState = true
+      @shouldUpdateDecorations = true
+      @shouldUpdateTilesState = true
 
       @emitDidUpdateState()
 
@@ -1034,6 +1035,7 @@ class TextEditorPresenter
         column += charLength
 
     top -= @scrollTop
+    left -= @scrollLeft
     {top, left}
 
   hasPixelRectRequirements: ->
