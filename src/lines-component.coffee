@@ -131,3 +131,8 @@ class LinesComponent
       component.clearMeasurements()
 
     @presenter.clearScopedCharacterWidths()
+
+  lineNodeForScreenRow: (screenRow) ->
+    tile = @presenter.tileForRow(screenRow)
+
+    @tileComponentsByTileId[tile].lineNodeForScreenRow(screenRow)
