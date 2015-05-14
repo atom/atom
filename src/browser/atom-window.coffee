@@ -168,6 +168,8 @@ class AtomWindow
     if @loaded
       @focus()
       @sendMessage 'open-locations', locationsToOpen
+      for location in locationsToOpen
+        app.addRecentDocument(location.pathToOpen)
     else
       @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
 
