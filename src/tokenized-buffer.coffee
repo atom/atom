@@ -444,66 +444,6 @@ class TokenizedBuffer extends Model
 
     new Range(new Point(position.row, startColumn), new Point(position.row, endColumn))
 
-  iterateTokensInBufferRange: (bufferRange, iterator) ->
-    bufferRange = Range.fromObject(bufferRange)
-    {start, end} = bufferRange
-
-    keepLooping = true
-    stop = -> keepLooping = false
-
-    for bufferRow in [start.row..end.row]
-      bufferColumn = 0
-      for token in @tokenizedLines[bufferRow].tokens
-        startOfToken = new Point(bufferRow, bufferColumn)
-        iterator(token, startOfToken, {stop}) if bufferRange.containsPoint(startOfToken)
-        return unless keepLooping
-        bufferColumn += token.bufferDelta
-
-  backwardsIterateTokensInBufferRange: (bufferRange, iterator) ->
-    bufferRange = Range.fromObject(bufferRange)
-    {start, end} = bufferRange
-
-    keepLooping = true
-    stop = -> keepLooping = false
-
-    for bufferRow in [end.row..start.row]
-      bufferColumn = @buffer.lineLengthForRow(bufferRow)
-      for token in new Array(@tokenizedLines[bufferRow].tokens...).reverse()
-        bufferColumn -= token.bufferDelta
-        startOfToken = new Point(bufferRow, bufferColumn)
-        iterator(token, startOfToken, {stop}) if bufferRange.containsPoint(startOfToken)
-        return unless keepLooping
-
-  findOpeningBracket: (startBufferPosition) ->
-    range = [[0,0], startBufferPosition]
-    position = null
-    depth = 0
-    @backwardsIterateTokensInBufferRange range, (token, startPosition, {stop}) ->
-      if token.isBracket()
-        if token.value is '}'
-          depth++
-        else if token.value is '{'
-          depth--
-          if depth is 0
-            position = startPosition
-            stop()
-    position
-
-  findClosingBracket: (startBufferPosition) ->
-    range = [startBufferPosition, @buffer.getEndPosition()]
-    position = null
-    depth = 0
-    @iterateTokensInBufferRange range, (token, startPosition, {stop}) ->
-      if token.isBracket()
-        if token.value is '{'
-          depth++
-        else if token.value is '}'
-          depth--
-          if depth is 0
-            position = startPosition
-            stop()
-    position
-
   # Gets the row number of the last line.
   #
   # Returns a {Number}.

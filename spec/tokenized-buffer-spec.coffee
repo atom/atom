@@ -296,14 +296,6 @@ describe "TokenizedBuffer", ->
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeTruthy()
 
-      describe ".findOpeningBracket(closingBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
-
-      describe ".findClosingBracket(startBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
-
       it "tokenizes leading whitespace based on the new tab length", ->
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].isAtomic).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].value).toBe "  "
