@@ -1,5 +1,5 @@
 path = require 'path'
-hostedGitInfo = require 'hosted-git-info'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -26,16 +26,11 @@ class Package
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
   @normalizeMetadata: (metadata) ->
-    if typeof metadata.repository is 'string'
-      metadata.repository =
-        type: 'git'
-        url: metadata.repository
-
-    repoUrl = metadata.repository?.url
-    if repoUrl
-      info = hostedGitInfo.fromUrl(repoUrl)
-      if info?.getDefaultRepresentation() is 'shortcut'
-        metadata.repository.url = info.https().replace(/^git\+/, '')
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)
+      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
@@ -45,12 +40,12 @@ class Package
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
           metadata = CSON.readFileSync(metadataPath)
+          @normalizeMetadata(metadata)
         catch error
           throw error unless ignoreErrors
 
     metadata ?= {}
     metadata.name = packageName
-    @normalizeMetadata(metadata)
 
     if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
