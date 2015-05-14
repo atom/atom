@@ -42,6 +42,7 @@ class DisplayBuffer extends Model
     @disposables.add @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @updateAllScreenLines()
+    @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
   subscribeToScopedConfigSettings: =>
@@ -1075,8 +1076,11 @@ class DisplayBuffer extends Model
   findFoldMarkers: (attributes) ->
     @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
 
-  getFoldMarkerAttributes: (attributes={}) ->
-    _.extend(attributes, class: 'fold', displayBufferId: @id)
+  getFoldMarkerAttributes: (attributes) ->
+    if attributes
+      _.extend(attributes, @foldMarkerAttributes)
+    else
+      @foldMarkerAttributes
 
   pauseMarkerChangeEvents: ->
     marker.pauseChangeEvents() for marker in @getMarkers()
