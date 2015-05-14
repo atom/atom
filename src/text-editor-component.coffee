@@ -354,7 +354,7 @@ class TextEditorComponent
       event.preventDefault() unless previousScrollLeft is @presenter.getScrollLeft()
     else
       # Scrolling vertically
-      @presenter.setScrollingTileRow(@tileRowForNode(event.target))
+      @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = @presenter.getScrollTop()
       @presenter.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
       event.preventDefault() unless previousScrollTop is @presenter.getScrollTop()
@@ -729,12 +729,11 @@ class TextEditorComponent
 
   lineNumberNodeForScreenRow: (screenRow) -> @gutterContainerComponent.getLineNumberGutterComponent().lineNumberNodeForScreenRow(screenRow)
 
-  tileRowForNode: (node) ->
+  screenRowForNode: (node) ->
     while node?
-      if tileId = node.dataset.tileId
-        return tileId
+      if screenRow = node.dataset.screenRow
+        return parseInt(screenRow)
       node = node.parentElement
-
     null
 
   getFontSize: ->

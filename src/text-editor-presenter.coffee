@@ -304,11 +304,6 @@ class TextEditorPresenter
   tileForRow: (row) ->
     row - (row % @tileSize)
 
-  isValidTile: (tileRow) ->
-    return false unless tileRow?
-
-    tileRow <= @tileForRow(@model.getLastScreenRow())
-
   getVisibleTilesRange: ->
     startTileRow = Math.max(0, @tileForRow(@startRow))
     endTileRow = Math.min(
@@ -336,9 +331,12 @@ class TextEditorPresenter
 
       visibleTiles[startRow] = true
 
-    if @isValidTile(@scrollingTileRow) and not visibleTiles[@scrollingTileRow]?
-      @state.content.tiles[@scrollingTileRow].display = "none"
-      visibleTiles[@scrollingTileRow] = true
+    if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
+      mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
+
+      unless visibleTiles[mouseWheelTile]?
+        @state.content.tiles[mouseWheelTile].display = "none"
+        visibleTiles[mouseWheelTile] = true
 
     for id, tile of @state.content.tiles
       continue if visibleTiles.hasOwnProperty(id)
@@ -779,8 +777,8 @@ class TextEditorPresenter
 
   didStopScrolling: ->
     @state.content.scrollingVertically = false
-    if @scrollingTileRow?
-      @scrollingTileRow = null
+    if @mouseWheelScreenRow?
+      @mouseWheelScreenRow = null
       @shouldUpdateTilesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -948,9 +946,9 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setScrollingTileRow: (tileRow) ->
-    if @scrollingTileRow isnt tileRow
-      @scrollingTileRow = tileRow
+  setMouseWheelScreenRow: (screenRow) ->
+    if @mouseWheelScreenRow isnt screenRow
+      @mouseWheelScreenRow = screenRow
       @didStartScrolling()
 
   setBaseCharacterWidth: (baseCharacterWidth) ->

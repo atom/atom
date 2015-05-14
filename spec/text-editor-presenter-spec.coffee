@@ -39,7 +39,6 @@ describe "TextEditorPresenter", ->
         verticalScrollbarWidth: 10
         scrollTop: 0
         scrollLeft: 0
-        lineOverdrawMargin: 0
 
       new TextEditorPresenter(params)
 
@@ -775,14 +774,14 @@ describe "TextEditorPresenter", ->
             tokens: line3.tokens
           }
 
-        it "does not remove out-of-view tiles corresponding to ::scrollingTileId until ::stoppedScrollingDelay elapses", ->
+        it "does not remove out-of-view tiles corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
           presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3, stoppedScrollingDelay: 200)
 
           expect(presenter.getState().content.tiles[0]).toBeDefined()
           expect(presenter.getState().content.tiles[6]).toBeDefined()
           expect(presenter.getState().content.tiles[8]).toBeUndefined()
 
-          presenter.setScrollingTileRow(0)
+          presenter.setMouseWheelScreenRow(0)
           expectStateUpdate presenter, -> presenter.setScrollTop(4)
 
           expect(presenter.getState().content.tiles[0]).toBeDefined()
@@ -799,15 +798,15 @@ describe "TextEditorPresenter", ->
 
 
           # should clear ::mouseWheelScreenRow after stoppedScrollingDelay elapses even if we don't scroll first
-          presenter.setScrollingTileRow(4)
+          presenter.setMouseWheelScreenRow(4)
           advanceClock(200)
           expectStateUpdate presenter, -> presenter.setScrollTop(6)
           expect(presenter.getState().content.tiles[4]).toBeUndefined()
 
-        it "does not preserve deleted on-screen tiles even if they correspond to ::scrollingTileId", ->
+        it "does not preserve deleted on-screen tiles even if they correspond to ::mouseWheelScreenRow", ->
           presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3, stoppedScrollingDelay: 200)
 
-          presenter.setScrollingTileRow(2)
+          presenter.setMouseWheelScreenRow(2)
 
           expectStateUpdate presenter, -> editor.setText("")
 
@@ -1750,20 +1749,19 @@ describe "TextEditorPresenter", ->
 
           presenter.getState().gutters.lineNumberGutter.lineNumbers[key]
 
-        it "contains states for line numbers that are visible on screen, plus and minus the overdraw margin", ->
+        it "contains states for line numbers that are visible on screen", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, lineOverdrawMargin: 1)
+          presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10)
 
           expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-          expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false, top: 2 * 10}
+          expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
           expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false, top: 3 * 10}
           expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true, top: 4 * 10}
           expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false, top: 5 * 10}
           expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false, top: 6 * 10}
-          expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 8, softWrapped: false, top: 7 * 10}
-          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
 
         it "includes states for all line numbers if no ::explicitHeight is assigned", ->
           presenter = buildPresenter(explicitHeight: null)
@@ -1774,43 +1772,43 @@ describe "TextEditorPresenter", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineOverdrawMargin: 1)
+          presenter = buildPresenter(explicitHeight: 25, scrollTop: 30)
 
-          expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-          expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
-          expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
-          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
+          expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
+          expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 7}
+          expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
 
           expectStateUpdate presenter, -> presenter.setScrollTop(20)
 
-          expect(lineNumberStateForScreenRow(presenter, 0)).toBeUndefined()
-          expectValues lineNumberStateForScreenRow(presenter, 1), {bufferRow: 1}
-          expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 7}
-          expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
+          expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
+          expectValues lineNumberStateForScreenRow(presenter, 5), {bufferRow: 4}
+          expect(lineNumberStateForScreenRow(presenter, 6)).toBeUndefined()
 
         it "updates when ::explicitHeight changes", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineOverdrawMargin: 1)
+          presenter = buildPresenter(explicitHeight: 25, scrollTop: 30)
 
-          expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-          expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
-          expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
-          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
+          expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
+          expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 7}
+          expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(35)
 
-          expect(lineNumberStateForScreenRow(presenter, 0)).toBeUndefined()
-          expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
-          expectValues lineNumberStateForScreenRow(presenter, 8), {bufferRow: 8}
-          expect(lineNumberStateForScreenRow(presenter, 9)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
+          expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
+          expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
+          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
         it "updates when ::lineHeight changes", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineOverdrawMargin: 0)
+          presenter = buildPresenter(explicitHeight: 25, scrollTop: 0)
 
           expectValues lineNumberStateForScreenRow(presenter, 0), {bufferRow: 0}
           expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
@@ -1826,7 +1824,7 @@ describe "TextEditorPresenter", ->
           editor.foldBufferRow(4)
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(50)
-          presenter = buildPresenter(explicitHeight: 35, scrollTop: 30, lineOverdrawMargin: 0)
+          presenter = buildPresenter(explicitHeight: 35, scrollTop: 30)
 
           expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
           expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
@@ -1848,26 +1846,26 @@ describe "TextEditorPresenter", ->
           expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
         it "does not remove out-of-view line numbers corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
-          presenter = buildPresenter(explicitHeight: 25, lineOverdrawMargin: 1, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(explicitHeight: 25, stoppedScrollingDelay: 200)
 
           expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
-          expect(lineNumberStateForScreenRow(presenter, 4)).toBeDefined()
-          expect(lineNumberStateForScreenRow(presenter, 5)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 3)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 4)).toBeUndefined()
 
           presenter.setMouseWheelScreenRow(0)
           expectStateUpdate presenter, -> presenter.setScrollTop(35)
 
           expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
           expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-          expect(lineNumberStateForScreenRow(presenter, 7)).toBeDefined()
-          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 6)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
 
           expectStateUpdate presenter, -> advanceClock(200)
 
           expect(lineNumberStateForScreenRow(presenter, 0)).toBeUndefined()
           expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-          expect(lineNumberStateForScreenRow(presenter, 7)).toBeDefined()
-          expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+          expect(lineNumberStateForScreenRow(presenter, 6)).toBeDefined()
+          expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
 
         it "correctly handles the first screen line being soft-wrapped", ->
           editor.setSoftWrapped(true)
@@ -2481,7 +2479,7 @@ describe "TextEditorPresenter", ->
       editor.setEditorWidthInChars(80)
       presenterParams =
         model: editor
-        lineOverdrawMargin: 1
+
       presenter = new TextEditorPresenter(presenterParams)
       statements = []
 
