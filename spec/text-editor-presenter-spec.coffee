@@ -343,26 +343,26 @@ describe "TextEditorPresenter", ->
           expectValues presenter.getState().hiddenInput, {top: 3 * 10, left: 6 * 10}
 
           expectStateUpdate presenter, -> presenter.setScrollTop(15)
-          expectValues presenter.getState().hiddenInput, {top: (3 * 10) - 15, left: 6 * 10}
+          expectValues presenter.getState().hiddenInput, {top: 0, left: 6 * 10}
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(35)
-          expectValues presenter.getState().hiddenInput, {top: (3 * 10) - 15, left: (6 * 10) - 35}
+          expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
 
           expectStateUpdate presenter, -> presenter.setScrollTop(40)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: (6 * 10) - 35}
+          expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(70)
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
 
           expectStateUpdate presenter, -> editor.setCursorBufferPosition([11, 43])
-          expectValues presenter.getState().hiddenInput, {top: 11 * 10 - editor.getScrollTop(), left: 43 * 10 - editor.getScrollLeft()}
+          expectValues presenter.getState().hiddenInput, {top: 0, left: 30}
 
           newCursor = null
           expectStateUpdate presenter, -> newCursor = editor.addCursorAtBufferPosition([6, 10])
-          expectValues presenter.getState().hiddenInput, {top: (6 * 10) - editor.getScrollTop(), left: (10 * 10) - editor.getScrollLeft()}
+          expectValues presenter.getState().hiddenInput, {top: 0, left: 20}
 
           expectStateUpdate presenter, -> newCursor.destroy()
-          expectValues presenter.getState().hiddenInput, {top: 50 - 10, left: 300 - 10}
+          expectValues presenter.getState().hiddenInput, {top: 30, left: 300 - 10}
 
           expectStateUpdate presenter, -> presenter.setFocused(false)
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
@@ -967,9 +967,9 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
 
           expect(stateForCursor(presenter, 0)).toBeUndefined()
-          expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 1)).toEqual {top: 0, left: 4 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 2)).toBeUndefined()
-          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10 - 20, left: 12 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 4)).toBeUndefined()
 
         it "is empty until all of the required measurements are assigned", ->
@@ -1005,8 +1005,8 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 0)).toBeUndefined()
           expect(stateForCursor(presenter, 1)).toBeUndefined()
           expect(stateForCursor(presenter, 2)).toBeUndefined()
-          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
-          expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 3)).toEqual {top: 0, left: 12 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10 - 50, left: 4 * 10, width: 10, height: 10}
 
         it "updates when ::explicitHeight changes", ->
           editor.setSelectedBufferRanges([
@@ -1020,9 +1020,9 @@ describe "TextEditorPresenter", ->
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(30)
           expect(stateForCursor(presenter, 0)).toBeUndefined()
-          expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 1)).toEqual {top: 0, left: 4 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 2)).toBeUndefined()
-          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10 - 20, left: 12 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 4)).toBeUndefined()
 
         it "updates when ::lineHeight changes", ->
@@ -1039,15 +1039,15 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 0)).toBeUndefined()
           expect(stateForCursor(presenter, 1)).toBeUndefined()
           expect(stateForCursor(presenter, 2)).toBeUndefined()
-          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 5, left: 12 * 10, width: 10, height: 5}
-          expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 5, left: 4 * 10, width: 10, height: 5}
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5, left: 12 * 10, width: 10, height: 5}
+          expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 5 - 20, left: 4 * 10, width: 10, height: 5}
 
         it "updates when ::baseCharacterWidth changes", ->
           editor.setCursorBufferPosition([2, 4])
           presenter = buildPresenter(explicitHeight: 20, scrollTop: 20)
 
           expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
-          expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 20, width: 20, height: 10}
+          expect(stateForCursor(presenter, 0)).toEqual {top: 0, left: 4 * 20, width: 20, height: 10}
 
         it "updates when scoped character widths change", ->
           waitsForPromise ->
@@ -1073,11 +1073,11 @@ describe "TextEditorPresenter", ->
           # moving into view
           expect(stateForCursor(presenter, 0)).toBeUndefined()
           editor.getCursors()[0].setBufferPosition([2, 4])
-          expect(stateForCursor(presenter, 0)).toEqual {top: 2 * 10, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 0)).toEqual {top: 0, left: 4 * 10, width: 10, height: 10}
 
           # showing
           expectStateUpdate presenter, -> editor.getSelections()[1].clear()
-          expect(stateForCursor(presenter, 1)).toEqual {top: 3 * 10, left: 5 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 1)).toEqual {top: 5, left: 5 * 10, width: 10, height: 10}
 
           # hiding
           expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 5]])
@@ -1089,11 +1089,11 @@ describe "TextEditorPresenter", ->
 
           # adding
           expectStateUpdate presenter, -> editor.addCursorAtBufferPosition([4, 4])
-          expect(stateForCursor(presenter, 2)).toEqual {top: 4 * 10, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toEqual {top: 5, left: 4 * 10, width: 10, height: 10}
 
           # moving added cursor
           expectStateUpdate presenter, -> editor.getCursors()[2].setBufferPosition([4, 6])
-          expect(stateForCursor(presenter, 2)).toEqual {top: 4 * 10, left: 6 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toEqual {top: 5, left: 6 * 10, width: 10, height: 10}
 
           # destroying
           destroyedCursor = editor.getCursors()[2]
@@ -1211,39 +1211,39 @@ describe "TextEditorPresenter", ->
           expectValues stateForHighlight(presenter, highlight2), {
             class: 'b'
             regions: [
-              {top: 2 * 10, left: 0 * 10, width: 6 * 10, height: 1 * 10}
+              {top: 2 * 10 - 20, left: 0 * 10, width: 6 * 10, height: 1 * 10}
             ]
           }
 
           expectValues stateForHighlight(presenter, highlight3), {
             class: 'c'
             regions: [
-              {top: 2 * 10, left: 0 * 10, right: 0, height: 1 * 10}
-              {top: 3 * 10, left: 0 * 10, width: 6 * 10, height: 1 * 10}
+              {top: 2 * 10 - 20, left: 0 * 10, right: 0, height: 1 * 10}
+              {top: 3 * 10 - 20, left: 0 * 10, width: 6 * 10, height: 1 * 10}
             ]
           }
 
           expectValues stateForHighlight(presenter, highlight4), {
             class: 'd'
             regions: [
-              {top: 2 * 10, left: 6 * 10, right: 0, height: 1 * 10}
-              {top: 3 * 10, left: 0, right: 0, height: 1 * 10}
-              {top: 4 * 10, left: 0, width: 6 * 10, height: 1 * 10}
+              {top: 2 * 10 - 20, left: 6 * 10, right: 0, height: 1 * 10}
+              {top: 3 * 10 - 20, left: 0, right: 0, height: 1 * 10}
+              {top: 4 * 10 - 20, left: 0, width: 6 * 10, height: 1 * 10}
             ]
           }
 
           expectValues stateForHighlight(presenter, highlight5), {
             class: 'e'
             regions: [
-              {top: 3 * 10, left: 6 * 10, right: 0, height: 1 * 10}
-              {top: 4 * 10, left: 0 * 10, right: 0, height: 2 * 10}
+              {top: 3 * 10 - 20, left: 6 * 10, right: 0, height: 1 * 10}
+              {top: 4 * 10 - 20, left: 0 * 10, right: 0, height: 2 * 10}
             ]
           }
 
           expectValues stateForHighlight(presenter, highlight6), {
             class: 'f'
             regions: [
-              {top: 5 * 10, left: 6 * 10, right: 0, height: 1 * 10}
+              {top: 5 * 10 - 20, left: 6 * 10, right: 0, height: 1 * 10}
             ]
           }
 
