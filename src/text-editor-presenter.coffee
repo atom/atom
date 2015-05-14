@@ -612,6 +612,7 @@ class TextEditorPresenter
       oldContentWidth = @contentWidth
       clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
       @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
+      @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
     if @contentHeight isnt oldContentHeight
