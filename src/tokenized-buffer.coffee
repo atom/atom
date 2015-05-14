@@ -330,7 +330,7 @@ class TokenizedBuffer extends Model
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
-    {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0)
+    {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
     new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, invisibles: @getInvisiblesToShow()})
 
   getInvisiblesToShow: ->
