@@ -21,7 +21,6 @@ class TileComponent
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
     @domNode ?= document.createElement("div")
-    @domNode.dataset.tileId = @id
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.classList.add("tile")
