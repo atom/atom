@@ -311,7 +311,7 @@ class LanguageMode
 
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
     desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
-    if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
+    if desiredIndentLevel >= 0
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   getRegexForProperty: (scopeDescriptor, property) ->
