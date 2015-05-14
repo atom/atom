@@ -20,7 +20,7 @@ describe "the `atom` global", ->
       afterEach ->
         atom.setSize(originalSize.width, originalSize.height)
 
-      fit 'sets the size of the window, and can retrieve the size just set', ->
+      it 'sets the size of the window, and can retrieve the size just set', ->
         atom.setSize(100, 400)
         expect(atom.getSize()).toEqual width: 100, height: 400
 
