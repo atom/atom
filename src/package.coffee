@@ -31,7 +31,6 @@ class Package
       normalizePackageData(metadata)
       if metadata.repository?.type is 'git'
         metadata.repository.url = metadata.repository.url?.replace(/^git\+/, '')
-      metadata
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
