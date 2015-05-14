@@ -90,14 +90,11 @@ class TokenizedBuffer extends Model
     @configSubscriptions.add atom.config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
-    @configSubscriptions.add atom.config.onDidChange 'editor.invisibles', scopeOptions, ({newValue}) =>
-      oldInvisibles = @getInvisiblesToShow()
-      @configSettings.invisibles = newValue
-      @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
-    @configSubscriptions.add atom.config.onDidChange 'editor.showInvisibles', scopeOptions, ({newValue}) =>
-      oldInvisibles = @getInvisiblesToShow()
-      @configSettings.showInvisibles = newValue
-      @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
+    ['invisibles', 'showInvisibles'].forEach (key) =>
+      @configSubscriptions.add atom.config.onDidChange "editor.#{key}", scopeOptions, ({newValue}) =>
+        oldInvisibles = @getInvisiblesToShow()
+        @configSettings[key] = newValue
+        @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
