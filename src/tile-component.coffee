@@ -34,29 +34,32 @@ class TileComponent
       @oldState = {tiles: {}}
       @oldState.tiles[@id] = { lines: {}}
 
-    if @newState.tiles[@id].display isnt @oldState.tiles[@id]?.display
-      @domNode.style.display = @newState.tiles[@id].display
-      @oldState.tiles[@id]?.display = @newState.tiles[@id].display
+    @newTileState = @newState.tiles[@id]
+    @oldTileState = @oldState.tiles[@id]
 
-    if @newState.tiles[@id].height isnt @oldState.tiles[@id]?.height
-      @domNode.style.height = @newState.tiles[@id].height + 'px'
-      @oldState.tiles[@id]?.height = @newState.tiles[@id].height
+    if @newTileState.display isnt @oldTileState.display
+      @domNode.style.display = @newTileState.display
+      @oldTileState.display = @newTileState.display
 
-    if (@newState.tiles[@id].top isnt @oldState.tiles[@id]?.top) or (@newState.tiles[@id].left isnt @oldState.tiles[@id]?.left)
-      @domNode.style['-webkit-transform'] = "translate3d(#{@newState.tiles[@id].left}px, #{@newState.tiles[@id].top}px, 0px)"
-      @oldState.tiles[@id]?.top = @newState.tiles[@id].top
-      @oldState.tiles[@id]?.left = @newState.tiles[@id].left
+    if @newTileState.height isnt @oldTileState.height
+      @domNode.style.height = @newTileState.height + 'px'
+      @oldTileState.height = @newTileState.height
 
-    if @newState.tiles[@id].newlyCreated
+    if @newTileState.top isnt @oldTileState.top or @newTileState.left isnt @oldTileState.left
+      @domNode.style['-webkit-transform'] = "translate3d(#{@newTileState.left}px, #{@newTileState.top}px, 0px)"
+      @oldTileState.top = @newTileState.top
+      @oldTileState.left = @newTileState.left
+
+    if @newTileState.newlyCreated
       newLineIds = []
       newLinesHTML = ""
 
-      for id, lineState of @newState.tiles[@id].lines
+      for id, lineState of @newTileState.lines
         newLineIds.push(id)
         newLinesHTML += @buildLineHTML(id)
         @screenRowsByLineId[id] = lineState.screenRow
         @lineIdsByScreenRow[lineState.screenRow] = id
-        @oldState.tiles[@id]?.lines[id] = cloneObject(lineState)
+        @oldTileState.lines[id] = cloneObject(lineState)
 
       return if newLineIds.length is 0
 
@@ -77,7 +80,7 @@ class TileComponent
     @oldState.scrollWidth = @newState.scrollWidth
 
   removeLineNodes: ->
-    @removeLineNode(id) for id of @oldState.tiles[@id]?.lines
+    @removeLineNode(id) for id of @oldTileState.lines
     return
 
   removeLineNode: (id) ->
@@ -85,18 +88,18 @@ class TileComponent
     delete @lineNodesByLineId[id]
     delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
     delete @screenRowsByLineId[id]
-    delete @oldState.tiles[@id]?.lines[id]
+    delete @oldTileState.lines[id]
 
   updateLineNodes: ->
-    for id of @oldState.tiles[@id]?.lines
-      unless @newState.tiles[@id].lines.hasOwnProperty(id)
+    for id of @oldTileState.lines
+      unless @newTileState.lines.hasOwnProperty(id)
         @removeLineNode(id)
 
     newLineIds = null
     newLinesHTML = null
 
-    for id, lineState of @newState.tiles[@id].lines
-      if @oldState.tiles[@id]?.lines.hasOwnProperty(id)
+    for id, lineState of @newTileState.lines
+      if @oldTileState.lines.hasOwnProperty(id)
         @updateLineNode(id)
       else
         newLineIds ?= []
@@ -105,7 +108,7 @@ class TileComponent
         newLinesHTML += @buildLineHTML(id)
         @screenRowsByLineId[id] = lineState.screenRow
         @lineIdsByScreenRow[lineState.screenRow] = id
-        @oldState.tiles[@id]?.lines[id] = cloneObject(lineState)
+        @oldTileState.lines[id] = cloneObject(lineState)
 
     return unless newLineIds?
 
@@ -120,7 +123,7 @@ class TileComponent
 
   buildLineHTML: (id) ->
     {scrollWidth} = @newState
-    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newState.tiles[@id].lines[id]
+    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
 
     classes = ''
     if decorationClasses?
@@ -141,7 +144,7 @@ class TileComponent
 
   buildEmptyLineInnerHTML: (id) ->
     {indentGuidesVisible} = @newState
-    {indentLevel, tabLength, endOfLineInvisibles} = @newState.tiles[@id].lines[id]
+    {indentLevel, tabLength, endOfLineInvisibles} = @newTileState.lines[id]
 
     if indentGuidesVisible and indentLevel > 0
       invisibleIndex = 0
@@ -164,7 +167,7 @@ class TileComponent
 
   buildLineInnerHTML: (id) ->
     {indentGuidesVisible} = @newState
-    {tokens, text, isOnlyWhitespace} = @newState.tiles[@id].lines[id]
+    {tokens, text, isOnlyWhitespace} = @newTileState.lines[id]
     innerHTML = ""
 
     scopeStack = []
@@ -178,7 +181,7 @@ class TileComponent
     innerHTML
 
   buildEndOfLineHTML: (id) ->
-    {endOfLineInvisibles} = @newState.tiles[@id].lines[id]
+    {endOfLineInvisibles} = @newTileState.lines[id]
 
     html = ''
     if endOfLineInvisibles?
@@ -212,8 +215,8 @@ class TileComponent
     "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
   updateLineNode: (id) ->
-    oldLineState = @oldState.tiles[@id]?.lines[id]
-    newLineState = @newState.tiles[@id].lines[id]
+    oldLineState = @oldTileState.lines[id]
+    newLineState = @newTileState.lines[id]
 
     lineNode = @lineNodesByLineId[id]
 
@@ -248,7 +251,7 @@ class TileComponent
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
   measureCharactersInNewLines: ->
-    for id, lineState of @oldState.tiles[@id]?.lines
+    for id, lineState of @oldTileState.lines
       unless @measuredLines.has(id)
         lineNode = @lineNodesByLineId[id]
         @measureCharactersInLine(id, lineState, lineNode)
