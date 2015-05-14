@@ -177,7 +177,6 @@ class LinesComponent
     innerHTML = ""
     iterator = TokenIterator.instance.reset(lineState)
 
-    debugger if global.debug
     while iterator.next()
       for scope in iterator.getScopeEnds()
         innerHTML += "</span>"
