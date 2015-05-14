@@ -36,23 +36,21 @@ describe "TextEditor", ->
 
     it "preserves the invisibles setting", ->
       atom.config.set('editor.showInvisibles', true)
-      previousInvisibles = editor.displayBuffer.invisibles
+      previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
       editor2 = editor.testSerialization()
 
-      expect(editor2.displayBuffer.invisibles).toEqual previousInvisibles
-      expect(editor2.displayBuffer.tokenizedBuffer.invisibles).toEqual previousInvisibles
+      expect(previousInvisibles).toBeDefined()
+      expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
 
     it "updates invisibles if the settings have changed between serialization and deserialization", ->
       atom.config.set('editor.showInvisibles', true)
-      previousInvisibles = editor.displayBuffer.invisibles
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
       editor2 = TextEditor.deserialize(state)
 
-      expect(editor2.displayBuffer.invisibles.eol).toBe '?'
-      expect(editor2.displayBuffer.tokenizedBuffer.invisibles.eol).toBe '?'
+      expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
   describe "when the editor is constructed with an initialLine option", ->
     it "positions the cursor on the specified line", ->

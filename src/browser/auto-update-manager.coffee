@@ -15,7 +15,7 @@ module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
-  constructor: (@version) ->
+  constructor: (@version, @testMode) ->
     @state = IdleState
     if process.platform is 'win32'
       # Squirrel for Windows can't handle query params
@@ -80,10 +80,10 @@ class AutoUpdateManager
       autoUpdater.once 'update-not-available', @onUpdateNotAvailable
       autoUpdater.once 'error', @onUpdateError
 
-    autoUpdater.checkForUpdates()
+    autoUpdater.checkForUpdates() unless @testMode
 
   install: ->
-    autoUpdater.quitAndInstall()
+    autoUpdater.quitAndInstall() unless @testMode
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
