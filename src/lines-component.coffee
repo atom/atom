@@ -80,8 +80,7 @@ class LinesComponent
   removeTileNode: (id) ->
     node = @tileComponentsByTileId[id].getDomNode()
 
-    node.style.display = "none"
-    @freeDomNodes.push(node)
+    node.remove()
     delete @tileComponentsByTileId[id]
     delete @oldState.tiles[id]
 
@@ -94,10 +93,9 @@ class LinesComponent
       if @oldState.tiles.hasOwnProperty(id)
         tileComponent = @tileComponentsByTileId[id]
       else
-        domNode = @freeDomNodes.pop()
-        tileComponent = @tileComponentsByTileId[id] = new TileComponent({id, @presenter, domNode})
+        tileComponent = @tileComponentsByTileId[id] = new TileComponent({id, @presenter})
 
-        @domNode.appendChild(tileComponent.getDomNode()) unless domNode?
+        @domNode.appendChild(tileComponent.getDomNode())
         @oldState.tiles[id] = cloneObject(tileState)
 
       tileComponent.updateSync(@newState)

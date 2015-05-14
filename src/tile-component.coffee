@@ -50,27 +50,8 @@ class TileComponent
       @oldTileState.top = @newTileState.top
       @oldTileState.left = @newTileState.left
 
-    if @newTileState.newlyCreated
-      newLineIds = []
-      newLinesHTML = ""
-
-      for id, lineState of @newTileState.lines
-        newLineIds.push(id)
-        newLinesHTML += @buildLineHTML(id)
-        @screenRowsByLineId[id] = lineState.screenRow
-        @lineIdsByScreenRow[lineState.screenRow] = id
-        @oldTileState.lines[id] = cloneObject(lineState)
-
-      return if newLineIds.length is 0
-
-      @domNode.innerHTML = newLinesHTML
-      newLineNodes = _.toArray(@domNode.children)
-      for id, i in newLineIds
-        lineNode = newLineNodes[i]
-        @lineNodesByLineId[id] = lineNode
-    else
-      @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
-      @updateLineNodes()
+    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
+    @updateLineNodes()
 
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'

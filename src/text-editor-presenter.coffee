@@ -319,12 +319,10 @@ class TextEditorPresenter
     for startRow in @getVisibleTilesRange() by @tileSize
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
-      isNewTile = not @state.content.tiles.hasOwnProperty(startRow)
       tile = @state.content.tiles[startRow] ?= {}
       tile.top = startRow * @lineHeight - @scrollTop
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
-      tile.newlyCreated = isNewTile
       tile.display = "block"
 
       @updateLinesState(tile, startRow, endRow)
