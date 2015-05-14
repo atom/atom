@@ -20,8 +20,9 @@ class TokenizedBuffer extends Model
   chunkSize: 50
   invalidRows: null
   visible: false
+  configSettings: null
 
-  constructor: ({@buffer, @tabLength, @invisibles}) ->
+  constructor: ({@buffer, @tabLength, @ignoreInvisibles}) ->
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
@@ -39,7 +40,7 @@ class TokenizedBuffer extends Model
   serializeParams: ->
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
-    invisibles: _.clone(@invisibles)
+    ignoreInvisibles: @ignoreInvisibles
 
   deserializeParams: (params) ->
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
@@ -76,13 +77,28 @@ class TokenizedBuffer extends Model
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
     @disposables.add(@grammarUpdateDisposable)
 
-    @configSettings = tabLength: atom.config.get('editor.tabLength', scope: @rootScopeDescriptor)
+    scopeOptions = {scope: @rootScopeDescriptor}
+    @configSettings =
+      tabLength: atom.config.get('editor.tabLength', scopeOptions)
+      invisibles: atom.config.get('editor.invisibles', scopeOptions)
+      showInvisibles: atom.config.get('editor.showInvisibles', scopeOptions)
 
-    @grammarTabLengthSubscription?.dispose()
-    @grammarTabLengthSubscription = atom.config.onDidChange 'editor.tabLength', scope: @rootScopeDescriptor, ({newValue}) =>
+    if @configSubscriptions?
+      @configSubscriptions.dispose()
+      @disposables.remove(@configSubscriptions)
+    @configSubscriptions = new CompositeDisposable
+    @configSubscriptions.add atom.config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
-    @disposables.add(@grammarTabLengthSubscription)
+    @configSubscriptions.add atom.config.onDidChange 'editor.invisibles', scopeOptions, ({newValue}) =>
+      oldInvisibles = @getInvisiblesToShow()
+      @configSettings.invisibles = newValue
+      @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
+    @configSubscriptions.add atom.config.onDidChange 'editor.showInvisibles', scopeOptions, ({newValue}) =>
+      oldInvisibles = @getInvisiblesToShow()
+      @configSettings.showInvisibles = newValue
+      @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
+    @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
 
@@ -123,10 +139,11 @@ class TokenizedBuffer extends Model
     @tabLength = tabLength
     @retokenizeLines()
 
-  setInvisibles: (invisibles) ->
-    unless _.isEqual(invisibles, @invisibles)
-      @invisibles = invisibles
-      @retokenizeLines()
+  setIgnoreInvisibles: (ignoreInvisibles) ->
+    if ignoreInvisibles isnt @ignoreInvisibles
+      @ignoreInvisibles = ignoreInvisibles
+      if @configSettings.showInvisibles and @configSettings.invisibles?
+        @retokenizeLines()
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
@@ -302,7 +319,7 @@ class TokenizedBuffer extends Model
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({tokens, tabLength, indentLevel, @invisibles, lineEnding})
+    new TokenizedLine({tokens, tabLength, indentLevel, invisibles: @getInvisiblesToShow(), lineEnding})
 
   buildTokenizedLineForRow: (row, ruleStack) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack)
@@ -312,7 +329,13 @@ class TokenizedBuffer extends Model
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     {tokens, ruleStack} = @grammar.tokenizeLine(line, ruleStack, row is 0)
-    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, @invisibles})
+    new TokenizedLine({tokens, ruleStack, tabLength, lineEnding, indentLevel, invisibles: @getInvisiblesToShow()})
+
+  getInvisiblesToShow: ->
+    if @configSettings.showInvisibles and not @ignoreInvisibles
+      @configSettings.invisibles
+    else
+      null
 
   tokenizedLineForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]
