@@ -481,12 +481,12 @@ class TextEditorPresenter
     for gutter in @model.getGutters()
       gutterName = gutter.name
       gutterDecorations = @customGutterDecorations[gutterName]
-      if not gutterDecorations
-        @customGutterDecorations[gutterName] = {}
-      else
+      if gutterDecorations
         # Clear the gutter decorations; they are rebuilt.
         # We clear instead of reassigning to preserve the reference.
         @clearDecorationsForCustomGutterName(gutterName)
+      else
+        @customGutterDecorations[gutterName] = {}
       return if not @gutterIsVisible(gutter)
 
       relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
