@@ -24,13 +24,13 @@ class DisplayBuffer extends Model
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles}={}) ->
     super
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
+    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @markers = {}
@@ -42,6 +42,7 @@ class DisplayBuffer extends Model
     @disposables.add @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @updateAllScreenLines()
+    @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
   subscribeToScopedConfigSettings: =>
@@ -86,14 +87,13 @@ class DisplayBuffer extends Model
     scrollTop: @scrollTop
     scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
-    invisibles: _.clone(@invisibles)
 
   deserializeParams: (params) ->
     params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
     params
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @invisibles})
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
     newDisplayBuffer.setScrollTop(@getScrollTop())
     newDisplayBuffer.setScrollLeft(@getScrollLeft())
 
@@ -428,8 +428,8 @@ class DisplayBuffer extends Model
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
 
-  setInvisibles: (@invisibles) ->
-    @tokenizedBuffer.setInvisibles(@invisibles)
+  setIgnoreInvisibles: (ignoreInvisibles) ->
+    @tokenizedBuffer.setIgnoreInvisibles(ignoreInvisibles)
 
   setSoftWrapped: (softWrapped) ->
     if softWrapped isnt @softWrapped
@@ -1075,8 +1075,11 @@ class DisplayBuffer extends Model
   findFoldMarkers: (attributes) ->
     @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
 
-  getFoldMarkerAttributes: (attributes={}) ->
-    _.extend(attributes, class: 'fold', displayBufferId: @id)
+  getFoldMarkerAttributes: (attributes) ->
+    if attributes
+      _.extend(attributes, @foldMarkerAttributes)
+    else
+      @foldMarkerAttributes
 
   pauseMarkerChangeEvents: ->
     marker.pauseChangeEvents() for marker in @getMarkers()

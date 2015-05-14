@@ -140,6 +140,8 @@ beforeEach ->
   spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text
   spyOn(clipboard, 'readText').andCallFake -> clipboardContent
 
+  spyOn(atom.packages, 'uninstallAutocompletePlus')
+
   addCustomMatchers(this)
 
 afterEach ->
