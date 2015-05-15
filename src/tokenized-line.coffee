@@ -321,7 +321,8 @@ class TokenizedLine
           leftTags.push(leftSuffix) if leftSuffix > 0
 
           softWrapIndent = @indentLevel * @tabLength + (hangingIndent ? 0)
-          rightText = ' ' + rightText for i in [0...softWrapIndent] by 1
+          for i in [0...softWrapIndent] by 1
+            rightText = ' ' + rightText
           remainingSoftWrapIndent = softWrapIndent
           while remainingSoftWrapIndent > 0
             indentToken = Math.min(remainingSoftWrapIndent, @tabLength)
