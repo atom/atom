@@ -401,14 +401,19 @@ class TokenizedBuffer extends Model
 
   scopeDescriptorForPosition: (position) ->
     {row, column} = Point.fromObject(position)
-    positionIsEndOfLine = column is @tokenizedLines[row].text.length
 
     iterator = TokenIterator.instance.reset(@tokenizedLines[row])
     while iterator.next()
-      tokenEnd = iterator.getScreenEnd()
-      break if tokenEnd > column or (positionIsEndOfLine and tokenEnd is column)
+      if iterator.getScreenEnd() > column
+        scopes = iterator.getScopes()
+        break
 
-    new ScopeDescriptor(scopes: iterator.getScopes())
+    # rebuild scope of last token if we iterated off the end
+    unless scopes?
+      scopes = iterator.getScopes()
+      scopes.push(iterator.getScopeEnds().reverse()...)
+
+    new ScopeDescriptor({scopes})
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)
