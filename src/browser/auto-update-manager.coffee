@@ -77,8 +77,8 @@ class AutoUpdateManager
 
   scheduleUpdateCheck: ->
     checkForUpdates = => @check(hidePopups: true)
-    thirtyMinutes = 1000 * 60 * 30
-    setInterval(checkForUpdates, thirtyMinutes)
+    fourHours = 1000 * 60 * 60 * 4
+    setInterval(checkForUpdates, fourHours)
     checkForUpdates()
 
   check: ({hidePopups}={}) ->
