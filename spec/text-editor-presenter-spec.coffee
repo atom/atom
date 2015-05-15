@@ -2422,7 +2422,7 @@ describe "TextEditorPresenter", ->
         beforeEach ->
           customGutter = editor.addGutter({name: 'test-gutter', priority: -1, visible: true})
 
-        afterEach =>
+        afterEach ->
           customGutter.destroy()
 
         describe ".scrollHeight", ->
