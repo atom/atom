@@ -2266,13 +2266,13 @@ describe "TextEditorComponent", ->
       editor.setText("")
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
 
-      currentTime += 99
+      currentTime += 100
       componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
 
-      currentTime += 99
+      currentTime += 100
       componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
 
-      currentTime += 100
+      currentTime += 101
       componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
       expect(editor.getText()).toBe "xy\nxy\nxy"
 

@@ -209,11 +209,13 @@ class TextEditorPresenter
         lines: {}
         highlights: {}
         overlays: {}
-      gutters:
-        sortedDescriptions: []
-        customDecorations: {}
-        lineNumberGutter:
-          lineNumbers: {}
+      gutters: []
+    # Shared state that is copied into ``@state.gutters`.
+    @sharedGutterStyles = {}
+    @customGutterDecorations = {}
+    @lineNumberGutter =
+      lineNumbers: {}
+
     @updateState()
 
   updateState: ->
@@ -252,11 +254,11 @@ class TextEditorPresenter
 
   updateVerticalScrollState: ->
     @state.content.scrollHeight = @scrollHeight
-    @state.gutters.scrollHeight = @scrollHeight
+    @sharedGutterStyles.scrollHeight = @scrollHeight
     @state.verticalScrollbar.scrollHeight = @scrollHeight
 
     @state.content.scrollTop = @scrollTop
-    @state.gutters.scrollTop = @scrollTop
+    @sharedGutterStyles.scrollTop = @scrollTop
     @state.verticalScrollbar.scrollTop = @scrollTop
 
   updateHorizontalScrollState: ->
@@ -416,10 +418,10 @@ class TextEditorPresenter
     return
 
   updateLineNumberGutterState: ->
-    @state.gutters.lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
+    @lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
 
   updateCommonGutterState: ->
-    @state.gutters.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
+    @sharedGutterStyles.backgroundColor = if @gutterBackgroundColor isnt "rgba(0, 0, 0, 0)"
       @gutterBackgroundColor
     else
       @backgroundColor
@@ -447,15 +449,25 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   updateGutterOrderState: ->
-    @state.gutters.sortedDescriptions = []
+    @state.gutters = []
     if @model.isMini()
       return
     for gutter in @model.getGutters()
       isVisible = @gutterIsVisible(gutter)
-      @state.gutters.sortedDescriptions.push({gutter, visible: isVisible})
+      if gutter.name is 'line-number'
+        content = @lineNumberGutter
+      else
+        @customGutterDecorations[gutter.name] ?= {}
+        content = @customGutterDecorations[gutter.name]
+      @state.gutters.push({
+        gutter,
+        visible: isVisible,
+        styles: @sharedGutterStyles,
+        content,
+      })
 
   # Updates the decoration state for the gutter with the given gutterName.
-  # @state.gutters.customDecorations is an {Object}, with the form:
+  # @customGutterDecorations is an {Object}, with the form:
   #   * gutterName : {
   #     decoration.id : {
   #       top: # of pixels from top
@@ -467,22 +479,42 @@ class TextEditorPresenter
   updateCustomGutterDecorationState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    @state.gutters.customDecorations = {}
-    return if @model.isMini()
+    if @model.isMini()
+      # Mini editors have no gutter decorations.
+      # We clear instead of reassigning to preserve the reference.
+      @clearAllCustomGutterDecorations()
 
     for gutter in @model.getGutters()
       gutterName = gutter.name
-      @state.gutters.customDecorations[gutterName] = {}
+      gutterDecorations = @customGutterDecorations[gutterName]
+      if gutterDecorations
+        # Clear the gutter decorations; they are rebuilt.
+        # We clear instead of reassigning to preserve the reference.
+        @clearDecorationsForCustomGutterName(gutterName)
+      else
+        @customGutterDecorations[gutterName] = {}
       return if not @gutterIsVisible(gutter)
 
       relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
       relevantDecorations.forEach (decoration) =>
         decorationRange = decoration.getMarker().getScreenRange()
-        @state.gutters.customDecorations[gutterName][decoration.id] =
+        @customGutterDecorations[gutterName][decoration.id] =
           top: @lineHeight * decorationRange.start.row
           height: @lineHeight * decorationRange.getRowCount()
           item: decoration.getProperties().item
           class: decoration.getProperties().class
+
+  clearAllCustomGutterDecorations: ->
+    allGutterNames = Object.keys(@customGutterDecorations)
+    for gutterName in allGutterNames
+      @clearDecorationsForCustomGutterName(gutterName)
+
+  clearDecorationsForCustomGutterName: (gutterName) ->
+    gutterDecorations = @customGutterDecorations[gutterName]
+    if gutterDecorations
+      allDecorationIds = Object.keys(gutterDecorations)
+      for decorationId in allDecorationIds
+        delete gutterDecorations[decorationId]
 
   gutterIsVisible: (gutterModel) ->
     isVisible = gutterModel.isVisible()
@@ -520,7 +552,7 @@ class TextEditorPresenter
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        @state.gutters.lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        @lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
 
     if @mouseWheelScreenRow?
@@ -530,8 +562,8 @@ class TextEditorPresenter
       id += '-' + wrapCount if wrapCount > 0
       visibleLineNumberIds[id] = true
 
-    for id of @state.gutters.lineNumberGutter.lineNumbers
-      delete @state.gutters.lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
+    for id of @lineNumberGutter.lineNumbers
+      delete @lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
 
