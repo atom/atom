@@ -32,7 +32,7 @@ class TileComponent
     @newState = state
     unless @oldState
       @oldState = {tiles: {}}
-      @oldState.tiles[@id] = { lines: {}}
+      @oldState.tiles[@id] = {lines: {}}
 
     @newTileState = @newState.tiles[@id]
     @oldTileState = @oldState.tiles[@id]
