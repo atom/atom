@@ -25,9 +25,9 @@ describe "the `grammars` global", ->
       filePath = '/foo/bar/file.js'
       expect(atom.grammars.selectGrammar(filePath).name).not.toBe 'Ruby'
       atom.grammars.setGrammarOverrideForPath(filePath, 'source.ruby')
-      syntax2 = atom.deserializers.deserialize(atom.grammars.serialize())
-      syntax2.addGrammar(grammar) for grammar in atom.grammars.grammars when grammar isnt atom.grammars.nullGrammar
-      expect(syntax2.selectGrammar(filePath).name).toBe 'Ruby'
+      grammars2 = atom.deserializers.deserialize(atom.grammars.serialize())
+      grammars2.addGrammar(grammar) for grammar in atom.grammars.grammars when grammar isnt atom.grammars.nullGrammar
+      expect(grammars2.selectGrammar(filePath).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
