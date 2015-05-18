@@ -42,6 +42,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
       score = grammar.getScore(filePath, fileContents)
       if score > highestScore or not bestMatch?
         bestMatch = grammar
+        highestScore = score
       else if score is highestScore and bestMatch?.bundledPackage
         bestMatch = grammar unless grammar.bundledPackage
     bestMatch

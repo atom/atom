@@ -94,6 +94,16 @@ describe "the `grammars` global", ->
         grammar2 = atom.grammars.loadGrammarSync(grammarPath2)
         expect(atom.grammars.selectGrammar('more.test', '')).toBe grammar2
 
+    it "favors non-bundled packages when breaking scoring ties", ->
+        waitsForPromise ->
+          atom.packages.activatePackage(path.join(__dirname, 'fixtures', 'packages', 'package-with-rb-filetype'))
+
+        runs ->
+          atom.grammars.grammarForScopeName('source.ruby').bundledPackage = true
+          atom.grammars.grammarForScopeName('test.rb').bundledPackage = false
+
+          expect(atom.grammars.selectGrammar('test.rb').scopeName).toBe 'test.rb'
+
     describe "when there is no file path", ->
       it "does not throw an exception (regression)", ->
         expect(-> atom.grammars.selectGrammar(null, '#!/usr/bin/ruby')).not.toThrow()
