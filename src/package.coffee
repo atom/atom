@@ -303,6 +303,7 @@ class Package
       try
         grammar = atom.grammars.readGrammarSync(grammarPath)
         grammar.packageName = @name
+        grammar.bundledPackage = @bundledPackage
         @grammars.push(grammar)
         grammar.activate()
       catch error
@@ -322,6 +323,7 @@ class Package
           atom.notifications.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
         else
           grammar.packageName = @name
+          grammar.bundledPackage = @bundledPackage
           @grammars.push(grammar)
           grammar.activate() if @grammarsActivated
         callback()
