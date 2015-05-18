@@ -306,19 +306,19 @@ class TextEditorPresenter
   tileForRow: (row) ->
     row - (row % @tileSize)
 
-  getVisibleTilesRange: ->
-    startTileRow = Math.max(0, @tileForRow(@startRow))
-    endTileRow = Math.min(
+  getStartTileRow: ->
+    Math.max(0, @tileForRow(@startRow))
+
+  getEndTileRow: ->
+    Math.min(
       @tileForRow(@model.getScreenLineCount()), @tileForRow(@endRow)
     )
-
-    [startTileRow..endTileRow]
 
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
     visibleTiles = {}
-    for startRow in @getVisibleTilesRange() by @tileSize
+    for startRow in [@getStartTileRow()..@getEndTileRow()] by @tileSize
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
       tile = @state.content.tiles[startRow] ?= {}
