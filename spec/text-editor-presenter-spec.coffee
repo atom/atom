@@ -5,7 +5,7 @@ TextBuffer = require 'text-buffer'
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 
-fdescribe "TextEditorPresenter", ->
+describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->
