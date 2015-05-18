@@ -56,6 +56,7 @@ class AtomApplication
   atomProtocolHandler: null
   resourcePath: null
   version: null
+  quitting: false
 
   exit: (status) -> app.exit(status)
 
@@ -104,7 +105,7 @@ class AtomApplication
       if process.platform in ['win32', 'linux']
         app.quit()
         return
-    @saveState() unless window.isSpec
+    @saveState() unless window.isSpec or @quitting
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
@@ -207,6 +208,9 @@ class AtomApplication
     @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
+
+    app.on 'before-quit', =>
+      @quitting = true
 
     app.on 'will-quit', =>
       @killAllProcesses()

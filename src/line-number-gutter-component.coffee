@@ -31,19 +31,25 @@ class LineNumberGutterComponent
       @domNode.style.removeProperty('display')
       @visible = true
 
+  # `state` is a subset of the TextEditorPresenter state that is specific
+  # to this line number gutter.
   updateSync: (state) ->
-    @newState = state.gutters.lineNumberGutter
-    @oldState ?= {lineNumbers: {}}
+    @newState = state
+    @oldState ?=
+      lineNumbers: {}
+      styles: {}
 
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    newDimensionsAndBackgroundState = state.gutters
-    setDimensionsAndBackground(@oldState, newDimensionsAndBackgroundState, @lineNumbersNode)
+    setDimensionsAndBackground(@oldState.styles, @newState.styles, @lineNumbersNode)
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
       node.remove() for id, node of @lineNumberNodesById
-      @oldState = {maxLineNumberDigits: @newState.maxLineNumberDigits, lineNumbers: {}}
+      @oldState =
+        maxLineNumberDigits: @newState.maxLineNumberDigits
+        lineNumbers: {}
+        styles: {}
       @lineNumberNodesById = {}
 
     @updateLineNumbers()
