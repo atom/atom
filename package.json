@@ -104,6 +104,7 @@
     "git-diff": "0.55.0",
     "go-to-line": "0.30.0",
     "grammar-selector": "0.47.0",
+    "hyperclick": "0.1.4",
     "image-view": "0.54.0",
     "incompatible-packages": "0.24.0",
     "keybinding-resolver": "0.32.0",
