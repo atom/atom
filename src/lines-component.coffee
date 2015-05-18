@@ -21,7 +21,6 @@ class LinesComponent
 
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
     @tileComponentsByTileId = {}
-    @freeDomNodes = []
 
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
