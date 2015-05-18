@@ -2,7 +2,7 @@ path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
 
-describe "the `syntax` global", ->
+describe "the `grammars` global", ->
   beforeEach ->
     waitsForPromise ->
       atom.packages.activatePackage('language-text')
