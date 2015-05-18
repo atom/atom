@@ -40,10 +40,10 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     highestScore = -Infinity
     for grammar in @grammars
       score = grammar.getScore(filePath, fileContents)
-      if score > highestScore
+      if score > highestScore or not bestMatch?
         bestMatch = grammar
-      else if score is highestScore
-        bestMatch = grammar if bestMatch.bundledPackage and not grammar.bundledPackage
+      else if score is highestScore and bestMatch?.bundledPackage
+        bestMatch = grammar unless grammar.bundledPackage
     bestMatch
 
   clearObservers: ->
