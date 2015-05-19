@@ -16,7 +16,7 @@ class Links extends Command
     @packagesPath = path.join(config.getAtomDirectory(), 'packages')
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm links

@@ -14,7 +14,7 @@ class Unpublish extends Command
   @commandNames: ['unpublish']
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
 
     options.usage """
       Usage: apm unpublish [<package_name>]

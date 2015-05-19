@@ -13,7 +13,7 @@ class Stars extends Command
   @commandNames: ['stars', 'starred']
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm stars

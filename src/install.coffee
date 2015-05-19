@@ -26,7 +26,7 @@ class Install extends Command
     @atomNodeGypPath = require.resolve('npm/node_modules/node-gyp/bin/node-gyp')
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm install [<package_name>...]

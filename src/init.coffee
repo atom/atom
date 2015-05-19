@@ -10,7 +10,7 @@ class Init extends Command
   @commandNames: ['init']
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
 
     options.usage """
       Usage:

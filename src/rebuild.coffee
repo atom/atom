@@ -16,7 +16,7 @@ class Rebuild extends Command
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm rebuild [<name> [<name> ...]]

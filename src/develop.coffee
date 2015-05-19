@@ -20,7 +20,7 @@ class Develop extends Command
     @atomDevPackagesDirectory = path.join(@atomDirectory, 'dev', 'packages')
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
 
     options.usage """
       Usage: apm develop <package_name> [<directory>]

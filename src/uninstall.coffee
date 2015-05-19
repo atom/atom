@@ -15,7 +15,7 @@ class Uninstall extends Command
   @commandNames: ['deinstall', 'delete', 'erase', 'remove', 'rm', 'uninstall']
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm uninstall <package_name>...

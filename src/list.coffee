@@ -22,7 +22,7 @@ class List extends Command
     @disabledPackages ?= []
 
   parseOptions: (argv) ->
-    options = yargs(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm list

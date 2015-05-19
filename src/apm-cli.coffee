@@ -60,7 +60,7 @@ for commandClass in commandClasses
     commands[name] = commandClass
 
 parseOptions = (args=[]) ->
-  options = yargs(args)
+  options = yargs(args).wrap(100)
   options.usage """
 
     apm - Atom Package Manager powered by https://atom.io
