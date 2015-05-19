@@ -369,7 +369,12 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, apiPreviewMode, windowDimensions, profileStartup, window}={}) ->
-    pathsToOpen = (fs.normalize(pathToOpen) for pathToOpen in pathsToOpen)
+    pathsToOpen = pathsToOpen.map (pathToOpen) ->
+      if fs.existsSync(pathToOpen)
+        fs.normalize(pathToOpen)
+      else
+        pathToOpen
+
     locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
 
     unless pidToKillWhenClosed or newWindow
@@ -517,6 +522,8 @@ class AtomApplication
     new AtomWindow({bootstrapScript, @resourcePath, exitWhenDone, isSpec, specDirectory, devMode})
 
   locationForPathToOpen: (pathToOpen) ->
+    {protocol} = url.parse(pathToOpen)
+    return {pathToOpen} if protocol?
     return {pathToOpen} unless pathToOpen
     return {pathToOpen} if fs.existsSync(pathToOpen)
 

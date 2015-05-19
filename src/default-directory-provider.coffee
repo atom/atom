@@ -1,6 +1,7 @@
 {Directory} = require 'pathwatcher'
 fs = require 'fs-plus'
 path = require 'path'
+url = require 'url'
 
 module.exports =
 class DefaultDirectoryProvider
@@ -21,7 +22,13 @@ class DefaultDirectoryProvider
     else
       projectPath
 
-    new Directory(directoryPath)
+    # TODO: Stop normalizing the path in pathwatcher's Directory.
+    directory = new Directory(directoryPath)
+    if (url.parse(directoryPath).protocol)
+      directory.path = directoryPath;
+      if (fs.isCaseInsensitive())
+        directory.lowerCasePath = directoryPath.toLowerCase();
+    directory
 
   # Public: Create a Directory that corresponds to the specified URI.
   #

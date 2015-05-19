@@ -763,8 +763,7 @@ class Atom extends Model
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     @disposables.add @project.onDidChangePaths =>
-      @constructor.updateLoadSetting('initialPaths',
-        @project.getPaths().filter((projectPath) -> fs.existsSync(projectPath)))
+      @constructor.updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
     app = remote.require('app')
