@@ -1,4 +1,5 @@
 path = require 'path'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -24,6 +25,13 @@ class Package
     @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
+  @normalizeMetadata: (metadata) ->
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)
+      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
     if @isBundledPackagePath(packagePath)
@@ -32,8 +40,10 @@ class Package
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
           metadata = CSON.readFileSync(metadataPath)
+          @normalizeMetadata(metadata)
         catch error
           throw error unless ignoreErrors
+
     metadata ?= {}
     metadata.name = packageName
 
@@ -161,9 +171,9 @@ class Package
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
       else if includeDeprecatedAPIs and @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
-        deprecate """Use a config schema instead. See the configuration section
+        deprecate("""Use a config schema instead. See the configuration section
         of https://atom.io/docs/latest/hacking-atom-package-word-count and
-        https://atom.io/docs/api/latest/Config for more details"""
+        https://atom.io/docs/api/latest/Config for more details""", {packageName: @name})
         atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
@@ -191,7 +201,20 @@ class Package
 
     for [menuPath, map] in @menus when map['context-menu']?
       try
-        @activationDisposables.add(atom.contextMenu.add(map['context-menu']))
+        itemsBySelector = map['context-menu']
+
+        if includeDeprecatedAPIs
+          # Detect deprecated format for items object
+          for key, value of itemsBySelector
+            unless _.isArray(value)
+              deprecate("""
+                The context menu CSON format has changed. Please see
+                https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format
+                for more info.
+              """, {packageName: @name})
+              itemsBySelector = atom.contextMenu.convertLegacyItemsBySelector(itemsBySelector)
+
+        @activationDisposables.add(atom.contextMenu.add(itemsBySelector))
       catch error
         if error.code is 'EBADSELECTOR'
           error.message += " in #{menuPath}"
@@ -465,7 +488,7 @@ class Package
           @activationCommands[selector].push(commands...)
 
     if includeDeprecatedAPIs and @metadata.activationEvents?
-      deprecate """
+      deprecate("""
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
         ```json
@@ -474,7 +497,7 @@ class Package
             "atom-text-editor": ["foo:quux"]
           }
         ```
-      """
+      """, {packageName: @name})
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
           @activationCommands['atom-workspace'] ?= []

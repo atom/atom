@@ -70,7 +70,7 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @mountGutterContainerComponent() if @presenter.getState().gutters.sortedDescriptions.length
+    @mountGutterContainerComponent() if @presenter.getState().gutters.length
 
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
@@ -137,7 +137,7 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
-    if @newState.gutters.sortedDescriptions.length
+    if @newState.gutters.length
       @mountGutterContainerComponent() unless @gutterContainerComponent?
       @gutterContainerComponent.updateSync(@newState)
     else
@@ -349,15 +349,15 @@ class TextEditorComponent
 
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
-      previousScrollLeft = @editor.getScrollLeft()
+      previousScrollLeft = @presenter.getScrollLeft()
       @presenter.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
-      event.preventDefault() unless previousScrollLeft is @editor.getScrollLeft()
+      event.preventDefault() unless previousScrollLeft is @presenter.getScrollLeft()
     else
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
-      previousScrollTop = @presenter.scrollTop
+      previousScrollTop = @presenter.getScrollTop()
       @presenter.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
-      event.preventDefault() unless previousScrollTop is @editor.getScrollTop()
+      event.preventDefault() unless previousScrollTop is @presenter.getScrollTop()
 
   onScrollViewScroll: =>
     if @mounted
@@ -619,6 +619,7 @@ class TextEditorComponent
     if clientWidth > 0
       @presenter.setContentFrameWidth(clientWidth)
 
+    @presenter.setGutterWidth(@gutterContainerComponent?.getDomNode().offsetWidth ? 0)
     @presenter.setBoundingClientRect(@hostElement.getBoundingClientRect())
 
   measureWindowSize: ->

@@ -611,7 +611,8 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
-      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      atom.config.set("editor.showInvisibles", true)
+      atom.config.set("editor.invisibles", space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
       expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
@@ -623,7 +624,7 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = new TokenizedBuffer({buffer})
 
       atom.config.set('editor.showInvisibles', true)
-      tokenizedBuffer.setInvisibles(cr: 'R', eol: 'N')
+      atom.config.set("editor.invisibles", cr: 'R', eol: 'N')
       fullyTokenize(tokenizedBuffer)
 
       expect(tokenizedBuffer.tokenizedLineForRow(0).endOfLineInvisibles).toEqual ['R', 'N']
@@ -634,7 +635,7 @@ describe "TokenizedBuffer", ->
       expect(left.endOfLineInvisibles).toBe null
       expect(right.endOfLineInvisibles).toEqual ['R', 'N']
 
-      tokenizedBuffer.setInvisibles(cr: 'R', eol: false)
+      atom.config.set("editor.invisibles", cr: 'R', eol: false)
       expect(tokenizedBuffer.tokenizedLineForRow(0).endOfLineInvisibles).toEqual ['R']
       expect(tokenizedBuffer.tokenizedLineForRow(1).endOfLineInvisibles).toEqual []
 
@@ -688,7 +689,8 @@ describe "TokenizedBuffer", ->
     it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
       buffer.setText("  \t a line with tabs\tand \tspaces \t ")
 
-      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      atom.config.set("editor.showInvisibles", true)
+      atom.config.set("editor.invisibles", space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
       line = tokenizedBuffer.tokenizedLineForRow(0).copy()
@@ -696,7 +698,8 @@ describe "TokenizedBuffer", ->
       expect(line.tokens[line.tokens.length - 1].firstTrailingWhitespaceIndex).toBe 0
 
     it "sets the ::firstNonWhitespaceIndex and ::firstTrailingWhitespaceIndex correctly when tokens are split for soft-wrapping", ->
-      tokenizedBuffer.setInvisibles(space: 'S')
+      atom.config.set("editor.showInvisibles", true)
+      atom.config.set("editor.invisibles", space: 'S')
       buffer.setText(" token ")
       fullyTokenize(tokenizedBuffer)
       token = tokenizedBuffer.tokenizedLines[0].tokens[0]

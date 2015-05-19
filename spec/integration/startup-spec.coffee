@@ -9,7 +9,7 @@ return if process.env.TRAVIS
 fs = require "fs"
 path = require "path"
 temp = require("temp").track()
-runAtom = require("./helpers/start-atom")
+runAtom = require "./helpers/start-atom"
 
 describe "Starting Atom", ->
   [tempDirPath, otherTempDirPath, atomHome] = []
@@ -40,6 +40,69 @@ describe "Starting Atom", ->
           .execute -> atom.workspace.getActiveTextEditor().getText()
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
+
+    it "opens the file to the specified line number", ->
+      filePath = path.join(fs.realpathSync(tempDirPath), "new-file")
+      fs.writeFileSync filePath, """
+        1
+        2
+        3
+        4
+      """
+
+      runAtom ["#{filePath}:3"], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForWindowCount(1, 1000)
+          .waitForExist("atom-workspace", 5000)
+          .waitForPaneItemCount(1, 1000)
+          .waitForExist("atom-text-editor", 5000)
+          .then (exists) -> expect(exists).toBe true
+
+          .execute -> atom.workspace.getActiveTextEditor().getPath()
+          .then ({value}) -> expect(value).toBe filePath
+
+          .execute -> atom.workspace.getActiveTextEditor().getCursorBufferPosition()
+          .then ({value}) ->
+            expect(value.row).toBe 2
+            expect(value.column).toBe 0
+
+    it "opens the file to the specified line number and column number", ->
+      filePath = path.join(fs.realpathSync(tempDirPath), "new-file")
+      fs.writeFileSync filePath, """
+        1
+        2
+        3
+        4
+      """
+
+      runAtom ["#{filePath}:2:2"], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForWindowCount(1, 1000)
+          .waitForExist("atom-workspace", 5000)
+          .waitForPaneItemCount(1, 1000)
+          .waitForExist("atom-text-editor", 5000)
+          .then (exists) -> expect(exists).toBe true
+
+          .execute -> atom.workspace.getActiveTextEditor().getPath()
+          .then ({value}) -> expect(value).toBe filePath
+
+          .execute -> atom.workspace.getActiveTextEditor().getCursorBufferPosition()
+          .then ({value}) ->
+            expect(value.row).toBe 1
+            expect(value.column).toBe 1
+
+    it "removes all trailing whitespace and colons from the specified path", ->
+      filePath = path.join(tempDirPath, "new-file")
+      runAtom ["#{filePath}:  "], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForWindowCount(1, 1000)
+          .waitForExist("atom-workspace", 5000)
+          .waitForPaneItemCount(1, 1000)
+          .waitForExist("atom-text-editor", 5000)
+          .then (exists) -> expect(exists).toBe true
+
+          .execute -> atom.workspace.getActiveTextEditor().getPath()
+          .then ({value}) -> expect(value).toBe filePath
 
   describe "when there is already a window open", ->
     it "reuses that window when opening files, but not when opening directories", ->
@@ -150,10 +213,12 @@ describe "Starting Atom", ->
           .waitForWindowCount(2, 10000)
           .then ({value: windowHandles}) ->
             @window(windowHandles[0])
+            .waitForExist("atom-workspace")
             .treeViewRootDirectories()
             .then ({value: directories}) -> windowProjectPaths.push(directories)
 
             .window(windowHandles[1])
+            .waitForExist("atom-workspace")
             .treeViewRootDirectories()
             .then ({value: directories}) -> windowProjectPaths.push(directories)
 

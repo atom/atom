@@ -41,6 +41,15 @@ describe "PackageManager", ->
       expect(addErrorHandler.callCount).toBe 1
       expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-broken-package-json package")
 
+    it "normalizes short repository urls in package.json", ->
+      {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
+      expect(metadata.repository.type).toBe "git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo.git"
+
+      {metadata} = atom.packages.loadPackage("package-with-invalid-url-package-json")
+      expect(metadata.repository.type).toBe "git"
+      expect(metadata.repository.url).toBe "foo"
+
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')
       expect(atom.packages.loadPackage("this-package-cannot-be-found")).toBeNull()
@@ -815,3 +824,37 @@ describe "PackageManager", ->
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+
+  describe "deleting non-bundled autocomplete packages", ->
+    [autocompleteCSSPath, autocompletePlusPath] = []
+    fs = require 'fs-plus'
+    path = require 'path'
+
+    beforeEach ->
+      fixturePath = path.resolve(__dirname, './fixtures/packages')
+      autocompleteCSSPath = path.join(fixturePath, 'autocomplete-css')
+      autocompletePlusPath = path.join(fixturePath, 'autocomplete-plus')
+
+      try
+        fs.mkdirSync(autocompleteCSSPath)
+        fs.writeFileSync(path.join(autocompleteCSSPath, 'package.json'), '{}')
+        fs.symlinkSync(path.join(fixturePath, 'package-with-main'), autocompletePlusPath, 'dir')
+
+      expect(fs.isDirectorySync(autocompleteCSSPath)).toBe true
+      expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
+
+      jasmine.unspy(atom.packages, 'uninstallAutocompletePlus')
+
+    afterEach ->
+      try
+        fs.unlink autocompletePlusPath, ->
+
+    it "removes the packages", ->
+      atom.packages.loadPackages()
+
+      waitsFor ->
+        not fs.isDirectorySync(autocompleteCSSPath)
+
+      runs ->
+        expect(fs.isDirectorySync(autocompleteCSSPath)).toBe false
+        expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true

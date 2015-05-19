@@ -303,6 +303,9 @@ class PackageManager
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
+    # TODO: remove after a few atom versions.
+    @uninstallAutocompletePlus()
+
     packagePaths = @getAvailablePackagePaths()
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
@@ -408,6 +411,39 @@ class PackageManager
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
     atom.notifications.addError(message, {stack, detail, dismissable: true})
+
+  # TODO: remove these autocomplete-plus specific helpers after a few versions.
+  uninstallAutocompletePlus: ->
+    packageDir = null
+    devDir = path.join("dev", "packages")
+    for packageDirPath in @packageDirPaths
+      if not packageDirPath.endsWith(devDir)
+        packageDir = packageDirPath
+        break
+
+    if packageDir?
+      dirsToRemove = [
+        path.join(packageDir, 'autocomplete-plus')
+        path.join(packageDir, 'autocomplete-atom-api')
+        path.join(packageDir, 'autocomplete-css')
+        path.join(packageDir, 'autocomplete-html')
+        path.join(packageDir, 'autocomplete-snippets')
+      ]
+      for dirToRemove in dirsToRemove
+        @uninstallDirectory(dirToRemove)
+    return
+
+  uninstallDirectory: (directory) ->
+    symlinkPromise = new Promise (resolve) ->
+      fs.isSymbolicLink directory, (isSymLink) -> resolve(isSymLink)
+
+    dirPromise = new Promise (resolve) ->
+      fs.isDirectory directory, (isDir) -> resolve(isDir)
+
+    Promise.all([symlinkPromise, dirPromise]).then (values) ->
+      [isSymLink, isDir] = values
+      if not isSymLink and isDir
+        fs.remove directory, ->
 
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter

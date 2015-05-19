@@ -75,7 +75,7 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}={}) ->
     super
 
     @emitter = new Emitter
@@ -84,11 +84,9 @@ class TextEditor extends Model
     @selections = []
 
     buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
-
-    @updateInvisibles()
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
@@ -170,21 +168,9 @@ class TextEditor extends Model
       @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
       @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
-    @subscribeToScopedConfigSettings()
-
-  subscribeToScopedConfigSettings: ->
-    @scopedConfigSubscriptions?.dispose()
-    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
-
-    scopeDescriptor = @getRootScopeDescriptor()
-
-    subscriptions.add atom.config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, => @updateInvisibles()
-    subscriptions.add atom.config.onDidChange 'editor.invisibles', scope: scopeDescriptor, => @updateInvisibles()
-
   destroyed: ->
     @unsubscribe() if includeDeprecatedAPIs
     @disposables.dispose()
-    @scopedConfigSubscriptions.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
     @displayBuffer.destroy()
@@ -488,7 +474,7 @@ class TextEditor extends Model
   setMini: (mini) ->
     if mini isnt @mini
       @mini = mini
-      @updateInvisibles()
+      @displayBuffer.setIgnoreInvisibles(@mini)
       @emitter.emit 'did-change-mini', @mini
     @mini
 
@@ -1056,6 +1042,16 @@ class TextEditor extends Model
   # selected text.
   deleteToBeginningOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
+
+  # Extended: Similar to {::deleteToBeginningOfWord}, but deletes only back to the
+  # previous word boundary.
+  deleteToPreviousWordBoundary: ->
+    @mutateSelectedText (selection) -> selection.deleteToPreviousWordBoundary()
+
+  # Extended: Similar to {::deleteToEndOfWord}, but deletes only up to the
+  # next word boundary.
+  deleteToNextWordBoundary: ->
+    @mutateSelectedText (selection) -> selection.deleteToNextWordBoundary()
 
   # Extended: For each selection, if the selection is empty, delete all characters
   # of the containing line that precede the cursor. Otherwise delete the
@@ -2769,15 +2765,6 @@ class TextEditor extends Model
   shouldAutoIndentOnPaste: ->
     atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
 
-  shouldShowInvisibles: ->
-    not @mini and atom.config.get('editor.showInvisibles', scope: @getRootScopeDescriptor())
-
-  updateInvisibles: ->
-    if @shouldShowInvisibles()
-      @displayBuffer.setInvisibles(atom.config.get('editor.invisibles', scope: @getRootScopeDescriptor()))
-    else
-      @displayBuffer.setInvisibles(null)
-
   ###
   Section: Event Handlers
   ###
@@ -2786,8 +2773,6 @@ class TextEditor extends Model
     @softTabs = @usesSoftTabs() ? @softTabs
 
   handleGrammarChange: ->
-    @updateInvisibles()
-    @subscribeToScopedConfigSettings()
     @unfoldAll()
     @emit 'grammar-changed' if includeDeprecatedAPIs
     @emitter.emit 'did-change-grammar', @getGrammar()

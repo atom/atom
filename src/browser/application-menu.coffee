@@ -9,11 +9,10 @@ _ = require 'underscore-plus'
 # and maintain the state of all menu items.
 module.exports =
 class ApplicationMenu
-  constructor: (@version) ->
+  constructor: (@version, @autoUpdateManager) ->
     @windowTemplates = new WeakMap()
     @setActiveTemplate(@getDefaultTemplate())
-    global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
-      @showUpdateMenuItem(state)
+    @autoUpdateManager.on 'state-changed', (state) => @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
@@ -33,7 +32,7 @@ class ApplicationMenu
       @menu = Menu.buildFromTemplate(_.deepClone(template))
       Menu.setApplicationMenu(@menu)
 
-    @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
+    @showUpdateMenuItem(@autoUpdateManager.getState())
 
   # Register a BrowserWindow with this application menu.
   addWindow: (window) ->
@@ -162,8 +161,8 @@ class ApplicationMenu
     firstKeystroke = keystrokesByCommand[command]?[0]
     return null unless firstKeystroke
 
-    modifiers = firstKeystroke.split('-')
-    key = modifiers.pop()
+    modifiers = firstKeystroke.split(/-(?=.)/)
+    key = modifiers.pop().toUpperCase().replace('+', 'Plus')
 
     modifiers = modifiers.map (modifier) ->
       modifier.replace(/shift/ig, "Shift")
@@ -171,5 +170,5 @@ class ApplicationMenu
               .replace(/ctrl/ig, "Ctrl")
               .replace(/alt/ig, "Alt")
 
-    keys = modifiers.concat([key.toUpperCase()])
+    keys = modifiers.concat([key])
     keys.join("+")

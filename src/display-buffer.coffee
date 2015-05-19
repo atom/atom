@@ -24,13 +24,13 @@ class DisplayBuffer extends Model
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles}={}) ->
     super
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
+    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @markers = {}
@@ -39,9 +39,9 @@ class DisplayBuffer extends Model
     @decorationsByMarkerId = {}
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
-    @disposables.add @buffer.onDidUpdateMarkers @handleBufferMarkersUpdated
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @updateAllScreenLines()
+    @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
     @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
 
   subscribeToScopedConfigSettings: =>
@@ -86,14 +86,13 @@ class DisplayBuffer extends Model
     scrollTop: @scrollTop
     scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
-    invisibles: _.clone(@invisibles)
 
   deserializeParams: (params) ->
     params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
     params
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @invisibles})
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
     newDisplayBuffer.setScrollTop(@getScrollTop())
     newDisplayBuffer.setScrollLeft(@getScrollLeft())
 
@@ -153,12 +152,12 @@ class DisplayBuffer extends Model
     @emitter.on 'did-update-markers', callback
 
   emitDidChange: (eventProperties, refreshMarkers=true) ->
-    if refreshMarkers
-      @pauseMarkerChangeEvents()
-      @refreshMarkerScreenPositions()
     @emit 'changed', eventProperties if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', eventProperties
-    @resumeMarkerChangeEvents()
+    if refreshMarkers
+      @refreshMarkerScreenPositions()
+    @emit 'markers-updated' if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-update-markers'
 
   updateWrappedScreenLines: ->
     start = 0
@@ -428,8 +427,8 @@ class DisplayBuffer extends Model
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
 
-  setInvisibles: (@invisibles) ->
-    @tokenizedBuffer.setInvisibles(@invisibles)
+  setIgnoreInvisibles: (ignoreInvisibles) ->
+    @tokenizedBuffer.setIgnoreInvisibles(ignoreInvisibles)
 
   setSoftWrapped: (softWrapped) ->
     if softWrapped isnt @softWrapped
@@ -886,7 +885,7 @@ class DisplayBuffer extends Model
   getDecorations: (propertyFilter) ->
     allDecorations = []
     for markerId, decorations of @decorationsByMarkerId
-      allDecorations = allDecorations.concat(decorations) if decorations?
+      allDecorations.push(decorations...) if decorations?
     if propertyFilter?
       allDecorations = allDecorations.filter (decoration) ->
         for key, value of propertyFilter
@@ -1075,17 +1074,11 @@ class DisplayBuffer extends Model
   findFoldMarkers: (attributes) ->
     @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
 
-  getFoldMarkerAttributes: (attributes={}) ->
-    _.extend(attributes, class: 'fold', displayBufferId: @id)
-
-  pauseMarkerChangeEvents: ->
-    marker.pauseChangeEvents() for marker in @getMarkers()
-    return
-
-  resumeMarkerChangeEvents: ->
-    marker.resumeChangeEvents() for marker in @getMarkers()
-    @emit 'markers-updated' if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-update-markers'
+  getFoldMarkerAttributes: (attributes) ->
+    if attributes
+      _.extend(attributes, @foldMarkerAttributes)
+    else
+      @foldMarkerAttributes
 
   refreshMarkerScreenPositions: ->
     for marker in @getMarkers()
@@ -1109,7 +1102,7 @@ class DisplayBuffer extends Model
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
     {start, end, delta, bufferChange} = tokenizedBufferChange
-    @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
+    @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
     @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
@@ -1120,7 +1113,7 @@ class DisplayBuffer extends Model
     {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
     screenDelta = screenLines.length - (endScreenRow - startScreenRow)
 
-    @screenLines[startScreenRow...endScreenRow] = screenLines
+    _.spliceWithArray(@screenLines, startScreenRow, endScreenRow - startScreenRow, screenLines, 10000)
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
 
@@ -1132,11 +1125,7 @@ class DisplayBuffer extends Model
       screenDelta: screenDelta
       bufferDelta: bufferDelta
 
-    if options.delayChangeEvent
-      @pauseMarkerChangeEvents()
-      @pendingChangeEvent = changeEvent
-    else
-      @emitDidChange(changeEvent, options.refreshMarkers)
+    @emitDidChange(changeEvent, options.refreshMarkers)
 
   buildScreenLines: (startBufferRow, endBufferRow) ->
     screenLines = []
@@ -1215,11 +1204,6 @@ class DisplayBuffer extends Model
     @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
     @scrollWidth += 1 unless @isSoftWrapped()
     @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
-
-  handleBufferMarkersUpdated: =>
-    if event = @pendingChangeEvent
-      @pendingChangeEvent = null
-      @emitDidChange(event, false)
 
   handleBufferMarkerCreated: (textBufferMarker) =>
     @createFoldForMarker(textBufferMarker) if textBufferMarker.matchesParams(@getFoldMarkerAttributes())

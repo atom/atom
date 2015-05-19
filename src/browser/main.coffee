@@ -110,6 +110,7 @@ parseCommandLine = ->
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
+  options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
   options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
   options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which to run package specs (default: Atom\'s spec directory).')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
@@ -132,13 +133,13 @@ parseCommandLine = ->
   safeMode = args['safe']
   apiPreviewMode = args['one']
   pathsToOpen = args._
-  pathsToOpen = [executedFrom] if executedFrom and pathsToOpen.length is 0
   test = args['test']
   specDirectory = args['spec-directory']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
   logFile = args['log-file']
   socketPath = args['socket-path']
+  profileStartup = args['profile-startup']
 
   if args['resource-path']
     devMode = true
@@ -165,6 +166,6 @@ parseCommandLine = ->
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
    devMode, apiPreviewMode, safeMode, newWindow, specDirectory, logFile,
-   socketPath}
+   socketPath, profileStartup}
 
 start()

@@ -36,23 +36,21 @@ describe "TextEditor", ->
 
     it "preserves the invisibles setting", ->
       atom.config.set('editor.showInvisibles', true)
-      previousInvisibles = editor.displayBuffer.invisibles
+      previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
       editor2 = editor.testSerialization()
 
-      expect(editor2.displayBuffer.invisibles).toEqual previousInvisibles
-      expect(editor2.displayBuffer.tokenizedBuffer.invisibles).toEqual previousInvisibles
+      expect(previousInvisibles).toBeDefined()
+      expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
 
     it "updates invisibles if the settings have changed between serialization and deserialization", ->
       atom.config.set('editor.showInvisibles', true)
-      previousInvisibles = editor.displayBuffer.invisibles
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
       editor2 = TextEditor.deserialize(state)
 
-      expect(editor2.displayBuffer.invisibles.eol).toBe '?'
-      expect(editor2.displayBuffer.tokenizedBuffer.invisibles.eol).toBe '?'
+      expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
   describe "when the editor is constructed with an initialLine option", ->
     it "positions the cursor on the specified line", ->
@@ -2342,6 +2340,62 @@ describe "TextEditor", ->
           editor.setSelectedBufferRanges([[[0,4], [0,13]], [[0,16], [0,24]]])
           editor.backspace()
           expect(editor.lineTextForBufferRow(0)).toBe 'var  =  () {'
+
+    describe ".deleteToPreviousWordBoundary()", ->
+      describe "when no text is selected", ->
+        it "deletes to the previous word boundary", ->
+          editor.setCursorBufferPosition([0, 16])
+          editor.addCursorAtBufferPosition([1, 21])
+          [cursor1, cursor2] = editor.getCursors()
+
+          editor.deleteToPreviousWordBoundary()
+          expect(buffer.lineForRow(0)).toBe 'var quicksort =function () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = (items) {'
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 13]
+
+          editor.deleteToPreviousWordBoundary()
+          expect(buffer.lineForRow(0)).toBe 'var quicksort function () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort =(items) {'
+          expect(cursor1.getBufferPosition()).toEqual [0, 14]
+          expect(cursor2.getBufferPosition()).toEqual [1, 12]
+
+      describe "when text is selected", ->
+        it "deletes only selected text", ->
+          editor.setSelectedBufferRange([[1, 24], [1, 27]])
+          editor.deleteToPreviousWordBoundary()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+
+    describe ".deleteToNextWordBoundary()", ->
+      describe "when no text is selected", ->
+        it "deletes to the next word boundary", ->
+          editor.setCursorBufferPosition([0, 15])
+          editor.addCursorAtBufferPosition([1, 24])
+          [cursor1, cursor2] = editor.getCursors()
+
+          editor.deleteToNextWordBoundary()
+          expect(buffer.lineForRow(0)).toBe 'var quicksort =function () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 24]
+
+          editor.deleteToNextWordBoundary()
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = () {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it {'
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 24]
+
+          editor.deleteToNextWordBoundary()
+          expect(buffer.lineForRow(0)).toBe 'var quicksort =() {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it{'
+          expect(cursor1.getBufferPosition()).toEqual [0, 15]
+          expect(cursor2.getBufferPosition()).toEqual [1, 24]
+
+      describe "when text is selected", ->
+        it "deletes only selected text", ->
+          editor.setSelectedBufferRange([[1, 24], [1, 27]])
+          editor.deleteToNextWordBoundary()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
     describe ".deleteToBeginningOfWord()", ->
       describe "when no text is selected", ->

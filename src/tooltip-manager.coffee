@@ -87,8 +87,9 @@ class TooltipManager
 
     new Disposable ->
       tooltip = $target.data('bs.tooltip')
-      tooltip.leave(currentTarget: target)
-      tooltip.hide()
+      if tooltip?
+        tooltip.leave(currentTarget: target)
+        tooltip.hide()
       $target.tooltip('destroy')
 
 humanizeKeystrokes = (keystroke) ->

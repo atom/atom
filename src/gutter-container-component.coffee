@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 CustomGutterComponent = require './custom-gutter-component'
 LineNumberGutterComponent = require './line-number-gutter-component'
 
@@ -26,11 +27,11 @@ class GutterContainerComponent
   updateSync: (state) ->
     # The GutterContainerComponent expects the gutters to be sorted in the order
     # they should appear.
-    newState = state.gutters.sortedDescriptions
+    newState = state.gutters
 
     newGutterComponents = []
     newGutterComponentsByGutterName = {}
-    for {gutter, visible} in newState
+    for {gutter, visible, styles, content} in newState
       gutterComponent = @gutterComponentsByGutterName[gutter.name]
       if not gutterComponent
         if gutter.name is 'line-number'
@@ -38,8 +39,20 @@ class GutterContainerComponent
           @lineNumberGutterComponent = gutterComponent
         else
           gutterComponent = new CustomGutterComponent({gutter})
+
       if visible then gutterComponent.showNode() else gutterComponent.hideNode()
-      gutterComponent.updateSync(state)
+      # Pass the gutter only the state that it needs.
+      if gutter.name is 'line-number'
+        # For ease of use in the line number gutter component, set the shared
+        # 'styles' as a field under the 'content'.
+        gutterSubstate = _.clone(content)
+        gutterSubstate.styles = styles
+      else
+        # Custom gutter 'content' is keyed on gutter name, so we cannot set
+        # 'styles' as a subfield directly under it.
+        gutterSubstate = {content, styles}
+      gutterComponent.updateSync(gutterSubstate)
+
       newGutterComponents.push({
         name: gutter.name,
         component: gutterComponent,

@@ -13,6 +13,8 @@ class CustomGutterComponent
 
     @domNode = atom.views.getView(@gutter)
     @decorationsNode = @domNode.firstChild
+    # Clear the contents in case the domNode is being reused.
+    @decorationsNode.innerHTML = ''
 
   getDomNode: ->
     @domNode
@@ -27,13 +29,14 @@ class CustomGutterComponent
       @domNode.style.removeProperty('display')
       @visible = true
 
+  # `state` is a subset of the TextEditorPresenter state that is specific
+  # to this line number gutter.
   updateSync: (state) ->
     @oldDimensionsAndBackgroundState ?= {}
-    newDimensionsAndBackgroundState = state.gutters
-    setDimensionsAndBackground(@oldDimensionsAndBackgroundState, newDimensionsAndBackgroundState, @decorationsNode)
+    setDimensionsAndBackground(@oldDimensionsAndBackgroundState, state.styles, @decorationsNode)
 
     @oldDecorationPositionState ?= {}
-    decorationState = state.gutters.customDecorations[@gutter.name]
+    decorationState = state.content
 
     updatedDecorationIds = new Set
     for decorationId, decorationInfo of decorationState
