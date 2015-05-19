@@ -38,7 +38,13 @@ var downloadTarballAndExtract = function(url, location, callback) {
   stream.on('end', callback.bind(this, tempPath));
   stream.on('error', callback);
   request.createReadStream({url: url}, function(requestStream) {
-    requestStream.pipe(zlib.createGunzip()).pipe(stream);
+    requestStream.on('response', function(response) {
+      if (response.statusCode == 404) {
+        console.error('download not found:', url);
+        process.exit(1);
+      }
+      requestStream.pipe(zlib.createGunzip()).pipe(stream);
+    });
   });
 };
 

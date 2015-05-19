@@ -50,7 +50,7 @@ class Install extends Command
     options.boolean('check').describe('check', 'Check that native build tools are installed')
     options.boolean('verbose').default('verbose', false).describe('verbose', 'Show verbose debug information')
     options.string('packages-file').describe('packages-file', 'A text file containing the packages to install')
-    options.boolean('production').describe('production', 'Do not install dev depedencies')
+    options.boolean('production').describe('production', 'Do not install dev dependencies')
 
   installNode: (callback) =>
     installNodeArgs = ['install']

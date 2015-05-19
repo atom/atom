@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -8,24 +8,12 @@ apmPath=$0
 builtin cd "`dirname "$apmPath"`"
 binDir=`basename "$apmPath"`
 
-# Detect CPU arch.
-archs=`uname -m`
-case "$archs" in
-  i?86) archs='ia32' ;;
-  x86_64) archs='x64' ;;
-  *) archs='arm' ;;
-esac
-
-# Detect current OS, see http://stackoverflow.com/q/3466166/682252.
-if [ "`uname`" == 'Darwin' ]; then
-  nodeBin="node"
-elif [ "`expr substr $(uname -s) 1 5`" == 'Linux' ]; then
-  nodeBin="node"
-elif [ "`expr substr $(uname -s) 1 10`" == 'MINGW32_NT' ]; then
+# Detect node binary name
+osName=`uname -s`
+if [ "${osName:0:10}" == 'MINGW32_NT' ]; then
   nodeBin="node.exe"
 else
-  echo "Your platform (`uname -a`) is not supported."
-  exit 1
+  nodeBin="node"
 fi
 
 while [ -L "$binDir" ]
