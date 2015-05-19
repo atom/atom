@@ -143,8 +143,10 @@ class TokenizedLine
       @lineIsWhitespaceOnly = true
       @firstTrailingWhitespaceIndex = 0
 
+  getTokenIterator: -> TokenIterator.instance.reset(this)
+
   Object.defineProperty @prototype, 'tokens', get: ->
-    iterator = TokenIterator.instance.reset(this)
+    iterator = @getTokenIterator()
     tokens = []
 
     while iterator.next()
@@ -209,7 +211,7 @@ class TokenizedLine
 
     tokenStartColumn = 0
 
-    iterator = TokenIterator.instance.reset(this)
+    iterator = @getTokenIterator()
     while iterator.next()
       break if iterator.getScreenEnd() > column
 
@@ -230,7 +232,7 @@ class TokenizedLine
       column
 
   screenColumnForBufferColumn: (targetBufferColumn, options) ->
-    iterator = TokenIterator.instance.reset(this)
+    iterator = @getTokenIterator()
     while iterator.next()
       tokenBufferStart = iterator.getBufferStart()
       tokenBufferEnd = iterator.getBufferEnd()
@@ -243,7 +245,7 @@ class TokenizedLine
     iterator.getScreenEnd()
 
   bufferColumnForScreenColumn: (targetScreenColumn) ->
-    iterator = TokenIterator.instance.reset(this)
+    iterator = @getTokenIterator()
     while iterator.next()
       tokenScreenStart = iterator.getScreenStart()
       tokenScreenEnd = iterator.getScreenEnd()
@@ -438,7 +440,7 @@ class TokenizedLine
         @endOfLineInvisibles.push(eol) if eol
 
   isComment: ->
-    iterator = TokenIterator.instance.reset(this)
+    iterator = @getTokenIterator()
     while iterator.next()
       scopes = iterator.getScopes()
       continue if scopes.length is 1
