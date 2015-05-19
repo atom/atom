@@ -25,9 +25,9 @@ class DefaultDirectoryProvider
     # TODO: Stop normalizing the path in pathwatcher's Directory.
     directory = new Directory(directoryPath)
     if (url.parse(directoryPath).protocol)
-      directory.path = directoryPath;
+      directory.path = directoryPath
       if (fs.isCaseInsensitive())
-        directory.lowerCasePath = directoryPath.toLowerCase();
+        directory.lowerCasePath = directoryPath.toLowerCase()
     directory
 
   # Public: Create a Directory that corresponds to the specified URI.
