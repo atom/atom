@@ -85,7 +85,7 @@ setupCoffeeCache = ->
 
 parseCommandLine = ->
   version = app.getVersion()
-  options = yargs(process.argv[1..])
+  options = yargs(process.argv[1..]).wrap(100)
   options.usage """
     Atom Editor v#{version}
 
