@@ -53,7 +53,7 @@ class AutoUpdateManager
       @emitUpdateAvailableEvent(@getWindows()...)
 
     # Only released versions should check for updates.
-    @check(hidePopups: true) unless /\w{7}/.test(@version)
+    @scheduleUpdateCheck() unless /\w{7}/.test(@version)
 
     switch process.platform
       when 'win32'
@@ -74,6 +74,12 @@ class AutoUpdateManager
 
   getState: ->
     @state
+
+  scheduleUpdateCheck: ->
+    checkForUpdates = => @check(hidePopups: true)
+    fourHours = 1000 * 60 * 60 * 4
+    setInterval(checkForUpdates, fourHours)
+    checkForUpdates()
 
   check: ({hidePopups}={}) ->
     unless hidePopups

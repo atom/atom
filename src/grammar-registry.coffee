@@ -35,7 +35,17 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   # * `fileContents` A {String} of text for the file path.
   #
   # Returns a {Grammar}, never null.
-  selectGrammar: (filePath, fileContents) -> super
+  selectGrammar: (filePath, fileContents) ->
+    bestMatch = null
+    highestScore = -Infinity
+    for grammar in @grammars
+      score = grammar.getScore(filePath, fileContents)
+      if score > highestScore or not bestMatch?
+        bestMatch = grammar
+        highestScore = score
+      else if score is highestScore and bestMatch?.bundledPackage
+        bestMatch = grammar unless grammar.bundledPackage
+    bestMatch
 
   clearObservers: ->
     @off() if includeDeprecatedAPIs
