@@ -15,15 +15,14 @@ module.exports =
 class TileComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @id, @domNode}) ->
+  constructor: ({@presenter, @id}) ->
     @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
-    @domNode ?= document.createElement("div")
+    @domNode = document.createElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
-    @domNode.classList.add("tile")
 
   getDomNode: ->
     @domNode
