@@ -2,8 +2,6 @@
 
 module.exports =
 class TokenIterator
-  @instance: new this
-
   constructor: (line) ->
     @reset(line) if line?
 
@@ -83,3 +81,5 @@ class TokenIterator
 
   isAtomic: ->
     @isSoftTab() or @isHardTab() or @isSoftWrapIndentation() or @isPairedCharacter()
+
+TokenIterator.instance = new TokenIterator
