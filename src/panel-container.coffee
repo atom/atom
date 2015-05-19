@@ -2,13 +2,13 @@
 
 module.exports =
 class PanelContainer
-  constructor: ({@viewRegistry, @location}) ->
+  constructor: ({@location}={}) ->
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @panels = []
 
   destroy: ->
-    pane.destroy() for pane in @getPanels()
+    panel.destroy() for panel in @getPanels()
     @subscriptions.dispose()
     @emitter.emit 'did-destroy', this
     @emitter.dispose()
@@ -30,14 +30,14 @@ class PanelContainer
   Section: Panels
   ###
 
-  getView: -> @viewRegistry.getView(this)
-
   getLocation: -> @location
+
+  isModal: -> @location is 'modal'
 
   getPanels: -> @panels
 
   addPanel: (panel) ->
-    @subscriptions.add panel.onDidDestroy(@panelDestoryed.bind(this))
+    @subscriptions.add panel.onDidDestroy(@panelDestroyed.bind(this))
 
     index = @getPanelIndex(panel)
     if index is @panels.length
@@ -48,7 +48,12 @@ class PanelContainer
     @emitter.emit 'did-add-panel', {panel, index}
     panel
 
-  panelDestoryed: (panel) ->
+  panelForItem: (item) ->
+    for panel in @panels
+      return panel if panel.getItem() is item
+    null
+
+  panelDestroyed: (panel) ->
     index = @panels.indexOf(panel)
     if index > -1
       @panels.splice(index, 1)

@@ -1,13 +1,19 @@
 path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
+Pane = require '../src/pane'
 {View} = require '../src/space-pen-extensions'
+platform = require './spec-helper-platform'
+_ = require 'underscore-plus'
+fstream = require 'fstream'
+fs = require 'fs-plus'
+Grim = require 'grim'
 
 describe "Workspace", ->
   workspace = null
 
   beforeEach ->
-    atom.project.setPaths([atom.project.resolve('dir')])
+    atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     atom.workspace = workspace = new Workspace
 
   describe "::open(uri, options)", ->
@@ -66,19 +72,19 @@ describe "Workspace", ->
 
               expect(openEvents).toEqual [
                 {
-                  uri: atom.project.resolve('a')
+                  uri: atom.project.getDirectories()[0]?.resolve('a')
                   item: editor1
                   pane: atom.workspace.getActivePane()
                   index: 0
                 }
                 {
-                  uri: atom.project.resolve('b')
+                  uri: atom.project.getDirectories()[0]?.resolve('b')
                   item: editor2
                   pane: atom.workspace.getActivePane()
                   index: 1
                 }
                 {
-                  uri: atom.project.resolve('a')
+                  uri: atom.project.getDirectories()[0]?.resolve('a')
                   item: editor1
                   pane: atom.workspace.getActivePane()
                   index: 0
@@ -92,7 +98,7 @@ describe "Workspace", ->
               workspace.open('a').then (o) -> editor = o
 
             runs ->
-              expect(editor.getUri()).toBe atom.project.resolve('a')
+              expect(editor.getURI()).toBe atom.project.getDirectories()[0]?.resolve('a')
               expect(workspace.getActivePaneItem()).toBe editor
               expect(workspace.getActivePane().items).toEqual [editor]
               expect(workspace.getActivePane().activate).toHaveBeenCalled()
@@ -183,7 +189,7 @@ describe "Workspace", ->
             workspace.open('a', split: 'right').then (o) -> editor = o
 
           runs ->
-            pane2 = workspace.getPanes().filter((p) -> p != pane1)[0]
+            pane2 = workspace.getPanes().filter((p) -> p isnt pane1)[0]
             expect(workspace.getActivePane()).toBe pane2
             expect(pane1.items).toEqual []
             expect(pane2.items).toEqual [editor]
@@ -212,7 +218,7 @@ describe "Workspace", ->
               workspace.open('a', split: 'right').then (o) -> editor = o
 
             runs ->
-              pane4 = workspace.getPanes().filter((p) -> p != pane1)[0]
+              pane4 = workspace.getPanes().filter((p) -> p isnt pane1)[0]
               expect(workspace.getActivePane()).toBe pane4
               expect(pane4.items).toEqual [editor]
               expect(workspace.paneContainer.root.children[0]).toBe pane1
@@ -220,19 +226,19 @@ describe "Workspace", ->
 
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
-        fooOpener = (pathToOpen, options) -> { foo: pathToOpen, options } if pathToOpen?.match(/\.foo/)
-        barOpener = (pathToOpen) -> { bar: pathToOpen } if pathToOpen?.match(/^bar:\/\//)
+        fooOpener = (pathToOpen, options) -> {foo: pathToOpen, options} if pathToOpen?.match(/\.foo/)
+        barOpener = (pathToOpen) -> {bar: pathToOpen} if pathToOpen?.match(/^bar:\/\//)
         workspace.addOpener(fooOpener)
         workspace.addOpener(barOpener)
 
         waitsForPromise ->
-          pathToOpen = atom.project.resolve('a.foo')
+          pathToOpen = atom.project.getDirectories()[0]?.resolve('a.foo')
           workspace.open(pathToOpen, hey: "there").then (item) ->
-            expect(item).toEqual { foo: pathToOpen, options: {hey: "there"} }
+            expect(item).toEqual {foo: pathToOpen, options: {hey: "there"}}
 
         waitsForPromise ->
           workspace.open("bar://baz").then (item) ->
-            expect(item).toEqual { bar: "bar://baz" }
+            expect(item).toEqual {bar: "bar://baz"}
 
     it "notifies ::onDidAddTextEditor observers", ->
       absolutePath = require.resolve('./fixtures/dir/a')
@@ -246,6 +252,116 @@ describe "Workspace", ->
       runs ->
         expect(newEditorHandler.argsForCall[0][0].textEditor).toBe editor
 
+    it "records a deprecation warning on the appropriate package if the item has a ::getUri method instead of ::getURI", ->
+      jasmine.snapshotDeprecations()
+
+      waitsForPromise -> atom.packages.activatePackage('package-with-deprecated-pane-item-method')
+
+      waitsForPromise ->
+        atom.workspace.open("test")
+
+      runs ->
+        deprecations = Grim.getDeprecations()
+        expect(deprecations.length).toBe 1
+        expect(deprecations[0].message).toBe "Pane item with class `TestItem` should implement `::getURI` instead of `::getUri`."
+        expect(deprecations[0].getStacks()[0].metadata.packageName).toBe "package-with-deprecated-pane-item-method"
+        jasmine.restoreDeprecationsSnapshot()
+
+    describe "when there is an error opening the file", ->
+      notificationSpy = null
+      beforeEach ->
+        atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
+      describe "when a large file is opened", ->
+        beforeEach ->
+          spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain '< 2MB'
+
+      describe "when a file does not exist", ->
+        it "creates an empty buffer for the specified path", ->
+          waitsForPromise ->
+            workspace.open('not-a-file.md')
+
+          runs ->
+            editor = workspace.getActiveTextEditor()
+            expect(notificationSpy).not.toHaveBeenCalled()
+            expect(editor.getPath()).toContain 'not-a-file.md'
+
+      describe "when the user does not have access to the file", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            error = new Error("EACCES, permission denied '#{path}'")
+            error.path = path
+            error.code = 'EACCES'
+            throw error
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Permission denied'
+            expect(notification.getMessage()).toContain 'file1'
+
+      describe "when the the operation is not permitted", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            error = new Error("EPERM, operation not permitted '#{path}'")
+            error.path = path
+            error.code = 'EPERM'
+            throw error
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Unable to open'
+            expect(notification.getMessage()).toContain 'file1'
+
+      describe "when the the file is already open in windows", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            error = new Error("EBUSY, resource busy or locked '#{path}'")
+            error.path = path
+            error.code = 'EBUSY'
+            throw error
+
+        it "creates a notification", ->
+          waitsForPromise ->
+            workspace.open('file1')
+
+          runs ->
+            expect(notificationSpy).toHaveBeenCalled()
+            notification = notificationSpy.mostRecentCall.args[0]
+            expect(notification.getType()).toBe 'warning'
+            expect(notification.getMessage()).toContain 'Unable to open'
+            expect(notification.getMessage()).toContain 'file1'
+
+      describe "when there is an unhandled error", ->
+        beforeEach ->
+          spyOn(fs, 'openSync').andCallFake (path) ->
+            throw new Error("I dont even know what is happening right now!!")
+
+        it "creates a notification", ->
+          open = -> workspace.open('file1', workspace.getActivePane())
+          expect(open).toThrow()
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
@@ -257,21 +373,21 @@ describe "Workspace", ->
 
       runs ->
         # does not reopen items with no uri
-        expect(workspace.getActivePaneItem().getUri()).toBeUndefined()
+        expect(workspace.getActivePaneItem().getURI()).toBeUndefined()
         pane.destroyActiveItem()
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).not.toBeUndefined()
+        expect(workspace.getActivePaneItem().getURI()).not.toBeUndefined()
 
         # destroy all items
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('file1')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('file1')
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('b')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('b')
         pane.destroyActiveItem()
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('a')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('a')
         pane.destroyActiveItem()
 
         # reopens items with uris
@@ -281,20 +397,20 @@ describe "Workspace", ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('a')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('a')
 
       # does not reopen items that are already open
       waitsForPromise ->
         workspace.open('b')
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('b')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('b')
 
       waitsForPromise ->
         workspace.reopenItem()
 
       runs ->
-        expect(workspace.getActivePaneItem().getUri()).toBe atom.project.resolve('file1')
+        expect(workspace.getActivePaneItem().getURI()).toBe atom.project.getDirectories()[0]?.resolve('file1')
 
   describe "::increase/decreaseFontSize()", ->
     it "increases/decreases the font size without going below 1", ->
@@ -309,6 +425,35 @@ describe "Workspace", ->
       expect(atom.config.get('editor.fontSize')).toBe 1
       workspace.decreaseFontSize()
       expect(atom.config.get('editor.fontSize')).toBe 1
+
+  describe "::resetFontSize()", ->
+    it "resets the font size to the window's starting font size", ->
+      originalFontSize = atom.config.get('editor.fontSize')
+
+      workspace.increaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize + 1
+      workspace.resetFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize
+      workspace.decreaseFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize - 1
+      workspace.resetFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize
+
+    it "does nothing if the font size has not been changed", ->
+      originalFontSize = atom.config.get('editor.fontSize')
+
+      workspace.resetFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize
+
+    it "resets the font size when the editor's font size changes", ->
+      originalFontSize = atom.config.get('editor.fontSize')
+
+      atom.config.set('editor.fontSize', originalFontSize + 1)
+      workspace.resetFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize
+      atom.config.set('editor.fontSize', originalFontSize - 1)
+      workspace.resetFontSize()
+      expect(atom.config.get('editor.fontSize')).toBe originalFontSize
 
   describe "::openLicense()", ->
     it "opens the license as plain-text in a buffer", ->
@@ -356,7 +501,7 @@ describe "Workspace", ->
       atom.workspace.open('sample.coffee')
 
     runs ->
-      atom.workspace.getActiveEditor().setText """
+      atom.workspace.getActiveTextEditor().setText """
         i = /test/; #FIXME
       """
 
@@ -375,7 +520,7 @@ describe "Workspace", ->
   describe "document.title", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
-        atom.project.setPath(undefined)
+        atom.project.setPaths([])
         expect(document.title).toBe 'untitled - Atom'
 
     describe "when the project has a path", ->
@@ -458,37 +603,521 @@ describe "Workspace", ->
       expect(atom.setDocumentEdited).toHaveBeenCalledWith(false)
 
   describe "adding panels", ->
-    class TestPanel
-      constructior: ->
+    class TestItem
+
+    class TestItemElement extends HTMLElement
+      constructor: ->
+      initialize: (@model) -> this
+      getModel: -> @model
+
+    beforeEach ->
+      atom.views.addViewProvider TestItem, (model) ->
+        new TestItemElement().initialize(model)
 
     describe '::addLeftPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getLeftPanels().length).toBe(0)
         atom.workspace.panelContainers.left.onDidAddPanel addPanelSpy = jasmine.createSpy()
-        panel = atom.workspace.addLeftPanel(item: new TestPanel())
+
+        model = new TestItem
+        panel = atom.workspace.addLeftPanel(item: model)
 
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getLeftPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
 
     describe '::addRightPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getRightPanels().length).toBe(0)
         atom.workspace.panelContainers.right.onDidAddPanel addPanelSpy = jasmine.createSpy()
-        panel = atom.workspace.addRightPanel(item: new TestPanel())
+
+        model = new TestItem
+        panel = atom.workspace.addRightPanel(item: model)
 
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getRightPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
 
     describe '::addTopPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getTopPanels().length).toBe(0)
         atom.workspace.panelContainers.top.onDidAddPanel addPanelSpy = jasmine.createSpy()
-        panel = atom.workspace.addTopPanel(item: new TestPanel())
+
+        model = new TestItem
+        panel = atom.workspace.addTopPanel(item: model)
 
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getTopPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
 
     describe '::addBottomPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getBottomPanels().length).toBe(0)
         atom.workspace.panelContainers.bottom.onDidAddPanel addPanelSpy = jasmine.createSpy()
-        panel = atom.workspace.addBottomPanel(item: new TestPanel())
+
+        model = new TestItem
+        panel = atom.workspace.addBottomPanel(item: model)
 
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getBottomPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
+    describe '::addModalPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getModalPanels().length).toBe(0)
+        atom.workspace.panelContainers.modal.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addModalPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getModalPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
+    describe "::panelForItem(item)", ->
+      it "returns the panel associated with the item", ->
+        item = new TestItem
+        panel = atom.workspace.addLeftPanel(item: item)
+
+        itemWithNoPanel = new TestItem
+
+        expect(atom.workspace.panelForItem(item)).toBe panel
+        expect(atom.workspace.panelForItem(itemWithNoPanel)).toBe null
+
+  describe "::scan(regex, options, callback)", ->
+    describe "when called with a regex", ->
+      it "calls the callback with all regex results in all files in the project", ->
+        results = []
+        waitsForPromise ->
+          atom.workspace.scan /(a)+/, (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength(3)
+          expect(results[0].filePath).toBe atom.project.getDirectories()[0]?.resolve('a')
+          expect(results[0].matches).toHaveLength(3)
+          expect(results[0].matches[0]).toEqual
+            matchText: 'aaa'
+            lineText: 'aaa bbb'
+            lineTextOffset: 0
+            range: [[0, 0], [0, 3]]
+
+      it "works with with escaped literals (like $ and ^)", ->
+        results = []
+        waitsForPromise ->
+          atom.workspace.scan /\$\w+/, (result) -> results.push(result)
+
+        runs ->
+          expect(results.length).toBe 1
+
+          {filePath, matches} = results[0]
+          expect(filePath).toBe atom.project.getDirectories()[0]?.resolve('a')
+          expect(matches).toHaveLength 1
+          expect(matches[0]).toEqual
+            matchText: '$bill'
+            lineText: 'dollar$bill'
+            lineTextOffset: 0
+            range: [[2, 6], [2, 11]]
+
+      it "works on evil filenames", ->
+        platform.generateEvilFiles()
+        atom.project.setPaths([path.join(__dirname, 'fixtures', 'evil-files')])
+        paths = []
+        matches = []
+        waitsForPromise ->
+          atom.workspace.scan /evil/, (result) ->
+            paths.push(result.filePath)
+            matches = matches.concat(result.matches)
+
+        runs ->
+          _.each(matches, (m) -> expect(m.matchText).toEqual 'evil')
+
+          if platform.isWindows()
+            expect(paths.length).toBe 3
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(path.basename(paths[2])).toBe "utfa\u0306.md"
+          else
+            expect(paths.length).toBe 5
+            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+            expect(paths[1]).toMatch /file with spaces.txt$/
+            expect(paths[2]).toMatch /goddam\nnewlines$/m
+            expect(paths[3]).toMatch /quote".txt$/m
+            expect(path.basename(paths[4])).toBe "utfa\u0306.md"
+
+      it "ignores case if the regex includes the `i` flag", ->
+        results = []
+        waitsForPromise ->
+          atom.workspace.scan /DOLLAR/i, (result) -> results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+
+      describe "when the core.excludeVcsIgnoredPaths config is truthy", ->
+        [projectPath, ignoredPath] = []
+
+        beforeEach ->
+          sourceProjectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
+          projectPath = path.join(temp.mkdirSync("atom"))
+
+          writerStream = fstream.Writer(projectPath)
+          fstream.Reader(sourceProjectPath).pipe(writerStream)
+
+          waitsFor (done) ->
+            writerStream.on 'close', done
+            writerStream.on 'error', done
+
+          runs ->
+            fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
+            ignoredPath = path.join(projectPath, 'ignored.txt')
+            fs.writeFileSync(ignoredPath, 'this match should not be included')
+
+        afterEach ->
+          fs.removeSync(projectPath) if fs.existsSync(projectPath)
+
+        it "excludes ignored files", ->
+          atom.project.setPaths([projectPath])
+          atom.config.set('core.excludeVcsIgnoredPaths', true)
+          resultHandler = jasmine.createSpy("result found")
+          waitsForPromise ->
+            atom.workspace.scan /match/, (results) ->
+              resultHandler()
+
+          runs ->
+            expect(resultHandler).not.toHaveBeenCalled()
+
+      it "includes only files when a directory filter is specified", ->
+        projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
+        atom.project.setPaths([projectPath])
+
+        filePath = path.join(projectPath, 'a-dir', 'oh-git')
+
+        paths = []
+        matches = []
+        waitsForPromise ->
+          atom.workspace.scan /aaa/, paths: ["a-dir#{path.sep}"], (result) ->
+            paths.push(result.filePath)
+            matches = matches.concat(result.matches)
+
+        runs ->
+          expect(paths.length).toBe 1
+          expect(paths[0]).toBe filePath
+          expect(matches.length).toBe 1
+
+      it "includes files and folders that begin with a '.'", ->
+        projectPath = temp.mkdirSync()
+        filePath = path.join(projectPath, '.text')
+        fs.writeFileSync(filePath, 'match this')
+        atom.project.setPaths([projectPath])
+        paths = []
+        matches = []
+        waitsForPromise ->
+          atom.workspace.scan /match this/, (result) ->
+            paths.push(result.filePath)
+            matches = matches.concat(result.matches)
+
+        runs ->
+          expect(paths.length).toBe 1
+          expect(paths[0]).toBe filePath
+          expect(matches.length).toBe 1
+
+      it "excludes values in core.ignoredNames", ->
+        projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
+        ignoredNames = atom.config.get("core.ignoredNames")
+        ignoredNames.push("a")
+        atom.config.set("core.ignoredNames", ignoredNames)
+
+        resultHandler = jasmine.createSpy("result found")
+        waitsForPromise ->
+          atom.workspace.scan /dollar/, (results) ->
+            resultHandler()
+
+        runs ->
+          expect(resultHandler).not.toHaveBeenCalled()
+
+      it "scans buffer contents if the buffer is modified", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open('a').then (o) ->
+            editor = o
+            editor.setText("Elephant")
+
+        waitsForPromise ->
+          atom.workspace.scan /a|Elephant/, (result) -> results.push result
+
+        runs ->
+          expect(results).toHaveLength 3
+          resultForA = _.find results, ({filePath}) -> path.basename(filePath) is 'a'
+          expect(resultForA.matches).toHaveLength 1
+          expect(resultForA.matches[0].matchText).toBe 'Elephant'
+
+      it "ignores buffers outside the project", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open(temp.openSync().path).then (o) ->
+            editor = o
+            editor.setText("Elephant")
+
+        waitsForPromise ->
+          atom.workspace.scan /Elephant/, (result) -> results.push result
+
+        runs ->
+          expect(results).toHaveLength 0
+
+      describe "when the project has multiple root directories", ->
+        [dir1, dir2, file1, file2] = []
+
+        beforeEach ->
+          [dir1] = atom.project.getPaths()
+          file1 = path.join(dir1, "a-dir", "oh-git")
+
+          dir2 = temp.mkdirSync("a-second-dir")
+          aDir2 = path.join(dir2, "a-dir")
+          file2 = path.join(aDir2, "a-file")
+          fs.mkdirSync(aDir2)
+          fs.writeFileSync(file2, "ccc aaaa")
+
+          atom.project.addPath(dir2)
+
+        it "searches matching files in all of the project's root directories", ->
+          resultPaths = []
+          waitsForPromise ->
+            atom.workspace.scan /aaaa/, ({filePath}) ->
+              resultPaths.push(filePath)
+
+          runs ->
+            expect(resultPaths.sort()).toEqual([file1, file2].sort())
+
+        describe "when an inclusion path starts with the basename of a root directory", ->
+          it "interprets the inclusion path as starting from that directory", ->
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: ["dir"], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file1])
+
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: [path.join("dir", "a-dir")], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file1])
+
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: [path.basename(dir2)], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file2])
+
+            waitsForPromise ->
+              resultPaths = []
+              atom.workspace
+                .scan /aaaa/, paths: [path.join(path.basename(dir2), "a-dir")], ({filePath}) ->
+                  resultPaths.push(filePath) unless filePath in resultPaths
+                .then ->
+                  expect(resultPaths).toEqual([file2])
+
+  describe "::replace(regex, replacementText, paths, iterator)", ->
+    [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
+
+    beforeEach ->
+      atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('../')])
+
+      filePath = atom.project.getDirectories()[0]?.resolve('sample.js')
+      commentFilePath = atom.project.getDirectories()[0]?.resolve('sample-with-comments.js')
+      sampleContent = fs.readFileSync(filePath).toString()
+      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
+
+    afterEach ->
+      fs.writeFileSync(filePath, sampleContent)
+      fs.writeFileSync(commentFilePath, sampleCommentContent)
+
+    describe "when a file doesn't exist", ->
+      it "calls back with an error", ->
+        errors = []
+        missingPath = path.resolve('/not-a-file.js')
+        expect(fs.existsSync(missingPath)).toBeFalsy()
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [missingPath], (result, error) ->
+            errors.push(error)
+
+        runs ->
+          expect(errors).toHaveLength 1
+          expect(errors[0].path).toBe missingPath
+
+    describe "when called with unopened files", ->
+      it "replaces properly", ->
+        results = []
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+    describe "when a buffer is already open", ->
+      it "replaces properly and saves when not modified", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open('sample.js').then (o) -> editor = o
+
+        runs ->
+          expect(editor.isModified()).toBeFalsy()
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+          expect(editor.isModified()).toBeFalsy()
+
+      it "does not replace when the path is not specified", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open('sample-with-comments.js').then (o) -> editor = o
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'items', [commentFilePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe commentFilePath
+
+      it "does NOT save when modified", ->
+        editor = null
+        results = []
+
+        waitsForPromise ->
+          atom.project.open('sample.js').then (o) -> editor = o
+
+        runs ->
+          editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
+          expect(editor.isModified()).toBeTruthy()
+
+        waitsForPromise ->
+          atom.workspace.replace /items/gi, 'okthen', [filePath], (result) ->
+            results.push(result)
+
+        runs ->
+          expect(results).toHaveLength 1
+          expect(results[0].filePath).toBe filePath
+          expect(results[0].replacements).toBe 6
+
+          expect(editor.isModified()).toBeTruthy()
+
+  describe "::saveActivePaneItem()", ->
+    editor = null
+    beforeEach ->
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (o) -> editor = o
+
+    describe "when there is an error", ->
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(editor, 'save').andCallFake ->
+          throw new Error("'/some/file' is a directory")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the directory cannot be written to", ->
+        spyOn(editor, 'save').andCallFake ->
+          throw new Error("ENOTDIR, not a directory '/Some/dir/and-a-file.js'")
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the user does not have permission", ->
+        spyOn(editor, 'save').andCallFake ->
+          error = new Error("EACCES, permission denied '/Some/dir/and-a-file.js'")
+          error.code = 'EACCES'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+        expect(addedSpy.mostRecentCall.args[0].getType()).toBe 'warning'
+
+      it "emits a warning notification when the operation is not permitted", ->
+        spyOn(editor, 'save').andCallFake ->
+          error = new Error("EPERM, operation not permitted '/Some/dir/and-a-file.js'")
+          error.code = 'EPERM'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+      it "emits a warning notification when the file is already open by another app", ->
+        spyOn(editor, 'save').andCallFake ->
+          error = new Error("EBUSY, resource busy or locked '/Some/dir/and-a-file.js'")
+          error.code = 'EBUSY'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+
+        notificaiton = addedSpy.mostRecentCall.args[0]
+        expect(notificaiton.getType()).toBe 'warning'
+        expect(notificaiton.getMessage()).toContain 'Unable to save'
+
+      it "emits a warning notification when the file system is read-only", ->
+        spyOn(editor, 'save').andCallFake ->
+          error = new Error("EROFS, read-only file system '/Some/dir/and-a-file.js'")
+          error.code = 'EROFS'
+          error.path = '/Some/dir/and-a-file.js'
+          throw error
+
+        atom.notifications.onDidAddNotification addedSpy = jasmine.createSpy()
+        atom.workspace.saveActivePaneItem()
+        expect(addedSpy).toHaveBeenCalled()
+
+        notification = addedSpy.mostRecentCall.args[0]
+        expect(notification.getType()).toBe 'warning'
+        expect(notification.getMessage()).toContain 'Unable to save'
+
+      it "emits a warning notification when the file cannot be saved", ->
+        spyOn(editor, 'save').andCallFake ->
+          throw new Error("no one knows")
+
+        save = -> atom.workspace.saveActivePaneItem()
+        expect(save).toThrow()

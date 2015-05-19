@@ -1,29 +1,59 @@
+{Emitter} = require 'event-kit'
 {View, $, callRemoveHooks} = require 'space-pen'
-React = require 'react-atom-fork'
+Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
+Grim = require 'grim'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 TextEditorView = null
+
+ShadowStyleSheet = null
 
 class TextEditorElement extends HTMLElement
   model: null
   componentDescriptor: null
   component: null
+  attached: false
   lineOverdrawMargin: null
   focusOnAttach: false
 
   createdCallback: ->
-    @subscriptions =
+    @emitter = new Emitter
     @initializeContent()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
     @addEventListener 'focus', @focused.bind(this)
-    @addEventListener 'focusout', @focusedOut.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
   initializeContent: (attributes) ->
-    @classList.add('editor', 'react', 'editor-colors')
+    @classList.add('editor')
     @setAttribute('tabindex', -1)
+
+    if atom.config.get('editor.useShadowDOM')
+      @useShadowDOM = true
+
+      unless ShadowStyleSheet?
+        ShadowStyleSheet = document.createElement('style')
+        ShadowStyleSheet.textContent = atom.themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
+
+      @createShadowRoot()
+
+      @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
+      @stylesElement = document.createElement('atom-styles')
+      @stylesElement.setAttribute('context', 'atom-text-editor')
+      @stylesElement.initialize()
+
+      @rootElement = document.createElement('div')
+      @rootElement.classList.add('editor--private')
+
+      @shadowRoot.appendChild(@stylesElement)
+      @shadowRoot.appendChild(@rootElement)
+    else
+      @useShadowDOM = false
+
+      @classList.add('editor', 'editor-colors')
+      @stylesElement = document.head.querySelector('atom-styles')
+      @rootElement = this
 
   createSpacePenShim: ->
     TextEditorView ?= require './text-editor-view'
@@ -31,9 +61,19 @@ class TextEditorElement extends HTMLElement
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
-    @mountComponent() unless @component?.isMounted()
+    @mountComponent() unless @component?
     @component.checkForVisibilityChange()
-    @focus() if @focusOnAttach
+    if this is document.activeElement
+      @focused()
+    @emitter.emit("did-attach")
+
+  detachedCallback: ->
+    @unmountComponent()
+    @emitter.emit("did-detach")
+
+  initialize: (model) ->
+    @setModel(model)
+    this
 
   setModel: (model) ->
     throw new Error("Model already assigned on TextEditorElement") if @model?
@@ -42,11 +82,12 @@ class TextEditorElement extends HTMLElement
     @model = model
     @mountComponent()
     @addGrammarScopeAttribute()
-    @model.onDidChangeGrammar => @addGrammarScopeAttribute()
+    @addMiniAttributeIfNeeded()
     @addEncodingAttribute()
+    @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
   getModel: ->
@@ -54,44 +95,67 @@ class TextEditorElement extends HTMLElement
 
   buildModel: ->
     @setModel(new TextEditor(
-      buffer: new TextBuffer
+      buffer: new TextBuffer(@textContent)
       softWrapped: false
       tabLength: 2
       softTabs: true
       mini: @hasAttribute('mini')
+      lineNumberGutterVisible: not @hasAttribute('gutter-hidden')
       placeholderText: @getAttribute('placeholder-text')
     ))
 
   mountComponent: ->
-    @componentDescriptor ?= TextEditorComponent(
-      parentView: this
+    @component = new TextEditorComponent(
+      hostElement: this
+      rootElement: @rootElement
+      stylesElement: @stylesElement
       editor: @model
-      mini: @model.mini
       lineOverdrawMargin: @lineOverdrawMargin
+      useShadowDOM: @useShadowDOM
     )
-    @component = React.renderComponent(@componentDescriptor, this)
+    @rootElement.appendChild(@component.getDomNode())
+
+    if @useShadowDOM
+      @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
+    else
+      inputNode = @component.hiddenInputComponent.getDomNode()
+      inputNode.addEventListener 'focus', @focused.bind(this)
+      inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
-    return unless @component?.isMounted()
     callRemoveHooks(this)
-    React.unmountComponentAtNode(this)
-    @component = null
+    if @component?
+      @component.destroy()
+      @component.getDomNode().remove()
+      @component = null
 
   focused: ->
-    if @component?
-      @component.onFocus()
-    else
-      @focusOnAttach = true
-
-  focusedOut: (event) ->
-    event.stopImmediatePropagation() if @contains(event.relatedTarget)
+    @component?.focused()
 
   blurred: (event) ->
-    event.stopImmediatePropagation() if @contains(event.relatedTarget)
+    unless @useShadowDOM
+      if event.relatedTarget is @component.hiddenInputComponent.getDomNode()
+        event.stopImmediatePropagation()
+        return
+
+    @component?.blurred()
+
+  # Work around what seems to be a bug in Chromium. Focus can be stolen from the
+  # hidden input when clicking on the gutter and transferred to the
+  # already-focused host element. The host element never gets a 'focus' event
+  # however, which leaves us in a limbo state where the text editor element is
+  # focused but the hidden input isn't focused. This always refocuses the hidden
+  # input if a blur event occurs in the shadow DOM that is transferring focus
+  # back to the host element.
+  shadowRootBlurred: (event) ->
+    @component.focused() if event.relatedTarget is this
 
   addGrammarScopeAttribute: ->
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
     @dataset.grammar = grammarScope
+
+  addMiniAttributeIfNeeded: ->
+    @setAttributeNode(document.createAttribute("mini")) if @model.isMini()
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()
@@ -99,115 +163,188 @@ class TextEditorElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-stopCommandEventPropagation = (commandListeners) ->
+  setUpdatedSynchronously: (@updatedSynchronously) -> @updatedSynchronously
+
+  isUpdatedSynchronously: -> @updatedSynchronously
+
+  # Extended: get the width of a character of text displayed in this element.
+  #
+  # Returns a {Number} of pixels.
+  getDefaultCharacterWidth: ->
+    @getModel().getDefaultCharWidth()
+
+  # Extended: Converts a buffer position to a pixel position.
+  #
+  # * `bufferPosition` An object that represents a buffer position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an {Object} with two values: `top` and `left`, representing the pixel position.
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @getModel().pixelPositionForBufferPosition(bufferPosition, true)
+
+  # Extended: Converts a screen position to a pixel position.
+  #
+  # * `screenPosition` An object that represents a screen position. It can be either
+  #   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
+  #
+  # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
+  pixelPositionForScreenPosition: (screenPosition) ->
+    @getModel().pixelPositionForScreenPosition(screenPosition, true)
+
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # top of the editor.
+  #
+  # Returns a {Number}.
+  getFirstVisibleScreenRow: ->
+    @getModel().getFirstVisibleScreenRow(true)
+
+  # Extended: Retrieves the number of the row that is visible and currently at the
+  # bottom of the editor.
+  #
+  # Returns a {Number}.
+  getLastVisibleScreenRow: ->
+    @getModel().getLastVisibleScreenRow(true)
+
+  # Extended: call the given `callback` when the editor is attached to the DOM.
+  #
+  # * `callback` {Function}
+  onDidAttach: (callback) ->
+    @emitter.on("did-attach", callback)
+
+  # Extended: call the given `callback` when the editor is detached from the DOM.
+  #
+  # * `callback` {Function}
+  onDidDetach: (callback) ->
+    @emitter.on("did-detach", callback)
+
+stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
   for commandName, commandListener of commandListeners
     do (commandListener) ->
       newCommandListeners[commandName] = (event) ->
         event.stopPropagation()
-        commandListener.call(this, event)
+        commandListener.call(@getModel(), event)
   newCommandListeners
 
-atom.commands.add 'atom-text-editor', stopCommandEventPropagation(
-  'core:move-left': -> @getModel().moveLeft()
-  'core:move-right': -> @getModel().moveRight()
-  'core:select-left': -> @getModel().selectLeft()
-  'core:select-right': -> @getModel().selectRight()
-  'core:select-all': -> @getModel().selectAll()
-  'core:backspace': -> @getModel().backspace()
-  'core:delete': -> @getModel().delete()
-  'core:undo': -> @getModel().undo()
-  'core:redo': -> @getModel().redo()
-  'core:cut': -> @getModel().cutSelectedText()
-  'core:copy': -> @getModel().copySelectedText()
-  'core:paste': -> @getModel().pasteText()
-  'editor:move-to-previous-word': -> @getModel().moveToPreviousWord()
-  'editor:select-word': -> @getModel().selectWordsContainingCursors()
-  'editor:consolidate-selections': (event) -> event.abortKeyBinding() unless @getModel().consolidateSelections()
-  'editor:delete-to-beginning-of-word': -> @getModel().deleteToBeginningOfWord()
-  'editor:delete-to-beginning-of-line': -> @getModel().deleteToBeginningOfLine()
-  'editor:delete-to-end-of-line': -> @getModel().deleteToEndOfLine()
-  'editor:delete-to-end-of-word': -> @getModel().deleteToEndOfWord()
-  'editor:delete-line': -> @getModel().deleteLine()
-  'editor:cut-to-end-of-line': -> @getModel().cutToEndOfLine()
-  'editor:move-to-beginning-of-next-paragraph': -> @getModel().moveToBeginningOfNextParagraph()
-  'editor:move-to-beginning-of-previous-paragraph': -> @getModel().moveToBeginningOfPreviousParagraph()
-  'editor:move-to-beginning-of-screen-line': -> @getModel().moveToBeginningOfScreenLine()
-  'editor:move-to-beginning-of-line': -> @getModel().moveToBeginningOfLine()
-  'editor:move-to-end-of-screen-line': -> @getModel().moveToEndOfScreenLine()
-  'editor:move-to-end-of-line': -> @getModel().moveToEndOfLine()
-  'editor:move-to-first-character-of-line': -> @getModel().moveToFirstCharacterOfLine()
-  'editor:move-to-beginning-of-word': -> @getModel().moveToBeginningOfWord()
-  'editor:move-to-end-of-word': -> @getModel().moveToEndOfWord()
-  'editor:move-to-beginning-of-next-word': -> @getModel().moveToBeginningOfNextWord()
-  'editor:move-to-previous-word-boundary': -> @getModel().moveToPreviousWordBoundary()
-  'editor:move-to-next-word-boundary': -> @getModel().moveToNextWordBoundary()
-  'editor:select-to-beginning-of-next-paragraph': -> @getModel().selectToBeginningOfNextParagraph()
-  'editor:select-to-beginning-of-previous-paragraph': -> @getModel().selectToBeginningOfPreviousParagraph()
-  'editor:select-to-end-of-line': -> @getModel().selectToEndOfLine()
-  'editor:select-to-beginning-of-line': -> @getModel().selectToBeginningOfLine()
-  'editor:select-to-end-of-word': -> @getModel().selectToEndOfWord()
-  'editor:select-to-beginning-of-word': -> @getModel().selectToBeginningOfWord()
-  'editor:select-to-beginning-of-next-word': -> @getModel().selectToBeginningOfNextWord()
-  'editor:select-to-next-word-boundary': -> @getModel().selectToNextWordBoundary()
-  'editor:select-to-previous-word-boundary': -> @getModel().selectToPreviousWordBoundary()
-  'editor:select-to-first-character-of-line': -> @getModel().selectToFirstCharacterOfLine()
-  'editor:select-line': -> @getModel().selectLinesContainingCursors()
-  'editor:transpose': -> @getModel().transpose()
-  'editor:upper-case': -> @getModel().upperCase()
-  'editor:lower-case': -> @getModel().lowerCase()
+stopEventPropagationAndGroupUndo = (commandListeners) ->
+  newCommandListeners = {}
+  for commandName, commandListener of commandListeners
+    do (commandListener) ->
+      newCommandListeners[commandName] = (event) ->
+        event.stopPropagation()
+        model = @getModel()
+        model.transact atom.config.get('editor.undoGroupingInterval'), ->
+          commandListener.call(model, event)
+  newCommandListeners
+
+atom.commands.add 'atom-text-editor', stopEventPropagation(
+  'core:undo': -> @undo()
+  'core:redo': -> @redo()
+  'core:move-left': -> @moveLeft()
+  'core:move-right': -> @moveRight()
+  'core:select-left': -> @selectLeft()
+  'core:select-right': -> @selectRight()
+  'core:select-up': -> @selectUp()
+  'core:select-down': -> @selectDown()
+  'core:select-all': -> @selectAll()
+  'editor:move-to-previous-word': -> @moveToPreviousWord()
+  'editor:select-word': -> @selectWordsContainingCursors()
+  'editor:consolidate-selections': (event) -> event.abortKeyBinding() unless @consolidateSelections()
+  'editor:move-to-beginning-of-next-paragraph': -> @moveToBeginningOfNextParagraph()
+  'editor:move-to-beginning-of-previous-paragraph': -> @moveToBeginningOfPreviousParagraph()
+  'editor:move-to-beginning-of-screen-line': -> @moveToBeginningOfScreenLine()
+  'editor:move-to-beginning-of-line': -> @moveToBeginningOfLine()
+  'editor:move-to-end-of-screen-line': -> @moveToEndOfScreenLine()
+  'editor:move-to-end-of-line': -> @moveToEndOfLine()
+  'editor:move-to-first-character-of-line': -> @moveToFirstCharacterOfLine()
+  'editor:move-to-beginning-of-word': -> @moveToBeginningOfWord()
+  'editor:move-to-end-of-word': -> @moveToEndOfWord()
+  'editor:move-to-beginning-of-next-word': -> @moveToBeginningOfNextWord()
+  'editor:move-to-previous-word-boundary': -> @moveToPreviousWordBoundary()
+  'editor:move-to-next-word-boundary': -> @moveToNextWordBoundary()
+  'editor:select-to-beginning-of-next-paragraph': -> @selectToBeginningOfNextParagraph()
+  'editor:select-to-beginning-of-previous-paragraph': -> @selectToBeginningOfPreviousParagraph()
+  'editor:select-to-end-of-line': -> @selectToEndOfLine()
+  'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
+  'editor:select-to-end-of-word': -> @selectToEndOfWord()
+  'editor:select-to-beginning-of-word': -> @selectToBeginningOfWord()
+  'editor:select-to-beginning-of-next-word': -> @selectToBeginningOfNextWord()
+  'editor:select-to-next-word-boundary': -> @selectToNextWordBoundary()
+  'editor:select-to-previous-word-boundary': -> @selectToPreviousWordBoundary()
+  'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
+  'editor:select-line': -> @selectLinesContainingCursors()
 )
 
-atom.commands.add 'atom-text-editor:not(.mini)', stopCommandEventPropagation(
-  'core:move-up': -> @getModel().moveUp()
-  'core:move-down': -> @getModel().moveDown()
-  'core:move-to-top': -> @getModel().moveToTop()
-  'core:move-to-bottom': -> @getModel().moveToBottom()
-  'core:page-up': -> @getModel().pageUp()
-  'core:page-down': -> @getModel().pageDown()
-  'core:select-up': -> @getModel().selectUp()
-  'core:select-down': -> @getModel().selectDown()
-  'core:select-to-top': -> @getModel().selectToTop()
-  'core:select-to-bottom': -> @getModel().selectToBottom()
-  'core:select-page-up': -> @getModel().selectPageUp()
-  'core:select-page-down': -> @getModel().selectPageDown()
-  'editor:indent': -> @getModel().indent()
-  'editor:auto-indent': -> @getModel().autoIndentSelectedRows()
-  'editor:indent-selected-rows': -> @getModel().indentSelectedRows()
-  'editor:outdent-selected-rows': -> @getModel().outdentSelectedRows()
-  'editor:newline': -> @getModel().insertNewline()
-  'editor:newline-below': -> @getModel().insertNewlineBelow()
-  'editor:newline-above': -> @getModel().insertNewlineAbove()
-  'editor:add-selection-below': -> @getModel().addSelectionBelow()
-  'editor:add-selection-above': -> @getModel().addSelectionAbove()
-  'editor:split-selections-into-lines': -> @getModel().splitSelectionsIntoLines()
-  'editor:toggle-soft-tabs': -> @getModel().toggleSoftTabs()
-  'editor:toggle-soft-wrap': -> @getModel().toggleSoftWrapped()
-  'editor:fold-all': -> @getModel().foldAll()
-  'editor:unfold-all': -> @getModel().unfoldAll()
-  'editor:fold-current-row': -> @getModel().foldCurrentRow()
-  'editor:unfold-current-row': -> @getModel().unfoldCurrentRow()
-  'editor:fold-selection': -> @getModel().foldSelectedLines()
-  'editor:fold-at-indent-level-1': -> @getModel().foldAllAtIndentLevel(0)
-  'editor:fold-at-indent-level-2': -> @getModel().foldAllAtIndentLevel(1)
-  'editor:fold-at-indent-level-3': -> @getModel().foldAllAtIndentLevel(2)
-  'editor:fold-at-indent-level-4': -> @getModel().foldAllAtIndentLevel(3)
-  'editor:fold-at-indent-level-5': -> @getModel().foldAllAtIndentLevel(4)
-  'editor:fold-at-indent-level-6': -> @getModel().foldAllAtIndentLevel(5)
-  'editor:fold-at-indent-level-7': -> @getModel().foldAllAtIndentLevel(6)
-  'editor:fold-at-indent-level-8': -> @getModel().foldAllAtIndentLevel(7)
-  'editor:fold-at-indent-level-9': -> @getModel().foldAllAtIndentLevel(8)
-  'editor:toggle-line-comments': -> @getModel().toggleLineCommentsInSelection()
-  'editor:log-cursor-scope': -> @getModel().logCursorScope()
-  'editor:checkout-head-revision': -> atom.project.getRepositories()[0]?.checkoutHeadForEditor(@getModel())
-  'editor:copy-path': -> @getModel().copyPathToClipboard()
-  'editor:move-line-up': -> @getModel().moveLineUp()
-  'editor:move-line-down': -> @getModel().moveLineDown()
-  'editor:duplicate-lines': -> @getModel().duplicateLines()
-  'editor:join-lines': -> @getModel().joinLines()
+atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
+  'core:backspace': -> @backspace()
+  'core:delete': -> @delete()
+  'core:cut': -> @cutSelectedText()
+  'core:copy': -> @copySelectedText()
+  'core:paste': -> @pasteText()
+  'editor:delete-to-previous-word-boundary': -> @deleteToPreviousWordBoundary()
+  'editor:delete-to-next-word-boundary': -> @deleteToNextWordBoundary()
+  'editor:delete-to-beginning-of-word': -> @deleteToBeginningOfWord()
+  'editor:delete-to-beginning-of-line': -> @deleteToBeginningOfLine()
+  'editor:delete-to-end-of-line': -> @deleteToEndOfLine()
+  'editor:delete-to-end-of-word': -> @deleteToEndOfWord()
+  'editor:delete-line': -> @deleteLine()
+  'editor:cut-to-end-of-line': -> @cutToEndOfLine()
+  'editor:transpose': -> @transpose()
+  'editor:upper-case': -> @upperCase()
+  'editor:lower-case': -> @lowerCase()
+)
+
+atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagation(
+  'core:move-up': -> @moveUp()
+  'core:move-down': -> @moveDown()
+  'core:move-to-top': -> @moveToTop()
+  'core:move-to-bottom': -> @moveToBottom()
+  'core:page-up': -> @pageUp()
+  'core:page-down': -> @pageDown()
+  'core:select-to-top': -> @selectToTop()
+  'core:select-to-bottom': -> @selectToBottom()
+  'core:select-page-up': -> @selectPageUp()
+  'core:select-page-down': -> @selectPageDown()
+  'editor:add-selection-below': -> @addSelectionBelow()
+  'editor:add-selection-above': -> @addSelectionAbove()
+  'editor:split-selections-into-lines': -> @splitSelectionsIntoLines()
+  'editor:toggle-soft-tabs': -> @toggleSoftTabs()
+  'editor:toggle-soft-wrap': -> @toggleSoftWrapped()
+  'editor:fold-all': -> @foldAll()
+  'editor:unfold-all': -> @unfoldAll()
+  'editor:fold-current-row': -> @foldCurrentRow()
+  'editor:unfold-current-row': -> @unfoldCurrentRow()
+  'editor:fold-selection': -> @foldSelectedLines()
+  'editor:fold-at-indent-level-1': -> @foldAllAtIndentLevel(0)
+  'editor:fold-at-indent-level-2': -> @foldAllAtIndentLevel(1)
+  'editor:fold-at-indent-level-3': -> @foldAllAtIndentLevel(2)
+  'editor:fold-at-indent-level-4': -> @foldAllAtIndentLevel(3)
+  'editor:fold-at-indent-level-5': -> @foldAllAtIndentLevel(4)
+  'editor:fold-at-indent-level-6': -> @foldAllAtIndentLevel(5)
+  'editor:fold-at-indent-level-7': -> @foldAllAtIndentLevel(6)
+  'editor:fold-at-indent-level-8': -> @foldAllAtIndentLevel(7)
+  'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
+  'editor:log-cursor-scope': -> @logCursorScope()
+  'editor:copy-path': -> @copyPathToClipboard()
   'editor:toggle-indent-guide': -> atom.config.set('editor.showIndentGuide', not atom.config.get('editor.showIndentGuide'))
   'editor:toggle-line-numbers': -> atom.config.set('editor.showLineNumbers', not atom.config.get('editor.showLineNumbers'))
-  'editor:scroll-to-cursor': -> @getModel().scrollToCursorPosition()
+  'editor:scroll-to-cursor': -> @scrollToCursorPosition()
+)
+
+atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(
+  'editor:indent': -> @indent()
+  'editor:auto-indent': -> @autoIndentSelectedRows()
+  'editor:indent-selected-rows': -> @indentSelectedRows()
+  'editor:outdent-selected-rows': -> @outdentSelectedRows()
+  'editor:newline': -> @insertNewline()
+  'editor:newline-below': -> @insertNewlineBelow()
+  'editor:newline-above': -> @insertNewlineAbove()
+  'editor:toggle-line-comments': -> @toggleLineCommentsInSelection()
+  'editor:checkout-head-revision': -> @checkoutHeadRevision()
+  'editor:move-line-up': -> @moveLineUp()
+  'editor:move-line-down': -> @moveLineDown()
+  'editor:duplicate-lines': -> @duplicateLines()
+  'editor:join-lines': -> @joinLines()
 )
 
 module.exports = TextEditorElement = document.registerElement 'atom-text-editor', prototype: TextEditorElement.prototype

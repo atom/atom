@@ -1,4 +1,5 @@
 {CompositeDisposable} = require 'event-kit'
+Grim = require 'grim'
 {callAttachHooks} = require './space-pen-extensions'
 PaneContainerView = null
 _ = require 'underscore-plus'
@@ -8,18 +9,21 @@ class PaneContainerElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
     @classList.add 'panes'
-    PaneContainerView ?= require './pane-container-view'
-    @__spacePenView = new PaneContainerView(this)
 
-  setModel: (@model) ->
+    if Grim.includeDeprecatedAPIs
+      PaneContainerView ?= require './pane-container-view'
+      @__spacePenView = new PaneContainerView(this)
+
+  initialize: (@model) ->
     @subscriptions.add @model.observeRoot(@rootChanged.bind(this))
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
+    this
 
   rootChanged: (root) ->
     focusedElement = document.activeElement if @hasFocus()
     @firstChild?.remove()
     if root?
-      view = @model.getView(root)
+      view = atom.views.getView(root)
       @appendChild(view)
       callAttachHooks(view)
       focusedElement?.focus()
@@ -45,7 +49,7 @@ class PaneContainerElement extends HTMLElement
       y = pointB.y - pointA.y
       Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
-    paneView = @model.getView(@model.getActivePane())
+    paneView = atom.views.getView(@model.getActivePane())
     box = @boundingBoxForPaneView(paneView)
 
     paneViews = _.toArray(@querySelectorAll('atom-pane'))

@@ -54,6 +54,11 @@ module.exports = (gruntObject) ->
           uploadAssets(release, buildDir, assets, done)
 
 getAssets = ->
+  {cp} = require('./task-helpers')(grunt)
+
+  {version} = grunt.file.readJSON('package.json')
+  buildDir = grunt.config.get('atom.buildDir')
+
   switch process.platform
     when 'darwin'
       [
@@ -62,16 +67,16 @@ getAssets = ->
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
-      [
-        {assetName: 'atom-windows.zip', sourcePath: 'Atom'}
-      ]
+      assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
+      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{version}-full.nupkg", "atom-#{version}-delta.nupkg"]
+        cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
+        assets.push({assetName: squirrelAsset, sourcePath: assetName})
+      assets
     when 'linux'
-      buildDir = grunt.config.get('atom.buildDir')
       if process.arch is 'ia32'
         arch = 'i386'
       else
         arch = 'amd64'
-      {version} = grunt.file.readJSON('package.json')
 
       # Check for a Debian build
       sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
@@ -87,7 +92,6 @@ getAssets = ->
           arch = 'x86_64'
         assetName = "atom.#{arch}.rpm"
 
-      {cp} = require('./task-helpers')(grunt)
       cp sourcePath, path.join(buildDir, assetName)
 
       [
@@ -97,7 +101,7 @@ getAssets = ->
 logError = (message, error, details) ->
   grunt.log.error(message)
   grunt.log.error(error.message ? error) if error?
-  grunt.log.error(details) if details
+  grunt.log.error(require('util').inspect(details)) if details
 
 zipAssets = (buildDir, assets, callback) ->
   zip = (directory, sourcePath, assetName, callback) ->
@@ -123,10 +127,45 @@ getAtomDraftRelease = (callback) ->
       logError('Fetching atom/atom releases failed', error, releases)
       callback(error)
     else
-      for release in releases when release.draft
-        callback(null, release)
-        return
-      callback(new Error('No draft release in atom/atom repo'))
+      [firstDraft] = releases.filter ({draft}) -> draft
+      if firstDraft?
+        options =
+          uri: firstDraft.assets_url
+          method: 'GET'
+          headers: defaultHeaders
+          json: true
+        request options, (error, response, assets=[]) ->
+          if error? or response.statusCode isnt 200
+            logError('Fetching draft release assets failed', error, assets)
+            callback(error ? new Error(response.statusCode))
+          else
+            firstDraft.assets = assets
+            callback(null, firstDraft)
+      else
+        createAtomDraftRelease(callback)
+
+createAtomDraftRelease = (callback) ->
+  {version} = require('../../package.json')
+  options =
+    uri: 'https://api.github.com/repos/atom/atom/releases'
+    method: 'POST'
+    headers: defaultHeaders
+    json:
+      tag_name: "v#{version}"
+      name: version
+      draft: true
+      body: """
+        ### Notable Changes
+
+        * Something new
+      """
+
+  request options, (error, response, body='') ->
+    if error? or response.statusCode isnt 201
+      logError("Creating atom/atom draft release failed", error, body)
+      callback(error ? new Error(response.statusCode))
+    else
+      callback(null, body)
 
 deleteRelease = (release) ->
   options =

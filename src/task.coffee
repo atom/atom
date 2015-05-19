@@ -1,6 +1,7 @@
 _ = require 'underscore-plus'
-child_process = require 'child_process'
+{fork} = require 'child_process'
 {Emitter} = require 'emissary'
+Grim = require 'grim'
 
 # Extended: Run a node script in a separate process.
 #
@@ -35,25 +36,6 @@ child_process = require 'child_process'
 #
 #   callback()
 # ```
-#
-# ## Events
-#
-# ### task:log
-#
-# Emitted when console.log is called within the task.
-#
-# ### task:warn
-#
-# Emitted when console.warn is called within the task.
-#
-# ### task:error
-#
-# Emitted when console.error is called within the task.
-#
-# ### task:completed
-#
-# Emitted when the task has succeeded or failed.
-#
 module.exports =
 class Task
   Emitter.includeInto(this)
@@ -84,12 +66,15 @@ class Task
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file that
   #   exports a single {Function} to execute.
   constructor: (taskPath) ->
-    coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}').register();"
-    coffeeScriptRequire = "require('#{require.resolve('coffee-script')}').register();"
+    coffeeCacheRequire = "require('#{require.resolve('coffee-cash')}')"
+    coffeeCachePath = require('coffee-cash').getCacheDirectory()
+    coffeeStackRequire = "require('#{require.resolve('coffeestack')}')"
+    stackCachePath = require('coffeestack').getCacheDirectory()
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
-      #{coffeeScriptRequire}
-      #{coffeeCacheRequire}
+      #{coffeeCacheRequire}.setCacheDirectory('#{coffeeCachePath}');
+      #{coffeeCacheRequire}.register();
+      #{coffeeStackRequire}.setCacheDirectory('#{stackCachePath}');
       #{taskBootstrapRequire}
     """
     bootstrap = bootstrap.replace(/\\/g, "\\\\")
@@ -98,11 +83,14 @@ class Task
     taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = child_process.fork '--eval', [bootstrap], {env, cwd: __dirname}
+    @childProcess = fork '--eval', [bootstrap], {env, silent: true}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
     @on "task:error", -> console.error(arguments...)
+    @on "task:deprecations", (deprecations) ->
+      Grim.addSerializedDeprecation(deprecation) for deprecation in deprecations
+      return
     @on "task:completed", (args...) => @callback?(args...)
 
     @handleEvents()
@@ -111,7 +99,12 @@ class Task
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
-      @emit(event, args...)
+      @emit(event, args...) if @childProcess?
+    # Catch the errors that happened before task-bootstrap.
+    @childProcess.stdout.on 'data', (data) ->
+      console.log data.toString()
+    @childProcess.stderr.on 'data', (data) ->
+      console.error data.toString()
 
   # Public: Starts the task.
   #
@@ -144,6 +137,14 @@ class Task
       throw new Error('Cannot send message to terminated process')
     undefined
 
+  # Public: Call a function when an event is emitted by the child process
+  #
+  # * `eventName` The {String} name of the event to handle.
+  # * `callback` The {Function} to call when the event is emitted.
+  #
+  # Returns a {Disposable} that can be used to stop listening for the event.
+  on: (eventName, callback) -> Emitter::on.call(this, eventName, callback)
+
   # Public: Forcefully stop the running task.
   #
   # No more events are emitted once this method is called.
@@ -154,5 +155,4 @@ class Task
     @childProcess.kill()
     @childProcess = null
 
-    @off()
     undefined

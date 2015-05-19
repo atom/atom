@@ -1,6 +1,6 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
-_ = require 'underscore-plus'
+{Disposable} = require 'event-kit'
 ipc = require 'ipc'
 shell = require 'shell'
 {Subscriber} = require 'emissary'
@@ -14,12 +14,41 @@ class WindowEventHandler
   constructor: ->
     @reloadRequested = false
 
+    @subscribe ipc, 'message', (message, detail) ->
+      switch message
+        when 'open-locations'
+          needsProjectPaths = atom.project?.getPaths().length is 0
+
+          for {pathToOpen, initialLine, initialColumn} in detail
+            if pathToOpen? and needsProjectPaths
+              if fs.existsSync(pathToOpen)
+                atom.project.addPath(pathToOpen)
+              else
+                dirToOpen = path.dirname(pathToOpen)
+                if fs.existsSync(dirToOpen)
+                  atom.project.addPath(dirToOpen)
+
+            unless fs.isDirectorySync(pathToOpen)
+              atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+
+          return
+
+        when 'update-available'
+          atom.updateAvailable(detail)
+
+          # FIXME: Remove this when deprecations are removed
+          {releaseVersion} = detail
+          detail = [releaseVersion]
+          if workspaceElement = atom.views.getView(atom.workspace)
+            atom.commands.dispatch workspaceElement, "window:update-available", detail
+
     @subscribe ipc, 'command', (command, args...) ->
       activeElement = document.activeElement
-      # Use root view if body has focus
-      if activeElement is document.body and atom.workspaceView?
-        activeElement = atom.workspaceView
-      $(activeElement).trigger(command, args...)
+      # Use the workspace element view if body has focus
+      if activeElement is document.body and workspaceElement = atom.views.getView(atom.workspace)
+        activeElement = workspaceElement
+
+      atom.commands.dispatch(activeElement, command, args[0])
 
     @subscribe ipc, 'context-command', (command, args...) ->
       $(atom.contextMenu.activeElement).trigger(command, args...)
@@ -28,16 +57,8 @@ class WindowEventHandler
 
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
-    @subscribe $(window), 'window:open-path', (event, {pathToOpen, initialLine, initialColumn}) ->
-      unless atom.project?.getPath()
-        if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
-          atom.project?.setPath(pathToOpen)
-
-      unless fs.isDirectorySync(pathToOpen)
-        atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
-
     @subscribe $(window), 'beforeunload', =>
-      confirmed = atom.workspace?.confirmClose()
+      confirmed = atom.workspace?.confirmClose(windowCloseRequested: true)
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
 
@@ -61,23 +82,28 @@ class WindowEventHandler
 
     @subscribeToCommand $(window), 'window:toggle-dev-tools', -> atom.toggleDevTools()
 
+    if process.platform in ['win32', 'linux']
+      @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
+        atom.config.set('core.autoHideMenuBar', not atom.config.get('core.autoHideMenuBar'))
+
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious
 
     document.addEventListener 'keydown', @onKeydown
 
-    @subscribe $(document), 'drop', (e) ->
-      e.preventDefault()
-      e.stopPropagation()
-      pathsToOpen = _.pluck(e.originalEvent.dataTransfer.files, 'path')
-      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+    document.addEventListener 'drop', @onDrop
+    @subscribe new Disposable =>
+      document.removeEventListener('drop', @onDrop)
 
-    @subscribe $(document), 'dragover', (e) ->
-      e.preventDefault()
-      e.stopPropagation()
+    document.addEventListener 'dragover', @onDragOver
+    @subscribe new Disposable =>
+      document.removeEventListener('dragover', @onDragOver)
 
     @subscribe $(document), 'click', 'a', @openLink
+
+    # Prevent form submits from changing the current window's URL
+    @subscribe $(document), 'submit', 'form', (e) -> e.preventDefault()
 
     @subscribe $(document), 'contextmenu', (e) ->
       e.preventDefault()
@@ -106,6 +132,15 @@ class WindowEventHandler
     atom.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
 
+  onDrop: (event) ->
+    event.preventDefault()
+    event.stopPropagation()
+
+  onDragOver: (event) ->
+    event.preventDefault()
+    event.stopPropagation()
+    event.dataTransfer.dropEffect = 'none'
+
   openLink: ({target, currentTarget}) ->
     location = target?.getAttribute('href') or currentTarget?.getAttribute('href')
     if location and location[0] isnt '#' and /^https?:\/\//.test(location)
@@ -121,6 +156,7 @@ class WindowEventHandler
       continue unless tabIndex >= 0
 
       callback(element, tabIndex)
+    return
 
   focusNext: =>
     focusedTabIndex = parseInt($(':focus').attr('tabindex')) or -Infinity

@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-{deprecate} = require 'grim'
 textUtils = require './text-utils'
 
 WhitespaceRegexesByTabLength = {}
@@ -21,14 +20,14 @@ class Token
   firstTrailingWhitespaceIndex: null
   hasInvisibleCharacters: false
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab, @hasPairedCharacter, @isSoftWrapIndentation}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
     @hasPairedCharacter ?= textUtils.hasPairedCharacter(@value)
 
   isEqual: (other) ->
     # TODO: scopes is deprecated. This is here for the sake of lang package tests
-    @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic
+    @value is other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic is !!other.isAtomic
 
   isBracket: ->
     /^meta\.brace\b/.test(_.last(@scopes))
@@ -142,6 +141,15 @@ class Token
       bufferDelta: if isHardTab then 1 else tabStop
       isAtomic: true
       isHardTab: isHardTab
+    )
+
+  buildSoftWrapIndentationToken: (length) ->
+    new Token(
+      value: _.multiplyString(" ", length),
+      scopes: @scopes,
+      bufferDelta: 0,
+      isAtomic: true,
+      isSoftWrapIndentation: true
     )
 
   isOnlyWhitespace: ->

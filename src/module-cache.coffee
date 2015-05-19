@@ -59,6 +59,8 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
     if childMetadata?.version
       try
         mainPath = require.resolve(childPath)
+      catch error
+        mainPath = null
 
       if mainPath
         moduleCache.dependencies.push
@@ -198,7 +200,7 @@ registerBuiltins = (devMode) ->
     cache.builtins.atom = atomCoffeePath if fs.isFileSync(atomCoffeePath)
   cache.builtins.atom ?= path.join(cache.resourcePath, 'exports', 'atom.js')
 
-  atomShellRoot = path.join(process.resourcesPath, 'atom')
+  atomShellRoot = path.join(process.resourcesPath, 'atom.asar')
 
   commonRoot = path.join(atomShellRoot, 'common', 'api', 'lib')
   commonBuiltins = ['callbacks-registry', 'clipboard', 'crash-reporter', 'screen', 'shell']

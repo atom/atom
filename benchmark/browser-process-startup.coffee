@@ -8,7 +8,7 @@ _ = require 'underscore-plus'
 temp = require 'temp'
 
 directoryToOpen = temp.mkdirSync('browser-process-startup-')
-socketPath = path.join(os.tmpdir(), 'atom.sock')
+socketPath = path.join(os.tmpdir(), "atom-#{process.env.USER}.sock")
 numberOfRuns = 10
 
 deleteSocketFile = ->

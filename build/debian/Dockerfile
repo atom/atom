@@ -1,13 +1,13 @@
 # VERSION:        0.1
-# DESCRIPTION:    Create the atom editor in a container 
+# DESCRIPTION:    Create the atom editor in a container
 # AUTHOR:         Jessica Frazelle <jessie@docker.com>
 # COMMENTS:
-#   This file describes how to build the atom editor 
+#   This file describes how to build the atom editor
 #   in a container with all dependencies installed.
 #   Tested on Debian Jessie.
 # USAGE:
 #   # Download atom Dockerfile
-#   wget http://raw.githubusercontent.com/atom/atom/master/Dockerfile
+#   wget https://raw.githubusercontent.com/atom/atom/master/Dockerfile
 #
 #   # Build atom image
 #   docker build -t atom .

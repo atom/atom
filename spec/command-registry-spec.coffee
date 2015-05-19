@@ -1,4 +1,5 @@
 CommandRegistry = require '../src/command-registry'
+_ = require 'underscore-plus'
 
 describe "CommandRegistry", ->
   [registry, parent, child, grandchild] = []
@@ -147,6 +148,16 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
       expect(calls).toEqual []
 
+  describe "::add(selector, commandName, callback)", ->
+    it "throws an error when called with an invalid selector", ->
+      badSelector = '<>'
+      addError = null
+      try
+        registry.add badSelector, 'foo:bar', ->
+      catch error
+        addError = error
+      expect(addError.message).toContain(badSelector)
+
   describe "::findCommands({target})", ->
     it "returns commands that can be invoked on the target or its ancestors", ->
       registry.add '.parent', 'namespace:command-1', ->
@@ -154,8 +165,15 @@ describe "CommandRegistry", ->
       registry.add '.grandchild', 'namespace:command-3', ->
       registry.add '.grandchild.no-match', 'namespace:command-4', ->
 
-      expect(registry.findCommands(target: grandchild)[0..2]).toEqual [
+      registry.add grandchild, 'namespace:inline-command-1', ->
+      registry.add child, 'namespace:inline-command-2', ->
+
+      commands = registry.findCommands(target: grandchild)
+      nonJqueryCommands = _.reject commands, (cmd) -> cmd.jQuery
+      expect(nonJqueryCommands).toEqual [
+        {name: 'namespace:inline-command-1', displayName: 'Namespace: Inline Command 1'}
         {name: 'namespace:command-3', displayName: 'Namespace: Command 3'}
+        {name: 'namespace:inline-command-2', displayName: 'Namespace: Inline Command 2'}
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]

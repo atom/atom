@@ -1,5 +1,7 @@
 require './benchmark-helper'
-{$, _, WorkspaceView} = require 'atom'
+{$} = require '../src/space-pen-extensions'
+_ = require 'underscore-plus'
+{WorkspaceView} = require 'atom'
 TokenizedBuffer = require '../src/tokenized-buffer'
 
 describe "editorView.", ->
@@ -211,7 +213,7 @@ describe "TokenizedBuffer.", ->
 
     beforeEach ->
       editor = benchmarkFixturesProject.openSync('medium.coffee')
-      { languageMode, buffer } = editor
+      {languageMode, buffer} = editor
 
     benchmark "construction", 20, ->
-      new TokenizedBuffer(buffer, { languageMode, tabLength: 2})
+      new TokenizedBuffer(buffer, {languageMode, tabLength: 2})

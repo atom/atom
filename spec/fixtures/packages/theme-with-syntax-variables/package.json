@@ -1,4 +1,4 @@
 {
   "theme": "syntax",
-  "stylesheets": ["editor.less"]
+  "styleSheets": ["editor.less"]
 }

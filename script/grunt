@@ -1,17 +1,6 @@
 #!/usr/bin/env node
-var cp = require('./utils/child-process-wrapper.js');
-var fs = require('fs');
-var path = require('path');
+var runGrunt = require('./utils/run-grunt.js');
 
-// node build/node_modules/.bin/grunt "$@"
-var gruntPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
-
-if (!fs.existsSync(gruntPath)) {
-  console.error('Grunt command does not exist at: ' + gruntPath);
-  console.error('Run script/bootstrap to install Grunt');
-  process.exit(1);
-}
-
-var args = ['--gruntfile', path.resolve('build', 'Gruntfile.coffee')];
-args = args.concat(process.argv.slice(2));
-cp.safeSpawn(gruntPath, args, process.exit);
+// build/node_modules/.bin/grunt "$@"
+var args = process.argv.slice(2);
+runGrunt(args, process.exit);

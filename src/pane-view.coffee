@@ -116,27 +116,17 @@ class PaneView extends View
 
     if item.onDidChangeTitle?
       disposable = item.onDidChangeTitle(@activeItemTitleChanged)
-      deprecate 'Please return a Disposable object from your ::onDidChangeTitle method!' unless disposable?.dispose?
       @activeItemDisposables.add(disposable) if disposable?.dispose?
     else if item.on?
-      deprecate '::on methods for items are no longer supported. If you would like your item to support title change behavior, please implement a ::onDidChangeTitle() method.'
       disposable = item.on('title-changed', @activeItemTitleChanged)
       @activeItemDisposables.add(disposable) if disposable?.dispose?
 
     if item.onDidChangeModified?
       disposable = item.onDidChangeModified(@activeItemModifiedChanged)
-      deprecate 'Please return a Disposable object from your ::onDidChangeModified method!' unless disposable?.dispose?
       @activeItemDisposables.add(disposable) if disposable?.dispose?
     else if item.on?
-      deprecate '::on methods for items are no longer supported. If you would like your item to support modified behavior, please implement a ::onDidChangeModified() method.'
       item.on('modified-status-changed', @activeItemModifiedChanged)
       @activeItemDisposables.add(disposable) if disposable?.dispose?
-
-    view = @model.getView(item).__spacePenView
-    otherView.hide() for otherView in @itemViews.children().not(view).views()
-    @itemViews.append(view) unless view.parent().is(@itemViews)
-    view.show() if @attached
-    view.focus() if @hasFocus()
 
     @trigger 'pane:active-item-changed', [item]
 
@@ -159,15 +149,17 @@ class PaneView extends View
   activeItemModifiedChanged: =>
     @trigger 'pane:active-item-modified-status-changed'
 
-  @::accessor 'activeView', -> @model.getView(@activeItem)?.__spacePenView
+  @::accessor 'activeView', ->
+    element = atom.views.getView(@activeItem)
+    $(element).view() ? element
 
-  splitLeft: (items...) -> @model.getView(@model.splitLeft({items})).__spacePenView
+  splitLeft: (items...) -> atom.views.getView(@model.splitLeft({items})).__spacePenView
 
-  splitRight: (items...) -> @model.getView(@model.splitRight({items})).__spacePenView
+  splitRight: (items...) -> atom.views.getView(@model.splitRight({items})).__spacePenView
 
-  splitUp: (items...) -> @model.getView(@model.splitUp({items})).__spacePenView
+  splitUp: (items...) -> atom.views.getView(@model.splitUp({items})).__spacePenView
 
-  splitDown: (items...) -> @model.getView(@model.splitDown({items})).__spacePenView
+  splitDown: (items...) -> atom.views.getView(@model.splitDown({items})).__spacePenView
 
   getContainer: -> @closest('atom-pane-container').view()
 

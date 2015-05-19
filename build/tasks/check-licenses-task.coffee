@@ -1,4 +1,3 @@
-
 module.exports = (grunt) ->
   grunt.registerTask 'check-licenses', 'Report the licenses of all dependencies', ->
     legalEagle = require 'legal-eagle'
@@ -13,7 +12,7 @@ module.exports = (grunt) ->
     legalEagle options, (err, summary) ->
       if err?
         console.error(err)
-        exit 1
+        process.exit 1
 
       for key of summary
         delete summary[key] if key.match /^atom@/

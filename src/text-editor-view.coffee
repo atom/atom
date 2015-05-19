@@ -1,5 +1,4 @@
 {View, $} = require 'space-pen'
-React = require 'react-atom-fork'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
@@ -7,7 +6,7 @@ TextEditorElement = require './text-editor-element'
 TextEditorComponent = require './text-editor-component'
 {deprecate} = require 'grim'
 
-# Public: Represents the entire visual pane in Atom.
+# Deprecated: Represents the entire visual pane in Atom.
 #
 # The TextEditorView manages the {TextEditor}, which manages the file buffers.
 # `TextEditorView` is intentionally sparse. Most of the things you'll want
@@ -73,13 +72,25 @@ class TextEditorView extends View
   setModel: (@model) ->
     @editor = @model
 
-    @scrollView = @find('.scroll-view')
-    @underlayer = @find('.highlights').addClass('underlayer')
-    @overlayer = @find('.lines').addClass('overlayer')
-    @hiddenInput = @.find('.hidden-input')
+    @root = $(@element.rootElement)
+
+    @scrollView = @root.find('.scroll-view')
+
+    if atom.config.get('editor.useShadowDOM')
+      @underlayer = $("<div class='underlayer'></div>").appendTo(this)
+      @overlayer = $("<div class='overlayer'></div>").appendTo(this)
+    else
+      @underlayer = @find('.highlights').addClass('underlayer')
+      @overlayer = @find('.lines').addClass('overlayer')
+
+    @hiddenInput = @root.find('.hidden-input')
+
+    @hiddenInput.on = (args...) =>
+      args[0] = 'blur' if args[0] is 'focusout'
+      $::on.apply(this, args)
 
     @subscribe atom.config.observe 'editor.showLineNumbers', =>
-      @gutter = @find('.gutter')
+      @gutter = @root.find('.gutter')
 
       @gutter.removeClassFromAllLines = (klass) =>
         deprecate('Use decorations instead: http://blog.atom.io/2014/07/24/decorations.html')
@@ -95,6 +106,13 @@ class TextEditorView extends View
         lines.addClass(klass)
         lines.length > 0
 
+  find: ->
+    shadowResult = @root.find.apply(@root, arguments)
+    if shadowResult.length > 0
+      shadowResult
+    else
+      super
+
   # Public: Get the underlying editor model for this view.
   #
   # Returns an {TextEditor}
@@ -107,8 +125,8 @@ class TextEditorView extends View
   Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
   Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
   Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
-  Object.defineProperty @::, 'isFocused', get: -> @component?.state.focused
-  Object.defineProperty @::, 'mini', get: -> @component?.props.mini
+  Object.defineProperty @::, 'isFocused', get: -> document.activeElement is @element or document.activeElement is @element.component?.hiddenInputComponent?.getDomNode()
+  Object.defineProperty @::, 'mini', get: -> @model?.isMini()
   Object.defineProperty @::, 'component', get: -> @element?.component
 
   afterAttach: (onDom) ->
@@ -119,6 +137,7 @@ class TextEditorView extends View
 
   beforeRemove: ->
     @trigger 'editor:detached', [this]
+    @trigger 'editor:will-be-removed', [this]
     @attached = false
 
   remove: (selector, keepData) ->
@@ -154,20 +173,17 @@ class TextEditorView extends View
     @model.scrollToCursorPosition()
 
   pixelPositionForBufferPosition: (bufferPosition) ->
-    deprecate 'Use TextEditor::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
-    @model.pixelPositionForBufferPosition(bufferPosition)
+    deprecate 'Use TextEditorElement::pixelPositionForBufferPosition instead. You can get the editor via editorView.getModel()'
+    @model.pixelPositionForBufferPosition(bufferPosition, true)
 
   pixelPositionForScreenPosition: (screenPosition) ->
-    deprecate 'Use TextEditor::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
-    @model.pixelPositionForScreenPosition(screenPosition)
+    deprecate 'Use TextEditorElement::pixelPositionForScreenPosition instead. You can get the editor via editorView.getModel()'
+    @model.pixelPositionForScreenPosition(screenPosition, true)
 
   appendToLinesView: (view) ->
     view.css('position', 'absolute')
     view.css('z-index', 1)
-    @find('.lines').prepend(view)
-
-  unmountComponent: ->
-    React.unmountComponentAtNode(@element) if @component.isMounted()
+    @overlayer.append(view)
 
   splitLeft: ->
     deprecate """
@@ -231,8 +247,8 @@ class TextEditorView extends View
     @model.pageUp()
 
   getFirstVisibleScreenRow: ->
-    deprecate 'Use TextEditor::getFirstVisibleScreenRow instead. You can get the editor via editorView.getModel()'
-    @model.getFirstVisibleScreenRow()
+    deprecate 'Use TextEditorElement::getFirstVisibleScreenRow instead.'
+    @model.getFirstVisibleScreenRow(true)
 
   getLastVisibleScreenRow: ->
     deprecate 'Use TextEditor::getLastVisibleScreenRow instead. You can get the editor via editorView.getModel()'
@@ -263,7 +279,7 @@ class TextEditorView extends View
 
   setShowIndentGuide: (showIndentGuide) ->
     deprecate 'This is going away. Use atom.config.set("editor.showIndentGuide", true|false) instead'
-    @component.setShowIndentGuide(showIndentGuide)
+    atom.config.set("editor.showIndentGuide", showIndentGuide)
 
   setSoftWrap: (softWrapped) ->
     deprecate 'Use TextEditor::setSoftWrapped instead. You can get the editor via editorView.getModel()'

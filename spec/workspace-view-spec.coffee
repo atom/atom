@@ -1,4 +1,4 @@
-{$, $$, WorkspaceView, View} = require 'atom'
+{$, $$, View} = require '../src/space-pen-extensions'
 Q = require 'q'
 path = require 'path'
 temp = require 'temp'
@@ -10,8 +10,10 @@ describe "WorkspaceView", ->
   pathToOpen = null
 
   beforeEach ->
-    atom.project.setPaths([atom.project.resolve('dir')])
-    pathToOpen = atom.project.resolve('a')
+    jasmine.snapshotDeprecations()
+
+    atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
+    pathToOpen = atom.project.getDirectories()[0]?.resolve('a')
     atom.workspace = new Workspace
     atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
     atom.workspaceView.enableKeymap()
@@ -19,6 +21,9 @@ describe "WorkspaceView", ->
 
     waitsForPromise ->
       atom.workspace.open(pathToOpen)
+
+  afterEach ->
+    jasmine.restoreDeprecationsSnapshot()
 
   describe "@deserialize()", ->
     viewState = null
@@ -87,11 +92,11 @@ describe "WorkspaceView", ->
           editorView2 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane atom-text-editor:eq(0)').view()
           editorView4 = atom.workspaceView.panes.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane atom-text-editor:eq(1)').view()
 
-          expect(editorView1.getEditor().getPath()).toBe atom.project.resolve('a')
-          expect(editorView2.getEditor().getPath()).toBe atom.project.resolve('b')
-          expect(editorView3.getEditor().getPath()).toBe atom.project.resolve('../sample.js')
+          expect(editorView1.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('a')
+          expect(editorView2.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
+          expect(editorView3.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.js')
           expect(editorView3.getEditor().getCursorScreenPosition()).toEqual [2, 4]
-          expect(editorView4.getEditor().getPath()).toBe atom.project.resolve('../sample.txt')
+          expect(editorView4.getEditor().getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.txt')
           expect(editorView4.getEditor().getCursorScreenPosition()).toEqual [0, 2]
 
           # ensure adjust pane dimensions is called
@@ -237,10 +242,15 @@ describe "WorkspaceView", ->
 
   describe "the scrollbar visibility class", ->
     it "has a class based on the style of the scrollbar", ->
+      style = 'legacy'
       scrollbarStyle = require 'scrollbar-style'
-      scrollbarStyle.emitValue 'legacy'
+      spyOn(scrollbarStyle, 'getPreferredScrollbarStyle').andCallFake -> style
+
+      atom.workspaceView.element.observeScrollbarStyle()
       expect(atom.workspaceView).toHaveClass 'scrollbars-visible-always'
-      scrollbarStyle.emitValue 'overlay'
+
+      style = 'overlay'
+      atom.workspaceView.element.observeScrollbarStyle()
       expect(atom.workspaceView).toHaveClass 'scrollbars-visible-when-scrolling'
 
   describe "editor font styling", ->
@@ -277,12 +287,15 @@ describe "WorkspaceView", ->
       workspaceElement = atom.views.getView(atom.workspace)
 
     it 'inserts panel container elements in the correct places in the DOM', ->
-      leftContainer = workspaceElement.querySelector('atom-panel-container[location="left"]')
-      rightContainer = workspaceElement.querySelector('atom-panel-container[location="right"]')
+      leftContainer = workspaceElement.querySelector('atom-panel-container.left')
+      rightContainer = workspaceElement.querySelector('atom-panel-container.right')
       expect(leftContainer.nextSibling).toBe workspaceElement.verticalAxis
       expect(rightContainer.previousSibling).toBe workspaceElement.verticalAxis
 
-      topContainer = workspaceElement.querySelector('atom-panel-container[location="top"]')
-      bottomContainer = workspaceElement.querySelector('atom-panel-container[location="bottom"]')
+      topContainer = workspaceElement.querySelector('atom-panel-container.top')
+      bottomContainer = workspaceElement.querySelector('atom-panel-container.bottom')
       expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
       expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
+
+      modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
+      expect(modalContainer.parentNode).toBe workspaceElement

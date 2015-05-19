@@ -33,6 +33,13 @@ describe "PaneContainer", ->
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(containerB.getActivePane()).toBe pane3B
 
+    it "makes the first pane active if no pane exists for the activePaneId", ->
+      pane3A.activate()
+      state = containerA.serialize()
+      state.activePaneId = -22
+      containerB = atom.deserializers.deserialize(state)
+      expect(containerB.getActivePane()).toBe containerB.getPanes()[0]
+
   it "does not allow the root pane to be destroyed", ->
     container = new PaneContainer
     container.getRoot().destroy()
@@ -122,7 +129,7 @@ describe "PaneContainer", ->
     beforeEach ->
       class TestItem
         shouldPromptToSave: -> true
-        getUri: -> 'test'
+        getURI: -> 'test'
 
       container = new PaneContainer
       container.getRoot().splitRight()
@@ -141,3 +148,57 @@ describe "PaneContainer", ->
       saved = container.confirmClose()
       expect(saved).toBeFalsy()
       expect(atom.confirm).toHaveBeenCalled()
+
+  describe "::onDidAddPane(callback)", ->
+    it "invokes the given callback when panes are added", ->
+      container = new PaneContainer
+      events = []
+      container.onDidAddPane (event) -> events.push(event)
+
+      pane1 = container.getActivePane()
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitDown()
+
+      expect(events).toEqual [{pane: pane2}, {pane: pane3}]
+
+  describe "::onDidDestroyPane(callback)", ->
+    it "invokes the given callback when panes are destroyed", ->
+      container = new PaneContainer
+      events = []
+      container.onDidDestroyPane (event) -> events.push(event)
+
+      pane1 = container.getActivePane()
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitDown()
+
+      pane2.destroy()
+      pane3.destroy()
+
+      expect(events).toEqual [{pane: pane2}, {pane: pane3}]
+
+  describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
+    it "invokes the given callbacks when an item will be destroyed on any pane", ->
+      container = new PaneContainer
+      pane1 = container.getRoot()
+      item1 = new Object
+      item2 = new Object
+      item3 = new Object
+
+      pane1.addItem(item1)
+      events = []
+      container.onWillDestroyPaneItem (event) -> events.push(['will', event])
+      container.onDidDestroyPaneItem (event) -> events.push(['did', event])
+      pane2 = pane1.splitRight(items: [item2, item3])
+
+      pane1.destroyItem(item1)
+      pane2.destroyItem(item3)
+      pane2.destroyItem(item2)
+
+      expect(events).toEqual [
+        ['will', {item: item1, pane: pane1, index: 0}]
+        ['did', {item: item1, pane: pane1, index: 0}]
+        ['will', {item: item3, pane: pane2, index: 1}]
+        ['did', {item: item3, pane: pane2, index: 1}]
+        ['will', {item: item2, pane: pane2, index: 0}]
+        ['did', {item: item2, pane: pane2, index: 0}]
+      ]

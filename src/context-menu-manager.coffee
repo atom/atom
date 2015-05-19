@@ -1,21 +1,44 @@
-{$} = require './space-pen-extensions'
 _ = require 'underscore-plus'
-remote = require 'remote'
 path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
-{specificity} = require 'clear-cut'
+{calculateSpecificity, validateSelector} = require 'clear-cut'
 {Disposable} = require 'event-kit'
 Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
 
-SpecificityCache = {}
+platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 
 # Extended: Provides a registry for commands that you'd like to appear in the
 # context menu.
 #
 # An instance of this class is always available as the `atom.contextMenu`
 # global.
+#
+# ## Context Menu CSON Format
+#
+# ```coffee
+# 'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+# 'atom-text-editor': [{
+#   label: 'History',
+#   submenu: [
+#     {label: 'Undo', command:'core:undo'}
+#     {label: 'Redo', command:'core:redo'}
+#   ]
+# }]
+# ```
+#
+# In your package's menu `.cson` file you need to specify it under a
+# `context-menu` key:
+#
+# ```coffee
+# 'context-menu':
+#   'atom-workspace': [{label: 'Help', command: 'application:open-documentation'}]
+#   ...
+# ```
+#
+# The format for use in {::add} is the same minus the `context-menu` key. See
+# {::add} for more information.
 module.exports =
 class ContextMenuManager
   constructor: ({@resourcePath, @devMode}) ->
@@ -25,10 +48,13 @@ class ContextMenuManager
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
 
   loadPlatformItems: ->
-    menusDirPath = path.join(@resourcePath, 'menus')
-    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
-    map = CSON.readFileSync(platformMenuPath)
-    atom.contextMenu.add(map['context-menu'])
+    if platformContextMenu?
+      @add(platformContextMenu)
+    else
+      menusDirPath = path.join(@resourcePath, 'menus')
+      platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+      map = CSON.readFileSync(platformMenuPath)
+      @add(map['context-menu'])
 
   # Public: Add context menu items scoped by CSS selectors.
   #
@@ -46,8 +72,8 @@ class ContextMenuManager
   #   'atom-text-editor': [{
   #     label: 'History',
   #     submenu: [
-  #       {label: 'Undo': command:'core:undo'}
-  #       {label: 'Redo': command:'core:redo'}
+  #       {label: 'Undo', command:'core:undo'}
+  #       {label: 'Redo', command:'core:redo'}
   #     ]
   #   }]
   # }
@@ -75,21 +101,31 @@ class ContextMenuManager
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
   add: (itemsBySelector) ->
-    # Detect deprecated file path as first argument
-    unless typeof itemsBySelector is 'object'
-      Grim.deprecate("ContextMenuManage::add has changed to take a single object as its argument. Please consult the documentation.")
-      itemsBySelector = arguments[1]
-      devMode = arguments[2]?.devMode
+    if Grim.includeDeprecatedAPIs
+      # Detect deprecated file path as first argument
+      if itemsBySelector? and typeof itemsBySelector isnt 'object'
+        Grim.deprecate """
+          `ContextMenuManager::add` has changed to take a single object as its
+          argument. Please see
+          https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format for more info.
+        """
+        itemsBySelector = arguments[1]
+        devMode = arguments[2]?.devMode
 
-    # Detect deprecated format for items object
-    for key, value of itemsBySelector
-      unless _.isArray(value)
-        Grim.deprecate("The format for declaring context menu items has changed. Please consult the documentation.")
-        itemsBySelector = @convertLegacyItemsBySelector(itemsBySelector, devMode)
+      # Detect deprecated format for items object
+      for key, value of itemsBySelector
+        unless _.isArray(value)
+          Grim.deprecate """
+            `ContextMenuManager::add` has changed to take a single object as its
+            argument. Please see
+            https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format for more info.
+          """
+          itemsBySelector = @convertLegacyItemsBySelector(itemsBySelector, devMode)
 
     addedItemSets = []
 
     for selector, items of itemsBySelector
+      validateSelector(selector)
       itemSet = new ContextMenuItemSet(selector, items)
       addedItemSets.push(itemSet)
       @itemSets.push(itemSet)
@@ -97,6 +133,7 @@ class ContextMenuManager
     new Disposable =>
       for itemSet in addedItemSets
         @itemSets.splice(@itemSets.indexOf(itemSet), 1)
+      return
 
   templateForElement: (target) ->
     @templateForEvent({target})
@@ -147,15 +184,12 @@ class ContextMenuManager
 
     items
 
-  # Public: Request a context menu to be displayed.
-  #
-  # * `event` A DOM event.
   showForEvent: (event) ->
     @activeElement = event.target
     menuTemplate = @templateForEvent(event)
 
     return unless menuTemplate?.length > 0
-    remote.getCurrentWindow().emit('context-menu', menuTemplate)
+    atom.getCurrentWindow().emit('context-menu', menuTemplate)
     return
 
   clear: ->
@@ -172,4 +206,4 @@ class ContextMenuManager
 
 class ContextMenuItemSet
   constructor: (@selector, @items) ->
-    @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
+    @specificity = calculateSpecificity(@selector)

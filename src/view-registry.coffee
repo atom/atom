@@ -1,5 +1,6 @@
+{find} = require 'underscore-plus'
+Grim = require 'grim'
 {Disposable} = require 'event-kit'
-{jQuery} = require './space-pen-extensions'
 
 # Essential: `ViewRegistry` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
@@ -11,7 +12,7 @@
 # application logic and is the primary point of API interaction. The view
 # just handles presentation.
 #
-# View providers to inform the workspace how your model objects should be
+# View providers inform the workspace how your model objects should be
 # presented in the DOM. A view provider must always return a DOM node, which
 # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
 # an ideal tool for implementing views in Atom.
@@ -41,9 +42,18 @@
 # ```
 module.exports =
 class ViewRegistry
+  documentPollingInterval: 200
+  documentUpdateRequested: false
+  documentReadInProgress: false
+  performDocumentPollAfterUpdate: false
+  pollIntervalHandle: null
+
   constructor: ->
     @views = new WeakMap
     @providers = []
+    @documentWriters = []
+    @documentReaders = []
+    @documentPollers = []
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -65,7 +75,7 @@ class ViewRegistry
   #   * `modelConstructor` Constructor {Function} for your model.
   #   * `viewConstructor` (Optional) Constructor {Function} for your view. It
   #     should be a subclass of `HTMLElement` (that is, your view should be a
-  #     DOM node) and   have a `::setModel()` method which will be called
+  #     DOM node) and have a `::setModel()` method which will be called
   #     immediately after construction. If you don't supply this property, you
   #     must supply the `createView` property with a function that never returns
   #     `undefined`.
@@ -77,10 +87,16 @@ class ViewRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added provider.
-  addViewProvider: (providerSpec) ->
-    @providers.push(providerSpec)
+  addViewProvider: (modelConstructor, createView) ->
+    if arguments.length is 1
+      Grim.deprecate("atom.views.addViewProvider now takes 2 arguments: a model constructor and a createView function. See docs for details.")
+      provider = modelConstructor
+    else
+      provider = {modelConstructor, createView}
+
+    @providers.push(provider)
     new Disposable =>
-      @providers = @providers.filter (provider) -> provider isnt providerSpec
+      @providers = @providers.filter (p) -> p isnt provider
 
   # Essential: Get the view associated with an object in the workspace.
   #
@@ -90,22 +106,24 @@ class ViewRegistry
   #
   # ## Examples
   #
-  # ### Getting An Editor View
+  # ### Getting An Editor Element
+  #
   # ```coffee
   # textEditor = atom.workspace.getActiveTextEditor()
-  # textEditorView = atom.views.getView(textEditor)
+  # textEditorElement = atom.views.getView(textEditor)
   # ```
   #
-  # ### Getting A Pane View
+  # ### Getting A Pane Element
+  #
   # ```coffee
   # pane = atom.workspace.getActivePane()
-  # paneView = atom.views.getView(pane)
+  # paneElement = atom.views.getView(pane)
   # ```
   #
-  # ### Getting The Workspace View
+  # ### Getting The Workspace Element
   #
   # ```coffee
-  # workspaceView = atom.views.getView(atom.workspace)
+  # workspaceElement = atom.views.getView(atom.workspace)
   # ```
   #
   # * `object` The object for which you want to retrieve a view. This can be a
@@ -125,21 +143,79 @@ class ViewRegistry
   createView: (object) ->
     if object instanceof HTMLElement
       object
-    else if object instanceof jQuery
-      object[0]?.__spacePenView ?= object
+    else if object?.jquery
       object[0]
     else if provider = @findProvider(object)
       element = provider.createView?(object)
       unless element?
         element = new provider.viewConstructor
-        element.setModel(object)
+        element.initialize?(object) ? element.setModel?(object)
       element
     else if viewConstructor = object?.getViewClass?()
       view = new viewConstructor(object)
-      view[0].__spacePenView ?= view
       view[0]
     else
       throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
 
   findProvider: (object) ->
-    @providers.find ({modelConstructor}) -> object instanceof modelConstructor
+    find @providers, ({modelConstructor}) -> object instanceof modelConstructor
+
+  updateDocument: (fn) ->
+    @documentWriters.push(fn)
+    @requestDocumentUpdate() unless @documentReadInProgress
+    new Disposable =>
+      @documentWriters = @documentWriters.filter (writer) -> writer isnt fn
+
+  readDocument: (fn) ->
+    @documentReaders.push(fn)
+    @requestDocumentUpdate()
+    new Disposable =>
+      @documentReaders = @documentReaders.filter (reader) -> reader isnt fn
+
+  pollDocument: (fn) ->
+    @startPollingDocument() if @documentPollers.length is 0
+    @documentPollers.push(fn)
+    new Disposable =>
+      @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
+      @stopPollingDocument() if @documentPollers.length is 0
+
+  pollAfterNextUpdate: ->
+    @performDocumentPollAfterUpdate = true
+
+  clearDocumentRequests: ->
+    @documentReaders = []
+    @documentWriters = []
+    @documentPollers = []
+    @documentUpdateRequested = false
+    @stopPollingDocument()
+
+  requestDocumentUpdate: ->
+    unless @documentUpdateRequested
+      @documentUpdateRequested = true
+      requestAnimationFrame(@performDocumentUpdate)
+
+  performDocumentUpdate: =>
+    @documentUpdateRequested = false
+    writer() while writer = @documentWriters.shift()
+
+    @documentReadInProgress = true
+    reader() while reader = @documentReaders.shift()
+    @performDocumentPoll() if @performDocumentPollAfterUpdate
+    @performDocumentPollAfterUpdate = false
+    @documentReadInProgress = false
+
+    # process updates requested as a result of reads
+    writer() while writer = @documentWriters.shift()
+
+  startPollingDocument: ->
+    @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
+
+  stopPollingDocument: ->
+    window.clearInterval(@pollIntervalHandle)
+
+  performDocumentPoll: =>
+    if @documentUpdateRequested
+      @performDocumentPollAfterUpdate = true
+    else
+      poller() for poller in @documentPollers
+      return

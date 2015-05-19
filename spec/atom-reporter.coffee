@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 {convertStackTrace} = require 'coffeestack'
 {View, $, $$} = require '../src/space-pen-extensions'
 grim = require 'grim'
+marked = require 'marked'
 
 sourceMaps = {}
 formatStackTrace = (spec, message='', stackTrace) ->
@@ -37,7 +38,8 @@ module.exports =
 class AtomReporter extends View
   @content: ->
     @div class: 'spec-reporter', =>
-      @div outlet: "suites"
+      @div class: 'padded pull-right', =>
+        @button outlet: 'reloadButton', class: 'btn btn-small reload-button', 'Reload Specs'
       @div outlet: 'coreArea', class: 'symbol-area', =>
         @div outlet: 'coreHeader', class: 'symbol-header'
         @ul outlet: 'coreSummary', class: 'symbol-summary list-unstyled'
@@ -79,6 +81,8 @@ class AtomReporter extends View
     @on 'click', '.stack-trace', ->
       $(this).toggleClass('expanded')
 
+    @reloadButton.on 'click', -> require('ipc').send('call-window-method', 'restart')
+
   reportRunnerResults: (runner) ->
     @updateSpecCounts()
     @status.addClass('alert-success').removeClass('alert-info') if @failedCount is 0
@@ -110,9 +114,10 @@ class AtomReporter extends View
     for deprecation in deprecations
       @deprecationList.append $$ ->
         @div class: 'padded', =>
-          @div class: 'result-message fail deprecation-message', deprecation.message
+          @div class: 'result-message fail deprecation-message', =>
+            @raw marked(deprecation.message)
 
-          for stack in deprecation.stacks
+          for stack in deprecation.getStacks()
             fullStack = stack.map ({functionName, location}) ->
               if functionName is '<unknown>'
                 "  at #{location}"

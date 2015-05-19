@@ -1,12 +1,13 @@
-{deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 _ = require 'underscore-plus'
-{join} = require 'path'
-{Model} = require 'theorist'
+path = require 'path'
+{join} = path
 Q = require 'q'
 Serializable = require 'serializable'
-Delegator = require 'delegato'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
+fs = require 'fs-plus'
+Model = require './model'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
@@ -14,8 +15,8 @@ Panel = require './panel'
 PanelElement = require './panel-element'
 PanelContainer = require './panel-container'
 PanelContainerElement = require './panel-container-element'
-ViewRegistry = require './view-registry'
 WorkspaceElement = require './workspace-element'
+Task = require './task'
 
 # Essential: Represents the state of the user interface for the entire window.
 # An instance of this class is available via the `atom.workspace` global.
@@ -31,61 +32,56 @@ class Workspace extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
-  @delegatesProperty 'activePane', 'activePaneItem', toProperty: 'paneContainer'
-
-  @properties
-    viewRegistry: null
-    paneContainer: null
-    fullScreen: false
-    destroyedItemUris: -> []
-
   constructor: (params) ->
     super
+
+    unless Grim.includeDeprecatedAPIs
+      @paneContainer = params?.paneContainer
+      @fullScreen = params?.fullScreen ? false
+      @destroyedItemURIs = params?.destroyedItemURIs ? []
 
     @emitter = new Emitter
     @openers = []
 
-    viewRegistry = atom.views
-    @paneContainer ?= new PaneContainer({viewRegistry})
-    @paneContainer.onDidDestroyPaneItem(@onPaneItemDestroyed)
+    @paneContainer ?= new PaneContainer()
+    @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @panelContainers =
-      top: new PanelContainer({viewRegistry, location: 'top'})
-      left: new PanelContainer({viewRegistry, location: 'left'})
-      right: new PanelContainer({viewRegistry, location: 'right'})
-      bottom: new PanelContainer({viewRegistry, location: 'bottom'})
+      top: new PanelContainer({location: 'top'})
+      left: new PanelContainer({location: 'left'})
+      right: new PanelContainer({location: 'right'})
+      bottom: new PanelContainer({location: 'bottom'})
+      modal: new PanelContainer({location: 'modal'})
 
     @subscribeToActiveItem()
 
-    @addOpener (filePath) =>
+    @addOpener (filePath) ->
       switch filePath
         when 'atom://.atom/stylesheet'
-          @open(atom.themes.getUserStylesheetPath())
+          atom.project.open(atom.styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @open(atom.keymaps.getUserKeymapPath())
+          atom.project.open(atom.keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @open(atom.config.getUserConfigPath())
+          atom.project.open(atom.config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @open(atom.getUserInitScriptPath())
+          atom.project.open(atom.getUserInitScriptPath())
 
-    atom.views.addViewProvider
-      modelConstructor: Workspace
-      viewConstructor: WorkspaceElement
+    atom.views.addViewProvider Workspace, (model) ->
+      new WorkspaceElement().initialize(model)
 
-    atom.views.addViewProvider
-      modelConstructor: PanelContainer
-      viewConstructor: PanelContainerElement
+    atom.views.addViewProvider PanelContainer, (model) ->
+      new PanelContainerElement().initialize(model)
 
-    atom.views.addViewProvider
-      modelConstructor: Panel
-      viewConstructor: PanelElement
+    atom.views.addViewProvider Panel, (model) ->
+      new PanelElement().initialize(model)
+
+    @subscribeToFontSize()
 
   # Called by the Serializable mixin during deserialization
   deserializeParams: (params) ->
     for packageName in params.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
-    params.paneContainer.viewRegistry = atom.views
     params.paneContainer = PaneContainer.deserialize(params.paneContainer)
     params
 
@@ -104,19 +100,20 @@ class Workspace extends Model
 
       packageNames.push(packageName)
       for scopeName in includedGrammarScopes ? []
-        addGrammar(atom.syntax.grammarForScopeName(scopeName))
+        addGrammar(atom.grammars.grammarForScopeName(scopeName))
+      return
 
     editors = @getTextEditors()
     addGrammar(editor.getGrammar()) for editor in editors
 
     if editors.length > 0
-      for grammar in atom.syntax.getGrammars() when grammar.injectionSelector
+      for grammar in atom.grammars.getGrammars() when grammar.injectionSelector
         addGrammar(grammar)
 
     _.uniq(packageNames)
 
   editorAdded: (editor) ->
-    @emit 'editor-created', editor
+    @emit 'editor-created', editor if includeDeprecatedAPIs
 
   installShellCommands: ->
     require('./command-installer').installShellCommandsInteractively()
@@ -154,16 +151,24 @@ class Workspace extends Model
   # open.
   updateWindowTitle: =>
     appName = 'Atom'
-    if projectPath = atom.project?.getPaths()[0]
-      if item = @getActivePaneItem()
-        document.title = "#{item.getTitle?() ? 'untitled'} - #{projectPath} - #{appName}"
-        atom.setRepresentedFilename(item.getPath?() ? projectPath)
-      else
-        document.title = "#{projectPath} - #{appName}"
-        atom.setRepresentedFilename(projectPath)
+    projectPaths = atom.project?.getPaths() ? []
+    if item = @getActivePaneItem()
+      itemPath = item.getPath?()
+      itemTitle = item.getTitle?()
+      projectPath = _.find projectPaths, (projectPath) ->
+        itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
+    itemTitle ?= "untitled"
+    projectPath ?= projectPaths[0]
+
+    if item? and projectPath?
+      document.title = "#{itemTitle} - #{projectPath} - #{appName}"
+      atom.setRepresentedFilename(itemPath ? projectPath)
+    else if projectPath?
+      document.title = "#{projectPath} - #{appName}"
+      atom.setRepresentedFilename(projectPath)
     else
-      document.title = "untitled - #{appName}"
-      atom.setRepresentedFilename('')
+      document.title = "#{itemTitle} - #{appName}"
+      atom.setRepresentedFilename("")
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.
@@ -200,8 +205,7 @@ class Workspace extends Model
   # Essential: Invoke the given callback when the active pane item changes.
   #
   # * `callback` {Function} to be called when the active pane item changes.
-  #   * `event` {Object} with the following keys:
-  #     * `activeItem` The active pane item.
+  #   * `item` The active pane item.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
@@ -239,6 +243,16 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPane: (callback) -> @paneContainer.onDidAddPane(callback)
 
+  # Extended: Invoke the given callback when a pane is destroyed in the
+  # workspace.
+  #
+  # * `callback` {Function} to be called panes are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `pane` The destroyed pane.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroyPane: (callback) -> @paneContainer.onDidDestroyPane(callback)
+
   # Extended: Invoke the given callback with all current and future panes in the
   # workspace.
   #
@@ -270,7 +284,7 @@ class Workspace extends Model
   # Extended: Invoke the given callback when a pane item is added to the
   # workspace.
   #
-  # * `callback` {Function} to be called when panes are added.
+  # * `callback` {Function} to be called when pane items are added.
   #   * `event` {Object} with the following keys:
   #     * `item` The added pane item.
   #     * `pane` {Pane} containing the added item.
@@ -278,6 +292,31 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPaneItem: (callback) -> @paneContainer.onDidAddPaneItem(callback)
+
+  # Extended: Invoke the given callback when a pane item is about to be
+  # destroyed, before the user is prompted to save it.
+  #
+  # * `callback` {Function} to be called before pane items are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The item to be destroyed.
+  #     * `pane` {Pane} containing the item to be destroyed.
+  #     * `index` {Number} indicating the index of the item to be destroyed in
+  #       its pane.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
+  onWillDestroyPaneItem: (callback) -> @paneContainer.onWillDestroyPaneItem(callback)
+
+  # Extended: Invoke the given callback when a pane item is destroyed.
+  #
+  # * `callback` {Function} to be called when pane items are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The destroyed item.
+  #     * `pane` {Pane} containing the destroyed item.
+  #     * `index` {Number} indicating the index of the destroyed item in its
+  #       pane.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
+  onDidDestroyPaneItem: (callback) -> @paneContainer.onDidDestroyPaneItem(callback)
 
   # Extended: Invoke the given callback when a text editor is added to the
   # workspace.
@@ -294,39 +333,16 @@ class Workspace extends Model
     @onDidAddPaneItem ({item, pane, index}) ->
       callback({textEditor: item, pane, index}) if item instanceof TextEditor
 
-  eachEditor: (callback) ->
-    deprecate("Use Workspace::observeTextEditors instead")
-
-    callback(editor) for editor in @getEditors()
-    @subscribe this, 'editor-created', (editor) -> callback(editor)
-
-  getEditors: ->
-    deprecate("Use Workspace::getTextEditors instead")
-
-    editors = []
-    for pane in @paneContainer.getPanes()
-      editors.push(item) for item in pane.getItems() when item instanceof TextEditor
-
-    editors
-
-  on: (eventName) ->
-    switch eventName
-      when 'editor-created'
-        deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
-      when 'uri-opened'
-        deprecate("Use Workspace::onDidAddPaneItem instead.")
-      else
-        deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
   ###
   Section: Opening
   ###
 
-  # Essential: Open a given a URI in Atom asynchronously.
+  # Essential: Opens the given URI in Atom asynchronously.
+  # If the URI is already open, the existing item for that URI will be
+  # activated. If no URI is given, or no registered opener can open
+  # the URI, a new empty {TextEditor} will be created.
   #
-  # * `uri` A {String} containing a URI.
+  # * `uri` (optional) A {String} containing a URI.
   # * `options` (optional) {Object}
   #   * `initialLine` A {Number} indicating which row to move the cursor to
   #     initially. Defaults to `0`.
@@ -346,9 +362,9 @@ class Workspace extends Model
   open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
-    uri = atom.project.resolve(uri)
+    uri = atom.project.resolvePath(uri)
 
-    pane = @paneContainer.paneForUri(uri) if searchAllPanes
+    pane = @paneContainer.paneForURI(uri) if searchAllPanes
     pane ?= switch split
       when 'left'
         @getActivePane().findLeftmostSibling()
@@ -357,7 +373,7 @@ class Workspace extends Model
       else
         @getActivePane()
 
-    @openUriInPane(uri, pane, options)
+    @openURIInPane(uri, pane, options)
 
   # Open Atom's license in the active pane.
   openLicense: ->
@@ -376,30 +392,52 @@ class Workspace extends Model
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
-    deprecate("Don't use the `changeFocus` option") if options.changeFocus?
+    # TODO: Remove deprecated changeFocus option
+    if includeDeprecatedAPIs and options.changeFocus?
+      deprecate("The `changeFocus` option has been renamed to `activatePane`")
+      options.activatePane = options.changeFocus
+      delete options.changeFocus
 
     {initialLine, initialColumn} = options
-    # TODO: Remove deprecated changeFocus option
-    activatePane = options.activatePane ? options.changeFocus ? true
-    uri = atom.project.resolve(uri)
+    activatePane = options.activatePane ? true
 
-    item = @activePane.itemForUri(uri)
+    uri = atom.project.resolvePath(uri)
+    item = @getActivePane().itemForURI(uri)
     if uri
-      item ?= opener(uri, options) for opener in @getOpeners() when !item
+      item ?= opener(uri, options) for opener in @getOpeners() when not item
     item ?= atom.project.openSync(uri, {initialLine, initialColumn})
 
-    @activePane.activateItem(item)
+    @getActivePane().activateItem(item)
     @itemOpened(item)
-    @activePane.activate() if activatePane
+    @getActivePane().activate() if activatePane
     item
 
-  openUriInPane: (uri, pane, options={}) ->
-    changeFocus = options.changeFocus ? true
+  openURIInPane: (uri, pane, options={}) ->
+    # TODO: Remove deprecated changeFocus option
+    if includeDeprecatedAPIs and options.changeFocus?
+      deprecate("The `changeFocus` option has been renamed to `activatePane`")
+      options.activatePane = options.changeFocus
+      delete options.changeFocus
+
+    activatePane = options.activatePane ? true
 
     if uri?
-      item = pane.itemForUri(uri)
-      item ?= opener(atom.project.resolve(uri), options) for opener in @getOpeners() when !item
-    item ?= atom.project.open(uri, options)
+      item = pane.itemForURI(uri)
+      item ?= opener(uri, options) for opener in @getOpeners() when not item
+
+    try
+      item ?= atom.project.open(uri, options)
+    catch error
+      switch error.code
+        when 'EFILETOOLARGE'
+          atom.notifications.addWarning("#{error.message} Large file support is being tracked at [atom/atom#307](https://github.com/atom/atom/issues/307).")
+        when 'EACCES'
+          atom.notifications.addWarning("Permission denied '#{error.path}'")
+        when 'EPERM', 'EBUSY'
+          atom.notifications.addWarning("Unable to open '#{error.path}'", detail: error.message)
+        else
+          throw error
+      return Q()
 
     Q(item)
       .then (item) =>
@@ -408,29 +446,23 @@ class Workspace extends Model
           @paneContainer.root = pane
         @itemOpened(item)
         pane.activateItem(item)
-        pane.activate() if changeFocus
+        pane.activate() if activatePane
+        if options.initialLine? or options.initialColumn?
+          item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
         index = pane.getActiveItemIndex()
-        @emit "uri-opened"
+        @emit "uri-opened" if includeDeprecatedAPIs
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
-      .catch (error) ->
-        console.error(error.stack ? error)
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
   #
   # Returns a promise that is resolved when the item is opened
   reopenItem: ->
-    if uri = @destroyedItemUris.pop()
+    if uri = @destroyedItemURIs.pop()
       @open(uri)
     else
       Q()
-
-  # Deprecated
-  reopenItemSync: ->
-    deprecate("Use Workspace::reopenItem instead")
-    if uri = @destroyedItemUris.pop()
-      @openSync(uri)
 
   # Public: Register an opener for a uri.
   #
@@ -439,7 +471,7 @@ class Workspace extends Model
   # ## Examples
   #
   # ```coffee
-  # atom.project.addOpener (uri) ->
+  # atom.workspace.addOpener (uri) ->
   #   if path.extname(uri) is '.toml'
   #     return new TomlEditor(uri)
   # ```
@@ -449,15 +481,24 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # opener.
   addOpener: (opener) ->
-    @openers.push(opener)
-    new Disposable => _.remove(@openers, opener)
-  registerOpener: (opener) ->
-    Grim.deprecate("Call Workspace::addOpener instead")
-    @addOpener(opener)
+    if includeDeprecatedAPIs
+      packageName = @getCallingPackageName()
 
-  unregisterOpener: (opener) ->
-    Grim.deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
-    _.remove(@openers, opener)
+      wrappedOpener = (uri, options) ->
+        item = opener(uri, options)
+        if item? and typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
+          Grim.deprecate("Pane item with class `#{item.constructor.name}` should implement `::getURI` instead of `::getUri`.", {packageName})
+        if item? and typeof item.on is 'function' and typeof item.onDidChangeTitle isnt 'function'
+          Grim.deprecate("If you would like your pane item with class `#{item.constructor.name}` to support title change behavior, please implement a `::onDidChangeTitle()` method. `::on` methods for items are no longer supported. If not, ignore this message.", {packageName})
+        if item? and typeof item.on is 'function' and typeof item.onDidChangeModified isnt 'function'
+          Grim.deprecate("If you would like your pane item with class `#{item.constructor.name}` to support modified behavior, please implement a `::onDidChangeModified()` method. If not, ignore this message. `::on` methods for items are no longer supported.", {packageName})
+        item
+
+      @openers.push(wrappedOpener)
+      new Disposable => _.remove(@openers, wrappedOpener)
+    else
+      @openers.push(opener)
+      new Disposable => _.remove(@openers, opener)
 
   getOpeners: ->
     @openers
@@ -492,25 +533,21 @@ class Workspace extends Model
     activeItem = @getActivePaneItem()
     activeItem if activeItem instanceof TextEditor
 
-  # Deprecated:
-  getActiveEditor: ->
-    @activePane?.getActiveEditor()
-
   # Save all pane items.
   saveAll: ->
     @paneContainer.saveAll()
 
-  confirmClose: ->
-    @paneContainer.confirmClose()
+  confirmClose: (options) ->
+    @paneContainer.confirmClose(options)
 
   # Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's
-  # `.getUri` method, calls `.save` on the item. Otherwise
+  # `.getURI` method, calls `.save` on the item. Otherwise
   # {::saveActivePaneItemAs} # will be called instead. This method does nothing
   # if the active item does not implement a `.save` method.
   saveActivePaneItem: ->
-    @activePane?.saveActiveItem()
+    @getActivePane().saveActiveItem()
 
   # Prompt the user for a path and save the active pane item to it.
   #
@@ -518,14 +555,14 @@ class Workspace extends Model
   # `.saveAs` on the item with the selected path. This method does nothing if
   # the active item does not implement a `.saveAs` method.
   saveActivePaneItemAs: ->
-    @activePane?.saveActiveItemAs()
+    @getActivePane().saveActiveItemAs()
 
   # Destroy (close) the active pane item.
   #
   # Removes the active pane item and calls the `.destroy` method on it if one is
   # defined.
   destroyActivePaneItem: ->
-    @activePane?.destroyActiveItem()
+    @getActivePane().destroyActiveItem()
 
   ###
   Section: Panes
@@ -551,17 +588,25 @@ class Workspace extends Model
   activatePreviousPane: ->
     @paneContainer.activatePreviousPane()
 
-  # Extended: Get the first pane {Pane} with an item for the given URI.
+  # Extended: Get the first {Pane} with an item for the given URI.
   #
   # * `uri` {String} uri
   #
   # Returns a {Pane} or `undefined` if no pane exists for the given URI.
-  paneForUri: (uri) ->
-    @paneContainer.paneForUri(uri)
+  paneForURI: (uri) ->
+    @paneContainer.paneForURI(uri)
+
+  # Extended: Get the {Pane} containing the given item.
+  #
+  # * `item` Item the returned pane contains.
+  #
+  # Returns a {Pane} or `undefined` if no pane exists for the given item.
+  paneForItem: (item) ->
+    @paneContainer.paneForItem(item)
 
   # Destroy (close) the active pane.
   destroyActivePane: ->
-    @activePane?.destroy()
+    @getActivePane()?.destroy()
 
   # Destroy the active pane item or the active pane if it is empty.
   destroyActivePaneItemOrEmptyPane: ->
@@ -576,19 +621,34 @@ class Workspace extends Model
     fontSize = atom.config.get("editor.fontSize")
     atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
-  # Restore to a default editor font size.
+  # Restore to the window's original editor font size.
   resetFontSize: ->
-    atom.config.restoreDefault("editor.fontSize")
+    if @originalFontSize
+      atom.config.set("editor.fontSize", @originalFontSize)
+
+  subscribeToFontSize: ->
+    atom.config.onDidChange 'editor.fontSize', ({oldValue}) =>
+      @originalFontSize ?= oldValue
 
   # Removes the item's uri from the list of potential items to reopen.
   itemOpened: (item) ->
-    if uri = item.getUri?()
-      _.remove(@destroyedItemUris, uri)
+    if typeof item.getURI is 'function'
+      uri = item.getURI()
+    else if typeof item.getUri is 'function'
+      uri = item.getUri()
+
+    if uri?
+      _.remove(@destroyedItemURIs, uri)
 
   # Adds the destroyed item's uri to the list of items to reopen.
-  onPaneItemDestroyed: (item) =>
-    if uri = item.getUri?()
-      @destroyedItemUris.push(uri)
+  didDestroyPaneItem: ({item}) =>
+    if typeof item.getURI is 'function'
+      uri = item.getURI()
+    else if typeof item.getUri is 'function'
+      uri = item.getUri()
+
+    if uri?
+      @destroyedItemURIs.push(uri)
 
   # Called by Model superclass when destroyed
   destroyed: ->
@@ -598,7 +658,21 @@ class Workspace extends Model
 
   ###
   Section: Panels
+
+  Panels are used to display UI related to an editor window. They are placed at one of the four
+  edges of the window: left, right, top or bottom. If there are multiple panels on the same window
+  edge they are stacked in order of priority: higher priority is closer to the center, lower
+  priority towards the edge.
+
+  *Note:* If your panel changes its size throughout its lifetime, consider giving it a higher
+  priority, allowing fixed size panels to be closer to the edge. This allows control targets to
+  remain more static for easier targeting by users that employ mice or trackpads. (See
+  [atom/atom#4834](https://github.com/atom/atom/issues/4834) for discussion.)
   ###
+
+  # Essential: Get an {Array} of all the panel items at the bottom of the editor window.
+  getBottomPanels: ->
+    @getPanels('bottom')
 
   # Essential: Adds a panel item to the bottom of the editor window.
   #
@@ -615,6 +689,10 @@ class Workspace extends Model
   addBottomPanel: (options) ->
     @addPanel('bottom', options)
 
+  # Essential: Get an {Array} of all the panel items to the left of the editor window.
+  getLeftPanels: ->
+    @getPanels('left')
+
   # Essential: Adds a panel item to the left of the editor window.
   #
   # * `options` {Object}
@@ -629,6 +707,10 @@ class Workspace extends Model
   # Returns a {Panel}
   addLeftPanel: (options) ->
     @addPanel('left', options)
+
+  # Essential: Get an {Array} of all the panel items to the right of the editor window.
+  getRightPanels: ->
+    @getPanels('right')
 
   # Essential: Adds a panel item to the right of the editor window.
   #
@@ -645,6 +727,10 @@ class Workspace extends Model
   addRightPanel: (options) ->
     @addPanel('right', options)
 
+  # Essential: Get an {Array} of all the panel items at the top of the editor window.
+  getTopPanels: ->
+    @getPanels('top')
+
   # Essential: Adds a panel item to the top of the editor window above the tabs.
   #
   # * `options` {Object}
@@ -660,7 +746,225 @@ class Workspace extends Model
   addTopPanel: (options) ->
     @addPanel('top', options)
 
+  # Essential: Get an {Array} of all the modal panel items
+  getModalPanels: ->
+    @getPanels('modal')
+
+  # Essential: Adds a panel item as a modal dialog.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addModalPanel: (options={}) ->
+    @addPanel('modal', options)
+
+  # Essential: Returns the {Panel} associated with the given item. Returns
+  # `null` when the item has no panel.
+  #
+  # * `item` Item the panel contains
+  panelForItem: (item) ->
+    for location, container of @panelContainers
+      panel = container.panelForItem(item)
+      return panel if panel?
+    null
+
+  getPanels: (location) ->
+    @panelContainers[location].getPanels()
+
   addPanel: (location, options) ->
     options ?= {}
-    options.viewRegistry = atom.views
     @panelContainers[location].addPanel(new Panel(options))
+
+  ###
+  Section: Searching and Replacing
+  ###
+
+  # Public: Performs a search across all the files in the workspace.
+  #
+  # * `regex` {RegExp} to search with.
+  # * `options` (optional) {Object} (default: {})
+  #   * `paths` An {Array} of glob patterns to search within
+  # * `iterator` {Function} callback on each file found
+  #
+  # Returns a `Promise`.
+  scan: (regex, options={}, iterator) ->
+    if _.isFunction(options)
+      iterator = options
+      options = {}
+
+    deferred = Q.defer()
+
+    searchOptions =
+      ignoreCase: regex.ignoreCase
+      inclusions: options.paths
+      includeHidden: true
+      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+      exclusions: atom.config.get('core.ignoredNames')
+      follow: atom.config.get('core.followSymlinks')
+
+    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths(), regex.source, searchOptions, ->
+      deferred.resolve()
+
+    task.on 'scan:result-found', (result) ->
+      iterator(result) unless atom.project.isPathModified(result.filePath)
+
+    task.on 'scan:file-error', (error) ->
+      iterator(null, error)
+
+    if _.isFunction(options.onPathsSearched)
+      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
+        options.onPathsSearched(numberOfPathsSearched)
+
+    for buffer in atom.project.getBuffers() when buffer.isModified()
+      filePath = buffer.getPath()
+      continue unless atom.project.contains(filePath)
+      matches = []
+      buffer.scan regex, (match) -> matches.push match
+      iterator {filePath, matches} if matches.length > 0
+
+    promise = deferred.promise
+    promise.cancel = ->
+      task.terminate()
+      deferred.resolve('cancelled')
+    promise
+
+  # Public: Performs a replace across all the specified files in the project.
+  #
+  # * `regex` A {RegExp} to search with.
+  # * `replacementText` Text to replace all matches of regex with
+  # * `filePaths` List of file path strings to run the replace on.
+  # * `iterator` A {Function} callback on each file with replacements:
+  #   * `options` {Object} with keys `filePath` and `replacements`
+  #
+  # Returns a `Promise`.
+  replace: (regex, replacementText, filePaths, iterator) ->
+    deferred = Q.defer()
+
+    openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
+    outOfProcessPaths = _.difference(filePaths, openPaths)
+
+    inProcessFinished = not openPaths.length
+    outOfProcessFinished = not outOfProcessPaths.length
+    checkFinished = ->
+      deferred.resolve() if outOfProcessFinished and inProcessFinished
+
+    unless outOfProcessFinished.length
+      flags = 'g'
+      flags += 'i' if regex.ignoreCase
+
+      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
+        outOfProcessFinished = true
+        checkFinished()
+
+      task.on 'replace:path-replaced', iterator
+      task.on 'replace:file-error', (error) -> iterator(null, error)
+
+    for buffer in atom.project.getBuffers()
+      continue unless buffer.getPath() in filePaths
+      replacements = buffer.replace(regex, replacementText, iterator)
+      iterator({filePath: buffer.getPath(), replacements}) if replacements
+
+    inProcessFinished = true
+    checkFinished()
+
+    deferred.promise
+
+if includeDeprecatedAPIs
+  Workspace.properties
+    paneContainer: null
+    fullScreen: false
+    destroyedItemURIs: -> []
+
+  Object.defineProperty Workspace::, 'activePaneItem',
+    get: ->
+      Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"
+      @getActivePaneItem()
+
+  Object.defineProperty Workspace::, 'activePane',
+    get: ->
+      Grim.deprecate "Use ::getActivePane() instead of the ::activePane property"
+      @getActivePane()
+
+  StackTraceParser = require 'stacktrace-parser'
+
+  Workspace::getCallingPackageName = ->
+    error = new Error
+    Error.captureStackTrace(error)
+    stack = StackTraceParser.parse(error.stack)
+
+    packagePaths = @getPackagePathsByPackageName()
+
+    for i in [0...stack.length]
+      stackFramePath = stack[i].file
+
+      # Empty when it was run from the dev console
+      return unless stackFramePath
+
+      for packageName, packagePath of packagePaths
+        continue if stackFramePath is 'node.js'
+        relativePath = path.relative(packagePath, stackFramePath)
+        return packageName unless /^\.\./.test(relativePath)
+    return
+
+  Workspace::getPackagePathsByPackageName = ->
+    packagePathsByPackageName = {}
+    for pack in atom.packages.getLoadedPackages()
+      packagePath = pack.path
+      if packagePath.indexOf('.atom/dev/packages') > -1 or packagePath.indexOf('.atom/packages') > -1
+        packagePath = fs.realpathSync(packagePath)
+      packagePathsByPackageName[pack.name] = packagePath
+    packagePathsByPackageName
+
+  Workspace::eachEditor = (callback) ->
+    deprecate("Use Workspace::observeTextEditors instead")
+
+    callback(editor) for editor in @getEditors()
+    @subscribe this, 'editor-created', (editor) -> callback(editor)
+
+  Workspace::getEditors = ->
+    deprecate("Use Workspace::getTextEditors instead")
+
+    editors = []
+    for pane in @paneContainer.getPanes()
+      editors.push(item) for item in pane.getItems() when item instanceof TextEditor
+
+    editors
+
+  Workspace::on = (eventName) ->
+    switch eventName
+      when 'editor-created'
+        deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
+      when 'uri-opened'
+        deprecate("Use Workspace::onDidOpen or Workspace::onDidAddPaneItem instead. https://atom.io/docs/api/latest/Workspace#instance-onDidOpen")
+      else
+        deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
+
+    super
+
+  Workspace::reopenItemSync = ->
+    deprecate("Use Workspace::reopenItem instead")
+    if uri = @destroyedItemURIs.pop()
+      @openSync(uri)
+
+  Workspace::registerOpener = (opener) ->
+    Grim.deprecate("Call Workspace::addOpener instead")
+    @addOpener(opener)
+
+  Workspace::unregisterOpener = (opener) ->
+    Grim.deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
+    _.remove(@openers, opener)
+
+  Workspace::getActiveEditor = ->
+    Grim.deprecate "Call ::getActiveTextEditor instead"
+    @getActivePane()?.getActiveEditor()
+
+  Workspace::paneForUri = (uri) ->
+    deprecate("Use ::paneForURI instead.")
+    @paneForURI(uri)

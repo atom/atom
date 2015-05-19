@@ -1,0 +1,28 @@
+@import "ui-variables";
+
+.nav {
+  > li > a {
+    border-radius: @component-border-radius;
+  }
+  > li > a:hover {
+    background-color: @background-color-highlight;
+  }
+
+  &.nav-pills > li.active > a {
+    background-color: @background-color-selected;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: inherit; // inherit from themes
+}
+
+body {
+  font-family: inherit; // inherit from html
+  font-size: inherit; // inherit from html
+}

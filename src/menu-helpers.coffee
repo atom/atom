@@ -17,6 +17,8 @@ merge = (menu, item, itemSpecificity=Infinity) ->
   else unless item.type is 'separator' and _.last(menu)?.type is 'separator'
     menu.push(item)
 
+  return
+
 unmerge = (menu, item) ->
   matchingItemIndex = findMatchingItemIndex(menu, item)
   matchingItem = menu[matchingItemIndex] unless matchingItemIndex is - 1
@@ -44,7 +46,7 @@ normalizeLabel = (label) ->
     label.replace(/\&/g, '')
 
 cloneMenuItem = (item) ->
-  item = _.pick(item, 'type', 'label', 'enabled', 'command', 'submenu', 'commandDetail')
+  item = _.pick(item, 'type', 'label', 'enabled', 'visible', 'command', 'submenu', 'commandDetail')
   if item.submenu?
     item.submenu = item.submenu.map (submenuItem) -> cloneMenuItem(submenuItem)
   item

@@ -1,12 +1,10 @@
 {basename, join} = require 'path'
 
 _ = require 'underscore-plus'
-{Subscriber} = require 'emissary'
-EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
-{deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 Task = require './task'
 
@@ -34,7 +32,7 @@ Task = require './task'
 #
 # ```coffee
 # git = atom.project.getRepo()
-# console.log git.getOriginUrl()
+# console.log git.getOriginURL()
 # ```
 #
 # ### Requiring in packages
@@ -44,9 +42,6 @@ Task = require './task'
 # ```
 module.exports =
 class GitRepository
-  EmitterMixin.includeInto(this)
-  Subscriber.includeInto(this)
-
   @exists: (path) ->
     if git = @open(path)
       git.destroy()
@@ -61,7 +56,7 @@ class GitRepository
   # Public: Creates a new GitRepository instance.
   #
   # * `path` The {String} path to the Git repository to open.
-  # * `options` An optinal {Object} with the following keys:
+  # * `options` An optional {Object} with the following keys:
   #   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
   #     statuses when the window is focused.
   #
@@ -75,6 +70,8 @@ class GitRepository
 
   constructor: (path, options={}) ->
     @emitter = new Emitter
+    @subscriptions = new CompositeDisposable
+
     @repo = GitUtils.open(path)
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
@@ -88,19 +85,27 @@ class GitRepository
 
     refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
-      {$} = require './space-pen-extensions'
-      @subscribe $(window), 'focus', =>
+      onWindowFocus = =>
         @refreshIndex()
         @refreshStatus()
 
+      window.addEventListener 'focus', onWindowFocus
+      @subscriptions.add new Disposable(-> window.removeEventListener 'focus', onWindowFocus)
+
     if @project?
-      @subscribe @project.eachBuffer (buffer) => @subscribeToBuffer(buffer)
+      @project.getBuffers().forEach (buffer) => @subscribeToBuffer(buffer)
+      @subscriptions.add @project.onDidAddBuffer (buffer) => @subscribeToBuffer(buffer)
 
   # Public: Destroy this {GitRepository} object.
   #
   # This destroys any tasks and subscriptions and releases the underlying
-  # libgit2 repository handle.
+  # libgit2 repository handle. This method is idempotent.
   destroy: ->
+    if @emitter?
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
+      @emitter = null
+
     if @statusTask?
       @statusTask.terminate()
       @statusTask = null
@@ -109,7 +114,14 @@ class GitRepository
       @repo.release()
       @repo = null
 
-    @unsubscribe()
+    if @subscriptions?
+      @subscriptions.dispose()
+      @subscriptions = null
+
+  # Public: Invoke the given callback when this GitRepository's destroy() method
+  # is invoked.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
 
   ###
   Section: Event Subscription
@@ -140,19 +152,15 @@ class GitRepository
   onDidChangeStatuses: (callback) ->
     @emitter.on 'did-change-statuses', callback
 
-  on: (eventName) ->
-    switch eventName
-      when 'status-changed'
-        deprecate 'Use GitRepository::onDidChangeStatus instead'
-      when 'statuses-changed'
-        deprecate 'Use GitRepository::onDidChangeStatuses instead'
-      else
-        deprecate 'GitRepository::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
-
   ###
   Section: Repository Details
   ###
+
+  # Public: A {String} indicating the type of version control system used by
+  # this repository.
+  #
+  # Returns `"git"`.
+  getType: -> 'git'
 
   # Public: Returns the {String} path of the repository.
   getPath: ->
@@ -230,7 +238,7 @@ class GitRepository
   #
   # * `path` (optional) {String} path in the repository to get this information
   #   for, only needed if the repository has submodules.
-  getOriginUrl: (path) -> @getConfigValue('remote.origin.url', path)
+  getOriginURL: (path) -> @getConfigValue('remote.origin.url', path)
 
   # Public: Returns the upstream branch for the current HEAD, or null if there
   # is no upstream branch for the current HEAD.
@@ -305,7 +313,7 @@ class GitRepository
     else
       delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
-      @emit 'status-changed', path, pathStatus
+      @emit 'status-changed', path, pathStatus if includeDeprecatedAPIs
       @emitter.emit 'did-change-status', {path, pathStatus}
 
     pathStatus
@@ -403,10 +411,15 @@ class GitRepository
       if path = buffer.getPath()
         @getPathStatus(path)
 
-    @subscribe buffer.onDidSave(getBufferPathStatus)
-    @subscribe buffer.onDidReload(getBufferPathStatus)
-    @subscribe buffer.onDidChangePath(getBufferPathStatus)
-    @subscribe buffer.onDidDestroy => @unsubscribe(buffer)
+    bufferSubscriptions = new CompositeDisposable
+    bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
+    bufferSubscriptions.add buffer.onDidReload(getBufferPathStatus)
+    bufferSubscriptions.add buffer.onDidChangePath(getBufferPathStatus)
+    bufferSubscriptions.add buffer.onDidDestroy =>
+      bufferSubscriptions.dispose()
+      @subscriptions.remove(bufferSubscriptions)
+    @subscriptions.add(bufferSubscriptions)
+    return
 
   # Subscribes to editor view event.
   checkoutHeadForEditor: (editor) ->
@@ -461,5 +474,23 @@ class GitRepository
         submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
       unless statusesUnchanged
-        @emit 'statuses-changed'
+        @emit 'statuses-changed' if includeDeprecatedAPIs
         @emitter.emit 'did-change-statuses'
+
+if includeDeprecatedAPIs
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(GitRepository)
+
+  GitRepository::on = (eventName) ->
+    switch eventName
+      when 'status-changed'
+        deprecate 'Use GitRepository::onDidChangeStatus instead'
+      when 'statuses-changed'
+        deprecate 'Use GitRepository::onDidChangeStatuses instead'
+      else
+        deprecate 'GitRepository::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)
+
+  GitRepository::getOriginUrl = (path) ->
+    deprecate 'Use ::getOriginURL instead.'
+    @getOriginURL(path)

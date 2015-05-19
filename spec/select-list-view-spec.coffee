@@ -1,5 +1,5 @@
 SelectListView = require '../src/select-list-view'
-{$, $$} = require 'atom'
+{$, $$} = require '../src/space-pen-extensions'
 
 describe "SelectListView", ->
   [selectList, items, list, filterEditorView] = []
@@ -184,7 +184,7 @@ describe "SelectListView", ->
   describe "when the mini editor loses focus", ->
     it "triggers the cancelled hook and detaches the select list", ->
       spyOn(selectList, 'detach')
-      filterEditorView.hiddenInput.trigger 'focusout'
+      filterEditorView.trigger 'blur'
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
 

@@ -5,7 +5,7 @@ module.exports =
 class ThemePackage extends Package
   getType: -> 'theme'
 
-  getStylesheetType: -> 'theme'
+  getStyleSheetPriority: -> 1
 
   enable: ->
     atom.config.unshiftAtKeyPath('core.themes', @name)
@@ -14,11 +14,7 @@ class ThemePackage extends Package
     atom.config.removeAtKeyPath('core.themes', @name)
 
   load: ->
-    @measure 'loadTime', =>
-      try
-        @metadata ?= Package.loadMetadata(@path)
-      catch error
-        console.warn "Failed to load theme named '#{@name}'", error.stack ? error
+    @loadTime = 0
     this
 
   activate: ->
@@ -26,7 +22,10 @@ class ThemePackage extends Package
 
     @activationDeferred = Q.defer()
     @measure 'activateTime', =>
-      @loadStylesheets()
-      @activateNow()
+      try
+        @loadStylesheets()
+        @activateNow()
+      catch error
+        @handleError("Failed to activate the #{@name} theme", error)
 
     @activationDeferred.promise

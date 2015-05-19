@@ -1,13 +1,10 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
-{Emitter, Subscriber} = require 'emissary'
+ScopeDescriptor = require './scope-descriptor'
 
 module.exports =
 class LanguageMode
-  Emitter.includeInto(this)
-  Subscriber.includeInto(this)
-
   # Sets up a `LanguageMode` for the given {TextEditor}.
   #
   # editor - The {TextEditor} to associate with
@@ -15,7 +12,6 @@ class LanguageMode
     {@buffer} = @editor
 
   destroy: ->
-    @unsubscribe()
 
   toggleLineCommentForBufferRow: (row) ->
     @toggleLineCommentsForBufferRows(row, row)
@@ -26,17 +22,10 @@ class LanguageMode
   #
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
-  #
-  # Returns an {Array} of the commented {Ranges}.
   toggleLineCommentsForBufferRows: (start, end) ->
-    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([start, 0])
-    properties = atom.config.settingsForScopeDescriptor(scopeDescriptor, 'editor.commentStart')[0]
-    return unless properties
-
-    commentStartString = _.valueForKeyPath(properties, 'editor.commentStart')
-    commentEndString = _.valueForKeyPath(properties, 'editor.commentEnd')
-
-    return unless commentStartString
+    scope = @editor.scopeDescriptorForBufferPosition([start, 0])
+    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
+    return unless commentStartString?
 
     buffer = @editor.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
@@ -96,6 +85,7 @@ class LanguageMode
             buffer.insert([row, indentLength], commentStartString)
           else
             buffer.setTextInRange([[row, 0], [row, indentString.length]], indentString + commentStartString)
+    return
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->
@@ -103,23 +93,27 @@ class LanguageMode
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
       @editor.createFold(startRow, endRow)
+    return
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
     for row in [@buffer.getLastRow()..0]
       fold.destroy() for fold in @editor.displayBuffer.foldsStartingAtBufferRow(row)
+    return
 
   # Fold all comment and code blocks at a given indentLevel
   #
   # indentLevel - A {Number} indicating indentLevel; 0 based.
   foldAllAtIndentLevel: (indentLevel) ->
+    @unfoldAll()
     for currentRow in [0..@buffer.getLastRow()]
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
 
       # assumption: startRow will always be the min indent level for the entire range
-      if @editor.indentationForBufferRow(startRow) == indentLevel
+      if @editor.indentationForBufferRow(startRow) is indentLevel
         @editor.createFold(startRow, endRow)
+    return
 
   # Given a buffer row, creates a fold at it.
   #
@@ -173,7 +167,7 @@ class LanguageMode
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopeDescriptor(scopeDescriptor)?.searchSync(@editor.lineTextForBufferRow(row))
+        includeRowInFold = indentation is startIndentLevel and @foldEndRegexForScopeDescriptor(scopeDescriptor)?.searchSync(@editor.lineTextForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -181,26 +175,8 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  # Public: Returns a {Boolean} indicating whether the given buffer row starts a
-  # foldable row range. Rows that are "foldable" have a fold icon next to their
-  # icon in the gutter in the default configuration.
   isFoldableAtBufferRow: (bufferRow) ->
-    @isFoldableCodeAtBufferRow(bufferRow) or @isFoldableCommentAtBufferRow(bufferRow)
-
-  # Returns a {Boolean} indicating whether the given buffer row starts
-  # a a foldable row range due to the code's indentation patterns.
-  isFoldableCodeAtBufferRow: (bufferRow) ->
-    return false if @editor.isBufferRowBlank(bufferRow) or @isLineCommentedAtBufferRow(bufferRow)
-    nextNonEmptyRow = @editor.nextNonBlankBufferRow(bufferRow)
-    return false unless nextNonEmptyRow?
-    @editor.indentationForBufferRow(nextNonEmptyRow) > @editor.indentationForBufferRow(bufferRow)
-
-  # Returns a {Boolean} indicating whether the given buffer row starts
-  # a foldable row range due to being the start of a multi-line comment.
-  isFoldableCommentAtBufferRow: (bufferRow) ->
-    @isLineCommentedAtBufferRow(bufferRow) and
-      @isLineCommentedAtBufferRow(bufferRow + 1) and
-        not @isLineCommentedAtBufferRow(bufferRow - 1)
+    @editor.displayBuffer.tokenizedBuffer.isFoldableAtRow(bufferRow)
 
   # Returns a {Boolean} indicating whether the line at the given buffer
   # row is a comment.
@@ -208,11 +184,24 @@ class LanguageMode
     return false unless 0 <= bufferRow <= @editor.getLastBufferRow()
     @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
-  # Find a row range for a 'paragraph' around specified bufferRow.
-  # Right now, a paragraph is a block of text bounded by and empty line or a
-  # block of text that is not the same type (comments next to source code).
+  # Find a row range for a 'paragraph' around specified bufferRow. A paragraph
+  # is a block of text bounded by and empty line or a block of text that is not
+  # the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
-    return unless /\w/.test(@editor.lineTextForBufferRow(bufferRow))
+    scope = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
+    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
+    commentStartRegex = null
+    if commentStartString? and not commentEndString?
+      commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
+      commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
+
+    filterCommentStart = (line) ->
+      if commentStartRegex?
+        matches = commentStartRegex.searchSync(line)
+        line = line.substring(matches[0].end) if matches?.length
+      line
+
+    return unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(bufferRow)))
 
     if @isLineCommentedAtBufferRow(bufferRow)
       isOriginalRowComment = true
@@ -224,15 +213,15 @@ class LanguageMode
 
     startRow = bufferRow
     while startRow > firstRow
-      break if @isLineCommentedAtBufferRow(startRow - 1) != isOriginalRowComment
-      break unless /\w/.test(@editor.lineTextForBufferRow(startRow - 1))
+      break if @isLineCommentedAtBufferRow(startRow - 1) isnt isOriginalRowComment
+      break unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(startRow - 1)))
       startRow--
 
     endRow = bufferRow
     lastRow = @editor.getLastBufferRow()
     while endRow < lastRow
-      break if @isLineCommentedAtBufferRow(endRow + 1) != isOriginalRowComment
-      break unless /\w/.test(@editor.lineTextForBufferRow(endRow + 1))
+      break if @isLineCommentedAtBufferRow(endRow + 1) isnt isOriginalRowComment
+      break unless /\S/.test(filterCommentStart(@editor.lineTextForBufferRow(endRow + 1)))
       endRow++
 
     new Range([startRow, 0], [endRow, @editor.lineTextForBufferRow(endRow).length])
@@ -244,21 +233,34 @@ class LanguageMode
   # bufferRow - A {Number} indicating the buffer row
   #
   # Returns a {Number}.
-  suggestedIndentForBufferRow: (bufferRow) ->
+  suggestedIndentForBufferRow: (bufferRow, options) ->
+    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+
+  suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
+    tokenizedLine = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+
+  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
+    scopes = tokenizedLine.tokens[0].scopes
+    scopeDescriptor = new ScopeDescriptor({scopes})
+
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
-    currentLine = @buffer.lineForRow(bufferRow)
-    precedingRow = if bufferRow > 0 then bufferRow - 1 else null
-    return currentIndentLevel unless precedingRow?
+    if options?.skipBlankLines ? true
+      precedingRow = @buffer.previousNonBlankRow(bufferRow)
+      return 0 unless precedingRow?
+    else
+      precedingRow = bufferRow - 1
+      return currentIndentLevel if precedingRow < 0
 
     precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(currentLine)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(tokenizedLine.text)
 
     Math.max(desiredIndentLevel, 0)
 
@@ -279,13 +281,14 @@ class LanguageMode
   # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
     @autoIndentBufferRow(row) for row in [startRow..endRow]
+    return
 
   # Given a buffer row, this indents it.
   #
   # bufferRow - The row {Number}.
   # options - An options {Object} to pass through to {TextEditor::setIndentationForBufferRow}.
   autoIndentBufferRow: (bufferRow, options) ->
-    indentLevel = @suggestedIndentForBufferRow(bufferRow)
+    indentLevel = @suggestedIndentForBufferRow(bufferRow, options)
     @editor.setIndentationForBufferRow(bufferRow, indentLevel, options)
 
   # Given a buffer row, this decreases the indentation.
@@ -312,7 +315,7 @@ class LanguageMode
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   getRegexForProperty: (scopeDescriptor, property) ->
-    if pattern = atom.config.get(scopeDescriptor, property)
+    if pattern = atom.config.get(property, scope: scopeDescriptor)
       new OnigRegExp(pattern)
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
@@ -323,3 +326,11 @@ class LanguageMode
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
+
+  commentStartAndEndStringsForScope: (scope) ->
+    commentStartEntry = atom.config.getAll('editor.commentStart', {scope})[0]
+    commentEndEntry = _.find atom.config.getAll('editor.commentEnd', {scope}), (entry) ->
+      entry.scopeSelector is commentStartEntry.scopeSelector
+    commentStartString = commentStartEntry?.value
+    commentEndString = commentEndEntry?.value
+    {commentStartString, commentEndString}
