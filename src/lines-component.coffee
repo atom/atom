@@ -132,4 +132,4 @@ class LinesComponent
   lineNodeForScreenRow: (screenRow) ->
     tile = @presenter.tileForRow(screenRow)
 
-    @tileComponentsByTileId[tile].lineNodeForScreenRow(screenRow)
+    @tileComponentsByTileId[tile]?.lineNodeForScreenRow(screenRow)
