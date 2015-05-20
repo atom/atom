@@ -1085,6 +1085,21 @@ describe "DisplayBuffer", ->
         expect(changeHandler).toHaveBeenCalled()
         expect(markerChangedHandler).toHaveBeenCalled()
 
+      it "emits the correct events when markers are mutated inside event listeners", ->
+        marker.onDidChange ->
+          if marker.getHeadScreenPosition().isEqual([5, 9])
+            marker.setHeadScreenPosition([5, 8])
+
+        marker.setHeadScreenPosition([5, 9])
+
+        headChanges = for [event] in markerChangedHandler.argsForCall
+          {old: event.oldHeadScreenPosition, new: event.newHeadScreenPosition}
+
+        expect(headChanges).toEqual [
+          {old: [5, 10], new: [5, 9]}
+          {old: [5, 9], new: [5, 8]}
+        ]
+
     describe "::findMarkers(attributes)", ->
       it "allows the startBufferRow and endBufferRow to be specified", ->
         marker1 = displayBuffer.markBufferRange([[0, 0], [3, 0]], class: 'a')
