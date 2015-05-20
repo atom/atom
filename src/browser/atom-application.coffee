@@ -522,9 +522,8 @@ class AtomApplication
     new AtomWindow({bootstrapScript, @resourcePath, exitWhenDone, isSpec, specDirectory, devMode})
 
   locationForPathToOpen: (pathToOpen) ->
-    {protocol} = url.parse(pathToOpen)
-    return {pathToOpen} if protocol?
     return {pathToOpen} unless pathToOpen
+    return {pathToOpen} if url.parse(pathToOpen).protocol?
     return {pathToOpen} if fs.existsSync(pathToOpen)
 
     pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
