@@ -22,6 +22,11 @@ module.exports = (grunt) ->
     else
       cp 'electron', shellAppDir, filter: /default_app/
 
+      if process.platform is 'win32'
+        fs.renameSync path.join(shellAppDir, 'electron.exe'), path.join(shellAppDir, 'atom.exe')
+      else
+        fs.renameSync path.join(shellAppDir, 'electron'), path.join(shellAppDir, 'atom')
+
     mkdir appDir
 
     if process.platform isnt 'win32'
