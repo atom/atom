@@ -20,7 +20,7 @@ class DefaultDirectoryProvider
     else
       uri
 
-    # TODO: Stop normalizing the path in pathwatcher's Directory.
+    # TODO: Stop normalizing the path in pathwatcher Directory.
     directory = new Directory(directoryPath)
     if url.parse(directoryPath).protocol?
       directory.path = directoryPath
