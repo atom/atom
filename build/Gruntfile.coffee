@@ -31,10 +31,6 @@ module.exports = (grunt) ->
   # This allows all subsequent paths to the relative to the root of the repo
   grunt.file.setBase(path.resolve('..'))
 
-  if not grunt.option('verbose')
-    grunt.log.writeln = (args...) -> grunt.log
-    grunt.log.write = (args...) -> grunt.log
-
   [major, minor, patch] = packageJson.version.split('.')
   tmpDir = os.tmpdir()
   appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
@@ -268,4 +264,5 @@ module.exports = (grunt) ->
 
   defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']
   defaultTasks.push 'install' unless process.platform is 'linux'
+  console.log buildDir
   grunt.registerTask('default', defaultTasks)
