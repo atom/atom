@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "atomShellVersion": "0.22.3",
+  "atomShellVersion": "0.26.0",
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^5.1.10",

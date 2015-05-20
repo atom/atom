@@ -43,7 +43,7 @@ module.exports = (grunt) ->
   installDir = grunt.option('install-dir')
 
   home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
-  atomShellDownloadDir = path.join(home, '.atom', 'atom-shell')
+  electronDownloadDir = path.join(home, '.atom', 'electron')
 
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
   shellAppDir = path.join(buildDir, appName)
@@ -225,10 +225,10 @@ module.exports = (grunt) ->
         'static/**/*.less'
       ]
 
-    'download-atom-shell':
-      version: packageJson.atomShellVersion
-      outputDir: 'atom-shell'
-      downloadDir: atomShellDownloadDir
+    'download-electron':
+      version: packageJson.electronVersion
+      outputDir: 'electron'
+      downloadDir: electronDownloadDir
       rebuild: true  # rebuild native modules after atom-shell is updated
       token: process.env.ATOM_ACCESS_TOKEN
 
