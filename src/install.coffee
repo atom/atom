@@ -2,7 +2,7 @@ path = require 'path'
 
 async = require 'async'
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 CSON = require 'season'
 semver = require 'npm/node_modules/semver'
 temp = require 'temp'
@@ -26,7 +26,7 @@ class Install extends Command
     @atomNodeGypPath = require.resolve('npm/node_modules/node-gyp/bin/node-gyp')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm install [<package_name>...]

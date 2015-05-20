@@ -1,6 +1,6 @@
 path = require 'path'
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 apm = require './apm'
 Command = require './command'
 
@@ -14,7 +14,7 @@ class Config extends Command
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm config set <key> <value>

@@ -2,7 +2,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 CSON = require 'season'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 Command = require './command'
 fs = require './fs'
@@ -22,7 +22,7 @@ class List extends Command
     @disabledPackages ?= []
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm list

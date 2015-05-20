@@ -2,7 +2,7 @@ path = require 'path'
 
 async = require 'async'
 CSON = require 'season'
-optimist = require 'optimist'
+yargs = require 'yargs'
 _ = require 'underscore-plus'
 
 Command = require './command'
@@ -56,7 +56,7 @@ class Clean extends Command
     modulesToRemove
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
 
     options.usage """
       Usage: apm clean

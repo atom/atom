@@ -1,6 +1,6 @@
 path = require 'path'
 
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 Command = require './command'
 fs = require './fs'
@@ -10,7 +10,7 @@ class Init extends Command
   @commandNames: ['init']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
 
     options.usage """
       Usage:

@@ -1,7 +1,7 @@
 path = require 'path'
 
 CSON = require 'season'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 Command = require './command'
 config = require './apm'
@@ -12,7 +12,7 @@ class Link extends Command
   @commandNames: ['link', 'ln']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm link [<package_path>]

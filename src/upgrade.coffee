@@ -2,7 +2,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 async = require 'async'
-optimist = require 'optimist'
+yargs = require 'yargs'
 read = require 'read'
 semver = require 'npm/node_modules/semver'
 
@@ -23,7 +23,7 @@ class Upgrade extends Command
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm upgrade

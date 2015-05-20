@@ -2,7 +2,7 @@ path = require 'path'
 
 async = require 'async'
 CSON = require 'season'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 auth = require './auth'
 Command = require './command'
@@ -15,7 +15,7 @@ class Uninstall extends Command
   @commandNames: ['deinstall', 'delete', 'erase', 'remove', 'rm', 'uninstall']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm uninstall <package_name>...

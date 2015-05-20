@@ -2,7 +2,7 @@ path = require 'path'
 
 async = require 'async'
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 config = require './apm'
 Command = require './command'
@@ -20,7 +20,7 @@ class Dedupe extends Command
     @atomNodeGypPath = require.resolve('npm/node_modules/node-gyp/bin/node-gyp')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm dedupe [<package_name>...]

@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 Q = require 'q'
 read = require 'read'
 open = require 'open'
@@ -19,7 +19,7 @@ class Login extends Command
   @commandNames: ['login']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
 
     options.usage """
       Usage: apm login

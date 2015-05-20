@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 Command = require './command'
 config = require './apm'
@@ -11,7 +11,7 @@ class Search extends Command
   @commandNames: ['search']
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm search <package_name>

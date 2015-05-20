@@ -1,7 +1,7 @@
 path = require 'path'
 
 CSON = require 'season'
-optimist = require 'optimist'
+yargs = require 'yargs'
 
 Command = require './command'
 config = require './apm'
@@ -16,7 +16,7 @@ class Unlink extends Command
     @packagesPath = path.join(config.getAtomDirectory(), 'packages')
 
   parseOptions: (argv) ->
-    options = optimist(argv)
+    options = yargs(argv).wrap(100)
     options.usage """
 
       Usage: apm unlink [<package_path>]
