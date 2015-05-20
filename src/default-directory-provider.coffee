@@ -15,16 +15,14 @@ class DefaultDirectoryProvider
   # * {Directory} if the given URI is compatible with this provider.
   # * `null` if the given URI is not compatibile with this provider.
   directoryForURISync: (uri) ->
-    projectPath = path.normalize(uri)
-
-    directoryPath = if not fs.isDirectorySync(projectPath) and fs.isDirectorySync(path.dirname(projectPath))
-      path.dirname(projectPath)
+    directoryPath = if not fs.isDirectorySync(uri) and fs.isDirectorySync(path.dirname(uri))
+      path.normalize(path.dirname(uri))
     else
-      projectPath
+      uri
 
     # TODO: Stop normalizing the path in pathwatcher's Directory.
     directory = new Directory(directoryPath)
-    if url.parse(directoryPath).protocol
+    if url.parse(directoryPath).protocol?
       directory.path = directoryPath
       if fs.isCaseInsensitive()
         directory.lowerCasePath = directoryPath.toLowerCase()
