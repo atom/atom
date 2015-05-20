@@ -5,6 +5,7 @@ app = require 'app'
 fs = require 'fs-plus'
 path = require 'path'
 yargs = require 'yargs'
+url = require 'url'
 nslog = require 'nslog'
 
 console.log = nslog
@@ -45,9 +46,11 @@ start = ->
 
     cwd = args.executedFrom?.toString() or process.cwd()
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      pathToOpen = fs.normalize(pathToOpen)
-      if cwd
-        path.resolve(cwd, pathToOpen)
+      normalizedPath = fs.normalize(pathToOpen)
+      if url.parse(pathToOpen || '').protocol?
+        pathToOpen
+      else if cwd
+        path.resolve(cwd, normalizedPath)
       else
         path.resolve(pathToOpen)
 
