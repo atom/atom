@@ -1023,11 +1023,14 @@ describe "DisplayBuffer", ->
           expect(markerChangedHandler).not.toHaveBeenCalled()
           expect(marker2ChangedHandler).not.toHaveBeenCalled()
           expect(marker3ChangedHandler).not.toHaveBeenCalled()
-          # but still updates the markers
+
+          # markers positions are updated based on the text change
           expect(marker.getScreenRange()).toEqual [[5, 4], [5, 10]]
           expect(marker.getHeadScreenPosition()).toEqual [5, 10]
           expect(marker.getTailScreenPosition()).toEqual [5, 4]
-          expect(marker2.isValid()).toBeTruthy()
+
+          # but marker snapshots are not restored until the end of the undo.
+          expect(marker2.isValid()).toBeFalsy()
           expect(marker3.isValid()).toBeFalsy()
 
         buffer.undo()
@@ -1035,6 +1038,8 @@ describe "DisplayBuffer", ->
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(marker2ChangedHandler).toHaveBeenCalled()
         expect(marker3ChangedHandler).toHaveBeenCalled()
+        expect(marker2.isValid()).toBeTruthy()
+        expect(marker3.isValid()).toBeFalsy()
 
         # Redo change ----
 
@@ -1048,18 +1053,23 @@ describe "DisplayBuffer", ->
           expect(markerChangedHandler).not.toHaveBeenCalled()
           expect(marker2ChangedHandler).not.toHaveBeenCalled()
           expect(marker3ChangedHandler).not.toHaveBeenCalled()
-          # but still updates the markers
+
+          # markers positions are updated based on the text change
           expect(marker.getScreenRange()).toEqual [[5, 7], [5, 13]]
           expect(marker.getHeadScreenPosition()).toEqual [5, 13]
           expect(marker.getTailScreenPosition()).toEqual [5, 7]
+
+          # but marker snapshots are not restored until the end of the undo.
           expect(marker2.isValid()).toBeFalsy()
-          expect(marker3.isValid()).toBeTruthy()
+          expect(marker3.isValid()).toBeFalsy()
 
         buffer.redo()
         expect(changeHandler).toHaveBeenCalled()
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(marker2ChangedHandler).toHaveBeenCalled()
         expect(marker3ChangedHandler).toHaveBeenCalled()
+        expect(marker2.isValid()).toBeFalsy()
+        expect(marker3.isValid()).toBeTruthy()
 
       it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
         displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
@@ -1074,6 +1084,21 @@ describe "DisplayBuffer", ->
 
         expect(changeHandler).toHaveBeenCalled()
         expect(markerChangedHandler).toHaveBeenCalled()
+
+      it "emits the correct events when markers are mutated inside event listeners", ->
+        marker.onDidChange ->
+          if marker.getHeadScreenPosition().isEqual([5, 9])
+            marker.setHeadScreenPosition([5, 8])
+
+        marker.setHeadScreenPosition([5, 9])
+
+        headChanges = for [event] in markerChangedHandler.argsForCall
+          {old: event.oldHeadScreenPosition, new: event.newHeadScreenPosition}
+
+        expect(headChanges).toEqual [
+          {old: [5, 10], new: [5, 9]}
+          {old: [5, 9], new: [5, 8]}
+        ]
 
     describe "::findMarkers(attributes)", ->
       it "allows the startBufferRow and endBufferRow to be specified", ->

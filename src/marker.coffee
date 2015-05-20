@@ -346,14 +346,14 @@ class Marker
       isValid
     }
 
-    @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change', changeEvent
-
     @oldHeadBufferPosition = newHeadBufferPosition
     @oldHeadScreenPosition = newHeadScreenPosition
     @oldTailBufferPosition = newTailBufferPosition
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
+
+    @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change', changeEvent
 
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
