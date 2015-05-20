@@ -20,7 +20,6 @@ module.exports = (grunt) ->
     else
       cp 'electron', shellAppDir, filter: /default_app/
 
-
     mkdir appDir
 
     if process.platform isnt 'win32'
