@@ -47,7 +47,7 @@ start = ->
     cwd = args.executedFrom?.toString() or process.cwd()
     args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
       normalizedPath = fs.normalize(pathToOpen)
-      if url.parse(pathToOpen || '').protocol?
+      if url.parse(pathToOpen).protocol?
         pathToOpen
       else if cwd
         path.resolve(cwd, normalizedPath)
