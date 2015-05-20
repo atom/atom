@@ -60,7 +60,7 @@ class TextEditorView extends View
           placeholderText: placeholderText
 
       element = new TextEditorElement
-      element.lineOverdrawMargin = props?.lineOverdrawMargin
+      element.tileSize = props?.tileSize
       element.setAttribute(name, value) for name, value of attributes if attributes?
       element.setModel(model)
       return element.__spacePenView

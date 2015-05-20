@@ -342,26 +342,26 @@ describe "TextEditorPresenter", ->
           expectValues presenter.getState().hiddenInput, {top: 3 * 10, left: 6 * 10}
 
           expectStateUpdate presenter, -> presenter.setScrollTop(15)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 6 * 10}
+          expectValues presenter.getState().hiddenInput, {top: (3 * 10) - 15, left: 6 * 10}
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(35)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
+          expectValues presenter.getState().hiddenInput, {top: (3 * 10) - 15, left: (6 * 10) - 35}
 
           expectStateUpdate presenter, -> presenter.setScrollTop(40)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
+          expectValues presenter.getState().hiddenInput, {top: 0, left: (6 * 10) - 35}
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(70)
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
 
           expectStateUpdate presenter, -> editor.setCursorBufferPosition([11, 43])
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 30}
+          expectValues presenter.getState().hiddenInput, {top: 11 * 10 - editor.getScrollTop(), left: 43 * 10 - editor.getScrollLeft()}
 
           newCursor = null
           expectStateUpdate presenter, -> newCursor = editor.addCursorAtBufferPosition([6, 10])
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 20}
+          expectValues presenter.getState().hiddenInput, {top: (6 * 10) - editor.getScrollTop(), left: (10 * 10) - editor.getScrollLeft()}
 
           expectStateUpdate presenter, -> newCursor.destroy()
-          expectValues presenter.getState().hiddenInput, {top: 30, left: 300 - 10}
+          expectValues presenter.getState().hiddenInput, {top: 50 - 10, left: 300 - 10}
 
           expectStateUpdate presenter, -> presenter.setFocused(false)
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
@@ -663,7 +663,7 @@ describe "TextEditorPresenter", ->
           presenter.getState().content.tiles[tileRow].lines[lineId]
 
         it "contains states for tiles that are visible on screen", ->
-          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3)
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
 
           expectValues presenter.getState().content.tiles[0], {
             top: 0
@@ -681,12 +681,12 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[8]).toBeUndefined()
 
         it "includes state for all tiles if no external ::explicitHeight is assigned", ->
-          presenter = buildPresenter(explicitHeight: null, tileCount: 12, tileOverdrawMargin: 1)
+          presenter = buildPresenter(explicitHeight: null, tileSize: 2)
           expect(presenter.getState().content.tiles[0]).toBeDefined()
           expect(presenter.getState().content.tiles[12]).toBeDefined()
 
         it "is empty until all of the required measurements are assigned", ->
-          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null, tileCount: 3)
+          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null)
           expect(presenter.getState().content.tiles).toEqual({})
 
           presenter.setExplicitHeight(25)
@@ -699,7 +699,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles).not.toEqual({})
 
         it "updates when ::scrollTop changes", ->
-          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3)
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
 
           expect(presenter.getState().content.tiles[0]).toBeDefined()
           expect(presenter.getState().content.tiles[2]).toBeDefined()
@@ -717,7 +717,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[10]).toBeUndefined()
 
         it "updates when ::explicitHeight changes", ->
-          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3)
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
 
           expect(presenter.getState().content.tiles[0]).toBeDefined()
           expect(presenter.getState().content.tiles[2]).toBeDefined()
@@ -736,7 +736,7 @@ describe "TextEditorPresenter", ->
 
 
         it "updates when ::lineHeight changes", ->
-          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3)
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
 
           expect(presenter.getState().content.tiles[0]).toBeDefined()
           expect(presenter.getState().content.tiles[2]).toBeDefined()
@@ -752,7 +752,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[6]).toBeUndefined()
 
         it "updates when the editor's content changes", ->
-          presenter = buildPresenter(explicitHeight: 25, scrollTop: 10, lineHeight: 10, tileCount: 3, tileOverdrawMargin: 1)
+          presenter = buildPresenter(explicitHeight: 25, scrollTop: 10, lineHeight: 10, tileSize: 2)
 
           expectStateUpdate presenter, -> buffer.insert([2, 0], "hello\nworld\n")
 
@@ -775,7 +775,7 @@ describe "TextEditorPresenter", ->
           }
 
         it "does not remove out-of-view tiles corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
-          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2, stoppedScrollingDelay: 200)
 
           expect(presenter.getState().content.tiles[0]).toBeDefined()
           expect(presenter.getState().content.tiles[6]).toBeDefined()
@@ -804,7 +804,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[4]).toBeUndefined()
 
         it "does not preserve deleted on-screen tiles even if they correspond to ::mouseWheelScreenRow", ->
-          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileCount: 3, stoppedScrollingDelay: 200)
+          presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2, stoppedScrollingDelay: 200)
 
           presenter.setMouseWheelScreenRow(2)
 

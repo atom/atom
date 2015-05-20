@@ -1920,13 +1920,23 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      linesNode = componentNode.querySelector('.lines')
-      expect(linesNode.style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
+      tilesNodes = componentNode.querySelectorAll(".tile")
+
+      top = 0
+      for tileNode in tilesNodes
+        expect(tileNode.style['-webkit-transform']).toBe "translate3d(0px, #{top}px, 0px)"
+        top += tileNode.offsetHeight
+
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
       editor.setScrollLeft(100)
       nextAnimationFrame()
-      expect(linesNode.style['-webkit-transform']).toBe "translate3d(-100px, 0px, 0px)"
+
+      top = 0
+      for tileNode in tilesNodes
+        expect(tileNode.style['-webkit-transform']).toBe "translate3d(-100px, #{top}px, 0px)"
+        top += tileNode.offsetHeight
+
       expect(horizontalScrollbarNode.scrollLeft).toBe 100
 
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
@@ -2508,7 +2518,7 @@ describe "TextEditorComponent", ->
 
       advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
-      expect(componentNode.querySelectorAll('.line')).toHaveLength(4 + lineOverdrawMargin + 1)
+      expect(componentNode.querySelectorAll('.line')).toHaveLength(6)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'

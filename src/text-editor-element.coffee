@@ -15,7 +15,7 @@ class TextEditorElement extends HTMLElement
   componentDescriptor: null
   component: null
   attached: false
-  lineOverdrawMargin: null
+  tileSize: null
   focusOnAttach: false
 
   createdCallback: ->
@@ -110,7 +110,7 @@ class TextEditorElement extends HTMLElement
       rootElement: @rootElement
       stylesElement: @stylesElement
       editor: @model
-      lineOverdrawMargin: @lineOverdrawMargin
+      tileSize: @tileSize
       useShadowDOM: @useShadowDOM
     )
     @rootElement.appendChild(@component.getDomNode())

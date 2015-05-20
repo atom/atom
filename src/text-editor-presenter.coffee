@@ -15,12 +15,12 @@ class TextEditorPresenter
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
-    {@lineHeight, @baseCharacterWidth, @lineOverdrawMargin, @backgroundColor, @gutterBackgroundColor, @tileCount} = params
+    {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileCount ?= 4
+    @tileSize ?= 12
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -66,7 +66,6 @@ class TextEditorPresenter
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
-    @updateTileSize()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -224,7 +223,6 @@ class TextEditorPresenter
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
-    @updateTileSize()
 
     @updateFocusedState()
     @updateHeightState()
@@ -285,8 +283,6 @@ class TextEditorPresenter
     {top, left, height, width} = @pixelRectForScreenRange(lastCursor.getScreenRange())
 
     if @focused
-      top -= @scrollTop
-      left -= @scrollLeft
       @state.hiddenInput.top = Math.max(Math.min(top, @clientHeight - height), 0)
       @state.hiddenInput.left = Math.max(Math.min(left, @clientWidth - width), 0)
     else
@@ -602,12 +598,6 @@ class TextEditorPresenter
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
-
-  updateTileSize: ->
-    return unless @height? and @lineHeight? and @tileCount?
-
-    @tileSize = Math.floor(@height / @lineHeight / @tileCount)
-    @tileSize = Math.max(1, @tileSize)
 
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
