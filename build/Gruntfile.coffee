@@ -225,7 +225,7 @@ module.exports = (grunt) ->
       version: packageJson.electronVersion
       outputDir: 'electron'
       downloadDir: electronDownloadDir
-      rebuild: true  # rebuild native modules after atom-shell is updated
+      rebuild: true  # rebuild native modules after electron is updated
       token: process.env.ATOM_ACCESS_TOKEN
 
     'create-windows-installer':
