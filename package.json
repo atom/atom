@@ -47,7 +47,6 @@
     "normalize-package-data": "^2.0.0",
     "nslog": "^2.0.0",
     "oniguruma": "^4.1",
-    "optimist": "0.4.0",
     "pathwatcher": "^4.4",
     "property-accessors": "^1.1.3",
     "q": "^1.1.2",
@@ -68,7 +67,8 @@
     "text-buffer": "6.0.1",
     "theorist": "^1.0.2",
     "typescript-simple": "1.0.0",
-    "underscore-plus": "^1.6.6"
+    "underscore-plus": "^1.6.6",
+    "yargs": "^3.7.2"
   },
   "packageDependencies": {
     "atom-dark-syntax": "0.27.0",
