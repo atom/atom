@@ -247,7 +247,6 @@ atom.commands.add 'atom-text-editor', stopEventPropagation(
   'core:select-up': -> @selectUp()
   'core:select-down': -> @selectDown()
   'core:select-all': -> @selectAll()
-  'editor:move-to-previous-word': -> @moveToPreviousWord()
   'editor:select-word': -> @selectWordsContainingCursors()
   'editor:consolidate-selections': (event) -> event.abortKeyBinding() unless @consolidateSelections()
   'editor:move-to-beginning-of-next-paragraph': -> @moveToBeginningOfNextParagraph()
