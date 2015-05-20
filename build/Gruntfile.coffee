@@ -263,5 +263,6 @@ module.exports = (grunt) ->
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']
-  # defaultTasks.push 'install' unless process.platform is 'linux'
+  unless process.platform is 'linux' or grunt.option('no-install')
+    defaultTasks.push 'install'
   grunt.registerTask('default', defaultTasks)
