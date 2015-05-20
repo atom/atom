@@ -20,7 +20,7 @@
     "grunt-contrib-coffee": "~0.12.0",
     "grunt-contrib-csslint": "~0.2.0",
     "grunt-contrib-less": "~0.8.0",
-    "grunt-cson": "0.14.0",
+    "grunt-cson": "0.15.0",
     "grunt-download-electron": "^2.1.1",
     "grunt-electron-installer": "1.0.0",
     "grunt-lesslint": "0.17.0",
