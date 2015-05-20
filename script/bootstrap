@@ -84,7 +84,7 @@ function bootstrap() {
     apmInstallCommand += ' --arch=ia32';
 
   if (!process.env.ATOM_NODE_VERSION)
-    process.env.ATOM_NODE_VERSION = require('../package.json').electronVersion
+    process.env.ATOM_NODE_VERSION = require('../package.json').electronVersion;
 
   var commands = [
     {
