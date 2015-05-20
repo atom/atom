@@ -46,7 +46,7 @@
     "mixto": "^1",
     "normalize-package-data": "^2.0.0",
     "nslog": "^2.0.0",
-    "oniguruma": "^4.1",
+    "oniguruma": "^4.2.2",
     "pathwatcher": "^4.4",
     "property-accessors": "^1.1.3",
     "q": "^1.1.2",
