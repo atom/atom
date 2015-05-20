@@ -40,9 +40,10 @@ class DisplayBuffer extends Model
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
-    @updateAllScreenLines()
     @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
-    @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
+    folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
+    @updateAllScreenLines()
+    @decorateFold(fold) for fold in folds
 
   subscribeToScopedConfigSettings: =>
     @scopedConfigSubscriptions?.dispose()
@@ -580,9 +581,17 @@ class DisplayBuffer extends Model
   # Returns the folds in the given row range (exclusive of end row) that are
   # not contained by any other folds.
   outermostFoldsInBufferRowRange: (startRow, endRow) ->
-    @findFoldMarkers(containedInRange: [[startRow, 0], [endRow, 0]])
-      .map (marker) => @foldForMarker(marker)
-      .filter (fold) -> not fold.isInsideLargerFold()
+    folds = []
+    lastFoldEndRow = -1
+
+    for marker in @findFoldMarkers(intersectsRowRange: [startRow, endRow])
+      range = marker.getRange()
+      if range.start.row > lastFoldEndRow
+        lastFoldEndRow = range.end.row
+        if startRow <= range.start.row <= range.end.row < endRow
+          folds.push(@foldForMarker(marker))
+
+    folds
 
   # Public: Given a buffer row, this returns folds that include it.
   #
@@ -1138,11 +1147,15 @@ class DisplayBuffer extends Model
     regions = []
     rectangularRegion = null
 
+    foldsByStartRow = {}
+    for fold in @outermostFoldsInBufferRowRange(startBufferRow, endBufferRow)
+      foldsByStartRow[fold.getStartRow()] = fold
+
     bufferRow = startBufferRow
     while bufferRow < endBufferRow
       tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(bufferRow)
 
-      if fold = @largestFoldStartingAtBufferRow(bufferRow)
+      if fold = foldsByStartRow[bufferRow]
         foldLine = tokenizedLine.copy()
         foldLine.fold = fold
         screenLines.push(foldLine)
@@ -1212,16 +1225,19 @@ class DisplayBuffer extends Model
     @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
 
   handleBufferMarkerCreated: (textBufferMarker) =>
-    @createFoldForMarker(textBufferMarker) if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
+    if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
+      fold = new Fold(this, textBufferMarker)
+      fold.updateDisplayBuffer()
+      @decorateFold(fold)
+
     if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
       @emit 'marker-created', marker if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-create-marker', marker
 
-  createFoldForMarker: (marker) ->
-    @decorateMarker(marker, type: 'line-number', class: 'folded')
-    new Fold(this, marker)
+  decorateFold: (fold) ->
+    @decorateMarker(fold.marker, type: 'line-number', class: 'folded')
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
