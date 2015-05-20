@@ -23,7 +23,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-less')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadNpmTasks('grunt-download-electron')
-  grunt.loadNpmTasks('grunt-atom-shell-installer')
+  grunt.loadNpmTasks('grunt-electron-installer')
   grunt.loadNpmTasks('grunt-peg')
   grunt.loadTasks('tasks')
 
