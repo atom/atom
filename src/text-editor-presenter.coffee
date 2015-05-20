@@ -20,7 +20,7 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileCount ?= 6
+    @tileCount ?= 4
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
