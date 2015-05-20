@@ -81,5 +81,3 @@ class TokenIterator
 
   isAtomic: ->
     @isSoftTab() or @isHardTab() or @isSoftWrapIndentation() or @isPairedCharacter()
-
-TokenIterator.instance = new TokenIterator

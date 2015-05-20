@@ -2,7 +2,6 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
-TokenIterator = require './token-iterator'
 
 module.exports =
 class TextEditorPresenter
@@ -1013,7 +1012,7 @@ class TextEditorPresenter
     left = 0
     column = 0
 
-    iterator = TokenIterator.instance.reset(@model.tokenizedLineForScreenRow(targetRow))
+    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
     while iterator.next()
       characterWidths = @getScopedCharacterWidths(iterator.getScopes())
 

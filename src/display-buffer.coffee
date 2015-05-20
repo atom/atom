@@ -4,7 +4,6 @@ Serializable = require 'serializable'
 {Point, Range} = require 'text-buffer'
 Grim = require 'grim'
 TokenizedBuffer = require './tokenized-buffer'
-TokenIterator = require './token-iterator'
 RowMap = require './row-map'
 Fold = require './fold'
 Model = require './model'
@@ -652,7 +651,7 @@ class DisplayBuffer extends Model
     left = 0
     column = 0
 
-    iterator = TokenIterator.instance.reset(@tokenizedLineForScreenRow(targetRow))
+    iterator = @tokenizedLineForScreenRow(targetRow).getTokenIterator()
     while iterator.next()
       charWidths = @getScopedCharWidths(iterator.getScopes())
       valueIndex = 0
@@ -685,7 +684,7 @@ class DisplayBuffer extends Model
     left = 0
     column = 0
 
-    iterator = TokenIterator.instance.reset(@tokenizedLineForScreenRow(row))
+    iterator = @tokenizedLineForScreenRow(row).getTokenIterator()
     while iterator.next()
       charWidths = @getScopedCharWidths(iterator.getScopes())
       value = iterator.getText()

@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 {isPairedCharacter} = require './text-utils'
 Token = require './token'
-TokenIterator = require './token-iterator'
 {SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
 
 NonWhitespaceRegex = /\S/
@@ -24,7 +23,7 @@ class TokenizedLine
     return unless properties?
 
     @specialTokens = {}
-    {@openScopes, @text, @tags, @lineEnding, @ruleStack} = properties
+    {@openScopes, @text, @tags, @lineEnding, @ruleStack, @tokenIterator} = properties
     {@startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles} = properties
 
     @startBufferColumn ?= 0
@@ -143,7 +142,7 @@ class TokenizedLine
       @lineIsWhitespaceOnly = true
       @firstTrailingWhitespaceIndex = 0
 
-  getTokenIterator: -> TokenIterator.instance.reset(this)
+  getTokenIterator: -> @tokenIterator.reset(this)
 
   Object.defineProperty @prototype, 'tokens', get: ->
     iterator = @getTokenIterator()
@@ -179,6 +178,7 @@ class TokenizedLine
 
   copy: ->
     copy = new TokenizedLine
+    copy.tokenIterator = @tokenIterator
     copy.indentLevel = @indentLevel
     copy.openScopes = @openScopes
     copy.text = @text
@@ -359,6 +359,7 @@ class TokenizedLine
     splitBufferColumn = @bufferColumnForScreenColumn(column)
 
     leftFragment = new TokenizedLine
+    leftFragment.tokenIterator = @tokenIterator
     leftFragment.openScopes = @openScopes
     leftFragment.text = leftText
     leftFragment.tags = leftTags
@@ -374,6 +375,7 @@ class TokenizedLine
     leftFragment.firstTrailingWhitespaceIndex = Math.min(column, @firstTrailingWhitespaceIndex)
 
     rightFragment = new TokenizedLine
+    rightFragment.tokenIterator = @tokenIterator
     rightFragment.openScopes = rightOpenScopes
     rightFragment.text = rightText
     rightFragment.tags = rightTags

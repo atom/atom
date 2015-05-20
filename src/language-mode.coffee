@@ -2,7 +2,6 @@
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 ScopeDescriptor = require './scope-descriptor'
-TokenIterator = require './token-iterator'
 
 module.exports =
 class LanguageMode
@@ -243,7 +242,7 @@ class LanguageMode
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
 
   suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
-    iterator = TokenIterator.instance.reset(tokenizedLine)
+    iterator = tokenizedLine.getTokenIterator()
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 

@@ -27,6 +27,7 @@ class TokenizedBuffer extends Model
   constructor: ({@buffer, @tabLength, @ignoreInvisibles}) ->
     @emitter = new Emitter
     @disposables = new CompositeDisposable
+    @tokenIterator = new TokenIterator
 
     @disposables.add atom.grammars.onDidAddGrammar(@grammarAddedOrUpdated)
     @disposables.add atom.grammars.onDidUpdateGrammar(@grammarAddedOrUpdated)
@@ -321,7 +322,7 @@ class TokenizedBuffer extends Model
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles: @getInvisiblesToShow(), lineEnding})
+    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles: @getInvisiblesToShow(), lineEnding, @tokenIterator})
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
@@ -331,7 +332,7 @@ class TokenizedBuffer extends Model
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
-    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, invisibles: @getInvisiblesToShow()})
+    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, invisibles: @getInvisiblesToShow(), @tokenIterator})
 
   getInvisiblesToShow: ->
     if @configSettings.showInvisibles and not @ignoreInvisibles
@@ -402,7 +403,7 @@ class TokenizedBuffer extends Model
   scopeDescriptorForPosition: (position) ->
     {row, column} = Point.fromObject(position)
 
-    iterator = TokenIterator.instance.reset(@tokenizedLines[row])
+    iterator = @tokenizedLines[row].getTokenIterator()
     while iterator.next()
       if iterator.getScreenEnd() > column
         scopes = iterator.getScopes()

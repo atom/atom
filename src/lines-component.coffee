@@ -22,6 +22,7 @@ class LinesComponent
   placeholderTextDiv: null
 
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
+    @tokenIterator = new TokenIterator
     @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
@@ -175,19 +176,19 @@ class LinesComponent
     lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
 
     innerHTML = ""
-    iterator = TokenIterator.instance.reset(lineState)
+    @tokenIterator.reset(lineState)
 
-    while iterator.next()
-      for scope in iterator.getScopeEnds()
+    while @tokenIterator.next()
+      for scope in @tokenIterator.getScopeEnds()
         innerHTML += "</span>"
 
-      for scope in iterator.getScopeStarts()
+      for scope in @tokenIterator.getScopeStarts()
         innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-      tokenStart = iterator.getScreenStart()
-      tokenEnd = iterator.getScreenEnd()
-      tokenText = iterator.getText()
-      isHardTab = iterator.isHardTab()
+      tokenStart = @tokenIterator.getScreenStart()
+      tokenEnd = @tokenIterator.getScreenEnd()
+      tokenText = @tokenIterator.getText()
+      isHardTab = @tokenIterator.isHardTab()
 
       if hasLeadingWhitespace = tokenStart < firstNonWhitespaceIndex
         tokenFirstNonWhitespaceIndex = firstNonWhitespaceIndex - tokenStart
@@ -209,10 +210,10 @@ class LinesComponent
 
       innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
 
-    for scope in iterator.getScopeEnds()
+    for scope in @tokenIterator.getScopeEnds()
       innerHTML += "</span>"
 
-    for scope in iterator.getScopes()
+    for scope in @tokenIterator.getScopes()
       innerHTML += "</span>"
 
     innerHTML += @buildEndOfLineHTML(id)
@@ -353,15 +354,15 @@ class LinesComponent
     iterator = null
     charIndex = 0
 
-    tokenIterator = TokenIterator.instance.reset(tokenizedLine)
-    while tokenIterator.next()
-      scopes = tokenIterator.getScopes()
-      text = tokenIterator.getText()
+    @tokenIterator.reset(tokenizedLine)
+    while @tokenIterator.next()
+      scopes = @tokenIterator.getScopes()
+      text = @tokenIterator.getText()
       charWidths = @presenter.getScopedCharacterWidths(scopes)
 
       textIndex = 0
       while textIndex < text.length
-        if tokenIterator.isPairedCharacter()
+        if @tokenIterator.isPairedCharacter()
           char = text
           charLength = 2
           textIndex += 2
