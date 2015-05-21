@@ -759,19 +759,19 @@ describe "TextEditorPresenter", ->
           line1 = editor.tokenizedLineForScreenRow(1)
           expectValues lineStateForScreenRow(presenter, 1), {
             text: line1.text
-            tokens: line1.tokens
+            tags: line1.tags
           }
 
           line2 = editor.tokenizedLineForScreenRow(2)
           expectValues lineStateForScreenRow(presenter, 2), {
             text: line2.text
-            tokens: line2.tokens
+            tags: line2.tags
           }
 
           line3 = editor.tokenizedLineForScreenRow(3)
           expectValues lineStateForScreenRow(presenter, 3), {
             text: line3.text
-            tokens: line3.tokens
+            tags: line3.tags
           }
 
         it "does not remove out-of-view tiles corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
@@ -814,6 +814,70 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[0]).toBeDefined()
 
         describe "[tileId].lines[lineId]", -> # line state objects
+          xit "includes the state for lines in a tile", ->
+            expect(lineStateForScreenRow(presenter, 3)).toBeUndefined()
+
+            line4 = editor.tokenizedLineForScreenRow(4)
+            expectValues lineStateForScreenRow(presenter, 4), {
+              screenRow: 4
+              text: line4.text
+              tags: line4.tags
+              specialTokens: line4.specialTokens
+              firstNonWhitespaceIndex: line4.firstNonWhitespaceIndex
+              firstTrailingWhitespaceIndex: line4.firstTrailingWhitespaceIndex
+              invisibles: line4.invisibles
+              top: 10 * 4
+            }
+
+            line5 = editor.tokenizedLineForScreenRow(5)
+            expectValues lineStateForScreenRow(presenter, 5), {
+              screenRow: 5
+              text: line5.text
+              tags: line5.tags
+              specialTokens: line5.specialTokens
+              firstNonWhitespaceIndex: line5.firstNonWhitespaceIndex
+              firstTrailingWhitespaceIndex: line5.firstTrailingWhitespaceIndex
+              invisibles: line5.invisibles
+              top: 10 * 5
+            }
+
+            line6 = editor.tokenizedLineForScreenRow(6)
+            expectValues lineStateForScreenRow(presenter, 6), {
+              screenRow: 6
+              text: line6.text
+              tags: line6.tags
+              specialTokens: line6.specialTokens
+              firstNonWhitespaceIndex: line6.firstNonWhitespaceIndex
+              firstTrailingWhitespaceIndex: line6.firstTrailingWhitespaceIndex
+              invisibles: line6.invisibles
+              top: 10 * 6
+            }
+
+            line7 = editor.tokenizedLineForScreenRow(7)
+            expectValues lineStateForScreenRow(presenter, 7), {
+              screenRow: 7
+              text: line7.text
+              tags: line7.tags
+              specialTokens: line7.specialTokens
+              firstNonWhitespaceIndex: line7.firstNonWhitespaceIndex
+              firstTrailingWhitespaceIndex: line7.firstTrailingWhitespaceIndex
+              invisibles: line7.invisibles
+              top: 10 * 7
+            }
+
+            line8 = editor.tokenizedLineForScreenRow(8)
+            expectValues lineStateForScreenRow(presenter, 8), {
+              screenRow: 8
+              text: line8.text
+              tags: line8.tags
+              specialTokens: line8.specialTokens
+              firstNonWhitespaceIndex: line8.firstNonWhitespaceIndex
+              firstTrailingWhitespaceIndex: line8.firstTrailingWhitespaceIndex
+              invisibles: line8.invisibles
+              top: 10 * 8
+            }
+
+
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)

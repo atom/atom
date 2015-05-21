@@ -358,9 +358,14 @@ class TextEditorPresenter
         tileState.lines[line.id] =
           screenRow: row
           text: line.text
-          tokens: line.tokens
-          isOnlyWhitespace: line.isOnlyWhitespace()
+          openScopes: line.openScopes
+          tags: line.tags
+          specialTokens: line.specialTokens
+          firstNonWhitespaceIndex: line.firstNonWhitespaceIndex
+          firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
+          invisibles: line.invisibles
           endOfLineInvisibles: line.endOfLineInvisibles
+          isOnlyWhitespace: line.isOnlyWhitespace()
           indentLevel: line.indentLevel
           tabLength: line.tabLength
           fold: line.fold
@@ -370,6 +375,7 @@ class TextEditorPresenter
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
+    return
 
   updateCursorsState: ->
     @state.content.cursors = {}
@@ -1033,17 +1039,20 @@ class TextEditorPresenter
     top = targetRow * @lineHeight
     left = 0
     column = 0
-    for token in @model.tokenizedLineForScreenRow(targetRow).tokens
-      characterWidths = @getScopedCharacterWidths(token.scopes)
+
+    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
+    while iterator.next()
+      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
 
       valueIndex = 0
-      while valueIndex < token.value.length
-        if token.hasPairedCharacter
-          char = token.value.substr(valueIndex, 2)
+      text = iterator.getText()
+      while valueIndex < text.length
+        if iterator.isPairedCharacter()
+          char = text
           charLength = 2
           valueIndex += 2
         else
-          char = token.value[valueIndex]
+          char = text[valueIndex]
           charLength = 1
           valueIndex++
 
