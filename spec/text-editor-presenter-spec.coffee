@@ -660,7 +660,7 @@ describe "TextEditorPresenter", ->
         lineStateForScreenRow = (presenter, row) ->
           lineId  = presenter.model.tokenizedLineForScreenRow(row).id
           tileRow = presenter.tileForRow(row)
-          presenter.getState().content.tiles[tileRow].lines[lineId]
+          presenter.getState().content.tiles[tileRow]?.lines[lineId]
 
         it "contains states for tiles that are visible on screen", ->
           presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
@@ -679,6 +679,25 @@ describe "TextEditorPresenter", ->
           }
 
           expect(presenter.getState().content.tiles[8]).toBeUndefined()
+
+          expectStateUpdate -> presenter.setScrollTop(3)
+
+          expect(presenter.getState().content.tiles[0]).toBeUndefined()
+
+          expectValues presenter.getState().content.tiles[2], {
+            top: -1
+          }
+          expectValues presenter.getState().content.tiles[4], {
+            top: 1
+          }
+          expectValues presenter.getState().content.tiles[6], {
+            top: 3
+          }
+          expectValues presenter.getState().content.tiles[8], {
+            top: 5
+          }
+
+          expect(presenter.getState().content.tiles[10]).toBeUndefined()
 
         it "includes state for all tiles if no external ::explicitHeight is assigned", ->
           presenter = buildPresenter(explicitHeight: null, tileSize: 2)
@@ -814,8 +833,22 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.tiles[0]).toBeDefined()
 
         describe "[tileId].lines[lineId]", -> # line state objects
-          xit "includes the state for lines in a tile", ->
-            expect(lineStateForScreenRow(presenter, 3)).toBeUndefined()
+          it "includes the state for visible lines in a tile", ->
+            presenter = buildPresenter(explicitHeight: 3, scrollTop: 4, lineHeight: 1, tileSize: 3, stoppedScrollingDelay: 200)
+
+            expect(lineStateForScreenRow(presenter, 2)).toBeUndefined()
+
+            line3 = editor.tokenizedLineForScreenRow(3)
+            expectValues lineStateForScreenRow(presenter, 3), {
+              screenRow: 3
+              text: line3.text
+              tags: line3.tags
+              specialTokens: line3.specialTokens
+              firstNonWhitespaceIndex: line3.firstNonWhitespaceIndex
+              firstTrailingWhitespaceIndex: line3.firstTrailingWhitespaceIndex
+              invisibles: line3.invisibles
+              top: 0
+            }
 
             line4 = editor.tokenizedLineForScreenRow(4)
             expectValues lineStateForScreenRow(presenter, 4), {
@@ -826,7 +859,7 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line4.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line4.firstTrailingWhitespaceIndex
               invisibles: line4.invisibles
-              top: 10 * 4
+              top: 1
             }
 
             line5 = editor.tokenizedLineForScreenRow(5)
@@ -838,7 +871,7 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line5.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line5.firstTrailingWhitespaceIndex
               invisibles: line5.invisibles
-              top: 10 * 5
+              top: 2
             }
 
             line6 = editor.tokenizedLineForScreenRow(6)
@@ -850,7 +883,7 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line6.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line6.firstTrailingWhitespaceIndex
               invisibles: line6.invisibles
-              top: 10 * 6
+              top: 0
             }
 
             line7 = editor.tokenizedLineForScreenRow(7)
@@ -862,7 +895,7 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line7.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line7.firstTrailingWhitespaceIndex
               invisibles: line7.invisibles
-              top: 10 * 7
+              top: 1
             }
 
             line8 = editor.tokenizedLineForScreenRow(8)
@@ -874,9 +907,10 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line8.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line8.firstTrailingWhitespaceIndex
               invisibles: line8.invisibles
-              top: 10 * 8
+              top: 2
             }
 
+            expect(lineStateForScreenRow(presenter, 9)).toBeUndefined()
 
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
