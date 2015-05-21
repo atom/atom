@@ -1,5 +1,3 @@
-_ = require 'underscore-plus'
-{toArray} = require 'underscore-plus'
 {$$} = require 'space-pen'
 
 CursorsComponent = require './cursors-component'
@@ -7,8 +5,6 @@ HighlightsComponent = require './highlights-component'
 TileComponent = require './tile-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
-AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
-WrapperDiv = document.createElement('div')
 
 cloneObject = (object) ->
   clone = {}

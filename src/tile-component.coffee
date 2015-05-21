@@ -1,9 +1,6 @@
 _ = require 'underscore-plus'
-{toArray} = require 'underscore-plus'
-{$$} = require 'space-pen'
 
 TokenIterator = require './token-iterator'
-DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
 TokenTextEscapeRegex = /[&"'<>]/g
