@@ -8,7 +8,25 @@ LeadingWhitespaceRegex = /^\s*/
 TrailingWhitespaceRegex = /\s*$/
 RepeatedSpaceRegex = /[ ]/g
 CommentScopeRegex = /(\b|\.)comment/
+TabCharCode = 9
+SpaceCharCode = 32
+SpaceString = ' '
+TabStringsByLength = {
+  1: ' '
+  2: '  '
+  3: '   '
+  4: '    '
+}
+
 idCounter = 1
+
+getTabString = (length) ->
+  TabStringsByLength[length] ?= buildTabString(length)
+
+buildTabString = (length) ->
+  string = SpaceString
+  string += SpaceString for i in [1...length] by 1
+  string
 
 module.exports =
 class TokenizedLine
@@ -41,6 +59,9 @@ class TokenizedLine
     firstNonWhitespaceColumn = null
     lastNonWhitespaceColumn = null
 
+    substringStart = 0
+    substringEnd = 0
+
     while bufferColumn < @text.length
       # advance to next token if we've iterated over its length
       if tokenOffset is @tags[tokenIndex]
@@ -50,23 +71,23 @@ class TokenizedLine
       # advance to next token tag
       tokenIndex++ while @tags[tokenIndex] < 0
 
-      character = @text[bufferColumn]
+      charCode = @text.charCodeAt(bufferColumn)
 
       # split out unicode surrogate pairs
       if isPairedCharacter(@text, bufferColumn)
         prefix = tokenOffset
         suffix = @tags[tokenIndex] - tokenOffset - 2
-        splitTokens = []
-        splitTokens.push(prefix) if prefix > 0
-        splitTokens.push(2)
-        splitTokens.push(suffix) if suffix > 0
 
-        @tags.splice(tokenIndex, 1, splitTokens...)
+        i = tokenIndex
+        @tags.splice(i, 1)
+        @tags.splice(i++, 0, prefix) if prefix > 0
+        @tags.splice(i++, 0, 2)
+        @tags.splice(i, 0, suffix) if suffix > 0
 
         firstNonWhitespaceColumn ?= screenColumn
         lastNonWhitespaceColumn = screenColumn + 1
 
-        text += @text.substr(bufferColumn, 2)
+        substringEnd += 2
         screenColumn += 2
         bufferColumn += 2
 
@@ -76,38 +97,53 @@ class TokenizedLine
         tokenOffset = 0
 
       # split out leading soft tabs
-      else if character is ' '
+      else if charCode is SpaceCharCode
         if firstNonWhitespaceColumn?
-          text += ' '
+          substringEnd += 1
         else
           if (screenColumn + 1) % @tabLength is 0
             @specialTokens[tokenIndex] = SoftTab
             suffix = @tags[tokenIndex] - @tabLength
             @tags.splice(tokenIndex, 1, @tabLength)
             @tags.splice(tokenIndex + 1, 0, suffix) if suffix > 0
-          text += @invisibles?.space ? ' '
+
+          if @invisibles?.space
+            if substringEnd > substringStart
+              text += @text.substring(substringStart, substringEnd)
+            substringStart = substringEnd
+            text += @invisibles.space
+            substringStart += 1
+
+          substringEnd += 1
 
         screenColumn++
         bufferColumn++
         tokenOffset++
 
       # expand hard tabs to the next tab stop
-      else if character is '\t'
+      else if charCode is TabCharCode
+        if substringEnd > substringStart
+          text += @text.substring(substringStart, substringEnd)
+        substringStart = substringEnd
+
         tabLength = @tabLength - (screenColumn % @tabLength)
         if @invisibles?.tab
           text += @invisibles.tab
+          text += getTabString(tabLength - 1) if tabLength > 1
         else
-          text += ' '
-        text += ' ' for i in [1...tabLength] by 1
+          text += getTabString(tabLength)
+
+        substringStart += 1
+        substringEnd += 1
 
         prefix = tokenOffset
         suffix = @tags[tokenIndex] - tokenOffset - 1
-        splitTokens = []
-        splitTokens.push(prefix) if prefix > 0
-        splitTokens.push(tabLength)
-        splitTokens.push(suffix) if suffix > 0
 
-        @tags.splice(tokenIndex, 1, splitTokens...)
+        i = tokenIndex
+        @tags.splice(i, 1)
+        @tags.splice(i++, 0, prefix) if prefix > 0
+        @tags.splice(i++, 0, tabLength)
+        @tags.splice(i, 0, suffix) if suffix > 0
 
         screenColumn += tabLength
         bufferColumn++
@@ -122,12 +158,17 @@ class TokenizedLine
         firstNonWhitespaceColumn ?= screenColumn
         lastNonWhitespaceColumn = screenColumn
 
-        text += character
+        substringEnd += 1
         screenColumn++
         bufferColumn++
         tokenOffset++
 
-    @text = text
+    if substringEnd > substringStart
+      unless substringStart is 0 and substringEnd is @text.length
+        text += @text.substring(substringStart, substringEnd)
+        @text = text
+    else
+      @text = text
 
     @firstNonWhitespaceIndex = firstNonWhitespaceColumn
     if lastNonWhitespaceColumn?
