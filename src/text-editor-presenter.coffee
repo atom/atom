@@ -336,14 +336,9 @@ class TextEditorPresenter
     @state.content.lines[line.id] =
       screenRow: row
       text: line.text
-      openScopes: line.openScopes
-      tags: line.tags
-      specialTokens: line.specialTokens
-      firstNonWhitespaceIndex: line.firstNonWhitespaceIndex
-      firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
-      invisibles: line.invisibles
-      endOfLineInvisibles: line.endOfLineInvisibles
+      tokens: line.tokens
       isOnlyWhitespace: line.isOnlyWhitespace()
+      endOfLineInvisibles: line.endOfLineInvisibles
       indentLevel: line.indentLevel
       tabLength: line.tabLength
       fold: line.fold
@@ -1011,20 +1006,17 @@ class TextEditorPresenter
     top = targetRow * @lineHeight
     left = 0
     column = 0
-
-    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
+    for token in @model.tokenizedLineForScreenRow(targetRow).tokens
+      characterWidths = @getScopedCharacterWidths(token.scopes)
 
       valueIndex = 0
-      text = iterator.getText()
-      while valueIndex < text.length
-        if iterator.isPairedCharacter()
-          char = text
+      while valueIndex < token.value.length
+        if token.hasPairedCharacter
+          char = token.value.substr(valueIndex, 2)
           charLength = 2
           valueIndex += 2
         else
-          char = text[valueIndex]
+          char = token.value[valueIndex]
           charLength = 1
           valueIndex++
 

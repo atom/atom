@@ -2457,8 +2457,9 @@ class TextEditor extends Model
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
+      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopes
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
-      @commentScopeSelector.matches(@scopeDescriptorForBufferPosition([bufferRow, match.index]).scopes)
+      @commentScopeSelector.matches(scopeDescriptor)
 
   logCursorScope: ->
     scopeDescriptor = @getLastCursor().getScopeDescriptor()
