@@ -422,7 +422,7 @@ class TokenizedLine
     rightFragment.tags = rightTags
     rightFragment.specialTokens = rightSpecialTokens
     rightFragment.startBufferColumn = splitBufferColumn
-    rightFragment.bufferDelta = @bufferDelta - splitBufferColumn
+    rightFragment.bufferDelta = @startBufferColumn + @bufferDelta - splitBufferColumn
     rightFragment.ruleStack = @ruleStack
     rightFragment.invisibles = @invisibles
     rightFragment.lineEnding = @lineEnding
