@@ -293,9 +293,9 @@ class TokenizedBuffer extends Model
       @tokenizedLineForRow(row).isComment() and
       @tokenizedLineForRow(nextRow).isComment()
 
-  buildTokenizedLinesForRows: (startRow, endRow, startingStack, startingopenScopes) ->
+  buildTokenizedLinesForRows: (startRow, endRow, startingStack, startingOpenScopes) ->
     ruleStack = startingStack
-    openScopes = startingopenScopes
+    openScopes = startingOpenScopes
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow]
       if (ruleStack or row is 0) and row < stopTokenizingAt
