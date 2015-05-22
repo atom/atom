@@ -313,16 +313,39 @@ class TokenizedBuffer extends Model
     tokenizedLines
 
   buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
-    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow]
+    if startRow > 0
+      openScopes = @openScopesForRow(startRow)
+      previousLine = @tokenizedLines[startRow - 1]
+      indentLevel = previousLine.indentLevel
+      lastLineEmpty = previousLine.text.length is 0
+    else
+      openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
+      indentLevel = 0
+      lastLineEmpty = false
 
-  buildPlaceholderTokenizedLineForRow: (row) ->
-    openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
+    lines = []
+    for row in [startRow..endRow] by 1
+      line = @buildPlaceholderTokenizedLineForRow(row, openScopes, indentLevel)
+
+      newIndentLevel = Math.ceil(line.indentLevel)
+      if lastLineEmpty and newIndentLevel > indentLevel
+        for previousLine in lines by -1
+          break unless previousLine.text.length is 0
+          previousLine.indentLevel = newIndentLevel
+
+      indentLevel = newIndentLevel
+      lastLineEmpty = line.text.length is 0
+      lines.push(line)
+
+    lines
+
+  buildPlaceholderTokenizedLineForRow: (row, openScopes, indentLevel) ->
     text = @buffer.lineForRow(row)
     tags = [text.length]
     tabLength = @getTabLength()
-    indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles: @getInvisiblesToShow(), lineEnding, @tokenIterator})
+    invisibles = @getInvisiblesToShow()
+    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles, lineEnding, @tokenIterator})
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
