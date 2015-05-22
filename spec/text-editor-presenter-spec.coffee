@@ -696,8 +696,11 @@ describe "TextEditorPresenter", ->
           expectValues presenter.getState().content.tiles[8], {
             top: 5
           }
+          expectValues presenter.getState().content.tiles[10], {
+            top: 7
+          }
 
-          expect(presenter.getState().content.tiles[10]).toBeUndefined()
+          expect(presenter.getState().content.tiles[12]).toBeUndefined()
 
         it "includes state for all tiles if no external ::explicitHeight is assigned", ->
           presenter = buildPresenter(explicitHeight: null, tileSize: 2)
