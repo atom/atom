@@ -20,7 +20,7 @@ SequenceCount = 0
 #
 # Command names must follow the `namespace:event` pattern, where both parts can
 # be further split into words by hyphens. Typically `namespace` will be the
-# name of your package, and `event` the name of your command.
+# name of your package, and `event` describes the behavior of your command.
 # E.g. `awesome-package:toggle`.
 #
 # As the event bubbles upward through the DOM, all registered event listeners
