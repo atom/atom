@@ -296,14 +296,6 @@ describe "TokenizedBuffer", ->
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeTruthy()
 
-      describe ".findOpeningBracket(closingBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
-
-      describe ".findClosingBracket(startBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
-
       it "tokenizes leading whitespace based on the new tab length", ->
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].isAtomic).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].value).toBe "  "
@@ -580,7 +572,7 @@ describe "TokenizedBuffer", ->
 
     describe "when the selector matches a run of multiple tokens at the position", ->
       it "returns the range covered by all contigous tokens (within a single line)", ->
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.meta.function', [1, 18])).toEqual [[1, 6], [1, 28]]
 
   describe "when the editor.tabLength config value changes", ->
     it "updates the tab length of the tokenized lines", ->
@@ -697,22 +689,6 @@ describe "TokenizedBuffer", ->
       expect(line.tokens[0].firstNonWhitespaceIndex).toBe 2
       expect(line.tokens[line.tokens.length - 1].firstTrailingWhitespaceIndex).toBe 0
 
-    it "sets the ::firstNonWhitespaceIndex and ::firstTrailingWhitespaceIndex correctly when tokens are split for soft-wrapping", ->
-      atom.config.set("editor.showInvisibles", true)
-      atom.config.set("editor.invisibles", space: 'S')
-      buffer.setText(" token ")
-      fullyTokenize(tokenizedBuffer)
-      token = tokenizedBuffer.tokenizedLines[0].tokens[0]
-
-      [leftToken, rightToken] = token.splitAt(1)
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(leftToken.firstNonWhitespaceIndex).toBe 1
-      expect(leftToken.firstTrailingWhitespaceIndex).toBe null
-
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(rightToken.firstNonWhitespaceIndex).toBe null
-      expect(rightToken.firstTrailingWhitespaceIndex).toBe 5
-
   describe ".indentLevel on tokenized lines", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
@@ -752,7 +728,7 @@ describe "TokenizedBuffer", ->
       it "updates empty line indent guides when the empty line is the last line", ->
         buffer.insert([12, 2], '\n')
 
-        # The newline and he tab need to be in two different operations to surface the bug
+        # The newline and the tab need to be in two different operations to surface the bug
         buffer.insert([12, 0], '  ')
         expect(tokenizedBuffer.tokenizedLineForRow(13).indentLevel).toBe 1
 
