@@ -680,7 +680,7 @@ describe "TextEditorPresenter", ->
 
           expect(presenter.getState().content.tiles[8]).toBeUndefined()
 
-          expectStateUpdate -> presenter.setScrollTop(3)
+          expectStateUpdate presenter, -> presenter.setScrollTop(3)
 
           expect(presenter.getState().content.tiles[0]).toBeUndefined()
 
