@@ -106,8 +106,11 @@ describe "DisplayBuffer", ->
             buffer.setTextInRange([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
             displayBuffer.setEditorWidthInChars(10)
             expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe 'abcdefghij'
+            expect(displayBuffer.tokenizedLineForScreenRow(0).bufferDelta).toBe 'abcdefghij'.length
             expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe 'klmnopqrst'
+            expect(displayBuffer.tokenizedLineForScreenRow(1).bufferDelta).toBe 'klmnopqrst'.length
             expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe 'uvwxyz'
+            expect(displayBuffer.tokenizedLineForScreenRow(2).bufferDelta).toBe 'uvwxyz'.length
 
       describe "when there is a whitespace character at the max length boundary", ->
         it "wraps the line at the first non-whitespace character following the boundary", ->
