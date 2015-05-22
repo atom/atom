@@ -27,5 +27,17 @@
   "braces_spacing": {
     "spaces": 0,
     "level": "error"
+  },
+  "space_operators": {
+    "level": "error"
+  },
+  "spacing_after_comma": {
+    "level": "error"
+  },
+  "no_stand_alone_at": {
+    "level": "error"
+  },
+  "newlines_after_classes": {
+    "level": "error"
   }
 }
