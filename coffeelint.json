@@ -35,6 +35,7 @@
     "level": "error"
   },
   "newlines_after_classes": {
+    "value": 2,
     "level": "error"
   }
 }
