@@ -227,7 +227,7 @@ describe "TextEditor", ->
     describe "when the cursor moves", ->
       it "clears a goal column established by vertical movement", ->
         editor.setText('b')
-        editor.setCursorBufferPosition([0,0])
+        editor.setCursorBufferPosition([0, 0])
         editor.insertNewline()
         editor.moveUp()
         editor.insertText('a')
@@ -262,7 +262,7 @@ describe "TextEditor", ->
         expect(editor.getCursorScreenPosition().column).not.toBe 6
 
         # clear the goal column by explicitly setting the cursor position
-        editor.setCursorScreenPosition([4,6])
+        editor.setCursorScreenPosition([4, 6])
         expect(editor.getCursorScreenPosition().column).toBe 6
 
         editor.moveDown()
@@ -317,7 +317,7 @@ describe "TextEditor", ->
 
       describe "when there is a selection", ->
         beforeEach ->
-          editor.setSelectedBufferRange([[4, 9],[5, 10]])
+          editor.setSelectedBufferRange([[4, 9], [5, 10]])
 
         it "moves above the selection", ->
           cursor = editor.getLastCursor()
@@ -330,7 +330,7 @@ describe "TextEditor", ->
 
         editor.moveUp()
         expect(editor.getCursors()).toEqual [cursor1]
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor1.getBufferPosition()).toEqual [0, 0]
 
       describe "when the cursor was moved down from the beginning of an indented soft-wrapped line", ->
         it "moves to the beginning of the previous line", ->
@@ -396,7 +396,7 @@ describe "TextEditor", ->
 
       describe "when there is a selection", ->
         beforeEach ->
-          editor.setSelectedBufferRange([[4, 9],[5, 10]])
+          editor.setSelectedBufferRange([[4, 9], [5, 10]])
 
         it "moves below the selection", ->
           cursor = editor.getLastCursor()
@@ -410,7 +410,7 @@ describe "TextEditor", ->
 
         editor.moveDown()
         expect(editor.getCursors()).toEqual [cursor1]
-        expect(cursor1.getBufferPosition()).toEqual [12,2]
+        expect(cursor1.getBufferPosition()).toEqual [12, 2]
 
     describe ".moveLeft()", ->
       it "moves the cursor by one column to the left", ->
@@ -481,7 +481,7 @@ describe "TextEditor", ->
 
       describe "when there is a selection", ->
         beforeEach ->
-          editor.setSelectedBufferRange([[5, 22],[5, 27]])
+          editor.setSelectedBufferRange([[5, 22], [5, 27]])
 
         it "moves to the left of the selection", ->
           cursor = editor.getLastCursor()
@@ -498,7 +498,7 @@ describe "TextEditor", ->
         [cursor1, cursor2] = editor.getCursors()
         editor.moveLeft()
         expect(editor.getCursors()).toEqual [cursor1]
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor1.getBufferPosition()).toEqual [0, 0]
 
     describe ".moveRight()", ->
       it "moves the cursor by one column to the right", ->
@@ -578,15 +578,15 @@ describe "TextEditor", ->
         editor.addCursorAtScreenPosition [12,0]
         editor.moveToTop()
         expect(editor.getCursors().length).toBe 1
-        expect(editor.getCursorBufferPosition()).toEqual [0,0]
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
     describe ".moveToBottom()", ->
       it "moves the cusor to the bottom of the buffer", ->
-        editor.setCursorScreenPosition [0,0]
-        editor.addCursorAtScreenPosition [1,0]
+        editor.setCursorScreenPosition [0, 0]
+        editor.addCursorAtScreenPosition [1, 0]
         editor.moveToBottom()
         expect(editor.getCursors().length).toBe 1
-        expect(editor.getCursorBufferPosition()).toEqual [12,2]
+        expect(editor.getCursorBufferPosition()).toEqual [12, 2]
 
     describe ".moveToBeginningOfScreenLine()", ->
       describe "when soft wrap is on", ->
@@ -599,14 +599,14 @@ describe "TextEditor", ->
           expect(cursor.getScreenPosition()).toEqual [1, 0]
 
       describe "when soft wrap is off", ->
-        it "moves cursor to the beginning of then line", ->
-          editor.setCursorScreenPosition [0,5]
-          editor.addCursorAtScreenPosition [1,7]
+        it "moves cursor to the beginning of the line", ->
+          editor.setCursorScreenPosition [0, 5]
+          editor.addCursorAtScreenPosition [1, 7]
           editor.moveToBeginningOfScreenLine()
           expect(editor.getCursors().length).toBe 2
           [cursor1, cursor2] = editor.getCursors()
-          expect(cursor1.getBufferPosition()).toEqual [0,0]
-          expect(cursor2.getBufferPosition()).toEqual [1,0]
+          expect(cursor1.getBufferPosition()).toEqual [0, 0]
+          expect(cursor2.getBufferPosition()).toEqual [1, 0]
 
     describe ".moveToEndOfScreenLine()", ->
       describe "when soft wrap is on", ->
@@ -620,13 +620,13 @@ describe "TextEditor", ->
 
       describe "when soft wrap is off", ->
         it "moves cursor to the end of line", ->
-          editor.setCursorScreenPosition [0,0]
-          editor.addCursorAtScreenPosition [1,0]
+          editor.setCursorScreenPosition [0, 0]
+          editor.addCursorAtScreenPosition [1, 0]
           editor.moveToEndOfScreenLine()
           expect(editor.getCursors().length).toBe 2
           [cursor1, cursor2] = editor.getCursors()
-          expect(cursor1.getBufferPosition()).toEqual [0,29]
-          expect(cursor2.getBufferPosition()).toEqual [1,30]
+          expect(cursor1.getBufferPosition()).toEqual [0, 29]
+          expect(cursor2.getBufferPosition()).toEqual [1, 30]
 
     describe ".moveToBeginningOfLine()", ->
       it "moves cursor to the beginning of the buffer line", ->
