@@ -28,9 +28,6 @@
     "spaces": 0,
     "level": "error"
   },
-  "space_operators": {
-    "level": "error"
-  },
   "spacing_after_comma": {
     "level": "error"
   },
