@@ -18,6 +18,11 @@ SequenceCount = 0
 # command event listeners globally on `atom.commands` and constrain them to
 # specific kinds of elements with CSS selectors.
 #
+# Command names must follow the `namespace:event` pattern, where both parts can
+# be further split into words by hyphens. Typically `namespace` will be the
+# name of your package, and `event` the name of your command.
+# E.g. `awesome-package:toggle`.
+#
 # As the event bubbles upward through the DOM, all registered event listeners
 # with matching selectors are invoked in order of specificity. In the event of a
 # specificity tie, the most recently registered listener is invoked first. This
