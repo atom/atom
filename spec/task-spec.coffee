@@ -25,13 +25,17 @@ describe "Task", ->
   it "calls listeners registered with ::on when events are emitted in the task", ->
     task = new Task(require.resolve('./fixtures/task-spec-handler'))
 
-    eventSpy = jasmine.createSpy('eventSpy')
-    task.on("some-event", eventSpy)
+    events = []
+    task.on "some-event", (args...) -> events.push(["some-event", args...])
+    task.on "some-other-event", (args...) -> events.push(["some-other-event", args...])
 
     waitsFor (done) -> task.start(done)
 
     runs ->
-      expect(eventSpy).toHaveBeenCalledWith(1, 2, 3)
+      expect(events).toEqual [
+        ["some-event", 1, 2, 3]
+        ["some-other-event", 4, 5, 6]
+      ]
 
   it "unregisters listeners when the Disposable returned by ::on is disposed", ->
     task = new Task(require.resolve('./fixtures/task-spec-handler'))
