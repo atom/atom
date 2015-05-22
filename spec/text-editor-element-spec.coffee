@@ -83,7 +83,7 @@ describe "TextEditorElement", ->
       editor = new TextEditor
       editor.setText('1\n2\n3')
       editor.addGutter({name: 'test-gutter'})
-      marker = editor.markBufferRange([[0,0],[2,0]])
+      marker = editor.markBufferRange([[0, 0], [2, 0]])
       editor.decorateMarker(marker, {type: 'gutter', gutterName: 'test-gutter'})
       element = atom.views.getView(editor)
 
