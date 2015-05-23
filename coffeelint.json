@@ -33,9 +33,5 @@
   },
   "no_stand_alone_at": {
     "level": "error"
-  },
-  "newlines_after_classes": {
-    "value": 2,
-    "level": "error"
   }
 }
