@@ -1,46 +1,44 @@
 module.exports =
 class OverlayManager
-  constructor: (@container) ->
-    @overlays = {}
+  constructor: (@presenter, @container) ->
+    @overlaysById = {}
 
-  render: (props) ->
-    {editor, overlayDecorations, lineHeightInPixels} = props
+  render: (state) ->
+    for decorationId, overlay of state.content.overlays
+      if @shouldUpdateOverlay(decorationId, overlay)
+        @renderOverlay(state, decorationId, overlay)
 
-    existingDecorations = null
-    for markerId, {headPixelPosition, tailPixelPosition, decorations} of overlayDecorations
-      for decoration in decorations
-        pixelPosition =
-          if decoration.position is 'tail' then tailPixelPosition else headPixelPosition
+    for id, {overlayNode} of @overlaysById
+      unless state.content.overlays.hasOwnProperty(id)
+        delete @overlaysById[id]
+        overlayNode.remove()
 
-        @renderOverlay(editor, decoration, pixelPosition, lineHeightInPixels)
+  shouldUpdateOverlay: (decorationId, overlay) ->
+    cachedOverlay = @overlaysById[decorationId]
+    return true unless cachedOverlay?
+    cachedOverlay.pixelPosition?.top isnt overlay.pixelPosition?.top or
+      cachedOverlay.pixelPosition?.left isnt overlay.pixelPosition?.left
 
-        existingDecorations ?= {}
-        existingDecorations[decoration.id] = true
+  measureOverlays: ->
+    for decorationId, {itemView} of @overlaysById
+      @measureOverlay(decorationId, itemView)
 
-    for id, overlay of @overlays
-      unless existingDecorations? and id of existingDecorations
-        @container.removeChild(overlay)
-        delete @overlays[id]
+  measureOverlay: (decorationId, itemView) ->
+    contentMargin = parseInt(getComputedStyle(itemView)['margin-left']) ? 0
+    @presenter.setOverlayDimensions(decorationId, itemView.offsetWidth, itemView.offsetHeight, contentMargin)
 
-    return
+  renderOverlay: (state, decorationId, {item, pixelPosition}) ->
+    itemView = atom.views.getView(item)
+    cachedOverlay = @overlaysById[decorationId]
+    unless overlayNode = cachedOverlay?.overlayNode
+      overlayNode = document.createElement('atom-overlay')
+      @container.appendChild(overlayNode)
+      @overlaysById[decorationId] = cachedOverlay = {overlayNode, itemView}
 
-  renderOverlay: (editor, decoration, pixelPosition, lineHeightInPixels) ->
-    item = atom.views.getView(decoration.item)
-    unless overlay = @overlays[decoration.id]
-      overlay = @overlays[decoration.id] = document.createElement('atom-overlay')
-      overlay.appendChild(item)
-      @container.appendChild(overlay)
+    # The same node may be used in more than one overlay. This steals the node
+    # back if it has been displayed in another overlay.
+    overlayNode.appendChild(itemView) if overlayNode.childNodes.length is 0
 
-    itemWidth = item.offsetWidth
-    itemHeight = item.offsetHeight
-
-    left = pixelPosition.left
-    if left + itemWidth - editor.getScrollLeft() > editor.getWidth() and left - itemWidth >= editor.getScrollLeft()
-      left -= itemWidth
-
-    top = pixelPosition.top + lineHeightInPixels
-    if top + itemHeight - editor.getScrollTop() > editor.getHeight() and top - itemHeight - lineHeightInPixels >= editor.getScrollTop()
-      top -= itemHeight + lineHeightInPixels
-
-    overlay.style.top = top + 'px'
-    overlay.style.left = left + 'px'
+    cachedOverlay.pixelPosition = pixelPosition
+    overlayNode.style.top = pixelPosition.top + 'px'
+    overlayNode.style.left = pixelPosition.left + 'px'

@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+{isPairedCharacter} = require './text-utils'
 
 NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/
@@ -9,12 +10,17 @@ idCounter = 1
 module.exports =
 class TokenizedLine
   endOfLineInvisibles: null
+  lineIsWhitespaceOnly: false
+  firstNonWhitespaceIndex: 0
+  foldable: false
 
   constructor: ({tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles}) ->
     @startBufferColumn ?= 0
     @tokens = @breakOutAtomicTokens(tokens)
     @text = @buildText()
     @bufferDelta = @buildBufferDelta()
+    @softWrapIndentationTokens = @getSoftWrapIndentationTokens()
+    @softWrapIndentationDelta = @buildSoftWrapIndentationDelta()
 
     @id = idCounter++
     @markLeadingAndTrailingWhitespaceTokens()
@@ -35,10 +41,20 @@ class TokenizedLine
   copy: ->
     new TokenizedLine({@tokens, @lineEnding, @ruleStack, @startBufferColumn, @fold})
 
+  # This clips a given screen column to a valid column that's within the line
+  # and not in the middle of any atomic tokens.
+  #
+  # column - A {Number} representing the column to clip
+  # options - A hash with the key clip. Valid values for this key:
+  #           'closest' (default): clip to the closest edge of an atomic token.
+  #           'forward': clip to the forward edge.
+  #           'backward': clip to the backward edge.
+  #
+  # Returns a {Number} representing the clipped column.
   clipScreenColumn: (column, options={}) ->
-    return 0 if @tokens.length == 0
+    return 0 if @tokens.length is 0
 
-    { skipAtomicTokens } = options
+    {clip} = options
     column = Math.min(column, @getMaxScreenColumn())
 
     tokenStartColumn = 0
@@ -46,11 +62,18 @@ class TokenizedLine
       break if tokenStartColumn + token.screenDelta > column
       tokenStartColumn += token.screenDelta
 
-    if token.isAtomic and tokenStartColumn < column
-      if skipAtomicTokens
+    if @isColumnInsideSoftWrapIndentation(tokenStartColumn)
+      @softWrapIndentationDelta
+    else if token.isAtomic and tokenStartColumn < column
+      if clip is 'forward'
         tokenStartColumn + token.screenDelta
-      else
+      else if clip is 'backward'
         tokenStartColumn
+      else #'closest'
+        if column > tokenStartColumn + (token.screenDelta / 2)
+          tokenStartColumn + token.screenDelta
+        else
+          tokenStartColumn
     else
       column
 
@@ -59,7 +82,7 @@ class TokenizedLine
     screenColumn = 0
     currentBufferColumn = 0
     for token in @tokens
-      break if currentBufferColumn > bufferColumn
+      break if currentBufferColumn + token.bufferDelta > bufferColumn
       screenColumn += token.screenDelta
       currentBufferColumn += token.bufferDelta
     @clipScreenColumn(screenColumn + (bufferColumn - currentBufferColumn))
@@ -82,37 +105,92 @@ class TokenizedLine
   getMaxBufferColumn: ->
     @startBufferColumn + @bufferDelta
 
-  softWrapAt: (column) ->
-    return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column == 0
+  # Given a boundary column, finds the point where this line would wrap.
+  #
+  # maxColumn - The {Number} where you want soft wrapping to occur
+  #
+  # Returns a {Number} representing the `line` position where the wrap would take place.
+  # Returns `null` if a wrap wouldn't occur.
+  findWrapColumn: (maxColumn) ->
+    return unless maxColumn?
+    return unless @text.length > maxColumn
+
+    if /\s/.test(@text[maxColumn])
+       # search forward for the start of a word past the boundary
+      for column in [maxColumn..@text.length]
+        return column if /\S/.test(@text[column])
+
+      return @text.length
+    else
+      # search backward for the start of the word on the boundary
+      for column in [maxColumn..@firstNonWhitespaceIndex]
+        return column + 1 if /\s/.test(@text[column])
+
+      return maxColumn
+
+  buildSoftWrapIndentationTokens: (token, hangingIndent) ->
+    totalIndentSpaces = (@indentLevel * @tabLength) + hangingIndent
+    indentTokens = []
+    while totalIndentSpaces > 0
+      tokenLength = Math.min(@tabLength, totalIndentSpaces)
+      indentToken = token.buildSoftWrapIndentationToken(tokenLength)
+      indentTokens.push(indentToken)
+      totalIndentSpaces -= tokenLength
+
+    indentTokens
+
+  softWrapAt: (column, hangingIndent) ->
+    return [new TokenizedLine([], '', [0, 0], [0, 0]), this] if column is 0
 
     rightTokens = new Array(@tokens...)
     leftTokens = []
-    leftTextLength = 0
-    while leftTextLength < column
-      if leftTextLength + rightTokens[0].value.length > column
-        rightTokens[0..0] = rightTokens[0].splitAt(column - leftTextLength)
+    leftScreenColumn = 0
+
+    while leftScreenColumn < column
+      if leftScreenColumn + rightTokens[0].screenDelta > column
+        rightTokens[0..0] = rightTokens[0].splitAt(column - leftScreenColumn)
       nextToken = rightTokens.shift()
-      leftTextLength += nextToken.value.length
+      leftScreenColumn += nextToken.screenDelta
       leftTokens.push nextToken
+
+    indentationTokens = @buildSoftWrapIndentationTokens(leftTokens[0], hangingIndent)
 
     leftFragment = new TokenizedLine(
       tokens: leftTokens
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
       invisibles: @invisibles
-      lineEnding: null
+      lineEnding: null,
+      indentLevel: @indentLevel,
+      tabLength: @tabLength
     )
     rightFragment = new TokenizedLine(
-      tokens: rightTokens
+      tokens: indentationTokens.concat(rightTokens)
       startBufferColumn: @bufferColumnForScreenColumn(column)
       ruleStack: @ruleStack
       invisibles: @invisibles
-      lineEnding: @lineEnding
+      lineEnding: @lineEnding,
+      indentLevel: @indentLevel,
+      tabLength: @tabLength
     )
     [leftFragment, rightFragment]
 
   isSoftWrapped: ->
     @lineEnding is null
+
+  isColumnInsideSoftWrapIndentation: (column) ->
+    return false if @softWrapIndentationTokens.length is 0
+
+    column < @softWrapIndentationDelta
+
+  getSoftWrapIndentationTokens: ->
+    _.select(@tokens, (token) -> token.isSoftWrapIndentation)
+
+  buildSoftWrapIndentationDelta: ->
+    _.reduce @softWrapIndentationTokens, ((acc, token) -> acc + token.screenDelta), 0
+
+  hasOnlySoftWrapIndentation: ->
+    @tokens.length is @softWrapIndentationTokens.length
 
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
@@ -144,17 +222,20 @@ class TokenizedLine
     outputTokens
 
   markLeadingAndTrailingWhitespaceTokens: ->
-    firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
+    @firstNonWhitespaceIndex = @text.search(NonWhitespaceRegex)
+    if @firstNonWhitespaceIndex > 0 and isPairedCharacter(@text, @firstNonWhitespaceIndex - 1)
+      @firstNonWhitespaceIndex--
     firstTrailingWhitespaceIndex = @text.search(TrailingWhitespaceRegex)
-    lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
+    @lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
     index = 0
     for token in @tokens
-      if index < firstNonWhitespaceIndex
-        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, firstNonWhitespaceIndex - index)
+      if index < @firstNonWhitespaceIndex
+        token.firstNonWhitespaceIndex = Math.min(index + token.value.length, @firstNonWhitespaceIndex - index)
       # Only the *last* segment of a soft-wrapped line can have trailing whitespace
       if @lineEnding? and (index + token.value.length > firstTrailingWhitespaceIndex)
         token.firstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - index)
       index += token.value.length
+    return
 
   substituteInvisibleCharacters: ->
     invisibles = @invisibles
@@ -168,7 +249,7 @@ class TokenizedLine
           changedText = true
       else
         if invisibles.space
-          if token.hasLeadingWhitespace()
+          if token.hasLeadingWhitespace() and not token.isSoftWrapIndentation
             token.value = token.value.replace LeadingWhitespaceRegex, (leadingWhitespace) ->
               leadingWhitespace.replace RepeatedSpaceRegex, invisibles.space
             token.hasInvisibleCharacters = true
@@ -202,12 +283,7 @@ class TokenizedLine
     false
 
   isOnlyWhitespace: ->
-    if @text == ''
-      true
-    else
-      for token in @tokens
-        return false unless token.isOnlyWhitespace()
-      true
+    @lineIsWhitespaceOnly
 
   tokenAtIndex: (index) ->
     @tokens[index]
@@ -246,6 +322,8 @@ class TokenizedLine
     # Push onto common prefix until scopeStack equals desiredScopeDescriptor
     for j in [i...desiredScopeDescriptor.length]
       scopeStack.push(new Scope(desiredScopeDescriptor[j]))
+
+    return
 
 class Scope
   constructor: (@scope) ->

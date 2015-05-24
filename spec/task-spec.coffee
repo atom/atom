@@ -1,4 +1,5 @@
 Task = require '../src/task'
+Grim = require 'grim'
 
 describe "Task", ->
   describe "@once(taskPath, args..., callback)", ->
@@ -43,3 +44,16 @@ describe "Task", ->
 
     runs ->
       expect(eventSpy).not.toHaveBeenCalled()
+
+  it "reports deprecations in tasks", ->
+    jasmine.snapshotDeprecations()
+    handlerPath = require.resolve('./fixtures/task-handler-with-deprecations')
+    task = new Task(handlerPath)
+
+    waitsFor (done) -> task.start(done)
+
+    runs ->
+      deprecations = Grim.getDeprecations()
+      expect(deprecations.length).toBe 1
+      expect(deprecations[0].getStacks()[0][1].fileName).toBe handlerPath
+      jasmine.restoreDeprecationsSnapshot()

@@ -1,29 +1,27 @@
 path = require 'path'
-_ = require 'underscore-plus'
-async = require 'async'
 fs = require 'fs-plus'
-mkdirp = require 'mkdirp'
-runas = require 'runas'
+runas = null # defer until used
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
   fs.unlink destinationPath, (error) ->
-    if error? and error?.code != 'ENOENT'
+    if error? and error?.code isnt 'ENOENT'
       callback(error)
     else
-      mkdirp path.dirname(destinationPath), (error) ->
+      fs.makeTree path.dirname(destinationPath), (error) ->
         if error?
           callback(error)
         else
           fs.symlink sourcePath, destinationPath, callback
 
 symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
-  if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
+  runas ?= require 'runas'
+  if runas('/bin/rm', ['-f', destinationPath], admin: true) isnt 0
     throw new Error("Failed to remove '#{destinationPath}'")
 
-  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) != 0
+  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) isnt 0
     throw new Error("Failed to create directory '#{destinationPath}'")
 
-  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) != 0
+  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) isnt 0
     throw new Error("Failed to symlink '#{sourcePath}' to '#{destinationPath}'")
 
 module.exports =
@@ -36,12 +34,11 @@ module.exports =
         message: "Failed to install shell commands"
         detailedMessage: error.message
 
-    resourcePath = atom.getLoadSettings().resourcePath
-    @installAtomCommand resourcePath, true, (error) =>
+    @installAtomCommand true, (error) =>
       if error?
         showErrorDialog(error)
       else
-        @installApmCommand resourcePath, true, (error) ->
+        @installApmCommand true, (error) ->
           if error?
             showErrorDialog(error)
           else
@@ -49,12 +46,12 @@ module.exports =
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
-  installAtomCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'atom.sh')
+  installAtomCommand: (askForPrivilege, callback) ->
+    commandPath = path.join(process.resourcesPath, 'app', 'atom.sh')
     @createSymlink commandPath, askForPrivilege, callback
 
-  installApmCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
+  installApmCommand: (askForPrivilege, callback) ->
+    commandPath = path.join(process.resourcesPath, 'app', 'apm', 'node_modules', '.bin', 'apm')
     @createSymlink commandPath, askForPrivilege, callback
 
   createSymlink: (commandPath, askForPrivilege, callback) ->

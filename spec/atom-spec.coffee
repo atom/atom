@@ -3,6 +3,8 @@ Exec = require('child_process').exec
 path = require 'path'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
+_ = require "underscore-plus"
+temp = require "temp"
 
 describe "the `atom` global", ->
   describe 'window sizing methods', ->
@@ -47,14 +49,13 @@ describe "the `atom` global", ->
         updateAvailableHandler.callCount > 0
 
       runs ->
-        {releaseVersion, releaseNotes} = updateAvailableHandler.mostRecentCall.args[0]
+        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
         expect(releaseVersion).toBe 'version'
-        expect(releaseNotes).toBe 'notes'
 
   describe "loading default config", ->
     it 'loads the default core config', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
-      expect(atom.config.get('core.followSymlinks')).toBe false
+      expect(atom.config.get('core.followSymlinks')).toBe true
       expect(atom.config.get('editor.showInvisibles')).toBe false
 
   describe "window onerror handler", ->
@@ -125,3 +126,73 @@ describe "the `atom` global", ->
           line: 2
           column: 3
           originalError: error
+
+  describe "saving and loading", ->
+    afterEach -> atom.mode = "spec"
+
+    it "selects the state based on the current project paths", ->
+      Atom = atom.constructor
+      [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
+
+      loadSettings = _.extend Atom.getLoadSettings(),
+        initialPaths: [dir1]
+        windowState: null
+
+      spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
+      spyOn(Atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
+
+      atom.mode = "editor"
+      atom.state.stuff = "cool"
+      atom.project.setPaths([dir1, dir2])
+      atom.saveSync.originalValue.call(atom)
+
+      atom1 = Atom.loadOrCreate("editor")
+      expect(atom1.state.stuff).toBeUndefined()
+
+      loadSettings.initialPaths = [dir2, dir1]
+      atom2 = Atom.loadOrCreate("editor")
+      expect(atom2.state.stuff).toBe("cool")
+
+  describe "openInitialEmptyEditorIfNecessary", ->
+    describe "when there are no paths set", ->
+      beforeEach ->
+        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: [])
+
+      it "opens an empty buffer", ->
+        spyOn(atom.workspace, 'open')
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).toHaveBeenCalledWith(null)
+
+      describe "when there is already a buffer open", ->
+        beforeEach ->
+          waitsForPromise -> atom.workspace.open()
+
+        it "does not open an empty buffer", ->
+          spyOn(atom.workspace, 'open')
+          atom.openInitialEmptyEditorIfNecessary()
+          expect(atom.workspace.open).not.toHaveBeenCalled()
+
+    describe "when the project has a path", ->
+      beforeEach ->
+        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: ['something'])
+        spyOn(atom.workspace, 'open')
+
+      it "does not open an empty buffer", ->
+        atom.openInitialEmptyEditorIfNecessary()
+        expect(atom.workspace.open).not.toHaveBeenCalled()
+
+  describe "adding a project folder", ->
+    it "adds a second path to the project", ->
+      initialPaths = atom.project.getPaths()
+      tempDirectory = temp.mkdirSync("a-new-directory")
+      spyOn(atom, "pickFolder").andCallFake (callback) ->
+        callback([tempDirectory])
+      atom.addProjectFolder()
+      expect(atom.project.getPaths()).toEqual(initialPaths.concat([tempDirectory]))
+
+    it "does nothing if the user dismisses the file picker", ->
+      initialPaths = atom.project.getPaths()
+      tempDirectory = temp.mkdirSync("a-new-directory")
+      spyOn(atom, "pickFolder").andCallFake (callback) -> callback(null)
+      atom.addProjectFolder()
+      expect(atom.project.getPaths()).toEqual(initialPaths)

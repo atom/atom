@@ -1,6 +1,5 @@
 path = require 'path'
 {$} = require './space-pen-extensions'
-_ = require 'underscore-plus'
 {Disposable} = require 'event-kit'
 ipc = require 'ipc'
 shell = require 'shell'
@@ -17,22 +16,29 @@ class WindowEventHandler
 
     @subscribe ipc, 'message', (message, detail) ->
       switch message
-        when 'open-path'
-          {pathToOpen, initialLine, initialColumn} = detail
+        when 'open-locations'
+          needsProjectPaths = atom.project?.getPaths().length is 0
 
-          unless atom.project?.getPaths().length
-            if fs.existsSync(pathToOpen) or fs.existsSync(path.dirname(pathToOpen))
-              atom.project?.setPaths([pathToOpen])
+          for {pathToOpen, initialLine, initialColumn} in detail
+            if pathToOpen? and needsProjectPaths
+              if fs.existsSync(pathToOpen)
+                atom.project.addPath(pathToOpen)
+              else
+                dirToOpen = path.dirname(pathToOpen)
+                if fs.existsSync(dirToOpen)
+                  atom.project.addPath(dirToOpen)
 
-          unless fs.isDirectorySync(pathToOpen)
-            atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+            unless fs.isDirectorySync(pathToOpen)
+              atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+
+          return
 
         when 'update-available'
           atom.updateAvailable(detail)
 
           # FIXME: Remove this when deprecations are removed
-          {releaseVersion, releaseNotes} = detail
-          detail = [releaseVersion, releaseNotes]
+          {releaseVersion} = detail
+          detail = [releaseVersion]
           if workspaceElement = atom.views.getView(atom.workspace)
             atom.commands.dispatch workspaceElement, "window:update-available", detail
 
@@ -52,7 +58,7 @@ class WindowEventHandler
     @subscribe $(window), 'blur', -> document.body.classList.add('is-blurred')
 
     @subscribe $(window), 'beforeunload', =>
-      confirmed = atom.workspace?.confirmClose()
+      confirmed = atom.workspace?.confirmClose(windowCloseRequested: true)
       atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
       @reloadRequested = false
 
@@ -78,7 +84,7 @@ class WindowEventHandler
 
     if process.platform in ['win32', 'linux']
       @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
-        atom.config.set('core.autoHideMenuBar', !atom.config.get('core.autoHideMenuBar'))
+        atom.config.set('core.autoHideMenuBar', not atom.config.get('core.autoHideMenuBar'))
 
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 
@@ -129,12 +135,11 @@ class WindowEventHandler
   onDrop: (event) ->
     event.preventDefault()
     event.stopPropagation()
-    pathsToOpen = _.pluck(event.dataTransfer.files, 'path')
-    atom.open({pathsToOpen}) if pathsToOpen.length > 0
 
   onDragOver: (event) ->
     event.preventDefault()
     event.stopPropagation()
+    event.dataTransfer.dropEffect = 'none'
 
   openLink: ({target, currentTarget}) ->
     location = target?.getAttribute('href') or currentTarget?.getAttribute('href')
@@ -151,6 +156,7 @@ class WindowEventHandler
       continue unless tabIndex >= 0
 
       callback(element, tabIndex)
+    return
 
   focusNext: =>
     focusedTabIndex = parseInt($(':focus').attr('tabindex')) or -Infinity

@@ -8,6 +8,8 @@ fs = require 'fs-plus'
 
 MenuHelpers = require './menu-helpers'
 
+platformMenu = require('../package.json')?._atomMenu?.menu
+
 # Extended: Provides a registry for menu items that you'd like to appear in the
 # application menu.
 #
@@ -109,17 +111,20 @@ class MenuManager
     # Simulate an atom-text-editor element attached to a atom-workspace element attached
     # to a body element that has the same classes as the current body element.
     unless @testEditor?
-      testBody = document.createElement('body')
+      # Use new document so that custom elements don't actually get created
+      testDocument = document.implementation.createDocument(document.namespaceURI, 'html')
+
+      testBody = testDocument.createElement('body')
       testBody.classList.add(@classesForElement(document.body)...)
 
-      testWorkspace = document.createElement('div')
+      testWorkspace = testDocument.createElement('atom-workspace')
       workspaceClasses = @classesForElement(document.body.querySelector('atom-workspace'))
       workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
 
       testBody.appendChild(testWorkspace)
 
-      @testEditor = document.createElement('div')
+      @testEditor = testDocument.createElement('atom-text-editor')
       @testEditor.classList.add('editor')
       testWorkspace.appendChild(@testEditor)
 
@@ -141,10 +146,13 @@ class MenuManager
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
   loadPlatformItems: ->
-    menusDirPath = path.join(@resourcePath, 'menus')
-    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
-    {menu} = CSON.readFileSync(platformMenuPath)
-    @add(menu)
+    if platformMenu?
+      @add(platformMenu)
+    else
+      menusDirPath = path.join(@resourcePath, 'menus')
+      platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+      {menu} = CSON.readFileSync(platformMenuPath)
+      @add(menu)
 
   # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
@@ -161,7 +169,7 @@ class MenuManager
     filtered = {}
     for key, bindings of keystrokesByCommand
       for binding in bindings
-        continue if binding.indexOf(' ') != -1
+        continue if binding.indexOf(' ') isnt -1
 
         filtered[key] ?= []
         filtered[key].push(binding)

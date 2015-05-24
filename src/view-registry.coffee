@@ -42,9 +42,18 @@ Grim = require 'grim'
 # ```
 module.exports =
 class ViewRegistry
+  documentPollingInterval: 200
+  documentUpdateRequested: false
+  documentReadInProgress: false
+  performDocumentPollAfterUpdate: false
+  pollIntervalHandle: null
+
   constructor: ->
     @views = new WeakMap
     @providers = []
+    @documentWriters = []
+    @documentReaders = []
+    @documentPollers = []
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -150,3 +159,63 @@ class ViewRegistry
 
   findProvider: (object) ->
     find @providers, ({modelConstructor}) -> object instanceof modelConstructor
+
+  updateDocument: (fn) ->
+    @documentWriters.push(fn)
+    @requestDocumentUpdate() unless @documentReadInProgress
+    new Disposable =>
+      @documentWriters = @documentWriters.filter (writer) -> writer isnt fn
+
+  readDocument: (fn) ->
+    @documentReaders.push(fn)
+    @requestDocumentUpdate()
+    new Disposable =>
+      @documentReaders = @documentReaders.filter (reader) -> reader isnt fn
+
+  pollDocument: (fn) ->
+    @startPollingDocument() if @documentPollers.length is 0
+    @documentPollers.push(fn)
+    new Disposable =>
+      @documentPollers = @documentPollers.filter (poller) -> poller isnt fn
+      @stopPollingDocument() if @documentPollers.length is 0
+
+  pollAfterNextUpdate: ->
+    @performDocumentPollAfterUpdate = true
+
+  clearDocumentRequests: ->
+    @documentReaders = []
+    @documentWriters = []
+    @documentPollers = []
+    @documentUpdateRequested = false
+    @stopPollingDocument()
+
+  requestDocumentUpdate: ->
+    unless @documentUpdateRequested
+      @documentUpdateRequested = true
+      requestAnimationFrame(@performDocumentUpdate)
+
+  performDocumentUpdate: =>
+    @documentUpdateRequested = false
+    writer() while writer = @documentWriters.shift()
+
+    @documentReadInProgress = true
+    reader() while reader = @documentReaders.shift()
+    @performDocumentPoll() if @performDocumentPollAfterUpdate
+    @performDocumentPollAfterUpdate = false
+    @documentReadInProgress = false
+
+    # process updates requested as a result of reads
+    writer() while writer = @documentWriters.shift()
+
+  startPollingDocument: ->
+    @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
+
+  stopPollingDocument: ->
+    window.clearInterval(@pollIntervalHandle)
+
+  performDocumentPoll: =>
+    if @documentUpdateRequested
+      @performDocumentPollAfterUpdate = true
+    else
+      poller() for poller in @documentPollers
+      return

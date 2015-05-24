@@ -17,7 +17,7 @@ parse_stack_trace = (raw) ->
   addresses = []
   for line in raw
     columns = line.split /\ +/
-    if columns[1] == 'libcef.dylib' and /0x[a-f0-9]+/.test columns[3]
+    if columns[1] is 'libcef.dylib' and /0x[a-f0-9]+/.test columns[3]
       lines[columns[0]] = addresses.length
       addresses.push '0x' + parseInt(columns[5]).toString(16) + ' '
 
@@ -36,12 +36,12 @@ parse_log_file = (content) ->
   lines = content.split /\r?\n/
 
   for line in lines
-    if state == 'start'
+    if state is 'start'
       if /Thread \d+ Crashed::/.test line
         console.log line
         state = 'parse'
-    else if state == 'parse'
-      break if line == ''
+    else if state is 'parse'
+      break if line is ''
       stack_trace.push line
 
   parse_stack_trace stack_trace
@@ -53,4 +53,3 @@ process.stdin.on 'data', (chunk) ->
   input += chunk
 process.stdin.on 'end', ->
   parse_log_file input
-

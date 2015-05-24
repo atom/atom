@@ -1,5 +1,7 @@
 {$, $$} = require '../src/space-pen-extensions'
 path = require 'path'
+fs = require 'fs-plus'
+temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 
@@ -54,7 +56,7 @@ describe "Window", ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
       beforeUnloadEvent = $.Event(new Event('beforeunload'))
 
-    describe "when pane items are are modified", ->
+    describe "when pane items are modified", ->
       it "prompts user to save and calls atom.workspace.confirmClose", ->
         editor = null
         spyOn(atom.workspace, 'confirmClose').andCallThrough()
@@ -92,6 +94,25 @@ describe "Window", ->
           $(window).trigger(beforeUnloadEvent)
           expect(atom.confirm).toHaveBeenCalled()
 
+      describe "when the same path is modified in multiple panes", ->
+        it "prompts to save the item", ->
+          editor = null
+          filePath = path.join(temp.mkdirSync('atom-file'), 'file.txt')
+          fs.writeFileSync(filePath, 'hello')
+          spyOn(atom.workspace, 'confirmClose').andCallThrough()
+          spyOn(atom, 'confirm').andReturn(0)
+
+          waitsForPromise ->
+            atom.workspace.open(filePath).then (o) -> editor = o
+
+          runs ->
+            atom.workspace.getActivePane().splitRight(copyActiveItem: true)
+            editor.setText('world')
+            $(window).trigger(beforeUnloadEvent)
+            expect(atom.workspace.confirmClose).toHaveBeenCalled()
+            expect(atom.confirm.callCount).toBe 1
+            expect(fs.readFileSync(filePath, 'utf8')).toBe 'world'
+
   describe ".unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       workspaceState = atom.workspace.serialize()
@@ -119,33 +140,6 @@ describe "Window", ->
         atom.removeEditorWindow()
 
         expect(buffer.getSubscriptionCount()).toBe 0
-
-  describe "drag and drop", ->
-    buildDragEvent = (type, files) ->
-      dataTransfer =
-        files: files
-        data: {}
-        setData: (key, value) -> @data[key] = value
-        getData: (key) -> @data[key]
-
-      event = new CustomEvent("drop")
-      event.dataTransfer = dataTransfer
-      event
-
-    describe "when a file is dragged to window", ->
-      it "opens it", ->
-        spyOn(atom, "open")
-        event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
-        document.dispatchEvent(event)
-        expect(atom.open.callCount).toBe 1
-        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
-
-    describe "when a non-file is dragged to window", ->
-      it "does nothing", ->
-        spyOn(atom, "open")
-        event = buildDragEvent("drop", [])
-        document.dispatchEvent(event)
-        expect(atom.open).not.toHaveBeenCalled()
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
@@ -255,33 +249,47 @@ describe "Window", ->
         elements.trigger "core:focus-previous"
         expect(elements.find("[tabindex=1]:focus")).toExist()
 
-  describe "the window:open-path event", ->
+  describe "the window:open-locations event", ->
     beforeEach ->
       spyOn(atom.workspace, 'open')
+      atom.project.setPaths([])
 
-    describe "when the project does not have a path", ->
-      beforeEach ->
-        atom.project.setPaths([])
+    describe "when the opened path exists", ->
+      it "adds it to the project's paths", ->
+        pathToOpen = __filename
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
 
-      describe "when the opened path exists", ->
-        it "sets the project path to the opened path", ->
-          atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
+        waitsFor ->
+          atom.project.getPaths().length is 1
+
+        runs ->
           expect(atom.project.getPaths()[0]).toBe __dirname
 
-      describe "when the opened path does not exist but its parent directory does", ->
-        it "sets the project path to the opened path's parent directory", ->
-          pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
-          atom.getCurrentWindow().send 'message', 'open-path', {pathToOpen}
+    describe "when the opened path does not exist but its parent directory does", ->
+      it "adds the parent directory to the project paths", ->
+        pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
+
+        waitsFor ->
+          atom.project.getPaths().length is 1
+
+        runs ->
           expect(atom.project.getPaths()[0]).toBe __dirname
 
     describe "when the opened path is a file", ->
       it "opens it in the workspace", ->
-        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __filename
+        pathToOpen = __filename
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
 
-        expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+        waitsFor ->
+          atom.workspace.open.callCount is 1
+
+        runs ->
+          expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
 
     describe "when the opened path is a directory", ->
       it "does not open it in the workspace", ->
-        atom.getCurrentWindow().send 'message', 'open-path', pathToOpen: __dirname
-
+        pathToOpen = __dirname
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
         expect(atom.workspace.open.callCount).toBe 0

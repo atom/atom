@@ -1,24 +1,38 @@
-React = require 'react-atom-fork'
-{div} = require 'reactionary-atom-fork'
-{isEqualForProperties} = require 'underscore-plus'
-
 module.exports =
-ScrollbarCornerComponent = React.createClass
-  displayName: 'ScrollbarCornerComponent'
+class ScrollbarCornerComponent
+  constructor: ->
+    @domNode = document.createElement('div')
+    @domNode.classList.add('scrollbar-corner')
 
-  render: ->
-    {visible, measuringScrollbars, width, height} = @props
+    @contentNode = document.createElement('div')
+    @domNode.appendChild(@contentNode)
 
-    if measuringScrollbars
-      height = 25
-      width = 25
+  getDomNode: ->
+    @domNode
 
-    display = 'none' unless visible
+  updateSync: (state) ->
+    @oldState ?= {}
+    @newState ?= {}
 
-    div className: 'scrollbar-corner', style: {display, width, height},
-      div style:
-        height: height + 1
-        width: width + 1
+    newHorizontalState = state.horizontalScrollbar
+    newVerticalState = state.verticalScrollbar
+    @newState.visible = newHorizontalState.visible and newVerticalState.visible
+    @newState.height = newHorizontalState.height
+    @newState.width = newVerticalState.width
 
-  shouldComponentUpdate: (newProps) ->
-    not isEqualForProperties(newProps, @props, 'measuringScrollbars', 'visible', 'width', 'height')
+    if @newState.visible isnt @oldState.visible
+      if @newState.visible
+        @domNode.style.display = ''
+      else
+        @domNode.style.display = 'none'
+      @oldState.visible = @newState.visible
+
+    if @newState.height isnt @oldState.height
+      @domNode.style.height = @newState.height + 'px'
+      @contentNode.style.height = @newState.height + 1 + 'px'
+      @oldState.height = @newState.height
+
+    if @newState.width isnt @oldState.width
+      @domNode.style.width = @newState.width + 'px'
+      @contentNode.style.width = @newState.width + 1 + 'px'
+      @oldState.width = @newState.width

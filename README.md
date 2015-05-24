@@ -1,11 +1,23 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
-Atom is a hackable text editor for the 21st century, built on [atom-shell](https://github.com/atom/atom-shell), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
+[![Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom)
+[![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
+
+Atom is a hackable text editor for the 21st century, built on [Electron](https://github.com/atom/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
 Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
 
+Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
+announcements.
+
 Visit [issue #3684](https://github.com/atom/atom/issues/3684) to learn more
 about the Atom 1.0 roadmap.
+
+## Documentation
+
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
+
+The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
 ## Installing
 
@@ -24,18 +36,8 @@ Atom will automatically update when a new release is available.
 You can also download an `atom-windows.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
 The `.zip` version will not automatically update.
 
-#### Uninstalling Chocolatey Version
-
-The recommended installation of Atom on Windows used to be using [Chocolatey](https://chocolatey.org/packages/Atom/).
-This is no longer recommended now that the Atom Windows installer & auto-updater
-exists.
-
-To switch from Chocolatey to the new installer:
-  * Upgrade to Atom 0.155 or above by running `cup Atom`
-  * Run `cuninst Atom` to uninstall the Chocolatey version of Atom
-    * This will not delete any of your installed packages or Atom config files.
-  * Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
-  * Double-click the downloaded file to install Atom
+Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install
+the latest version of Atom.
 
 ### Debian Linux (Ubuntu)
 
@@ -65,7 +67,3 @@ repeat these steps to upgrade to future releases.
 * [OS X](docs/build-instructions/os-x.md)
 * [FreeBSD](docs/build-instructions/freebsd.md)
 * [Windows](docs/build-instructions/windows.md)
-
-## Developing
-
-Check out the [guides](https://atom.io/docs/latest) and the [API reference](https://atom.io/docs/api).

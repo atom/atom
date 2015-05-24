@@ -1,6 +1,8 @@
+path = require 'path'
 {CompositeDisposable} = require 'event-kit'
+Grim = require 'grim'
 {$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
-PaneView = require './pane-view'
+PaneView = null
 
 class PaneElement extends HTMLElement
   attached: false
@@ -12,7 +14,7 @@ class PaneElement extends HTMLElement
 
     @initializeContent()
     @subscribeToDOMEvents()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
     @attached = true
@@ -37,10 +39,24 @@ class PaneElement extends HTMLElement
     handleBlur = (event) =>
       @model.blur() unless @contains(event.relatedTarget)
 
+    handleDragOver = (event) ->
+      event.preventDefault()
+      event.stopPropagation()
+
+    handleDrop = (event) =>
+      event.preventDefault()
+      event.stopPropagation()
+      @getModel().activate()
+      pathsToOpen = Array::map.call event.dataTransfer.files, (file) -> file.path
+      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+
     @addEventListener 'focus', handleFocus, true
     @addEventListener 'blur', handleBlur, true
+    @addEventListener 'dragover', handleDragOver
+    @addEventListener 'drop', handleDrop
 
   createSpacePenShim: ->
+    PaneView ?= require './pane-view'
     @__spacePenView = new PaneView(this)
 
   initialize: (@model) ->
@@ -49,7 +65,9 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
-    @__spacePenView.setModel(@model)
+    @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
+
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model
@@ -64,10 +82,17 @@ class PaneElement extends HTMLElement
       @classList.remove('active')
 
   activeItemChanged: (item) ->
+    delete @dataset.activeItemName
+    delete @dataset.activeItemPath
+
     return unless item?
 
     hasFocus = @hasFocus()
     itemView = atom.views.getView(item)
+
+    if itemPath = item.getPath?()
+      @dataset.activeItemName = path.basename(itemPath)
+      @dataset.activeItemPath = itemPath
 
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
@@ -101,6 +126,9 @@ class PaneElement extends HTMLElement
 
   paneDestroyed: ->
     @subscriptions.dispose()
+
+  flexScaleChanged: (flexScale) ->
+    @style.flexGrow = flexScale
 
   getActiveView: -> atom.views.getView(@model.getActiveItem())
 

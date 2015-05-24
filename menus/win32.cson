@@ -6,6 +6,7 @@
       { label: '&New File', command: 'application:new-file' }
       { label: '&Open File...', command: 'application:open-file' }
       { label: 'Open Folder...', command: 'application:open-folder' }
+      { label: 'Add Project Folder...', command: 'application:add-project-folder' }
       { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Se&ttings', command: 'application:show-settings' }
@@ -61,6 +62,8 @@
           { label: '&Lower Case', command: 'editor:lower-case' }
           { type: 'separator' }
           { label: 'Delete to End of &Word', command: 'editor:delete-to-end-of-word' }
+          { label: 'Delete to Previous Word Boundary', command: 'editor:delete-to-previous-word-boundary' }
+          { label: 'Delete to Next Word Boundary', command: 'editor:delete-to-next-word-boundary' }
           { label: '&Delete Line', command: 'editor:delete-line' }
           { type: 'separator' }
           { label: '&Transpose', command: 'editor:transpose' }
@@ -123,6 +126,10 @@
         ]
       }
       { type: 'separator' }
+      { label: '&Increase Font Size', command: 'window:increase-font-size' }
+      { label: '&Decrease Font Size', command: 'window:decrease-font-size' }
+      { label: 'Re&set Font Size', command: 'window:reset-font-size' }
+      { type: 'separator' }
       { label: 'Toggle Soft &Wrap', command: 'editor:toggle-soft-wrap' }
     ]
   }
@@ -166,6 +173,7 @@
       { label: 'VERSION', enabled: false }
       { label: 'Restart and Install Update', command: 'application:install-update', visible: false}
       { label: 'Check for Update', command: 'application:check-for-update', visible: false}
+      { label: 'Checking for Update', enabled: false, visible: false}
       { label: 'Downloading Update', enabled: false, visible: false}
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
@@ -195,6 +203,7 @@
     {label: 'Split Down', command: 'pane:split-down'}
     {label: 'Split Left', command: 'pane:split-left'}
     {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]
   'atom-pane': [
@@ -203,5 +212,6 @@
     {label: 'Split Down', command: 'pane:split-down'}
     {label: 'Split Left', command: 'pane:split-left'}
     {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]

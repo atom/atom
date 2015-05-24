@@ -4,19 +4,42 @@
 // settings-view, the archive-view, the image-view. Etc. Basically a non-
 // editor resource with a tab.
 atom-pane-container {
+  position: relative;
   display: -webkit-flex;
   -webkit-flex: 1;
 
-  atom-pane-axis.vertical {
+  atom-pane-axis {
     display: -webkit-flex;
     -webkit-flex: 1;
+
+    & > atom-pane-resize-handle {
+      position: absolute;
+      z-index: 3;
+    }
+  }
+
+  atom-pane-axis.vertical {
     -webkit-flex-direction: column;
+
+    & > atom-pane-resize-handle {
+      width: 100%;
+      height: 8px;
+      margin-top: -4px;
+      cursor: ns-resize;
+      border-bottom: none;
+    }
   }
 
   atom-pane-axis.horizontal {
-    display: -webkit-flex;
-    -webkit-flex: 1;
     -webkit-flex-direction: row;
+
+    & > atom-pane-resize-handle {
+      width: 8px;
+      height: 100%;
+      margin-left: -4px;
+      cursor: ew-resize;
+      border-right: none;
+    }
   }
 
   atom-pane {
@@ -24,7 +47,7 @@ atom-pane-container {
     display: -webkit-flex;
     -webkit-flex: 1;
     -webkit-flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 
     .item-views {
       -webkit-flex: 1;

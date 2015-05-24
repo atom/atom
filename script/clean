@@ -22,6 +22,7 @@ var commands = [
   [__dirname, '..', 'atom-shell'],
   [home, '.atom', '.node-gyp'],
   [home, '.atom', 'storage'],
+  [home, '.atom', '.apm'],
   [home, '.atom', '.npm'],
   [home, '.atom', 'compile-cache'],
   [home, '.atom', 'atom-shell'],

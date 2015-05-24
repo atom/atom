@@ -29,7 +29,7 @@ window.benchmark = (args...) ->
   else
     count = defaultCount
   [fn, options] = args
-  { profile, focused } = (options ? {})
+  {profile, focused} = (options ? {})
 
   method = if focused then fit else it
   method description, ->
@@ -69,7 +69,7 @@ window.keyIdentifierForKey = (key) ->
     "U+00" + charCode.toString(16)
 
 window.keydownEvent = (key, properties={}) ->
-  $.Event "keydown", _.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
+  $.Event "keydown", _.extend({originalEvent: {keyIdentifier: keyIdentifierForKey(key)}}, properties)
 
 window.clickEvent = (properties={}) ->
   $.Event "click", properties
@@ -93,7 +93,7 @@ window.pagePixelPositionForPoint = (editorView, point) ->
   point = Point.fromObject point
   top = editorView.lines.offset().top + point.row * editorView.lineHeight
   left = editorView.lines.offset().left + point.column * editorView.charWidth - editorView.lines.scrollLeft()
-  { top, left }
+  {top, left}
 
 window.seteditorViewWidthInChars = (editorView, widthInChars, charWidth=editorView.charWidth) ->
   editorView.width(charWidth * widthInChars + editorView.lines.position().left)

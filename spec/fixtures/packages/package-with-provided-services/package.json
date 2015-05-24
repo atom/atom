@@ -5,6 +5,7 @@
     "service-1": {
       "description": "The first service",
       "versions": {
+        "0.2.9": "provideFirstServiceV2",
         "0.3.1": "provideFirstServiceV3",
         "0.4.1": "provideFirstServiceV4"
       }

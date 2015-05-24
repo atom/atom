@@ -124,6 +124,11 @@ describe "LanguageMode", ->
               // lines
               var sort = function(items) {};
               // comment line after fn
+
+              var nosort = function(items) {
+                return item;
+              }
+
             };
           '''
 
@@ -143,6 +148,9 @@ describe "LanguageMode", ->
 
           range = languageMode.rowRangeForParagraphAtBufferRow(15)
           expect(range).toEqual [[15,0], [15,26]]
+
+          range = languageMode.rowRangeForParagraphAtBufferRow(18)
+          expect(range).toEqual [[17,0], [19,3]]
 
   describe "coffeescript", ->
     beforeEach ->
@@ -184,14 +192,6 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(7)).toBe "    # "
 
     describe "fold suggestion", ->
-      describe ".isFoldableAtBufferRow(bufferRow)", ->
-        it "returns true only when the buffer row starts a foldable region", ->
-          expect(languageMode.isFoldableAtBufferRow(0)).toBeTruthy()
-          expect(languageMode.isFoldableAtBufferRow(1)).toBeTruthy()
-          expect(languageMode.isFoldableAtBufferRow(2)).toBeFalsy()
-          expect(languageMode.isFoldableAtBufferRow(3)).toBeFalsy()
-          expect(languageMode.isFoldableAtBufferRow(19)).toBeTruthy()
-
       describe ".rowRangeForCodeFoldAtBufferRow(bufferRow)", ->
         it "returns the start/end rows of the foldable region starting at the given row", ->
           expect(languageMode.rowRangeForCodeFoldAtBufferRow(0)).toEqual [0, 20]
@@ -372,14 +372,6 @@ describe "LanguageMode", ->
           fold = editor.tokenizedLineForScreenRow(0).fold
           expect(fold.getStartRow()).toBe 0
           expect(fold.getEndRow()).toBe 13
-
-    describe ".isFoldableAtBufferRow(bufferRow)", ->
-      it "returns true if the line starts a foldable row range", ->
-        expect(languageMode.isFoldableAtBufferRow(0)).toBe true
-        expect(languageMode.isFoldableAtBufferRow(1)).toBe true
-        expect(languageMode.isFoldableAtBufferRow(2)).toBe false
-        expect(languageMode.isFoldableAtBufferRow(3)).toBe false
-        expect(languageMode.isFoldableAtBufferRow(4)).toBe true
 
     describe ".foldAllAtIndentLevel(indentLevel)", ->
       it "folds blocks of text at the given indentation level", ->

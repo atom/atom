@@ -7,7 +7,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
 
   {TerminalReporter} = require 'jasmine-tagged'
 
-  disableFocusMethods() if process.env.JANKY_SHA1
+  disableFocusMethods() if process.env.JANKY_SHA1 or process.env.CI
 
   TimeReporter = require './time-reporter'
   timeReporter = new TimeReporter()
@@ -27,8 +27,15 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
         fs.closeSync(logStream) if logStream?
         if process.env.JANKY_SHA1
           grim = require 'grim'
-          grim.logDeprecations() if grim.getDeprecationsLength() > 0
-        atom.exit(runner.results().failedCount > 0 ? 1 : 0)
+
+          if grim.getDeprecationsLength() > 0
+            grim.logDeprecations()
+            return atom.exit(1)
+
+        if runner.results().failedCount > 0
+          atom.exit(1)
+        else
+          atom.exit(0)
   else
     AtomReporter = require './atom-reporter'
     reporter = new AtomReporter()

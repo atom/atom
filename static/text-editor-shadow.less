@@ -9,7 +9,6 @@
 
 .editor-contents--private {
   width: 100%;
-  overflow: hidden;
   cursor: text;
   display: -webkit-flex;
   -webkit-user-select: none;
@@ -44,7 +43,7 @@
     opacity: .6;
     padding: 0 .4em;
 
-    &:before {
+    &::before {
       text-align: center;
     }
   }
@@ -66,7 +65,7 @@
 
     visibility: visible;
 
-    &:before {
+    &::before {
       position: relative;
       left: -.1em;
     }
@@ -111,7 +110,7 @@
 .line {
   white-space: pre;
 
-  &.cursor-line .fold-marker:after {
+  &.cursor-line .fold-marker::after {
     opacity: 1;
   }
 }
@@ -119,7 +118,7 @@
 .fold-marker {
   cursor: default;
 
-  &:after {
+  &::after {
     .icon(0.8em, inline);
 
     content: @ellipsis;
