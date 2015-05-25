@@ -15,7 +15,7 @@
   ```
 
 ### `script/build` Options
-  * `--install-dir` - Creates the final built application in this directory.
+  * `--install-dir` - The full path to the final built application (must include `.app` in the path), e.g. `script/build --install-dir full/path/to/Atom.app`
   * `--build-dir` - Build the application in this directory.
   * `--verbose` - Verbose mode. A lot more information output.
 
