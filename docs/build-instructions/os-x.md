@@ -14,6 +14,11 @@
   script/build # Creates application at /Applications/Atom.app
   ```
 
+### `script/build` Options
+  * `--install-dir` - Creates the final built application in this directory.
+  * `--build-dir` - Build the application in this directory.
+  * `--verbose` - Verbose mode. A lot more information output.
+
 ## Troubleshooting
 
 ### OSX build error reports in atom/atom
