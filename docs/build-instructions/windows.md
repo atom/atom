@@ -33,6 +33,11 @@ cd atom
 script/build # Creates application in the `Program Files` directory
 ```
 
+### `script/build` Options
+  * `--install-dir` - Creates the final built application in this directory.
+  * `--build-dir` - Build the application in this directory.
+  * `--verbose` - Verbose mode. A lot more information output.
+
 ## Why do I have to use GitHub for Windows?
 
 You don't. You can use your existing Git! GitHub for Windows's Git Shell is just
