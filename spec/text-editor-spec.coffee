@@ -66,6 +66,22 @@ describe "TextEditor", ->
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
+  describe "when the editor is constructed in large file mode", ->
+    it "defers final construction until the file is loaded", ->
+      [buffer, editor] = []
+
+      waitsForPromise ->
+        atom.project.bufferForPath('sample.js').then (b) ->
+          buffer = b
+          editor = new TextEditor({buffer, largeFileMode: true})
+
+      waitsFor "editor to finish loading", (done) ->
+        editor.onDidLoad(done)
+
+      runs ->
+        expect(editor.tokenizedLineForScreenRow(0).text).toBe buffer.lineForRow(0)
+        expect(editor.tokenizedLineForScreenRow(12).text).toBe buffer.lineForRow(12)
+
   describe "when the editor is constructed with an initialLine option", ->
     it "positions the cursor on the specified line", ->
       editor = null

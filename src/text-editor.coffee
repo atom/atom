@@ -75,7 +75,9 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}={}) ->
+  constructor: (params={}) ->
+    {@softTabs, tabLength, softWrapped, @displayBuffer, buffer} = params
+    {@mini, @placeholderText, @largeFileMode} = params
     super
 
     @emitter = new Emitter
@@ -84,8 +86,20 @@ class TextEditor extends Model
     @selections = []
 
     buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini})
+
+    @largeFileMode ?= buffer?.getLineCount() > 10000
+
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, @largeFileMode})
     @buffer = @displayBuffer.buffer
+
+    if @largeFileMode
+      @displayBuffer.onDidLoad(=> @finalizeConstruction(params))
+    else
+      @finalizeConstruction(params)
+
+  finalizeConstruction: (params) ->
+    {initialLine, initialColumn, registerEditor, suppressCursorCreation, lineNumberGutterVisible} = params
+
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
@@ -456,6 +470,9 @@ class TextEditor extends Model
 
   onDidChangeScrollLeft: (callback) ->
     @emitter.on 'did-change-scroll-left', callback
+
+  onDidLoad: (callback) ->
+    @displayBuffer.onDidLoad(callback)
 
   # TODO Remove once the tabs package no longer uses .on subscriptions
   onDidChangeIcon: (callback) ->
