@@ -8,6 +8,7 @@ TokenizedLine = require './tokenized-line'
 TokenIterator = require './token-iterator'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
+Task = require './task'
 Grim = require 'grim'
 
 module.exports =
@@ -24,7 +25,7 @@ class TokenizedBuffer extends Model
   visible: false
   configSettings: null
 
-  constructor: ({@buffer, @tabLength, @ignoreInvisibles}) ->
+  constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator
@@ -35,7 +36,13 @@ class TokenizedBuffer extends Model
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
-    @reloadGrammar()
+    if @largeFileMode
+      @grammar = atom.grammars.nullGrammar
+      @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
+      @trackConfigSettings()
+      @buildInitialLinesInBackground()
+    else
+      @reloadGrammar()
 
   destroyed: ->
     @disposables.dispose()
@@ -55,6 +62,9 @@ class TokenizedBuffer extends Model
 
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
+
+  onDidLoad: (callback) ->
+    @emitter.on 'did-load', callback
 
   onDidChange: (callback) ->
     @emitter.on 'did-change', callback
@@ -80,6 +90,13 @@ class TokenizedBuffer extends Model
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
     @disposables.add(@grammarUpdateDisposable)
 
+    @trackConfigSettings()
+    @retokenizeLines()
+
+    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change-grammar', grammar
+
+  trackConfigSettings: ->
     scopeOptions = {scope: @rootScopeDescriptor}
     @configSettings =
       tabLength: atom.config.get('editor.tabLength', scopeOptions)
@@ -99,11 +116,6 @@ class TokenizedBuffer extends Model
         @configSettings[key] = newValue
         @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
     @disposables.add(@configSubscriptions)
-
-    @retokenizeLines()
-
-    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-grammar', grammar
 
   reloadGrammar: ->
     if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @buffer.getText())
@@ -144,6 +156,23 @@ class TokenizedBuffer extends Model
       @ignoreInvisibles = ignoreInvisibles
       if @configSettings.showInvisibles and @configSettings.invisibles?
         @retokenizeLines()
+
+  buildInitialLinesInBackground: ->
+    taskPath = require.resolve('./initial-tokenized-lines-task')
+    params = {
+      filePath: @buffer.getPath()
+      invisibles: @getInvisiblesToShow()
+      tabLength: @getTabLength()
+      rootScopeId: @grammar.startIdForScope(@grammar.scopeName)
+    }
+
+    task = Task.once taskPath, params, (lineStates) =>
+      @tokenizedLines = lineStates.map (state) =>
+        line = new TokenizedLine
+        line.tokenIterator = @tokenIterator
+        line[key] = value for key, value of state
+        line
+      @emitter.emit 'did-load'
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
