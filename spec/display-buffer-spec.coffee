@@ -40,6 +40,14 @@ describe "DisplayBuffer", ->
       displayBuffer2.unfoldBufferRow(3)
       expect(displayBuffer2.isFoldedAtBufferRow(3)).not.toBe displayBuffer.isFoldedAtBufferRow(3)
 
+  describe "when the constructed with largeFileMode: true", ->
+    it "invokes onDidLoad listeners once the file is fully loaded", ->
+      displayBuffer = new DisplayBuffer({buffer, tabLength, largeFileMode: true})
+      waitsFor "display buffer to load", (done) -> displayBuffer.onDidLoad(done)
+      runs ->
+        expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe buffer.lineForRow(0)
+        expect(displayBuffer.tokenizedLineForScreenRow(12).text).toBe buffer.lineForRow(12)
+
   describe "when the buffer changes", ->
     it "renders line numbers correctly", ->
       originalLineCount = displayBuffer.getLineCount()
