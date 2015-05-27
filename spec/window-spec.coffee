@@ -294,6 +294,16 @@ describe "Window", ->
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
         expect(atom.workspace.open.callCount).toBe 0
 
+    describe "when there is no path to open", ->
+      it "opens a new empty editor", ->
+        atom.getCurrentWindow().send 'message', 'open-locations', [{}]
+
+        waitsFor ->
+          atom.workspace.open.callCount > 0
+
+        runs ->
+          expect(atom.workspace.open.mostRecentCall.args[0]).toBe undefined
+
     describe "when the opened path is a uri", ->
       it "adds it to the project's paths as is", ->
         pathToOpen = 'remote://server:7644/some/dir/path'
