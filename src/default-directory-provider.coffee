@@ -1,7 +1,6 @@
 {Directory} = require 'pathwatcher'
 fs = require 'fs-plus'
 path = require 'path'
-url = require 'url'
 
 module.exports =
 class DefaultDirectoryProvider
@@ -15,22 +14,14 @@ class DefaultDirectoryProvider
   # * {Directory} if the given URI is compatible with this provider.
   # * `null` if the given URI is not compatibile with this provider.
   directoryForURISync: (uri) ->
-    normalizedPath = path.normalize(uri)
-    {protocol} = url.parse(uri)
-    directoryPath = if protocol?
-      uri
-    else if not fs.isDirectorySync(normalizedPath) and fs.isDirectorySync(path.dirname(normalizedPath))
-      path.dirname(normalizedPath)
-    else
-      normalizedPath
+    projectPath = path.normalize(uri)
 
-    # TODO: Stop normalizing the path in pathwatcher's Directory.
-    directory = new Directory(directoryPath)
-    if protocol?
-      directory.path = directoryPath
-      if fs.isCaseInsensitive()
-        directory.lowerCasePath = directoryPath.toLowerCase()
-    directory
+    directoryPath = if not fs.isDirectorySync(projectPath) and fs.isDirectorySync(path.dirname(projectPath))
+      path.dirname(projectPath)
+    else
+      projectPath
+
+    new Directory(directoryPath)
 
   # Public: Create a Directory that corresponds to the specified URI.
   #
