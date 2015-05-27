@@ -29,8 +29,7 @@ class WindowEventHandler
               else
                 atom.project.addPath(pathToOpen)
 
-            {protocol} = url.parse(pathToOpen)
-            unless fs.isDirectorySync(pathToOpen) or protocol?
+            unless fs.isDirectorySync(pathToOpen)
               atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
           return
