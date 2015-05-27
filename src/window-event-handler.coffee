@@ -5,6 +5,7 @@ ipc = require 'ipc'
 shell = require 'shell'
 {Subscriber} = require 'emissary'
 fs = require 'fs-plus'
+url = require 'url'
 
 # Handles low-level events related to the window.
 module.exports =
@@ -23,12 +24,13 @@ class WindowEventHandler
             if pathToOpen? and needsProjectPaths
               if fs.existsSync(pathToOpen)
                 atom.project.addPath(pathToOpen)
+              else if fs.existsSync(path.dirname(pathToOpen))
+                atom.project.addPath(path.dirname(pathToOpen))
               else
-                dirToOpen = path.dirname(pathToOpen)
-                if fs.existsSync(dirToOpen)
-                  atom.project.addPath(dirToOpen)
+                atom.project.addPath(pathToOpen)
 
-            unless fs.isDirectorySync(pathToOpen)
+            {protocol} = url.parse(pathToOpen)
+            unless fs.isDirectorySync(pathToOpen) or protocol?
               atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
 
           return

@@ -293,3 +293,14 @@ describe "Window", ->
         pathToOpen = __dirname
         atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
         expect(atom.workspace.open.callCount).toBe 0
+
+    describe "when the opened path is a uri", ->
+      it "adds it to the project's paths as is", ->
+        pathToOpen = 'remote://server:7644/some/dir/path'
+        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
+
+        waitsFor ->
+          atom.project.getPaths().length is 1
+
+        runs ->
+          expect(atom.project.getPaths()[0]).toBe pathToOpen
