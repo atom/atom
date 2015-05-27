@@ -34,6 +34,8 @@ class Atom extends Model
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
 
+    Object.defineProperty(atom, "hasTiledEditor", value: true)
+
     if includeDeprecatedAPIs
       workspaceViewDeprecationMessage = """
         atom.workspaceView is no longer available.
