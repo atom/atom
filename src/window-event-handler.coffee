@@ -5,7 +5,6 @@ ipc = require 'ipc'
 shell = require 'shell'
 {Subscriber} = require 'emissary'
 fs = require 'fs-plus'
-url = require 'url'
 
 # Handles low-level events related to the window.
 module.exports =
