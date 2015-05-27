@@ -234,7 +234,7 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
       expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
 
-  describe "::isCursorOnScreen", ->
+  fdescribe "::isCursorOnScreen", ->
     [element, model] = []
 
     beforeEach ->
@@ -253,3 +253,13 @@ describe "TextEditorElement", ->
       expect(model.getCursorBufferPosition()).toEqual [0, 0]
       model.setCursorBufferPosition([element.getLastVisibleScreenRow() + 1, 0], autoscroll: false)
       expect(element.isCursorOnScreen()).toBe false
+
+    describe "when options.axis is horizontal", ->
+      it "returns false if the cursor is not horizontally visible on the screen", ->
+        element = atom.views.getView(model)
+        expect(model.getCursorBufferPosition()).toEqual [0, 0]
+        lastVisiblePixelPosition = {top: 0, left: model.getScrollWidth()}
+        lastVisibleColumn = model.screenPositionForPixelPosition(lastVisiblePixelPosition).column
+        model.setCursorBufferPosition([4, lastVisibleColumn + 1], autoscroll: false)
+        expect(model.getCursorBufferPosition()).toEqual [4, lastVisibleColumn + 1]
+        expect(element.isCursorOnScreen(model.getLastCursor(), axis: 'horizontal')).toBe false
