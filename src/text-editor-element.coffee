@@ -17,6 +17,7 @@ class TextEditorElement extends HTMLElement
   attached: false
   tileSize: null
   focusOnAttach: false
+  hasTiledRendering: true
 
   createdCallback: ->
     @emitter = new Emitter
