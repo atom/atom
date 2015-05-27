@@ -26,8 +26,8 @@ describe "TokenizedBuffer", ->
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
     changeHandler?.reset()
 
-  describe "when constructed with the 'loadAsync' option set to true", ->
-    it "streams the initial placeholder lines from a background task and reports on progress", ->
+  describe "when constructed with largeFileMode: true", ->
+    it "constructs the initial placeholder lines in a background process", ->
       TokenizedBuffer::chunkSize = 2
       buffer = atom.project.bufferForPathSync('sample.js')
       syncTokenizedBuffer = new TokenizedBuffer({buffer})
