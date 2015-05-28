@@ -63,6 +63,7 @@ class MenuManager
     @pendingUpdateOperation = null
     @template = []
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
+    atom.keymaps.onDidReloadKeymap => @update()
     atom.packages.onDidActivateInitialPackages => @sortPackagesMenu()
 
   # Public: Adds the given items to the application menu.
@@ -139,10 +140,19 @@ class MenuManager
   update: ->
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
     @pendingUpdateOperation = setImmediate =>
-      keystrokesByCommand = {}
+      includedBindings = []
+      unsetKeystrokes = new Set
+
       for binding in atom.keymaps.getKeyBindings() when @includeSelector(binding.selector)
+        includedBindings.push(binding)
+        if binding.command is 'unset!'
+          unsetKeystrokes.add(binding.keystrokes)
+
+      keystrokesByCommand = {}
+      for binding in includedBindings when not unsetKeystrokes.has(binding.keystrokes)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
+
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
   loadPlatformItems: ->
