@@ -791,9 +791,11 @@ class Workspace extends Model
   # * `regex` {RegExp} to search with.
   # * `options` (optional) {Object} (default: {})
   #   * `paths` An {Array} of glob patterns to search within
+  #   * `onPathsSearched` (optional) {Function}
+  #   * `rootDirectories` (optional) {Array} (default: atom.project.getDirectories())
   # * `iterator` {Function} callback on each file found
   #
-  # Returns a `Promise`.
+  # Returns a `Promise` with a `cancel()` method.
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
       iterator = options
@@ -809,7 +811,9 @@ class Workspace extends Model
       exclusions: atom.config.get('core.ignoredNames')
       follow: atom.config.get('core.followSymlinks')
 
-    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths(), regex.source, searchOptions, ->
+    rootDirectories = options.rootDirectories or atom.project.getDirectories()
+    rootPaths = (directory.getPath() for directory in rootDirectories)
+    task = Task.once require.resolve('./scan-handler'), rootPaths, regex.source, searchOptions, ->
       deferred.resolve()
 
     task.on 'scan:result-found', (result) ->
@@ -824,7 +828,7 @@ class Workspace extends Model
 
     for buffer in atom.project.getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
-      continue unless atom.project.contains(filePath)
+      continue unless rootDirectories.some (dir) -> dir.contains(filePath)
       matches = []
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0
