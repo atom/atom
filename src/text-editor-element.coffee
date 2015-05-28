@@ -226,8 +226,8 @@ class TextEditorElement extends HTMLElement
     if options.axis is 'horizontal' or not options.axis?
       cursorPixelPositionLeft = @pixelPositionForScreenPosition(cursor.getScreenPosition()).left
       scrollLeft = @getModel().getScrollLeft()
-      scrollWidth = @getModel().getScrollWidth()
-      isHorizontallyOnScreen = scrollLeft <= cursorPixelPositionLeft <= scrollWidth
+      clientWidth = @component.presenter.getClientWidth()
+      isHorizontallyOnScreen = scrollLeft <= cursorPixelPositionLeft <= clientWidth
       return isHorizontallyOnScreen if options.axis is 'horizontal'
 
     isVerticallyOnScreen and isHorizontallyOnScreen
