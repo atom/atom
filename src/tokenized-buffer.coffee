@@ -426,7 +426,6 @@ class TokenizedBuffer extends Model
     new Point(row, column)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
-    selector = new ScopeSelector(selector.replace(/^\./, ''))
     position = Point.fromObject(position)
 
     {openScopes, tags} = @tokenizedLines[position.row]
@@ -446,7 +445,8 @@ class TokenizedBuffer extends Model
         else
           startColumn = endColumn
 
-    return unless selector.matches(scopes)
+
+    return unless selectorMatchesAnyScope(selector, scopes)
 
     startScopes = scopes.slice()
     for startTokenIndex in [(tokenIndex - 1)..0] by -1
@@ -457,7 +457,7 @@ class TokenizedBuffer extends Model
         else
           startScopes.push(atom.grammars.scopeForId(tag))
       else
-        break unless selector.matches(startScopes)
+        break unless selectorMatchesAnyScope(selector, startScopes)
         startColumn -= tag
 
     endScopes = scopes.slice()
@@ -469,7 +469,7 @@ class TokenizedBuffer extends Model
         else
           endScopes.pop()
       else
-        break unless selector.matches(endScopes)
+        break unless selectorMatchesAnyScope(selector, endScopes)
         endColumn += tag
 
     new Range(new Point(position.row, startColumn), new Point(position.row, endColumn))
@@ -504,3 +504,9 @@ if Grim.includeDeprecatedAPIs
         Grim.deprecate("TokenizedBuffer::on is deprecated. Use event subscription methods instead.")
 
     EmitterMixin::on.apply(this, arguments)
+
+selectorMatchesAnyScope = (selector, scopes) ->
+  targetClasses = selector.replace(/^\./, '').split('.')
+  _.any scopes, (scope) ->
+    scopeClasses = scope.split('.')
+    _.isSubset(targetClasses, scopeClasses)
