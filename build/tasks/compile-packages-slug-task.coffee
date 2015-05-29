@@ -90,7 +90,7 @@ module.exports = (grunt) ->
     metadata._deprecatedPackages = require('../deprecated-packages')
 
     for name, {version} of metadata._deprecatedPackages
-      unless semver.validRange(version)
+      if version and not semver.validRange(version)
         invalidPackages = true
         grunt.log.error("Invalid range: #{version} (#{name})")
 
