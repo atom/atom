@@ -86,6 +86,7 @@ module.exports = (grunt) ->
     metadata._atomPackages = packages
     metadata._atomMenu = getMenu(appDir)
     metadata._atomKeymaps = getKeymaps(appDir)
+    metadata._deprecatedPackages = require('../deprecated-packages')
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
     not invalidPackages
