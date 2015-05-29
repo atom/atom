@@ -9,6 +9,7 @@ Grim = require 'grim'
 ServiceHub = require 'service-hub'
 Package = require './package'
 ThemePackage = require './theme-package'
+{isPackageDeprecated} = require './deprecated-packages'
 
 # Extended: Package manager for coordinating the lifecycle of Atom packages.
 #
@@ -325,6 +326,9 @@ class PackageManager
       catch error
         @handleMetadataError(error, packagePath)
         return null
+
+      unless @isBundledPackage(metadata.name)
+        return null if isPackageDeprecated(metadata.name, metadata.version)
 
       if metadata.theme
         pack = new ThemePackage(packagePath, metadata)
