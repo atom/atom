@@ -277,7 +277,7 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'stylesheets'))
+    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
       deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
       path.join(@path, 'stylesheets')
     else
@@ -353,7 +353,7 @@ class Package
 
     deferred = Q.defer()
 
-    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
       deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
     else
