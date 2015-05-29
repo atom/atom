@@ -150,6 +150,9 @@ class PackageManager
   isBundledPackage: (name) ->
     @getPackageDependencies().hasOwnProperty(name)
 
+  isDeprecatedPackage: (name, version) ->
+    isDeprecatedDeprecated(metadata.name, metadata.version)
+
   ###
   Section: Enabling and disabling packages
   ###
@@ -328,7 +331,7 @@ class PackageManager
         return null
 
       unless @isBundledPackage(metadata.name)
-        return null if isPackageDeprecated(metadata.name, metadata.version)
+        return null if @isDeprecatedPackage(metadata.name, metadata.version)
 
       if metadata.theme
         pack = new ThemePackage(packagePath, metadata)
