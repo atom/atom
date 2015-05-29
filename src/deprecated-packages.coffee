@@ -8,7 +8,6 @@ exports.isDeprecatedPackage = (name, version) ->
   return false unless semver.valid(version)
 
   deprecatedVersionRange = deprecatedPackages[name].version
-  console.log name, version, deprecatedVersionRange
   return true unless deprecatedVersionRange
   satisfies(version, deprecatedVersionRange)
 
