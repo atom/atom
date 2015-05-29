@@ -805,7 +805,6 @@ describe "Config", ->
           atom.config.loadUserConfig()
           expect(atom.config.get("foo.bar")).toBe "baz"
 
-
     describe ".observeUserConfig()", ->
       updatedHandler = null
 
