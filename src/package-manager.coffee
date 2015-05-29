@@ -9,7 +9,7 @@ Grim = require 'grim'
 ServiceHub = require 'service-hub'
 Package = require './package'
 ThemePackage = require './theme-package'
-{isDeprecatedPackage} = require './deprecated-packages'
+{isDeprecatedPackage, getDeprecatedPackageMetadata} = require './deprecated-packages'
 
 # Extended: Package manager for coordinating the lifecycle of Atom packages.
 #
@@ -152,6 +152,9 @@ class PackageManager
 
   isDeprecatedPackage: (name, version) ->
     isDeprecatedPackage(name, version)
+
+  getDeprecatedPackageMetadata: (name) ->
+    getDeprecatedPackageMetadata(name)
 
   ###
   Section: Enabling and disabling packages

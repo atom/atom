@@ -3,6 +3,13 @@ semver = require 'semver'
 deprecatedPackages = require('../package.json')?._deprecatedPackages ? {}
 ranges = {}
 
+exports.getDeprecatedPackageMetadata = (name) ->
+  metadata = null
+  if deprecatedPackages.hasOwnProperty(name)
+    metadata = deprecatedPackages[name]
+  metadata = Object.freeze(metadata) if metadata
+  metadata
+
 exports.isDeprecatedPackage = (name, version) ->
   return false unless deprecatedPackages.hasOwnProperty(name)
   return false unless semver.valid(version)

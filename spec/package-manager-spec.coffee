@@ -62,6 +62,7 @@ describe "PackageManager", ->
       expect(atom.packages.isDeprecatedPackage('wordcount', '2.0.9')).toBe true
       expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.0')).toBe true
       expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.1')).toBe false
+      expect(atom.packages.getDeprecatedPackageMetadata('wordcount').version).toBe '<=2.1.0'
 
     it "invokes ::onDidLoadPackage listeners with the loaded package", ->
       loadedPackage = null
