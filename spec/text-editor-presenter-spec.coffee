@@ -1108,6 +1108,19 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 3)).toEqual {top: 0, left: 12 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10 - 50, left: 4 * 10, width: 10, height: 10}
 
+        it "updates when ::scrollTop changes after the model was changed", ->
+          editor.setCursorBufferPosition([8, 22])
+          presenter = buildPresenter(explicitHeight: 50, scrollTop: 10 * 8)
+
+          expect(stateForCursor(presenter, 0)).toEqual {top: 0, left: 10 * 22, width: 10, height: 10}
+
+          expectStateUpdate presenter, ->
+            editor.getBuffer().deleteRow(12)
+            editor.getBuffer().deleteRow(11)
+            editor.getBuffer().deleteRow(10)
+
+          expect(stateForCursor(presenter, 0)).toEqual {top: 20, left: 10 * 22, width: 10, height: 10}
+
         it "updates when ::explicitHeight changes", ->
           editor.setSelectedBufferRanges([
             [[1, 2], [1, 2]],

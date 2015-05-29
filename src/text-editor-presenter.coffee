@@ -115,6 +115,7 @@ class TextEditorPresenter
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
+      @shouldUpdateCursorsState = true
       @shouldUpdateTilesState = true
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateLineNumbersState = true
