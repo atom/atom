@@ -12,11 +12,11 @@ exports.getDeprecatedPackageMetadata = (name) ->
 
 exports.isDeprecatedPackage = (name, version) ->
   return false unless deprecatedPackages.hasOwnProperty(name)
-  return false unless semver.valid(version)
 
   deprecatedVersionRange = deprecatedPackages[name].version
   return true unless deprecatedVersionRange
-  satisfies(version, deprecatedVersionRange)
+
+  semver.valid(version) and satisfies(version, deprecatedVersionRange)
 
 satisfies = (version, rawRange) ->
   unless parsedRange = ranges[rawRange]
