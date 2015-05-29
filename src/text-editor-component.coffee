@@ -47,7 +47,7 @@ class TextEditorComponent
       model: @editor
       scrollTop: @editor.getScrollTop()
       scrollLeft: @editor.getScrollLeft()
-      lineOverdrawMargin: lineOverdrawMargin
+      lineOverdrawMargin: @lineOverdrawMargin
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
