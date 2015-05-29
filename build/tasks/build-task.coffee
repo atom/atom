@@ -103,6 +103,8 @@ module.exports = (grunt) ->
       '.lintignore'
       '.eslintrc'
       '.jshintignore'
+      'coffeelint.json'
+      '.coffeelintignore'
       '.gitattributes'
       '.gitkeep'
     ]

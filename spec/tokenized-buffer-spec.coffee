@@ -287,7 +287,7 @@ describe "TokenizedBuffer", ->
       describe "when there is an insertion that is larger than the chunk size", ->
         it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
           commentBlock = _.multiplyString("// a comment\n", tokenizedBuffer.chunkSize + 2)
-          buffer.insert([0,0], commentBlock)
+          buffer.insert([0, 0], commentBlock)
           expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
@@ -541,7 +541,7 @@ describe "TokenizedBuffer", ->
       runs ->
         fullyTokenize(tokenizedBuffer)
         {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
-        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
 
   describe ".tokenForPosition(position)", ->
     afterEach ->
@@ -552,9 +552,9 @@ describe "TokenizedBuffer", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
-      expect(tokenizedBuffer.tokenForPosition([1,1]).scopes).toEqual ["source.js"]
-      expect(tokenizedBuffer.tokenForPosition([1,2]).scopes).toEqual ["source.js", "storage.modifier.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 2]).scopes).toEqual ["source.js", "storage.modifier.js"]
 
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
@@ -572,7 +572,7 @@ describe "TokenizedBuffer", ->
 
     describe "when the selector matches a run of multiple tokens at the position", ->
       it "returns the range covered by all contigous tokens (within a single line)", ->
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.meta.function', [1, 18])).toEqual [[1, 6], [1, 28]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]
 
   describe "when the editor.tabLength config value changes", ->
     it "updates the tab length of the tokenized lines", ->
@@ -580,20 +580,20 @@ describe "TokenizedBuffer", ->
       buffer.setText('\ttest')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 6)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '      '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '      '
 
     it "does not allow the tab length to be less than 1", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 1)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe ' '
       atom.config.set('editor.tabLength', 0)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe ' '
 
   describe "when the invisibles value changes", ->
     beforeEach ->
