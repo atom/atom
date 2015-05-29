@@ -7,6 +7,7 @@ Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 fs = require 'fs-plus'
+DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
@@ -45,6 +46,14 @@ class Workspace extends Model
 
     @paneContainer ?= new PaneContainer()
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
+
+    @searchProviders = [new DefaultDirectorySearcher()]
+    atom.packages.serviceHub.consume(
+      'atom.directory-searcher',
+      '^0.1.0',
+      # New providers are added to the front of @searchProviders because
+      # DefaultDirectorySearcher is a catch-all that will always claim to search a Directory.
+      (provider) => @searchProviders.unshift(provider))
 
     @panelContainers =
       top: new PanelContainer({location: 'top'})
@@ -791,36 +800,72 @@ class Workspace extends Model
   # * `regex` {RegExp} to search with.
   # * `options` (optional) {Object} (default: {})
   #   * `paths` An {Array} of glob patterns to search within
+  #   * `onPathsSearched` (optional) {Function}
   # * `iterator` {Function} callback on each file found
   #
-  # Returns a `Promise`.
+  # Returns a `Promise` with a `cancel()` method.
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
       iterator = options
       options = {}
 
-    deferred = Q.defer()
-
     searchOptions =
       ignoreCase: regex.ignoreCase
-      inclusions: options.paths
+      inclusions: options.paths or []
       includeHidden: true
       excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
       exclusions: atom.config.get('core.ignoredNames')
       follow: atom.config.get('core.followSymlinks')
 
-    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths(), regex.source, searchOptions, ->
-      deferred.resolve()
+    # Find a search provider for every Directory in the project.
+    providersAndDirectories = []
+    for directory in atom.project.getDirectories()
+      providerForDirectory = null
+      for provider in @searchProviders
+        if provider.canSearchDirectory(directory)
+          providerForDirectory = provider
+          break
+      if providerForDirectory
+        providersAndDirectories.push({provider, directory})
+      else
+        throw Error("Could not find search provider for #{directory.getPath()}")
 
-    task.on 'scan:result-found', (result) ->
+    # Now that we are sure every Directory has a provider, construct the search options.
+    onSearchResult = (result) ->
       iterator(result) unless atom.project.isPathModified(result.filePath)
-
-    task.on 'scan:file-error', (error) ->
+    onSearchError = (error) ->
       iterator(null, error)
 
+    # Define the onPathsSearched callback.
     if _.isFunction(options.onPathsSearched)
-      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
-        options.onPathsSearched(numberOfPathsSearched)
+      # Maintain a map of providers to the number of search results. When notified of a new count,
+      # replace the entry in the map and update the total.
+      onPathsSearchedOption = options.onPathsSearched
+      totalNumberOfPathsSearched = 0
+      numberOfPathsSearchedForProvider = new Map()
+      onPathsSearched = (provider, numberOfPathsSearched) ->
+        oldValue = numberOfPathsSearchedForProvider.get(provider)
+        if oldValue
+          totalNumberOfPathsSearched -= oldValue
+        numberOfPathsSearchedForProvider.set(provider, numberOfPathsSearched)
+        totalNumberOfPathsSearched += numberOfPathsSearched
+        onPathsSearchedOption(totalNumberOfPathsSearched)
+    else
+      onPathsSearched = ->
+
+    # Kick off all of the searches and unify them into one Promise.
+    allSearchPromises = []
+    for entry in providersAndDirectories
+      {provider, directory} = entry
+      recordNumPathsSearched = onPathsSearched.bind(undefined, provider)
+      allSearchPromises.push(provider.search(
+        directory,
+        regex.source,
+        onSearchResult,
+        onSearchError,
+        recordNumPathsSearched,
+        searchOptions))
+    searchPromise = Promise.all(allSearchPromises)
 
     for buffer in atom.project.getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
@@ -829,11 +874,30 @@ class Workspace extends Model
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0
 
-    promise = deferred.promise
-    promise.cancel = ->
-      task.terminate()
-      deferred.resolve('cancelled')
-    promise
+    # Make sure the Promise that is returned to the client is cancelable. To be consistent
+    # with the existing behavior, instead of cancel() rejecting the promise, it should
+    # resolve it with the special value 'cancelled'. At least the built-in find-and-replace
+    # package relies on this behavior.
+    cancellablePromise = new Promise (resolve, reject) ->
+      onSuccess = ->
+        resolve(null)
+        return
+      onFailure	= ->
+        resolve('cancelled')
+        return
+      searchPromise.then(onSuccess, onFailure)
+    cancellablePromise.cancel = ->
+      # Note that cancelling all (or actually, any) of the members of allSearchPromises
+      # will cause searchPromise to reject, which will cause cancellablePromise to resolve
+      # in the desired way.
+      promise.cancel() for promise in allSearchPromises
+
+    # Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
+    # method in the find-and-replace package expects the object returned by this method to have a
+    # `done()` method. Include a done() method until find-and-replace can be updated.
+    cancellablePromise.done = (f) ->
+      cancellablePromise.then(f, f)
+    cancellablePromise
 
   # Public: Performs a replace across all the specified files in the project.
   #

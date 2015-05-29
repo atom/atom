@@ -938,6 +938,76 @@ describe "Workspace", ->
                 .then ->
                   expect(resultPaths).toEqual([file2])
 
+        describe "when a custom directory searcher is registered", ->
+          it "can override the DefaultDirectorySearcher on a per-directory basis", ->
+            foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
+            numPathsSearchedInDir2 = 1
+            numPathsToPretendToSearchInCustomDirectorySearcher = 10
+            class CustomDirectorySearcher
+              canSearchDirectory: (directory) -> directory.getPath() is dir1
+              search: (directory, regexSource, onSearchResult, onSearchError, onPathsSearched, options) ->
+                searchResult1 =
+                  filePath: foreignFilePath,
+                  matches: [
+                    {
+                      lineText: 'Hello world',
+                      lineTextOffset: 0,
+                      matchText: 'Hello',
+                      range: [[0, 0], [0, 5]],
+                    }
+                  ]
+                onSearchResult(searchResult1)
+                onPathsSearched(numPathsToPretendToSearchInCustomDirectorySearcher)
+                promise = Promise.resolve()
+                promise.cancel = ->
+                promise
+
+            atom.packages.serviceHub.provide(
+              "atom.directory-searcher", "0.1.0", new CustomDirectorySearcher())
+
+            resultPaths = []
+            onPathsSearched = jasmine.createSpy('onPathsSearched')
+            waitsForPromise ->
+              atom.workspace.scan /aaaa/, {onPathsSearched}, ({filePath}) ->
+                resultPaths.push(filePath)
+
+            runs ->
+              expect(resultPaths.sort()).toEqual([foreignFilePath, file2].sort())
+              # onPathsSearched should be called once by each DirectorySearcher. The order is not
+              # guaranteed, so we can only verify the total number of paths searched is correct
+              # after the second call.
+              expect(onPathsSearched.callCount).toBe(2)
+              expect(onPathsSearched.mostRecentCall.args[0]).toBe(
+                numPathsToPretendToSearchInCustomDirectorySearcher + numPathsSearchedInDir2)
+
+          it "can be cancelled by cancelling one of the DirectorySearchers", ->
+            customDirectorySearcherPromiseInstance = null
+            class CustomDirectorySearcherToCancel
+              canSearchDirectory: (directory) -> directory.getPath() is dir1
+              search: (directory, regexSource, onSearchResult, onSearchError, onPathsSearched, options) ->
+                # Note that hoisting reject in this way is generally frowned upon.
+                hoistedReject = null
+                promise = new Promise (resolve, reject) ->
+                  hoistedReject = reject
+                promise.cancel = -> hoistedReject()
+                customDirectorySearcherPromiseInstance = promise
+                promise
+
+            atom.packages.serviceHub.provide(
+              "atom.directory-searcher", "0.1.0", new CustomDirectorySearcherToCancel())
+
+            resultPaths = []
+            cancelableSearch = atom.workspace.scan /aaaa/, ({filePath}) ->
+              resultPaths.push(filePath)
+            customDirectorySearcherPromiseInstance.cancel()
+
+            resultOfPromiseSearch = null
+            waitsForPromise ->
+              cancelableSearch.then (promiseResult) -> resultOfPromiseSearch = promiseResult
+
+            runs ->
+              expect(resultOfPromiseSearch).toBe('cancelled')
+
   describe "::replace(regex, replacementText, paths, iterator)", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
 
