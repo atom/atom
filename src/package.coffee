@@ -489,7 +489,7 @@ class Package
         else if _.isArray(commands)
           @activationCommands[selector].push(commands...)
 
-    if includeDeprecatedAPIs and @metadata.activationEvents?
+    if @metadata.activationEvents?
       deprecate("""
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
