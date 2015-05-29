@@ -1,0 +1,35 @@
+.text-bits (@type) {
+  @text-color: "text-color-@{type}";
+  @bg-color: "background-color-@{type}";
+
+  code {
+    color: @@text-color;
+    background: fadeout(@@bg-color, 80%);
+  }
+
+  a, a code {
+    color: @@text-color;
+    text-decoration: underline;
+    color: darken(@@text-color, 10%);
+
+    &:hover {
+      color: darken(@@text-color, 15%);
+    }
+  }
+}
+
+.text-info {
+  .text-bits(info);
+}
+
+.text-success {
+  .text-bits(success);
+}
+
+.text-warning {
+  .text-bits(warning);
+}
+
+.text-error {
+  .text-bits(error);
+}
