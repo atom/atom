@@ -22,6 +22,7 @@ SequenceCount = 0
 # will typically be the name of your package, and `action` describes the
 # behavior of your command. If either part consists of multiple words, these
 # must be separated by hyphens. E.g. `awesome-package:turn-it-up-to-eleven`.
+# All words should be lowercased.
 #
 # As the event bubbles upward through the DOM, all registered event listeners
 # with matching selectors are invoked in order of specificity. In the event of a
