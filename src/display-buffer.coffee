@@ -10,6 +10,7 @@ Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
+MarkerObservationWindow = require './marker-observation-window'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -950,6 +951,9 @@ class DisplayBuffer extends Model
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
 
+  decorationsForMarkerId: (markerId) ->
+    @decorationsByMarkerId[markerId]
+
   # Retrieves a {Marker} based on its id.
   #
   # id - A {Number} representing a marker id
@@ -1044,6 +1048,9 @@ class DisplayBuffer extends Model
   findMarkers: (params) ->
     params = @translateToBufferMarkerParams(params)
     @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
+
+  observeMarkers: (callback) ->
+    new MarkerObservationWindow(this, @buffer.observeMarkers(callback))
 
   translateToBufferMarkerParams: (params) ->
     bufferMarkerParams = {}

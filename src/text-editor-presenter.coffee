@@ -1,4 +1,4 @@
-{CompositeDisposable, Emitter} = require 'event-kit'
+{CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
@@ -24,6 +24,11 @@ class TextEditorPresenter
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @characterWidthsByScope = {}
+    @rangesByDecorationId = {}
+    @lineDecorationsByScreenRow = {}
+    @lineNumberDecorationsByScreenRow = {}
+    @customGutterDecorationsByGutterNameAndScreenRow = {}
+    @highlightDecorationsById = {}
     @transferMeasurementsToModel()
     @observeModel()
     @observeConfig()
@@ -121,6 +126,10 @@ class TextEditorPresenter
       @shouldUpdateCustomGutterDecorationState = true
 
       @emitDidUpdateState()
+
+    @markerObservationWindow = @model.observeMarkers(@markersInRangeDidChange.bind(this))
+    @disposables.add new Disposable => @markerObservationWindow.destroy()
+
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText =>
       @shouldUpdateContentState = true
@@ -579,6 +588,7 @@ class TextEditorPresenter
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount + @lineOverdrawMargin
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
+    @markerObservationWindow.setScreenRange(Range(Point(@startRow, 0), Point(@endRow, 0)))
 
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
@@ -1055,7 +1065,6 @@ class TextEditorPresenter
 
   observeDecoration: (decoration) ->
     decorationDisposables = new CompositeDisposable
-    decorationDisposables.add decoration.getMarker().onDidChange(@decorationMarkerDidChange.bind(this, decoration))
     if decoration.isType('highlight')
       decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
     decorationDisposables.add decoration.onDidChangeProperties(@decorationPropertiesDidChange.bind(this, decoration))
@@ -1065,38 +1074,41 @@ class TextEditorPresenter
       @didDestroyDecoration(decoration)
     @disposables.add(decorationDisposables)
 
-  decorationMarkerDidChange: (decoration, change) ->
-    if decoration.isType('line') or decoration.isType('gutter')
-      return if change.textChanged
+  markersInRangeDidChange: (event) ->
+    event.insert.forEach (markerId) =>
+      range = @model.getMarker(markerId).getScreenRange()
+      if decorations = @model.decorationsForMarkerId(markerId)
+        for decoration in decorations
+          @decorationMarkerDidChange(decoration)
+          if decoration.isType('line') or decoration.isType('gutter')
+            @addToLineDecorationCaches(decoration, range)
+    event.update.forEach (markerId) =>
+      range = @model.getMarker(markerId).getScreenRange()
+      if decorations = @model.decorationsForMarkerId(markerId)
+        for decoration in decorations
+          @decorationMarkerDidChange(decoration)
+          if decoration.isType('line') or decoration.isType('gutter')
+            @removeFromLineDecorationCaches(decoration)
+            @addToLineDecorationCaches(decoration, range)
+    event.remove.forEach (markerId) =>
+      if decorations = @model.decorationsForMarkerId(markerId)
+        for decoration in decorations
+          @decorationMarkerDidChange(decoration)
+          if decoration.isType('line') or decoration.isType('gutter')
+            @removeFromLineDecorationCaches(decoration)
+    @emitDidUpdateState()
 
-      intersectsVisibleRowRange = false
-      oldRange = new Range(change.oldTailScreenPosition, change.oldHeadScreenPosition)
-      newRange = new Range(change.newTailScreenPosition, change.newHeadScreenPosition)
-
-      if oldRange.intersectsRowRange(@startRow, @endRow - 1)
-        @removeFromLineDecorationCaches(decoration, oldRange)
-        intersectsVisibleRowRange = true
-
-      if newRange.intersectsRowRange(@startRow, @endRow - 1)
-        @addToLineDecorationCaches(decoration, newRange)
-        intersectsVisibleRowRange = true
-
-      if intersectsVisibleRowRange
-        @shouldUpdateLinesState = true if decoration.isType('line')
-        if decoration.isType('line-number')
-          @shouldUpdateLineNumbersState = true
-        else if decoration.isType('gutter')
-          @shouldUpdateCustomGutterDecorationState = true
-
+  decorationMarkerDidChange: (decoration) ->
     if decoration.isType('highlight')
-      return if change.textChanged
-
       @updateHighlightState(decoration)
-
     if decoration.isType('overlay')
       @shouldUpdateOverlaysState = true
-
-    @emitDidUpdateState()
+    if decoration.isType('line')
+      @shouldUpdateLinesState = true
+    if decoration.isType('line-number')
+      @shouldUpdateLineNumbersState = true
+    else if decoration.isType('gutter')
+      @shouldUpdateCustomGutterDecorationState = true
 
   decorationPropertiesDidChange: (decoration, event) ->
     {oldProperties} = event
@@ -1161,6 +1173,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   updateDecorations: ->
+    @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
@@ -1183,16 +1196,19 @@ class TextEditorPresenter
 
     return
 
-  removeFromLineDecorationCaches: (decoration, range) ->
-    @removePropertiesFromLineDecorationCaches(decoration.id, decoration.getProperties(), range)
+  removeFromLineDecorationCaches: (decoration) ->
+    @removePropertiesFromLineDecorationCaches(decoration.id, decoration.getProperties())
 
-  removePropertiesFromLineDecorationCaches: (decorationId, decorationProperties, range) ->
-    gutterName = decorationProperties.gutterName
-    for row in [range.start.row..range.end.row] by 1
-      delete @lineDecorationsByScreenRow[row]?[decorationId]
-      delete @lineNumberDecorationsByScreenRow[row]?[decorationId]
-      delete @customGutterDecorationsByGutterNameAndScreenRow[gutterName]?[row]?[decorationId] if gutterName
-    return
+  removePropertiesFromLineDecorationCaches: (decorationId, decorationProperties) ->
+    if range = @rangesByDecorationId[decorationId]
+      delete @rangesByDecorationId[decorationId]
+
+      gutterName = decorationProperties.gutterName
+      for row in [range.start.row..range.end.row] by 1
+        delete @lineDecorationsByScreenRow[row]?[decorationId]
+        delete @lineNumberDecorationsByScreenRow[row]?[decorationId]
+        delete @customGutterDecorationsByGutterNameAndScreenRow[gutterName]?[row]?[decorationId] if gutterName
+      return
 
   addToLineDecorationCaches: (decoration, range) ->
     marker = decoration.getMarker()
@@ -1205,6 +1221,8 @@ class TextEditorPresenter
     else
       return if properties.onlyEmpty
       omitLastRow = range.end.column is 0
+
+    @rangesByDecorationId[decoration.id] = range
 
     for row in [range.start.row..range.end.row] by 1
       continue if properties.onlyHead and row isnt marker.getHeadScreenPosition().row

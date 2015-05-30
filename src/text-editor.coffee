@@ -1378,6 +1378,9 @@ class TextEditor extends Model
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)
 
+  decorationsForMarkerId: (id) ->
+    @displayBuffer.decorationsForMarkerId(id)
+
   ###
   Section: Markers
   ###
@@ -1479,6 +1482,25 @@ class TextEditor extends Model
   #       or {Array} of `[row, column]` in buffer coordinates.
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
+
+  # Extended: Observe changes in the set of markers that intersect a particular
+  # region of the editor.
+  #
+  # * `callback` A {Function} to call whenever one or more {Marker}s appears,
+  #    disappears, or moves within the given region.
+  #   * `event` An {Object} with the following keys:
+  #     * `insert` A {Set} containing the ids of all markers that appeared
+  #        in the range.
+  #     * `update` A {Set} containing the ids of all markers that moved within
+  #        the region.
+  #     * `remove` A {Set} containing the ids of all markers that disappeared
+  #        from the region.
+  #
+  # Returns a {MarkerObservationWindow}, which allows you to specify the region
+  # of interest by calling {MarkerObservationWindow::setBufferRange} or
+  # {MarkerObservationWindow::setScreenRange}.
+  observeMarkers: (callback) ->
+    @displayBuffer.observeMarkers(callback)
 
   # Extended: Get the {Marker} for the given marker id.
   #
