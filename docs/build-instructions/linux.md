@@ -71,7 +71,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
   ```sh
   sudo script/grunt install
   ```
-   After That , if your newly build doesn't create a launcher icon in super menu , then you can get it by executing 
+   After That , if your new build doesn't create a launcher icon in super menu , then you can get it by executing 
    
    ```sh
    sudo cp --parents resources/atom.png /usr/local/share/atom/resources/app/
