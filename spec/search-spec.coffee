@@ -21,7 +21,7 @@ describe 'apm search', ->
   afterEach ->
     server.close()
 
-  it 'lists the matching packages', ->
+  it 'lists the matching packages and excluded deprecated packages', ->
     callback = jasmine.createSpy('callback')
     apm.run(['search', 'duck'], callback)
 
@@ -33,6 +33,7 @@ describe 'apm search', ->
       expect(console.log.argsForCall[1][0]).toContain 'duckberg'
       expect(console.log.argsForCall[2][0]).toContain 'ducktales'
       expect(console.log.argsForCall[3][0]).toContain 'duckblur'
+      expect(console.log.argsForCall[4][0]).toBeUndefined()
 
   it "logs an error if the query is missing or empty", ->
     callback = jasmine.createSpy('callback')
