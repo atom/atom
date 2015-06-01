@@ -1,3 +1,4 @@
+path = require 'path'
 MenuManager = require '../src/menu-manager'
 
 describe "MenuManager", ->
@@ -46,3 +47,32 @@ describe "MenuManager", ->
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
       expect(menu.template[originalItemCount]).toEqual {label: "A", submenu: [{label: "B", command: "b"}]}
+
+  describe "::update()", ->
+    it "sends the current menu template and associated key bindings to the browser process", ->
+      spyOn(menu, 'sendToBrowserProcess')
+      menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      atom.keymap.add 'test', 'atom-workspace': 'ctrl-b': 'b'
+      menu.update()
+
+      waits 1
+
+      runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toEqual ['ctrl-b']
+
+    it "omits key bindings that are mapped to unset! in any context", ->
+      # it would be nice to be smarter about omitting, but that would require a much
+      # more dynamic interaction between the currently focused element and the menu
+      spyOn(menu, 'sendToBrowserProcess')
+      menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
+      atom.keymap.add 'test', 'atom-workspace': 'ctrl-b': 'b'
+      atom.keymap.add 'test', 'atom-text-editor': 'ctrl-b': 'unset!'
+
+      waits 1
+
+      runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
+
+  it "updates the application menu when a keymap is reloaded", ->
+    spyOn(menu, 'update')
+    keymapPath = path.join(__dirname, 'fixtures', 'packages', 'package-with-keymaps', 'keymaps', 'keymap-1.cson')
+    atom.keymaps.reloadKeymap(keymapPath)
+    expect(menu.update).toHaveBeenCalled()

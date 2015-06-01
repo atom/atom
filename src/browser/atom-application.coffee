@@ -99,12 +99,12 @@ class AtomApplication
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
-    @windows.splice @windows.indexOf(window), 1
-    if @windows.length is 0
+    if @windows.length is 1
       @applicationMenu?.enableWindowSpecificItems(false)
       if process.platform in ['win32', 'linux']
         app.quit()
         return
+    @windows.splice(@windows.indexOf(window), 1)
     @saveState() unless window.isSpec or @quitting
 
   # Public: Adds the {AtomWindow} to the global window list.
@@ -174,7 +174,7 @@ class AtomApplication
     @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
     @on 'application:open-api-preview', -> @promptForPathToOpen('all', apiPreviewMode: true)
     @on 'application:open-dev-api-preview', -> @promptForPathToOpen('all', {apiPreviewMode: true, devMode: true})
-    @on 'application:inspect', ({x,y, atomWindow}) ->
+    @on 'application:inspect', ({x, y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
 
@@ -210,6 +210,7 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     app.on 'before-quit', =>
+      @saveState() if @hasEditorWindows()
       @quitting = true
 
     app.on 'will-quit', =>
@@ -217,7 +218,7 @@ class AtomApplication
       @deleteSocketFile()
 
     app.on 'will-exit', =>
-      @saveState() unless @windows.every (window) -> window.isSpec
+      @saveState() if @hasEditorWindows()
       @killAllProcesses()
       @deleteSocketFile()
 
@@ -369,7 +370,12 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, apiPreviewMode, windowDimensions, profileStartup, window}={}) ->
-    pathsToOpen = (fs.normalize(pathToOpen) for pathToOpen in pathsToOpen)
+    pathsToOpen = pathsToOpen.map (pathToOpen) ->
+      if fs.existsSync(pathToOpen)
+        fs.normalize(pathToOpen)
+      else
+        pathToOpen
+
     locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
 
     unless pidToKillWhenClosed or newWindow
@@ -434,6 +440,9 @@ class AtomApplication
         if loadSettings = window.getLoadSettings()
           states.push(initialPaths: loadSettings.initialPaths)
     @storageFolder.store('application.json', states)
+
+  hasEditorWindows: ->
+    @windows.some (window) -> not window.isSpec
 
   loadState: ->
     if (states = @storageFolder.load('application.json'))?.length > 0
@@ -518,6 +527,7 @@ class AtomApplication
 
   locationForPathToOpen: (pathToOpen) ->
     return {pathToOpen} unless pathToOpen
+    return {pathToOpen} if url.parse(pathToOpen).protocol?
     return {pathToOpen} if fs.existsSync(pathToOpen)
 
     pathToOpen = pathToOpen.replace(/[:\s]+$/, '')

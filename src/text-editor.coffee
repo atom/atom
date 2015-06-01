@@ -761,15 +761,23 @@ class TextEditor extends Model
     @emit('will-insert-text', willInsertEvent) if includeDeprecatedAPIs
     @emitter.emit 'will-insert-text', willInsertEvent
 
+    groupingInterval = if options.groupUndo
+      atom.config.get('editor.undoGroupingInterval')
+    else
+      0
+
     if willInsert
       options.autoIndentNewline ?= @shouldAutoIndent()
       options.autoDecreaseIndent ?= @shouldAutoIndent()
-      @mutateSelectedText (selection) =>
-        range = selection.insertText(text, options)
-        didInsertEvent = {text, range}
-        @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
-        @emitter.emit 'did-insert-text', didInsertEvent
-        range
+      @mutateSelectedText(
+        (selection) =>
+          range = selection.insertText(text, options)
+          didInsertEvent = {text, range}
+          @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
+          @emitter.emit 'did-insert-text', didInsertEvent
+          range
+        , groupingInterval
+      )
     else
       false
 
@@ -795,9 +803,9 @@ class TextEditor extends Model
   # * `fn` A {Function} that will be called once for each {Selection}. The first
   #      argument will be a {Selection} and the second argument will be the
   #      {Number} index of that selection.
-  mutateSelectedText: (fn) ->
+  mutateSelectedText: (fn, groupingInterval=0) ->
     @mergeIntersectingSelections =>
-      @transact =>
+      @transact groupingInterval, =>
         fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
 
   # Move lines intersection the most recent selection up by one row in screen
@@ -2457,9 +2465,8 @@ class TextEditor extends Model
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
-      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopes
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
-      @commentScopeSelector.matches(scopeDescriptor)
+      @commentScopeSelector.matches(@scopeDescriptorForBufferPosition([bufferRow, match.index]).scopes)
 
   logCursorScope: ->
     scopeDescriptor = @getLastCursor().getScopeDescriptor()

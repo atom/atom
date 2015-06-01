@@ -23,10 +23,10 @@ class WindowEventHandler
             if pathToOpen? and needsProjectPaths
               if fs.existsSync(pathToOpen)
                 atom.project.addPath(pathToOpen)
+              else if fs.existsSync(path.dirname(pathToOpen))
+                atom.project.addPath(path.dirname(pathToOpen))
               else
-                dirToOpen = path.dirname(pathToOpen)
-                if fs.existsSync(dirToOpen)
-                  atom.project.addPath(dirToOpen)
+                atom.project.addPath(pathToOpen)
 
             unless fs.isDirectorySync(pathToOpen)
               atom.workspace?.open(pathToOpen, {initialLine, initialColumn})

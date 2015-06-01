@@ -31,6 +31,12 @@ describe "DefaultDirectoryProvider", ->
       directory = provider.directoryForURISync(file)
       expect(directory.getPath()).toEqual tmp
 
+    it "creates a Directory with a path as a uri when passed a uri", ->
+      provider = new DefaultDirectoryProvider()
+      uri = 'remote://server:6792/path/to/a/dir'
+      directory = provider.directoryForURISync(uri)
+      expect(directory.getPath()).toEqual uri
+
   describe ".directoryForURI(uri)", ->
     it "returns a Promise that resolves to a Directory with a path that matches the uri", ->
       provider = new DefaultDirectoryProvider()
