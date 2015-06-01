@@ -510,7 +510,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    includeDeprecatedAPIs ?= false
+    includeDeprecatedAPIs ?= true
     new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode, includeDeprecatedAPIs})
 
   runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
