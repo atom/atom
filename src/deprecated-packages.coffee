@@ -7,7 +7,7 @@ exports.getDeprecatedPackageMetadata = (name) ->
   metadata = null
   if deprecatedPackages.hasOwnProperty(name)
     metadata = deprecatedPackages[name]
-  metadata = Object.freeze(metadata) if metadata
+  Object.freeze(metadata) if metadata
   metadata
 
 exports.isDeprecatedPackage = (name, version) ->
