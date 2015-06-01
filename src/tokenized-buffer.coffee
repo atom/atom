@@ -21,6 +21,7 @@ class TokenizedBuffer extends Model
   tabLength: null
   tokenizedLines: null
   chunkSize: 50
+  initialLinesChunkSize: 1000
   invalidRows: null
   visible: false
   configSettings: null
@@ -41,6 +42,7 @@ class TokenizedBuffer extends Model
       @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
       @trackConfigSettings()
       @buildInitialLinesInBackground()
+      @invalidRows = []
     else
       @reloadGrammar()
 
@@ -158,21 +160,26 @@ class TokenizedBuffer extends Model
         @retokenizeLines()
 
   buildInitialLinesInBackground: ->
+    @tokenizedLines = []
+
     taskPath = require.resolve('./initial-tokenized-lines-task')
     params = {
       filePath: @buffer.getPath()
       invisibles: @getInvisiblesToShow()
       tabLength: @getTabLength()
       rootScopeId: @grammar.startIdForScope(@grammar.scopeName)
+      chunkSize: @initialLinesChunkSize
     }
 
-    task = Task.once taskPath, params, (lineStates) =>
-      @tokenizedLines = lineStates.map (state) =>
+    task = Task.once taskPath, params, => @emitter.emit 'did-load'
+
+    task.on 'chunk', (lineStates) =>
+      lines = lineStates.map (state) =>
         line = new TokenizedLine
         line.tokenIterator = @tokenIterator
         line[key] = value for key, value of state
         line
-      @emitter.emit 'did-load'
+      @tokenizedLines.push(lines...)
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()

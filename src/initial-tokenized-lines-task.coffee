@@ -2,12 +2,12 @@ fs = require 'fs'
 TextBuffer = require 'text-buffer'
 TokenizedLine = require './tokenized-line'
 
-module.exports = ({filePath, tabLength, invisibles, rootScopeId}) ->
+module.exports = ({filePath, tabLength, invisibles, rootScopeId, chunkSize}) ->
   done = @async()
 
   buffer = new TextBuffer({filePath})
   buffer.load().then =>
-    lines = []
+    currentChunk = []
     openScopes = [rootScopeId]
     indentLevel = 0
     lastLineEmpty = false
@@ -20,12 +20,17 @@ module.exports = ({filePath, tabLength, invisibles, rootScopeId}) ->
 
       newIndentLevel = Math.ceil(line.indentLevel)
       if lastLineEmpty and newIndentLevel > indentLevel
-        for previousLine in lines by -1
+        for previousLine in currentChunk by -1
           break unless previousLine.text.length is 0
           previousLine.indentLevel = newIndentLevel
 
       indentLevel = newIndentLevel
       lastLineEmpty = line.text.length is 0
-      lines.push(line)
 
-    done(lines)
+      currentChunk.push(line)
+      if currentChunk.length > chunkSize and not lastLineEmpty
+        @emit 'chunk', currentChunk
+        currentChunk.length = 0
+
+    @emit 'chunk', currentChunk
+    done()
