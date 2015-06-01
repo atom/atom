@@ -13,6 +13,7 @@ fs = require './fs'
 git = require './git'
 RebuildModuleCache = require './rebuild-module-cache'
 request = require './request'
+{isDeprecatedPackage} = require './deprecated-packages'
 
 module.exports =
 class Install extends Command
@@ -501,12 +502,17 @@ class Install extends Command
       callback(atomMetadata?.packageDependencies?.hasOwnProperty(packageName))
 
   getLatestCompatibleVersion: (pack) ->
-    return pack.releases.latest unless @installedAtomVersion
+    unless @installedAtomVersion
+      if isDeprecatedPackage(pack.name, pack.releases.latest)
+        return null
+      else
+        return pack.releases.latest
 
     latestVersion = null
     for version, metadata of pack.versions ? {}
       continue unless semver.valid(version)
       continue unless metadata
+      continue if isDeprecatedPackage(pack.name, version)
 
       engine = metadata.engines?.atom ? '*'
       continue unless semver.validRange(engine)
