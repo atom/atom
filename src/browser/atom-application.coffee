@@ -352,7 +352,7 @@ class AtomApplication
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  #   :includeDeprecatedAPIs - Boolean to control the opened window's 1.0 API preview mode.
+  #   :includeDeprecatedAPIs - Boolean to control the opened window's included deprecated APIs.
   #   :profileStartup - Boolean to control creating a profile of the startup time.
   #   :window - {AtomWindow} to open file paths in.
   openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup, window}) ->
@@ -366,7 +366,7 @@ class AtomApplication
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  #   :includeDeprecatedAPIs - Boolean to control the opened window's 1.0 API preview mode.
+  #   :includeDeprecatedAPIs - Boolean to control the opened window's included deprecated APIs.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, windowDimensions, profileStartup, window}={}) ->
