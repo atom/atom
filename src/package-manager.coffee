@@ -335,7 +335,7 @@ class PackageManager
 
       unless @isBundledPackage(metadata.name)
         if @isDeprecatedPackage(metadata.name, metadata.version)
-          console.warn "Did not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
+          console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
 
       if metadata.theme
