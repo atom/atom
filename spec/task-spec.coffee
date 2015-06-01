@@ -57,3 +57,16 @@ describe "Task", ->
       expect(deprecations.length).toBe 1
       expect(deprecations[0].getStacks()[0][1].fileName).toBe handlerPath
       jasmine.restoreDeprecationsSnapshot()
+
+  it "adds data listeners to standard out and error to report output", ->
+    task = new Task(require.resolve('./fixtures/task-spec-handler'))
+    {stdout, stderr} = task.childProcess
+
+    task.start()
+    task.start()
+    expect(stdout.listeners('data').length).toBe 1
+    expect(stderr.listeners('data').length).toBe 1
+
+    task.terminate()
+    expect(stdout.listeners('data').length).toBe 0
+    expect(stderr.listeners('data').length).toBe 0
