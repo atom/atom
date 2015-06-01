@@ -334,7 +334,9 @@ class PackageManager
         return null
 
       unless @isBundledPackage(metadata.name)
-        return null if @isDeprecatedPackage(metadata.name, metadata.version)
+        if @isDeprecatedPackage(metadata.name, metadata.version)
+          console.warn "Did not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
+          return null
 
       if metadata.theme
         pack = new ThemePackage(packagePath, metadata)
