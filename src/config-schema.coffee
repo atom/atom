@@ -179,15 +179,19 @@ module.exports =
           eol:
             type: ['boolean', 'string']
             default: '\u00ac'
+            maximumLength: 1
           space:
             type: ['boolean', 'string']
             default: '\u00b7'
+            maximumLength: 1
           tab:
             type: ['boolean', 'string']
             default: '\u00bb'
+            maximumLength: 1
           cr:
             type: ['boolean', 'string']
             default: '\u00a4'
+            maximumLength: 1
       zoomFontWhenCtrlScrolling:
         type: 'boolean'
         default: process.platform isnt 'darwin'

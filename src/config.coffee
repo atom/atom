@@ -1060,6 +1060,12 @@ Config.addSchemaEnforcers
         throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a string")
       value
 
+    validateMaximumLength: (keyPath, value, schema) ->
+      if typeof schema.maximumLength is 'number' and value.length > schema.maximumLength
+        value.slice(0, schema.maximumLength)
+      else
+        value
+
   'null':
     # null sort of isnt supported. It will just unset in this case
     coerce: (keyPath, value, schema) ->
