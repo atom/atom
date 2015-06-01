@@ -1158,6 +1158,7 @@ withoutEmptyObjects = (object) ->
     resultObject = object
   resultObject
 
+# TODO remove in 1.0 API
 Config::unobserve = (keyPath) ->
   Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
