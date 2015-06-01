@@ -87,8 +87,6 @@ class TextEditor extends Model
 
     buffer ?= new TextBuffer
 
-    @largeFileMode ?= buffer?.getLineCount() > 10000
-
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, @largeFileMode})
     @buffer = @displayBuffer.buffer
 
