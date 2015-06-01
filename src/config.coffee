@@ -1158,6 +1158,9 @@ withoutEmptyObjects = (object) ->
     resultObject = object
   resultObject
 
+Config::unobserve = (keyPath) ->
+  Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
+
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Config)
@@ -1206,9 +1209,6 @@ if Grim.includeDeprecatedAPIs
   Config::toggle = (keyPath) ->
     Grim.deprecate 'Config::toggle is no longer supported. Please remove from your code.'
     @set(keyPath, not @get(keyPath))
-
-  Config::unobserve = (keyPath) ->
-    Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
   Config::addScopedSettings = (source, selector, value, options) ->
     Grim.deprecate("Use ::set instead")
