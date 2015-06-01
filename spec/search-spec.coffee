@@ -21,7 +21,7 @@ describe 'apm search', ->
   afterEach ->
     server.close()
 
-  it 'lists the matching packages and excluded deprecated packages', ->
+  it 'lists the matching packages and excludes deprecated packages', ->
     callback = jasmine.createSpy('callback')
     apm.run(['search', 'duck'], callback)
 
