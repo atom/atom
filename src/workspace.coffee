@@ -47,13 +47,13 @@ class Workspace extends Model
     @paneContainer ?= new PaneContainer()
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
-    @searchProviders = [new DefaultDirectorySearcher()]
+    @directorySearchers = [new DefaultDirectorySearcher()]
     atom.packages.serviceHub.consume(
       'atom.directory-searcher',
       '^0.1.0',
-      # New providers are added to the front of @searchProviders because
+      # New providers are added to the front of @directorySearchers because
       # DefaultDirectorySearcher is a catch-all that will always claim to search a Directory.
-      (provider) => @searchProviders.unshift(provider))
+      (provider) => @directorySearchers.unshift(provider))
 
     @panelContainers =
       top: new PanelContainer({location: 'top'})
@@ -817,20 +817,20 @@ class Workspace extends Model
       exclusions: atom.config.get('core.ignoredNames')
       follow: atom.config.get('core.followSymlinks')
 
-    # Find a search provider for every Directory in the project.
-    providersAndDirectories = []
+    # Find a searcher for every Directory in the project.
+    searchersAndDirectories = []
     for directory in atom.project.getDirectories()
-      providerForDirectory = null
-      for provider in @searchProviders
-        if provider.canSearchDirectory(directory)
-          providerForDirectory = provider
+      searcher = null
+      for directorySearcher in @directorySearchers
+        if directorySearcher.canSearchDirectory(directory)
+          searcher = directorySearcher
           break
-      if providerForDirectory
-        providersAndDirectories.push({provider, directory})
+      if searcher
+        searchersAndDirectories.push({searcher, directory})
       else
-        throw Error("Could not find search provider for #{directory.getPath()}")
+        throw Error("Could not find directory searcher for #{directory.getPath()}")
 
-    # Now that we are sure every Directory has a provider, construct the search options.
+    # Now that we are sure every Directory has a searcher, construct the search options.
     onSearchResult = (result) ->
       iterator(result) unless atom.project.isPathModified(result.filePath)
     onSearchError = (error) ->
@@ -838,16 +838,16 @@ class Workspace extends Model
 
     # Define the onPathsSearched callback.
     if _.isFunction(options.onPathsSearched)
-      # Maintain a map of providers to the number of search results. When notified of a new count,
+      # Maintain a map of directories to the number of search results. When notified of a new count,
       # replace the entry in the map and update the total.
       onPathsSearchedOption = options.onPathsSearched
       totalNumberOfPathsSearched = 0
-      numberOfPathsSearchedForProvider = new Map()
-      onPathsSearched = (provider, numberOfPathsSearched) ->
-        oldValue = numberOfPathsSearchedForProvider.get(provider)
+      numberOfPathsSearchedForDirectory = new Map()
+      onPathsSearched = (directory, numberOfPathsSearched) ->
+        oldValue = numberOfPathsSearchedForDirectory.get(directory)
         if oldValue
           totalNumberOfPathsSearched -= oldValue
-        numberOfPathsSearchedForProvider.set(provider, numberOfPathsSearched)
+        numberOfPathsSearchedForDirectory.set(directory, numberOfPathsSearched)
         totalNumberOfPathsSearched += numberOfPathsSearched
         onPathsSearchedOption(totalNumberOfPathsSearched)
     else
@@ -855,15 +855,15 @@ class Workspace extends Model
 
     # Kick off all of the searches and unify them into one Promise.
     allSearchPromises = []
-    for entry in providersAndDirectories
-      {provider, directory} = entry
-      recordNumPathsSearched = onPathsSearched.bind(undefined, provider)
-      allSearchPromises.push(provider.search(
+    for entry in searchersAndDirectories
+      {searcher, directory} = entry
+      recordNumberOfPathsSearched = onPathsSearched.bind(undefined, directory)
+      allSearchPromises.push(searcher.search(
         directory,
         regex.source,
         onSearchResult,
         onSearchError,
-        recordNumPathsSearched,
+        recordNumberOfPathsSearched,
         searchOptions))
     searchPromise = Promise.all(allSearchPromises)
 
@@ -895,8 +895,8 @@ class Workspace extends Model
     # Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
     # method in the find-and-replace package expects the object returned by this method to have a
     # `done()` method. Include a done() method until find-and-replace can be updated.
-    cancellablePromise.done = (f) ->
-      cancellablePromise.then(f, f)
+    cancellablePromise.done = (onSuccessOrFailure) ->
+      cancellablePromise.then(onSuccessOrFailure, onSuccessOrFailure)
     cancellablePromise
 
   # Public: Performs a replace across all the specified files in the project.
