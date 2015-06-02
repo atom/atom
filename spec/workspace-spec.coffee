@@ -985,31 +985,27 @@ describe "Workspace", ->
               expect(onPathsSearched.mostRecentCall.args[0]).toBe(
                 numPathsToPretendToSearchInCustomDirectorySearcher + numPathsSearchedInDir2)
 
-          it "can be cancelled by cancelling one of the DirectorySearchers", ->
-            customDirectorySearcherPromiseInstance = null
-            class CustomDirectorySearchToCancel
+          it "will have the side-effect of failing the overall search if it fails", ->
+            # Note that hoisting reject in this way is generally frowned upon.
+            hoistedReject = null
+            class CustomDirectorySearchThatWillFail
               constructor: ->
-                # Note that hoisting reject in this way is generally frowned upon.
-                @promise = new Promise (resolve, reject) =>
-                  @hoistedReject = reject
-                customDirectorySearcherPromiseInstance = this
+                @promise = new Promise (resolve, reject) ->
+                  hoistedReject = reject
               then: (args...) ->
                 @promise.then.apply(@promise, args)
               cancel: ->
-                @hoistedReject()
 
             class CustomDirectorySearcherToCancel
               canSearchDirectory: (directory) -> directory.getPath() is dir1
               search: (directory, options) ->
-                new CustomDirectorySearchToCancel
+                new CustomDirectorySearchThatWillFail
 
             atom.packages.serviceHub.provide(
               "atom.directory-searcher", "0.1.0", new CustomDirectorySearcherToCancel())
 
-            resultPaths = []
-            cancelableSearch = atom.workspace.scan /aaaa/, ({filePath}) ->
-              resultPaths.push(filePath)
-            customDirectorySearcherPromiseInstance.cancel()
+            cancelableSearch = atom.workspace.scan /aaaa/, ->
+            hoistedReject()
 
             resultOfPromiseSearch = null
             waitsForPromise ->
