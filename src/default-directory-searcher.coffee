@@ -9,11 +9,11 @@ nextId = 1
 activeSearchId = 0
 emitter = new EventEmitter
 
-onSearchFinished = () ->
+onSearchFinished = ->
   activeSearchId = null
   runNextSearch()
 
-runNextSearch = () ->
+runNextSearch = ->
   unless activeSearchId
     activeSearchId = searchQueue.shift()
     emitter.emit(activeSearchId, null) if activeSearchId
