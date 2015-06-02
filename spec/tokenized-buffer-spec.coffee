@@ -45,11 +45,45 @@ describe "TokenizedBuffer", ->
         asyncTokenizedBuffer.onDidLoad(done)
 
       runs ->
+        expect(asyncTokenizedBuffer.getLoadProgress()).toBe 1
         expect(progressCount).toBe 5
         expectSameLineStates(
           asyncTokenizedBuffer.tokenizedLines,
           syncTokenizedBuffer.tokenizedLines
         )
+
+    describe "when a change requires the tokenized lines to be reconstructed", ->
+      it "reenters the loading state and reconstructs placeholder tokenized lines in a background process", ->
+        buffer = atom.project.bufferForPathSync('sample.js')
+        syncTokenizedBuffer = new TokenizedBuffer({buffer})
+        asyncTokenizedBuffer = new TokenizedBuffer({buffer, largeFileMode: true})
+
+        waitsFor 'load to complete', (done) ->
+          asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+            done() if progress is 1
+
+        runs ->
+          expect(asyncTokenizedBuffer.getLoadProgress()).toBe 1
+
+          reportedProgress = null
+          asyncTokenizedBuffer.onDidChangeLoadProgress (progress) -> reportedProgress = progress
+
+          syncTokenizedBuffer.setGrammar(atom.grammars.nullGrammar)
+          asyncTokenizedBuffer.setGrammar(atom.grammars.nullGrammar)
+
+          expect(reportedProgress).toBe 0
+          expect(asyncTokenizedBuffer.getLoadProgress()).toBe 0
+
+        waitsFor 'reload to complete', (done) ->
+          asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+            done() if progress is 1
+
+        runs ->
+          expect(asyncTokenizedBuffer.getLoadProgress()).toBe 1
+          expectSameLineStates(
+            asyncTokenizedBuffer.tokenizedLines,
+            syncTokenizedBuffer.tokenizedLines
+          )
 
     expectSameLineStates = (actualLines, expectedLines) ->
       expect(actualLines.length).toBe (expectedLines.length)

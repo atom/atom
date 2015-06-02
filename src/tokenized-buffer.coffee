@@ -25,7 +25,7 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
   configSettings: null
-  loadProgress: 0
+  loadProgress: 1
 
   constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
@@ -165,6 +165,8 @@ class TokenizedBuffer extends Model
 
   buildInitialLinesInBackground: ->
     @loadProgress = 0
+    @emitter.emit 'did-change-load-progress', 0
+
     @tokenizedLines = []
 
     taskPath = require.resolve('./initial-tokenized-lines-task')
