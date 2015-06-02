@@ -833,9 +833,9 @@ class Workspace extends Model
 
     # Now that we are sure every Directory has a searcher, construct the search options.
     delegateProto = {
-      onDidMatch: (result) ->
+      didMatch: (result) ->
         iterator(result) unless atom.project.isPathModified(result.filePath)
-      onDidError: (error) ->
+      didError: (error) ->
         iterator(null, error)
     }
 
@@ -862,7 +862,7 @@ class Workspace extends Model
       {searcher, directory} = entry
       recordNumberOfPathsSearched = onPathsSearched.bind(undefined, directory)
       delegate = Object.create(delegateProto, {
-        onDidSearchPaths: {
+        didSearchPaths: {
           value: recordNumberOfPathsSearched,
         }
       })

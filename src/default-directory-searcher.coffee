@@ -36,9 +36,9 @@ class DirectorySearch
       @task.on('task:cancelled', reject)
       emitter.once id, =>
         @task.start(rootPaths, options.regexSource, options, resolve)
-    @task.on 'scan:result-found', delegate.onDidMatch
-    @task.on 'scan:file-error', delegate.onDidError
-    @task.on 'scan:paths-searched', delegate.onDidSearchPaths
+    @task.on 'scan:result-found', delegate.didMatch
+    @task.on 'scan:file-error', delegate.didError
+    @task.on 'scan:paths-searched', delegate.didSearchPaths
 
   # Public: Implementation of `then()` to satisfy the *thenable* contract.
   # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
@@ -72,7 +72,7 @@ class DefaultDirectorySearcher
   # * `directory` {Directory} that has been accepted by this provider's `canSearchDirectory()`
   # predicate.
   # * `delegate` {Object} with the following properties:
-  #   * `onDidMatch` {Function} call with a search result structured as follows:
+  #   * `didMatch` {Function} call with a search result structured as follows:
   #     * `searchResult` {Object} with the following keys:
   #       * `filePath` {String} absolute path to the matching file.
   #       * `matches` {Array} with object elements with the following keys:
@@ -80,8 +80,8 @@ class DefaultDirectorySearcher
   #         * `lineTextOffset` {Number} (This always seems to be 0?)
   #         * `matchText` {String} The text that matched the `regex` used for the search.
   #         * `range` {Range} Identifies the matching region in the file. (Likely as an array of numeric arrays.)
-  #   * `onDidError` {Function} call with an Error if there is a problem during the search.
-  #   * `onDidSearchPaths` {Function} periodically call with the number of paths searched thus far.
+  #   * `didError` {Function} call with an Error if there is a problem during the search.
+  #   * `didSearchPaths` {Function} periodically call with the number of paths searched thus far.
   # * `options` {Object} with the following properties:
   #   * `regexSource` {String} regex to search with. Produced via `RegExp::source`.
   #   * `ignoreCase` {boolean} reflects whether the regex should be run with the `i` option.

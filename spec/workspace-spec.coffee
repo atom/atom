@@ -957,8 +957,8 @@ describe "Workspace", ->
                       range: [[0, 0], [0, 5]],
                     },
                   ]
-                delegate.onDidMatch(searchResult1)
-                delegate.onDidSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
+                delegate.didMatch(searchResult1)
+                delegate.didSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
               then: (args...) ->
                 @promise.then.apply(@promise, args)
               cancel: ->
