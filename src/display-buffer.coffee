@@ -122,6 +122,9 @@ class DisplayBuffer extends Model
   onDidLoad: (callback) ->
     @tokenizedBuffer.onDidLoad(callback)
 
+  getLoadProgress: ->
+    @tokenizedBuffer.getLoadProgress()
+
   onDidTokenize: (callback) ->
     @tokenizedBuffer.onDidTokenize(callback)
 

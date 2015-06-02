@@ -469,12 +469,15 @@ class TextEditor extends Model
   onDidChangeScrollLeft: (callback) ->
     @emitter.on 'did-change-scroll-left', callback
 
-  onDidLoad: (callback) ->
-    @displayBuffer.onDidLoad(callback)
-
   # TODO Remove once the tabs package no longer uses .on subscriptions
   onDidChangeIcon: (callback) ->
     @emitter.on 'did-change-icon', callback
+
+  onDidLoad: (callback) ->
+    @displayBuffer.onDidLoad(callback)
+
+  getLoadProgress: ->
+    @displayBuffer.getLoadProgress()
 
   # Public: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer

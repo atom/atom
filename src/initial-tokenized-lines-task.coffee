@@ -12,7 +12,8 @@ module.exports = ({filePath, tabLength, invisibles, rootScopeId, chunkSize}) ->
     indentLevel = 0
     lastLineEmpty = false
 
-    for row in [0..buffer.getLastRow()] by 1
+    rowCount = buffer.getLastRow()
+    for row in [0..rowCount] by 1
       text = buffer.lineForRow(row)
       tags = [text.length]
       lineEnding = buffer.lineEndingForRow(row)
@@ -29,8 +30,8 @@ module.exports = ({filePath, tabLength, invisibles, rootScopeId, chunkSize}) ->
 
       currentChunk.push(line)
       if currentChunk.length > chunkSize and not lastLineEmpty
-        @emit 'chunk', currentChunk
+        @emit 'progress', {lines: currentChunk, progress: row / rowCount}
         currentChunk.length = 0
 
-    @emit 'chunk', currentChunk
+    @emit 'progress', {lines: currentChunk, progress: 1}
     done()

@@ -28,16 +28,25 @@ describe "TokenizedBuffer", ->
 
   describe "when constructed with largeFileMode: true", ->
     it "constructs the initial placeholder lines in a background process", ->
-      TokenizedBuffer::chunkSize = 2
+      TokenizedBuffer::initialLinesChunkSize = 2
       buffer = atom.project.bufferForPathSync('sample.js')
       syncTokenizedBuffer = new TokenizedBuffer({buffer})
       syncTokenizedBuffer.setGrammar(atom.grammars.nullGrammar)
       asyncTokenizedBuffer = new TokenizedBuffer({buffer, largeFileMode: true})
 
+      expect(asyncTokenizedBuffer.getLoadProgress()).toBe 0
+
+      progressCount = 0
+      asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+        expect(asyncTokenizedBuffer.getLoadProgress()).toBe progress
+        expect(progress).toBeGreaterThan 0
+        progressCount++
+
       waitsFor 'load to complete', (done) ->
         asyncTokenizedBuffer.onDidLoad(done)
 
       runs ->
+        expect(progressCount).toBe 5
         expectSameLineStates(
           asyncTokenizedBuffer.tokenizedLines,
           syncTokenizedBuffer.tokenizedLines

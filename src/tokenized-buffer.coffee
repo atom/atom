@@ -25,6 +25,7 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
   configSettings: null
+  loadProgress: 0
 
   constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
@@ -67,6 +68,11 @@ class TokenizedBuffer extends Model
 
   onDidLoad: (callback) ->
     @emitter.on 'did-load', callback
+
+  onDidChangeLoadProgress: (callback) ->
+    @emitter.on 'did-change-load-progress', callback
+
+  getLoadProgress: -> @loadProgress
 
   onDidChange: (callback) ->
     @emitter.on 'did-change', callback
@@ -160,6 +166,7 @@ class TokenizedBuffer extends Model
         @retokenizeLines()
 
   buildInitialLinesInBackground: ->
+    @loadProgress = 0
     @tokenizedLines = []
 
     taskPath = require.resolve('./initial-tokenized-lines-task')
@@ -173,13 +180,15 @@ class TokenizedBuffer extends Model
 
     task = Task.once taskPath, params, => @emitter.emit 'did-load'
 
-    task.on 'chunk', (lineStates) =>
+    task.on 'progress', ({lines: lineStates, progress}) =>
       lines = lineStates.map (state) =>
         line = new TokenizedLine
         line.tokenIterator = @tokenIterator
         line[key] = value for key, value of state
         line
       @tokenizedLines.push(lines...)
+      @loadProgress = progress
+      @emitter.emit 'did-change-load-progress', progress
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
