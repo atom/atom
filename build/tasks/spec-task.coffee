@@ -54,14 +54,14 @@ module.exports = (grunt) ->
       if process.platform in ['darwin', 'linux']
         options =
           cmd: appPath
-          args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", '--one']
+          args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
           opts:
             cwd: packagePath
             env: _.extend({}, process.env, ATOM_PATH: rootDir)
       else if process.platform is 'win32'
         options =
           cmd: process.env.comspec
-          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log", '--one']
+          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log"]
           opts:
             cwd: packagePath
             env: _.extend({}, process.env, ATOM_PATH: rootDir)
