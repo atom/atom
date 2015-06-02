@@ -1,6 +1,5 @@
 path = require 'path'
 temp = require 'temp'
-{Disposable} = require 'event-kit'
 Workspace = require '../src/workspace'
 Pane = require '../src/pane'
 {View} = require '../src/space-pen-extensions'
