@@ -175,11 +175,14 @@ class CommandRegistry
   # * `commandName` {String} indicating the name of the command to dispatch.
   dispatch: (target, commandName, detail) ->
     event = new CustomEvent(commandName, {bubbles: true, detail})
-    eventWithTarget = Object.create event,
+    eventWithTarget = Object.create {},
       target: value: target
       preventDefault: value: ->
       stopPropagation: value: ->
       stopImmediatePropagation: value: ->
+    # In Chrome 43, Object.create doesn't work well with CustomEvent.
+    for k, v of event when k not in eventWithTarget
+      eventWithTarget[k] = v
     @handleCommandEvent(eventWithTarget)
 
   # Public: Invoke the given callback before dispatching a command event.
@@ -214,7 +217,7 @@ class CommandRegistry
     matched = false
     currentTarget = originalEvent.target
 
-    syntheticEvent = Object.create originalEvent,
+    syntheticEvent = Object.create {},
       eventPhase: value: Event.BUBBLING_PHASE
       currentTarget: get: -> currentTarget
       preventDefault: value: ->
@@ -228,6 +231,9 @@ class CommandRegistry
         immediatePropagationStopped = true
       abortKeyBinding: value: ->
         originalEvent.abortKeyBinding?()
+    # In Chrome 43, Object.create doesn't work well with CustomEvent.
+    for k, v of originalEvent when k not in syntheticEvent
+      syntheticEvent[k] = v
 
     @emitter.emit 'will-dispatch', syntheticEvent
 
