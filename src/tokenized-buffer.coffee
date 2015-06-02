@@ -38,14 +38,7 @@ class TokenizedBuffer extends Model
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
-    if @largeFileMode
-      @grammar = atom.grammars.nullGrammar
-      @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-      @trackConfigSettings()
-      @buildInitialLinesInBackground()
-      @invalidRows = []
-    else
-      @reloadGrammar()
+    @reloadGrammar()
 
   destroyed: ->
     @disposables.dispose()
@@ -138,14 +131,19 @@ class TokenizedBuffer extends Model
     false
 
   retokenizeLines: ->
-    lastRow = @buffer.getLastRow()
-    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
-    @invalidRows = []
-    @invalidateRow(0)
-    @fullyTokenized = false
-    event = {start: 0, end: lastRow, delta: 0}
-    @emit 'changed', event if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change', event
+    if @largeFileMode
+      @buildInitialLinesInBackground()
+      @invalidRows = []
+    else
+      lastRow = @buffer.getLastRow()
+      @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
+
+      @invalidRows = []
+      @invalidateRow(0)
+      @fullyTokenized = false
+      event = {start: 0, end: lastRow, delta: 0}
+      @emit 'changed', event if Grim.includeDeprecatedAPIs
+      @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -254,6 +252,7 @@ class TokenizedBuffer extends Model
     return
 
   invalidateRow: (row) ->
+    return if @largeFileMode
     @invalidRows.push(row)
     @invalidRows.sort (a, b) -> a - b
     @tokenizeInBackground()
@@ -275,7 +274,11 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
+
+    if @largeFileMode
+      newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
+    else
+      newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
 
     start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)

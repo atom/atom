@@ -31,7 +31,6 @@ describe "TokenizedBuffer", ->
       TokenizedBuffer::initialLinesChunkSize = 2
       buffer = atom.project.bufferForPathSync('sample.js')
       syncTokenizedBuffer = new TokenizedBuffer({buffer})
-      syncTokenizedBuffer.setGrammar(atom.grammars.nullGrammar)
       asyncTokenizedBuffer = new TokenizedBuffer({buffer, largeFileMode: true})
 
       expect(asyncTokenizedBuffer.getLoadProgress()).toBe 0
