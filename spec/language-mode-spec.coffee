@@ -431,11 +431,11 @@ describe "LanguageMode", ->
 
         fold5 = editor.tokenizedLineForScreenRow(6).fold
         expect([fold5.getStartRow(), fold5.getEndRow()]).toEqual [11, 16]
-        fold5.destroy();
+        fold5.destroy()
 
         fold6 = editor.tokenizedLineForScreenRow(13).fold
         expect([fold6.getStartRow(), fold6.getEndRow()]).toEqual [21, 22]
-        fold6.destroy();
+        fold6.destroy()
 
     describe ".foldAllAtIndentLevel()", ->
       it "folds every foldable range at a given indentLevel", ->
