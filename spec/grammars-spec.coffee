@@ -2,7 +2,7 @@ path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
 
-describe "the `syntax` global", ->
+describe "the `grammars` global", ->
   beforeEach ->
     waitsForPromise ->
       atom.packages.activatePackage('language-text')
@@ -25,9 +25,9 @@ describe "the `syntax` global", ->
       filePath = '/foo/bar/file.js'
       expect(atom.grammars.selectGrammar(filePath).name).not.toBe 'Ruby'
       atom.grammars.setGrammarOverrideForPath(filePath, 'source.ruby')
-      syntax2 = atom.deserializers.deserialize(atom.grammars.serialize())
-      syntax2.addGrammar(grammar) for grammar in atom.grammars.grammars when grammar isnt atom.grammars.nullGrammar
-      expect(syntax2.selectGrammar(filePath).name).toBe 'Ruby'
+      grammars2 = atom.deserializers.deserialize(atom.grammars.serialize())
+      grammars2.addGrammar(grammar) for grammar in atom.grammars.grammars when grammar isnt atom.grammars.nullGrammar
+      expect(grammars2.selectGrammar(filePath).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
@@ -93,6 +93,16 @@ describe "the `syntax` global", ->
         )
         grammar2 = atom.grammars.loadGrammarSync(grammarPath2)
         expect(atom.grammars.selectGrammar('more.test', '')).toBe grammar2
+
+    it "favors non-bundled packages when breaking scoring ties", ->
+      waitsForPromise ->
+        atom.packages.activatePackage(path.join(__dirname, 'fixtures', 'packages', 'package-with-rb-filetype'))
+
+      runs ->
+        atom.grammars.grammarForScopeName('source.ruby').bundledPackage = true
+        atom.grammars.grammarForScopeName('test.rb').bundledPackage = false
+
+        expect(atom.grammars.selectGrammar('test.rb').scopeName).toBe 'test.rb'
 
     describe "when there is no file path", ->
       it "does not throw an exception (regression)", ->

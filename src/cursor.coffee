@@ -333,7 +333,7 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
-    @setBufferPosition([0,0])
+    @setBufferPosition([0, 0])
 
   # Public: Moves the cursor to the bottom of the buffer.
   moveToBottom: ->
@@ -673,9 +673,9 @@ class Cursor extends Model
     start = @getBufferPosition()
 
     {row, column} = start
-    scanRange = [[row-1, column], [0,0]]
+    scanRange = [[row-1, column], [0, 0]]
     position = new Point(0, 0)
-    zero = new Point(0,0)
+    zero = new Point(0, 0)
     @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
       unless range.start.isEqual(zero)
         position = range.start

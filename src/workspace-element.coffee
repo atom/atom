@@ -113,7 +113,10 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
   runPackageSpecs: ->
-    [projectPath] = atom.project.getPaths()
+    if activePath = atom.workspace.getActivePaneItem()?.getPath?()
+      [projectPath] = atom.project.relativizePath(activePath)
+    else
+      [projectPath] = atom.project.getPaths()
     ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
 
 atom.commands.add 'atom-workspace',

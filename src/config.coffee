@@ -1060,6 +1060,12 @@ Config.addSchemaEnforcers
         throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be a string")
       value
 
+    validateMaximumLength: (keyPath, value, schema) ->
+      if typeof schema.maximumLength is 'number' and value.length > schema.maximumLength
+        value.slice(0, schema.maximumLength)
+      else
+        value
+
   'null':
     # null sort of isnt supported. It will just unset in this case
     coerce: (keyPath, value, schema) ->
@@ -1152,6 +1158,10 @@ withoutEmptyObjects = (object) ->
     resultObject = object
   resultObject
 
+# TODO remove in 1.0 API
+Config::unobserve = (keyPath) ->
+  Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
+
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Config)
@@ -1200,9 +1210,6 @@ if Grim.includeDeprecatedAPIs
   Config::toggle = (keyPath) ->
     Grim.deprecate 'Config::toggle is no longer supported. Please remove from your code.'
     @set(keyPath, not @get(keyPath))
-
-  Config::unobserve = (keyPath) ->
-    Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
 
   Config::addScopedSettings = (source, selector, value, options) ->
     Grim.deprecate("Use ::set instead")
