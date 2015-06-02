@@ -1,11 +1,9 @@
 class TextEditorLoaderElement extends HTMLElement
   createdCallback: ->
-    progressBar = document.createElement('div')
-    progressBar.classList.add('progress-bar')
-    @progressIndicator = document.createElement('div')
-    @progressIndicator.classList.add('progress-indicator')
-    progressBar.appendChild(@progressIndicator)
-    @appendChild(progressBar)
+    @progressElement = document.createElement('progress')
+    @progressElement.setAttribute('max', 100)
+    @progressElement.setAttribute('value', 0)
+    @appendChild(@progressElement)
 
   attachedCallback: ->
     @initialize(@model) if @model?
@@ -19,7 +17,7 @@ class TextEditorLoaderElement extends HTMLElement
     this
 
   updateProgress: (progress) ->
-    @progressIndicator.style.width = "#{Math.round(progress * 100)}%"
+    @progressElement.setAttribute('value', Math.round(progress * 100))
 
 module.exports = TextEditorLoaderElement = document.registerElement 'atom-text-editor-loader',
   prototype: TextEditorLoaderElement.prototype
