@@ -8,9 +8,7 @@ class DirectorySearch
     @task = new Task(require.resolve('./scan-handler'))
     rootPaths = [directory.getPath()]
     @promise = new Promise (resolve, reject) =>
-      myResolve = (arg) ->
-        resolve(arg)
-      @task.start(rootPaths, options.regexSource, options, myResolve)
+      @task.start(rootPaths, options.regexSource, options, resolve)
       @task.on('task:cancelled', reject)
 
   # Public:
