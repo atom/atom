@@ -29,13 +29,16 @@ enqueue = (id) ->
 class DirectorySearch
   # Public: Creates a new DirectorySearch that will not start running until the
   # `emitter` that is private to this file emits an event with the specified `id`.
-  constructor: (directory, options, id) ->
+  constructor: (directory, delegate, options, id) ->
     @task = new Task(require.resolve('./scan-handler'))
     rootPaths = [directory.getPath()]
     @promise = new Promise (resolve, reject) =>
       @task.on('task:cancelled', reject)
       emitter.once id, =>
         @task.start(rootPaths, options.regexSource, options, resolve)
+    @task.on 'scan:result-found', delegate.onDidMatch
+    @task.on 'scan:file-error', delegate.onDidError
+    @task.on 'scan:paths-searched', delegate.onDidSearchPaths
 
   # Public: Implementation of `then()` to satisfy the *thenable* contract.
   # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
@@ -43,37 +46,6 @@ class DirectorySearch
   # Returns `Promise`.
   then: (args...) ->
     @promise.then.apply(@promise, args)
-
-  # Public: Get notified when a search result is found.
-  #
-  # * `callback` {Function} called with a search result structured as follows:
-  #   * `searchResult` {Object} with the following keys:
-  #     * `filePath` {String} absolute path to the matching file.
-  #     * `matches` {Array} with object elements with the following keys:
-  #       * `lineText` {String} The full text of the matching line (without a line terminator character).
-  #       * `lineTextOffset` {Number} (This always seems to be 0?)
-  #       * `matchText` {String} The text that matched the `regex` used for the search.
-  #       * `range` {Range} Identifies the matching region in the file. (Likely as an array of numeric arrays.)
-  #
-  # Returns `Disposable`.
-  onDidMatch: (callback) ->
-    @task.on 'scan:result-found', callback
-
-  # Public: Get notified about any search errors.
-  #
-  # * `callback` {Function} called with an Error if there is a problem during the search.
-  #
-  # Returns `Disposable`.
-  onDidError: (callback) ->
-    @task.on 'scan:file-error', callback
-
-  # Public: Get notified with the number of paths searched thus far.
-  #
-  # * `callback` {Function} called with the number of paths searched thus far.
-  #
-  # Returns `Disposable`.
-  onDidSearchPaths: (callback) ->
-    @task.on 'scan:paths-searched', callback
 
   # Public: Cancels the search.
   cancel: ->
@@ -95,11 +67,21 @@ class DefaultDirectorySearcher
   # Public: Performs a text search for files in the specified `Directory`, subject to the
   # specified parameters.
   #
-  # Results are streamed back to the caller by adding callbacks to the `DirectorySearch` returned by
-  # this method.
+  # Results are streamed back to the caller by invoking methods on the specified `delegate`.
   #
   # * `directory` {Directory} that has been accepted by this provider's `canSearchDirectory()`
   # predicate.
+  # * `delegate` {Object} with the following properties:
+  #   * `onDidMatch` {Function} call with a search result structured as follows:
+  #     * `searchResult` {Object} with the following keys:
+  #       * `filePath` {String} absolute path to the matching file.
+  #       * `matches` {Array} with object elements with the following keys:
+  #         * `lineText` {String} The full text of the matching line (without a line terminator character).
+  #         * `lineTextOffset` {Number} (This always seems to be 0?)
+  #         * `matchText` {String} The text that matched the `regex` used for the search.
+  #         * `range` {Range} Identifies the matching region in the file. (Likely as an array of numeric arrays.)
+  #   * `onDidError` {Function} call with an Error if there is a problem during the search.
+  #   * `onDidSearchPaths` {Function} periodically call with the number of paths searched thus far.
   # * `options` {Object} with the following properties:
   #   * `regexSource` {String} regex to search with. Produced via `RegExp::source`.
   #   * `ignoreCase` {boolean} reflects whether the regex should be run with the `i` option.
@@ -116,10 +98,10 @@ class DefaultDirectorySearcher
   #
   # Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   # invoked before the `DirectorySearch` is determined, it will reject the `DirectorySearch`.
-  search: (directory, options) ->
+  search: (directory, delegate, options) ->
     id = nextId
     nextId += 1
-    directorySearch = new DirectorySearch(directory, options, id)
+    directorySearch = new DirectorySearch(directory, delegate, options, id)
     directorySearch.then(onSearchFinished, onSearchFinished)
     enqueue(id)
     directorySearch

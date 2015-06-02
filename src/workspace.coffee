@@ -832,10 +832,12 @@ class Workspace extends Model
         throw Error("Could not find directory searcher for #{directory.getPath()}")
 
     # Now that we are sure every Directory has a searcher, construct the search options.
-    onSearchResult = (result) ->
-      iterator(result) unless atom.project.isPathModified(result.filePath)
-    onSearchError = (error) ->
-      iterator(null, error)
+    delegateProto = {
+      onDidMatch: (result) ->
+        iterator(result) unless atom.project.isPathModified(result.filePath)
+      onDidError: (error) ->
+        iterator(null, error)
+    }
 
     # Define the onPathsSearched callback.
     if _.isFunction(options.onPathsSearched)
@@ -856,21 +858,17 @@ class Workspace extends Model
 
     # Kick off all of the searches and unify them into one Promise.
     allSearches = []
-    disposables = new CompositeDisposable
     for entry in searchersAndDirectories
       {searcher, directory} = entry
-      directorySearcher = searcher.search(directory, searchOptions)
-      disposables.add(directorySearcher.onDidMatch(onSearchResult))
-      disposables.add(directorySearcher.onDidError(onSearchError))
       recordNumberOfPathsSearched = onPathsSearched.bind(undefined, directory)
-      disposables.add(directorySearcher.onDidSearchPaths(recordNumberOfPathsSearched))
+      delegate = Object.create(delegateProto, {
+        onDidSearchPaths: {
+          value: recordNumberOfPathsSearched,
+        }
+      })
+      directorySearcher = searcher.search(directory, delegate, searchOptions)
       allSearches.push(directorySearcher)
     searchPromise = Promise.all(allSearches)
-
-    # Make sure to clean up the disposables once the searchPromise is determined.
-    disposeAll = (args...) ->
-      disposables.dispose()
-    searchPromise.then(disposeAll, disposeAll)
 
     for buffer in atom.project.getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
