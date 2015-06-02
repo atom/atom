@@ -1,5 +1,6 @@
 path = require 'path'
 temp = require 'temp'
+{Disposable} = require 'event-kit'
 Workspace = require '../src/workspace'
 Pane = require '../src/pane'
 {View} = require '../src/space-pen-extensions'
@@ -943,9 +944,13 @@ describe "Workspace", ->
             foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
             numPathsSearchedInDir2 = 1
             numPathsToPretendToSearchInCustomDirectorySearcher = 10
-            class CustomDirectorySearcher
-              canSearchDirectory: (directory) -> directory.getPath() is dir1
-              search: (directory, regexSource, onSearchResult, onSearchError, onPathsSearched, options) ->
+            class CustomDirectorySearch
+              constructor: () ->
+                @promise = Promise.resolve()
+              then: (args...) ->
+                @promise.then.apply(@promise, args)
+              onDidMatch: (callback) ->
+                # Invoke the callback with the only result we plan to return.
                 searchResult1 =
                   filePath: foreignFilePath,
                   matches: [
@@ -956,11 +961,20 @@ describe "Workspace", ->
                       range: [[0, 0], [0, 5]],
                     }
                   ]
-                onSearchResult(searchResult1)
-                onPathsSearched(numPathsToPretendToSearchInCustomDirectorySearcher)
-                promise = Promise.resolve()
-                promise.cancel = ->
-                promise
+                callback(searchResult1)
+                new Disposable
+              onDidError: (callback) ->
+                new Disposable
+              onDidSearchPaths: (callback) ->
+                # Invoke the callback with the one notification we plan to send.
+                callback(numPathsToPretendToSearchInCustomDirectorySearcher)
+                new Disposable
+              cancel: ->
+
+            class CustomDirectorySearcher
+              canSearchDirectory: (directory) -> directory.getPath() is dir1
+              search: (directory, options) ->
+                new CustomDirectorySearch
 
             atom.packages.serviceHub.provide(
               "atom.directory-searcher", "0.1.0", new CustomDirectorySearcher())
@@ -982,16 +996,27 @@ describe "Workspace", ->
 
           it "can be cancelled by cancelling one of the DirectorySearchers", ->
             customDirectorySearcherPromiseInstance = null
+            class CustomDirectorySearchToCancel
+              constructor: () ->
+                # Note that hoisting reject in this way is generally frowned upon.
+                @promise = new Promise (resolve, reject) =>
+                  @hoistedReject = reject
+                customDirectorySearcherPromiseInstance = this
+              then: (args...) ->
+                @promise.then.apply(@promise, args)
+              onDidMatch: (callback) ->
+                new Disposable
+              onDidError: (callback) ->
+                new Disposable
+              onDidSearchPaths: (callback) ->
+                new Disposable
+              cancel: ->
+                @hoistedReject()
+
             class CustomDirectorySearcherToCancel
               canSearchDirectory: (directory) -> directory.getPath() is dir1
-              search: (directory, regexSource, onSearchResult, onSearchError, onPathsSearched, options) ->
-                # Note that hoisting reject in this way is generally frowned upon.
-                hoistedReject = null
-                promise = new Promise (resolve, reject) ->
-                  hoistedReject = reject
-                promise.cancel = -> hoistedReject()
-                customDirectorySearcherPromiseInstance = promise
-                promise
+              search: (directory, options) ->
+                new CustomDirectorySearchToCancel
 
             atom.packages.serviceHub.provide(
               "atom.directory-searcher", "0.1.0", new CustomDirectorySearcherToCancel())

@@ -1,5 +1,47 @@
 Task = require './task'
 
+# Public:
+# Implements thenable so it can be used with `Promise.all()`.
+class DirectorySearch
+  # Public:
+  constructor: (directory, options) ->
+    @task = new Task(require.resolve('./scan-handler'))
+    rootPaths = [directory.getPath()]
+    @promise = new Promise (resolve, reject) =>
+      myResolve = (arg) ->
+        resolve(arg)
+      @task.start(rootPaths, options.regexSource, options, myResolve)
+      @task.on('task:cancelled', reject)
+
+  # Public:
+  # Returns `Promise`.
+  then: (args...) ->
+    @promise.then.apply(@promise, args)
+
+  # Public:
+  # Returns `Disposable`.
+  onDidMatch: (callback) ->
+    @task.on 'scan:result-found', callback
+
+  # Public:
+  # Returns `Disposable`.
+  onDidError: (callback) ->
+    @task.on 'scan:file-error', callback
+
+  # Public:
+  #
+  # * `callback` {Function} called with the number of paths searched thus far.
+  #
+  # Returns `Disposable`.
+  onDidSearchPaths: (callback) ->
+    @task.on 'scan:paths-searched', callback
+
+  # Public:
+  cancel: ->
+    # This will cause @promise to reject.
+    @task.cancel()
+
+
 # Default provider for the `atom.directory-searcher` service.
 module.exports =
 class DefaultDirectorySearcher
@@ -17,7 +59,6 @@ class DefaultDirectorySearcher
   #
   # * `directory` {Directory} that has been accepted by this provider's `canSearchDirectory()`
   # predicate.
-  # * `regexSource` {String} regex to search with. Produced via `RegExp::source`.
   # (Note this reflects the "Use Regex" option exposed via the ProjectFindView UI.)
   # * `onSearchResult` {Function} Should be called with each matching search result.
   #   * `searchResult` {Object} with the following keys:
@@ -31,6 +72,7 @@ class DefaultDirectorySearcher
   # * `onPathsSearched` {Function} callback that should be invoked periodically with the number of
   # paths searched.
   # * `options` {Object} with the following properties:
+  #   * `regexSource` {String} regex to search with. Produced via `RegExp::source`.
   #   * `ignoreCase` {boolean}
   #   * `inclusions` {Array} of glob patterns (as strings) to search within. Note that this
   #   array may be empty, indicating that all files should be searched.
@@ -43,19 +85,7 @@ class DefaultDirectorySearcher
   #   * `exclusions` {Array} similar to inclusions
   #   * `follow` {boolean} whether symlinks should be followed
   #
-  # Returns a `Promise` that includes a `cancel()` method. If invoked before the `Proimse` is
+  # Returns a `DirectorySearch` that includes a `cancel()` method. If invoked before the `Proimse` is
   # determined, it will reject the `Promise`.
-  search: (directory, regexSource, onSearchResult, onSearchError, onPathsSearched, options) ->
-    task = null
-    rootPaths = [directory.getPath()]
-    promise = new Promise (resolve, reject) ->
-      task = Task.once require.resolve('./scan-handler'), rootPaths, regexSource, options, resolve
-      task.on 'task:cancelled', reject
-    promise.cancel = ->
-      task.cancel()
-
-    task.on 'scan:result-found', onSearchResult
-    task.on 'scan:file-error', onSearchError
-    task.on 'scan:paths-searched', onPathsSearched
-
-    promise
+  search: (directory, options) ->
+    new DirectorySearch(directory, options)

@@ -803,13 +803,14 @@ class Workspace extends Model
   #   * `onPathsSearched` (optional) {Function}
   # * `iterator` {Function} callback on each file found
   #
-  # Returns a `Promise` with a `cancel()` method.
+  # Returns a `Promise`.
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
       iterator = options
       options = {}
 
     searchOptions =
+      regexSource: regex.source
       ignoreCase: regex.ignoreCase
       inclusions: options.paths or []
       includeHidden: true
@@ -855,17 +856,21 @@ class Workspace extends Model
 
     # Kick off all of the searches and unify them into one Promise.
     allSearchPromises = []
+    disposables = new CompositeDisposable
     for entry in searchersAndDirectories
       {searcher, directory} = entry
+      directorySearcher = searcher.search(directory, searchOptions)
+      disposables.add(directorySearcher.onDidMatch(onSearchResult))
+      disposables.add(directorySearcher.onDidError(onSearchError))
       recordNumberOfPathsSearched = onPathsSearched.bind(undefined, directory)
-      allSearchPromises.push(searcher.search(
-        directory,
-        regex.source,
-        onSearchResult,
-        onSearchError,
-        recordNumberOfPathsSearched,
-        searchOptions))
+      disposables.add(directorySearcher.onDidSearchPaths(recordNumberOfPathsSearched))
+      allSearchPromises.push(directorySearcher)
     searchPromise = Promise.all(allSearchPromises)
+
+    # Make sure to clean up the disposables once the searchPromise is determined.
+    disposeAll = (args...) ->
+      disposables.dispose()
+    searchPromise.then(disposeAll, disposeAll)
 
     for buffer in atom.project.getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
