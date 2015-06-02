@@ -16,6 +16,19 @@ describe "Workspace", ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     atom.workspace = workspace = new Workspace
 
+  describe "serialization", ->
+    it "does not deserialize text editors for files that can't be read", ->
+      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+
+      waitsForPromise ->
+        workspace.open(pathToOpen)
+
+      runs ->
+        expect(workspace.getPaneItems().length).toBe 1
+        fs.mkdirSync(pathToOpen)
+        deserializedWorkspace = atom.workspace.testSerialization()
+        expect(deserializedWorkspace.getPaneItems().length).toBe 0
+
   describe "::open(uri, options)", ->
     openEvents = null
 
