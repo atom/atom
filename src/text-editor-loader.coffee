@@ -14,7 +14,8 @@ class TextEditorLoader
   getTitle: ->
     @editor.getTitle()
 
-atom.views.addViewProvider TextEditorLoader, (loader) ->
-  node = document.createElement("div")
-  node.textContent = "Loading #{loader.getTitle()}..."
-  node
+  getLoadProgress: ->
+    @editor.getLoadProgress()
+
+  onDidChangeLoadProgress: (callback) ->
+    @editor.onDidChangeLoadProgress(callback)
