@@ -7,6 +7,7 @@ Inspired by https://github.com/atom/atom/blob/6b963a562f8d495fbebe6abdbafbc7caf7
 crypto = require 'crypto'
 fs = require 'fs-plus'
 path = require 'path'
+Module = require 'module'
 babel = null # Defer until used
 Grim = null # Defer until used
 
@@ -124,10 +125,30 @@ transpile = (sourceCode, filePath, cachePath) ->
 
   js
 
+# The path of this app
+appPath = path.join process.resourcesPath, 'app.asar'
+
+# Emulate the "module._compile"
+runCompiledWrapper = (compiledWrapper, module, filename) ->
+  require = (path) -> module.require path
+  require.resolve = (request) -> Module._resolveFilename request, module
+  require.main = process.mainModule
+  require.extensions = Module._extensions
+  require.cache = Module._cache
+  args = [module.exports, require, module, filename, path.dirname(filename)]
+  compiledWrapper.apply module.exports, args
+
 # Function that obeys the contract of an entry in the require.extensions map.
 # Returns the transpiled version of the JavaScript code at filePath, which is
 # either generated on the fly or pulled from cache.
 loadFile = (module, filePath) ->
+  # Load the compiled JS from snapshot file if it is available.
+  if global.__ATOM_SHELL_SNAPSHOT?
+    relativePath = path.relative appPath, filePath
+    compiledWrapper = __ATOM_SHELL_SNAPSHOT[relativePath]
+    if compiledWrapper?
+      return runCompiledWrapper compiledWrapper, module, filePath
+
   sourceCode = fs.readFileSync(filePath, 'utf8')
   if sourceCode.startsWith('"use babel"') or sourceCode.startsWith("'use babel'")
     # Continue.
