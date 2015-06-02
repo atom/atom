@@ -855,7 +855,7 @@ class Workspace extends Model
       onPathsSearched = ->
 
     # Kick off all of the searches and unify them into one Promise.
-    allSearchPromises = []
+    allSearches = []
     disposables = new CompositeDisposable
     for entry in searchersAndDirectories
       {searcher, directory} = entry
@@ -864,8 +864,8 @@ class Workspace extends Model
       disposables.add(directorySearcher.onDidError(onSearchError))
       recordNumberOfPathsSearched = onPathsSearched.bind(undefined, directory)
       disposables.add(directorySearcher.onDidSearchPaths(recordNumberOfPathsSearched))
-      allSearchPromises.push(directorySearcher)
-    searchPromise = Promise.all(allSearchPromises)
+      allSearches.push(directorySearcher)
+    searchPromise = Promise.all(allSearches)
 
     # Make sure to clean up the disposables once the searchPromise is determined.
     disposeAll = (args...) ->
@@ -887,15 +887,15 @@ class Workspace extends Model
       onSuccess = ->
         resolve(null)
         return
-      onFailure	= ->
+      onFailure = ->
         resolve('cancelled')
         return
       searchPromise.then(onSuccess, onFailure)
     cancellablePromise.cancel = ->
-      # Note that cancelling all (or actually, any) of the members of allSearchPromises
+      # Note that cancelling all (or actually, any) of the members of allSearches
       # will cause searchPromise to reject, which will cause cancellablePromise to resolve
       # in the desired way.
-      promise.cancel() for promise in allSearchPromises
+      promise.cancel() for promise in allSearches
 
     # Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
     # method in the find-and-replace package expects the object returned by this method to have a
