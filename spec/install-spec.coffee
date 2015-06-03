@@ -52,6 +52,8 @@ describe 'apm install', ->
         response.sendfile path.join(__dirname, 'fixtures', 'test-module-with-bin-2.0.0.tgz')
       app.get '/packages/multi-module', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'install-multi-version.json')
+      app.get '/packages/atom-2048', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'atom-2048.json')
 
       server =  http.createServer(app)
       server.listen(3000)
@@ -307,3 +309,14 @@ describe 'apm install', ->
 
         runs ->
           expect(callback.mostRecentCall.args[0]).toBeUndefined()
+
+    describe 'when a deprecated package name is specified', ->
+      it 'does not install the package', ->
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', "atom-2048"], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(callback.mostRecentCall.args[0]).toBeTruthy()

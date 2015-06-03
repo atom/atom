@@ -5,6 +5,7 @@ Command = require './command'
 config = require './apm'
 request = require './request'
 tree = require './tree'
+{isDeprecatedPackage} = require './deprecated-packages'
 
 module.exports =
 class Search extends Command
@@ -43,6 +44,7 @@ class Search extends Command
       else if response.statusCode is 200
         packages = body.filter (pack) -> pack.releases?.latest?
         packages = packages.map ({readme, metadata, downloads, stargazers_count}) -> _.extend({}, metadata, {readme, downloads, stargazers_count})
+        packages = packages.filter ({name, version}) -> not isDeprecatedPackage(name, version)
         callback(null, packages)
       else
         message = request.getErrorMessage(response, body)
