@@ -71,7 +71,7 @@ var setupWindow = function(loadSettings) {
   ModuleCache.register(loadSettings);
   ModuleCache.add(loadSettings.resourcePath);
 
-  require('grim').includeDeprecatedAPIs = !loadSettings.apiPreviewMode;
+  require('grim').includeDeprecatedAPIs = !!loadSettings.includeDeprecatedAPIs;
 
   // Start the crash reporter before anything else.
   require('crash-reporter').start({
