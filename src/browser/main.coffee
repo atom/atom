@@ -121,7 +121,15 @@ parseCommandLine = ->
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.string('socket-path')
+  options.alias('1', 'one').boolean('one') # Deprecated 1.0 API preview flag
   args = options.argv
+
+  if args.one
+    process.stdout.write """
+      The -1/--one option has been removed. Atom now defaults to launching with
+      the 1.0 API. Use --include-deprecated-apis to run Atom with deprecated APIs.
+
+    """
 
   if args.help
     process.stdout.write(options.help())

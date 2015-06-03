@@ -11,14 +11,14 @@ else
   exit 1
 fi
 
-while getopts ":wtfvh-:" opt; do
+while getopts ":wtfvh1-:" opt; do
   case "$opt" in
     -)
       case "${OPTARG}" in
         wait)
           WAIT=1
           ;;
-        help|version)
+        help|version|one)
           REDIRECT_STDERR=1
           EXPECT_OUTPUT=1
           ;;
@@ -30,7 +30,7 @@ while getopts ":wtfvh-:" opt; do
     w)
       WAIT=1
       ;;
-    h|v)
+    h|v|1)
       REDIRECT_STDERR=1
       EXPECT_OUTPUT=1
       ;;
