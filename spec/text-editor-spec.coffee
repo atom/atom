@@ -76,7 +76,7 @@ describe "TextEditor", ->
           editor = new TextEditor({buffer, largeFileMode: true})
 
       waitsFor "editor to finish loading", (done) ->
-        editor.onDidLoad(done)
+        editor.onDidChangeLoadProgress (progress) -> done() if progress is 1
 
       runs ->
         expect(editor.tokenizedLineForScreenRow(0).text).toBe buffer.lineForRow(0)

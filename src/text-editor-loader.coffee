@@ -1,7 +1,8 @@
 module.exports =
 class TextEditorLoader
   constructor: (@editor) ->
-    @loadDisposable = @editor.onDidLoad => @finishLoading()
+    @loadDisposable = @editor.onDidChangeLoadProgress (progress) =>
+      @finishLoading() if progress is 1
 
   finishLoading: ->
     @loadDisposable.dispose()

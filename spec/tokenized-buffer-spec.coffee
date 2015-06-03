@@ -42,7 +42,8 @@ describe "TokenizedBuffer", ->
         progressCount++
 
       waitsFor 'load to complete', (done) ->
-        asyncTokenizedBuffer.onDidLoad(done)
+        asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+          done() if progress is 1
 
       runs ->
         expect(asyncTokenizedBuffer.getLoadProgress()).toBe 1
