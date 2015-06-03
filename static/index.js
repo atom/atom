@@ -26,6 +26,10 @@ window.onload = function() {
 
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
+    if (devMode) {
+      setupDeprecatedPackages();
+    }
+
     if (loadSettings.profileStartup) {
       profileStartup(loadSettings, Date.now() - startTime);
     } else {
@@ -140,6 +144,17 @@ var setupVmCompatibility = function() {
   var vm = require('vm');
   if (!vm.Script.createContext) {
     vm.Script.createContext = vm.createContext;
+  }
+}
+
+var setupDeprecatedPackages = function() {
+  var metadata = require('../package.json');
+  if (!metadata._deprecatedPackages) {
+    try {
+      metadata._deprecatedPackages = require('../build/deprecated-packages.json');
+    } catch(requireError) {
+      // Ignored
+    }
   }
 }
 
