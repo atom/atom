@@ -333,7 +333,7 @@ class PackageManager
         @handleMetadataError(error, packagePath)
         return null
 
-      unless @isBundledPackage(metadata.name)
+      unless @isBundledPackage(metadata.name) or Grim.includeDeprecatedAPIs
         if @isDeprecatedPackage(metadata.name, metadata.version)
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null

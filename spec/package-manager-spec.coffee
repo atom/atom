@@ -57,12 +57,22 @@ describe "PackageManager", ->
       expect(console.warn.callCount).toBe(1)
       expect(console.warn.argsForCall[0][0]).toContain("Could not resolve")
 
-    it "returns null if the package is deprecated", ->
-      expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
-      expect(atom.packages.isDeprecatedPackage('wordcount', '2.0.9')).toBe true
-      expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.0')).toBe true
-      expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.1')).toBe false
-      expect(atom.packages.getDeprecatedPackageMetadata('wordcount').version).toBe '<=2.1.0'
+    describe "when the package is deprecated", ->
+      includeDeprecatedAPIs = null
+
+      beforeEach ->
+        {includeDeprecatedAPIs} = require('grim')
+
+      afterEach ->
+        require('grim').includeDeprecatedAPIs = includeDeprecatedAPIs
+
+      it "returns null", ->
+        require('grim').includeDeprecatedAPIs = false
+        expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.0.9')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.0')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.1')).toBe false
+        expect(atom.packages.getDeprecatedPackageMetadata('wordcount').version).toBe '<=2.1.0'
 
     it "invokes ::onDidLoadPackage listeners with the loaded package", ->
       loadedPackage = null
