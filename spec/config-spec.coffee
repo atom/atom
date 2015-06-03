@@ -805,7 +805,6 @@ describe "Config", ->
           atom.config.loadUserConfig()
           expect(atom.config.get("foo.bar")).toBe "baz"
 
-
     describe ".observeUserConfig()", ->
       updatedHandler = null
 
@@ -1380,6 +1379,16 @@ describe "Config", ->
 
           expect(atom.config.set('foo.bar.aString', nope: 'nope')).toBe false
           expect(atom.config.get('foo.bar.aString')).toBe 'ok'
+
+        describe 'when the schema has a "maximumLength" key', ->
+          it "trims the string to be no longer than the specified maximum", ->
+            schema =
+              type: 'string'
+              default: 'ok'
+              maximumLength: 3
+            atom.config.setSchema('foo.bar.aString', schema)
+            atom.config.set('foo.bar.aString', 'abcdefg')
+            expect(atom.config.get('foo.bar.aString')).toBe 'abc'
 
       describe 'when the value has an "object" type', ->
         beforeEach ->

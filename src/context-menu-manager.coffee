@@ -100,6 +100,9 @@ class ContextMenuManager
   #     whether to display this item on a given context menu deployment. Called
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # added menu items.
   add: (itemsBySelector) ->
     if Grim.includeDeprecatedAPIs
       # Detect deprecated file path as first argument

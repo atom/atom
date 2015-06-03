@@ -170,7 +170,7 @@ class Package
     if @mainModule?
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
-      else if includeDeprecatedAPIs and @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
+      else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
         deprecate("""Use a config schema instead. See the configuration section
         of https://atom.io/docs/latest/hacking-atom-package-word-count and
         https://atom.io/docs/api/latest/Config for more details""", {packageName: @name})
@@ -203,16 +203,15 @@ class Package
       try
         itemsBySelector = map['context-menu']
 
-        if includeDeprecatedAPIs
-          # Detect deprecated format for items object
-          for key, value of itemsBySelector
-            unless _.isArray(value)
-              deprecate("""
-                The context menu CSON format has changed. Please see
-                https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format
-                for more info.
-              """, {packageName: @name})
-              itemsBySelector = atom.contextMenu.convertLegacyItemsBySelector(itemsBySelector)
+        # Detect deprecated format for items object
+        for key, value of itemsBySelector
+          unless _.isArray(value)
+            deprecate("""
+              The context menu CSON format has changed. Please see
+              https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format
+              for more info.
+            """, {packageName: @name})
+            itemsBySelector = atom.contextMenu.convertLegacyItemsBySelector(itemsBySelector)
 
         @activationDisposables.add(atom.contextMenu.add(itemsBySelector))
       catch error
@@ -277,7 +276,7 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'stylesheets'))
+    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
       deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
       path.join(@path, 'stylesheets')
     else
@@ -353,7 +352,7 @@ class Package
 
     deferred = Q.defer()
 
-    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
       deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
     else
@@ -489,7 +488,7 @@ class Package
         else if _.isArray(commands)
           @activationCommands[selector].push(commands...)
 
-    if includeDeprecatedAPIs and @metadata.activationEvents?
+    if @metadata.activationEvents?
       deprecate("""
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
