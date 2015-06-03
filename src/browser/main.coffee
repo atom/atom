@@ -123,7 +123,7 @@ parseCommandLine = ->
   options.string('socket-path')
 
   # Deprecated 1.0 API preview flag
-  options.alias('1', 'one').boolean('1').describe('1', 'The option is no longer supported. Atom now defaults to launching with the 1.0 API. Use --include-deprecated-apis to run Atom with deprecated APIs.')
+  options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported. Atom now defaults to launching with the 1.0 API. Use --include-deprecated-apis to run Atom with deprecated APIs.')
 
   args = options.argv
 
