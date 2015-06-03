@@ -209,9 +209,6 @@ class AtomApplication
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
-    app.on 'window-all-closed', ->
-      app.quit() if process.platform in ['win32', 'linux']
-
     app.on 'before-quit', =>
       @saveState() if @hasEditorWindows()
       @quitting = true
