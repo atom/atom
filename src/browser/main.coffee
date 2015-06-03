@@ -121,7 +121,7 @@ parseCommandLine = ->
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.string('socket-path')
-  options.alias('1', 'one').boolean('one') # Deprecated 1.0 API preview flag
+  options.alias('1', 'one').boolean('1') # Deprecated 1.0 API preview flag
   args = options.argv
 
   if args.one
