@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 if [ "$(uname)" == 'Darwin' ]; then
   OS='Mac'
