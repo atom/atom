@@ -114,14 +114,6 @@ class AtomApplication
     window.once 'window:loaded', =>
       @autoUpdateManager.emitUpdateAvailableEvent(window)
 
-    # On Windows and Linux, closing the last window should quit the application.
-    # We call app.quit() here instead of in response to the app's
-    # 'window-all-closed' event because we want to trigger 'before-quit' while
-    # the window is still open and its state can be saved.
-    window.browserWindow.once 'close', =>
-      app.quit() if @windows.length is 1 and process.platform in ['win32', 'linux']
-
-
     unless window.isSpec
       focusHandler = => @lastFocusedWindow = window
       blurHandler = => @saveState()
@@ -216,6 +208,9 @@ class AtomApplication
     @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
+
+    app.on 'window-all-closed', ->
+      app.quit() if process.platform in ['win32', 'linux']
 
     app.on 'before-quit', =>
       @saveState() if @hasEditorWindows()
