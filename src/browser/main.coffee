@@ -107,7 +107,7 @@ parseCommandLine = ->
       ATOM_HOME               The root path for all configuration files and folders.
                               Defaults to `~/.atom`.
   """
-  options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'Include deprecated APIs')
+  options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'Include deprecated APIs.')
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
@@ -121,15 +121,11 @@ parseCommandLine = ->
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.string('socket-path')
-  options.alias('1', 'one').boolean('1') # Deprecated 1.0 API preview flag
+
+  # Deprecated 1.0 API preview flag
+  options.alias('1', 'one').boolean('1').describe('1', 'The option is no longer supported. Atom now defaults to launching with the 1.0 API. Use --include-deprecated-apis to run Atom with deprecated APIs.')
+
   args = options.argv
-
-  if args.one
-    process.stdout.write """
-      The -1/--one option has been removed. Atom now defaults to launching with
-      the 1.0 API. Use --include-deprecated-apis to run Atom with deprecated APIs.
-
-    """
 
   if args.help
     process.stdout.write(options.help())
