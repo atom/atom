@@ -3,21 +3,15 @@
 CursorsComponent = require './cursors-component'
 HighlightsComponent = require './highlights-component'
 TileComponent = require './tile-component'
+TiledComponent = require './tiled-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 
-cloneObject = (object) ->
-  clone = {}
-  clone[key] = value for key, value of object
-  clone
-
 module.exports =
-class LinesComponent
+class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
-    @tileComponentsByTileId = {}
-
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
 
@@ -35,18 +29,10 @@ class LinesComponent
   getDomNode: ->
     @domNode
 
-  updateSync: (state) ->
-    @newState = state.content
-    @oldState ?= {tiles: {}}
+  shouldRecreateAllTilesOnUpdate: ->
+    @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible
 
-    if @newState.scrollHeight isnt @oldState.scrollHeight
-      @domNode.style.height = @newState.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
-
-    if @newState.backgroundColor isnt @oldState.backgroundColor
-      @domNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
-
+  afterUpdateSync: (state) ->
     if @newState.placeholderText isnt @oldState.placeholderText
       @placeholderTextDiv?.remove()
       if @newState.placeholderText?
@@ -55,47 +41,16 @@ class LinesComponent
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
 
-    @removeTileNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
-    @updateTileNodes()
-
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      @domNode.style.width = @newState.scrollWidth + 'px'
-      @oldState.scrollWidth = @newState.scrollWidth
-
     @cursorsComponent.updateSync(state)
     @highlightsComponent.updateSync(state)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
 
-  removeTileNodes: ->
-    @removeTileNode(id) for id of @oldState.tiles
-    return
+  buildComponentForTile: (id) -> new TileComponent({id, @presenter})
 
-  removeTileNode: (id) ->
-    node = @tileComponentsByTileId[id].getDomNode()
-
-    node.remove()
-    delete @tileComponentsByTileId[id]
-    delete @oldState.tiles[id]
-
-  updateTileNodes: ->
-    for id of @oldState.tiles
-      unless @newState.tiles.hasOwnProperty(id)
-        @removeTileNode(id)
-
-    for id, tileState of @newState.tiles
-      if @oldState.tiles.hasOwnProperty(id)
-        tileComponent = @tileComponentsByTileId[id]
-      else
-        tileComponent = @tileComponentsByTileId[id] = new TileComponent({id, @presenter})
-
-        @domNode.appendChild(tileComponent.getDomNode())
-        @oldState.tiles[id] = cloneObject(tileState)
-
-      tileComponent.updateSync(@newState)
-
-    return
+  buildEmptyState: ->
+    {tiles: {}}
 
   measureLineHeightAndDefaultCharWidth: ->
     @domNode.appendChild(DummyLineNode)
@@ -114,13 +69,13 @@ class LinesComponent
 
   measureCharactersInNewLines: ->
     @presenter.batchCharacterMeasurement =>
-      for id, component of @tileComponentsByTileId
+      for id, component of @componentsByTileId
         component.measureCharactersInNewLines()
 
       return
 
   clearScopedCharWidths: ->
-    for id, component of @tileComponentsByTileId
+    for id, component of @componentsByTileId
       component.clearMeasurements()
 
     @presenter.clearScopedCharacterWidths()
@@ -128,4 +83,4 @@ class LinesComponent
   lineNodeForScreenRow: (screenRow) ->
     tile = @presenter.tileForRow(screenRow)
 
-    @tileComponentsByTileId[tile]?.lineNodeForScreenRow(screenRow)
+    @componentsByTileId[tile]?.lineNodeForScreenRow(screenRow)
