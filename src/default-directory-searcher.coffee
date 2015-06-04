@@ -29,16 +29,24 @@ enqueue = (id) ->
 class DirectorySearch
   # Public: Creates a new DirectorySearch that will not start running until the
   # `emitter` that is private to this file emits an event with the specified `id`.
-  constructor: (directory, delegate, options, id) ->
+  constructor: (directory, regex, options, id) ->
+    scanHandlerOptions =
+      ignoreCase: regex.ignoreCase
+      inclusions: options.inclusions
+      includeHidden: options.includeHidden
+      excludeVcsIgnores: options.excludeVcsIgnores
+      exclusions: options.exclusions
+      follow: options.follow
+
     @task = new Task(require.resolve('./scan-handler'))
     rootPaths = [directory.getPath()]
     @promise = new Promise (resolve, reject) =>
       @task.on('task:cancelled', reject)
       emitter.once id, =>
-        @task.start(rootPaths, options.regexSource, options, resolve)
-    @task.on 'scan:result-found', delegate.didMatch
-    @task.on 'scan:file-error', delegate.didError
-    @task.on 'scan:paths-searched', delegate.didSearchPaths
+        @task.start(rootPaths, regex.source, scanHandlerOptions, resolve)
+    @task.on 'scan:result-found', options.didMatch
+    @task.on 'scan:file-error', options.didError
+    @task.on 'scan:paths-searched', options.didSearchPaths
 
   # Public: Implementation of `then()` to satisfy the *thenable* contract.
   # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
@@ -67,11 +75,13 @@ class DefaultDirectorySearcher
   # Public: Performs a text search for files in the specified `Directory`, subject to the
   # specified parameters.
   #
-  # Results are streamed back to the caller by invoking methods on the specified `delegate`.
+  # Results are streamed back to the caller by invoking methods on the specified `options`,
+  # such as `didMatch` and `didError`.
   #
   # * `directory` {Directory} that has been accepted by this provider's `canSearchDirectory()`
   # predicate.
-  # * `delegate` {Object} with the following properties:
+  # * `regex` {RegExp} to search with.
+  # * `options` {Object} with the following properties:
   #   * `didMatch` {Function} call with a search result structured as follows:
   #     * `searchResult` {Object} with the following keys:
   #       * `filePath` {String} absolute path to the matching file.
@@ -82,9 +92,6 @@ class DefaultDirectorySearcher
   #         * `range` {Range} Identifies the matching region in the file. (Likely as an array of numeric arrays.)
   #   * `didError` {Function} call with an Error if there is a problem during the search.
   #   * `didSearchPaths` {Function} periodically call with the number of paths searched thus far.
-  # * `options` {Object} with the following properties:
-  #   * `regexSource` {String} regex to search with. Produced via `RegExp::source`.
-  #   * `ignoreCase` {boolean} reflects whether the regex should be run with the `i` option.
   #   * `inclusions` {Array} of glob patterns (as strings) to search within. Note that this
   #   array may be empty, indicating that all files should be searched.
   #
@@ -98,10 +105,10 @@ class DefaultDirectorySearcher
   #
   # Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   # invoked before the `DirectorySearch` is determined, it will reject the `DirectorySearch`.
-  search: (directory, delegate, options) ->
+  search: (directory, regex, options) ->
     id = nextId
     nextId += 1
-    directorySearch = new DirectorySearch(directory, delegate, options, id)
+    directorySearch = new DirectorySearch(directory, regex, options, id)
     directorySearch.then(onSearchFinished, onSearchFinished)
     enqueue(id)
     directorySearch

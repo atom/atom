@@ -939,36 +939,47 @@ describe "Workspace", ->
                   expect(resultPaths).toEqual([file2])
 
         describe "when a custom directory searcher is registered", ->
+          fakeSearch = null
+          # Function that is invoked once all of the fields on fakeSearch are set.
+          onFakeSearchCreated = null
+
+          class FakeSearch
+            constructor: (@options) ->
+              # Note that hoisting resolve and reject in this way is generally frowned upon.
+              @promise = new Promise (resolve, reject) =>
+                @hoistedResolve = resolve
+                @hoistedReject = reject
+                onFakeSearchCreated?(this)
+            then: (args...) ->
+              @promise.then.apply(@promise, args)
+            cancel: -> @cancelled = true
+
+          beforeEach ->
+            fakeSearch = null
+            onFakeSearchCreated = null
+            atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
+              canSearchDirectory: (directory) -> directory.getPath() is dir1
+              search: (directory, regex, options) -> fakeSearch = new FakeSearch(options)
+            })
+
           it "can override the DefaultDirectorySearcher on a per-directory basis", ->
             foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
             numPathsSearchedInDir2 = 1
             numPathsToPretendToSearchInCustomDirectorySearcher = 10
-            class CustomDirectorySearch
-              constructor: (delegate) ->
-                @promise = Promise.resolve()
-                searchResult1 =
-                  filePath: foreignFilePath,
-                  matches: [
-                    {
-                      lineText: 'Hello world',
-                      lineTextOffset: 0,
-                      matchText: 'Hello',
-                      range: [[0, 0], [0, 5]],
-                    },
-                  ]
-                delegate.didMatch(searchResult1)
-                delegate.didSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
-              then: (args...) ->
-                @promise.then.apply(@promise, args)
-              cancel: ->
-
-            class CustomDirectorySearcher
-              canSearchDirectory: (directory) -> directory.getPath() is dir1
-              search: (directory, delegate, options) ->
-                new CustomDirectorySearch(delegate)
-
-            atom.packages.serviceHub.provide(
-              "atom.directory-searcher", "0.1.0", new CustomDirectorySearcher())
+            searchResult =
+              filePath: foreignFilePath,
+              matches: [
+                {
+                  lineText: 'Hello world',
+                  lineTextOffset: 0,
+                  matchText: 'Hello',
+                  range: [[0, 0], [0, 5]],
+                },
+              ]
+            onFakeSearchCreated = (fakeSearch) ->
+              fakeSearch.options.didMatch(searchResult)
+              fakeSearch.options.didSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
+              fakeSearch.hoistedResolve()
 
             resultPaths = []
             onPathsSearched = jasmine.createSpy('onPathsSearched')
@@ -986,28 +997,10 @@ describe "Workspace", ->
                 numPathsToPretendToSearchInCustomDirectorySearcher + numPathsSearchedInDir2)
 
           it "can be cancelled when the object returned by scan() has its cancel() method invoked", ->
-            lastCustomDirectorySearchCreated = null
-            class CustomDirectorySearch
-              constructor: ->
-                lastCustomDirectorySearchCreated = this
-                @promise = Promise.resolve()
-              then: (args...) ->
-                @promise.then.apply(@promise, args)
-              cancel: ->
-
-            class CustomDirectorySearcher
-              canSearchDirectory: (directory) -> directory.getPath() is dir1
-              search: (directory, delegate, options) ->
-                new CustomDirectorySearch
-
-            atom.packages.serviceHub.provide(
-              "atom.directory-searcher", "0.1.0", new CustomDirectorySearcher())
-
             thenable = atom.workspace.scan /aaaa/, ->
-            cancelSpy = spyOn(lastCustomDirectorySearchCreated, 'cancel').andCallThrough()
-            expect(cancelSpy).not.toHaveBeenCalled()
+            expect(fakeSearch.cancelled).toBe(undefined)
             thenable.cancel()
-            expect(cancelSpy).toHaveBeenCalled()
+            expect(fakeSearch.cancelled).toBe(true)
 
             resultOfPromiseSearch = null
             waitsForPromise ->
@@ -1017,26 +1010,8 @@ describe "Workspace", ->
               expect(resultOfPromiseSearch).toBe('cancelled')
 
           it "will have the side-effect of failing the overall search if it fails", ->
-            # Note that hoisting reject in this way is generally frowned upon.
-            hoistedReject = null
-            class CustomDirectorySearchThatWillFail
-              constructor: ->
-                @promise = new Promise (resolve, reject) ->
-                  hoistedReject = reject
-              then: (args...) ->
-                @promise.then.apply(@promise, args)
-              cancel: ->
-
-            class CustomDirectorySearcherToCancel
-              canSearchDirectory: (directory) -> directory.getPath() is dir1
-              search: (directory, options) ->
-                new CustomDirectorySearchThatWillFail
-
-            atom.packages.serviceHub.provide(
-              "atom.directory-searcher", "0.1.0", new CustomDirectorySearcherToCancel())
-
             cancelableSearch = atom.workspace.scan /aaaa/, ->
-            hoistedReject()
+            fakeSearch.hoistedReject()
 
             resultOfPromiseSearch = null
             waitsForPromise ->

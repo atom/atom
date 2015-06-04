@@ -47,7 +47,8 @@ class Workspace extends Model
     @paneContainer ?= new PaneContainer()
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
-    @directorySearchers = [new DefaultDirectorySearcher()]
+    @directorySearchers = []
+    @defaultDirectorySearcher = new DefaultDirectorySearcher()
     atom.packages.serviceHub.consume(
       'atom.directory-searcher',
       '^0.1.0',
@@ -810,35 +811,15 @@ class Workspace extends Model
       iterator = options
       options = {}
 
-    searchOptions =
-      regexSource: regex.source
-      ignoreCase: regex.ignoreCase
-      inclusions: options.paths or []
-      includeHidden: true
-      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-      exclusions: atom.config.get('core.ignoredNames')
-      follow: atom.config.get('core.followSymlinks')
-
     # Find a searcher for every Directory in the project.
     searchersAndDirectories = []
     for directory in atom.project.getDirectories()
-      searcher = null
+      searcher = @defaultDirectorySearcher
       for directorySearcher in @directorySearchers
         if directorySearcher.canSearchDirectory(directory)
           searcher = directorySearcher
           break
-      if searcher
-        searchersAndDirectories.push({searcher, directory})
-      else
-        throw Error("Could not find directory searcher for #{directory.getPath()}")
-
-    # Now that we are sure every Directory has a searcher, construct the search options.
-    delegateProto = {
-      didMatch: (result) ->
-        iterator(result) unless atom.project.isPathModified(result.filePath)
-      didError: (error) ->
-        iterator(null, error)
-    }
+      searchersAndDirectories.push({searcher, directory})
 
     # Define the onPathsSearched callback.
     if _.isFunction(options.onPathsSearched)
@@ -861,13 +842,18 @@ class Workspace extends Model
     allSearches = []
     for entry in searchersAndDirectories
       {searcher, directory} = entry
-      recordNumberOfPathsSearched = onPathsSearched.bind(undefined, directory)
-      delegate = Object.create(delegateProto, {
-        didSearchPaths: {
-          value: recordNumberOfPathsSearched,
-        }
-      })
-      directorySearcher = searcher.search(directory, delegate, searchOptions)
+      searchOptions =
+        inclusions: options.paths or []
+        includeHidden: true
+        excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+        exclusions: atom.config.get('core.ignoredNames')
+        follow: atom.config.get('core.followSymlinks')
+        didMatch: (result) ->
+          iterator(result) unless atom.project.isPathModified(result.filePath)
+        didError: (error) ->
+          iterator(null, error)
+        didSearchPaths: onPathsSearched.bind(undefined, directory)
+      directorySearcher = searcher.search(directory, regex, searchOptions)
       allSearches.push(directorySearcher)
     searchPromise = Promise.all(allSearches)
 
