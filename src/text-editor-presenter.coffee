@@ -214,12 +214,13 @@ class TextEditorPresenter
     @sharedGutterStyles = {}
     @customGutterDecorations = {}
     @lineNumberGutter =
-      lineNumbers: {}
+      tiles: {}
 
     @updateState()
 
   updateState: ->
     @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
 
     @updateContentDimensions()
     @updateScrollbarDimensions()
@@ -238,7 +239,6 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateOverlaysState()
     @updateLineNumberGutterState()
-    @updateLineNumbersState()
     @updateCommonGutterState()
     @updateGutterOrderState()
     @updateCustomGutterDecorationState()
@@ -558,6 +558,7 @@ class TextEditorPresenter
     isVisible
 
   updateLineNumbersState: (tileState, startRow, endRow) ->
+    tileState.lineNumbers ?= {}
     visibleLineNumberIds = {}
 
     if startRow > 0

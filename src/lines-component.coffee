@@ -32,6 +32,19 @@ class LinesComponent extends TiledComponent
   shouldRecreateAllTilesOnUpdate: ->
     @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible
 
+  beforeUpdateSync: (state) ->
+    if @newState.scrollHeight isnt @oldState.scrollHeight
+      @domNode.style.height = @newState.scrollHeight + 'px'
+      @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.backgroundColor isnt @oldState.backgroundColor
+      @domNode.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
+
+    if @newState.scrollWidth isnt @oldState.scrollWidth
+      @domNode.style.width = @newState.scrollWidth + 'px'
+      @oldState.scrollWidth = @newState.scrollWidth
+
   afterUpdateSync: (state) ->
     if @newState.placeholderText isnt @oldState.placeholderText
       @placeholderTextDiv?.remove()
@@ -51,6 +64,11 @@ class LinesComponent extends TiledComponent
 
   buildEmptyState: ->
     {tiles: {}}
+
+  getNewState: (state) ->
+    state.content
+
+  getTilesNode: -> @domNode
 
   measureLineHeightAndDefaultCharWidth: ->
     @domNode.appendChild(DummyLineNode)

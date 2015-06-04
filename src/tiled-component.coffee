@@ -5,28 +5,16 @@ cloneObject = (object) ->
 
 module.exports =
 class TiledComponent
-  componentsByTileId: {}
-
   updateSync: (state) ->
-    @newState = state.content
+    @newState = @getNewState(state)
     @oldState ?= @buildEmptyState()
 
-    if @newState.scrollHeight isnt @oldState.scrollHeight
-      @domNode.style.height = @newState.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
+    @beforeUpdateSync?(state)
 
-    if @newState.backgroundColor isnt @oldState.backgroundColor
-      @domNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
-
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      @domNode.style.width = @newState.scrollWidth + 'px'
-      @oldState.scrollWidth = @newState.scrollWidth
-
-    @removeTileNodes() if @shouldRecreateAllTilesOnUpdate()
+    @removeTileNodes() if @shouldRecreateAllTilesOnUpdate?()
     @updateTileNodes()
 
-    @afterUpdateSync(state)
+    @afterUpdateSync?(state)
 
   removeTileNodes: ->
     @removeTileNode(id) for id of @oldState.tiles
@@ -40,6 +28,8 @@ class TiledComponent
     delete @oldState.tiles[id]
 
   updateTileNodes: ->
+    @componentsByTileId ?= {}
+
     for id of @oldState.tiles
       unless @newState.tiles.hasOwnProperty(id)
         @removeTileNode(id)
@@ -50,7 +40,7 @@ class TiledComponent
       else
         component = @componentsByTileId[id] = @buildComponentForTile(id)
 
-        @domNode.appendChild(component.getDomNode())
+        @getTilesNode().appendChild(component.getDomNode())
         @oldState.tiles[id] = cloneObject(tileState)
 
       component.updateSync(@newState)

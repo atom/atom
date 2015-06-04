@@ -19,10 +19,6 @@ module.exports =
       domNode.style.height = newState.scrollHeight + 'px'
       oldState.scrollHeight = newState.scrollHeight
 
-    if newState.scrollTop isnt oldState.scrollTop
-      domNode.style['-webkit-transform'] = "translate3d(0px, #{-newState.scrollTop}px, 0px)"
-      oldState.scrollTop = newState.scrollTop
-
     if newState.backgroundColor isnt oldState.backgroundColor
       domNode.style.backgroundColor = newState.backgroundColor
       oldState.backgroundColor = newState.backgroundColor
