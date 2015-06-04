@@ -75,11 +75,10 @@ class TextEditorPresenter
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
-    @updateTilesState() if @shouldUpdateLinesState
+    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
-    @updateLineNumbersState() if @shouldUpdateLineNumbersState
     @updateGutterOrderState() if @shouldUpdateGutterOrderState
     @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
     @updating = false
@@ -326,7 +325,14 @@ class TextEditorPresenter
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
 
+      gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
+      gutterTile.top = startRow * @lineHeight - @scrollTop
+      gutterTile.left = -@scrollLeft
+      gutterTile.height = @tileSize * @lineHeight
+      gutterTile.display = "block"
+
       @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
+      @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
 
       visibleTiles[startRow] = true
 
@@ -334,6 +340,7 @@ class TextEditorPresenter
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
 
       unless visibleTiles[mouseWheelTile]?
+        @lineNumberGutter.tiles[mouseWheelTile].display = "none"
         @state.content.tiles[mouseWheelTile].display = "none"
         visibleTiles[mouseWheelTile] = true
 
@@ -341,6 +348,7 @@ class TextEditorPresenter
       continue if visibleTiles.hasOwnProperty(id)
 
       delete @state.content.tiles[id]
+      delete @lineNumberGutter.tiles[id]
 
   updateLinesState: (tileState, startRow, endRow) ->
     tileState.lines ?= {}
@@ -549,21 +557,19 @@ class TextEditorPresenter
       isVisible = isVisible and @showLineNumbers
     isVisible
 
-  updateLineNumbersState: ->
-    return unless @startRow? and @endRow? and @lineHeight?
-
+  updateLineNumbersState: (tileState, startRow, endRow) ->
     visibleLineNumberIds = {}
 
-    if @startRow > 0
-      rowBeforeStartRow = @startRow - 1
+    if startRow > 0
+      rowBeforeStartRow = startRow - 1
       lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
       wrapCount = rowBeforeStartRow - @model.screenRowForBufferRow(lastBufferRow)
     else
       lastBufferRow = null
       wrapCount = 0
 
-    if @endRow > @startRow
-      for bufferRow, i in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
+    if endRow > startRow
+      for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
         if bufferRow is lastBufferRow
           wrapCount++
           id = bufferRow + '-' + wrapCount
@@ -574,23 +580,16 @@ class TextEditorPresenter
           lastBufferRow = bufferRow
           softWrapped = false
 
-        screenRow = @startRow + i
-        top = screenRow * @lineHeight
+        screenRow = startRow + i
+        top = (screenRow - startRow) * @lineHeight
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        @lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
 
-    if @mouseWheelScreenRow?
-      bufferRow = @model.bufferRowForScreenRow(@mouseWheelScreenRow)
-      wrapCount = @mouseWheelScreenRow - @model.screenRowForBufferRow(bufferRow)
-      id = bufferRow
-      id += '-' + wrapCount if wrapCount > 0
-      visibleLineNumberIds[id] = true
-
-    for id of @lineNumberGutter.lineNumbers
-      delete @lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
+    for id of tileState.lineNumbers
+      delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
 
