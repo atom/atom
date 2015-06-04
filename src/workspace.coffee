@@ -831,32 +831,30 @@ class Workspace extends Model
       onPathsSearchedOption = options.onPathsSearched
       totalNumberOfPathsSearched = 0
       numberOfPathsSearchedForDirectory = new Map()
-      onPathsSearched = (directory, numberOfPathsSearched) ->
-        oldValue = numberOfPathsSearchedForDirectory.get(directory)
+      onPathsSearched = (searcher, numberOfPathsSearched) ->
+        oldValue = numberOfPathsSearchedForDirectory.get(searcher)
         if oldValue
           totalNumberOfPathsSearched -= oldValue
-        numberOfPathsSearchedForDirectory.set(directory, numberOfPathsSearched)
+        numberOfPathsSearchedForDirectory.set(searcher, numberOfPathsSearched)
         totalNumberOfPathsSearched += numberOfPathsSearched
         onPathsSearchedOption(totalNumberOfPathsSearched)
     else
       onPathsSearched = ->
 
-    # Build up the options object that will be shared by all searchers.
-    searchOptions =
-      inclusions: options.paths or []
-      includeHidden: true
-      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-      exclusions: atom.config.get('core.ignoredNames')
-      follow: atom.config.get('core.followSymlinks')
-      didMatch: (result) ->
-        iterator(result) unless atom.project.isPathModified(result.filePath)
-      didError: (error) ->
-        iterator(null, error)
-      didSearchPaths: onPathsSearched
-
     # Kick off all of the searches and unify them into one Promise.
     allSearches = []
     directoriesForSearcher.forEach (directories, searcher) ->
+      searchOptions =
+        inclusions: options.paths or []
+        includeHidden: true
+        excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+        exclusions: atom.config.get('core.ignoredNames')
+        follow: atom.config.get('core.followSymlinks')
+        didMatch: (result) ->
+          iterator(result) unless atom.project.isPathModified(result.filePath)
+        didError: (error) ->
+          iterator(null, error)
+        didSearchPaths: (count) -> onPathsSearched(searcher, count)
       directorySearcher = searcher.search(directories, regex, searchOptions)
       allSearches.push(directorySearcher)
     searchPromise = Promise.all(allSearches)

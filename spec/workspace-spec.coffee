@@ -952,7 +952,9 @@ describe "Workspace", ->
                 onFakeSearchCreated?(this)
             then: (args...) ->
               @promise.then.apply(@promise, args)
-            cancel: -> @cancelled = true
+            cancel: ->
+              @cancelled = true
+              @hoistedReject()
 
           beforeEach ->
             fakeSearch = null
@@ -978,8 +980,7 @@ describe "Workspace", ->
               ]
             onFakeSearchCreated = (fakeSearch) ->
               fakeSearch.options.didMatch(searchResult)
-              directory1 = atom.project.getDirectories()[atom.project.getPaths().indexOf(dir1)]
-              fakeSearch.options.didSearchPaths(directory1, numPathsToPretendToSearchInCustomDirectorySearcher)
+              fakeSearch.options.didSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
               fakeSearch.hoistedResolve()
 
             resultPaths = []
