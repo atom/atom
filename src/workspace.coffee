@@ -52,8 +52,6 @@ class Workspace extends Model
     atom.packages.serviceHub.consume(
       'atom.directory-searcher',
       '^0.1.0',
-      # New providers are added to the front of @directorySearchers because
-      # DefaultDirectorySearcher is a catch-all that will always claim to search a Directory.
       (provider) => @directorySearchers.unshift(provider))
 
     @panelContainers =
