@@ -3,11 +3,12 @@ TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
 
 describe "TokenizedBuffer", ->
-  [tokenizedBuffer, buffer, changeHandler] = []
+  [tokenizedBuffer, buffer, changeHandler, originalChunkSize] = []
 
   beforeEach ->
     # enable async tokenization
-    TokenizedBuffer.prototype.chunkSize = 5
+    originalChunkSize = TokenizedBuffer::chunkSize
+    TokenizedBuffer::chunkSize = 5
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
 
     waitsForPromise ->
@@ -15,6 +16,7 @@ describe "TokenizedBuffer", ->
 
   afterEach ->
     tokenizedBuffer?.destroy()
+    TokenizedBuffer::chunkSize = originalChunkSize
 
   startTokenizing = (tokenizedBuffer) ->
     tokenizedBuffer.setVisible(true)
@@ -23,6 +25,84 @@ describe "TokenizedBuffer", ->
     tokenizedBuffer.setVisible(true)
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
     changeHandler?.reset()
+
+  describe "when constructed with largeFileMode: true", ->
+    it "constructs the initial placeholder lines in a background process", ->
+      TokenizedBuffer::initialLinesChunkSize = 2
+      buffer = atom.project.bufferForPathSync('sample.js')
+      syncTokenizedBuffer = new TokenizedBuffer({buffer})
+      asyncTokenizedBuffer = new TokenizedBuffer({buffer, largeFileMode: true})
+
+      expect(asyncTokenizedBuffer.getLoadProgress()).toBe 0
+
+      progressCount = 0
+      asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+        expect(asyncTokenizedBuffer.getLoadProgress()).toBe progress
+        expect(progress).toBeGreaterThan 0
+        progressCount++
+
+      waitsFor 'load to complete', (done) ->
+        asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+          done() if progress is 1
+
+      runs ->
+        expect(asyncTokenizedBuffer.getLoadProgress()).toBe 1
+        expect(progressCount).toBe 5
+        expectSameLineStates(
+          asyncTokenizedBuffer.tokenizedLines,
+          syncTokenizedBuffer.tokenizedLines
+        )
+
+    describe "when a change requires the tokenized lines to be reconstructed", ->
+      it "reenters the loading state and reconstructs placeholder tokenized lines in a background process", ->
+        buffer = atom.project.bufferForPathSync('sample.js')
+        syncTokenizedBuffer = new TokenizedBuffer({buffer})
+        asyncTokenizedBuffer = new TokenizedBuffer({buffer, largeFileMode: true})
+
+        waitsFor 'load to complete', (done) ->
+          asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+            done() if progress is 1
+
+        runs ->
+          expect(asyncTokenizedBuffer.getLoadProgress()).toBe 1
+
+          reportedProgress = null
+          asyncTokenizedBuffer.onDidChangeLoadProgress (progress) -> reportedProgress = progress
+
+          syncTokenizedBuffer.setGrammar(atom.grammars.nullGrammar)
+          asyncTokenizedBuffer.setGrammar(atom.grammars.nullGrammar)
+
+          expect(reportedProgress).toBe 0
+          expect(asyncTokenizedBuffer.getLoadProgress()).toBe 0
+
+        waitsFor 'reload to complete', (done) ->
+          asyncTokenizedBuffer.onDidChangeLoadProgress (progress) ->
+            done() if progress is 1
+
+        runs ->
+          expect(asyncTokenizedBuffer.getLoadProgress()).toBe 1
+          expectSameLineStates(
+            asyncTokenizedBuffer.tokenizedLines,
+            syncTokenizedBuffer.tokenizedLines
+          )
+
+    expectSameLineStates = (actualLines, expectedLines) ->
+      expect(actualLines.length).toBe (expectedLines.length)
+
+      for actualLine, i in actualLines
+        expectedLine = expectedLines[i]
+        expect(actualLine.indentLevel).toBe expectedLine.indentLevel, i
+        expect(actualLine.openScopes).toEqual expectedLine.openScopes, i
+        expect(actualLine.text).toBe expectedLine.text, i
+        expect(actualLine.tags).toEqual expectedLine.tags, i
+        expect(actualLine.specialTokens).toEqual expectedLine.specialTokens, i
+        expect(actualLine.firstNonWhitespaceIndex).toBe expectedLine.firstNonWhitespaceIndex, i
+        expect(actualLine.firstTrailingWhitespaceIndex).toBe expectedLine.firstTrailingWhitespaceIndex, i
+        expect(actualLine.lineEnding).toBe expectedLine.lineEnding, i
+        expect(actualLine.endOfLineInvisibles).toEqual expectedLine.endOfLineInvisibles, i
+        expect(actualLine.ruleStack).toEqual expectedLine.ruleStack, i
+        expect(actualLine.startBufferColumn).toBe expectedLine.startBufferColumn, i
+        expect(actualLine.fold).toBe expectedLine.fold, i
 
   describe "when the buffer is destroyed", ->
     beforeEach ->

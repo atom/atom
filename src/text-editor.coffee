@@ -75,7 +75,9 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}={}) ->
+  constructor: (params={}) ->
+    {softTabs, tabLength, softWrapped, @displayBuffer, buffer} = params
+    {@mini, @placeholderText, largeFileMode, lineNumberGutterVisible} = params
     super
 
     @emitter = new Emitter
@@ -84,39 +86,37 @@ class TextEditor extends Model
     @selections = []
 
     buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
-    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
-
-    for marker in @findMarkers(@getSelectionMarkerAttributes())
-      marker.setProperties(preserveFolds: true)
-      @addSelection(marker)
-
-    @subscribeToBuffer()
-    @subscribeToDisplayBuffer()
-
-    if @getCursors().length is 0 and not suppressCursorCreation
-      initialLine = Math.max(parseInt(initialLine) or 0, 0)
-      initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
-      @addCursorAtBufferPosition([initialLine, initialColumn])
-
     @languageMode = new LanguageMode(this)
-
-    @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
-
-    @disposables.add @displayBuffer.onDidChangeScrollTop (scrollTop) =>
-      @emit 'scroll-top-changed', scrollTop if includeDeprecatedAPIs
-      @emitter.emit 'did-change-scroll-top', scrollTop
-
-    @disposables.add @displayBuffer.onDidChangeScrollLeft (scrollLeft) =>
-      @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
-      @emitter.emit 'did-change-scroll-left', scrollLeft
-
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
+
+    @subscribeToBuffer()
+    @subscribeToDisplayBuffer()
+
+    @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
+
+    @displayBuffer.onDidChangeLoadProgress (loadProgress) =>
+      @finalizeConstruction(params) if loadProgress is 1
+    @finalizeConstruction(params) if @displayBuffer.getLoadProgress() is 1
+
+  finalizeConstruction: (params) ->
+    {softTabs, registerEditor, initialLine, initialColumn, suppressCursorCreation} = params
+
+    @softTabs = @usesSoftTabs() ? softTabs ? atom.config.get('editor.softTabs') ? true
+
+    for marker in @findMarkers(@getSelectionMarkerAttributes())
+      marker.setProperties(preserveFolds: true)
+      @addSelection(marker)
+
+    if @getCursors().length is 0 and not suppressCursorCreation
+      initialLine = Math.max(parseInt(initialLine) or 0, 0)
+      initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
+      @addCursorAtBufferPosition([initialLine, initialColumn])
 
     atom.workspace?.editorAdded(this) if registerEditor
 
@@ -169,6 +169,12 @@ class TextEditor extends Model
     @disposables.add @displayBuffer.onDidChange (e) =>
       @emit 'screen-lines-changed', e if includeDeprecatedAPIs
       @emitter.emit 'did-change', e
+    @disposables.add @displayBuffer.onDidChangeScrollTop (scrollTop) =>
+      @emit 'scroll-top-changed', scrollTop if includeDeprecatedAPIs
+      @emitter.emit 'did-change-scroll-top', scrollTop
+    @disposables.add @displayBuffer.onDidChangeScrollLeft (scrollLeft) =>
+      @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
+      @emitter.emit 'did-change-scroll-left', scrollLeft
 
     # TODO: remove these when we remove the deprecations. Though, no one is likely using them
     if includeDeprecatedAPIs
@@ -460,6 +466,12 @@ class TextEditor extends Model
   # TODO Remove once the tabs package no longer uses .on subscriptions
   onDidChangeIcon: (callback) ->
     @emitter.on 'did-change-icon', callback
+
+  onDidChangeLoadProgress: (callback) ->
+    @displayBuffer.onDidChangeLoadProgress(callback)
+
+  getLoadProgress: ->
+    @displayBuffer.getLoadProgress()
 
   # Public: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer

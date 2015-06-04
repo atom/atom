@@ -8,6 +8,7 @@ TokenizedLine = require './tokenized-line'
 TokenIterator = require './token-iterator'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
+Task = require './task'
 Grim = require 'grim'
 
 module.exports =
@@ -20,11 +21,13 @@ class TokenizedBuffer extends Model
   tabLength: null
   tokenizedLines: null
   chunkSize: 50
+  initialLinesChunkSize: 1000
   invalidRows: null
   visible: false
   configSettings: null
+  loadProgress: 1
 
-  constructor: ({@buffer, @tabLength, @ignoreInvisibles}) ->
+  constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator
@@ -56,6 +59,14 @@ class TokenizedBuffer extends Model
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 
+  onDidLoad: (callback) ->
+    @emitter.on 'did-load', callback
+
+  onDidChangeLoadProgress: (callback) ->
+    @emitter.on 'did-change-load-progress', callback
+
+  getLoadProgress: -> @loadProgress
+
   onDidChange: (callback) ->
     @emitter.on 'did-change', callback
 
@@ -80,6 +91,13 @@ class TokenizedBuffer extends Model
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
     @disposables.add(@grammarUpdateDisposable)
 
+    @trackConfigSettings()
+    @retokenizeLines()
+
+    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change-grammar', grammar
+
+  trackConfigSettings: ->
     scopeOptions = {scope: @rootScopeDescriptor}
     @configSettings =
       tabLength: atom.config.get('editor.tabLength', scopeOptions)
@@ -100,11 +118,6 @@ class TokenizedBuffer extends Model
         @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
     @disposables.add(@configSubscriptions)
 
-    @retokenizeLines()
-
-    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-grammar', grammar
-
   reloadGrammar: ->
     if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @buffer.getText())
       @setGrammar(grammar)
@@ -118,14 +131,19 @@ class TokenizedBuffer extends Model
     false
 
   retokenizeLines: ->
-    lastRow = @buffer.getLastRow()
-    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
-    @invalidRows = []
-    @invalidateRow(0)
-    @fullyTokenized = false
-    event = {start: 0, end: lastRow, delta: 0}
-    @emit 'changed', event if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change', event
+    if @largeFileMode
+      @buildInitialLinesInBackground()
+      @invalidRows = []
+    else
+      lastRow = @buffer.getLastRow()
+      @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
+
+      @invalidRows = []
+      @invalidateRow(0)
+      @fullyTokenized = false
+      event = {start: 0, end: lastRow, delta: 0}
+      @emit 'changed', event if Grim.includeDeprecatedAPIs
+      @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -144,6 +162,33 @@ class TokenizedBuffer extends Model
       @ignoreInvisibles = ignoreInvisibles
       if @configSettings.showInvisibles and @configSettings.invisibles?
         @retokenizeLines()
+
+  buildInitialLinesInBackground: ->
+    @loadProgress = 0
+    @emitter.emit 'did-change-load-progress', 0
+
+    @tokenizedLines = []
+
+    taskPath = require.resolve('./initial-tokenized-lines-task')
+    params = {
+      filePath: @buffer.getPath()
+      invisibles: @getInvisiblesToShow()
+      tabLength: @getTabLength()
+      rootScopeId: @grammar.startIdForScope(@grammar.scopeName)
+      chunkSize: @initialLinesChunkSize
+    }
+
+    task = Task.once taskPath, params, => @emitter.emit 'did-load'
+
+    task.on 'progress', ({lines: lineStates, progress}) =>
+      lines = lineStates.map (state) =>
+        line = new TokenizedLine
+        line.tokenIterator = @tokenIterator
+        line[key] = value for key, value of state
+        line
+      @tokenizedLines.push(lines...)
+      @loadProgress = progress
+      @emitter.emit 'did-change-load-progress', progress
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
@@ -209,6 +254,7 @@ class TokenizedBuffer extends Model
     return
 
   invalidateRow: (row) ->
+    return if @largeFileMode
     @invalidRows.push(row)
     @invalidRows.sort (a, b) -> a - b
     @tokenizeInBackground()
@@ -230,7 +276,11 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
+
+    if @largeFileMode
+      newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
+    else
+      newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
 
     start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)
@@ -293,9 +343,9 @@ class TokenizedBuffer extends Model
       @tokenizedLineForRow(row).isComment() and
       @tokenizedLineForRow(nextRow).isComment()
 
-  buildTokenizedLinesForRows: (startRow, endRow, startingStack, startingopenScopes) ->
+  buildTokenizedLinesForRows: (startRow, endRow, startingStack, startingOpenScopes) ->
     ruleStack = startingStack
-    openScopes = startingopenScopes
+    openScopes = startingOpenScopes
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow]
       if (ruleStack or row is 0) and row < stopTokenizingAt
@@ -313,16 +363,39 @@ class TokenizedBuffer extends Model
     tokenizedLines
 
   buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
-    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow]
+    if startRow > 0
+      openScopes = @openScopesForRow(startRow)
+      previousLine = @tokenizedLines[startRow - 1]
+      indentLevel = previousLine.indentLevel
+      lastLineEmpty = previousLine.text.length is 0
+    else
+      openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
+      indentLevel = 0
+      lastLineEmpty = false
 
-  buildPlaceholderTokenizedLineForRow: (row) ->
-    openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
+    lines = []
+    for row in [startRow..endRow] by 1
+      line = @buildPlaceholderTokenizedLineForRow(row, openScopes, indentLevel)
+
+      newIndentLevel = Math.ceil(line.indentLevel)
+      if lastLineEmpty and newIndentLevel > indentLevel
+        for previousLine in lines by -1
+          break unless previousLine.text.length is 0
+          previousLine.indentLevel = newIndentLevel
+
+      indentLevel = newIndentLevel
+      lastLineEmpty = line.text.length is 0
+      lines.push(line)
+
+    lines
+
+  buildPlaceholderTokenizedLineForRow: (row, openScopes, indentLevel) ->
     text = @buffer.lineForRow(row)
     tags = [text.length]
     tabLength = @getTabLength()
-    indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles: @getInvisiblesToShow(), lineEnding, @tokenIterator})
+    invisibles = @getInvisiblesToShow()
+    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles, lineEnding, @tokenIterator})
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)

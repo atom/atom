@@ -24,13 +24,13 @@ class DisplayBuffer extends Model
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles}={}) ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, largeFileMode}={}) ->
     super
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles})
+    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles, largeFileMode})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @markers = {}
@@ -41,6 +41,11 @@ class DisplayBuffer extends Model
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
     @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
+
+    @tokenizedBuffer.onDidChangeLoadProgress (loadProgress) => @tokenizedBufferDidLoad() if loadProgress is 1
+    @tokenizedBufferDidLoad() if @tokenizedBuffer.getLoadProgress() is 1
+
+  tokenizedBufferDidLoad: ->
     folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
     @updateAllScreenLines()
     @decorateFold(fold) for fold in folds
@@ -112,6 +117,12 @@ class DisplayBuffer extends Model
 
   onDidChangeGrammar: (callback) ->
     @tokenizedBuffer.onDidChangeGrammar(callback)
+
+  onDidChangeLoadProgress: (callback) ->
+    @tokenizedBuffer.onDidChangeLoadProgress(callback)
+
+  getLoadProgress: ->
+    @tokenizedBuffer.getLoadProgress()
 
   onDidTokenize: (callback) ->
     @tokenizedBuffer.onDidTokenize(callback)

@@ -42,10 +42,11 @@ class TokenizedLine
 
     @specialTokens = {}
     {@openScopes, @text, @tags, @lineEnding, @ruleStack, @tokenIterator} = properties
-    {@startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles} = properties
+    {@startBufferColumn, @fold, @tabLength, indentLevel, @invisibles} = properties
 
     @startBufferColumn ?= 0
     @bufferDelta = @text.length
+    @indentLevel = indentLevel if @bufferDelta is 0
 
     @transformContent()
     @buildEndOfLineInvisibles() if @invisibles? and @lineEnding?
@@ -170,7 +171,9 @@ class TokenizedLine
     else
       @text = text
 
+    @indentLevel = (firstNonWhitespaceColumn / @tabLength) if @bufferDelta > 0
     @firstNonWhitespaceIndex = firstNonWhitespaceColumn
+
     if lastNonWhitespaceColumn?
       if lastNonWhitespaceColumn + 1 < @text.length
         @firstTrailingWhitespaceIndex = lastNonWhitespaceColumn + 1

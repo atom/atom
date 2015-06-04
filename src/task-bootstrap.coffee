@@ -38,7 +38,7 @@ handleEvents = ->
       isAsync = true
       (result) ->
         emit('task:completed', result)
-    result = handler.bind({async})(args...)
+    result = handler.bind({async, emit})(args...)
     emit('task:completed', result) unless isAsync
 
 setupDeprecations = ->

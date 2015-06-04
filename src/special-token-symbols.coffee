@@ -1,6 +1,6 @@
 module.exports = {
-  SoftTab: Symbol('SoftTab')
-  HardTab: Symbol('HardTab')
-  PairedCharacter: Symbol('PairedCharacter')
-  SoftWrapIndent: Symbol('SoftWrapIndent')
+  SoftTab: 0
+  HardTab: 1
+  PairedCharacter: 2
+  SoftWrapIndent: 3
 }
