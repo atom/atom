@@ -48,6 +48,10 @@ class LineNumberGutterComponent extends TiledComponent
 
     setDimensionsAndBackground(@oldState.styles, @newState.styles, @lineNumbersNode)
 
+    if @newState.height isnt @oldState.height
+      @lineNumbersNode.style.height = @newState.height + "px"
+      @oldState.height = @newState.height
+
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
       @oldState.styles = {}

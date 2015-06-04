@@ -453,6 +453,7 @@ class TextEditorPresenter
     return
 
   updateLineNumberGutterState: ->
+    @lineNumberGutter.height = @clientHeight
     @lineNumberGutter.maxLineNumberDigits = @model.getLineCount().toString().length
 
   updateCommonGutterState: ->
@@ -656,6 +657,7 @@ class TextEditorPresenter
     clientHeight = @height - @horizontalScrollbarHeight
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
+      @state.content.clientHeight = @clientHeight
       @updateScrollHeight()
       @updateScrollTop()
 

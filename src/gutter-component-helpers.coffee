@@ -15,9 +15,6 @@ module.exports =
 
   # Sets scrollHeight, scrollTop, and backgroundColor on the given domNode.
   setDimensionsAndBackground: (oldState, newState, domNode) ->
-    if newState.scrollHeight isnt oldState.scrollHeight
-      domNode.style.height = newState.scrollHeight + 'px'
-      oldState.scrollHeight = newState.scrollHeight
 
     if newState.backgroundColor isnt oldState.backgroundColor
       domNode.style.backgroundColor = newState.backgroundColor
