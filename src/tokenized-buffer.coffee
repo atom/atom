@@ -112,14 +112,14 @@ class TokenizedBuffer extends Model
       throw new Error("No grammar found for path: #{path}")
 
   hasTokenForSelector: (selector) ->
-    for {tokens} in @tokenizedLines
-      for token in tokens
+    for tokenizedLine in @tokenizedLines when tokenizedLine?
+      for token in tokenizedLine.tokens
         return true if selector.matches(token.scopes)
     false
 
   retokenizeLines: ->
     lastRow = @buffer.getLastRow()
-    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
+    @tokenizedLines = new Array(lastRow + 1)
     @invalidRows = []
     @invalidateRow(0)
     @fullyTokenized = false
@@ -248,12 +248,12 @@ class TokenizedBuffer extends Model
     @emitter.emit 'did-change', event
 
   retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
-    line = @tokenizedLines[row]
+    line = @tokenizedLineForRow(row)
     if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
       while line?.isOnlyWhitespace()
         @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1), @openScopesForRow(row))
         row += increment
-        line = @tokenizedLines[row]
+        line = @tokenizedLineForRow(row)
 
     row - increment
 
@@ -313,7 +313,7 @@ class TokenizedBuffer extends Model
     tokenizedLines
 
   buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
-    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow]
+    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow] by 1
 
   buildPlaceholderTokenizedLineForRow: (row) ->
     openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
@@ -341,7 +341,8 @@ class TokenizedBuffer extends Model
       null
 
   tokenizedLineForRow: (bufferRow) ->
-    @tokenizedLines[bufferRow]
+    if 0 <= bufferRow < @tokenizedLines.length
+      @tokenizedLines[bufferRow] ?= @buildPlaceholderTokenizedLineForRow(bufferRow)
 
   stackForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]?.ruleStack
@@ -418,17 +419,17 @@ class TokenizedBuffer extends Model
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)
-    @tokenizedLines[row].tokenAtBufferColumn(column)
+    @tokenizedLineForRow(row).tokenAtBufferColumn(column)
 
   tokenStartPositionForPosition: (position) ->
     {row, column} = Point.fromObject(position)
-    column = @tokenizedLines[row].tokenStartColumnForBufferColumn(column)
+    column = @tokenizedLineForRow(row).tokenStartColumnForBufferColumn(column)
     new Point(row, column)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
     position = Point.fromObject(position)
 
-    {openScopes, tags} = @tokenizedLines[position.row]
+    {openScopes, tags} = @tokenizedLineForRow(position.row)
     scopes = openScopes.map (tag) -> atom.grammars.scopeForId(tag)
 
     startColumn = 0
