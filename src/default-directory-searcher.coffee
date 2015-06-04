@@ -76,7 +76,7 @@ class DefaultDirectorySearcher
   #   * `follow` {boolean} whether symlinks should be followed.
   #
   # Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
-  # invoked before the `DirectorySearch` is determined, it will reject the `DirectorySearch`.
+  # invoked before the `DirectorySearch` is determined, it will resolve the `DirectorySearch`.
   search: (directories, regex, options) ->
     rootPaths = directories.map (directory) -> directory.getPath()
     isCancelled = false
