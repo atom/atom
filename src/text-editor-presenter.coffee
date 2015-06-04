@@ -1,4 +1,4 @@
-{CompositeDisposable, Emitter} = require 'event-kit'
+{CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
@@ -25,6 +25,10 @@ class TextEditorPresenter
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @characterWidthsByScope = {}
+    @rangesByDecorationId = {}
+    @lineDecorationsByScreenRow = {}
+    @lineNumberDecorationsByScreenRow = {}
+    @customGutterDecorationsByGutterNameAndScreenRow = {}
     @transferMeasurementsToModel()
     @observeModel()
     @observeConfig()
@@ -121,13 +125,21 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
       @shouldUpdateCustomGutterDecorationState = true
-
       @emitDidUpdateState()
+
+    @model.onDidUpdateMarkers =>
+      @shouldUpdateTilesState = true
+      @shouldUpdateLineNumbersState = true
+      @shouldUpdateDecorations = true
+      @shouldUpdateOverlaysState = true
+      @shouldUpdateCustomGutterDecorationState = true
+      @emitDidUpdateState()
+
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText =>
       @shouldUpdateContentState = true
-
       @emitDidUpdateState()
+
     @disposables.add @model.onDidChangeMini =>
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
@@ -139,14 +151,14 @@ class TextEditorPresenter
       @shouldUpdateCustomGutterDecorationState = true
       @updateScrollbarDimensions()
       @updateCommonGutterState()
-
       @emitDidUpdateState()
+
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
       @updateCommonGutterState()
-
       @emitDidUpdateState()
+
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
@@ -1087,57 +1099,22 @@ class TextEditorPresenter
 
   observeDecoration: (decoration) ->
     decorationDisposables = new CompositeDisposable
-    decorationDisposables.add decoration.getMarker().onDidChange(@decorationMarkerDidChange.bind(this, decoration))
     if decoration.isType('highlight')
-      decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
-    decorationDisposables.add decoration.onDidChangeProperties(@decorationPropertiesDidChange.bind(this, decoration))
+      decorationDisposables.add decoration.onDidFlash =>
+        @shouldUpdateDecorations = true
+        @emitDidUpdateState()
+
+    decorationDisposables.add decoration.onDidChangeProperties (event) =>
+      @decorationPropertiesDidChange(decoration, event)
     decorationDisposables.add decoration.onDidDestroy =>
       @disposables.remove(decorationDisposables)
       decorationDisposables.dispose()
       @didDestroyDecoration(decoration)
     @disposables.add(decorationDisposables)
 
-  decorationMarkerDidChange: (decoration, change) ->
+  decorationPropertiesDidChange: (decoration, {oldProperties}) ->
+    @shouldUpdateDecorations = true
     if decoration.isType('line') or decoration.isType('gutter')
-      return if change.textChanged
-
-      intersectsVisibleRowRange = false
-      oldRange = new Range(change.oldTailScreenPosition, change.oldHeadScreenPosition)
-      newRange = new Range(change.newTailScreenPosition, change.newHeadScreenPosition)
-
-      if oldRange.intersectsRowRange(@startRow, @endRow - 1)
-        @removeFromLineDecorationCaches(decoration, oldRange)
-        intersectsVisibleRowRange = true
-
-      if newRange.intersectsRowRange(@startRow, @endRow - 1)
-        @addToLineDecorationCaches(decoration, newRange)
-        intersectsVisibleRowRange = true
-
-      if intersectsVisibleRowRange
-        @shouldUpdateTilesState = true if decoration.isType('line')
-        if decoration.isType('line-number')
-          @shouldUpdateLineNumbersState = true
-        else if decoration.isType('gutter')
-          @shouldUpdateCustomGutterDecorationState = true
-
-    if decoration.isType('highlight')
-      return if change.textChanged
-
-      @updateHighlightState(decoration)
-
-    if decoration.isType('overlay')
-      @shouldUpdateOverlaysState = true
-
-    @emitDidUpdateState()
-
-  decorationPropertiesDidChange: (decoration, event) ->
-    {oldProperties} = event
-    if decoration.isType('line') or decoration.isType('gutter')
-      @removePropertiesFromLineDecorationCaches(
-        decoration.id,
-        oldProperties,
-        decoration.getMarker().getScreenRange())
-      @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       if decoration.isType('line') or Decoration.isType(oldProperties, 'line')
         @shouldUpdateTilesState = true
       if decoration.isType('line-number') or Decoration.isType(oldProperties, 'line-number')
@@ -1147,14 +1124,11 @@ class TextEditorPresenter
         @shouldUpdateCustomGutterDecorationState = true
     else if decoration.isType('overlay')
       @shouldUpdateOverlaysState = true
-    else if decoration.isType('highlight')
-      @updateHighlightState(decoration, event)
-
     @emitDidUpdateState()
 
   didDestroyDecoration: (decoration) ->
+    @shouldUpdateDecorations = true
     if decoration.isType('line') or decoration.isType('gutter')
-      @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @shouldUpdateTilesState = true if decoration.isType('line')
       if decoration.isType('line-number')
         @shouldUpdateLineNumbersState = true
@@ -1166,14 +1140,6 @@ class TextEditorPresenter
       @shouldUpdateOverlaysState = true
 
     @emitDidUpdateState()
-
-  highlightDidFlash: (decoration) ->
-    flash = decoration.consumeNextFlash()
-    if decorationState = @state.content.highlights[decoration.id]
-      decorationState.flashCount++
-      decorationState.flashClass = flash.class
-      decorationState.flashDuration = flash.duration
-      @emitDidUpdateState()
 
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
@@ -1193,10 +1159,10 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   updateDecorations: ->
+    @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
-    @highlightDecorationsById = {}
 
     visibleHighlights = {}
     return unless 0 <= @startRow <= @endRow <= Infinity
@@ -1215,16 +1181,19 @@ class TextEditorPresenter
 
     return
 
-  removeFromLineDecorationCaches: (decoration, range) ->
-    @removePropertiesFromLineDecorationCaches(decoration.id, decoration.getProperties(), range)
+  removeFromLineDecorationCaches: (decoration) ->
+    @removePropertiesFromLineDecorationCaches(decoration.id, decoration.getProperties())
 
-  removePropertiesFromLineDecorationCaches: (decorationId, decorationProperties, range) ->
-    gutterName = decorationProperties.gutterName
-    for row in [range.start.row..range.end.row] by 1
-      delete @lineDecorationsByScreenRow[row]?[decorationId]
-      delete @lineNumberDecorationsByScreenRow[row]?[decorationId]
-      delete @customGutterDecorationsByGutterNameAndScreenRow[gutterName]?[row]?[decorationId] if gutterName
-    return
+  removePropertiesFromLineDecorationCaches: (decorationId, decorationProperties) ->
+    if range = @rangesByDecorationId[decorationId]
+      delete @rangesByDecorationId[decorationId]
+
+      gutterName = decorationProperties.gutterName
+      for row in [range.start.row..range.end.row] by 1
+        delete @lineDecorationsByScreenRow[row]?[decorationId]
+        delete @lineNumberDecorationsByScreenRow[row]?[decorationId]
+        delete @customGutterDecorationsByGutterNameAndScreenRow[gutterName]?[row]?[decorationId] if gutterName
+      return
 
   addToLineDecorationCaches: (decoration, range) ->
     marker = decoration.getMarker()
@@ -1237,6 +1206,8 @@ class TextEditorPresenter
     else
       return if properties.onlyEmpty
       omitLastRow = range.end.column is 0
+
+    @rangesByDecorationId[decoration.id] = range
 
     for row in [range.start.row..range.end.row] by 1
       continue if properties.onlyHead and row isnt marker.getHeadScreenPosition().row
@@ -1286,6 +1257,12 @@ class TextEditorPresenter
       flashDuration: null
       flashClass: null
     }
+
+    if flash = decoration.consumeNextFlash()
+      highlightState.flashCount++
+      highlightState.flashClass = flash.class
+      highlightState.flashDuration = flash.duration
+
     highlightState.class = properties.class
     highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
     highlightState.regions = @buildHighlightRegions(range)

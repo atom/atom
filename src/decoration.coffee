@@ -153,6 +153,8 @@ class Decoration
     oldProperties = @properties
     @properties = translateDecorationParamsOldToNew(newProperties)
     @properties.id = @id
+    if newProperties.type?
+      @displayBuffer.decorationDidChangeType(this)
     @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 

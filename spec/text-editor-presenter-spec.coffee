@@ -1532,21 +1532,27 @@ describe "TextEditorPresenter", ->
           expect(stateForHighlight(presenter, destroyedSelection.decoration)).toBeUndefined()
 
         it "updates when highlight decorations' properties are updated", ->
-          marker = editor.markBufferRange([[2, 2], [2, 4]])
+          marker = editor.markBufferPosition([2, 2])
           highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
 
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
 
-          expectValues stateForHighlight(presenter, highlight), {class: 'a'}
-          expectStateUpdate presenter, -> highlight.setProperties(class: 'b', type: 'highlight')
+          expect(stateForHighlight(presenter, highlight)).toBeUndefined()
+
+          expectStateUpdate presenter, ->
+            marker.setBufferRange([[2, 2], [2, 4]])
+            highlight.setProperties(class: 'b', type: 'highlight')
+
           expectValues stateForHighlight(presenter, highlight), {class: 'b'}
 
         it "increments the .flashCount and sets the .flashClass and .flashDuration when the highlight model flashes", ->
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
 
-          marker = editor.markBufferRange([[2, 2], [2, 4]])
+          marker = editor.markBufferPosition([2, 2])
           highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
-          expectStateUpdate presenter, -> highlight.flash('b', 500)
+          expectStateUpdate presenter, ->
+            marker.setBufferRange([[2, 2], [2, 4]])
+            highlight.flash('b', 500)
 
           expectValues stateForHighlight(presenter, highlight), {
             flashClass: 'b'
