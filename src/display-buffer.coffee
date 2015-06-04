@@ -37,9 +37,11 @@ class DisplayBuffer extends Model
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
+    @overlayDecorationsById = {}
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
+    @disposables.add @buffer.onDidUpdateMarkers => @emitter.emit 'did-update-markers'
     @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
     folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
     @updateAllScreenLines()
@@ -918,7 +920,16 @@ class DisplayBuffer extends Model
     @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('highlight')
 
   getOverlayDecorations: (propertyFilter) ->
-    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('overlay')
+    result = []
+    for id, decoration of @overlayDecorationsById
+      result.push(decoration)
+    if propertyFilter?
+      result.filter (decoration) ->
+        for key, value of propertyFilter
+          return false unless decoration.properties[key] is value
+        true
+    else
+      result
 
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
@@ -933,6 +944,7 @@ class DisplayBuffer extends Model
     @disposables.add decoration.onDidDestroy => @removeDecoration(decoration)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
+    @overlayDecorationsById[decoration.id] = decoration if decoration.isType('overlay')
     @decorationsById[decoration.id] = decoration
     @emit 'decoration-added', decoration if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-add-decoration', decoration
@@ -949,6 +961,10 @@ class DisplayBuffer extends Model
       @emit 'decoration-removed', decoration if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
+      delete @overlayDecorationsById[decoration.id]
+
+  decorationsForMarkerId: (markerId) ->
+    @decorationsByMarkerId[markerId]
 
   # Retrieves a {Marker} based on its id.
   #
@@ -1241,6 +1257,12 @@ class DisplayBuffer extends Model
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
+
+  decorationDidChangeType: (decoration) ->
+    if decoration.isType('overlay')
+      @overlayDecorationsById[decoration.id] = decoration
+    else
+      delete @overlayDecorationsById[decoration.id]
 
 if Grim.includeDeprecatedAPIs
   DisplayBuffer.properties

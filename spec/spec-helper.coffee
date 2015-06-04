@@ -49,6 +49,25 @@ Object.defineProperty document, 'title',
   get: -> documentTitle
   set: (title) -> documentTitle = title
 
+Set.prototype.jasmineToString = ->
+  result = "Set {"
+  first = true
+  @forEach (element) ->
+    result += ", " unless first
+    result += element.toString()
+  first = false
+  result + "}"
+
+Set.prototype.isEqual = (other) ->
+  if other instanceof Set
+    return false if @size isnt other.size
+    values = @values()
+    until (next = values.next()).done
+      return false unless other.has(next.value)
+    true
+  else
+    false
+
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
 if process.env.CI

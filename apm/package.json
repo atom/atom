@@ -6,6 +6,6 @@
     "url": "https://github.com/atom/atom.git"
   },
   "dependencies": {
-    "atom-package-manager": "0.169.0"
+    "atom-package-manager": "0.170.0"
   }
 }

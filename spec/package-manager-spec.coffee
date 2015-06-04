@@ -70,10 +70,10 @@ describe "PackageManager", ->
       it "returns null", ->
         grim.includeDeprecatedAPIs = false
         expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
-        expect(atom.packages.isDeprecatedPackage('wordcount', '2.0.9')).toBe true
-        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.0')).toBe true
-        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.1')).toBe false
-        expect(atom.packages.getDeprecatedPackageMetadata('wordcount').version).toBe '<=2.1.0'
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.9')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.0')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.1')).toBe false
+        expect(atom.packages.getDeprecatedPackageMetadata('wordcount').version).toBe '<=2.2.0'
 
     it "invokes ::onDidLoadPackage listeners with the loaded package", ->
       loadedPackage = null
