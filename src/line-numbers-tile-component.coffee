@@ -56,7 +56,7 @@ class LineNumbersTileComponent
       unless @newTileState.lineNumbers.hasOwnProperty(id)
         @lineNumberNodesById[id].remove()
         delete @lineNumberNodesById[id]
-        delete @oldState.lineNumbers[id]
+        delete @oldTileState.lineNumbers[id]
 
     for id, lineNumberState of @newTileState.lineNumbers
       if @oldTileState.lineNumbers.hasOwnProperty(id)
