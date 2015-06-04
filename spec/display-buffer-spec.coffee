@@ -1207,50 +1207,6 @@ describe "DisplayBuffer", ->
           expect(markerCreated1).toHaveBeenCalled()
           expect(markerCreated2).not.toHaveBeenCalled()
 
-    describe "::observeMarkers(callback)", ->
-      [observationWindow, events] = []
-
-      beforeEach ->
-        events = []
-        observationWindow = displayBuffer.observeMarkers (event) -> events.push(event)
-        displayBuffer.unfoldBufferRow(4, 7)
-
-      it "calls the callback when markers enter, leave, or move within the screen range", ->
-        expect(events).toHaveLength 0
-
-        observationWindow.setScreenRange([[0, 0], [4, 0]])
-        expect(events).toHaveLength 0
-
-        marker1 = displayBuffer.markScreenPosition([4, 2])
-        expect(events).toHaveLength 0
-
-        observationWindow.setScreenRange([[0, 0], [5, 0]])
-        expect(events).toHaveLength 1
-        expect(events[0]).toEqual {
-          insert: new Set([marker1.id])
-          update: new Set
-          remove: new Set
-        }
-
-        marker2 = displayBuffer.markScreenPosition([5, 2])
-        expect(events).toHaveLength 1
-
-        observationWindow.setBufferRange([[1, 0], [6, 0]])
-        expect(events).toHaveLength 2
-        expect(events[1]).toEqual {
-          insert: new Set([marker2.id])
-          update: new Set([marker1.id])
-          remove: new Set
-        }
-
-        marker1.destroy()
-        expect(events).toHaveLength 3
-        expect(events[2]).toEqual {
-          insert: new Set
-          update: new Set
-          remove: new Set([marker1.id])
-        }
-
   describe "decorations", ->
     [marker, decoration, decorationProperties] = []
     beforeEach ->

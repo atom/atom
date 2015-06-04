@@ -10,7 +10,6 @@ Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
-MarkerObservationWindow = require './marker-observation-window'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -41,6 +40,7 @@ class DisplayBuffer extends Model
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
+    @disposables.add @buffer.onDidUpdateMarkers => @emitter.emit 'did-update-markers'
     @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
     folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
     @updateAllScreenLines()
@@ -1048,9 +1048,6 @@ class DisplayBuffer extends Model
   findMarkers: (params) ->
     params = @translateToBufferMarkerParams(params)
     @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
-
-  observeMarkers: (callback) ->
-    new MarkerObservationWindow(this, @buffer.observeMarkers(callback))
 
   translateToBufferMarkerParams: (params) ->
     bufferMarkerParams = {}

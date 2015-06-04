@@ -29,7 +29,6 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
-    @highlightDecorationsById = {}
     @transferMeasurementsToModel()
     @observeModel()
     @observeConfig()
@@ -126,17 +125,21 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
       @shouldUpdateCustomGutterDecorationState = true
-
       @emitDidUpdateState()
 
-    @markerObservationWindow = @model.observeMarkers(@markersInRangeDidChange.bind(this))
-    @disposables.add new Disposable => @markerObservationWindow.destroy()
+    @model.onDidUpdateMarkers =>
+      @shouldUpdateTilesState = true
+      @shouldUpdateLineNumbersState = true
+      @shouldUpdateDecorations = true
+      @shouldUpdateOverlaysState = true
+      @shouldUpdateCustomGutterDecorationState = true
+      @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText =>
       @shouldUpdateContentState = true
-
       @emitDidUpdateState()
+
     @disposables.add @model.onDidChangeMini =>
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
@@ -148,14 +151,14 @@ class TextEditorPresenter
       @shouldUpdateCustomGutterDecorationState = true
       @updateScrollbarDimensions()
       @updateCommonGutterState()
-
       @emitDidUpdateState()
+
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
       @updateCommonGutterState()
-
       @emitDidUpdateState()
+
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
@@ -614,7 +617,6 @@ class TextEditorPresenter
     visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
     endRow = startRow + visibleLinesCount
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
-    @markerObservationWindow.setScreenRange(Range(Point(@startRow, 0), Point(@endRow, 0)))
 
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
@@ -1098,58 +1100,21 @@ class TextEditorPresenter
   observeDecoration: (decoration) ->
     decorationDisposables = new CompositeDisposable
     if decoration.isType('highlight')
-      decorationDisposables.add decoration.onDidFlash(@highlightDidFlash.bind(this, decoration))
-    decorationDisposables.add decoration.onDidChangeProperties(@decorationPropertiesDidChange.bind(this, decoration))
+      decorationDisposables.add decoration.onDidFlash =>
+        @shouldUpdateDecorations = true
+        @emitDidUpdateState()
+
+    decorationDisposables.add decoration.onDidChangeProperties (event) =>
+      @decorationPropertiesDidChange(decoration, event)
     decorationDisposables.add decoration.onDidDestroy =>
       @disposables.remove(decorationDisposables)
       decorationDisposables.dispose()
       @didDestroyDecoration(decoration)
     @disposables.add(decorationDisposables)
 
-  markersInRangeDidChange: (event) ->
-    event.insert.forEach (markerId) =>
-      range = @model.getMarker(markerId).getScreenRange()
-      if decorations = @model.decorationsForMarkerId(markerId)
-        for decoration in decorations
-          @decorationMarkerDidChange(decoration)
-          if decoration.isType('line') or decoration.isType('gutter')
-            @addToLineDecorationCaches(decoration, range)
-    event.update.forEach (markerId) =>
-      range = @model.getMarker(markerId).getScreenRange()
-      if decorations = @model.decorationsForMarkerId(markerId)
-        for decoration in decorations
-          @decorationMarkerDidChange(decoration)
-          if decoration.isType('line') or decoration.isType('gutter')
-            @removeFromLineDecorationCaches(decoration)
-            @addToLineDecorationCaches(decoration, range)
-    event.remove.forEach (markerId) =>
-      if decorations = @model.decorationsForMarkerId(markerId)
-        for decoration in decorations
-          @decorationMarkerDidChange(decoration)
-          if decoration.isType('line') or decoration.isType('gutter')
-            @removeFromLineDecorationCaches(decoration)
-    @emitDidUpdateState()
-
-  decorationMarkerDidChange: (decoration) ->
-    if decoration.isType('highlight')
-      @updateHighlightState(decoration)
-    if decoration.isType('overlay')
-      @shouldUpdateOverlaysState = true
-    if decoration.isType('line')
-      @shouldUpdateTilesState = true
-    if decoration.isType('line-number')
-      @shouldUpdateLineNumbersState = true
-    else if decoration.isType('gutter')
-      @shouldUpdateCustomGutterDecorationState = true
-
-  decorationPropertiesDidChange: (decoration, event) ->
-    {oldProperties} = event
+  decorationPropertiesDidChange: (decoration, {oldProperties}) ->
+    @shouldUpdateDecorations = true
     if decoration.isType('line') or decoration.isType('gutter')
-      @removePropertiesFromLineDecorationCaches(
-        decoration.id,
-        oldProperties,
-        decoration.getMarker().getScreenRange())
-      @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       if decoration.isType('line') or Decoration.isType(oldProperties, 'line')
         @shouldUpdateTilesState = true
       if decoration.isType('line-number') or Decoration.isType(oldProperties, 'line-number')
@@ -1159,14 +1124,11 @@ class TextEditorPresenter
         @shouldUpdateCustomGutterDecorationState = true
     else if decoration.isType('overlay')
       @shouldUpdateOverlaysState = true
-    else if decoration.isType('highlight')
-      @updateHighlightState(decoration, event)
-
     @emitDidUpdateState()
 
   didDestroyDecoration: (decoration) ->
+    @shouldUpdateDecorations = true
     if decoration.isType('line') or decoration.isType('gutter')
-      @removeFromLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
       @shouldUpdateTilesState = true if decoration.isType('line')
       if decoration.isType('line-number')
         @shouldUpdateLineNumbersState = true
@@ -1178,14 +1140,6 @@ class TextEditorPresenter
       @shouldUpdateOverlaysState = true
 
     @emitDidUpdateState()
-
-  highlightDidFlash: (decoration) ->
-    flash = decoration.consumeNextFlash()
-    if decorationState = @state.content.highlights[decoration.id]
-      decorationState.flashCount++
-      decorationState.flashClass = flash.class
-      decorationState.flashDuration = flash.duration
-      @emitDidUpdateState()
 
   didAddDecoration: (decoration) ->
     @observeDecoration(decoration)
@@ -1209,7 +1163,6 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
-    @highlightDecorationsById = {}
 
     visibleHighlights = {}
     return unless 0 <= @startRow <= @endRow <= Infinity
@@ -1304,6 +1257,12 @@ class TextEditorPresenter
       flashDuration: null
       flashClass: null
     }
+
+    if flash = decoration.consumeNextFlash()
+      highlightState.flashCount++
+      highlightState.flashClass = flash.class
+      highlightState.flashDuration = flash.duration
+
     highlightState.class = properties.class
     highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
     highlightState.regions = @buildHighlightRegions(range)

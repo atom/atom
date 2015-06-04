@@ -163,10 +163,10 @@ class TextEditor extends Model
 
   subscribeToDisplayBuffer: ->
     @disposables.add @displayBuffer.onDidCreateMarker @handleMarkerCreated
-    @disposables.add @displayBuffer.onDidUpdateMarkers => @mergeIntersectingSelections()
     @disposables.add @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
     @disposables.add @displayBuffer.onDidTokenize => @handleTokenization()
     @disposables.add @displayBuffer.onDidChange (e) =>
+      @mergeIntersectingSelections()
       @emit 'screen-lines-changed', e if includeDeprecatedAPIs
       @emitter.emit 'did-change', e
 
@@ -460,6 +460,9 @@ class TextEditor extends Model
   # TODO Remove once the tabs package no longer uses .on subscriptions
   onDidChangeIcon: (callback) ->
     @emitter.on 'did-change-icon', callback
+
+  onDidUpdateMarkers: (callback) ->
+    @displayBuffer.onDidUpdateMarkers(callback)
 
   # Public: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
