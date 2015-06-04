@@ -1545,11 +1545,6 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "tree-view": {
-    "version": "<=0.172.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "true-color": {
     "version": "<=0.4.1",
     "hasDeprecations": true,
