@@ -874,15 +874,18 @@ class Workspace extends Model
     # with the existing behavior, instead of cancel() rejecting the promise, it should
     # resolve it with the special value 'cancelled'. At least the built-in find-and-replace
     # package relies on this behavior.
+    isCancelled = false
     cancellablePromise = new Promise (resolve, reject) ->
       onSuccess = ->
         resolve(null)
-        return
       onFailure = ->
-        resolve('cancelled')
-        return
+        if isCancelled
+          resolve('cancelled')
+        else
+          reject()
       searchPromise.then(onSuccess, onFailure)
     cancellablePromise.cancel = ->
+      isCancelled = true
       # Note that cancelling all (or actually, any) of the members of allSearches
       # will cause searchPromise to reject, which will cause cancellablePromise to resolve
       # in the desired way.

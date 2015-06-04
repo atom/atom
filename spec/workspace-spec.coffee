@@ -1014,12 +1014,12 @@ describe "Workspace", ->
             cancelableSearch = atom.workspace.scan /aaaa/, ->
             fakeSearch.hoistedReject()
 
-            resultOfPromiseSearch = null
+            didReject = false
             waitsForPromise ->
-              cancelableSearch.then (promiseResult) -> resultOfPromiseSearch = promiseResult
+              cancelableSearch.catch -> didReject = true
 
             runs ->
-              expect(resultOfPromiseSearch).toBe('cancelled')
+              expect(didReject).toBe(true)
 
   describe "::replace(regex, replacementText, paths, iterator)", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
