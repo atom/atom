@@ -830,12 +830,12 @@ class Workspace extends Model
       # replace the entry in the map and update the total.
       onPathsSearchedOption = options.onPathsSearched
       totalNumberOfPathsSearched = 0
-      numberOfPathsSearchedForDirectory = new Map()
+      numberOfPathsSearchedForSearcher = new Map()
       onPathsSearched = (searcher, numberOfPathsSearched) ->
-        oldValue = numberOfPathsSearchedForDirectory.get(searcher)
+        oldValue = numberOfPathsSearchedForSearcher.get(searcher)
         if oldValue
           totalNumberOfPathsSearched -= oldValue
-        numberOfPathsSearchedForDirectory.set(searcher, numberOfPathsSearched)
+        numberOfPathsSearchedForSearcher.set(searcher, numberOfPathsSearched)
         totalNumberOfPathsSearched += numberOfPathsSearched
         onPathsSearchedOption(totalNumberOfPathsSearched)
     else
