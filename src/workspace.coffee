@@ -853,7 +853,7 @@ class Workspace extends Model
         didError: (error) ->
           iterator(null, error)
         didSearchPaths: onPathsSearched.bind(undefined, directory)
-      directorySearcher = searcher.search(directory, regex, searchOptions)
+      directorySearcher = searcher.search([directory], regex, searchOptions)
       allSearches.push(directorySearcher)
     searchPromise = Promise.all(allSearches)
 

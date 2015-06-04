@@ -1,27 +1,4 @@
-{EventEmitter} = require 'events'
 Task = require './task'
-
-# Maintain a queue of ids of searches to run. When a search is complete, the active
-# search is cleared and the next search (if any) in the queue is notified to run.
-# This ensures there is at most one scan-handler task running at a time.
-searchQueue = []
-nextId = 1
-activeSearchId = 0
-emitter = new EventEmitter
-
-onSearchFinished = ->
-  activeSearchId = null
-  runNextSearch()
-
-runNextSearch = ->
-  unless activeSearchId
-    activeSearchId = searchQueue.shift()
-    emitter.emit(activeSearchId, null) if activeSearchId
-
-enqueue = (id) ->
-  searchQueue.push(id)
-  runNextSearch()
-
 
 # Public: Searches local files for lines matching a specified regex.
 #
@@ -29,7 +6,7 @@ enqueue = (id) ->
 class DirectorySearch
   # Public: Creates a new DirectorySearch that will not start running until the
   # `emitter` that is private to this file emits an event with the specified `id`.
-  constructor: (directory, regex, options, id) ->
+  constructor: (rootPath, regex, options) ->
     scanHandlerOptions =
       ignoreCase: regex.ignoreCase
       inclusions: options.inclusions
@@ -37,16 +14,13 @@ class DirectorySearch
       excludeVcsIgnores: options.excludeVcsIgnores
       exclusions: options.exclusions
       follow: options.follow
-
     @task = new Task(require.resolve('./scan-handler'))
-    rootPaths = [directory.getPath()]
-    @promise = new Promise (resolve, reject) =>
-      @task.on('task:cancelled', reject)
-      emitter.once id, =>
-        @task.start(rootPaths, regex.source, scanHandlerOptions, resolve)
     @task.on 'scan:result-found', options.didMatch
     @task.on 'scan:file-error', options.didError
     @task.on 'scan:paths-searched', options.didSearchPaths
+    @promise = new Promise (resolve, reject) =>
+      @task.on('task:cancelled', reject)
+      @task.start([rootPath], regex.source, scanHandlerOptions, resolve)
 
   # Public: Implementation of `then()` to satisfy the *thenable* contract.
   # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
@@ -78,8 +52,8 @@ class DefaultDirectorySearcher
   # Results are streamed back to the caller by invoking methods on the specified `options`,
   # such as `didMatch` and `didError`.
   #
-  # * `directory` {Directory} that has been accepted by this provider's `canSearchDirectory()`
-  # predicate.
+  # * `directories` {Array} of {Directory} objects to search, all of which have been accepted by
+  # this searcher's `canSearchDirectory()` predicate.
   # * `regex` {RegExp} to search with.
   # * `options` {Object} with the following properties:
   #   * `didMatch` {Function} call with a search result structured as follows:
@@ -105,10 +79,21 @@ class DefaultDirectorySearcher
   #
   # Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   # invoked before the `DirectorySearch` is determined, it will reject the `DirectorySearch`.
-  search: (directory, regex, options) ->
-    id = nextId
-    nextId += 1
-    directorySearch = new DirectorySearch(directory, regex, options, id)
-    directorySearch.then(onSearchFinished, onSearchFinished)
-    enqueue(id)
-    directorySearch
+  search: (directories, regex, options) ->
+    rootPaths = directories.map (directory) -> directory.getPath()
+    isCancelled = false
+    promise = new Promise (resolve, reject) ->
+      run = ->
+        if isCancelled
+          reject()
+        else if rootPaths.length
+          rootPath = rootPaths.shift()
+          thenable = new DirectorySearch(rootPath, regex, options)
+          thenable.then(run, reject)
+        else
+          resolve()
+      run()
+    return {
+      then: promise.then.bind(promise)
+      cancel: -> isCancelled = true
+    }
