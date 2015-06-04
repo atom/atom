@@ -978,7 +978,8 @@ describe "Workspace", ->
               ]
             onFakeSearchCreated = (fakeSearch) ->
               fakeSearch.options.didMatch(searchResult)
-              fakeSearch.options.didSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
+              directory1 = atom.project.getDirectories()[atom.project.getPaths().indexOf(dir1)]
+              fakeSearch.options.didSearchPaths(directory1, numPathsToPretendToSearchInCustomDirectorySearcher)
               fakeSearch.hoistedResolve()
 
             resultPaths = []

@@ -4,9 +4,7 @@ Task = require './task'
 #
 # Implements thenable so it can be used with `Promise.all()`.
 class DirectorySearch
-  # Public: Creates a new DirectorySearch that will not start running until the
-  # `emitter` that is private to this file emits an event with the specified `id`.
-  constructor: (rootPath, regex, options) ->
+  constructor: (directory, regex, options) ->
     scanHandlerOptions =
       ignoreCase: regex.ignoreCase
       inclusions: options.inclusions
@@ -17,10 +15,10 @@ class DirectorySearch
     @task = new Task(require.resolve('./scan-handler'))
     @task.on 'scan:result-found', options.didMatch
     @task.on 'scan:file-error', options.didError
-    @task.on 'scan:paths-searched', options.didSearchPaths
+    @task.on 'scan:paths-searched', (count) -> options.didSearchPaths(directory, count)
     @promise = new Promise (resolve, reject) =>
       @task.on('task:cancelled', reject)
-      @task.start([rootPath], regex.source, scanHandlerOptions, resolve)
+      @task.start([directory.getPath()], regex.source, scanHandlerOptions, resolve)
 
   # Public: Implementation of `then()` to satisfy the *thenable* contract.
   # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
@@ -66,6 +64,7 @@ class DefaultDirectorySearcher
   #         * `range` {Range} Identifies the matching region in the file. (Likely as an array of numeric arrays.)
   #   * `didError` {Function} call with an Error if there is a problem during the search.
   #   * `didSearchPaths` {Function} periodically call with the number of paths searched thus far.
+  #   This takes two arguments: the `Directory` and the count.
   #   * `inclusions` {Array} of glob patterns (as strings) to search within. Note that this
   #   array may be empty, indicating that all files should be searched.
   #
@@ -80,15 +79,16 @@ class DefaultDirectorySearcher
   # Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   # invoked before the `DirectorySearch` is determined, it will reject the `DirectorySearch`.
   search: (directories, regex, options) ->
-    rootPaths = directories.map (directory) -> directory.getPath()
+    # Make a mutable copy of the directories array.
+    directories = directories.slice(0)
     isCancelled = false
     promise = new Promise (resolve, reject) ->
       run = ->
         if isCancelled
           reject()
-        else if rootPaths.length
-          rootPath = rootPaths.shift()
-          thenable = new DirectorySearch(rootPath, regex, options)
+        else if directories.length
+          directory = directories.shift()
+          thenable = new DirectorySearch(directory, regex, options)
           thenable.then(run, reject)
         else
           resolve()

@@ -811,15 +811,20 @@ class Workspace extends Model
       iterator = options
       options = {}
 
-    # Find a searcher for every Directory in the project.
-    searchersAndDirectories = []
+    # Find a searcher for every Directory in the project. Each searcher that is matched
+    # will be associated with an Array of Directory objects in the Map.
+    directoriesForSearcher = new Map()
     for directory in atom.project.getDirectories()
       searcher = @defaultDirectorySearcher
       for directorySearcher in @directorySearchers
         if directorySearcher.canSearchDirectory(directory)
           searcher = directorySearcher
           break
-      searchersAndDirectories.push({searcher, directory})
+      directories = directoriesForSearcher.get(searcher)
+      unless directories
+        directories = []
+        directoriesForSearcher.set(searcher, directories)
+      directories.push(directory)
 
     # Define the onPathsSearched callback.
     if _.isFunction(options.onPathsSearched)
@@ -838,22 +843,23 @@ class Workspace extends Model
     else
       onPathsSearched = ->
 
+    # Build up the options object that will be shared by all searchers.
+    searchOptions =
+      inclusions: options.paths or []
+      includeHidden: true
+      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+      exclusions: atom.config.get('core.ignoredNames')
+      follow: atom.config.get('core.followSymlinks')
+      didMatch: (result) ->
+        iterator(result) unless atom.project.isPathModified(result.filePath)
+      didError: (error) ->
+        iterator(null, error)
+      didSearchPaths: onPathsSearched
+
     # Kick off all of the searches and unify them into one Promise.
     allSearches = []
-    for entry in searchersAndDirectories
-      {searcher, directory} = entry
-      searchOptions =
-        inclusions: options.paths or []
-        includeHidden: true
-        excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-        exclusions: atom.config.get('core.ignoredNames')
-        follow: atom.config.get('core.followSymlinks')
-        didMatch: (result) ->
-          iterator(result) unless atom.project.isPathModified(result.filePath)
-        didError: (error) ->
-          iterator(null, error)
-        didSearchPaths: onPathsSearched.bind(undefined, directory)
-      directorySearcher = searcher.search([directory], regex, searchOptions)
+    directoriesForSearcher.forEach (directories, searcher) ->
+      directorySearcher = searcher.search(directories, regex, searchOptions)
       allSearches.push(directorySearcher)
     searchPromise = Promise.all(allSearches)
 
