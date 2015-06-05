@@ -24,6 +24,7 @@ class TextEditorPresenter
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
+    @visibleHighlights = {}
     @characterWidthsByScope = {}
     @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
@@ -331,6 +332,7 @@ class TextEditorPresenter
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
       tile = @state.content.tiles[startRow] ?= {}
+      tile.startRow = startRow
       tile.top = startRow * @lineHeight - @scrollTop
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
@@ -1171,8 +1173,8 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
+    @visibleHighlights = {}
 
-    visibleHighlights = {}
     return unless 0 <= @startRow <= @endRow <= Infinity
 
     for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
@@ -1181,12 +1183,11 @@ class TextEditorPresenter
         if decoration.isType('line') or decoration.isType('gutter')
           @addToLineDecorationCaches(decoration, range)
         else if decoration.isType('highlight')
-          visibleHighlights[decoration.id] = @updateHighlightState(decoration)
+          @updateHighlightState(decoration)
 
     for tileId, tileState of @state.content.tiles
       for id, highlight of tileState.highlights
-        unless visibleHighlights[id]
-          delete tileState.highlights[id]
+        delete tileState.highlights[id] unless @visibleHighlights[tileId]?[id]?
 
     return
 
@@ -1299,6 +1300,9 @@ class TextEditorPresenter
       highlightState.class = properties.class
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
       highlightState.regions = @buildHighlightRegions(tileStartRow, tileRange)
+
+      @visibleHighlights[tileStartRow] ?= {}
+      @visibleHighlights[tileStartRow][decoration.id] = true
 
       startRow = tileEndRow
 
