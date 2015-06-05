@@ -89,13 +89,14 @@ class DisplayBuffer extends Model
     scrollTop: @scrollTop
     scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
+    largeFileMode: @largeFileMode
 
   deserializeParams: (params) ->
     params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
     params
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength()})
+    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @largeFileMode})
     newDisplayBuffer.setScrollTop(@getScrollTop())
     newDisplayBuffer.setScrollLeft(@getScrollLeft())
 

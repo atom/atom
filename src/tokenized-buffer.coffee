@@ -44,6 +44,7 @@ class TokenizedBuffer extends Model
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
     ignoreInvisibles: @ignoreInvisibles
+    largeFileMode: @largeFileMode
 
   deserializeParams: (params) ->
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
