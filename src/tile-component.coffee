@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 
+HighlightsComponent = require './highlights-component'
 TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
@@ -25,6 +26,9 @@ class TileComponent
     @domNode.classList.add("tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
+
+    @highlightsComponent = new HighlightsComponent(@presenter)
+    @domNode.appendChild(@highlightsComponent.getDomNode())
 
   getDomNode: ->
     @domNode
@@ -61,6 +65,8 @@ class TileComponent
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'
       @oldState.scrollWidth = @newState.scrollWidth
+
+    @highlightsComponent.updateSync(@newTileState)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth

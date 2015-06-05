@@ -335,6 +335,7 @@ class TextEditorPresenter
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
+      tile.highlights ?= {}
 
       @updateLinesState(tile, startRow, endRow)
 
@@ -1041,7 +1042,7 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+  pixelPositionForScreenPosition: (screenPosition, clip=true, foo) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
@@ -1050,6 +1051,7 @@ class TextEditorPresenter
     baseCharacterWidth = @baseCharacterWidth
 
     top = targetRow * @lineHeight
+    top -= foo * @lineHeight if foo?
     left = 0
     column = 0
 
@@ -1074,8 +1076,8 @@ class TextEditorPresenter
         left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
 
-    top -= @scrollTop
-    left -= @scrollLeft
+    top -= @scrollTop unless foo?
+    left -= @scrollLeft unless foo?
     {top, left}
 
   hasPixelRectRequirements: ->
@@ -1175,9 +1177,10 @@ class TextEditorPresenter
         else if decoration.isType('highlight')
           visibleHighlights[decoration.id] = @updateHighlightState(decoration)
 
-    for id of @state.content.highlights
-      unless visibleHighlights[id]
-        delete @state.content.highlights[id]
+    for tileId, tileState of @state.content.tiles
+      for id, highlight of tileState.highlights
+        unless visibleHighlights[id]
+          delete tileState.highlights[id]
 
     return
 
@@ -1236,7 +1239,12 @@ class TextEditorPresenter
     range = marker.getScreenRange()
 
     if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
-      delete @state.content.highlights[decoration.id]
+      tileStartRow = @tileForRow(range.start.row)
+      tileEndRow = @tileForRow(range.end.row)
+
+      for tile in [tileStartRow..tileEndRow] by @tileSize
+        delete @state.content.tiles[tile]?.highlights[decoration.id]
+
       @emitDidUpdateState()
       return
 
@@ -1248,32 +1256,54 @@ class TextEditorPresenter
       range.end.column = 0
 
     if range.isEmpty()
-      delete @state.content.highlights[decoration.id]
+      tileState = @state.content.tiles[@tileForRow(range.start.row)]
+      delete tileState.highlights[decoration.id]
       @emitDidUpdateState()
       return
 
-    highlightState = @state.content.highlights[decoration.id] ?= {
-      flashCount: 0
-      flashDuration: null
-      flashClass: null
-    }
+    flash = decoration.consumeNextFlash()
 
-    if flash = decoration.consumeNextFlash()
-      highlightState.flashCount++
-      highlightState.flashClass = flash.class
-      highlightState.flashDuration = flash.duration
+    startRow = range.start.row
+    while startRow <= range.end.row
+      tileStartRow = @tileForRow(startRow)
+      tileEndRow = tileStartRow + @tileSize
+      tileState = @state.content.tiles[tileStartRow] ?= {highlights: {}}
+      endRow = Math.min(tileEndRow, range.end.row)
 
-    highlightState.class = properties.class
-    highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
-    highlightState.regions = @buildHighlightRegions(range)
+      tileRange = new Range(new Point(startRow, 0), new Point(endRow, Infinity))
+
+      if startRow is range.start.row
+        tileRange.start.column = range.start.column
+
+      if endRow is range.end.row
+        tileRange.end.column = range.end.column
+
+      highlightState = tileState.highlights[decoration.id] ?= {
+        flashCount: 0
+        flashDuration: null
+        flashClass: null
+        tileRow: tileStartRow
+      }
+
+      if flash?
+        highlightState.flashCount++
+        highlightState.flashClass = flash.class
+        highlightState.flashDuration = flash.duration
+
+      highlightState.class = properties.class
+      highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
+      highlightState.regions = @buildHighlightRegions(tileStartRow, tileRange)
+
+      startRow = tileEndRow
+
     @emitDidUpdateState()
 
     true
 
-  buildHighlightRegions: (screenRange) ->
+  buildHighlightRegions: (tileStartRow, screenRange) ->
     lineHeightInPixels = @lineHeight
-    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, true)
-    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, true)
+    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, true, tileStartRow)
+    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, true, tileStartRow)
     spannedRows = screenRange.end.row - screenRange.start.row + 1
 
     if spannedRows is 1

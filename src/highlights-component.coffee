@@ -21,7 +21,7 @@ class HighlightsComponent
     @domNode
 
   updateSync: (state) ->
-    newState = state.content.highlights
+    newState = state.highlights
     @oldState ?= {}
 
     # remove highlights

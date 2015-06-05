@@ -1,7 +1,6 @@
 {$$} = require 'space-pen'
 
 CursorsComponent = require './cursors-component'
-HighlightsComponent = require './highlights-component'
 TileComponent = require './tile-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
@@ -23,9 +22,6 @@ class LinesComponent
 
     @cursorsComponent = new CursorsComponent(@presenter)
     @domNode.appendChild(@cursorsComponent.getDomNode())
-
-    @highlightsComponent = new HighlightsComponent(@presenter)
-    @domNode.appendChild(@highlightsComponent.getDomNode())
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -63,7 +59,6 @@ class LinesComponent
       @oldState.scrollWidth = @newState.scrollWidth
 
     @cursorsComponent.updateSync(state)
-    @highlightsComponent.updateSync(state)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
