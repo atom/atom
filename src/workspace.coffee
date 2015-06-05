@@ -802,7 +802,7 @@ class Workspace extends Model
   #   * `onPathsSearched` (optional) {Function}
   # * `iterator` {Function} callback on each file found
   #
-  # Returns a *thenable* object with a `cancel()` method that will cancel all
+  # Returns a `Promise` with a `cancel()` method that will cancel all
   # of the underlying searches that were started as part of this scan.
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
