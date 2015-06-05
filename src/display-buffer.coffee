@@ -479,7 +479,11 @@ class DisplayBuffer extends Model
   # Returns {TokenizedLine}
   tokenizedLineForScreenRow: (screenRow) ->
     if @largeFileMode
-      @tokenizedBuffer.tokenizedLineForRow(screenRow)
+      line = @tokenizedBuffer.tokenizedLineForRow(screenRow)
+      if line.text.length > @maxLineLength
+        @maxLineLength = line.text.length
+        @longestScreenRow = screenRow
+      line
     else
       @screenLines[screenRow]
 
@@ -760,19 +764,13 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number}.
   getMaxLineLength: ->
-    if @largeFileMode
-      100
-    else
-      @maxLineLength
+    @maxLineLength
 
   # Gets the row number of the longest screen line.
   #
   # Return a {}
   getLongestScreenRow: ->
-    if @largeFileMode
-      0
-    else
-      @longestScreenRow
+    @longestScreenRow
 
   # Given a buffer position, this converts it into a screen position.
   #
