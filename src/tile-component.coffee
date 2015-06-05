@@ -38,6 +38,10 @@ class TileComponent
     @newTileState = @newState.tiles[@id]
     @oldTileState = @oldState.tiles[@id]
 
+    if @newState.backgroundColor isnt @oldState.backgroundColor
+      @domNode.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
+
     if @newTileState.display isnt @oldTileState.display
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display
