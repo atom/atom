@@ -272,20 +272,6 @@ describe "Workspace", ->
       beforeEach ->
         atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
 
-      describe "when a large file is opened", ->
-        beforeEach ->
-          spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
-
-        it "creates a notification", ->
-          waitsForPromise ->
-            workspace.open('file1')
-
-          runs ->
-            expect(notificationSpy).toHaveBeenCalled()
-            notification = notificationSpy.mostRecentCall.args[0]
-            expect(notification.getType()).toBe 'warning'
-            expect(notification.getMessage()).toContain '< 2MB'
-
       describe "when a file does not exist", ->
         it "creates an empty buffer for the specified path", ->
           waitsForPromise ->
