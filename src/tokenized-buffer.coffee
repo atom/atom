@@ -67,7 +67,7 @@ class TokenizedBuffer extends Model
     if grammar.injectionSelector?
       @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
     else
-      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+      newScore = grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   setGrammar: (grammar, score) ->
@@ -75,7 +75,7 @@ class TokenizedBuffer extends Model
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
+    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
 
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
@@ -106,8 +106,11 @@ class TokenizedBuffer extends Model
     @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-grammar', grammar
 
+  getGrammarSelectionContent: ->
+    @buffer.getTextInRange([[0, 0], [10, 0]])
+
   reloadGrammar: ->
-    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @buffer.getText())
+    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar)
     else
       throw new Error("No grammar found for path: #{path}")
