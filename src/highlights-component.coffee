@@ -12,11 +12,6 @@ class HighlightsComponent
     @domNode = document.createElement('div')
     @domNode.classList.add('highlights')
 
-    if atom.config.get('editor.useShadowDOM')
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', '.underlayer')
-      @domNode.appendChild(insertionPoint)
-
   getDomNode: ->
     @domNode
 
