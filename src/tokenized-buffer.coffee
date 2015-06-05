@@ -24,7 +24,7 @@ class TokenizedBuffer extends Model
   visible: false
   configSettings: null
 
-  constructor: ({@buffer, @tabLength, @ignoreInvisibles}) ->
+  constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator
@@ -209,6 +209,8 @@ class TokenizedBuffer extends Model
     return
 
   invalidateRow: (row) ->
+    return if @largeFileMode
+
     @invalidRows.push(row)
     @invalidRows.sort (a, b) -> a - b
     @tokenizeInBackground()
@@ -230,7 +232,10 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
+    if @largeFileMode
+      newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
+    else
+      newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
 
     start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)
@@ -343,6 +348,10 @@ class TokenizedBuffer extends Model
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow < @tokenizedLines.length
       @tokenizedLines[bufferRow] ?= @buildPlaceholderTokenizedLineForRow(bufferRow)
+
+  tokenizedLinesForRows: (startRow, endRow) ->
+    for row in [startRow..endRow] by 1
+      @tokenizedLineForRow(row)
 
   stackForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]?.ruleStack
