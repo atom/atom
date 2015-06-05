@@ -445,7 +445,10 @@ class DisplayBuffer extends Model
       @isSoftWrapped()
 
   isSoftWrapped: ->
-    @softWrapped ? @configSettings.softWrap ? false
+    if @largeFileMode
+      false
+    else
+      @softWrapped ? @configSettings.softWrap ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
