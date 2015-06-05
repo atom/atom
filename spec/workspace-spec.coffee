@@ -224,6 +224,17 @@ describe "Workspace", ->
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
 
+    describe "when the file is large (over 2mb)", ->
+      it "opens the editor with largeFileMode: true", ->
+        spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
+
+        editor = null
+        waitsForPromise ->
+          workspace.open('sample.js').then (e) -> editor = e
+
+        runs ->
+          expect(editor.displayBuffer.largeFileMode).toBe true
+
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         fooOpener = (pathToOpen, options) -> {foo: pathToOpen, options} if pathToOpen?.match(/\.foo/)
