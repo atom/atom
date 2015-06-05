@@ -1042,7 +1042,14 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true, foo) ->
+  pixelPositionForScreenPositionInTile: (tileStartRow, screenPosition, clip) ->
+    position = @pixelPositionForScreenPosition(screenPosition, clip)
+    position.top -= tileStartRow * @lineHeight
+    position.top += @scrollTop
+    position.left += @scrollLeft
+    position
+
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
@@ -1051,7 +1058,6 @@ class TextEditorPresenter
     baseCharacterWidth = @baseCharacterWidth
 
     top = targetRow * @lineHeight
-    top -= foo * @lineHeight if foo?
     left = 0
     column = 0
 
@@ -1076,8 +1082,8 @@ class TextEditorPresenter
         left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
 
-    top -= @scrollTop unless foo?
-    left -= @scrollLeft unless foo?
+    top -= @scrollTop
+    left -= @scrollLeft
     {top, left}
 
   hasPixelRectRequirements: ->
@@ -1302,8 +1308,8 @@ class TextEditorPresenter
 
   buildHighlightRegions: (tileStartRow, screenRange) ->
     lineHeightInPixels = @lineHeight
-    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, true, tileStartRow)
-    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, true, tileStartRow)
+    startPixelPosition = @pixelPositionForScreenPositionInTile(tileStartRow, screenRange.start, true)
+    endPixelPosition = @pixelPositionForScreenPositionInTile(tileStartRow, screenRange.end, true)
     spannedRows = screenRange.end.row - screenRange.start.row + 1
 
     if spannedRows is 1
