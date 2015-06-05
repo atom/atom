@@ -483,11 +483,11 @@ class DisplayBuffer extends Model
   # Returns {TokenizedLine}
   tokenizedLineForScreenRow: (screenRow) ->
     if @largeFileMode
-      line = @tokenizedBuffer.tokenizedLineForRow(screenRow)
-      if line.text.length > @maxLineLength
-        @maxLineLength = line.text.length
-        @longestScreenRow = screenRow
-      line
+      if line = @tokenizedBuffer.tokenizedLineForRow(screenRow)
+        if line.text.length > @maxLineLength
+          @maxLineLength = line.text.length
+          @longestScreenRow = screenRow
+        line
     else
       @screenLines[screenRow]
 
