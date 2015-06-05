@@ -314,6 +314,10 @@ class PackageManager
     @uninstallAutocompletePlus()
 
     packagePaths = @getAvailablePackagePaths()
+
+    # TODO: remove after a few atom versions.
+    @migrateSublimeTabsSettings(packagePaths)
+
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
     @loadPackage(packagePath) for packagePath in packagePaths
@@ -443,6 +447,13 @@ class PackageManager
       ]
       for dirToRemove in dirsToRemove
         @uninstallDirectory(dirToRemove)
+    return
+
+  # TODO: remove this after a few versions
+  migrateSublimeTabsSettings: (packagePaths) ->
+    for packagePath in packagePaths when path.basename(packagePath) is 'sublime-tabs'
+      atom.config.removeAtKeyPath('core.disabledPackages', 'tree-view')
+      atom.config.removeAtKeyPath('core.disabledPackages', 'tabs')
     return
 
   uninstallDirectory: (directory) ->

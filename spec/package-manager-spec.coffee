@@ -877,3 +877,22 @@ describe "PackageManager", ->
       runs ->
         expect(fs.isDirectorySync(autocompleteCSSPath)).toBe false
         expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
+
+  describe "when the deprecated sublime-tabs package is installed", ->
+    it "enables the tree-view and tabs package", ->
+      atom.config.pushAtKeyPath('core.disabledPackages', 'tree-view')
+      atom.config.pushAtKeyPath('core.disabledPackages', 'tabs')
+
+      spyOn(atom.packages, 'getAvailablePackagePaths').andReturn [
+        path.join(__dirname, 'fixtures', 'packages', 'sublime-tabs')
+        path.resolve(__dirname, '..', 'node_modules', 'tree-view')
+        path.resolve(__dirname, '..', 'node_modules', 'tabs')
+      ]
+      atom.packages.loadPackages()
+
+      waitsFor ->
+        not atom.packages.isPackageDisabled('tree-view') and not atom.packages.isPackageDisabled('tabs')
+
+      runs ->
+        expect(atom.packages.isPackageLoaded('tree-view')).toBe true
+        expect(atom.packages.isPackageLoaded('tabs')).toBe true
