@@ -879,6 +879,16 @@ describe "PackageManager", ->
         expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
 
   describe "when the deprecated sublime-tabs package is installed", ->
+    grim = require 'grim'
+    includeDeprecatedAPIs = null
+
+    beforeEach ->
+      {includeDeprecatedAPIs} = grim
+      grim.includeDeprecatedAPIs = false
+
+    afterEach ->
+      grim.includeDeprecatedAPIs = includeDeprecatedAPIs
+
     it "enables the tree-view and tabs package", ->
       atom.config.pushAtKeyPath('core.disabledPackages', 'tree-view')
       atom.config.pushAtKeyPath('core.disabledPackages', 'tabs')

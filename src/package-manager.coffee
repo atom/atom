@@ -451,6 +451,7 @@ class PackageManager
 
   # TODO: remove this after a few versions
   migrateSublimeTabsSettings: (packagePaths) ->
+    return if Grim.includeDeprecatedAPIs
     for packagePath in packagePaths when path.basename(packagePath) is 'sublime-tabs'
       atom.config.removeAtKeyPath('core.disabledPackages', 'tree-view')
       atom.config.removeAtKeyPath('core.disabledPackages', 'tabs')
