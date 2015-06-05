@@ -1270,14 +1270,19 @@ class TextEditorPresenter
 
     flash = decoration.consumeNextFlash()
 
-    startRow = range.start.row
-    while startRow <= range.end.row
-      tileStartRow = @tileForRow(startRow)
-      tileEndRow = tileStartRow + @tileSize
-      tileState = @state.content.tiles[tileStartRow] ?= {highlights: {}}
-      endRow = Math.min(tileEndRow, range.end.row)
 
-      tileRange = new Range(new Point(startRow, 0), new Point(endRow, Infinity))
+    startTile = @tileForRow(range.start.row)
+    endTile = @tileForRow(range.end.row)
+
+    for currentTile in [startTile..endTile] by @tileSize
+      startRow = Math.max(currentTile, range.start.row)
+      endRow = Math.min(currentTile + @tileSize - 1, range.end.row)
+
+      tileState = @state.content.tiles[currentTile] ?= {highlights: {}}
+      tileRange = new Range(
+        new Point(startRow, 0),
+        new Point(endRow, Infinity)
+      )
 
       if startRow is range.start.row
         tileRange.start.column = range.start.column
@@ -1285,11 +1290,13 @@ class TextEditorPresenter
       if endRow is range.end.row
         tileRange.end.column = range.end.column
 
+      console.log "Range for tile #{currentTile}: #{tileRange.toString()}"
+
       highlightState = tileState.highlights[decoration.id] ?= {
         flashCount: 0
         flashDuration: null
         flashClass: null
-        tileRow: tileStartRow
+        tileRow: currentTile
       }
 
       if flash?
@@ -1299,12 +1306,10 @@ class TextEditorPresenter
 
       highlightState.class = properties.class
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
-      highlightState.regions = @buildHighlightRegions(tileStartRow, tileRange)
+      highlightState.regions = @buildHighlightRegions(currentTile, tileRange)
 
-      @visibleHighlights[tileStartRow] ?= {}
-      @visibleHighlights[tileStartRow][decoration.id] = true
-
-      startRow = tileEndRow
+      @visibleHighlights[currentTile] ?= {}
+      @visibleHighlights[currentTile][decoration.id] = true
 
     @emitDidUpdateState()
 
