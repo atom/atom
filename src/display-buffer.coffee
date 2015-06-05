@@ -532,10 +532,11 @@ class DisplayBuffer extends Model
   #
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
-    foldMarker =
-      @findFoldMarker({startRow, endRow}) ?
-        @buffer.markRange([[startRow, 0], [endRow, Infinity]], @getFoldMarkerAttributes())
-    @foldForMarker(foldMarker)
+    unless @largeFileMode
+      foldMarker =
+        @findFoldMarker({startRow, endRow}) ?
+          @buffer.markRange([[startRow, 0], [endRow, Infinity]], @getFoldMarkerAttributes())
+      @foldForMarker(foldMarker)
 
   isFoldedAtBufferRow: (bufferRow) ->
     @largestFoldContainingBufferRow(bufferRow)?

@@ -263,6 +263,8 @@ class TokenizedBuffer extends Model
     row - increment
 
   updateFoldableStatus: (startRow, endRow) ->
+    return [startRow, endRow] if @largeFileMode
+
     scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
     scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
     scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
@@ -278,7 +280,10 @@ class TokenizedBuffer extends Model
     [startRow, endRow]
 
   isFoldableAtRow: (row) ->
-    @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
+    if @largeFileMode
+      false
+    else
+      @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
 
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
