@@ -332,7 +332,6 @@ class TextEditorPresenter
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
       tile = @state.content.tiles[startRow] ?= {}
-      tile.startRow = startRow
       tile.top = startRow * @lineHeight - @scrollTop
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
@@ -1295,7 +1294,6 @@ class TextEditorPresenter
         flashCount: 0
         flashDuration: null
         flashClass: null
-        tileRow: tileStartRow
       }
 
       if flash?
