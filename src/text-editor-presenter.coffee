@@ -1238,6 +1238,22 @@ class TextEditorPresenter
 
     return
 
+  intersectRangeWithTile: (range, tileStartRow) ->
+    intersectingStartRow = Math.max(tileStartRow, range.start.row)
+    intersectingEndRow = Math.min(tileStartRow + @tileSize - 1, range.end.row)
+    intersectingRange = new Range(
+      new Point(intersectingStartRow, 0),
+      new Point(intersectingEndRow, Infinity)
+    )
+
+    if intersectingStartRow is range.start.row
+      intersectingRange.start.column = range.start.column
+
+    if intersectingEndRow is range.end.row
+      intersectingRange.end.column = range.end.column
+
+    intersectingRange
+
   updateHighlightState: (decoration) ->
     return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
 
@@ -1273,27 +1289,13 @@ class TextEditorPresenter
     startTile = @tileForRow(range.start.row)
     endTile = @tileForRow(range.end.row)
 
-    for currentTile in [startTile..endTile] by @tileSize
-      startRow = Math.max(currentTile, range.start.row)
-      endRow = Math.min(currentTile + @tileSize - 1, range.end.row)
-
-      tileState = @state.content.tiles[currentTile] ?= {highlights: {}}
-      tileRange = new Range(
-        new Point(startRow, 0),
-        new Point(endRow, Infinity)
-      )
-
-      if startRow is range.start.row
-        tileRange.start.column = range.start.column
-
-      if endRow is range.end.row
-        tileRange.end.column = range.end.column
-
+    for tileStartRow in [startTile..endTile] by @tileSize
+      tileState = @state.content.tiles[tileStartRow] ?= {highlights: {}}
       highlightState = tileState.highlights[decoration.id] ?= {
         flashCount: 0
         flashDuration: null
         flashClass: null
-        tileRow: currentTile
+        tileRow: tileStartRow
       }
 
       if flash?
@@ -1301,21 +1303,29 @@ class TextEditorPresenter
         highlightState.flashClass = flash.class
         highlightState.flashDuration = flash.duration
 
+      intersectingRange = @intersectRangeWithTile(range, tileStartRow)
       highlightState.class = properties.class
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
-      highlightState.regions = @buildHighlightRegions(currentTile, tileRange)
+      highlightState.regions = @buildHighlightRegions(intersectingRange)
 
-      @visibleHighlights[currentTile] ?= {}
-      @visibleHighlights[currentTile][decoration.id] = true
+      for region in highlightState.regions
+        @repositionRegionWithinTile(region, tileStartRow)
+
+      @visibleHighlights[tileStartRow] ?= {}
+      @visibleHighlights[tileStartRow][decoration.id] = true
 
     @emitDidUpdateState()
 
     true
 
-  buildHighlightRegions: (tileStartRow, screenRange) ->
+  repositionRegionWithinTile: (region, tileStartRow) ->
+    region.top  += @scrollTop - tileStartRow * @lineHeight
+    region.left += @scrollLeft
+
+  buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @lineHeight
-    startPixelPosition = @pixelPositionForScreenPositionInTile(tileStartRow, screenRange.start, false)
-    endPixelPosition = @pixelPositionForScreenPositionInTile(tileStartRow, screenRange.end, false)
+    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, false)
+    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, false)
     spannedRows = screenRange.end.row - screenRange.start.row + 1
 
     regions = []
