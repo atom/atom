@@ -1043,13 +1043,6 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPositionInTile: (tileStartRow, screenPosition, clip) ->
-    position = @pixelPositionForScreenPosition(screenPosition, clip)
-    position.top -= tileStartRow * @lineHeight
-    position.top += @scrollTop
-    position.left += @scrollLeft
-    position
-
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
