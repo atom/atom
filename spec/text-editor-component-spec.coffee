@@ -957,14 +957,15 @@ describe "TextEditorComponent", ->
     it "renders 2 regions for 2-line selections", ->
       editor.setSelectedScreenRange([[1, 6], [2, 10]])
       nextAnimationFrame()
-      regions = componentNode.querySelectorAll('.selection .region')
+      tileNode = componentNode.querySelectorAll(".tile")[0]
+      regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe 2
 
       region1Rect = regions[0].getBoundingClientRect()
       expect(region1Rect.top).toBe 1 * lineHeightInPixels
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
       expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(region1Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region1Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 2 * lineHeightInPixels
@@ -977,42 +978,44 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       # Tile 0
-      regions = componentNode.querySelectorAll(".tile")[0].querySelectorAll('.selection .region')
+      tileNode = componentNode.querySelectorAll(".tile")[0]
+      regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe(3)
 
       region1Rect = regions[0].getBoundingClientRect()
       expect(region1Rect.top).toBe 0
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
       expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(region1Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region1Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 1 * lineHeightInPixels
       expect(region2Rect.height).toBe 1 * lineHeightInPixels
       expect(region2Rect.left).toBe scrollViewClientLeft + 0
-      expect(region2Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region2Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region3Rect = regions[2].getBoundingClientRect()
       expect(region3Rect.top).toBe 2 * lineHeightInPixels
       expect(region3Rect.height).toBe 1 * lineHeightInPixels
       expect(region3Rect.left).toBe scrollViewClientLeft + 0
-      expect(region3Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region3Rect.right).toBe tileNode.getBoundingClientRect().right
 
       # Tile 3
-      regions = componentNode.querySelectorAll(".tile")[1].querySelectorAll('.selection .region')
+      tileNode = componentNode.querySelectorAll(".tile")[1]
+      regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe(3)
 
       region1Rect = regions[0].getBoundingClientRect()
       expect(region1Rect.top).toBe 3 * lineHeightInPixels
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
       expect(region1Rect.left).toBe scrollViewClientLeft + 0
-      expect(region1Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region1Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 4 * lineHeightInPixels
       expect(region2Rect.height).toBe 1 * lineHeightInPixels
       expect(region2Rect.left).toBe scrollViewClientLeft + 0
-      expect(region2Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region2Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region3Rect = regions[2].getBoundingClientRect()
       expect(region3Rect.top).toBe 5 * lineHeightInPixels
