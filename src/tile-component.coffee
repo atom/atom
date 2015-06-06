@@ -14,8 +14,6 @@ cloneObject = (object) ->
 
 module.exports =
 class TileComponent
-  placeholderTextDiv: null
-
   constructor: ({@presenter, @id}) ->
     @tokenIterator = new TokenIterator
     @measuredLines = new Set
