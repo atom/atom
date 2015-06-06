@@ -1136,8 +1136,6 @@ class TextEditorPresenter
         @shouldUpdateLineNumbersState = true
       else if decoration.isType('gutter')
         @shouldUpdateCustomGutterDecorationState = true
-    if decoration.isType('highlight')
-      @updateHighlightState(decoration)
     if decoration.isType('overlay')
       @shouldUpdateOverlaysState = true
 
@@ -1147,14 +1145,14 @@ class TextEditorPresenter
     @observeDecoration(decoration)
 
     if decoration.isType('line') or decoration.isType('gutter')
-      @addToLineDecorationCaches(decoration, decoration.getMarker().getScreenRange())
+      @shouldUpdateDecorations = true
       @shouldUpdateTilesState = true if decoration.isType('line')
       if decoration.isType('line-number')
         @shouldUpdateLineNumbersState = true
       else if decoration.isType('gutter')
         @shouldUpdateCustomGutterDecorationState = true
     else if decoration.isType('highlight')
-      @updateHighlightState(decoration)
+      @shouldUpdateDecorations = true
     else if decoration.isType('overlay')
       @shouldUpdateOverlaysState = true
 
@@ -1413,7 +1411,6 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = true
     @pauseCursorBlinking()
     @updateCursorState(cursor)
-
     @emitDidUpdateState()
 
   startBlinkingCursors: ->

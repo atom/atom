@@ -66,6 +66,25 @@ describe "TextEditor", ->
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
+  describe "when the editor is constructed with the largeFileMode option set to true", ->
+    it "loads the editor but doesn't tokenize", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', largeFileMode: true).then (o) -> editor = o
+
+      runs ->
+        buffer = editor.getBuffer()
+        expect(editor.tokenizedLineForScreenRow(0).text).toBe buffer.lineForRow(0)
+        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
+        expect(editor.tokenizedLineForScreenRow(1).tokens.length).toBe 2 # soft tab
+        expect(editor.tokenizedLineForScreenRow(12).text).toBe buffer.lineForRow(12)
+        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
+        expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+        editor.insertText('hey"')
+        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
+        expect(editor.tokenizedLineForScreenRow(1).tokens.length).toBe 2 # sof tab
+
   describe "when the editor is constructed with an initialLine option", ->
     it "positions the cursor on the specified line", ->
       editor = null

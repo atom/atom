@@ -224,6 +224,17 @@ describe "Workspace", ->
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
 
+    describe "when the file is large (over 2mb)", ->
+      it "opens the editor with largeFileMode: true", ->
+        spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
+
+        editor = null
+        waitsForPromise ->
+          workspace.open('sample.js').then (e) -> editor = e
+
+        runs ->
+          expect(editor.displayBuffer.largeFileMode).toBe true
+
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         fooOpener = (pathToOpen, options) -> {foo: pathToOpen, options} if pathToOpen?.match(/\.foo/)
@@ -271,20 +282,6 @@ describe "Workspace", ->
       notificationSpy = null
       beforeEach ->
         atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
-
-      describe "when a large file is opened", ->
-        beforeEach ->
-          spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
-
-        it "creates a notification", ->
-          waitsForPromise ->
-            workspace.open('file1')
-
-          runs ->
-            expect(notificationSpy).toHaveBeenCalled()
-            notification = notificationSpy.mostRecentCall.args[0]
-            expect(notification.getType()).toBe 'warning'
-            expect(notification.getMessage()).toContain '< 2MB'
 
       describe "when a file does not exist", ->
         it "creates an empty buffer for the specified path", ->
