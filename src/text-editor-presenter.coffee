@@ -1282,6 +1282,10 @@ class TextEditorPresenter
     endTile = @tileForRow(range.end.row)
 
     for tileStartRow in [startTile..endTile] by @tileSize
+      rangeWithinTile = @intersectRangeWithTile(range, tileStartRow)
+
+      continue if rangeWithinTile.isEmpty()
+
       tileState = @state.content.tiles[tileStartRow] ?= {highlights: {}}
       highlightState = tileState.highlights[decoration.id] ?= {
         flashCount: 0
@@ -1294,10 +1298,9 @@ class TextEditorPresenter
         highlightState.flashClass = flash.class
         highlightState.flashDuration = flash.duration
 
-      intersectingRange = @intersectRangeWithTile(range, tileStartRow)
       highlightState.class = properties.class
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
-      highlightState.regions = @buildHighlightRegions(intersectingRange)
+      highlightState.regions = @buildHighlightRegions(rangeWithinTile)
 
       for region in highlightState.regions
         @repositionRegionWithinTile(region, tileStartRow)

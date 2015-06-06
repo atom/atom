@@ -1277,8 +1277,13 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.cursorsVisible).toBe false
 
       describe ".highlights", ->
-        stateForHighlight = (presenter, decoration) ->
-          presenter.getState().content.highlights[decoration.id]
+        expectUndefinedStateForHighlight = (presenter, decoration) ->
+          for startRow, tileState of presenter.getState().content.tiles
+            state = stateForHighlightInTile(presenter, decoration, startRow)
+            expect(state).toBeUndefined()
+
+        stateForHighlightInTile = (presenter, decoration, tile) ->
+          presenter.getState().content.tiles[tile]?.highlights[decoration.id]
 
         stateForSelection = (presenter, selectionIndex) ->
           selection = presenter.model.getSelections()[selectionIndex]
@@ -1297,11 +1302,11 @@ describe "TextEditorPresenter", ->
           marker3 = editor.markBufferRange([[0, 6], [3, 6]])
           highlight3 = editor.decorateMarker(marker3, type: 'highlight', class: 'c')
 
-          # on-screen
+          # on-screen, spans over 2 tiles
           marker4 = editor.markBufferRange([[2, 6], [4, 6]])
           highlight4 = editor.decorateMarker(marker4, type: 'highlight', class: 'd')
 
-          # partially off-screen below, 2 of 3 regions on screen
+          # partially off-screen below, spans over 3 tiles, 2 of 3 regions on screen
           marker5 = editor.markBufferRange([[3, 6], [6, 6]])
           highlight5 = editor.decorateMarker(marker5, type: 'highlight', class: 'e')
 
@@ -1317,51 +1322,67 @@ describe "TextEditorPresenter", ->
           marker8 = editor.markBufferRange([[2, 2], [2, 2]])
           highlight8 = editor.decorateMarker(marker8, type: 'highlight', class: 'h')
 
-          presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
+          presenter = buildPresenter(explicitHeight: 30, scrollTop: 20, tileSize: 2)
 
-          expect(stateForHighlight(presenter, highlight1)).toBeUndefined()
+          expectUndefinedStateForHighlight(presenter, highlight1)
 
-          expectValues stateForHighlight(presenter, highlight2), {
+          expectValues stateForHighlightInTile(presenter, highlight2, 2), {
             class: 'b'
             regions: [
-              {top: 2 * 10 - 20, left: 0 * 10, width: 6 * 10, height: 1 * 10}
+              {top: 0, left: 0 * 10, width: 6 * 10, height: 1 * 10}
             ]
           }
 
-          expectValues stateForHighlight(presenter, highlight3), {
+          expectValues stateForHighlightInTile(presenter, highlight3, 2), {
             class: 'c'
             regions: [
-              {top: 2 * 10 - 20, left: 0 * 10, right: 0, height: 1 * 10}
-              {top: 3 * 10 - 20, left: 0 * 10, width: 6 * 10, height: 1 * 10}
+              {top: 0, left: 0 * 10, right: 0, height: 1 * 10}
+              {top: 10, left: 0 * 10, width: 6 * 10, height: 1 * 10}
             ]
           }
 
-          expectValues stateForHighlight(presenter, highlight4), {
+          expectValues stateForHighlightInTile(presenter, highlight4, 2), {
             class: 'd'
             regions: [
-              {top: 2 * 10 - 20, left: 6 * 10, right: 0, height: 1 * 10}
-              {top: 3 * 10 - 20, left: 0, right: 0, height: 1 * 10}
-              {top: 4 * 10 - 20, left: 0, width: 6 * 10, height: 1 * 10}
+              {top: 0, left: 6 * 10, right: 0, height: 1 * 10}
+              {top: 10, left: 0, right: 0, height: 1 * 10}
+            ]
+          }
+          expectValues stateForHighlightInTile(presenter, highlight4, 4), {
+            class: 'd'
+            regions: [
+              {top: 0, left: 0, width: 60, height: 1 * 10}
             ]
           }
 
-          expectValues stateForHighlight(presenter, highlight5), {
+          expectValues stateForHighlightInTile(presenter, highlight5, 2), {
             class: 'e'
             regions: [
-              {top: 3 * 10 - 20, left: 6 * 10, right: 0, height: 1 * 10}
-              {top: 4 * 10 - 20, left: 0 * 10, right: 0, height: 2 * 10}
+              {top: 10, left: 6 * 10, right: 0, height: 1 * 10}
             ]
           }
 
-          expectValues stateForHighlight(presenter, highlight6), {
+          expectValues stateForHighlightInTile(presenter, highlight5, 4), {
+            class: 'e'
+            regions: [
+              {top: 0, left: 0, right: 0, height: 1 * 10}
+              {top: 10, left: 0, right: 0, height: 1 * 10}
+            ]
+          }
+
+          expect(stateForHighlightInTile(presenter, highlight5, 6)).toBeUndefined()
+
+          expectValues stateForHighlightInTile(presenter, highlight6, 4), {
             class: 'f'
             regions: [
-              {top: 5 * 10 - 20, left: 6 * 10, right: 0, height: 1 * 10}
+              {top: 10, left: 6 * 10, right: 0, height: 1 * 10}
             ]
           }
 
-          expect(stateForHighlight(presenter, highlight7)).toBeUndefined()
-          expect(stateForHighlight(presenter, highlight8)).toBeUndefined()
+          expect(stateForHighlightInTile(presenter, highlight6, 6)).toBeUndefined()
+
+          expectUndefinedStateForHighlight(presenter, highlight7)
+          expectUndefinedStateForHighlight(presenter, highlight8)
 
         it "is empty until all of the required measurements are assigned", ->
           editor.setSelectedBufferRanges([
