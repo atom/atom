@@ -1315,7 +1315,7 @@ class TextEditorPresenter
   buildHighlightRegions: (tileStartRow, screenRange) ->
     lineHeightInPixels = @lineHeight
     startPixelPosition = @pixelPositionForScreenPositionInTile(tileStartRow, screenRange.start, false)
-    endPixelPosition = @pixelPositionForScreenPositionInTile(tileStartRow, screenRange.end, true)
+    endPixelPosition = @pixelPositionForScreenPositionInTile(tileStartRow, screenRange.end, false)
     spannedRows = screenRange.end.row - screenRange.start.row + 1
 
     regions = []
