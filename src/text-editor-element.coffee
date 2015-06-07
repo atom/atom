@@ -192,6 +192,15 @@ class TextEditorElement extends HTMLElement
   pixelPositionForScreenPosition: (screenPosition) ->
     @getModel().pixelPositionForScreenPosition(screenPosition, true)
 
+  # Extended: Converts a pixel position to a screen position.
+  #
+  # * `pixelPosition` An object that represents a pixel position. It should be
+  #   an {Object} (`{top, left}`).
+  #
+  # Returns a {Point} representing the screen position.
+  screenPositionForPixelPosition: (pixelPosition) ->
+    @getModel().screenPositionForPixelPosition(pixelPosition);
+
   # Extended: Retrieves the number of the row that is visible and currently at the
   # top of the editor.
   #
