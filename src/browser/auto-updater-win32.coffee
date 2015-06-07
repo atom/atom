@@ -14,6 +14,8 @@ class AutoUpdater
       require('auto-updater').quitAndInstall()
 
   downloadUpdate: (callback) ->
+    @emit 'update-available'
+
     SquirrelUpdate.spawn ['--download', @updateUrl], (error, stdout) ->
       return callback(error) if error?
 
@@ -56,7 +58,6 @@ class AutoUpdater
           @emit 'update-not-available'
           return
 
-        @emit 'update-available'
         @emit 'update-downloaded', {}, update.releaseNotes, update.version, new Date(), 'https://atom.io', => @quitAndInstall()
 
 module.exports = new AutoUpdater()
