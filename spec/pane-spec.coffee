@@ -3,7 +3,7 @@ Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
 
-fdescribe "Pane", ->
+describe "Pane", ->
   deserializerDisposable = null
 
   class Item extends Model
