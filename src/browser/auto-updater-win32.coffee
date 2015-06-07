@@ -14,8 +14,6 @@ class AutoUpdater
       require('auto-updater').quitAndInstall()
 
   downloadUpdate: (callback) ->
-    @emit 'update-available'
-
     SquirrelUpdate.spawn ['--download', @updateUrl], (error, stdout) ->
       return callback(error) if error?
 
@@ -52,6 +50,8 @@ class AutoUpdater
       unless update?
         @emit 'update-not-available'
         return
+
+      @emit 'update-available'
 
       @installUpdate (error) =>
         if error?
