@@ -784,6 +784,8 @@ class Atom extends Model
     callback(showSaveDialogSync())
 
   showSaveDialogSync: (options={}) ->
+    if _.isString(options)
+      options = defaultPath: options
     currentWindow = @getCurrentWindow()
     dialog = remote.require('dialog')
     options.title ?= 'Save File'
