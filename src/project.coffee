@@ -128,8 +128,8 @@ class Project extends Model
   # Prefer the following, which evaluates to a {Promise} that resolves to an
   # {Array} of {Repository} objects:
   # ```
-  # Promise.all(project.getDirectories().map(
-  #     project.repositoryForDirectory.bind(project)))
+  # Promise.all(atom.project.getDirectories().map(
+  #     atom.project.repositoryForDirectory.bind(atom.project)))
   # ```
   getRepositories: -> @repositories
 
