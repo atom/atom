@@ -89,19 +89,19 @@ describe "TextEditorComponent", ->
       expect(tilesNodes.length).toBe(3)
 
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
-      expect(tilesNodes[0].children.length).toBe(tileSize)
+      expect(tilesNodes[0].querySelectorAll(".line").length).toBe(tileSize)
       expectTileContainsRow(tilesNodes[0], 0, top: 0 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[0], 1, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[0], 2, top: 2 * lineHeightInPixels)
 
       expect(tilesNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * tileHeight}px, 0px)"
-      expect(tilesNodes[1].children.length).toBe(tileSize)
+      expect(tilesNodes[1].querySelectorAll(".line").length).toBe(tileSize)
       expectTileContainsRow(tilesNodes[1], 3, top: 0 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[1], 4, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[1], 5, top: 2 * lineHeightInPixels)
 
       expect(tilesNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * tileHeight}px, 0px)"
-      expect(tilesNodes[2].children.length).toBe(tileSize)
+      expect(tilesNodes[2].querySelectorAll(".line").length).toBe(tileSize)
       expectTileContainsRow(tilesNodes[2], 6, top: 0 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[2], 7, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[2], 8, top: 2 * lineHeightInPixels)
@@ -118,19 +118,19 @@ describe "TextEditorComponent", ->
       expect(tilesNodes.length).toBe(3)
 
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, -5px, 0px)"
-      expect(tilesNodes[0].children.length).toBe(tileSize)
+      expect(tilesNodes[0].querySelectorAll(".line").length).toBe(tileSize)
       expectTileContainsRow(tilesNodes[0], 3, top: 0 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[0], 4, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[0], 5, top: 2 * lineHeightInPixels)
 
       expect(tilesNodes[1].style['-webkit-transform']).toBe "translate3d(0px, #{1 * tileHeight - 5}px, 0px)"
-      expect(tilesNodes[1].children.length).toBe(tileSize)
+      expect(tilesNodes[1].querySelectorAll(".line").length).toBe(tileSize)
       expectTileContainsRow(tilesNodes[1], 6, top: 0 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[1], 7, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[1], 8, top: 2 * lineHeightInPixels)
 
       expect(tilesNodes[2].style['-webkit-transform']).toBe "translate3d(0px, #{2 * tileHeight - 5}px, 0px)"
-      expect(tilesNodes[2].children.length).toBe(tileSize)
+      expect(tilesNodes[2].querySelectorAll(".line").length).toBe(tileSize)
       expectTileContainsRow(tilesNodes[2], 9, top: 0 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[2], 10, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[2], 11, top: 2 * lineHeightInPixels)
@@ -246,8 +246,10 @@ describe "TextEditorComponent", ->
       # lines caused full-screen repaints after switching away from an editor
       # and back again Please ensure you don't cause a performance regression if
       # you change this behavior.
+      editorFullWidth = editor.getScrollWidth() + editor.getVerticalScrollbarWidth()
+
       for lineNode in lineNodes
-        expect(lineNode.style.width).toBe editor.getScrollWidth() + 'px'
+        expect(lineNode.style.width).toBe editorFullWidth + 'px'
 
       componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
       component.measureDimensions()
@@ -957,14 +959,15 @@ describe "TextEditorComponent", ->
     it "renders 2 regions for 2-line selections", ->
       editor.setSelectedScreenRange([[1, 6], [2, 10]])
       nextAnimationFrame()
-      regions = componentNode.querySelectorAll('.selection .region')
+      tileNode = componentNode.querySelectorAll(".tile")[0]
+      regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe 2
 
       region1Rect = regions[0].getBoundingClientRect()
       expect(region1Rect.top).toBe 1 * lineHeightInPixels
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
       expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(region1Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region1Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region2Rect = regions[1].getBoundingClientRect()
       expect(region2Rect.top).toBe 2 * lineHeightInPixels
@@ -972,23 +975,49 @@ describe "TextEditorComponent", ->
       expect(region2Rect.left).toBe scrollViewClientLeft + 0
       expect(region2Rect.width).toBe 10 * charWidth
 
-    it "renders 3 regions for selections with more than 2 lines", ->
-      editor.setSelectedScreenRange([[1, 6], [5, 10]])
+    it "renders 3 regions per tile for selections with more than 2 lines", ->
+      editor.setSelectedScreenRange([[0, 6], [5, 10]])
       nextAnimationFrame()
-      regions = componentNode.querySelectorAll('.selection .region')
-      expect(regions.length).toBe 3
+
+      # Tile 0
+      tileNode = componentNode.querySelectorAll(".tile")[0]
+      regions = tileNode.querySelectorAll('.selection .region')
+      expect(regions.length).toBe(3)
 
       region1Rect = regions[0].getBoundingClientRect()
-      expect(region1Rect.top).toBe 1 * lineHeightInPixels
+      expect(region1Rect.top).toBe 0
       expect(region1Rect.height).toBe 1 * lineHeightInPixels
       expect(region1Rect.left).toBe scrollViewClientLeft + 6 * charWidth
-      expect(region1Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region1Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region2Rect = regions[1].getBoundingClientRect()
-      expect(region2Rect.top).toBe 2 * lineHeightInPixels
-      expect(region2Rect.height).toBe 3 * lineHeightInPixels
+      expect(region2Rect.top).toBe 1 * lineHeightInPixels
+      expect(region2Rect.height).toBe 1 * lineHeightInPixels
       expect(region2Rect.left).toBe scrollViewClientLeft + 0
-      expect(region2Rect.right).toBe scrollViewNode.getBoundingClientRect().right
+      expect(region2Rect.right).toBe tileNode.getBoundingClientRect().right
+
+      region3Rect = regions[2].getBoundingClientRect()
+      expect(region3Rect.top).toBe 2 * lineHeightInPixels
+      expect(region3Rect.height).toBe 1 * lineHeightInPixels
+      expect(region3Rect.left).toBe scrollViewClientLeft + 0
+      expect(region3Rect.right).toBe tileNode.getBoundingClientRect().right
+
+      # Tile 3
+      tileNode = componentNode.querySelectorAll(".tile")[1]
+      regions = tileNode.querySelectorAll('.selection .region')
+      expect(regions.length).toBe(3)
+
+      region1Rect = regions[0].getBoundingClientRect()
+      expect(region1Rect.top).toBe 3 * lineHeightInPixels
+      expect(region1Rect.height).toBe 1 * lineHeightInPixels
+      expect(region1Rect.left).toBe scrollViewClientLeft + 0
+      expect(region1Rect.right).toBe tileNode.getBoundingClientRect().right
+
+      region2Rect = regions[1].getBoundingClientRect()
+      expect(region2Rect.top).toBe 4 * lineHeightInPixels
+      expect(region2Rect.height).toBe 1 * lineHeightInPixels
+      expect(region2Rect.left).toBe scrollViewClientLeft + 0
+      expect(region2Rect.right).toBe tileNode.getBoundingClientRect().right
 
       region3Rect = regions[2].getBoundingClientRect()
       expect(region3Rect.top).toBe 5 * lineHeightInPixels
@@ -1219,7 +1248,7 @@ describe "TextEditorComponent", ->
 
       expect(regions.length).toBe 1
       regionRect = regions[0].style
-      expect(regionRect.top).toBe (9 * lineHeightInPixels - verticalScrollbarNode.scrollTop) + 'px'
+      expect(regionRect.top).toBe (0 + 'px')
       expect(regionRect.height).toBe 1 * lineHeightInPixels + 'px'
       expect(regionRect.left).toBe 2 * charWidth + 'px'
       expect(regionRect.width).toBe 2 * charWidth + 'px'
@@ -1263,10 +1292,10 @@ describe "TextEditorComponent", ->
     it "allows multiple space-delimited decoration classes", ->
       decoration.setProperties(type: 'highlight', class: 'foo bar')
       nextAnimationFrame()
-      expect(componentNode.querySelectorAll('.foo.bar').length).toBe 1
+      expect(componentNode.querySelectorAll('.foo.bar').length).toBe 2
       decoration.setProperties(type: 'highlight', class: 'bar baz')
       nextAnimationFrame()
-      expect(componentNode.querySelectorAll('.bar.baz').length).toBe 1
+      expect(componentNode.querySelectorAll('.bar.baz').length).toBe 2
 
     it "renders classes on the regions directly if 'deprecatedRegionClass' option is defined", ->
       decoration = editor.decorateMarker(marker, type: 'highlight', class: 'test-highlight', deprecatedRegionClass: 'test-highlight-region')
@@ -1278,7 +1307,7 @@ describe "TextEditorComponent", ->
     describe "when flashing a decoration via Decoration::flash()", ->
       highlightNode = null
       beforeEach ->
-        highlightNode = componentNode.querySelector('.test-highlight')
+        highlightNode = componentNode.querySelectorAll('.test-highlight')[1]
 
       it "adds and removes the flash class specified in ::flash", ->
         expect(highlightNode.classList.contains('flash-class')).toBe false
@@ -1314,13 +1343,15 @@ describe "TextEditorComponent", ->
         regionStyle = componentNode.querySelector('.test-highlight .region').style
         originalTop = parseInt(regionStyle.top)
 
+        expect(originalTop).toBe(2 * lineHeightInPixels)
+
         editor.getBuffer().insert([0, 0], '\n')
         nextAnimationFrame()
 
         regionStyle = componentNode.querySelector('.test-highlight .region').style
         newTop = parseInt(regionStyle.top)
 
-        expect(newTop).toBe originalTop + lineHeightInPixels
+        expect(newTop).toBe(0)
 
       it "moves rendered highlights when the marker is manually moved", ->
         regionStyle = componentNode.querySelector('.test-highlight .region').style
@@ -1330,7 +1361,7 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
 
         regionStyle = componentNode.querySelector('.test-highlight .region').style
-        expect(parseInt(regionStyle.top)).toBe 5 * lineHeightInPixels
+        expect(parseInt(regionStyle.top)).toBe 2 * lineHeightInPixels
 
     describe "when a decoration is updated via Decoration::update", ->
       it "renders the decoration's new params", ->
