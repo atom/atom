@@ -224,7 +224,7 @@ describe "Workspace", ->
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
 
-    describe "when the file is large (over 2mb)", ->
+    describe "when the file is over 2MB", ->
       it "opens the editor with largeFileMode: true", ->
         spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
 
@@ -233,6 +233,30 @@ describe "Workspace", ->
           workspace.open('sample.js').then (e) -> editor = e
 
         runs ->
+          expect(editor.displayBuffer.largeFileMode).toBe true
+
+    describe "when the file is over 20MB", ->
+      it "prompts the user to make sure they want to open a file this big", ->
+        spyOn(fs, 'getSizeSync').andReturn 20 * 1048577 # 20MB
+        spyOn(atom, 'confirm').andCallFake -> selectedButtonIndex
+        selectedButtonIndex = 1 # cancel
+
+        editor = null
+        waitsForPromise ->
+          workspace.open('sample.js').then (e) -> editor = e
+
+        runs ->
+          expect(editor).toBeUndefined()
+          expect(atom.confirm).toHaveBeenCalled()
+
+          atom.confirm.reset()
+          selectedButtonIndex = 0 # open the file
+
+        waitsForPromise ->
+          workspace.open('sample.js').then (e) -> editor = e
+
+        runs ->
+          expect(atom.confirm).toHaveBeenCalled()
           expect(editor.displayBuffer.largeFileMode).toBe true
 
     describe "when passed a path that matches a custom opener", ->
