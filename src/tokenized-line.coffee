@@ -102,10 +102,11 @@ class TokenizedLine
           substringEnd += 1
         else
           if (screenColumn + 1) % @tabLength is 0
-            @specialTokens[tokenIndex] = SoftTab
             suffix = @tags[tokenIndex] - @tabLength
-            @tags.splice(tokenIndex, 1, @tabLength)
-            @tags.splice(tokenIndex + 1, 0, suffix) if suffix > 0
+            if suffix >= 0
+              @specialTokens[tokenIndex] = SoftTab
+              @tags.splice(tokenIndex, 1, @tabLength)
+              @tags.splice(tokenIndex + 1, 0, suffix) if suffix > 0
 
           if @invisibles?.space
             if substringEnd > substringStart
