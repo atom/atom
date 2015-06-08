@@ -54,14 +54,14 @@ class LinesComponent
     @removeTileNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateTileNodes()
 
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      @domNode.style.width = @newState.scrollWidth + 'px'
-      @oldState.scrollWidth = @newState.scrollWidth
+    if @newState.width isnt @oldState.width
+      @domNode.style.width = @newState.width + 'px'
 
     @cursorsComponent.updateSync(state)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
+    @oldState.width = @newState.width
 
   removeTileNodes: ->
     @removeTileNode(id) for id of @oldState.tiles

@@ -246,8 +246,10 @@ describe "TextEditorComponent", ->
       # lines caused full-screen repaints after switching away from an editor
       # and back again Please ensure you don't cause a performance regression if
       # you change this behavior.
+      editorFullWidth = editor.getScrollWidth() + editor.getVerticalScrollbarWidth()
+
       for lineNode in lineNodes
-        expect(lineNode.style.width).toBe editor.getScrollWidth() + 'px'
+        expect(lineNode.style.width).toBe editorFullWidth + 'px'
 
       componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
       component.measureDimensions()
