@@ -593,6 +593,16 @@ class TextEditor extends Model
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
 
+  # Private: Return [save options](http://electron.atom.io/docs/v0.27.0/api/di
+  # alog/#dialog.showsavedialog(%5Bbrowserwindow%5D,-%5Boptions%5D,-%5Bcallbac
+  # k%5D)) to be used when displaying the save dialog.
+  #
+  # Default empty options are returned now. In the future this would be the
+  # place to start implementing things like: https://discuss.atom.io/t
+  # /request-saving- file-with-correct-extension/17521
+  getSaveDialogOptions: ->
+    {}
+
   # Extended: Returns the {String} character set encoding of this editor's text
   # buffer.
   getEncoding: -> @buffer.getEncoding()
