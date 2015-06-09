@@ -70,29 +70,3 @@ describe "Task", ->
     task.terminate()
     expect(stdout.listeners('data').length).toBe 0
     expect(stderr.listeners('data').length).toBe 0
-
-  describe "::cancel()", ->
-    it "dispatches 'task:cancelled' when invoked on an active task", ->
-      task = new Task(require.resolve('./fixtures/task-spec-handler'))
-      cancelledEventSpy = jasmine.createSpy('eventSpy')
-      task.on('task:cancelled', cancelledEventSpy)
-      completedEventSpy = jasmine.createSpy('eventSpy')
-      task.on('task:completed', completedEventSpy)
-
-      expect(task.cancel()).toBe(true)
-      expect(cancelledEventSpy).toHaveBeenCalled()
-      expect(completedEventSpy).not.toHaveBeenCalled()
-
-    it "does not dispatch 'task:cancelled' when invoked on an inactive task", ->
-      handlerResult = null
-      task = Task.once require.resolve('./fixtures/task-spec-handler'), (result) ->
-        handlerResult = result
-
-      waitsFor ->
-        handlerResult?
-
-      runs ->
-        cancelledEventSpy = jasmine.createSpy('eventSpy')
-        task.on('task:cancelled', cancelledEventSpy)
-        expect(task.cancel()).toBe(false)
-        expect(cancelledEventSpy).not.toHaveBeenCalled()
