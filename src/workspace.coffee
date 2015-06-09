@@ -7,7 +7,6 @@ Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 fs = require 'fs-plus'
-DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
 TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
@@ -46,13 +45,6 @@ class Workspace extends Model
 
     @paneContainer ?= new PaneContainer()
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
-
-    @directorySearchers = []
-    @defaultDirectorySearcher = new DefaultDirectorySearcher()
-    atom.packages.serviceHub.consume(
-      'atom.directory-searcher',
-      '^0.1.0',
-      (provider) => @directorySearchers.unshift(provider))
 
     @panelContainers =
       top: new PanelContainer({location: 'top'})
@@ -799,65 +791,36 @@ class Workspace extends Model
   # * `regex` {RegExp} to search with.
   # * `options` (optional) {Object} (default: {})
   #   * `paths` An {Array} of glob patterns to search within
-  #   * `onPathsSearched` (optional) {Function}
   # * `iterator` {Function} callback on each file found
   #
-  # Returns a `Promise` with a `cancel()` method that will cancel all
-  # of the underlying searches that were started as part of this scan.
+  # Returns a `Promise`.
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
       iterator = options
       options = {}
 
-    # Find a searcher for every Directory in the project. Each searcher that is matched
-    # will be associated with an Array of Directory objects in the Map.
-    directoriesForSearcher = new Map()
-    for directory in atom.project.getDirectories()
-      searcher = @defaultDirectorySearcher
-      for directorySearcher in @directorySearchers
-        if directorySearcher.canSearchDirectory(directory)
-          searcher = directorySearcher
-          break
-      directories = directoriesForSearcher.get(searcher)
-      unless directories
-        directories = []
-        directoriesForSearcher.set(searcher, directories)
-      directories.push(directory)
+    deferred = Q.defer()
 
-    # Define the onPathsSearched callback.
+    searchOptions =
+      ignoreCase: regex.ignoreCase
+      inclusions: options.paths
+      includeHidden: true
+      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
+      exclusions: atom.config.get('core.ignoredNames')
+      follow: atom.config.get('core.followSymlinks')
+
+    task = Task.once require.resolve('./scan-handler'), atom.project.getPaths(), regex.source, searchOptions, ->
+      deferred.resolve()
+
+    task.on 'scan:result-found', (result) ->
+      iterator(result) unless atom.project.isPathModified(result.filePath)
+
+    task.on 'scan:file-error', (error) ->
+      iterator(null, error)
+
     if _.isFunction(options.onPathsSearched)
-      # Maintain a map of directories to the number of search results. When notified of a new count,
-      # replace the entry in the map and update the total.
-      onPathsSearchedOption = options.onPathsSearched
-      totalNumberOfPathsSearched = 0
-      numberOfPathsSearchedForSearcher = new Map()
-      onPathsSearched = (searcher, numberOfPathsSearched) ->
-        oldValue = numberOfPathsSearchedForSearcher.get(searcher)
-        if oldValue
-          totalNumberOfPathsSearched -= oldValue
-        numberOfPathsSearchedForSearcher.set(searcher, numberOfPathsSearched)
-        totalNumberOfPathsSearched += numberOfPathsSearched
-        onPathsSearchedOption(totalNumberOfPathsSearched)
-    else
-      onPathsSearched = ->
-
-    # Kick off all of the searches and unify them into one Promise.
-    allSearches = []
-    directoriesForSearcher.forEach (directories, searcher) ->
-      searchOptions =
-        inclusions: options.paths or []
-        includeHidden: true
-        excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-        exclusions: atom.config.get('core.ignoredNames')
-        follow: atom.config.get('core.followSymlinks')
-        didMatch: (result) ->
-          iterator(result) unless atom.project.isPathModified(result.filePath)
-        didError: (error) ->
-          iterator(null, error)
-        didSearchPaths: (count) -> onPathsSearched(searcher, count)
-      directorySearcher = searcher.search(directories, regex, searchOptions)
-      allSearches.push(directorySearcher)
-    searchPromise = Promise.all(allSearches)
+      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
+        options.onPathsSearched(numberOfPathsSearched)
 
     for buffer in atom.project.getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
@@ -866,33 +829,11 @@ class Workspace extends Model
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0
 
-    # Make sure the Promise that is returned to the client is cancelable. To be consistent
-    # with the existing behavior, instead of cancel() rejecting the promise, it should
-    # resolve it with the special value 'cancelled'. At least the built-in find-and-replace
-    # package relies on this behavior.
-    isCancelled = false
-    cancellablePromise = new Promise (resolve, reject) ->
-      onSuccess = ->
-        resolve(null)
-      onFailure = ->
-        if isCancelled
-          resolve('cancelled')
-        else
-          reject()
-      searchPromise.then(onSuccess, onFailure)
-    cancellablePromise.cancel = ->
-      isCancelled = true
-      # Note that cancelling all (or actually, any) of the members of allSearches
-      # will cause searchPromise to reject, which will cause cancellablePromise to resolve
-      # in the desired way.
-      promise.cancel() for promise in allSearches
-
-    # Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
-    # method in the find-and-replace package expects the object returned by this method to have a
-    # `done()` method. Include a done() method until find-and-replace can be updated.
-    cancellablePromise.done = (onSuccessOrFailure) ->
-      cancellablePromise.then(onSuccessOrFailure, onSuccessOrFailure)
-    cancellablePromise
+    promise = deferred.promise
+    promise.cancel = ->
+      task.terminate()
+      deferred.resolve('cancelled')
+    promise
 
   # Public: Performs a replace across all the specified files in the project.
   #

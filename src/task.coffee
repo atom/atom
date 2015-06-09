@@ -150,7 +150,7 @@ class Task
   #
   # No more events are emitted once this method is called.
   terminate: ->
-    return false unless @childProcess?
+    return unless @childProcess?
 
     @childProcess.removeAllListeners()
     @childProcess.stdout.removeAllListeners()
@@ -158,10 +158,4 @@ class Task
     @childProcess.kill()
     @childProcess = null
 
-    true
-
-  cancel: ->
-    didForcefullyTerminate = @terminate()
-    if didForcefullyTerminate
-      @emit('task:cancelled')
-    didForcefullyTerminate
+    undefined
