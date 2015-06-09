@@ -472,8 +472,12 @@ class Atom extends Model
     ipc.send('call-window-method', 'restart')
 
   # Extended: Returns a {Boolean} true when the current window is maximized.
-  isMaximixed: ->
+  isMaximized: ->
     @getCurrentWindow().isMaximized()
+
+  isMaximixed: ->
+    deprecate "Use atom.isMaximized() instead"
+    @isMaximized()
 
   maximize: ->
     ipc.send('call-window-method', 'maximize')
