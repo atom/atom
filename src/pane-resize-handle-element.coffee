@@ -17,8 +17,8 @@ class PaneResizeHandleElement extends HTMLElement
 
   resizeToFitContent: ->
     # clear flex-grow css style of both pane
-    @previousSibling.model.setFlexScale(1)
-    @nextSibling.model.setFlexScale(1)
+    @previousSibling?.model.setFlexScale(1)
+    @nextSibling?.model.setFlexScale(1)
 
   resizeStarted: (e) ->
     e.stopPropagation()
