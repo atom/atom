@@ -166,7 +166,6 @@ class AtomWindow
 
   openLocations: (locationsToOpen) ->
     if @loaded
-      @focus()
       @sendMessage 'open-locations', locationsToOpen
     else
       @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
