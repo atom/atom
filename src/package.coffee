@@ -43,9 +43,9 @@ class Package
           @normalizeMetadata(metadata)
         catch error
           throw error unless ignoreErrors
-
-    metadata ?= {}
-    metadata.name = packageName
+      else
+        metadata ?= {}
+        metadata.name = packageName
 
     if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
