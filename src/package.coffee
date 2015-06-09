@@ -44,6 +44,7 @@ class Package
         catch error
           throw error unless ignoreErrors
 
+    metadata ?= {}
     metadata.name ?= packageName
 
     if includeDeprecatedAPIs and metadata.stylesheetMain?
