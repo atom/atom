@@ -2,6 +2,7 @@ path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
 Pane = require '../src/pane'
+{Directory} = require 'pathwatcher'
 {View} = require '../src/space-pen-extensions'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
@@ -903,6 +904,16 @@ describe "Workspace", ->
 
           runs ->
             expect(resultPaths.sort()).toEqual([file1, file2].sort())
+
+        it "respects the rootDirectories filter option", ->
+          resultPaths = []
+          options =
+            rootDirectories: [new Directory(dir1)]
+          waitsForPromise ->
+            atom.workspace.scan /aaaa/, options, ({filePath}) ->
+              resultPaths.push(filePath)
+          runs ->
+            expect(resultPaths).toEqual([file1])
 
         describe "when an inclusion path starts with the basename of a root directory", ->
           it "interprets the inclusion path as starting from that directory", ->
