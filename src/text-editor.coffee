@@ -75,7 +75,7 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}={}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
 
     @emitter = new Emitter
@@ -84,7 +84,7 @@ class TextEditor extends Model
     @selections = []
 
     buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
@@ -325,7 +325,7 @@ class TextEditor extends Model
   onWillInsertText: (callback) ->
     @emitter.on 'will-insert-text', callback
 
-  # Extended: Calls your `callback` adter text has been inserted.
+  # Extended: Calls your `callback` after text has been inserted.
   #
   # * `callback` {Function}
   #   * `event` event {Object}

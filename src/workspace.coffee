@@ -22,8 +22,8 @@ Task = require './task'
 # An instance of this class is available via the `atom.workspace` global.
 #
 # Interact with this object to open files, be notified of current and future
-# editors, and manipulate panes. To add panels, you'll need to use the
-# {WorkspaceView} class for now until we establish APIs at the model layer.
+# editors, and manipulate panes. To add panels, use {Workspace::addTopPanel}
+# and friends.
 #
 # * `editor` {TextEditor} the new editor
 #

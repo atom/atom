@@ -1,7 +1,6 @@
 {$$} = require 'space-pen'
 
 CursorsComponent = require './cursors-component'
-HighlightsComponent = require './highlights-component'
 TileComponent = require './tile-component'
 TiledComponent = require './tiled-component'
 
@@ -17,9 +16,6 @@ class LinesComponent extends TiledComponent
 
     @cursorsComponent = new CursorsComponent(@presenter)
     @domNode.appendChild(@cursorsComponent.getDomNode())
-
-    @highlightsComponent = new HighlightsComponent(@presenter)
-    @domNode.appendChild(@highlightsComponent.getDomNode())
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -39,11 +35,6 @@ class LinesComponent extends TiledComponent
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
       @domNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
-
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      @domNode.style.width = @newState.scrollWidth + 'px'
-      @oldState.scrollWidth = @newState.scrollWidth
 
   afterUpdateSync: (state) ->
     if @newState.placeholderText isnt @oldState.placeholderText
@@ -54,11 +45,18 @@ class LinesComponent extends TiledComponent
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
 
+    @removeTileNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
+    @updateTileNodes()
+
+    if @newState.width isnt @oldState.width
+      @domNode.style.width = @newState.width + 'px'
+
     @cursorsComponent.updateSync(state)
-    @highlightsComponent.updateSync(state)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
+    @oldState.width = @newState.width
+    @oldState.backgroundColor = @newState.backgroundColor
 
   buildComponentForTile: (id) -> new TileComponent({id, @presenter})
 

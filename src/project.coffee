@@ -128,8 +128,8 @@ class Project extends Model
   # Prefer the following, which evaluates to a {Promise} that resolves to an
   # {Array} of {Repository} objects:
   # ```
-  # Promise.all(project.getDirectories().map(
-  #     project.repositoryForDirectory.bind(project)))
+  # Promise.all(atom.project.getDirectories().map(
+  #     atom.project.repositoryForDirectory.bind(atom.project)))
   # ```
   getRepositories: -> @repositories
 
@@ -376,11 +376,6 @@ class Project extends Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    if fs.getSizeSync(absoluteFilePath) >= 2 * 1048576 # 2MB
-      error = new Error("Atom can only handle files < 2MB for now.")
-      error.code = 'EFILETOOLARGE'
-      throw error
-
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.load()
@@ -410,7 +405,8 @@ class Project extends Model
     buffer?.destroy()
 
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new TextEditor(_.extend({buffer, registerEditor: true}, editorOptions))
+    largeFileMode = fs.getSizeSync(buffer.getPath()) >= 2 * 1048576 # 2MB
+    editor = new TextEditor(_.extend({buffer, largeFileMode, registerEditor: true}, editorOptions))
     editor
 
   eachBuffer: (args...) ->
