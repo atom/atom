@@ -505,9 +505,9 @@ class Atom extends Model
   displayWindow: ->
     dimensions = @restoreWindowDimensions()
     @show()
+    @focus()
 
     setImmediate =>
-      @focus()
       @setFullScreen(true) if @workspace?.fullScreen
       @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
 
