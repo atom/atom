@@ -31,6 +31,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 * `sudo pacman -S gconf base-devel git nodejs libgnome-keyring python2`
 * `export python=/usr/bin/python2` before building Atom.
+* if you have both python2 and python3, it would be best to `ln -s /usr/bin/python2 /usr/bin/python`
 
 ### Slackware
 
