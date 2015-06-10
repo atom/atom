@@ -45,7 +45,8 @@ class Package
           throw error unless ignoreErrors
 
     metadata ?= {}
-    metadata.name ?= packageName
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
 
     if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
