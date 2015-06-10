@@ -873,18 +873,16 @@ class Workspace extends Model
     isCancelled = false
     cancellablePromise = new Promise (resolve, reject) ->
       onSuccess = ->
-        resolve(null)
-      onFailure = ->
         if isCancelled
           resolve('cancelled')
         else
-          reject()
-      searchPromise.then(onSuccess, onFailure)
+          resolve(null)
+      searchPromise.then(onSuccess, reject)
     cancellablePromise.cancel = ->
       isCancelled = true
-      # Note that cancelling all (or actually, any) of the members of allSearches
-      # will cause searchPromise to reject, which will cause cancellablePromise to resolve
-      # in the desired way.
+      # Note that cancelling all of the members of allSearches will cause all of the searches
+      # to resolve, which causes searchPromise to resolve, which is ultimately what causes
+      # cancellablePromise to resolve.
       promise.cancel() for promise in allSearches
 
     # Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`

@@ -954,7 +954,9 @@ describe "Workspace", ->
               @promise.then.apply(@promise, args)
             cancel: ->
               @cancelled = true
-              @hoistedReject()
+              # According to the spec for a DirectorySearcher, invoking `cancel()` should
+              # resolve the thenable rather than reject it.
+              @hoistedResolve()
 
           beforeEach ->
             fakeSearch = null
