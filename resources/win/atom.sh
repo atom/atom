@@ -15,8 +15,10 @@ while getopts ":fhtvw-:" opt; do
   esac
 done
 
+directory=$(dirname "$0")
+
 if [ $EXPECT_OUTPUT ]; then
-  "$0/../../../atom.exe" "$@"
+  "$directory/../../atom.exe" "$@"
 else
-  "$0/../../app/apm/bin/node.exe" "$0/../atom.js" "$@"
+  "$directory/../app/apm/bin/node.exe" "$directory/atom.js" "$@"
 fi

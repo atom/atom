@@ -87,7 +87,7 @@ class AtomWindow
       hash: encodeURIComponent(JSON.stringify(loadSettings))
 
   getLoadSettings: ->
-    if @browserWindow.webContents.loaded
+    if @browserWindow.webContents?.loaded
       hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
       JSON.parse(decodeURIComponent(hash))
 
@@ -166,7 +166,6 @@ class AtomWindow
 
   openLocations: (locationsToOpen) ->
     if @loaded
-      @focus()
       @sendMessage 'open-locations', locationsToOpen
     else
       @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)

@@ -472,8 +472,12 @@ class Atom extends Model
     ipc.send('call-window-method', 'restart')
 
   # Extended: Returns a {Boolean} true when the current window is maximized.
-  isMaximixed: ->
+  isMaximized: ->
     @getCurrentWindow().isMaximized()
+
+  isMaximixed: ->
+    deprecate "Use atom.isMaximized() instead"
+    @isMaximized()
 
   maximize: ->
     ipc.send('call-window-method', 'maximize')
@@ -501,9 +505,9 @@ class Atom extends Model
   displayWindow: ->
     dimensions = @restoreWindowDimensions()
     @show()
+    @focus()
 
     setImmediate =>
-      @focus()
       @setFullScreen(true) if @workspace?.fullScreen
       @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
 
