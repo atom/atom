@@ -84,7 +84,7 @@ class Selection extends Model
 
   # Public: Modifies the buffer {Range} for the selection.
   #
-  # * `screenRange` The new {Range} to select.
+  # * `bufferRange` The new {Range} to select.
   # * `options` (optional) {Object} with the keys:
   #   * `preserveFolds` if `true`, the fold settings are preserved after the
   #     selection moves.
