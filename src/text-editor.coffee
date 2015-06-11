@@ -1561,6 +1561,17 @@ class TextEditor extends Model
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
+  # Essential: Get a {Cursor} at given screen coordinates {Point}
+  #
+  #* `position` A {Point}
+  #
+  # Returns the first matched {Cursor} or undefined
+  getCursorAtScreenPosition: (position) ->
+    cursorsAtPoint = @cursors.filter (cursor) ->
+      cursorPosition = cursor.getScreenPosition()
+      cursorPosition.row is position.row and cursorPosition.column is position.column
+    if cursorsAtPoint.length > 0 then cursorsAtPoint[0] else undefined
+
   # Essential: Get the position of the most recently added cursor in screen
   # coordinates.
   #
