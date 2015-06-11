@@ -492,8 +492,9 @@ class Pane extends Model
   saveItemAs: (item, nextAction) ->
     return unless item?.saveAs?
 
-    itemPath = item.getPath?()
-    newItemPath = atom.showSaveDialogSync(itemPath)
+    saveOptions = item.getSaveDialogOptions?() ? {}
+    saveOptions.defaultPath ?= item.getPath()
+    newItemPath = atom.showSaveDialogSync(saveOptions)
     if newItemPath
       try
         item.saveAs(newItemPath)
