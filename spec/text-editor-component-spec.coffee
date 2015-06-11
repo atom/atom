@@ -1578,19 +1578,19 @@ describe "TextEditorComponent", ->
 
         describe "when there are multiple cursors, and one of the cursor's screen position is the same as the mouse click screen position", ->
           it "removes a cursor at the mouse screen position", ->
-            editor.setCursorScreenPosition([3,4])
-            editor.addCursorAtScreenPosition([5,2])
+            editor.setCursorScreenPosition([3, 4])
+            editor.addCursorAtScreenPosition([5, 2])
             editor.addCursorAtScreenPosition([7, 5])
-            linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3,4]), metaKey: true))
+            linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3, 4]), metaKey: true))
             nextAnimationFrame()
-            expect(editor.getSelectedScreenRanges()).toEqual [[[5,2], [5,2]], [[7,5], [7,5]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[5, 2], [5, 2]], [[7, 5], [7, 5]]]
 
         describe "when there is a single cursor and the click occurs at the cursor's screen position", ->
           it "neither adds a new cursor nor removes the current cursor", ->
             editor.setCursorScreenPosition([3, 4])
-            linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3,4]), metaKey: true))
+            linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3, 4]), metaKey: true))
             nextAnimationFrame()
-            expect(editor.getSelectedScreenRanges()).toEqual [[[3,4], [3,4]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]]]
 
     describe "when a non-folded line is double-clicked", ->
       describe "when no modifier keys are held down", ->
