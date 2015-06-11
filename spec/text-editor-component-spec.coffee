@@ -1569,11 +1569,28 @@ describe "TextEditorComponent", ->
           expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [5, 6]]
 
       describe "when the command key is held down", ->
-        it "adds a cursor at the nearest screen position", ->
-          editor.setCursorScreenPosition([3, 4])
-          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), metaKey: true))
-          nextAnimationFrame()
-          expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
+        describe "the current cursor position and screen position do not match", ->
+          it "adds a cursor at the nearest screen position", ->
+            editor.setCursorScreenPosition([3, 4])
+            linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), metaKey: true))
+            nextAnimationFrame()
+            expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
+
+        describe "when there are multiple cursors, and one of the cursor's screen position is the same as the mouse click screen position", ->
+          it "removes a cursor at the mouse screen position", ->
+            editor.setCursorScreenPosition([3,4])
+            editor.addCursorAtScreenPosition([5,2])
+            editor.addCursorAtScreenPosition([7, 5])
+            linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3,4]), metaKey: true))
+            nextAnimationFrame()
+            expect(editor.getSelectedScreenRanges()).toEqual [[[5,2], [5,2]], [[7,5], [7,5]]]
+
+        describe "when there is a single cursor and the click occurs at the cursor's screen position", ->
+          it "neither adds a new cursor nor removes the current cursor", ->
+            editor.setCursorScreenPosition([3, 4])
+            linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3,4]), metaKey: true))
+            nextAnimationFrame()
+            expect(editor.getSelectedScreenRanges()).toEqual [[[3,4], [3,4]]]
 
     describe "when a non-folded line is double-clicked", ->
       describe "when no modifier keys are held down", ->
