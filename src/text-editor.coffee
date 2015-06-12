@@ -1567,10 +1567,9 @@ class TextEditor extends Model
   #
   # Returns the first matched {Cursor} or undefined
   getCursorAtScreenPosition: (position) ->
-    cursorsAtPoint = @cursors.filter (cursor) ->
-      cursorPosition = cursor.getScreenPosition()
-      cursorPosition.row is position.row and cursorPosition.column is position.column
-    if cursorsAtPoint.length > 0 then cursorsAtPoint[0] else undefined
+    for cursor in @cursors
+      return cursor if cursor.getScreenPosition().isEqual(position)
+    undefined
 
   # Essential: Get the position of the most recently added cursor in screen
   # coordinates.
