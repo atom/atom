@@ -105,7 +105,7 @@ class AtomApplication
         app.quit()
         return
     @windows.splice(@windows.indexOf(window), 1)
-    @saveState() unless window.isSpec or @quitting
+    @saveState() unless window.isSpec
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
@@ -186,7 +186,10 @@ class AtomApplication
     @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
     @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
-    @on 'application:install-update', => @autoUpdateManager.install()
+    @on 'application:install-update', =>
+      @quitting = true
+      @autoUpdateManager.install()
+
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
@@ -269,6 +272,9 @@ class AtomApplication
     ipc.on 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
+
+    ipc.on 'cancel-window-close', =>
+      @quitting = false
 
     clipboard = null
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
@@ -434,6 +440,7 @@ class AtomApplication
     delete @pidsToOpenWindows[pid]
 
   saveState: ->
+    return if @quitting
     states = []
     for window in @windows
       unless window.isSpec
