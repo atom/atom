@@ -39,11 +39,12 @@ class LineNumbersTileComponent
       @oldTileState.top = @newTileState.top
       @oldTileState.left = @newTileState.left
 
-    # if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
-    #   node.remove() for id, node of @lineNumberNodesById
-    #   @oldState.tiles[@id] = {lineNumbers: {}}
-    #   @oldTileState = @oldState.tiles[@id]
-    #   @lineNumberNodesById = {}
+    if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
+      node.remove() for id, node of @lineNumberNodesById
+      @oldState.tiles[@id] = {lineNumbers: {}}
+      @oldTileState = @oldState.tiles[@id]
+      @lineNumberNodesById = {}
+      @oldState.maxLineNumberDigits = @newState.maxLineNumberDigits
 
     if @newState.scrollWidth isnt @oldState.scrollWidth
       @domNode.style.width = @newState.scrollWidth + 'px'
