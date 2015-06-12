@@ -2010,6 +2010,7 @@ describe "TextEditorPresenter", ->
         describe ".content.lineNumbers", ->
           lineNumberStateForScreenRow = (presenter, screenRow) ->
             editor = presenter.model
+            tileRow = presenter.tileForRow(screenRow)
             bufferRow = editor.bufferRowForScreenRow(screenRow)
             wrapCount = screenRow - editor.screenRowForBufferRow(bufferRow)
             if wrapCount > 0
@@ -2017,23 +2018,26 @@ describe "TextEditorPresenter", ->
             else
               key = bufferRow
 
-            getLineNumberGutterState(presenter).content.lineNumbers[key]
+            gutterState = getLineNumberGutterState(presenter)
+            gutterState.content.tiles[tileRow]?.lineNumbers[key]
 
           it "contains states for line numbers that are visible on screen", ->
             editor.foldBufferRow(4)
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(50)
-            presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10)
+            presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 2)
 
-            expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
-            expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false, top: 3 * 10}
-            expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true, top: 4 * 10}
-            expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false, top: 5 * 10}
-            expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false, top: 6 * 10}
-            expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
+            expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false, top: 0 * 10}
+            expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false, top: 1 * 10}
+            expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true, top: 0 * 10}
+            expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false, top: 1 * 10}
+            expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false, top: 0 * 10}
+            expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 8, softWrapped: false, top: 1 * 10}
+            expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
           it "includes states for all line numbers if no ::explicitHeight is assigned", ->
-            presenter = buildPresenter(explicitHeight: null)
+            presenter = buildPresenter(explicitHeight: null, tileSize: 2)
             expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
             expect(lineNumberStateForScreenRow(presenter, 12)).toBeDefined()
 
@@ -2041,17 +2045,16 @@ describe "TextEditorPresenter", ->
             editor.foldBufferRow(4)
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(50)
-            presenter = buildPresenter(explicitHeight: 25, scrollTop: 30)
-
-            expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
-            expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
-            expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 7}
-            expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
-
-            expectStateUpdate presenter, -> presenter.setScrollTop(20)
+            presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, tileSize: 2)
 
             expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
             expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
+            expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
+            expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+
+            expectStateUpdate presenter, -> presenter.setScrollTop(10)
+
+            expectValues lineNumberStateForScreenRow(presenter, 0), {bufferRow: 0}
             expectValues lineNumberStateForScreenRow(presenter, 5), {bufferRow: 4}
             expect(lineNumberStateForScreenRow(presenter, 6)).toBeUndefined()
 
@@ -2059,87 +2062,92 @@ describe "TextEditorPresenter", ->
             editor.foldBufferRow(4)
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(50)
-            presenter = buildPresenter(explicitHeight: 25, scrollTop: 30)
+            presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, tileSize: 2)
 
             expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-            expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
-            expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 7}
-            expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
+            expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
+            expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
+            expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
             expectStateUpdate presenter, -> presenter.setExplicitHeight(35)
 
-            expect(lineNumberStateForScreenRow(presenter, 0)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
             expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
-            expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
-            expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+            expectValues lineNumberStateForScreenRow(presenter, 9), {bufferRow: 9}
+            expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
 
           it "updates when ::lineHeight changes", ->
             editor.foldBufferRow(4)
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(50)
-            presenter = buildPresenter(explicitHeight: 25, scrollTop: 0)
-
-            expectValues lineNumberStateForScreenRow(presenter, 0), {bufferRow: 0}
-            expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
-            expect(lineNumberStateForScreenRow(presenter, 4)).toBeUndefined()
-
-            expectStateUpdate presenter, -> presenter.setLineHeight(5)
+            presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, tileSize: 2)
 
             expectValues lineNumberStateForScreenRow(presenter, 0), {bufferRow: 0}
             expectValues lineNumberStateForScreenRow(presenter, 5), {bufferRow: 4}
             expect(lineNumberStateForScreenRow(presenter, 6)).toBeUndefined()
 
+            expectStateUpdate presenter, -> presenter.setLineHeight(5)
+
+            expectValues lineNumberStateForScreenRow(presenter, 0), {bufferRow: 0}
+            expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
+            expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+
           it "updates when the editor's content changes", ->
             editor.foldBufferRow(4)
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(50)
-            presenter = buildPresenter(explicitHeight: 35, scrollTop: 30)
+            presenter = buildPresenter(explicitHeight: 35, scrollTop: 30, tileSize: 2)
 
-            expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
+            expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
             expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
             expectValues lineNumberStateForScreenRow(presenter, 4), {bufferRow: 3}
             expectValues lineNumberStateForScreenRow(presenter, 5), {bufferRow: 4}
             expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 7}
             expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 8}
-            expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+            expectValues lineNumberStateForScreenRow(presenter, 8), {bufferRow: 8}
+            expectValues lineNumberStateForScreenRow(presenter, 9), {bufferRow: 9}
+            expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
 
             expectStateUpdate presenter, ->
               editor.getBuffer().insert([3, Infinity], new Array(25).join("x "))
 
-            expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
+            expectValues lineNumberStateForScreenRow(presenter, 2), {bufferRow: 2}
             expectValues lineNumberStateForScreenRow(presenter, 3), {bufferRow: 3}
             expectValues lineNumberStateForScreenRow(presenter, 4), {bufferRow: 3}
             expectValues lineNumberStateForScreenRow(presenter, 5), {bufferRow: 3}
             expectValues lineNumberStateForScreenRow(presenter, 6), {bufferRow: 4}
             expectValues lineNumberStateForScreenRow(presenter, 7), {bufferRow: 7}
-            expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+            expectValues lineNumberStateForScreenRow(presenter, 8), {bufferRow: 8}
+            expectValues lineNumberStateForScreenRow(presenter, 9), {bufferRow: 8}
+            expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
 
-          it "does not remove out-of-view line numbers corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
-            presenter = buildPresenter(explicitHeight: 25, stoppedScrollingDelay: 200)
+          it "does not remove out-of-view tiles corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
+            presenter = buildPresenter(explicitHeight: 25, stoppedScrollingDelay: 200, tileSize: 2)
 
             expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
-            expect(lineNumberStateForScreenRow(presenter, 3)).toBeDefined()
-            expect(lineNumberStateForScreenRow(presenter, 4)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 4)).toBeDefined()
+            expect(lineNumberStateForScreenRow(presenter, 6)).toBeUndefined()
 
             presenter.setMouseWheelScreenRow(0)
-            expectStateUpdate presenter, -> presenter.setScrollTop(35)
+            expectStateUpdate presenter, -> presenter.setScrollTop(45)
 
             expect(lineNumberStateForScreenRow(presenter, 0)).toBeDefined()
-            expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
             expect(lineNumberStateForScreenRow(presenter, 6)).toBeDefined()
-            expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
 
             expectStateUpdate presenter, -> advanceClock(200)
 
             expect(lineNumberStateForScreenRow(presenter, 0)).toBeUndefined()
-            expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
             expect(lineNumberStateForScreenRow(presenter, 6)).toBeDefined()
-            expect(lineNumberStateForScreenRow(presenter, 7)).toBeUndefined()
+            expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
 
           it "correctly handles the first screen line being soft-wrapped", ->
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(30)
-            presenter = buildPresenter(explicitHeight: 25, scrollTop: 50)
+            presenter = buildPresenter(explicitHeight: 25, scrollTop: 50, tileSize: 2)
 
             expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 3, softWrapped: true}
             expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 3, softWrapped: true}
