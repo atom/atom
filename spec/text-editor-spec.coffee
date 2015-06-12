@@ -920,7 +920,7 @@ describe "TextEditor", ->
       it "returns the cursor at the given screenPosition", ->
         cursor1 = editor.addCursorAtScreenPosition([0, 2])
         cursor2 = editor.getCursorAtScreenPosition(cursor1.getScreenPosition())
-        expect(cursor2.marker).toBe cursor1.marker
+        expect(cursor2).toBe cursor1
 
     describe "::getCursorScreenPositions()", ->
       it "returns the cursor positions in the order they were added", ->
