@@ -1,4 +1,7 @@
-# apm - Atom Package Manager [![Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm)
+# apm - Atom Package Manager
+
+[![Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm)
+[![Dependency Status](https://david-dm.org/atom/apm.svg)](https://david-dm.org/atom/apm)
 
 Discover and install Atom packages powered by [atom.io](https://atom.io)
 
