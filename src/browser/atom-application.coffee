@@ -105,7 +105,7 @@ class AtomApplication
         app.quit()
         return
     @windows.splice(@windows.indexOf(window), 1)
-    @saveState() unless window.isSpec or @quitting
+    @saveState() unless window.isSpec
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
@@ -273,6 +273,9 @@ class AtomApplication
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
 
+    ipc.on 'cancel-window-close', =>
+      @quitting = false
+
     clipboard = null
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard ?= require '../safe-clipboard'
@@ -437,6 +440,7 @@ class AtomApplication
     delete @pidsToOpenWindows[pid]
 
   saveState: ->
+    return if @quitting
     states = []
     for window in @windows
       unless window.isSpec

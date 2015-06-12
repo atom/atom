@@ -64,7 +64,10 @@ class WindowEventHandler
 
       atom.storeDefaultWindowDimensions()
       atom.storeWindowDimensions()
-      atom.unloadEditorWindow() if confirmed
+      if confirmed
+        atom.unloadEditorWindow()
+      else
+        ipc.send('cancel-window-close')
 
       confirmed
 
