@@ -30,12 +30,16 @@ class LineNumbersTileComponent
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display
 
+    if @newState.backgroundColor isnt @oldState.backgroundColor
+      @domNode.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
+
     if @newTileState.height isnt @oldTileState.height
       @domNode.style.height = @newTileState.height + 'px'
       @oldTileState.height = @newTileState.height
 
     if @newTileState.top isnt @oldTileState.top
-      @domNode.style['-webkit-transform'] = "translate3d(#{@newTileState.left}px, #{@newTileState.top}px, 0px)"
+      @domNode.style['-webkit-transform'] = "translate3d(0, #{@newTileState.top}px, 0px)"
       @oldTileState.top = @newTileState.top
       @oldTileState.left = @newTileState.left
 
@@ -127,3 +131,9 @@ class LineNumbersTileComponent
     className += " " + decorationClasses.join(' ') if decorationClasses?
     className += " foldable" if foldable and not softWrapped
     className
+
+  lineNumberNodeForScreenRow: (screenRow) ->
+    for id, lineNumberState of @oldTileState.lineNumbers
+      if lineNumberState.screenRow is screenRow
+        return @lineNumberNodesById[id]
+    null

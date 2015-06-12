@@ -9,7 +9,7 @@ module.exports =
 class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @gutter}) ->
+  constructor: ({@onMouseDown, @editor, @presenter, @gutter}) ->
     @lineNumberNodesById = {}
     @visible = true
 
@@ -74,10 +74,9 @@ class LineNumberGutterComponent extends TiledComponent
     @dummyLineNumberNode.innerHTML = DummyLineNumberComponent.buildLineNumberInnerHTML(0, false)
 
   lineNumberNodeForScreenRow: (screenRow) ->
-    for id, lineNumberState of @oldState.lineNumbers
-      if lineNumberState.screenRow is screenRow
-        return @lineNumberNodesById[id]
-    null
+    tile = @presenter.tileForRow(screenRow)
+
+    @componentsByTileId[tile]?.lineNumberNodeForScreenRow(screenRow)
 
   onMouseDown: (event) =>
     {target} = event
