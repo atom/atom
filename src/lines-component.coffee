@@ -35,6 +35,7 @@ class LinesComponent extends TiledComponent
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
       @domNode.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
 
   afterUpdateSync: (state) ->
     if @newState.placeholderText isnt @oldState.placeholderText
@@ -56,7 +57,6 @@ class LinesComponent extends TiledComponent
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
     @oldState.scrollWidth = @newState.scrollWidth
     @oldState.width = @newState.width
-    @oldState.backgroundColor = @newState.backgroundColor
 
   buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter})
 
