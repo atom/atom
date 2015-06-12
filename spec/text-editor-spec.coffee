@@ -941,7 +941,7 @@ describe "TextEditor", ->
         it "returns the existing cursor", ->
           cursor1 = editor.addCursorAtScreenPosition([0, 2])
           cursor2 = editor.addCursorAtScreenPosition([0, 2])
-          expect(cursor2.marker).toBe cursor1.marker
+          expect(cursor2).toBe cursor1
 
     describe "addCursorAtBufferPosition(bufferPosition)", ->
       describe "when a cursor already exists at the position", ->
