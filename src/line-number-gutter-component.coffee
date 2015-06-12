@@ -1,5 +1,3 @@
-{setDimensionsAndBackground} = require './gutter-component-helpers'
-
 TiledComponent = require './tiled-component'
 LineNumbersTileComponent = require './line-numbers-tile-component'
 WrapperDiv = document.createElement('div')
@@ -46,7 +44,13 @@ class LineNumberGutterComponent extends TiledComponent
   beforeUpdateSync: (state) ->
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    setDimensionsAndBackground(@oldState.styles, @newState.styles, @lineNumbersNode)
+    if @newState.styles.scrollHeight isnt @oldState.styles.scrollHeight
+      @lineNumbersNode.style.height = @newState.styles.scrollHeight + 'px'
+      @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.styles.backgroundColor isnt @oldState.styles.backgroundColor
+      @lineNumbersNode.style.backgroundColor = @newState.styles.backgroundColor
+      @oldState.styles.backgroundColor = @newState.styles.backgroundColor
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
