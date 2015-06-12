@@ -3,7 +3,7 @@
 TiledComponent = require './tiled-component'
 LineNumbersTileComponent = require './line-numbers-tile-component'
 WrapperDiv = document.createElement('div')
-DummyLineNumberComponent = new LineNumbersTileComponent(id: -1)
+DummyLineNumberComponent = LineNumbersTileComponent.createDummy()
 
 module.exports =
 class LineNumberGutterComponent extends TiledComponent
