@@ -638,6 +638,10 @@ class TextEditor extends Model
     else
       @isModified() and not @buffer.hasMultipleEditors()
 
+  # Returns an {Object} to configure dialog shown when this editor is saved
+  # via {Pane::saveItemAs}.
+  getSaveDialogOptions: -> {}
+
   checkoutHeadRevision: ->
     if filePath = this.getPath()
       atom.project.repositoryForDirectory(new Directory(path.dirname(filePath)))
