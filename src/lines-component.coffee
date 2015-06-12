@@ -1,7 +1,7 @@
 {$$} = require 'space-pen'
 
 CursorsComponent = require './cursors-component'
-TileComponent = require './tile-component'
+LinesTileComponent = require './lines-tile-component'
 TiledComponent = require './tiled-component'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
@@ -58,7 +58,7 @@ class LinesComponent extends TiledComponent
     @oldState.width = @newState.width
     @oldState.backgroundColor = @newState.backgroundColor
 
-  buildComponentForTile: (id) -> new TileComponent({id, @presenter})
+  buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter})
 
   buildEmptyState: ->
     {tiles: {}}

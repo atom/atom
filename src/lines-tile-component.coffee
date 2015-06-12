@@ -13,7 +13,7 @@ cloneObject = (object) ->
   clone
 
 module.exports =
-class TileComponent
+class LinesTileComponent
   constructor: ({@presenter, @id}) ->
     @tokenIterator = new TokenIterator
     @measuredLines = new Set
