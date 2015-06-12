@@ -1563,7 +1563,7 @@ class TextEditor extends Model
 
   # Essential: Get a {Cursor} at given screen coordinates {Point}
   #
-  #* `position` A {Point}
+  # * `position` A {Point} or {Array} of `[row, column]`
   #
   # Returns the first matched {Cursor} or undefined
   getCursorAtScreenPosition: (position) ->
