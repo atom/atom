@@ -5,7 +5,7 @@ TextEditorView = require '../src/text-editor-view'
 TextEditorComponent = require '../src/text-editor-component'
 nbsp = String.fromCharCode(160)
 
-fdescribe "TextEditorComponent", ->
+describe "TextEditorComponent", ->
   [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, tileSize, tileHeightInPixels] = []
 
