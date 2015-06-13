@@ -12,7 +12,7 @@ class LineNumbersTileComponent
     @domNode.classList.add("tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
-    @domNode.style.top = 0
+    @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
 
   getDomNode: ->
     @domNode

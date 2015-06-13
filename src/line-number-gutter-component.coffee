@@ -8,7 +8,6 @@ class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
   constructor: ({@onMouseDown, @editor, @gutter}) ->
-    @lineNumberNodesById = {}
     @visible = true
 
     @domNode = atom.views.getView(@gutter)
@@ -55,9 +54,7 @@ class LineNumberGutterComponent extends TiledComponent
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
       @oldState.styles = {}
-
-  afterUpdateSync: (state) ->
-    @oldState.maxLineNumberDigits = @newState.maxLineNumberDigits
+      @oldState.maxLineNumberDigits = @newState.maxLineNumberDigits
 
   buildComponentForTile: (id) -> new LineNumbersTileComponent({id})
 

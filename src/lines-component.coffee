@@ -46,17 +46,13 @@ class LinesComponent extends TiledComponent
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
 
-    @removeTileNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
-    @updateTileNodes()
-
     if @newState.width isnt @oldState.width
       @domNode.style.width = @newState.width + 'px'
+      @oldState.width = @newState.width
 
     @cursorsComponent.updateSync(state)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
-    @oldState.scrollWidth = @newState.scrollWidth
-    @oldState.width = @newState.width
 
   buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter})
 
