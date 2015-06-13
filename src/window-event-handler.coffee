@@ -23,10 +23,10 @@ class WindowEventHandler
             if pathToOpen? and needsProjectPaths
               if fs.existsSync(pathToOpen)
                 atom.project.addPath(pathToOpen)
+              else if fs.existsSync(path.dirname(pathToOpen))
+                atom.project.addPath(path.dirname(pathToOpen))
               else
-                dirToOpen = path.dirname(pathToOpen)
-                if fs.existsSync(dirToOpen)
-                  atom.project.addPath(dirToOpen)
+                atom.project.addPath(pathToOpen)
 
             unless fs.isDirectorySync(pathToOpen)
               atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
@@ -64,7 +64,10 @@ class WindowEventHandler
 
       atom.storeDefaultWindowDimensions()
       atom.storeWindowDimensions()
-      atom.unloadEditorWindow() if confirmed
+      if confirmed
+        atom.unloadEditorWindow()
+      else
+        ipc.send('cancel-window-close')
 
       confirmed
 
@@ -127,6 +130,7 @@ class WindowEventHandler
     bindCommandToAction('core:undo', 'undo:')
     bindCommandToAction('core:redo', 'redo:')
     bindCommandToAction('core:select-all', 'selectAll:')
+    bindCommandToAction('core:cut', 'cut:')
 
   onKeydown: (event) ->
     atom.keymaps.handleKeyboardEvent(event)

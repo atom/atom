@@ -15,8 +15,9 @@ class TextEditorElement extends HTMLElement
   componentDescriptor: null
   component: null
   attached: false
-  lineOverdrawMargin: null
+  tileSize: null
   focusOnAttach: false
+  hasTiledRendering: true
 
   createdCallback: ->
     @emitter = new Emitter
@@ -110,7 +111,7 @@ class TextEditorElement extends HTMLElement
       rootElement: @rootElement
       stylesElement: @stylesElement
       editor: @model
-      lineOverdrawMargin: @lineOverdrawMargin
+      tileSize: @tileSize
       useShadowDOM: @useShadowDOM
     )
     @rootElement.appendChild(@component.getDomNode())
@@ -247,7 +248,6 @@ atom.commands.add 'atom-text-editor', stopEventPropagation(
   'core:select-up': -> @selectUp()
   'core:select-down': -> @selectDown()
   'core:select-all': -> @selectAll()
-  'editor:move-to-previous-word': -> @moveToPreviousWord()
   'editor:select-word': -> @selectWordsContainingCursors()
   'editor:consolidate-selections': (event) -> event.abortKeyBinding() unless @consolidateSelections()
   'editor:move-to-beginning-of-next-paragraph': -> @moveToBeginningOfNextParagraph()
@@ -281,6 +281,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'core:cut': -> @cutSelectedText()
   'core:copy': -> @copySelectedText()
   'core:paste': -> @pasteText()
+  'editor:delete-to-previous-word-boundary': -> @deleteToPreviousWordBoundary()
+  'editor:delete-to-next-word-boundary': -> @deleteToNextWordBoundary()
   'editor:delete-to-beginning-of-word': -> @deleteToBeginningOfWord()
   'editor:delete-to-beginning-of-line': -> @deleteToBeginningOfLine()
   'editor:delete-to-end-of-line': -> @deleteToEndOfLine()

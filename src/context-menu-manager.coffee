@@ -100,14 +100,17 @@ class ContextMenuManager
   #     whether to display this item on a given context menu deployment. Called
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to remove the
+  # added menu items.
   add: (itemsBySelector) ->
     if Grim.includeDeprecatedAPIs
       # Detect deprecated file path as first argument
       if itemsBySelector? and typeof itemsBySelector isnt 'object'
         Grim.deprecate """
-          ContextMenuManager::add has changed to take a single object as its
+          `ContextMenuManager::add` has changed to take a single object as its
           argument. Please see
-          https://atom.io/docs/api/latest/ContextMenuManager for more info.
+          https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format for more info.
         """
         itemsBySelector = arguments[1]
         devMode = arguments[2]?.devMode
@@ -116,9 +119,9 @@ class ContextMenuManager
       for key, value of itemsBySelector
         unless _.isArray(value)
           Grim.deprecate """
-            ContextMenuManager::add has changed to take a single object as its
+            `ContextMenuManager::add` has changed to take a single object as its
             argument. Please see
-            https://atom.io/docs/api/latest/ContextMenuManager for more info.
+            https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format for more info.
           """
           itemsBySelector = @convertLegacyItemsBySelector(itemsBySelector, devMode)
 

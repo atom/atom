@@ -100,6 +100,9 @@ For more information on how to work with Atom's official packages, see
 
 * Set parameter defaults without spaces around the equal sign
     * `clear = (count=1) ->` instead of `clear = (count = 1) ->`
+* Use spaces around operators
+    * `count + 1` instead of `count+1`
+* Use spaces after commas (unless separated by newlines)
 * Use parentheses if it improves code clarity.
 * Prefer alphabetic keywords to symbolic keywords:
     * `a is b` instead of `a == b`
@@ -113,6 +116,8 @@ For more information on how to work with Atom's official packages, see
 * Use `slice()` to copy an array
 * Add an explicit `return` when your function ends with a `for`/`while` loop and
   you don't want it to return a collected array.
+* Use `this` instead of a standalone `@`
+  * `return this` instead of `return @`
 
 ## Specs Styleguide
 

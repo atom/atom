@@ -24,14 +24,19 @@
 
 ## Instructions
 
-  ```bat
-  # Use the `Git Shell` app which was installed by GitHub for Windows. Also Make
-  # sure you have logged into the GitHub for Windows GUI App.
-  cd C:\
-  git clone https://github.com/atom/atom/
-  cd atom
-  script/build # Creates application in the `Program Files` directory
-  ```
+```bash
+# Use the `Git Shell` program which was installed by GitHub for Windows.
+# Also make sure that you are logged into GitHub for Windows.
+cd C:\
+git clone https://github.com/atom/atom/
+cd atom
+script/build # Creates application in the `Program Files` directory
+```
+
+### `script/build` Options
+  * `--install-dir` - Creates the final built application in this directory.
+  * `--build-dir` - Build the application in this directory.
+  * `--verbose` - Verbose mode. A lot more information output.
 
 ## Why do I have to use GitHub for Windows?
 

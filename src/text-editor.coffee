@@ -75,7 +75,7 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
 
     @emitter = new Emitter
@@ -84,11 +84,9 @@ class TextEditor extends Model
     @selections = []
 
     buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
     @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
-
-    @updateInvisibles()
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
@@ -130,7 +128,15 @@ class TextEditor extends Model
     displayBuffer: @displayBuffer.serialize()
 
   deserializeParams: (params) ->
-    params.displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
+    try
+      displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
+    catch error
+      if error.syscall is 'read'
+        return # Error reading the file, don't deserialize an editor for it
+      else
+        throw error
+
+    params.displayBuffer = displayBuffer
     params.registerEditor = true
     params
 
@@ -157,10 +163,10 @@ class TextEditor extends Model
 
   subscribeToDisplayBuffer: ->
     @disposables.add @displayBuffer.onDidCreateMarker @handleMarkerCreated
-    @disposables.add @displayBuffer.onDidUpdateMarkers => @mergeIntersectingSelections()
     @disposables.add @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
     @disposables.add @displayBuffer.onDidTokenize => @handleTokenization()
     @disposables.add @displayBuffer.onDidChange (e) =>
+      @mergeIntersectingSelections()
       @emit 'screen-lines-changed', e if includeDeprecatedAPIs
       @emitter.emit 'did-change', e
 
@@ -170,21 +176,9 @@ class TextEditor extends Model
       @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
       @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
-    @subscribeToScopedConfigSettings()
-
-  subscribeToScopedConfigSettings: ->
-    @scopedConfigSubscriptions?.dispose()
-    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
-
-    scopeDescriptor = @getRootScopeDescriptor()
-
-    subscriptions.add atom.config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, => @updateInvisibles()
-    subscriptions.add atom.config.onDidChange 'editor.invisibles', scope: scopeDescriptor, => @updateInvisibles()
-
   destroyed: ->
     @unsubscribe() if includeDeprecatedAPIs
     @disposables.dispose()
-    @scopedConfigSubscriptions.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
     @displayBuffer.destroy()
@@ -331,7 +325,7 @@ class TextEditor extends Model
   onWillInsertText: (callback) ->
     @emitter.on 'will-insert-text', callback
 
-  # Extended: Calls your `callback` adter text has been inserted.
+  # Extended: Calls your `callback` after text has been inserted.
   #
   # * `callback` {Function}
   #   * `event` event {Object}
@@ -467,6 +461,9 @@ class TextEditor extends Model
   onDidChangeIcon: (callback) ->
     @emitter.on 'did-change-icon', callback
 
+  onDidUpdateMarkers: (callback) ->
+    @displayBuffer.onDidUpdateMarkers(callback)
+
   # Public: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -488,7 +485,7 @@ class TextEditor extends Model
   setMini: (mini) ->
     if mini isnt @mini
       @mini = mini
-      @updateInvisibles()
+      @displayBuffer.setIgnoreInvisibles(@mini)
       @emitter.emit 'did-change-mini', @mini
     @mini
 
@@ -641,6 +638,10 @@ class TextEditor extends Model
     else
       @isModified() and not @buffer.hasMultipleEditors()
 
+  # Returns an {Object} to configure dialog shown when this editor is saved
+  # via {Pane::saveItemAs}.
+  getSaveDialogOptions: -> {}
+
   checkoutHeadRevision: ->
     if filePath = this.getPath()
       atom.project.repositoryForDirectory(new Directory(path.dirname(filePath)))
@@ -775,15 +776,23 @@ class TextEditor extends Model
     @emit('will-insert-text', willInsertEvent) if includeDeprecatedAPIs
     @emitter.emit 'will-insert-text', willInsertEvent
 
+    groupingInterval = if options.groupUndo
+      atom.config.get('editor.undoGroupingInterval')
+    else
+      0
+
     if willInsert
       options.autoIndentNewline ?= @shouldAutoIndent()
       options.autoDecreaseIndent ?= @shouldAutoIndent()
-      @mutateSelectedText (selection) =>
-        range = selection.insertText(text, options)
-        didInsertEvent = {text, range}
-        @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
-        @emitter.emit 'did-insert-text', didInsertEvent
-        range
+      @mutateSelectedText(
+        (selection) =>
+          range = selection.insertText(text, options)
+          didInsertEvent = {text, range}
+          @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
+          @emitter.emit 'did-insert-text', didInsertEvent
+          range
+        , groupingInterval
+      )
     else
       false
 
@@ -809,9 +818,9 @@ class TextEditor extends Model
   # * `fn` A {Function} that will be called once for each {Selection}. The first
   #      argument will be a {Selection} and the second argument will be the
   #      {Number} index of that selection.
-  mutateSelectedText: (fn) ->
+  mutateSelectedText: (fn, groupingInterval=0) ->
     @mergeIntersectingSelections =>
-      @transact =>
+      @transact groupingInterval, =>
         fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
 
   # Move lines intersection the most recent selection up by one row in screen
@@ -1056,6 +1065,16 @@ class TextEditor extends Model
   # selected text.
   deleteToBeginningOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToBeginningOfWord()
+
+  # Extended: Similar to {::deleteToBeginningOfWord}, but deletes only back to the
+  # previous word boundary.
+  deleteToPreviousWordBoundary: ->
+    @mutateSelectedText (selection) -> selection.deleteToPreviousWordBoundary()
+
+  # Extended: Similar to {::deleteToEndOfWord}, but deletes only up to the
+  # next word boundary.
+  deleteToNextWordBoundary: ->
+    @mutateSelectedText (selection) -> selection.deleteToNextWordBoundary()
 
   # Extended: For each selection, if the selection is empty, delete all characters
   # of the containing line that precede the cursor. Otherwise delete the
@@ -1374,6 +1393,9 @@ class TextEditor extends Model
   decorationForId: (id) ->
     @displayBuffer.decorationForId(id)
 
+  decorationsForMarkerId: (id) ->
+    @displayBuffer.decorationsForMarkerId(id)
+
   ###
   Section: Markers
   ###
@@ -1476,6 +1498,25 @@ class TextEditor extends Model
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
 
+  # Extended: Observe changes in the set of markers that intersect a particular
+  # region of the editor.
+  #
+  # * `callback` A {Function} to call whenever one or more {Marker}s appears,
+  #    disappears, or moves within the given region.
+  #   * `event` An {Object} with the following keys:
+  #     * `insert` A {Set} containing the ids of all markers that appeared
+  #        in the range.
+  #     * `update` A {Set} containing the ids of all markers that moved within
+  #        the region.
+  #     * `remove` A {Set} containing the ids of all markers that disappeared
+  #        from the region.
+  #
+  # Returns a {MarkerObservationWindow}, which allows you to specify the region
+  # of interest by calling {MarkerObservationWindow::setBufferRange} or
+  # {MarkerObservationWindow::setScreenRange}.
+  observeMarkers: (callback) ->
+    @displayBuffer.observeMarkers(callback)
+
   # Extended: Get the {Marker} for the given marker id.
   #
   # * `id` {Number} id of the marker
@@ -1523,6 +1564,16 @@ class TextEditor extends Model
   #     position. Defaults to true.
   setCursorBufferPosition: (position, options) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
+
+  # Essential: Get a {Cursor} at given screen coordinates {Point}
+  #
+  # * `position` A {Point} or {Array} of `[row, column]`
+  #
+  # Returns the first matched {Cursor} or undefined
+  getCursorAtScreenPosition: (position) ->
+    for cursor in @cursors
+      return cursor if cursor.getScreenPosition().isEqual(position)
+    undefined
 
   # Essential: Get the position of the most recently added cursor in screen
   # coordinates.
@@ -2461,9 +2512,8 @@ class TextEditor extends Model
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
     if match = @lineTextForBufferRow(bufferRow).match(/\S/)
-      scopeDescriptor = @tokenForBufferPosition([bufferRow, match.index]).scopes
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
-      @commentScopeSelector.matches(scopeDescriptor)
+      @commentScopeSelector.matches(@scopeDescriptorForBufferPosition([bufferRow, match.index]).scopes)
 
   logCursorScope: ->
     scopeDescriptor = @getLastCursor().getScopeDescriptor()
@@ -2769,15 +2819,6 @@ class TextEditor extends Model
   shouldAutoIndentOnPaste: ->
     atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
 
-  shouldShowInvisibles: ->
-    not @mini and atom.config.get('editor.showInvisibles', scope: @getRootScopeDescriptor())
-
-  updateInvisibles: ->
-    if @shouldShowInvisibles()
-      @displayBuffer.setInvisibles(atom.config.get('editor.invisibles', scope: @getRootScopeDescriptor()))
-    else
-      @displayBuffer.setInvisibles(null)
-
   ###
   Section: Event Handlers
   ###
@@ -2786,8 +2827,6 @@ class TextEditor extends Model
     @softTabs = @usesSoftTabs() ? @softTabs
 
   handleGrammarChange: ->
-    @updateInvisibles()
-    @subscribeToScopedConfigSettings()
     @unfoldAll()
     @emit 'grammar-changed' if includeDeprecatedAPIs
     @emitter.emit 'did-change-grammar', @getGrammar()

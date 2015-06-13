@@ -1,4 +1,5 @@
 path = require 'path'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -24,6 +25,13 @@ class Package
     @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
+  @normalizeMetadata: (metadata) ->
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)
+      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
+
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
     if @isBundledPackagePath(packagePath)
@@ -32,10 +40,13 @@ class Package
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
           metadata = CSON.readFileSync(metadataPath)
+          @normalizeMetadata(metadata)
         catch error
           throw error unless ignoreErrors
+
     metadata ?= {}
-    metadata.name = packageName
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
 
     if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
@@ -160,10 +171,10 @@ class Package
     if @mainModule?
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
-      else if includeDeprecatedAPIs and @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
-        deprecate """Use a config schema instead. See the configuration section
+      else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
+        deprecate("""Use a config schema instead. See the configuration section
         of https://atom.io/docs/latest/hacking-atom-package-word-count and
-        https://atom.io/docs/api/latest/Config for more details"""
+        https://atom.io/docs/api/latest/Config for more details""", {packageName: @name})
         atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
@@ -191,7 +202,19 @@ class Package
 
     for [menuPath, map] in @menus when map['context-menu']?
       try
-        @activationDisposables.add(atom.contextMenu.add(map['context-menu']))
+        itemsBySelector = map['context-menu']
+
+        # Detect deprecated format for items object
+        for key, value of itemsBySelector
+          unless _.isArray(value)
+            deprecate("""
+              The context menu CSON format has changed. Please see
+              https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format
+              for more info.
+            """, {packageName: @name})
+            itemsBySelector = atom.contextMenu.convertLegacyItemsBySelector(itemsBySelector)
+
+        @activationDisposables.add(atom.contextMenu.add(itemsBySelector))
       catch error
         if error.code is 'EBADSELECTOR'
           error.message += " in #{menuPath}"
@@ -254,7 +277,7 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'stylesheets'))
+    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
       deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
       path.join(@path, 'stylesheets')
     else
@@ -280,6 +303,7 @@ class Package
       try
         grammar = atom.grammars.readGrammarSync(grammarPath)
         grammar.packageName = @name
+        grammar.bundledPackage = @bundledPackage
         @grammars.push(grammar)
         grammar.activate()
       catch error
@@ -299,6 +323,7 @@ class Package
           atom.notifications.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
         else
           grammar.packageName = @name
+          grammar.bundledPackage = @bundledPackage
           @grammars.push(grammar)
           grammar.activate() if @grammarsActivated
         callback()
@@ -328,7 +353,7 @@ class Package
 
     deferred = Q.defer()
 
-    if includeDeprecatedAPIs and fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
       settingsDirPath = path.join(@path, 'scoped-properties')
       deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
     else
@@ -464,8 +489,8 @@ class Package
         else if _.isArray(commands)
           @activationCommands[selector].push(commands...)
 
-    if includeDeprecatedAPIs and @metadata.activationEvents?
-      deprecate """
+    if @metadata.activationEvents?
+      deprecate("""
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
         ```json
@@ -474,7 +499,7 @@ class Package
             "atom-text-editor": ["foo:quux"]
           }
         ```
-      """
+      """, {packageName: @name})
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
           @activationCommands['atom-workspace'] ?= []

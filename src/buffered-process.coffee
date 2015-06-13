@@ -48,6 +48,7 @@ class BufferedProcess
   constructor: ({command, args, options, stdout, stderr, exit}={}) ->
     @emitter = new Emitter
     options ?= {}
+    @command = command
     # Related to joyent/node#2318
     if process.platform is 'win32'
       # Quote all arguments and escapes inner quotes
@@ -69,50 +70,12 @@ class BufferedProcess
       cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
       cmdOptions = _.clone(options)
       cmdOptions.windowsVerbatimArguments = true
-      @process = ChildProcess.spawn(@getCmdPath(), cmdArgs, cmdOptions)
+      @spawn(@getCmdPath(), cmdArgs, cmdOptions)
     else
-      @process = ChildProcess.spawn(command, args, options)
+      @spawn(command, args, options)
+
     @killed = false
-
-    stdoutClosed = true
-    stderrClosed = true
-    processExited = true
-    exitCode = 0
-    triggerExitCallback = ->
-      return if @killed
-      if stdoutClosed and stderrClosed and processExited
-        exit?(exitCode)
-
-    if stdout
-      stdoutClosed = false
-      @bufferStream @process.stdout, stdout, ->
-        stdoutClosed = true
-        triggerExitCallback()
-
-    if stderr
-      stderrClosed = false
-      @bufferStream @process.stderr, stderr, ->
-        stderrClosed = true
-        triggerExitCallback()
-
-    if exit
-      processExited = false
-      @process.on 'exit', (code) ->
-        exitCode = code
-        processExited = true
-        triggerExitCallback()
-
-    @process.on 'error', (error) =>
-      handled = false
-      handle = -> handled = true
-
-      @emitter.emit 'will-throw-error', {error, handle}
-
-      if error.code is 'ENOENT' and error.syscall.indexOf('spawn') is 0
-        error = new Error("Failed to spawn command `#{command}`. Make sure `#{command}` is installed and on your PATH", error.path)
-        error.name = 'BufferedProcessError'
-
-      throw error unless handled
+    @handleEvents(stdout, stderr, exit)
 
   ###
   Section: Event Subscription
@@ -164,6 +127,8 @@ class BufferedProcess
   # This is required since killing the cmd.exe does not terminate child
   # processes.
   killOnWindows: ->
+    return unless @process?
+
     parentPid = @process.pid
     cmd = 'wmic'
     args = [
@@ -174,7 +139,12 @@ class BufferedProcess
       'processid'
     ]
 
-    wmicProcess = ChildProcess.spawn(cmd, args)
+    try
+      wmicProcess = ChildProcess.spawn(cmd, args)
+    catch spawnError
+      @killProcess()
+      return
+
     wmicProcess.on 'error', -> # ignore errors
     output = ''
     wmicProcess.stdout.on 'data', (data) -> output += data
@@ -220,3 +190,55 @@ class BufferedProcess
       @killProcess()
 
     undefined
+
+  spawn: (command, args, options) ->
+    try
+      @process = ChildProcess.spawn(command, args, options)
+    catch spawnError
+      process.nextTick => @handleError(spawnError)
+
+  handleEvents: (stdout, stderr, exit) ->
+    return unless @process?
+
+    stdoutClosed = true
+    stderrClosed = true
+    processExited = true
+    exitCode = 0
+    triggerExitCallback = ->
+      return if @killed
+      if stdoutClosed and stderrClosed and processExited
+        exit?(exitCode)
+
+    if stdout
+      stdoutClosed = false
+      @bufferStream @process.stdout, stdout, ->
+        stdoutClosed = true
+        triggerExitCallback()
+
+    if stderr
+      stderrClosed = false
+      @bufferStream @process.stderr, stderr, ->
+        stderrClosed = true
+        triggerExitCallback()
+
+    if exit
+      processExited = false
+      @process.on 'exit', (code) ->
+        exitCode = code
+        processExited = true
+        triggerExitCallback()
+
+    @process.on 'error', (error) => @handleError(error)
+    return
+
+  handleError: (error) ->
+    handled = false
+    handle = -> handled = true
+
+    @emitter.emit 'will-throw-error', {error, handle}
+
+    if error.code is 'ENOENT' and error.syscall.indexOf('spawn') is 0
+      error = new Error("Failed to spawn command `#{@command}`. Make sure `#{@command}` is installed and on your PATH", error.path)
+      error.name = 'BufferedProcessError'
+
+    throw error unless handled

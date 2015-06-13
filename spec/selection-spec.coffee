@@ -14,18 +14,18 @@ describe "Selection", ->
   describe ".deleteSelectedText()", ->
     describe "when nothing is selected", ->
       it "deletes nothing", ->
-        selection.setBufferRange [[0,3], [0,3]]
+        selection.setBufferRange [[0, 3], [0, 3]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
     describe "when one line is selected", ->
       it "deletes selected text and clears the selection", ->
-        selection.setBufferRange [[0,4], [0,14]]
+        selection.setBufferRange [[0, 4], [0, 14]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "var = function () {"
 
         endOfLine = buffer.lineForRow(0).length
-        selection.setBufferRange [[0,0], [0, endOfLine]]
+        selection.setBufferRange [[0, 0], [0, endOfLine]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe ""
 
@@ -33,15 +33,15 @@ describe "Selection", ->
 
     describe "when multiple lines are selected", ->
       it "deletes selected text and clears the selection", ->
-        selection.setBufferRange [[0,1], [2,39]]
+        selection.setBufferRange [[0, 1], [2, 39]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "v;"
         expect(selection.isEmpty()).toBeTruthy()
 
     describe "when the cursor precedes the tail", ->
       it "deletes selected text and clears the selection", ->
-        selection.cursor.setScreenPosition [0,13]
-        selection.selectToScreenPosition [0,4]
+        selection.cursor.setScreenPosition [0, 13]
+        selection.selectToScreenPosition [0, 4]
 
         selection.delete()
         expect(buffer.lineForRow(0)).toBe "var  = function () {"

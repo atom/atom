@@ -15,15 +15,23 @@ ChromedriverPort = 9515
 ChromedriverURLBase = "/wd/hub"
 ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
 
-pollChromeDriver = (done) ->
+chromeDriverUp = (done) ->
   checkStatus = ->
-    http.get(ChromedriverStatusURL, (response) ->
-      if response.statusCode is 200
-        done()
-      else
-        pollChromeDriver(done)
-    ).on("error", -> pollChromeDriver(done))
+    http
+      .get ChromedriverStatusURL, (response) ->
+        if response.statusCode is 200
+          done()
+        else
+          chromeDriverUp(done)
+      .on("error", -> chromeDriverUp(done))
+  setTimeout(checkStatus, 100)
 
+chromeDriverDown = (done) ->
+  checkStatus = ->
+    http
+      .get ChromedriverStatusURL, (response) ->
+        chromeDriverDown(done)
+      .on("error", done)
   setTimeout(checkStatus, 100)
 
 buildAtomClient = (args, env) ->
@@ -137,9 +145,9 @@ module.exports = (args, env, fn) ->
       chromedriver.stderr.on "close", ->
         resolve(errorCode)
 
-  waitsFor("webdriver to start", pollChromeDriver, 15000)
+  waitsFor("webdriver to start", chromeDriverUp, 15000)
 
-  waitsFor("webdriver to finish", (done) ->
+  waitsFor("tests to run", (done) ->
     finish = once ->
       client
         .simulateQuit()
@@ -162,3 +170,5 @@ module.exports = (args, env, fn) ->
 
     fn(client.init()).then(finish)
   , 30000)
+
+  waitsFor("webdriver to stop", chromeDriverDown, 15000)

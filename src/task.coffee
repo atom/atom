@@ -100,11 +100,12 @@ class Task
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
       @emit(event, args...) if @childProcess?
+
     # Catch the errors that happened before task-bootstrap.
-    @childProcess.stdout.on 'data', (data) ->
-      console.log data.toString()
-    @childProcess.stderr.on 'data', (data) ->
-      console.error data.toString()
+    @childProcess.stdout.removeAllListeners()
+    @childProcess.stdout.on 'data', (data) -> console.log data.toString()
+    @childProcess.stderr.removeAllListeners()
+    @childProcess.stderr.on 'data', (data) -> console.error data.toString()
 
   # Public: Starts the task.
   #
@@ -149,10 +150,18 @@ class Task
   #
   # No more events are emitted once this method is called.
   terminate: ->
-    return unless @childProcess?
+    return false unless @childProcess?
 
     @childProcess.removeAllListeners()
+    @childProcess.stdout.removeAllListeners()
+    @childProcess.stderr.removeAllListeners()
     @childProcess.kill()
     @childProcess = null
 
-    undefined
+    true
+
+  cancel: ->
+    didForcefullyTerminate = @terminate()
+    if didForcefullyTerminate
+      @emit('task:cancelled')
+    didForcefullyTerminate

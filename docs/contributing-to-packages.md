@@ -40,9 +40,8 @@ For this reason, you'll only want to load packages in **development mode** while
 you are working on them. You'll perform your editing in **stable mode**, only
 switching to development mode to test your changes.
 
-To open a development mode window, use the "Application: Open Dev" command,
-which is normally bound to `cmd-shift-o`. You can also run dev mode from the
-command line with `atom --dev`.
+To open a development mode window, use the "Application: Open Dev" command.
+You can also run dev mode from the command line with `atom --dev`.
 
 To load your package in development mode, create a symlink to it in
 `~/.atom/dev/packages`. This occurs automatically when you clone the package

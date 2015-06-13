@@ -30,15 +30,12 @@ describe "CustomGutterComponent", ->
 
     buildTestState = (customDecorations) ->
       mockTestState =
-        gutters:
+        content: if customDecorations then customDecorations else {}
+        styles:
           scrollHeight: 100
           scrollTop: 10
           backgroundColor: 'black'
-          sortedDescriptions: [{gutter, visible: true}]
-          customDecorations: customDecorations
-        lineNumberGutter:
-          maxLineNumberDigits: 10
-          lineNumbers: {}
+
       mockTestState
 
     it "sets the custom-decoration wrapper's scrollHeight, scrollTop, and background color", ->
@@ -53,7 +50,7 @@ describe "CustomGutterComponent", ->
       expect(decorationsWrapperNode.style.backgroundColor).not.toBe ''
 
     it "creates a new DOM node for a new decoration and adds it to the gutter at the right place", ->
-      customDecorations = 'test-gutter':
+      customDecorations =
         'decoration-id-1':
           top: 0
           height: 10
@@ -75,7 +72,7 @@ describe "CustomGutterComponent", ->
       expect(decorationItem).toBe decorationItem1
 
     it "updates the existing DOM node for a decoration that existed but has new properties", ->
-      initialCustomDecorations = 'test-gutter':
+      initialCustomDecorations =
         'decoration-id-1':
           top: 0
           height: 10
@@ -86,7 +83,7 @@ describe "CustomGutterComponent", ->
 
       # Change the dimensions and item, remove the class.
       decorationItem2 = document.createElement('div')
-      changedCustomDecorations = 'test-gutter':
+      changedCustomDecorations =
         'decoration-id-1':
           top: 10
           height: 20
@@ -103,7 +100,7 @@ describe "CustomGutterComponent", ->
       expect(decorationItem).toBe decorationItem2
 
       # Remove the item, add a class.
-      changedCustomDecorations = 'test-gutter':
+      changedCustomDecorations =
         'decoration-id-1':
           top: 10
           height: 20
@@ -118,7 +115,7 @@ describe "CustomGutterComponent", ->
       expect(changedDecorationNode.children.length).toBe 0
 
     it "removes any decorations that existed previously but aren't in the latest update", ->
-      customDecorations = 'test-gutter':
+      customDecorations =
         'decoration-id-1':
           top: 0
           height: 10
@@ -127,6 +124,6 @@ describe "CustomGutterComponent", ->
       decorationsWrapperNode = gutterComponent.getDomNode().children.item(0)
       expect(decorationsWrapperNode.children.length).toBe 1
 
-      emptyCustomDecorations = 'test-gutter': {}
+      emptyCustomDecorations = {}
       gutterComponent.updateSync(buildTestState(emptyCustomDecorations))
       expect(decorationsWrapperNode.children.length).toBe 0

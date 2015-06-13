@@ -223,6 +223,8 @@ class Atom extends Model
     @disposables?.dispose()
     @disposables = new CompositeDisposable
 
+    @displayWindow() unless @inSpecMode()
+
     @setBodyPlatformClass()
 
     @loadTime = null
@@ -470,8 +472,12 @@ class Atom extends Model
     ipc.send('call-window-method', 'restart')
 
   # Extended: Returns a {Boolean} true when the current window is maximized.
-  isMaximixed: ->
+  isMaximized: ->
     @getCurrentWindow().isMaximized()
+
+  isMaximixed: ->
+    deprecate "Use atom.isMaximized() instead"
+    @isMaximized()
 
   maximize: ->
     ipc.send('call-window-method', 'maximize')
@@ -483,22 +489,27 @@ class Atom extends Model
   # Extended: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     ipc.send('call-window-method', 'setFullScreen', fullScreen)
-    if fullScreen then document.body.classList.add("fullscreen") else document.body.classList.remove("fullscreen")
+    if fullScreen
+      document.body.classList.add("fullscreen")
+    else
+      document.body.classList.remove("fullscreen")
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
     @setFullScreen(not @isFullScreen())
 
-  # Schedule the window to be shown and focused on the next tick.
+  # Restore the window to its previous dimensions and show it.
   #
-  # This is done in a next tick to prevent a white flicker from occurring
-  # if called synchronously.
-  displayWindow: ({maximize}={}) ->
+  # Also restores the full screen and maximized state on the next tick to
+  # prevent resize glitches.
+  displayWindow: ->
+    dimensions = @restoreWindowDimensions()
+    @show()
+    @focus()
+
     setImmediate =>
-      @show()
-      @focus()
-      @setFullScreen(true) if @workspace.fullScreen
-      @maximize() if maximize
+      @setFullScreen(true) if @workspace?.fullScreen
+      @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
 
   # Get the dimensions of this window.
   #
@@ -572,6 +583,13 @@ class Atom extends Model
     dimensions = @getWindowDimensions()
     @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
+  storeWindowBackground: ->
+    return if @inSpecMode()
+
+    workspaceElement = @views.getView(@workspace)
+    backgroundColor = window.getComputedStyle(workspaceElement)['background-color']
+    window.localStorage.setItem('atom:window-background-color', backgroundColor)
+
   # Call this method when establishing a real application window.
   startEditorWindow: ->
     {safeMode} = @getLoadSettings()
@@ -582,7 +600,6 @@ class Atom extends Model
     CommandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
-    dimensions = @restoreWindowDimensions()
     @loadConfig()
     @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
@@ -602,12 +619,10 @@ class Atom extends Model
 
     @openInitialEmptyEditorIfNecessary()
 
-    maximize = dimensions?.maximized and process.platform isnt 'darwin'
-    @displayWindow({maximize})
-
   unloadEditorWindow: ->
     return if not @project
 
+    @storeWindowBackground()
     @state.grammars = @grammars.serialize()
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
@@ -747,7 +762,7 @@ class Atom extends Model
       # Only reload stylesheets from non-theme packages
       for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
         pack.reloadStylesheets?()
-      null
+      return
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
@@ -772,11 +787,16 @@ class Atom extends Model
   showSaveDialog: (callback) ->
     callback(showSaveDialogSync())
 
-  showSaveDialogSync: (defaultPath) ->
-    defaultPath ?= @project?.getPaths()[0]
+  showSaveDialogSync: (options={}) ->
+    if _.isString(options)
+      options = defaultPath: options
+    else
+      options = _.clone(options)
     currentWindow = @getCurrentWindow()
     dialog = remote.require('dialog')
-    dialog.showSaveDialog currentWindow, {title: 'Save File', defaultPath}
+    options.title ?= 'Save File'
+    options.defaultPath ?= @project?.getPaths()[0]
+    dialog.showSaveDialog currentWindow, options
 
   saveSync: ->
     if storageKey = @constructor.getStateKey(@project?.getPaths(), @mode)

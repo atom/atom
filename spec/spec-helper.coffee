@@ -49,6 +49,25 @@ Object.defineProperty document, 'title',
   get: -> documentTitle
   set: (title) -> documentTitle = title
 
+Set.prototype.jasmineToString = ->
+  result = "Set {"
+  first = true
+  @forEach (element) ->
+    result += ", " unless first
+    result += element.toString()
+  first = false
+  result + "}"
+
+Set.prototype.isEqual = (other) ->
+  if other instanceof Set
+    return false if @size isnt other.size
+    values = @values()
+    until (next = values.next()).done
+      return false unless other.has(next.value)
+    true
+  else
+    false
+
 jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
 
 if process.env.CI
@@ -139,6 +158,8 @@ beforeEach ->
   clipboardContent = 'initial clipboard content'
   spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text
   spyOn(clipboard, 'readText').andCallFake -> clipboardContent
+
+  spyOn(atom.packages, 'uninstallAutocompletePlus')
 
   addCustomMatchers(this)
 
@@ -311,7 +332,7 @@ window.waitsForPromise = (args...) ->
     else
       promise.then(moveOn)
       promise.catch.call promise, (error) ->
-        jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
+        jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with: #{error?.message} #{jasmine.pp(error)}")
         moveOn()
 
 window.resetTimeouts = ->

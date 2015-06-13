@@ -132,3 +132,31 @@ describe "PaneContainerElement", ->
       # dynamically close pane, the pane's flexscale will recorver to origin value
       lowerPane.close()
       expectPaneScale [leftPane, 0.5], [rightPane, 1.5]
+
+    it "unsubscribes from mouse events when the pane is detached", ->
+      container.getActivePane().splitRight()
+      element = getResizeElement(0)
+      spyOn(document, 'addEventListener').andCallThrough()
+      spyOn(document, 'removeEventListener').andCallThrough()
+      spyOn(element, 'resizeStopped').andCallThrough()
+
+      element.dispatchEvent(new MouseEvent('mousedown',
+        view: window
+        bubbles: true
+        button: 0
+      ))
+
+      waitsFor ->
+        document.addEventListener.callCount is 2
+
+      runs ->
+        expect(element.resizeStopped.callCount).toBe 0
+        container.destroy()
+        expect(element.resizeStopped.callCount).toBe 1
+        expect(document.removeEventListener.callCount).toBe 2
+
+    it "does not throw an error when resized to fit content in a detached state", ->
+      container.getActivePane().splitRight()
+      element = getResizeElement(0)
+      element.remove()
+      expect(-> element.resizeToFitContent()).not.toThrow()
