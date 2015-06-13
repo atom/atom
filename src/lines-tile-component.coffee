@@ -54,6 +54,7 @@ class LinesTileComponent
 
     if @newState.width isnt @oldState.width
       @domNode.style.width = @newState.width + 'px'
+      @oldTileState.width = @newTileState.width
 
     if @newTileState.top isnt @oldTileState.top or @newTileState.left isnt @oldTileState.left
       @domNode.style['-webkit-transform'] = "translate3d(#{@newTileState.left}px, #{@newTileState.top}px, 0px)"

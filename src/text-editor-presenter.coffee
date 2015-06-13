@@ -342,7 +342,6 @@ class TextEditorPresenter
 
       gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
       gutterTile.top = startRow * @lineHeight - @scrollTop
-      gutterTile.left = -@scrollLeft
       gutterTile.height = @tileSize * @lineHeight
       gutterTile.display = "block"
 
