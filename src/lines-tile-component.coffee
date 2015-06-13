@@ -25,7 +25,7 @@ class LinesTileComponent
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
 
-    @highlightsComponent = new HighlightsComponent(@presenter)
+    @highlightsComponent = new HighlightsComponent
     @domNode.appendChild(@highlightsComponent.getDomNode())
 
   getDomNode: ->

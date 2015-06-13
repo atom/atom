@@ -14,7 +14,7 @@ class LinesComponent extends TiledComponent
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
 
-    @cursorsComponent = new CursorsComponent(@presenter)
+    @cursorsComponent = new CursorsComponent
     @domNode.appendChild(@cursorsComponent.getDomNode())
 
     if @useShadowDOM
@@ -95,8 +95,3 @@ class LinesComponent extends TiledComponent
       component.clearMeasurements()
 
     @presenter.clearScopedCharacterWidths()
-
-  lineNodeForScreenRow: (screenRow) ->
-    tile = @presenter.tileForRow(screenRow)
-
-    @componentsByTileId[tile]?.lineNodeForScreenRow(screenRow)

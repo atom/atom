@@ -17,32 +17,35 @@ class TiledComponent
     @afterUpdateSync?(state)
 
   removeTileNodes: ->
-    @removeTileNode(id) for id of @oldState.tiles
+    @removeTileNode(tileRow) for tileRow of @oldState.tiles
     return
 
-  removeTileNode: (id) ->
-    node = @componentsByTileId[id].getDomNode()
+  removeTileNode: (tileRow) ->
+    node = @componentsByTileId[tileRow].getDomNode()
 
     node.remove()
-    delete @componentsByTileId[id]
-    delete @oldState.tiles[id]
+    delete @componentsByTileId[tileRow]
+    delete @oldState.tiles[tileRow]
 
   updateTileNodes: ->
     @componentsByTileId ?= {}
 
-    for id of @oldState.tiles
-      unless @newState.tiles.hasOwnProperty(id)
-        @removeTileNode(id)
+    for tileRow of @oldState.tiles
+      unless @newState.tiles.hasOwnProperty(tileRow)
+        @removeTileNode(tileRow)
 
-    for id, tileState of @newState.tiles
-      if @oldState.tiles.hasOwnProperty(id)
-        component = @componentsByTileId[id]
+    for tileRow, tileState of @newState.tiles
+      if @oldState.tiles.hasOwnProperty(tileRow)
+        component = @componentsByTileId[tileRow]
       else
-        component = @componentsByTileId[id] = @buildComponentForTile(id)
+        component = @componentsByTileId[tileRow] = @buildComponentForTile(tileRow)
 
         @getTilesNode().appendChild(component.getDomNode())
-        @oldState.tiles[id] = cloneObject(tileState)
+        @oldState.tiles[tileRow] = cloneObject(tileState)
 
       component.updateSync(@newState)
 
     return
+
+  getComponentForTile: (tileRow) ->
+    @componentsByTileId[tileRow]
