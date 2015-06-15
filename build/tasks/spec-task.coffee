@@ -131,7 +131,7 @@ module.exports = (grunt) ->
       else
         async.parallel
 
-    specs =
+    runSpecs =
       if process.env.ATOM_SPECS_TASK is 'packages'
         [runPackageSpecs]
       else if process.env.ATOM_SPECS_TASK is 'core'
@@ -139,7 +139,7 @@ module.exports = (grunt) ->
       else
         [runCoreSpecs, runPackageSpecs]
 
-    method specs, (error, results) ->
+    method runSpecs, (error, results) ->
       [coreSpecFailed, failedPackages] = results
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
