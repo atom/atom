@@ -366,9 +366,10 @@ class Workspace extends Model
   #     initially. Defaults to `0`.
   #   * `initialColumn` A {Number} indicating which column to move the cursor to
   #     initially. Defaults to `0`.
-  #   * `split` Either 'left' or 'right'. If 'left', the item will be opened in
-  #     leftmost pane of the current active pane's row. If 'right', the
-  #     item will be opened in the rightmost pane of the current active pane's row.
+  #   * `split` Either 'left', 'right', 'up', or 'down'. If 'left', the item will be opened in leftmost pane of the
+  #     current active pane's row. If 'right', the item will be opened in the rightmost pane of the current active
+  #     pane's row. If 'up', the item will be opened in the upmost pane or a new pane created Split Up.
+  #     If 'down', the item will be oppened in the downmost pane or a new pane created Split Down.
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     containing pane. Defaults to `true`.
   #   * `searchAllPanes` A {Boolean}. If `true`, the workspace will attempt to
@@ -388,6 +389,10 @@ class Workspace extends Model
         @getActivePane().findLeftmostSibling()
       when 'right'
         @getActivePane().findOrCreateRightmostSibling()
+      when 'down'
+        @getActivePane().findOrCreateFurthestVerticalSibling('down')
+      when 'up'
+        @getActivePane().findOrCreateFurthestVerticalSibling('up')
       else
         @getActivePane()
 
