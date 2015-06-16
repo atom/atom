@@ -1229,6 +1229,11 @@ describe "DisplayBuffer", ->
       decoration.destroy()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
+    it "does not leak disposables", ->
+      disposablesSize = displayBuffer.disposables.disposables.size
+      decoration.destroy()
+      expect(displayBuffer.disposables.disposables.size).toBe(disposablesSize - 1)
+
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
         decoration.onDidChangeProperties updatedSpy = jasmine.createSpy()
