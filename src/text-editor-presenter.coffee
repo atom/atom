@@ -333,7 +333,7 @@ class TextEditorPresenter
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
       tile = @state.content.tiles[startRow] ?= {}
-      tile.top = startRow * @lineHeight - @scrollTop
+      tile.top = @makeOdd(startRow * @lineHeight - @scrollTop)
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
@@ -784,6 +784,12 @@ class TextEditorPresenter
       @shouldUpdateHiddenInputState = true
 
       @emitDidUpdateState()
+
+  makeOdd: (value) ->
+    if value % 2 is 0
+      value - 1
+    else
+      value
 
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
