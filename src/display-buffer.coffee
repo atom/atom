@@ -974,7 +974,10 @@ class DisplayBuffer extends Model
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
-    @disposables.add decoration.onDidDestroy => @removeDecoration(decoration)
+    decorationDestroyedDisposable = decoration.onDidDestroy =>
+      @removeDecoration(decoration)
+      @disposables.remove(decorationDestroyedDisposable)
+    @disposables.add(decorationDestroyedDisposable)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @overlayDecorationsById[decoration.id] = decoration if decoration.isType('overlay')
