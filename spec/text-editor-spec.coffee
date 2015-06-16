@@ -2945,6 +2945,16 @@ describe "TextEditor", ->
               # Preserve the indentation of the next row
               expect(editor.indentationForBufferRow(8)).toBe(3)
 
+            it "auto-indents without losing alignment spaces", ->
+              expect(editor.indentationForBufferRow(5)).toBe(3)
+
+              atom.clipboard.write("/**\n * PHPDoc\n * End\n */\na(x);\n  b(x);\n", indentBasis: 0)
+              editor.setCursorBufferPosition([5, 0])
+              editor.pasteText()
+
+              # Do not lose the alignment spaces
+              expect(editor.lineTextForBufferRow(6)).toBe("       * PHPDoc")
+
           describe "when non-whitespace characters precede the cursor", ->
             it "does not auto-indent the first line being pasted", ->
               editor.setText """
@@ -3676,7 +3686,7 @@ describe "TextEditor", ->
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->
       expect(editor.indentLevelForLine("    hello")).toBe(2)
-      expect(editor.indentLevelForLine("   hello")).toBe(1.5)
+      expect(editor.indentLevelForLine("   hello")).toBe(1)
 
     it "returns the indent level when the line has only leading tabs", ->
       expect(editor.indentLevelForLine("\t\thello")).toBe(2)
@@ -3684,8 +3694,9 @@ describe "TextEditor", ->
     it "returns the indent level when the line has mixed leading whitespace and tabs", ->
       expect(editor.indentLevelForLine("\t  hello")).toBe(2)
       expect(editor.indentLevelForLine("  \thello")).toBe(2)
-      expect(editor.indentLevelForLine("  \t hello")).toBe(2.5)
-      expect(editor.indentLevelForLine("  \t \thello")).toBe(3.5)
+      expect(editor.indentLevelForLine("  \t hello")).toBe(2)
+      expect(editor.indentLevelForLine("  \t \thello")).toBe(3)
+      expect(editor.indentLevelForLine(" \t \t \thello")).toBe(3)
 
   describe "when the buffer is reloaded", ->
     it "preserves the current cursor position", ->
@@ -4101,6 +4112,48 @@ describe "TextEditor", ->
       expect(editor.getCursorBufferPosition()).toEqual [0, 2]
       editor.moveLeft()
       expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+  describe ".modifyIndentWhitespace", ->
+    it "sets, increases or descreases soft tab indentation", ->
+      expect(editor.modifyIndentWhitespace("  ", 4)).toBe("        ")
+      expect(editor.modifyIndentWhitespace("  ", 0)).toBe("")
+      expect(editor.modifyIndentWhitespace("    ", 1, 2)).toBe("      ")
+      expect(editor.modifyIndentWhitespace("    ", undefined, 1)).toBe("      ")
+      expect(editor.modifyIndentWhitespace("    ", undefined, -1)).toBe("  ")
+
+      # Leave alone excess spacing that may be aligning text (such as in /**/ blocks)
+      expect(editor.modifyIndentWhitespace("   ", 0)).toBe(" ")
+      expect(editor.modifyIndentWhitespace("    ", 0)).toBe("")
+
+    it "sets, increases or descreases hard tab indentation", ->
+      editor.setSoftTabs(false)
+      expect(editor.modifyIndentWhitespace("\t", 4)).toBe("\t\t\t\t")
+      expect(editor.modifyIndentWhitespace("\t", 0)).toBe("")
+      expect(editor.modifyIndentWhitespace("\t\t", 1, 2)).toBe("\t\t\t")
+      expect(editor.modifyIndentWhitespace("\t\t", undefined, 1)).toBe("\t\t\t")
+      expect(editor.modifyIndentWhitespace("\t\t", undefined, -1)).toBe("\t")
+
+      # Leave alone excess spacing that may be aligning text (such as in /**/ blocks)
+      expect(editor.modifyIndentWhitespace("\t ", 0)).toBe(" ")
+      expect(editor.modifyIndentWhitespace("\t  ", 0)).toBe("")
+
+  describe ".modifyIndentLevelForRow", ->
+    it "modifies a buffer row's indentation", ->
+      editor.setSoftTabs(false)
+      editor.setText("\t1\n\t\t2")
+      editor.modifyIndentLevelForRow(1, undefined, 1)
+      expect(editor.getText()).toBe("\t1\n\t\t\t2")
+      editor.modifyIndentLevelForRow(1, 1)
+      expect(editor.getText()).toBe("\t1\n\t2")
+
+  describe ".modifyIndentLevelForLine", ->
+    it "modifies a buffer row's indentation", ->
+      editor.setSoftTabs(false)
+      line = "\t\t2"
+      result = editor.modifyIndentLevelForLine(line, undefined, 1)
+      expect(result).toBe("\t\t\t2")
+      result = editor.modifyIndentLevelForLine(line, 1)
+      expect(result).toBe("\t2")
 
   describe ".setIndentationForBufferRow", ->
     describe "when the editor uses soft tabs but the row has hard tabs", ->

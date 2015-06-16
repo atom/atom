@@ -515,6 +515,9 @@ class DisplayBuffer extends Model
   indentLevelForLine: (line) ->
     @tokenizedBuffer.indentLevelForLine(line)
 
+  parseIndentation: (leadingWhitespace) ->
+    @tokenizedBuffer.parseIndentation(leadingWhitespace)
+
   # Given starting and ending screen rows, this returns an array of the
   # buffer rows corresponding to every screen row in the range
   #

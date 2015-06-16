@@ -412,12 +412,22 @@ class TokenizedBuffer extends Model
 
   indentLevelForLine: (line) ->
     if match = line.match(/^[\t ]+/)
-      leadingWhitespace = match[0]
-      tabCount = leadingWhitespace.match(/\t/g)?.length ? 0
-      spaceCount = leadingWhitespace.match(/[ ]/g)?.length ? 0
-      tabCount + (spaceCount / @getTabLength())
+      {indentLevel} = @parseIndentation(match[0])
+      indentLevel
     else
       0
+
+  parseIndentation: (leadingWhitespace) ->
+    tabLength = @getTabLength()
+    columnCount = 0
+    for c in leadingWhitespace
+      if c is '\t'
+        columnCount += tabLength - (columnCount % tabLength)
+      else
+        columnCount += 1
+    excessSpace = columnCount % tabLength
+
+    {indentLevel: (columnCount - excessSpace) / tabLength, excessSpace: excessSpace}
 
   scopeDescriptorForPosition: (position) ->
     {row, column} = Point.fromObject(position)
