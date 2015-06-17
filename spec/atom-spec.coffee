@@ -142,6 +142,37 @@ describe "the `atom` global", ->
         expect(atom.openDevTools).not.toHaveBeenCalled()
         expect(atom.executeJavaScriptInDevTools).not.toHaveBeenCalled()
 
+  describe ".assert(condition, message, metadata)", ->
+    errors = null
+
+    beforeEach ->
+      errors = []
+      atom.onDidFailAssertion (error) -> errors.push(error)
+
+    describe "if the condition is false", ->
+      it "notifies onDidFailAssertion handlers with an error object based on the call site of the assertion", ->
+        atom.assert(false, "a == b")
+        expect(errors.length).toBe 1
+        expect(errors[0].message).toBe "Assertion failed: a == b"
+        expect(errors[0].stack).toContain('atom-spec')
+
+      describe "if metadata is an object", ->
+        it "assigns the object on the error as `metadata`", ->
+          metadata = {foo: 'bar'}
+          atom.assert(false, "a == b", metadata)
+          expect(errors[0].metadata).toBe metadata
+
+      describe "if metadata is a function", ->
+        it "assigns the function's return value on the error as `metadata`", ->
+          metadata = {foo: 'bar'}
+          atom.assert(false, "a == b", -> metadata)
+          expect(errors[0].metadata).toBe metadata
+
+    describe "if the condition is true", ->
+      it "does nothing", ->
+        atom.assert(true, "a == b")
+        expect(errors).toEqual []
+
   describe "saving and loading", ->
     afterEach -> atom.mode = "spec"
 
