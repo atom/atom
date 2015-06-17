@@ -2,8 +2,6 @@
 Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
-{createGutterView} = require './gutter-component-helpers'
-Gutter = require './gutter'
 Model = require './model'
 Pane = require './pane'
 PaneElement = require './pane-element'
@@ -62,7 +60,6 @@ class PaneContainer extends Model
       new PaneElement().initialize(model)
     atom.views.addViewProvider TextEditor, (model) ->
       new TextEditorElement().initialize(model)
-    atom.views.addViewProvider(Gutter, createGutterView)
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn

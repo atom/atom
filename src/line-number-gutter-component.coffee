@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{setDimensionsAndBackground} = require './gutter-component-helpers'
+{createGutterView, setDimensionsAndBackground} = require './gutter-component-helpers'
 
 WrapperDiv = document.createElement('div')
 
@@ -11,9 +11,8 @@ class LineNumberGutterComponent
     @lineNumberNodesById = {}
     @visible = true
 
-    @domNode = atom.views.getView(@gutter)
+    @domNode = createGutterView(@gutter)
     @lineNumbersNode = @domNode.firstChild
-    @lineNumbersNode.innerHTML = ''
 
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown

@@ -16,9 +16,6 @@ describe "CustomGutterComponent", ->
     decorationsWrapperNode = gutterComponent.getDomNode().children.item(0)
     expect(decorationsWrapperNode.classList.contains('custom-decorations')).toBe true
 
-  it "makes its view accessible from the view registry", ->
-    expect(gutterComponent.getDomNode()).toBe atom.views.getView(gutter)
-
   it "hides its DOM node when ::hideNode is called, and shows its DOM node when ::showNode is called", ->
     gutterComponent.hideNode()
     expect(gutterComponent.getDomNode().style.display).toBe 'none'
