@@ -261,7 +261,8 @@ class LanguageMode
     desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
 
     return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(tokenizedLine.text)
+    line = @buffer.lineForRow(bufferRow)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(line)
 
     Math.max(desiredIndentLevel, 0)
 
