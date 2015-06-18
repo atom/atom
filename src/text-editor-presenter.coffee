@@ -786,7 +786,7 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   snapToScreenPixels: (value) ->
-    value - (value % window.devicePixelRatio)
+    Math.floor(value - (value % window.devicePixelRatio))
 
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
