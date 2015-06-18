@@ -105,7 +105,7 @@ class AtomApplication
         app.quit()
         return
     @windows.splice(@windows.indexOf(window), 1)
-    @saveState() unless window.isSpec or @quitting
+    @saveState(true) unless window.isSpec
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
@@ -116,14 +116,14 @@ class AtomApplication
 
     unless window.isSpec
       focusHandler = => @lastFocusedWindow = window
-      blurHandler = => @saveState()
+      blurHandler = => @saveState(false)
       window.browserWindow.on 'focus', focusHandler
       window.browserWindow.on 'blur', blurHandler
       window.browserWindow.once 'closed', =>
         @lastFocusedWindow = null if window is @lastFocusedWindow
         window.browserWindow.removeListener 'focus', focusHandler
         window.browserWindow.removeListener 'blur', blurHandler
-      window.browserWindow.webContents.once 'did-finish-load', => @saveState()
+      window.browserWindow.webContents.once 'did-finish-load', => @saveState(false)
 
   # Creates server to listen for additional atom application launches.
   #
@@ -186,7 +186,10 @@ class AtomApplication
     @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
     @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
-    @on 'application:install-update', => @autoUpdateManager.install()
+    @on 'application:install-update', =>
+      @quitting = true
+      @autoUpdateManager.install()
+
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
@@ -210,7 +213,7 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     app.on 'before-quit', =>
-      @saveState() if @hasEditorWindows()
+      @saveState(false)
       @quitting = true
 
     app.on 'will-quit', =>
@@ -218,7 +221,7 @@ class AtomApplication
       @deleteSocketFile()
 
     app.on 'will-exit', =>
-      @saveState() if @hasEditorWindows()
+      @saveState(false)
       @killAllProcesses()
       @deleteSocketFile()
 
@@ -269,6 +272,9 @@ class AtomApplication
     ipc.on 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
+
+    ipc.on 'cancel-window-close', =>
+      @quitting = false
 
     clipboard = null
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
@@ -433,16 +439,15 @@ class AtomApplication
         console.log("Killing process #{pid} failed: #{error.code ? error.message}")
     delete @pidsToOpenWindows[pid]
 
-  saveState: ->
+  saveState: (allowEmpty=false) ->
+    return if @quitting
     states = []
     for window in @windows
       unless window.isSpec
         if loadSettings = window.getLoadSettings()
           states.push(initialPaths: loadSettings.initialPaths)
-    @storageFolder.store('application.json', states)
-
-  hasEditorWindows: ->
-    @windows.some (window) -> not window.isSpec
+    if states.length > 0 or allowEmpty
+      @storageFolder.store('application.json', states)
 
   loadState: ->
     if (states = @storageFolder.load('application.json'))?.length > 0

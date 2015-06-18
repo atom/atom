@@ -71,3 +71,20 @@ atom-pane-container {
     }
   }
 }
+
+// Windows doesn't have row- and col-resize cursors
+.platform-win32 {
+  atom-pane-container {
+    atom-pane-axis.vertical {
+      & > atom-pane-resize-handle {
+        cursor: ns-resize;
+      }
+    }
+
+    atom-pane-axis.horizontal {
+      & > atom-pane-resize-handle {
+        cursor: ew-resize;
+      }
+    }
+  }
+}
