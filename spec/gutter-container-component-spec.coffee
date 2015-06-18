@@ -107,24 +107,22 @@ describe "GutterContainerComponent", ->
 
       gutterContainerComponent.updateSync(testState)
       expect(gutterContainerComponent.getDomNode().children.length).toBe 2
-
-      initialCustomGutterNode1 = gutterContainerComponent.getDomNode().children.item(0)
-      initialLineNumbersNode = gutterContainerComponent.getDomNode().children.item(1)
+      expectedCustomGutterNode = gutterContainerComponent.getDomNode().children.item(0)
+      expect(expectedCustomGutterNode).toBe atom.views.getView(customGutter1)
+      expectedLineNumbersNode = gutterContainerComponent.getDomNode().children.item(1)
+      expect(expectedLineNumbersNode).toBe atom.views.getView(lineNumberGutter)
 
       # Add a gutter.
       customGutter2 = new Gutter(mockGutterContainer, {name: 'custom2', priority: -10})
       testState = buildTestState([customGutter1, customGutter2, lineNumberGutter])
       gutterContainerComponent.updateSync(testState)
-
       expect(gutterContainerComponent.getDomNode().children.length).toBe 3
-
-      unchangedCustomGutterNode1 = gutterContainerComponent.getDomNode().children.item(0)
-      insertedCustomGutterNode2 = gutterContainerComponent.getDomNode().children.item(1)
-      repositionedLineNumbersNode = gutterContainerComponent.getDomNode().children.item(2)
-
-      expect(initialCustomGutterNode1).toBe(unchangedCustomGutterNode1)
-      expect(initialLineNumbersNode).toBe(repositionedLineNumbersNode)
-      expect(insertedCustomGutterNode2).toBeDefined()
+      expectedCustomGutterNode1 = gutterContainerComponent.getDomNode().children.item(0)
+      expect(expectedCustomGutterNode1).toBe atom.views.getView(customGutter1)
+      expectedCustomGutterNode2 = gutterContainerComponent.getDomNode().children.item(1)
+      expect(expectedCustomGutterNode2).toBe atom.views.getView(customGutter2)
+      expectedLineNumbersNode = gutterContainerComponent.getDomNode().children.item(2)
+      expect(expectedLineNumbersNode).toBe atom.views.getView(lineNumberGutter)
 
       # Hide one gutter, reposition one gutter, remove one gutter; and add a new gutter.
       customGutter2.hide()
@@ -132,12 +130,10 @@ describe "GutterContainerComponent", ->
       testState = buildTestState([customGutter2, customGutter1, customGutter3])
       gutterContainerComponent.updateSync(testState)
       expect(gutterContainerComponent.getDomNode().children.length).toBe 3
-
-      repositionedCustomGutterNode2 = gutterContainerComponent.getDomNode().children.item(0)
-      repositionedCustomGutterNode1 = gutterContainerComponent.getDomNode().children.item(1)
-      insertedCustomGutterNode3 = gutterContainerComponent.getDomNode().children.item(2)
-
-      expect(initialCustomGutterNode1).toBe(repositionedCustomGutterNode1)
-      expect(repositionedCustomGutterNode2).toBe(insertedCustomGutterNode2)
-      expect(repositionedCustomGutterNode2.style.display).toBe('none')
-      expect(insertedCustomGutterNode3).toBeDefined()
+      expectedCustomGutterNode2 = gutterContainerComponent.getDomNode().children.item(0)
+      expect(expectedCustomGutterNode2).toBe atom.views.getView(customGutter2)
+      expect(expectedCustomGutterNode2.style.display).toBe 'none'
+      expectedCustomGutterNode1 = gutterContainerComponent.getDomNode().children.item(1)
+      expect(expectedCustomGutterNode1).toBe atom.views.getView(customGutter1)
+      expectedCustomGutterNode3 = gutterContainerComponent.getDomNode().children.item(2)
+      expect(expectedCustomGutterNode3).toBe atom.views.getView(customGutter3)

@@ -1,4 +1,4 @@
-{createGutterView, setDimensionsAndBackground} = require './gutter-component-helpers'
+{setDimensionsAndBackground} = require './gutter-component-helpers'
 
 # This class represents a gutter other than the 'line-numbers' gutter.
 # The contents of this gutter may be specified by Decorations.
@@ -11,8 +11,10 @@ class CustomGutterComponent
     @decorationItemsById = {}
     @visible = true
 
-    @domNode = createGutterView(@gutter)
+    @domNode = atom.views.getView(@gutter)
     @decorationsNode = @domNode.firstChild
+    # Clear the contents in case the domNode is being reused.
+    @decorationsNode.innerHTML = ''
 
   getDomNode: ->
     @domNode
