@@ -333,7 +333,7 @@ class TextEditorPresenter
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
       tile = @state.content.tiles[startRow] ?= {}
-      tile.top = @makeOdd(startRow * @lineHeight - @scrollTop)
+      tile.top = @snapToScreenPixels(startRow * @lineHeight - @scrollTop)
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
@@ -785,11 +785,8 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  makeOdd: (value) ->
-    if value % 2 is 0
-      value - 1
-    else
-      value
+  snapToScreenPixels: (value) ->
+    value - (value % window.devicePixelRatio)
 
   setScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
