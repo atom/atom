@@ -108,7 +108,7 @@ module.exports =
         maximum: 100
       lineHeight:
         type: ['string', 'number']
-        default: 1.44
+        default: 1.5
       showInvisibles:
         type: 'boolean'
         default: false
