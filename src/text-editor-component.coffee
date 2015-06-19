@@ -106,6 +106,7 @@ class TextEditorComponent
     @mounted = false
     @disposables.dispose()
     @presenter.destroy()
+    @gutterContainerComponent?.destroy()
     window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
 
   getDomNode: ->
