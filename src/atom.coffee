@@ -715,7 +715,7 @@ class Atom extends Model
   ###
 
   assert: (condition, message, metadata) ->
-    return if condition
+    return true if condition
 
     error = new Error("Assertion failed: " + message)
     Error.captureStackTrace(error, @assert)
@@ -727,6 +727,8 @@ class Atom extends Model
         error.metadata = metadata
 
     @emitter.emit 'did-fail-assertion', error
+
+    false
 
   deserializeProject: ->
     Project = require './project'

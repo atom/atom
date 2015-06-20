@@ -151,7 +151,8 @@ describe "the `atom` global", ->
 
     describe "if the condition is false", ->
       it "notifies onDidFailAssertion handlers with an error object based on the call site of the assertion", ->
-        atom.assert(false, "a == b")
+        result = atom.assert(false, "a == b")
+        expect(result).toBe false
         expect(errors.length).toBe 1
         expect(errors[0].message).toBe "Assertion failed: a == b"
         expect(errors[0].stack).toContain('atom-spec')
@@ -170,7 +171,8 @@ describe "the `atom` global", ->
 
     describe "if the condition is true", ->
       it "does nothing", ->
-        atom.assert(true, "a == b")
+        result = atom.assert(true, "a == b")
+        expect(result).toBe true
         expect(errors).toEqual []
 
   describe "saving and loading", ->
