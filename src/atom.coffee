@@ -203,6 +203,7 @@ class Atom extends Model
 
       # TODO: These should be deprecated for 2.0 once we transition the
       # exception-reporting package to the new API.
+      error ?= {}
       error.url = url
       error.line = line
       error.column = column
