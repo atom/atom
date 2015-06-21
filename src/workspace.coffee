@@ -437,15 +437,16 @@ class Workspace extends Model
       item ?= atom.project.open(uri, options)
     catch error
       switch error.code
-        when 'EFILETOOLARGE'
-          atom.notifications.addWarning("#{error.message} Large file support is being tracked at [atom/atom#307](https://github.com/atom/atom/issues/307).")
+        when 'CANCELLED'
+          return Q()
         when 'EACCES'
           atom.notifications.addWarning("Permission denied '#{error.path}'")
+          return Q()
         when 'EPERM', 'EBUSY'
           atom.notifications.addWarning("Unable to open '#{error.path}'", detail: error.message)
+          return Q()
         else
           throw error
-      return Q()
 
     Q(item)
       .then (item) =>
