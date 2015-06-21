@@ -329,7 +329,7 @@ class Project extends Model
 
     if fileSize >= 20 * 1048576 # 20MB
       choice = atom.confirm
-        message: 'Atom currently freezes during the loading of very large files.'
+        message: 'Atom will be unresponsive during the loading of very large files.'
         detailedMessage: "Do you still want to load this file?"
         buttons: ["Proceed", "Cancel"]
       if choice is 1
