@@ -93,6 +93,9 @@ class CommandRegistry
       return disposable
 
     if typeof target is 'string'
+      if typeof callback isnt 'function'
+        throw new Error("Can't register a command with non-function callback.")
+
       validateSelector(target)
       @addSelectorBasedListener(target, commandName, callback)
     else
