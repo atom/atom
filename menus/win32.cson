@@ -184,6 +184,8 @@
       { label: 'Report Issue', command: 'application:report-issue' }
       { label: 'Search Issues', command: 'application:search-issues' }
       { type: 'separator' }
+      { label: 'About Atom', command: 'application:about' }
+      { type: 'separator' }
     ]
   }
 ]
