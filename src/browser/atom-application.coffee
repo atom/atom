@@ -61,7 +61,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @version, @devMode, @safeMode, @includeDeprecatedAPIs, @socketPath} = options
+    {@resourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
@@ -86,16 +86,16 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, includeDeprecatedAPIs, newWindow, specDirectory, logFile, profileStartup}) ->
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile, includeDeprecatedAPIs})
+      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup})
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
-      @openUrl({urlToOpen, devMode, safeMode, includeDeprecatedAPIs}) for urlToOpen in urlsToOpen
+      @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup})
+      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
@@ -160,7 +160,6 @@ class AtomApplication
     getLoadSettings = =>
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
-      includeDeprecatedAPIs: @focusedWindow()?.includeDeprecatedAPIs
 
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
@@ -229,7 +228,7 @@ class AtomApplication
 
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
-      @openUrl({urlToOpen, @devMode, @safeMode, @includeDeprecatedAPIs})
+      @openUrl({urlToOpen, @devMode, @safeMode})
 
     app.on 'activate-with-no-open-windows', (event) =>
       event.preventDefault()
@@ -356,11 +355,10 @@ class AtomApplication
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  #   :includeDeprecatedAPIs - Boolean to control the opened window's included deprecated APIs.
   #   :profileStartup - Boolean to control creating a profile of the startup time.
   #   :window - {AtomWindow} to open file paths in.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup, window}) ->
-    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup, window})
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window}) ->
+    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window})
 
   # Public: Opens multiple paths, in existing windows if possible.
   #
@@ -370,10 +368,9 @@ class AtomApplication
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  #   :includeDeprecatedAPIs - Boolean to control the opened window's included deprecated APIs.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, windowDimensions, profileStartup, window}={}) ->
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
     pathsToOpen = pathsToOpen.map (pathToOpen) ->
       if fs.existsSync(pathToOpen)
         fs.normalize(pathToOpen)
@@ -408,7 +405,7 @@ class AtomApplication
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({locationsToOpen, bootstrapScript, resourcePath, devMode, safeMode, includeDeprecatedAPIs, windowDimensions, profileStartup})
+      openedWindow = new AtomWindow({locationsToOpen, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -455,7 +452,6 @@ class AtomApplication
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode
-          includeDeprecatedAPIs: @includeDeprecatedAPIs
         })
       true
     else
@@ -501,7 +497,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode, includeDeprecatedAPIs}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -513,8 +509,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    includeDeprecatedAPIs ?= true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode, includeDeprecatedAPIs})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
 
   runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try
@@ -557,9 +552,9 @@ class AtomApplication
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
   #   :window - An {AtomWindow} to use for opening a selected file path.
-  promptForPathToOpen: (type, {devMode, safeMode, includeDeprecatedAPIs, window}) ->
+  promptForPathToOpen: (type, {devMode, safeMode, window}) ->
     @promptForPath type, (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode, includeDeprecatedAPIs, window})
+      @openPaths({pathsToOpen, devMode, safeMode, window})
 
   promptForPath: (type, callback) ->
     properties =
