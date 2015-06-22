@@ -75,7 +75,8 @@ var setupWindow = function(loadSettings) {
   ModuleCache.register(loadSettings);
   ModuleCache.add(loadSettings.resourcePath);
 
-  require('grim').includeDeprecatedAPIs = false;
+  // Only include deprecated APIs when running core spec
+  require('grim').includeDeprecatedAPIs = isRunningCoreSpecs(loadSettings);
 
   // Start the crash reporter before anything else.
   require('crash-reporter').start({
@@ -217,6 +218,14 @@ var setupWindowBackground = function() {
       backgroundStylesheet = null;
     }, 1000);
   }, false);
+}
+
+var isRunningCoreSpecs = function(loadSettings) {
+  return !!(loadSettings &&
+    loadSettings.isSpec &&
+    loadSettings.specDirectory &&
+    loadSettings.resourcePath &&
+    path.dirname(loadSettings.specDirectory) === loadSettings.resourcePath);
 }
 
 parseLoadSettings();
