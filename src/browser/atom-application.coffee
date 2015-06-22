@@ -172,8 +172,6 @@ class AtomApplication
     @on 'application:open-folder', -> @promptForPathToOpen('folder', getLoadSettings())
     @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
     @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
-    @on 'application:open-with-deprecated-apis', -> @promptForPathToOpen('all', includeDeprecatedAPIs: true)
-    @on 'application:open-dev-with-deprecated-apis', -> @promptForPathToOpen('all', {includeDeprecatedAPIs: true, devMode: true})
     @on 'application:inspect', ({x, y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
