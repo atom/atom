@@ -51,8 +51,6 @@
     "property-accessors": "^1.1.3",
     "q": "^1.1.2",
     "random-words": "0.0.1",
-    "react-atom-fork": "^0.11.5",
-    "reactionary-atom-fork": "^1.0.0",
     "runas": "2.0.0",
     "scandal": "2.0.3",
     "scoped-property-store": "^0.17.0",
