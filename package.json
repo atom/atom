@@ -2,12 +2,7 @@
   "name": "atom-package-manager",
   "description": "Atom package manager",
   "version": "0.171.0",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://github.com/atom/apm/raw/master/LICENSE.md"
-    }
-  ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/atom/apm.git"

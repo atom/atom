@@ -21,7 +21,6 @@ class Test extends Command
       to the current working directory).
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
-    options.alias('1', 'one').boolean('one').describe('one', 'Run specs in 1.0 API preview mode')
     options.alias('p', 'path').string('path').describe('path', 'Path to atom command')
 
   run: (options) ->
@@ -36,7 +35,6 @@ class Test extends Command
 
     packagePath = process.cwd()
     testArgs = ['--dev', '--test', "--spec-directory=#{path.join(packagePath, 'spec')}"]
-    testArgs.push('--one') if options.argv.one
 
     if process.platform is 'win32'
       logFile = temp.openSync(suffix: '.log', prefix: "#{path.basename(packagePath)}-")
