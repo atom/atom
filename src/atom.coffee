@@ -198,30 +198,27 @@ class Atom extends Model
   initialize: ->
     sourceMapCache = {}
 
-    window.onerror = (message, url, line, column, error) =>
-      @lastUncaughtError = error
+    window.onerror = =>
+      @lastUncaughtError = Array::slice.call(arguments)
+      [message, url, line, column, originalError] = @lastUncaughtError
 
-      # TODO: These should be deprecated for 2.0 once we transition the
-      # exception-reporting package to the new API.
-      error ?= {}
-      error.message ?= message
-      error.url = url
-      error.line = line
-      error.column = column
-      error.originalError = error
+      convertedLine = convertLine(url, line, column, sourceMapCache)
+      {line, column} = convertedLine if convertedLine?
+      originalError.stack = convertStackTrace(originalError.stack, sourceMapCache) if originalError
+
+      eventObject = {message, url, line, column, originalError}
 
       openDevTools = true
-      error.preventDefault = -> openDevTools = false
+      eventObject.preventDefault = -> openDevTools = false
 
-      # TODO: Deprecate onWillThrowError once we transition the notifications
-      # package to use onDidThrowError instead.
-      @emitter.emit 'will-throw-error', error
-      @emit 'uncaught-error', arguments... if includeDeprecatedAPIs
-      @emitter.emit 'did-throw-error', error
+      @emitter.emit 'will-throw-error', eventObject
 
       if openDevTools
         @openDevTools()
         @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+
+      @emit 'uncaught-error', arguments... if includeDeprecatedAPIs
+      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @disposables?.dispose()
     @disposables = new CompositeDisposable
@@ -324,15 +321,17 @@ class Atom extends Model
 
   # Extended: Invoke the given callback whenever there is an unhandled error.
   #
-  # * `callback` {Function} to be called whenever there is an unhandled error.
-  #   * `error` The unhandled {Error} object.
+  # * `callback` {Function} to be called whenever there is an unhandled error
+  #   * `event` {Object}
+  #     * `originalError` {Object} the original error object
+  #     * `message` {String} the original error object
+  #     * `url` {String} Url to the file where the error originated.
+  #     * `line` {Number}
+  #     * `column` {Number}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidThrowError: (callback) ->
     @emitter.on 'did-throw-error', callback
-
-  onDidFailAssertion: (callback) ->
-    @emitter.on 'did-fail-assertion', callback
 
   ###
   Section: Atom Details
@@ -715,22 +714,6 @@ class Atom extends Model
   ###
   Section: Private
   ###
-
-  assert: (condition, message, metadata) ->
-    return true if condition
-
-    error = new Error("Assertion failed: " + message)
-    Error.captureStackTrace(error, @assert)
-
-    if metadata?
-      if typeof metadata is 'function'
-        error.metadata = metadata()
-      else
-        error.metadata = metadata
-
-    @emitter.emit 'did-fail-assertion', error
-
-    false
 
   deserializeProject: ->
     Project = require './project'
