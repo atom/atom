@@ -24,7 +24,27 @@ module.exports = (grunt) ->
       grunt.log.error 'The app has to be built before generating asar archive.'
       return done(false)
 
-    asar.createPackageWithOptions appDir, path.resolve(appDir, '..', 'app.asar'), {unpack}, (err) ->
+    packageJson = require(path.join(appDir, 'package.json'))
+
+    # Where downloaded mksnapshot is cached.
+    home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
+    mksnapshotDownloadDir = path.join(home, '.atom', 'mksnapshot')
+
+    # On OS X the snapshot file should be put under `Electron Framework`.
+    snapshotDir =
+      if process.platform is 'darwin'
+        path.resolve appDir, '..', '..', 'Frameworks', 'Electron Framework.framework', 'Resources'
+      else
+        path.dirname appDir
+
+    options =
+      unpack: unpack
+      snapshot: true
+      version: packageJson.electronVersion
+      arch: if process.platform is 'win32' then 'ia32' else process.arch
+      builddir: mksnapshotDownloadDir
+      snapshotdir: snapshotDir
+    asar.createPackageWithOptions appDir, path.resolve(appDir, '..', 'app.asar'), options, (err) ->
       return done(err) if err?
 
       rm appDir
