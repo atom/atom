@@ -140,8 +140,6 @@ atom.commands.add 'atom-workspace',
   'application:open-folder': -> ipc.send('command', 'application:open-folder')
   'application:open-dev': -> ipc.send('command', 'application:open-dev')
   'application:open-safe': -> ipc.send('command', 'application:open-safe')
-  'application:open-with-deprecated-apis': -> ipc.send('command', 'application:open-with-deprecated-apis')
-  'application:open-dev-with-deprecated-apis': -> ipc.send('command', 'application:open-dev-with-deprecated-apis')
   'application:add-project-folder': -> atom.addProjectFolder()
   'application:minimize': -> ipc.send('command', 'application:minimize')
   'application:zoom': -> ipc.send('command', 'application:zoom')
