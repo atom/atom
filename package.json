@@ -47,7 +47,7 @@
     "normalize-package-data": "^2.0.0",
     "nslog": "^2.0.0",
     "oniguruma": "^4.1",
-    "pathwatcher": "^4.4",
+    "pathwatcher": "^4.4.1",
     "property-accessors": "^1.1.3",
     "q": "^1.1.2",
     "random-words": "0.0.1",
