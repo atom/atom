@@ -83,11 +83,12 @@ class TextEditorElement extends HTMLElement
     @model = model
     @mountComponent()
     @addGrammarScopeAttribute()
-    @addMiniAttributeIfNeeded()
+    @addMiniAttribute() if @model.isMini()
     @addEncodingAttribute()
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
+    @model.onDidChangeMini (mini) => if mini then @addMiniAttribute() else @removeMiniAttribute()
     @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
@@ -155,8 +156,11 @@ class TextEditorElement extends HTMLElement
     grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
     @dataset.grammar = grammarScope
 
-  addMiniAttributeIfNeeded: ->
-    @setAttributeNode(document.createAttribute("mini")) if @model.isMini()
+  addMiniAttribute: ->
+    @setAttributeNode(document.createAttribute("mini"))
+
+  removeMiniAttribute: ->
+    @removeAttribute("mini")
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()
