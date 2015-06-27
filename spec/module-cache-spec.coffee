@@ -8,7 +8,7 @@ describe 'ModuleCache', ->
   beforeEach ->
     spyOn(Module, '_findPath').andCallThrough()
 
-  it 'resolves atom shell module paths without hitting the filesystem', ->
+  it 'resolves electron module paths without hitting the filesystem', ->
     builtins = ModuleCache.cache.builtins
     expect(Object.keys(builtins).length).toBeGreaterThan 0
 

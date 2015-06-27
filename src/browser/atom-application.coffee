@@ -38,7 +38,7 @@ class AtomApplication
 
     # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     # take a few seconds to trigger 'error' event, it could be a bug of node
-    # or atom-shell, before it's fixed we check the existence of socketPath to
+    # or electron, before it's fixed we check the existence of socketPath to
     # speedup startup.
     if (process.platform isnt 'win32' and not fs.existsSync options.socketPath) or options.test
       createAtomApplication()

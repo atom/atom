@@ -53,7 +53,7 @@ class ApplicationMenu
 
   # Flattens the given menu and submenu items into an single Array.
   #
-  # menu - A complete menu configuration object for atom-shell's menu API.
+  # menu - A complete menu configuration object for electron's menu API.
   #
   # Returns an Array of native menu items.
   flattenMenuItems: (menu) ->
@@ -133,12 +133,12 @@ class ApplicationMenu
 
   # Combines a menu template with the appropriate keystroke.
   #
-  # template - An Object conforming to atom-shell's menu api but lacking
+  # template - An Object conforming to electron's menu api but lacking
   #            accelerator and click properties.
   # keystrokesByCommand - An Object where the keys are commands and the values
   #                       are Arrays containing the keystroke.
   #
-  # Returns a complete menu configuration object for atom-shell's menu API.
+  # Returns a complete menu configuration object for electron's menu API.
   translateTemplate: (template, keystrokesByCommand) ->
     template.forEach (item) =>
       item.metadata ?= {}
@@ -156,7 +156,7 @@ class ApplicationMenu
   #                       are Arrays containing the keystroke.
   #
   # Returns a String containing the keystroke in a format that can be interpreted
-  #   by atom shell to provide nice icons where available.
+  #   by electron to provide nice icons where available.
   acceleratorForCommand: (command, keystrokesByCommand) ->
     firstKeystroke = keystrokesByCommand[command]?[0]
     return null unless firstKeystroke

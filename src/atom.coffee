@@ -545,7 +545,7 @@ class Atom extends Model
       @center()
 
   # Returns true if the dimensions are useable, false if they should be ignored.
-  # Work around for https://github.com/atom/atom-shell/issues/473
+  # Work around for https://github.com/atom/electron/issues/473
   isValidDimensions: ({x, y, width, height}={}) ->
     width > 0 and height > 0 and x + width > 0 and y + height > 0
 
