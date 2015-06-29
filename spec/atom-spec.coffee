@@ -86,13 +86,13 @@ describe "the `atom` global", ->
           error = e
           window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
 
-        delete willThrowSpy.mostRecentCall.args[0].preventDefault
-        expect(willThrowSpy).toHaveBeenCalledWith
-          message: error.toString()
-          url: 'abc'
-          line: 2
-          column: 3
-          originalError: error
+        expect(willThrowSpy).toHaveBeenCalledWith(error)
+
+        # Deprecated event properties
+        expect(error.url).toBe 'abc'
+        expect(error.line).toBe 2
+        expect(error.column).toBe 3
+        expect(error.originalError).toBe error
 
       it "will not show the devtools when preventDefault() is called", ->
         willThrowSpy.andCallFake (errorObject) -> errorObject.preventDefault()
@@ -120,12 +120,60 @@ describe "the `atom` global", ->
         catch e
           error = e
           window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
-        expect(didThrowSpy).toHaveBeenCalledWith
-          message: error.toString()
-          url: 'abc'
-          line: 2
-          column: 3
-          originalError: error
+
+        expect(didThrowSpy).toHaveBeenCalledWith(error)
+
+        # Deprecated event properties
+        expect(error.url).toBe 'abc'
+        expect(error.line).toBe 2
+        expect(error.column).toBe 3
+        expect(error.originalError).toBe error
+
+      it "will not show the devtools when preventDefault() is called", ->
+        didThrowSpy.andCallFake (errorObject) -> errorObject.preventDefault()
+        atom.onDidThrowError(didThrowSpy)
+
+        try
+          a + 1
+        catch e
+          window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
+
+        expect(didThrowSpy).toHaveBeenCalled()
+        expect(atom.openDevTools).not.toHaveBeenCalled()
+        expect(atom.executeJavaScriptInDevTools).not.toHaveBeenCalled()
+
+  describe ".assert(condition, message, metadata)", ->
+    errors = null
+
+    beforeEach ->
+      errors = []
+      atom.onDidFailAssertion (error) -> errors.push(error)
+
+    describe "if the condition is false", ->
+      it "notifies onDidFailAssertion handlers with an error object based on the call site of the assertion", ->
+        result = atom.assert(false, "a == b")
+        expect(result).toBe false
+        expect(errors.length).toBe 1
+        expect(errors[0].message).toBe "Assertion failed: a == b"
+        expect(errors[0].stack).toContain('atom-spec')
+
+      describe "if metadata is an object", ->
+        it "assigns the object on the error as `metadata`", ->
+          metadata = {foo: 'bar'}
+          atom.assert(false, "a == b", metadata)
+          expect(errors[0].metadata).toBe metadata
+
+      describe "if metadata is a function", ->
+        it "assigns the function's return value on the error as `metadata`", ->
+          metadata = {foo: 'bar'}
+          atom.assert(false, "a == b", -> metadata)
+          expect(errors[0].metadata).toBe metadata
+
+    describe "if the condition is true", ->
+      it "does nothing", ->
+        result = atom.assert(true, "a == b")
+        expect(result).toBe true
+        expect(errors).toEqual []
 
   describe "saving and loading", ->
     afterEach -> atom.mode = "spec"
