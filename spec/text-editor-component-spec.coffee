@@ -2982,7 +2982,7 @@ describe "TextEditorComponent", ->
         expect(atom.clipboard.read()).toBe 'sort'
         expect(editor.lineTextForBufferRow(10)).toBe 'sort'
 
-        editor.setCursorBufferPosition [10,0]
+        editor.setCursorBufferPosition [10, 0]
         editor.deleteToEndOfLine()
 
         atom.config.set('editor.selectionClipboard', false)
