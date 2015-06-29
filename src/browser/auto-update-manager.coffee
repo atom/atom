@@ -1,7 +1,6 @@
 autoUpdater = null
 _ = require 'underscore-plus'
 {EventEmitter} = require 'events'
-atom = require 'atom'
 path = require 'path'
 
 IdleState = 'idle'
