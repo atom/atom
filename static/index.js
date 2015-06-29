@@ -1,5 +1,10 @@
+(function() {
+
 var fs = require('fs');
 var path = require('path');
+
+var loadSettings = null;
+var loadSettingsError = null;
 
 window.onload = function() {
   try {
@@ -12,35 +17,37 @@ window.onload = function() {
     // Ensure ATOM_HOME is always set before anything else is required
     setupAtomHome();
 
-    var cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
-    // Use separate compile cache when sudo'ing as root to avoid permission issues
-    if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
-      cacheDir = path.join(cacheDir, 'root');
-    }
-
-    var rawLoadSettings = decodeURIComponent(location.hash.substr(1));
-    var loadSettings;
-    try {
-      loadSettings = JSON.parse(rawLoadSettings);
-    } catch (error) {
-      console.error("Failed to parse load settings: " + rawLoadSettings);
-      throw error;
-    }
-
     // Normalize to make sure drive letter case is consistent on Windows
     process.resourcesPath = path.normalize(process.resourcesPath);
 
+    if (loadSettingsError) {
+      throw loadSettingsError;
+    }
+
     var devMode = loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep);
 
+    if (devMode) {
+      setupDeprecatedPackages();
+    }
+
     if (loadSettings.profileStartup) {
-      profileStartup(cacheDir, loadSettings, Date.now() - startTime);
+      profileStartup(loadSettings, Date.now() - startTime);
     } else {
-      setupWindow(cacheDir, loadSettings);
+      setupWindow(loadSettings);
       setLoadTime(Date.now() - startTime);
     }
   } catch (error) {
     handleSetupError(error);
   }
+}
+
+var getCacheDirectory = function() {
+  var cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
+  // Use separate compile cache when sudo'ing as root to avoid permission issues
+  if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
+    cacheDir = path.join(cacheDir, 'root');
+  }
+  return cacheDir;
 }
 
 var setLoadTime = function(loadTime) {
@@ -59,14 +66,17 @@ var handleSetupError = function(error) {
   console.error(error.stack || error);
 }
 
-var setupWindow = function(cacheDir, loadSettings) {
+var setupWindow = function(loadSettings) {
+  var cacheDir = getCacheDirectory();
+
   setupCoffeeCache(cacheDir);
 
   ModuleCache = require('../src/module-cache');
   ModuleCache.register(loadSettings);
   ModuleCache.add(loadSettings.resourcePath);
 
-  require('grim').includeDeprecatedAPIs = !loadSettings.apiPreviewMode;
+  // Only include deprecated APIs when running core spec
+  require('grim').includeDeprecatedAPIs = isRunningCoreSpecs(loadSettings);
 
   // Start the crash reporter before anything else.
   require('crash-reporter').start({
@@ -133,16 +143,28 @@ var setupSourceMapCache = function(cacheDir) {
 
 var setupVmCompatibility = function() {
   var vm = require('vm');
-  if (!vm.Script.createContext)
+  if (!vm.Script.createContext) {
     vm.Script.createContext = vm.createContext;
+  }
 }
 
-var profileStartup = function(cacheDir, loadSettings, initialTime) {
+var setupDeprecatedPackages = function() {
+  var metadata = require('../package.json');
+  if (!metadata._deprecatedPackages) {
+    try {
+      metadata._deprecatedPackages = require('../build/deprecated-packages.json');
+    } catch(requireError) {
+      console.error('Failed to setup deprecated packages list', requireError.stack);
+    }
+  }
+}
+
+var profileStartup = function(loadSettings, initialTime) {
   var profile = function() {
     console.profile('startup');
     try {
       var startTime = Date.now()
-      setupWindow(cacheDir, loadSettings);
+      setupWindow(loadSettings);
       setLoadTime(Date.now() - startTime + initialTime);
     } catch (error) {
       handleSetupError(error);
@@ -162,3 +184,51 @@ var profileStartup = function(cacheDir, loadSettings, initialTime) {
     });
   }
 }
+
+var parseLoadSettings = function() {
+  var rawLoadSettings = decodeURIComponent(location.hash.substr(1));
+  try {
+    loadSettings = JSON.parse(rawLoadSettings);
+  } catch (error) {
+    console.error("Failed to parse load settings: " + rawLoadSettings);
+    loadSettingsError = error;
+  }
+}
+
+var setupWindowBackground = function() {
+  if (loadSettings && loadSettings.isSpec) {
+    return;
+  }
+
+  var backgroundColor = window.localStorage.getItem('atom:window-background-color');
+  if (!backgroundColor) {
+    return;
+  }
+
+  var backgroundStylesheet = document.createElement('style');
+  backgroundStylesheet.type = 'text/css';
+  backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + '; }';
+  document.head.appendChild(backgroundStylesheet);
+
+  // Remove once the page loads
+  window.addEventListener("load", function loadWindow() {
+    window.removeEventListener("load", loadWindow, false);
+    setTimeout(function() {
+      backgroundStylesheet.remove();
+      backgroundStylesheet = null;
+    }, 1000);
+  }, false);
+}
+
+var isRunningCoreSpecs = function(loadSettings) {
+  return !!(loadSettings &&
+    loadSettings.isSpec &&
+    loadSettings.specDirectory &&
+    loadSettings.resourcePath &&
+    path.dirname(loadSettings.specDirectory) === loadSettings.resourcePath);
+}
+
+parseLoadSettings();
+setupWindowBackground();
+
+})();

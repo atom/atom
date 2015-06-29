@@ -18,7 +18,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @exitWhenDone, @safeMode, @devMode, @apiPreviewMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @exitWhenDone, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
@@ -47,7 +47,6 @@ class AtomWindow
     loadSettings.resourcePath = @resourcePath
     loadSettings.devMode ?= false
     loadSettings.safeMode ?= false
-    loadSettings.apiPreviewMode ?= false
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
@@ -87,7 +86,7 @@ class AtomWindow
       hash: encodeURIComponent(JSON.stringify(loadSettings))
 
   getLoadSettings: ->
-    if @browserWindow.webContents.loaded
+    if @browserWindow.webContents?.loaded
       hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
       JSON.parse(decodeURIComponent(hash))
 
@@ -166,7 +165,6 @@ class AtomWindow
 
   openLocations: (locationsToOpen) ->
     if @loaded
-      @focus()
       @sendMessage 'open-locations', locationsToOpen
     else
       @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)

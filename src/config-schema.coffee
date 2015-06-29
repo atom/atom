@@ -103,12 +103,12 @@ module.exports =
         default: ''
       fontSize:
         type: 'integer'
-        default: 16
+        default: 14
         minimum: 1
         maximum: 100
       lineHeight:
         type: ['string', 'number']
-        default: 1.3
+        default: 1.5
       showInvisibles:
         type: 'boolean'
         default: false
@@ -139,12 +139,14 @@ module.exports =
       softWrap:
         type: 'boolean'
         default: false
+        description: 'Wraps lines that exceed the width of the window. When `Soft Wrap At Preferred Line Length` is set, it will wrap to the number of characters defined by the `Preferred Line Length` setting.'
       softTabs:
         type: 'boolean'
         default: true
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
+        description: 'Will wrap to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when soft wrap is enabled globally or for the current language.'
       softWrapHangingIndent:
         type: 'integer'
         default: 0
@@ -177,15 +179,19 @@ module.exports =
           eol:
             type: ['boolean', 'string']
             default: '\u00ac'
+            maximumLength: 1
           space:
             type: ['boolean', 'string']
             default: '\u00b7'
+            maximumLength: 1
           tab:
             type: ['boolean', 'string']
             default: '\u00bb'
+            maximumLength: 1
           cr:
             type: ['boolean', 'string']
             default: '\u00a4'
+            maximumLength: 1
       zoomFontWhenCtrlScrolling:
         type: 'boolean'
         default: process.platform isnt 'darwin'

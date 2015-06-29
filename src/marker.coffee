@@ -48,7 +48,7 @@ class Marker
   oldTailBufferPosition: null
   oldTailScreenPosition: null
   wasValid: true
-  deferredChangeEvents: null
+  hasChangeObservers: false
 
   ###
   Section: Construction and Destruction
@@ -58,14 +58,8 @@ class Marker
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @id = @bufferMarker.id
-    @oldHeadBufferPosition = @getHeadBufferPosition()
-    @oldHeadScreenPosition = @getHeadScreenPosition()
-    @oldTailBufferPosition = @getTailBufferPosition()
-    @oldTailScreenPosition = @getTailScreenPosition()
-    @wasValid = @isValid()
 
     @disposables.add @bufferMarker.onDidDestroy => @destroyed()
-    @disposables.add @bufferMarker.onDidChange (event) => @notifyObservers(event)
 
   # Essential: Destroys the marker, causing it to emit the 'destroyed' event. Once
   # destroyed, a marker cannot be restored by undo/redo operations.
@@ -103,6 +97,14 @@ class Marker
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChange: (callback) ->
+    unless @hasChangeObservers
+      @oldHeadBufferPosition = @getHeadBufferPosition()
+      @oldHeadScreenPosition = @getHeadScreenPosition()
+      @oldTailBufferPosition = @getTailBufferPosition()
+      @oldTailScreenPosition = @getTailScreenPosition()
+      @wasValid = @isValid()
+      @disposables.add @bufferMarker.onDidChange (event) => @notifyObservers(event)
+      @hasChangeObservers = true
     @emitter.on 'did-change', callback
 
   # Essential: Invoke the given callback when the marker is destroyed.
@@ -332,11 +334,11 @@ class Marker
     newTailScreenPosition = @getTailScreenPosition()
     isValid = @isValid()
 
-    return if _.isEqual(isValid, @wasValid) and
-      _.isEqual(newHeadBufferPosition, @oldHeadBufferPosition) and
-      _.isEqual(newHeadScreenPosition, @oldHeadScreenPosition) and
-      _.isEqual(newTailBufferPosition, @oldTailBufferPosition) and
-      _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
+    return if isValid is @wasValid and
+      newHeadBufferPosition.isEqual(@oldHeadBufferPosition) and
+      newHeadScreenPosition.isEqual(@oldHeadScreenPosition) and
+      newTailBufferPosition.isEqual(@oldTailBufferPosition) and
+      newTailScreenPosition.isEqual(@oldTailScreenPosition)
 
     changeEvent = {
       @oldHeadScreenPosition, newHeadScreenPosition,
@@ -347,29 +349,14 @@ class Marker
       isValid
     }
 
-    if @deferredChangeEvents?
-      @deferredChangeEvents.push(changeEvent)
-    else
-      @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
-      @emitter.emit 'did-change', changeEvent
-
     @oldHeadBufferPosition = newHeadBufferPosition
     @oldHeadScreenPosition = newHeadScreenPosition
     @oldTailBufferPosition = newTailBufferPosition
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
 
-  pauseChangeEvents: ->
-    @deferredChangeEvents = []
-
-  resumeChangeEvents: ->
-    if deferredChangeEvents = @deferredChangeEvents
-      @deferredChangeEvents = null
-
-      for event in deferredChangeEvents
-        @emit 'changed', event if Grim.includeDeprecatedAPIs
-        @emitter.emit 'did-change', event
-    return
+    @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change', changeEvent
 
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)

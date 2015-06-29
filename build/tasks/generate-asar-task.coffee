@@ -14,6 +14,8 @@ module.exports = (grunt) ->
       'ctags-darwin'
       'ctags-linux'
       'ctags-win32.exe'
+      '**/node_modules/spellchecker/**'
+      '**/resources/atom.png'
     ]
     unpack = "{#{unpack.join(',')}}"
 

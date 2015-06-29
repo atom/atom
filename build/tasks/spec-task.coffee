@@ -104,7 +104,7 @@ module.exports = (grunt) ->
     else if process.platform is 'win32'
       options =
         cmd: process.env.comspec
-        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", "--log-file=ci.log"]
+        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", '--log-file=ci.log']
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true

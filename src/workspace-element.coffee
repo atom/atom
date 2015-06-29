@@ -113,7 +113,10 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
   runPackageSpecs: ->
-    [projectPath] = atom.project.getPaths()
+    if activePath = atom.workspace.getActivePaneItem()?.getPath?()
+      [projectPath] = atom.project.relativizePath(activePath)
+    else
+      [projectPath] = atom.project.getPaths()
     ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
 
 atom.commands.add 'atom-workspace',
@@ -123,6 +126,7 @@ atom.commands.add 'atom-workspace',
   'application:about': -> ipc.send('command', 'application:about')
   'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
   'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
+  'application:show-preferences': -> ipc.send('command', 'application:show-settings')
   'application:show-settings': -> ipc.send('command', 'application:show-settings')
   'application:quit': -> ipc.send('command', 'application:quit')
   'application:hide': -> ipc.send('command', 'application:hide')
@@ -136,8 +140,6 @@ atom.commands.add 'atom-workspace',
   'application:open-folder': -> ipc.send('command', 'application:open-folder')
   'application:open-dev': -> ipc.send('command', 'application:open-dev')
   'application:open-safe': -> ipc.send('command', 'application:open-safe')
-  'application:open-api-preview': -> ipc.send('command', 'application:open-api-preview')
-  'application:open-dev-api-preview': -> ipc.send('command', 'application:open-dev-api-preview')
   'application:add-project-folder': -> atom.addProjectFolder()
   'application:minimize': -> ipc.send('command', 'application:minimize')
   'application:zoom': -> ipc.send('command', 'application:zoom')

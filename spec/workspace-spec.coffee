@@ -224,6 +224,41 @@ describe "Workspace", ->
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
 
+    describe "when the file is over 2MB", ->
+      it "opens the editor with largeFileMode: true", ->
+        spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
+
+        editor = null
+        waitsForPromise ->
+          workspace.open('sample.js').then (e) -> editor = e
+
+        runs ->
+          expect(editor.displayBuffer.largeFileMode).toBe true
+
+    describe "when the file is over 20MB", ->
+      it "prompts the user to make sure they want to open a file this big", ->
+        spyOn(fs, 'getSizeSync').andReturn 20 * 1048577 # 20MB
+        spyOn(atom, 'confirm').andCallFake -> selectedButtonIndex
+        selectedButtonIndex = 1 # cancel
+
+        editor = null
+        waitsForPromise ->
+          workspace.open('sample.js').then (e) -> editor = e
+
+        runs ->
+          expect(editor).toBeUndefined()
+          expect(atom.confirm).toHaveBeenCalled()
+
+          atom.confirm.reset()
+          selectedButtonIndex = 0 # open the file
+
+        waitsForPromise ->
+          workspace.open('sample.js').then (e) -> editor = e
+
+        runs ->
+          expect(atom.confirm).toHaveBeenCalled()
+          expect(editor.displayBuffer.largeFileMode).toBe true
+
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         fooOpener = (pathToOpen, options) -> {foo: pathToOpen, options} if pathToOpen?.match(/\.foo/)
@@ -271,20 +306,6 @@ describe "Workspace", ->
       notificationSpy = null
       beforeEach ->
         atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
-
-      describe "when a large file is opened", ->
-        beforeEach ->
-          spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
-
-        it "creates a notification", ->
-          waitsForPromise ->
-            workspace.open('file1')
-
-          runs ->
-            expect(notificationSpy).toHaveBeenCalled()
-            notification = notificationSpy.mostRecentCall.args[0]
-            expect(notification.getType()).toBe 'warning'
-            expect(notification.getMessage()).toContain '< 2MB'
 
       describe "when a file does not exist", ->
         it "creates an empty buffer for the specified path", ->
@@ -941,6 +962,92 @@ describe "Workspace", ->
                 .then ->
                   expect(resultPaths).toEqual([file2])
 
+        describe "when a custom directory searcher is registered", ->
+          fakeSearch = null
+          # Function that is invoked once all of the fields on fakeSearch are set.
+          onFakeSearchCreated = null
+
+          class FakeSearch
+            constructor: (@options) ->
+              # Note that hoisting resolve and reject in this way is generally frowned upon.
+              @promise = new Promise (resolve, reject) =>
+                @hoistedResolve = resolve
+                @hoistedReject = reject
+                onFakeSearchCreated?(this)
+            then: (args...) ->
+              @promise.then.apply(@promise, args)
+            cancel: ->
+              @cancelled = true
+              # According to the spec for a DirectorySearcher, invoking `cancel()` should
+              # resolve the thenable rather than reject it.
+              @hoistedResolve()
+
+          beforeEach ->
+            fakeSearch = null
+            onFakeSearchCreated = null
+            atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
+              canSearchDirectory: (directory) -> directory.getPath() is dir1
+              search: (directory, regex, options) -> fakeSearch = new FakeSearch(options)
+            })
+
+          it "can override the DefaultDirectorySearcher on a per-directory basis", ->
+            foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
+            numPathsSearchedInDir2 = 1
+            numPathsToPretendToSearchInCustomDirectorySearcher = 10
+            searchResult =
+              filePath: foreignFilePath,
+              matches: [
+                {
+                  lineText: 'Hello world',
+                  lineTextOffset: 0,
+                  matchText: 'Hello',
+                  range: [[0, 0], [0, 5]],
+                },
+              ]
+            onFakeSearchCreated = (fakeSearch) ->
+              fakeSearch.options.didMatch(searchResult)
+              fakeSearch.options.didSearchPaths(numPathsToPretendToSearchInCustomDirectorySearcher)
+              fakeSearch.hoistedResolve()
+
+            resultPaths = []
+            onPathsSearched = jasmine.createSpy('onPathsSearched')
+            waitsForPromise ->
+              atom.workspace.scan /aaaa/, {onPathsSearched}, ({filePath}) ->
+                resultPaths.push(filePath)
+
+            runs ->
+              expect(resultPaths.sort()).toEqual([foreignFilePath, file2].sort())
+              # onPathsSearched should be called once by each DirectorySearcher. The order is not
+              # guaranteed, so we can only verify the total number of paths searched is correct
+              # after the second call.
+              expect(onPathsSearched.callCount).toBe(2)
+              expect(onPathsSearched.mostRecentCall.args[0]).toBe(
+                numPathsToPretendToSearchInCustomDirectorySearcher + numPathsSearchedInDir2)
+
+          it "can be cancelled when the object returned by scan() has its cancel() method invoked", ->
+            thenable = atom.workspace.scan /aaaa/, ->
+            expect(fakeSearch.cancelled).toBe(undefined)
+            thenable.cancel()
+            expect(fakeSearch.cancelled).toBe(true)
+
+            resultOfPromiseSearch = null
+            waitsForPromise ->
+              thenable.then (promiseResult) -> resultOfPromiseSearch = promiseResult
+
+            runs ->
+              expect(resultOfPromiseSearch).toBe('cancelled')
+
+          it "will have the side-effect of failing the overall search if it fails", ->
+            cancelableSearch = atom.workspace.scan /aaaa/, ->
+            fakeSearch.hoistedReject()
+
+            didReject = false
+            waitsForPromise ->
+              cancelableSearch.catch -> didReject = true
+
+            runs ->
+              expect(didReject).toBe(true)
+
   describe "::replace(regex, replacementText, paths, iterator)", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
 
@@ -1027,7 +1134,7 @@ describe "Workspace", ->
           atom.project.open('sample.js').then (o) -> editor = o
 
         runs ->
-          editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
+          editor.buffer.setTextInRange([[0, 0], [0, 0]], 'omg')
           expect(editor.isModified()).toBeTruthy()
 
         waitsForPromise ->

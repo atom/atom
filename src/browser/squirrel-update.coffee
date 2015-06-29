@@ -139,7 +139,7 @@ addCommandsToPath = (callback) ->
 
     atomShCommandPath = path.join(binFolder, 'atom')
     relativeAtomShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.sh'))
-    atomShCommand = "#!/bin/sh\r\n\"$0/../#{relativeAtomShPath.replace(/\\/g, '/')}\" \"$@\""
+    atomShCommand = "#!/bin/sh\r\n\"$(dirname \"$0\")/#{relativeAtomShPath.replace(/\\/g, '/')}\" \"$@\""
 
     apmCommandPath = path.join(binFolder, 'apm.cmd')
     relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'bin', 'apm.cmd'))
@@ -147,7 +147,7 @@ addCommandsToPath = (callback) ->
 
     apmShCommandPath = path.join(binFolder, 'apm')
     relativeApmShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'apm.sh'))
-    apmShCommand = "#!/bin/sh\r\n\"$0/../#{relativeApmShPath.replace(/\\/g, '/')}\" \"$@\""
+    apmShCommand = "#!/bin/sh\r\n\"$(dirname \"$0\")/#{relativeApmShPath.replace(/\\/g, '/')}\" \"$@\""
 
     fs.writeFile atomCommandPath, atomCommand, ->
       fs.writeFile atomShCommandPath, atomShCommand, ->

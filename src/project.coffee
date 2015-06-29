@@ -128,8 +128,8 @@ class Project extends Model
   # Prefer the following, which evaluates to a {Promise} that resolves to an
   # {Array} of {Repository} objects:
   # ```
-  # Promise.all(project.getDirectories().map(
-  #     project.repositoryForDirectory.bind(project)))
+  # Promise.all(atom.project.getDirectories().map(
+  #     atom.project.repositoryForDirectory.bind(atom.project)))
   # ```
   getRepositories: -> @repositories
 
@@ -323,8 +323,22 @@ class Project extends Model
         # allow ENOENT errors to create an editor for paths that dont exist
         throw error unless error.code is 'ENOENT'
 
-    @bufferForPath(filePath).then (buffer) =>
-      @buildEditorForBuffer(buffer, options)
+    absoluteFilePath = @resolvePath(filePath)
+
+    fileSize = fs.getSizeSync(absoluteFilePath)
+
+    if fileSize >= 20 * 1048576 # 20MB
+      choice = atom.confirm
+        message: 'Atom will be unresponsive during the loading of very large files.'
+        detailedMessage: "Do you still want to load this file?"
+        buttons: ["Proceed", "Cancel"]
+      if choice is 1
+        error = new Error
+        error.code = 'CANCELLED'
+        throw error
+
+    @bufferForPath(absoluteFilePath).then (buffer) =>
+      @buildEditorForBuffer(buffer, _.extend({fileSize}, options))
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -354,8 +368,7 @@ class Project extends Model
   # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  bufferForPath: (filePath) ->
-    absoluteFilePath = @resolvePath(filePath)
+  bufferForPath: (absoluteFilePath) ->
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
     Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 
@@ -376,11 +389,6 @@ class Project extends Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    if fs.getSizeSync(absoluteFilePath) >= 2 * 1048576 # 2MB
-      error = new Error("Atom can only handle files < 2MB for now.")
-      error.code = 'EFILETOOLARGE'
-      throw error
-
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.load()
@@ -410,7 +418,8 @@ class Project extends Model
     buffer?.destroy()
 
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new TextEditor(_.extend({buffer, registerEditor: true}, editorOptions))
+    largeFileMode = editorOptions.fileSize >= 2 * 1048576 # 2MB
+    editor = new TextEditor(_.extend({buffer, largeFileMode, registerEditor: true}, editorOptions))
     editor
 
   eachBuffer: (args...) ->

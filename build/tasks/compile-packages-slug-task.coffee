@@ -2,6 +2,8 @@ path = require 'path'
 CSON = require 'season'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
+normalizePackageData = require 'normalize-package-data'
+semver = require 'semver'
 
 OtherPlatforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32'].filter (platform) -> platform isnt process.platform
 
@@ -32,6 +34,7 @@ module.exports = (grunt) ->
 
     modulesDirectory = path.join(appDir, 'node_modules')
     packages = {}
+    invalidPackages = false
 
     for moduleDirectory in fs.listSync(modulesDirectory)
       continue if path.basename(moduleDirectory) is '.bin'
@@ -39,6 +42,13 @@ module.exports = (grunt) ->
       metadataPath = path.join(moduleDirectory, 'package.json')
       metadata = grunt.file.readJSON(metadataPath)
       continue unless metadata?.engines?.atom?
+
+      reportPackageError = (msg) ->
+        invalidPackages = true
+        grunt.log.error("#{metadata.name}: #{msg}")
+      normalizePackageData metadata, reportPackageError, true
+      if metadata.repository?.type is 'git'
+        metadata.repository.url = metadata.repository.url?.replace(/^git\+/, '')
 
       moduleCache = metadata._atomModuleCache ? {}
 
@@ -77,5 +87,12 @@ module.exports = (grunt) ->
     metadata._atomPackages = packages
     metadata._atomMenu = getMenu(appDir)
     metadata._atomKeymaps = getKeymaps(appDir)
+    metadata._deprecatedPackages = require('../deprecated-packages')
+
+    for name, {version} of metadata._deprecatedPackages
+      if version and not semver.validRange(version)
+        invalidPackages = true
+        grunt.log.error("Invalid range: #{version} (#{name})")
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
+    not invalidPackages

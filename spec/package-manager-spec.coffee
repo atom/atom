@@ -1,3 +1,4 @@
+path = require 'path'
 {$, $$} = require '../src/space-pen-extensions'
 Package = require '../src/package'
 {Disposable} = require 'atom'
@@ -55,6 +56,24 @@ describe "PackageManager", ->
       expect(atom.packages.loadPackage("this-package-cannot-be-found")).toBeNull()
       expect(console.warn.callCount).toBe(1)
       expect(console.warn.argsForCall[0][0]).toContain("Could not resolve")
+
+    describe "when the package is deprecated", ->
+      grim = require 'grim'
+      includeDeprecatedAPIs = null
+
+      beforeEach ->
+        {includeDeprecatedAPIs} = grim
+
+      afterEach ->
+        grim.includeDeprecatedAPIs = includeDeprecatedAPIs
+
+      it "returns null", ->
+        grim.includeDeprecatedAPIs = false
+        expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.9')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.0')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.1')).toBe false
+        expect(atom.packages.getDeprecatedPackageMetadata('wordcount').version).toBe '<=2.2.0'
 
     it "invokes ::onDidLoadPackage listeners with the loaded package", ->
       loadedPackage = null
@@ -824,3 +843,66 @@ describe "PackageManager", ->
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
+
+  describe "deleting non-bundled autocomplete packages", ->
+    [autocompleteCSSPath, autocompletePlusPath] = []
+    fs = require 'fs-plus'
+    path = require 'path'
+
+    beforeEach ->
+      fixturePath = path.resolve(__dirname, './fixtures/packages')
+      autocompleteCSSPath = path.join(fixturePath, 'autocomplete-css')
+      autocompletePlusPath = path.join(fixturePath, 'autocomplete-plus')
+
+      try
+        fs.mkdirSync(autocompleteCSSPath)
+        fs.writeFileSync(path.join(autocompleteCSSPath, 'package.json'), '{}')
+        fs.symlinkSync(path.join(fixturePath, 'package-with-main'), autocompletePlusPath, 'dir')
+
+      expect(fs.isDirectorySync(autocompleteCSSPath)).toBe true
+      expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
+
+      jasmine.unspy(atom.packages, 'uninstallAutocompletePlus')
+
+    afterEach ->
+      try
+        fs.unlink autocompletePlusPath, ->
+
+    it "removes the packages", ->
+      atom.packages.loadPackages()
+
+      waitsFor ->
+        not fs.isDirectorySync(autocompleteCSSPath)
+
+      runs ->
+        expect(fs.isDirectorySync(autocompleteCSSPath)).toBe false
+        expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
+
+  describe "when the deprecated sublime-tabs package is installed", ->
+    grim = require 'grim'
+    includeDeprecatedAPIs = null
+
+    beforeEach ->
+      {includeDeprecatedAPIs} = grim
+      grim.includeDeprecatedAPIs = false
+
+    afterEach ->
+      grim.includeDeprecatedAPIs = includeDeprecatedAPIs
+
+    it "enables the tree-view and tabs package", ->
+      atom.config.pushAtKeyPath('core.disabledPackages', 'tree-view')
+      atom.config.pushAtKeyPath('core.disabledPackages', 'tabs')
+
+      spyOn(atom.packages, 'getAvailablePackagePaths').andReturn [
+        path.join(__dirname, 'fixtures', 'packages', 'sublime-tabs')
+        path.resolve(__dirname, '..', 'node_modules', 'tree-view')
+        path.resolve(__dirname, '..', 'node_modules', 'tabs')
+      ]
+      atom.packages.loadPackages()
+
+      waitsFor ->
+        not atom.packages.isPackageDisabled('tree-view') and not atom.packages.isPackageDisabled('tabs')
+
+      runs ->
+        expect(atom.packages.isPackageLoaded('tree-view')).toBe true
+        expect(atom.packages.isPackageLoaded('tabs')).toBe true
