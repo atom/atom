@@ -227,8 +227,7 @@ class TextEditorComponent
     window.addEventListener 'resize', @requestHeightAndWidthMeasurement
 
     @listenForIMEEvents()
-    if process.platform is 'linux'
-      @trackSelectionClipboard()
+    @trackSelectionClipboard() if process.platform is 'linux'
 
   listenForIMEEvents: ->
     # The IME composition events work like this:
