@@ -227,7 +227,8 @@ class TextEditorComponent
     window.addEventListener 'resize', @requestHeightAndWidthMeasurement
 
     @listenForIMEEvents()
-    @trackSelectionClipboard() if process.platform is 'linux'
+    if process.platform is 'linux'
+      @trackSelectionClipboard()
 
   listenForIMEEvents: ->
     # The IME composition events work like this:
@@ -562,7 +563,7 @@ class TextEditorComponent
       window.removeEventListener('mouseup', onMouseUp)
 
     pasteSelectionClipboard = (event) =>
-      if event?.which is 2 and process.platform is 'linux'
+      if event?.which is 2 and process.platform is 'linux' and atom.config.get('editor.selectionClipboard')
         if selection = require('./safe-clipboard').readText('selection')
           @editor.insertText(selection)
 
