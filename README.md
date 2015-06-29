@@ -11,9 +11,6 @@ Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https:/
 Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
 
-Visit [issue #3684](https://github.com/atom/atom/issues/3684) to learn more
-about the Atom 1.0 roadmap.
-
 ## Documentation
 
 If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
@@ -51,12 +48,23 @@ Currently only a 64-bit version is available.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
-### Red Hat Linux (Fedora, CentOS, Red Hat)
+### Red Hat Linux (Fedora 21 and under, CentOS, Red Hat)
 
 Currently only a 64-bit version is available.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
+3. Launch Atom using the installed `atom` command.
+
+The Linux version does not currently automatically update so you will need to
+repeat these steps to upgrade to future releases.
+
+### Fedora 22+
+
+Currently only a 64-bit version is available.
+
+1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+2. Run `sudo dnf install atom.x86_64.rpm` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to

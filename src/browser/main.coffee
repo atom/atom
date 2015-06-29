@@ -137,7 +137,6 @@ parseCommandLine = ->
   executedFrom = args['executed-from']
   devMode = args['dev']
   safeMode = args['safe']
-  includeDeprecatedAPIs = args['include-deprecated-apis']
   pathsToOpen = args._
   test = args['test']
   specDirectory = args['spec-directory']
@@ -171,7 +170,6 @@ parseCommandLine = ->
   process.env.PATH = args['path-environment'] if args['path-environment']
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
-   devMode, includeDeprecatedAPIs, safeMode, newWindow, specDirectory, logFile,
-   socketPath, profileStartup}
+   devMode, safeMode, newWindow, specDirectory, logFile, socketPath, profileStartup}
 
 start()

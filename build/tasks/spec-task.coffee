@@ -95,7 +95,7 @@ module.exports = (grunt) ->
     if process.platform in ['darwin', 'linux']
       options =
         cmd: appPath
-        args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", '--include-deprecated-apis']
+        args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
@@ -104,7 +104,7 @@ module.exports = (grunt) ->
     else if process.platform is 'win32'
       options =
         cmd: process.env.comspec
-        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", '--log-file=ci.log', '--include-deprecated-apis']
+        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", '--log-file=ci.log']
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
