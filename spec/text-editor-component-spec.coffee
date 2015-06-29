@@ -2976,10 +2976,19 @@ describe "TextEditorComponent", ->
         clipboardWrittenTo
 
       runs ->
+        atom.config.set('editor.selectionClipboard', true)
         componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([10, 0]), button: 1))
         componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([10, 0]), which: 2))
         expect(atom.clipboard.read()).toBe 'sort'
         expect(editor.lineTextForBufferRow(10)).toBe 'sort'
+
+        editor.setCursorBufferPosition [10,0]
+        editor.deleteToEndOfLine()
+
+        atom.config.set('editor.selectionClipboard', false)
+        componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([10, 0]), button: 1))
+        componentNode.querySelector('.scroll-view').dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([10, 0]), which: 2))
+        expect(editor.lineTextForBufferRow(10)).toBe ''
 
   buildMouseEvent = (type, properties...) ->
     properties = extend({bubbles: true, cancelable: true}, properties...)
