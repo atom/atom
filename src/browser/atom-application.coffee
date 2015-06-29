@@ -273,9 +273,8 @@ class AtomApplication
     ipc.on 'cancel-window-close', =>
       @quitting = false
 
-    clipboard = null
+    clipboard = require '../safe-clipboard'
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
-      clipboard ?= require '../safe-clipboard'
       clipboard.writeText(selectedText, 'selection')
 
   # Public: Executes the given command.

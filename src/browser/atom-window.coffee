@@ -93,10 +93,9 @@ class AtomWindow
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
 
   setupContextMenu: ->
-    ContextMenu = null
+    ContextMenu = require './context-menu'
 
     @browserWindow.on 'context-menu', (menuTemplate) =>
-      ContextMenu ?= require './context-menu'
       new ContextMenu(menuTemplate, this)
 
   containsPaths: (paths) ->
