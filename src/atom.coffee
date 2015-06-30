@@ -724,7 +724,7 @@ class Atom extends Model
   assert: (condition, message, metadata) ->
     return true if condition
 
-    error = new Error("Assertion failed: " + message)
+    error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
 
     if metadata?
