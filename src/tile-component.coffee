@@ -122,7 +122,7 @@ class TileComponent
         inserted = true
         break
 
-      previousScreenRow = currentNode.dataset.screenRow
+      previousScreenRow = currentScreenRow
 
     @domNode.appendChild(lineNode) unless inserted?
 
