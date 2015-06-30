@@ -850,7 +850,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line3.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line3.firstTrailingWhitespaceIndex
               invisibles: line3.invisibles
-              top: 0
             }
 
             line4 = editor.tokenizedLineForScreenRow(4)
@@ -862,7 +861,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line4.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line4.firstTrailingWhitespaceIndex
               invisibles: line4.invisibles
-              top: 1
             }
 
             line5 = editor.tokenizedLineForScreenRow(5)
@@ -874,7 +872,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line5.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line5.firstTrailingWhitespaceIndex
               invisibles: line5.invisibles
-              top: 2
             }
 
             line6 = editor.tokenizedLineForScreenRow(6)
@@ -886,7 +883,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line6.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line6.firstTrailingWhitespaceIndex
               invisibles: line6.invisibles
-              top: 0
             }
 
             line7 = editor.tokenizedLineForScreenRow(7)
@@ -898,7 +894,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line7.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line7.firstTrailingWhitespaceIndex
               invisibles: line7.invisibles
-              top: 1
             }
 
             line8 = editor.tokenizedLineForScreenRow(8)
@@ -910,7 +905,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line8.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line8.firstTrailingWhitespaceIndex
               invisibles: line8.invisibles
-              top: 2
             }
 
             expect(lineStateForScreenRow(presenter, 9)).toBeUndefined()

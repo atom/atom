@@ -105,9 +105,27 @@ class TileComponent
     for id, i in newLineIds
       lineNode = newLineNodes[i]
       @lineNodesByLineId[id] = lineNode
-      @domNode.appendChild(lineNode)
-
+      @insertLineNode(id, lineNode)
     return
+
+  insertLineNode: (id, lineNode) ->
+    [dummyNode, domChildren...] = @domNode.children
+
+    screenRowToInsert = parseInt(lineNode.dataset.screenRow)
+    previousScreenRow = -Infinity
+    hasInsertedNode = false
+
+    for currentNode in domChildren
+      currentScreenRow = parseInt(currentNode.dataset.screenRow)
+
+      if previousScreenRow < screenRowToInsert < currentScreenRow
+        @domNode.insertBefore(lineNode, currentNode)
+        hasInsertedNode = true
+        break
+
+      previousScreenRow = currentScreenRow
+
+    @domNode.appendChild(lineNode) unless hasInsertedNode
 
   buildLineHTML: (id) ->
     {width} = @newState
@@ -119,7 +137,7 @@ class TileComponent
         classes += decorationClass + ' '
     classes += 'line'
 
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" style=\"width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(id)
@@ -296,10 +314,6 @@ class TileComponent
           lineNode.classList.add(decorationClass)
 
     oldLineState.decorationClasses = newLineState.decorationClasses
-
-    if newLineState.top isnt oldLineState.top
-      lineNode.style.top = newLineState.top + 'px'
-      oldLineState.top = newLineState.top
 
     if newLineState.screenRow isnt oldLineState.screenRow
       lineNode.dataset.screenRow = newLineState.screenRow
