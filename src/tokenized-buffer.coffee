@@ -411,10 +411,15 @@ class TokenizedBuffer extends Model
       @indentLevelForLine(line)
 
   indentLevelForLine: (line) ->
-    if match = line.match(/^\t+/)
-      match[0].length
-    else if match = line.match(/^ +/)
-      match[0].length / @getTabLength()
+    if match = line.match(/^[\t ]+/)
+      indentLength = 0
+      for character in match[0]
+        if character is '\t'
+          indentLength += @getTabLength() - (indentLength % @getTabLength())
+        else
+          indentLength++
+
+      indentLength / @getTabLength()
     else
       0
 

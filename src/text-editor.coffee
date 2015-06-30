@@ -2447,13 +2447,14 @@ class TextEditor extends Model
     options.autoIndent ?= @shouldAutoIndent()
     @mutateSelectedText (selection) -> selection.indent(options)
 
-  # Constructs the string used for tabs.
-  buildIndentString: (number, column=0) ->
+  # Constructs the string used for indents.
+  buildIndentString: (level, column=0) ->
     if @getSoftTabs()
       tabStopViolation = column % @getTabLength()
-      _.multiplyString(" ", Math.floor(number * @getTabLength()) - tabStopViolation)
+      _.multiplyString(" ", Math.floor(level * @getTabLength()) - tabStopViolation)
     else
-      _.multiplyString("\t", Math.floor(number))
+      excessWhitespace = _.multiplyString(' ', Math.round((level - Math.floor(level)) * @getTabLength()))
+      _.multiplyString("\t", Math.floor(level)) + excessWhitespace
 
   ###
   Section: Grammars
