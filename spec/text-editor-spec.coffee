@@ -4364,12 +4364,12 @@ describe "TextEditor", ->
         waitsForPromise -> editor.checkoutHeadRevision()
 
   describe ".moveToPreviousSubwordBoundary", ->
-    it 'does not change an empty file', ->
+    it "does not move the cursor when there is no previous subword boundary", ->
       editor.setText('')
       editor.moveToPreviousSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 0])
 
-    it "traverses normal words", ->
+    it "stops at word and underscore boundaries", ->
       editor.setText("_word \n")
       editor.setCursorBufferPosition([0, 6])
       editor.moveToPreviousSubwordBoundary()
@@ -4383,7 +4383,7 @@ describe "TextEditor", ->
       editor.moveToPreviousSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
-    it "traverses camelCase words", ->
+    it "stops at camelCase boundaries", ->
       editor.setText(" getPreviousWord\n")
       editor.setCursorBufferPosition([0, 16])
 
@@ -4396,7 +4396,7 @@ describe "TextEditor", ->
       editor.moveToPreviousSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
-    it "traverses consecutive non-word characters", ->
+    it "skips consecutive non-word characters", ->
       editor.setText("e, => \n")
       editor.setCursorBufferPosition([0, 6])
       editor.moveToPreviousSubwordBoundary()
@@ -4405,7 +4405,7 @@ describe "TextEditor", ->
       editor.moveToPreviousSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
-    it "traverses consecutive uppercase characters", ->
+    it "skips consecutive uppercase characters", ->
       editor.setText(" AAADF \n")
       editor.setCursorBufferPosition([0, 7])
       editor.moveToPreviousSubwordBoundary()
@@ -4419,7 +4419,7 @@ describe "TextEditor", ->
       editor.moveToPreviousSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 2])
 
-    it "traverses consecutive numbers", ->
+    it "skips consecutive numbers", ->
       editor.setText(" 88 \n")
       editor.setCursorBufferPosition([0, 4])
       editor.moveToPreviousSubwordBoundary()
@@ -4428,25 +4428,24 @@ describe "TextEditor", ->
       editor.moveToPreviousSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
-    describe "when 2 cursors", ->
-      it "traverses both camelCase words", ->
-        editor.setText("curOp\ncursorOptions\n")
-        editor.setCursorBufferPosition([0, 8])
-        editor.addCursorAtBufferPosition([1, 13])
-        [cursor1, cursor2] = editor.getCursors()
+    it "works with multiple cursors", ->
+      editor.setText("curOp\ncursorOptions\n")
+      editor.setCursorBufferPosition([0, 8])
+      editor.addCursorAtBufferPosition([1, 13])
+      [cursor1, cursor2] = editor.getCursors()
 
-        editor.moveToPreviousSubwordBoundary()
+      editor.moveToPreviousSubwordBoundary()
 
-        expect(cursor1.getBufferPosition()).toEqual([0, 3])
-        expect(cursor2.getBufferPosition()).toEqual([1, 6])
+      expect(cursor1.getBufferPosition()).toEqual([0, 3])
+      expect(cursor2.getBufferPosition()).toEqual([1, 6])
 
   describe ".moveToNextSubwordBoundary", ->
-    it 'does not change an empty file', ->
+    it "does not move the cursor when there is no next subword boundary", ->
       editor.setText('')
       editor.moveToNextSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 0])
 
-    it "traverses normal words", ->
+    it "stops at word and underscore boundaries", ->
       editor.setText(" word_ \n")
       editor.setCursorBufferPosition([0, 0])
       editor.moveToNextSubwordBoundary()
@@ -4460,7 +4459,7 @@ describe "TextEditor", ->
       editor.moveToNextSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 4])
 
-    it "traverses camelCase words", ->
+    it "stops at camelCase boundaries", ->
       editor.setText("getPreviousWord \n")
       editor.setCursorBufferPosition([0, 0])
 
@@ -4473,7 +4472,7 @@ describe "TextEditor", ->
       editor.moveToNextSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 15])
 
-    it "traverses consecutive non-word characters", ->
+    it "skips consecutive non-word characters", ->
       editor.setText(", => \n")
       editor.setCursorBufferPosition([0, 0])
       editor.moveToNextSubwordBoundary()
@@ -4482,7 +4481,7 @@ describe "TextEditor", ->
       editor.moveToNextSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 4])
 
-    it "traverses consecutive uppercase characters", ->
+    it "skips consecutive uppercase characters", ->
       editor.setText(" AAADF \n")
       editor.setCursorBufferPosition([0, 0])
       editor.moveToNextSubwordBoundary()
@@ -4496,7 +4495,7 @@ describe "TextEditor", ->
       editor.moveToNextSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 2])
 
-    it "traverses consecutive numbers", ->
+    it "skips consecutive numbers", ->
       editor.setText(" 88 \n")
       editor.setCursorBufferPosition([0, 0])
       editor.moveToNextSubwordBoundary()
@@ -4505,16 +4504,15 @@ describe "TextEditor", ->
       editor.moveToNextSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 3])
 
-    describe "when 2 cursors", ->
-      it "traverses both camelCase words", ->
-        editor.setText("curOp\ncursorOptions\n")
-        editor.setCursorBufferPosition([0, 0])
-        editor.addCursorAtBufferPosition([1, 0])
-        [cursor1, cursor2] = editor.getCursors()
+    it "works with multiple cursors", ->
+      editor.setText("curOp\ncursorOptions\n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.addCursorAtBufferPosition([1, 0])
+      [cursor1, cursor2] = editor.getCursors()
 
-        editor.moveToNextSubwordBoundary()
-        expect(cursor1.getBufferPosition()).toEqual([0, 3])
-        expect(cursor2.getBufferPosition()).toEqual([1, 6])
+      editor.moveToNextSubwordBoundary()
+      expect(cursor1.getBufferPosition()).toEqual([0, 3])
+      expect(cursor2.getBufferPosition()).toEqual([1, 6])
 
   describe ".selectToPreviousSubwordBoundary", ->
     it "selects subwords", ->
