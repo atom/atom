@@ -113,18 +113,19 @@ class TileComponent
 
     screenRowToInsert = parseInt(lineNode.dataset.screenRow)
     previousScreenRow = -Infinity
+    hasInsertedNode = false
 
     for currentNode in domChildren
       currentScreenRow = parseInt(currentNode.dataset.screenRow)
 
       if previousScreenRow < screenRowToInsert < currentScreenRow
         @domNode.insertBefore(lineNode, currentNode)
-        inserted = true
+        hasInsertedNode = true
         break
 
       previousScreenRow = currentScreenRow
 
-    @domNode.appendChild(lineNode) unless inserted?
+    @domNode.appendChild(lineNode) unless hasInsertedNode
 
   buildLineHTML: (id) ->
     {width} = @newState
