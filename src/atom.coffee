@@ -333,6 +333,12 @@ class Atom extends Model
   onDidThrowError: (callback) ->
     @emitter.on 'did-throw-error', callback
 
+  # TODO: Make this part of the public API. We should make onDidThrowError
+  # match the interface by only yielding an exception object to the handler
+  # and deprecating the old behavior.
+  onDidFailAssertion: (callback) ->
+    @emitter.on 'did-fail-assertion', callback
+
   ###
   Section: Atom Details
   ###
@@ -714,6 +720,22 @@ class Atom extends Model
   ###
   Section: Private
   ###
+
+  assert: (condition, message, metadata) ->
+    return true if condition
+
+    error = new Error("Assertion failed: #{message}")
+    Error.captureStackTrace(error, @assert)
+
+    if metadata?
+      if typeof metadata is 'function'
+        error.metadata = metadata()
+      else
+        error.metadata = metadata
+
+    @emitter.emit 'did-fail-assertion', error
+
+    false
 
   deserializeProject: ->
     Project = require './project'

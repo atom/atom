@@ -292,7 +292,17 @@ class TokenizedBuffer extends Model
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
   isFoldableCodeAtRow: (row) ->
-    return false if @buffer.isRowBlank(row) or @tokenizedLineForRow(row).isComment()
+    # Investigating an exception that's occurring here due to the line being
+    # undefined. This should paper over the problem but we want to figure out
+    # what is happening:
+    tokenizedLine = @tokenizedLineForRow(row)
+    atom.assert tokenizedLine?, "TokenizedLine is defined", =>
+      metadata:
+        row: row
+        rowCount: @tokenizedLines.length
+    return false unless tokenizedLine?
+
+    return false if @buffer.isRowBlank(row) or tokenizedLine.isComment()
     nextRow = @buffer.nextNonBlankRow(row)
     return false unless nextRow?
 
