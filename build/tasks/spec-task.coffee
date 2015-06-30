@@ -141,7 +141,7 @@ module.exports = (grunt) ->
 
     method specs, (error, results) ->
       failedPackages = []
-      coreSpecFailed = []
+      coreSpecFailed = null
 
       if process.env.ATOM_SPECS_TASK is 'packages'
         [failedPackages] = results
@@ -154,7 +154,7 @@ module.exports = (grunt) ->
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
       failures = failedPackages
-      failures.push "atom core" if coreSpecFailed.length > 0
+      failures.push "atom core" if coreSpecFailed
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
