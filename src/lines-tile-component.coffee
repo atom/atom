@@ -13,7 +13,7 @@ cloneObject = (object) ->
   clone
 
 module.exports =
-class TileComponent
+class LinesTileComponent
   constructor: ({@presenter, @id}) ->
     @tokenIterator = new TokenIterator
     @measuredLines = new Set
@@ -25,7 +25,7 @@ class TileComponent
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
 
-    @highlightsComponent = new HighlightsComponent(@presenter)
+    @highlightsComponent = new HighlightsComponent
     @domNode.appendChild(@highlightsComponent.getDomNode())
 
   getDomNode: ->
@@ -54,6 +54,7 @@ class TileComponent
 
     if @newState.width isnt @oldState.width
       @domNode.style.width = @newState.width + 'px'
+      @oldTileState.width = @newTileState.width
 
     if @newTileState.top isnt @oldTileState.top or @newTileState.left isnt @oldTileState.left
       @domNode.style['-webkit-transform'] = "translate3d(#{@newTileState.left}px, #{@newTileState.top}px, 0px)"
