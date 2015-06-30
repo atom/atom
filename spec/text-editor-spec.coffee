@@ -2943,6 +2943,20 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(7)).toBe "          c(x);"
               expect(editor.lineTextForBufferRow(8)).toBe "      current = items.shift();"
 
+            it "auto-indents lines with a mix of hard tabs and spaces without removing spaces", ->
+              editor.setSoftTabs(false)
+              expect(editor.indentationForBufferRow(5)).toBe(3)
+
+              atom.clipboard.write("/**\n\t * testing\n\t * indent\n\t **/\n", indentBasis: 1)
+              editor.setCursorBufferPosition([5, 0])
+              editor.pasteText()
+
+              # Do not lose the alignment spaces
+              expect(editor.lineTextForBufferRow(5)).toBe("\t\t\t/**")
+              expect(editor.lineTextForBufferRow(6)).toBe("\t\t\t * testing")
+              expect(editor.lineTextForBufferRow(7)).toBe("\t\t\t * indent")
+              expect(editor.lineTextForBufferRow(8)).toBe("\t\t\t **/")
+
           describe "when pasting a single line of text", ->
             it "does not auto-indent the text", ->
               atom.clipboard.write("a(x);", indentBasis: 0)
@@ -3692,11 +3706,12 @@ describe "TextEditor", ->
     it "returns the indent level when the line has only leading tabs", ->
       expect(editor.indentLevelForLine("\t\thello")).toBe(2)
 
-    it "returns the indent level when the line has mixed leading whitespace and tabs", ->
-      expect(editor.indentLevelForLine("\t  hello")).toBe(2)
-      expect(editor.indentLevelForLine("  \thello")).toBe(2)
-      expect(editor.indentLevelForLine("  \t hello")).toBe(2.5)
-      expect(editor.indentLevelForLine("  \t \thello")).toBe(3.5)
+    it "returns the indent level based on the character starting the line when the leading whitespace contains both spaces and tabs", ->
+      expect(editor.indentLevelForLine("\t  hello")).toBe(1)
+      expect(editor.indentLevelForLine("  \thello")).toBe(1)
+      expect(editor.indentLevelForLine("  \t hello")).toBe(1)
+      expect(editor.indentLevelForLine("    \t \thello")).toBe(2)
+      expect(editor.indentLevelForLine("     \t \thello")).toBe(2.5)
 
   describe "when the buffer is reloaded", ->
     it "preserves the current cursor position", ->
