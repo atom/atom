@@ -11,10 +11,11 @@ env:
     - ATOM_SPECS_TASK=core
 
 matrix:
-  exclude:
+  include:
     - os: linux
+    - os: osx
       env: ATOM_SPECS_TASK=core
-    - os: linux
+    - os: osx
       env: ATOM_SPECS_TASK=packages
 
 os:
