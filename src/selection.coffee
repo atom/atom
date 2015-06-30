@@ -622,7 +622,7 @@ class Selection extends Model
       else
         currentIndentLevel = @editor.indentLevelForLine(lines[i])
         indentLevel = Math.max(0, currentIndentLevel + indentAdjustment)
-        lines[i] = line.replace(/^[\t ]+/, @editor.buildIndentString(indentLevel))
+        lines[i] = line.replace(/^(\t+| +)/, @editor.buildIndentString(indentLevel))
     return
 
   # Indent the current line(s).
