@@ -20,7 +20,7 @@ class LineNumbersTileComponent
   updateSync: (state) ->
     @newState = state
     unless @oldState
-      @oldState = {tiles: {}}
+      @oldState = {tiles: {}, styles: {}}
       @oldState.tiles[@id] = {lineNumbers: {}}
 
     @newTileState = @newState.tiles[@id]
@@ -30,9 +30,9 @@ class LineNumbersTileComponent
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display
 
-    if @newState.backgroundColor isnt @oldState.backgroundColor
-      @domNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
+    if @newState.styles.backgroundColor isnt @oldState.styles.backgroundColor
+      @domNode.style.backgroundColor = @newState.styles.backgroundColor
+      @oldState.styles.backgroundColor = @newState.styles.backgroundColor
 
     if @newTileState.height isnt @oldTileState.height
       @domNode.style.height = @newTileState.height + 'px'
