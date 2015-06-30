@@ -86,13 +86,13 @@ describe "the `atom` global", ->
           error = e
           window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
 
-        expect(willThrowSpy).toHaveBeenCalledWith(error)
-
-        # Deprecated event properties
-        expect(error.url).toBe 'abc'
-        expect(error.line).toBe 2
-        expect(error.column).toBe 3
-        expect(error.originalError).toBe error
+        delete willThrowSpy.mostRecentCall.args[0].preventDefault
+        expect(willThrowSpy).toHaveBeenCalledWith
+          message: error.toString()
+          url: 'abc'
+          line: 2
+          column: 3
+          originalError: error
 
       it "will not show the devtools when preventDefault() is called", ->
         willThrowSpy.andCallFake (errorObject) -> errorObject.preventDefault()
@@ -120,27 +120,12 @@ describe "the `atom` global", ->
         catch e
           error = e
           window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
-
-        expect(didThrowSpy).toHaveBeenCalledWith(error)
-
-        # Deprecated event properties
-        expect(error.url).toBe 'abc'
-        expect(error.line).toBe 2
-        expect(error.column).toBe 3
-        expect(error.originalError).toBe error
-
-      it "will not show the devtools when preventDefault() is called", ->
-        didThrowSpy.andCallFake (errorObject) -> errorObject.preventDefault()
-        atom.onDidThrowError(didThrowSpy)
-
-        try
-          a + 1
-        catch e
-          window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
-
-        expect(didThrowSpy).toHaveBeenCalled()
-        expect(atom.openDevTools).not.toHaveBeenCalled()
-        expect(atom.executeJavaScriptInDevTools).not.toHaveBeenCalled()
+        expect(didThrowSpy).toHaveBeenCalledWith
+          message: error.toString()
+          url: 'abc'
+          line: 2
+          column: 3
+          originalError: error
 
   describe ".assert(condition, message, metadata)", ->
     errors = null
