@@ -271,16 +271,22 @@ describe "TextEditorComponent", ->
       atom.config.set("editor.showInvisibles", false)
       expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
-    it "gives the lines div the same background color as the editor to improve GPU performance", ->
+    it "gives the lines and tiles divs the same background color as the editor to improve GPU performance", ->
       linesNode = componentNode.querySelector('.lines')
       backgroundColor = getComputedStyle(wrapperNode).backgroundColor
       expect(linesNode.style.backgroundColor).toBe backgroundColor
+
+      for tileNode in linesNode.querySelectorAll(".tile")
+        expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
 
       advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
+      for tileNode in linesNode.querySelectorAll(".tile")
+        expect(tileNode.style.backgroundColor).toBe("rgb(255, 0, 0)")
+
 
     it "applies .leading-whitespace for lines with leading spaces and/or tabs", ->
       editor.setText(' a')
@@ -690,12 +696,16 @@ describe "TextEditorComponent", ->
       lineNumbersNode = gutterNode.querySelector('.line-numbers')
       {backgroundColor} = getComputedStyle(wrapperNode)
       expect(lineNumbersNode.style.backgroundColor).toBe backgroundColor
+      for tileNode in lineNumbersNode.querySelectorAll(".tile")
+        expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       # favor gutter color if it's assigned
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
       advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
+      for tileNode in lineNumbersNode.querySelectorAll(".tile")
+        expect(tileNode.style.backgroundColor).toBe("rgb(255, 0, 0)")
 
     it "hides or shows the gutter based on the '::isLineNumberGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
       expect(component.gutterContainerComponent.getLineNumberGutterComponent()?).toBe true
