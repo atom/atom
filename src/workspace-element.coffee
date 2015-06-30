@@ -16,10 +16,10 @@ class WorkspaceElement extends HTMLElement
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
-    @createSpacePenShim()
+    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
-    callAttachHooks(this)
+    callAttachHooks(this) if Grim.includeDeprecatedAPIs
     @focus()
 
   detachedCallback: ->
@@ -44,7 +44,7 @@ class WorkspaceElement extends HTMLElement
     @appendChild(@horizontalAxis)
 
   observeScrollbarStyle: ->
-    @subscriptions.add scrollbarStyle.onValue (style) =>
+    @subscriptions.add scrollbarStyle.observePreferredScrollbarStyle (style) =>
       switch style
         when 'legacy'
           @classList.remove('scrollbars-visible-when-scrolling')
@@ -82,7 +82,7 @@ class WorkspaceElement extends HTMLElement
 
     @appendChild(@panelContainers.modal)
 
-    @__spacePenView.setModel(@model)
+    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model
@@ -113,7 +113,10 @@ class WorkspaceElement extends HTMLElement
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
   runPackageSpecs: ->
-    [projectPath] = atom.project.getPaths()
+    if activePath = atom.workspace.getActivePaneItem()?.getPath?()
+      [projectPath] = atom.project.relativizePath(activePath)
+    else
+      [projectPath] = atom.project.getPaths()
     ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
 
 atom.commands.add 'atom-workspace',
@@ -123,6 +126,7 @@ atom.commands.add 'atom-workspace',
   'application:about': -> ipc.send('command', 'application:about')
   'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
   'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
+  'application:show-preferences': -> ipc.send('command', 'application:show-settings')
   'application:show-settings': -> ipc.send('command', 'application:show-settings')
   'application:quit': -> ipc.send('command', 'application:quit')
   'application:hide': -> ipc.send('command', 'application:hide')
@@ -136,6 +140,7 @@ atom.commands.add 'atom-workspace',
   'application:open-folder': -> ipc.send('command', 'application:open-folder')
   'application:open-dev': -> ipc.send('command', 'application:open-dev')
   'application:open-safe': -> ipc.send('command', 'application:open-safe')
+  'application:add-project-folder': -> atom.addProjectFolder()
   'application:minimize': -> ipc.send('command', 'application:minimize')
   'application:zoom': -> ipc.send('command', 'application:zoom')
   'application:bring-all-windows-to-front': -> ipc.send('command', 'application:bring-all-windows-to-front')
@@ -153,9 +158,9 @@ atom.commands.add 'atom-workspace',
   'window:focus-pane-on-left': -> @focusPaneViewOnLeft()
   'window:focus-pane-on-right': -> @focusPaneViewOnRight()
   'window:save-all': -> @getModel().saveAll()
-  'window:toggle-invisibles': -> atom.config.toggle("editor.showInvisibles")
+  'window:toggle-invisibles': -> atom.config.set("editor.showInvisibles", not atom.config.get("editor.showInvisibles"))
   'window:log-deprecation-warnings': -> Grim.logDeprecations()
-  'window:toggle-auto-indent': -> atom.config.toggle("editor.autoIndent")
+  'window:toggle-auto-indent': -> atom.config.set("editor.autoIndent", not atom.config.get("editor.autoIndent"))
   'pane:reopen-closed-item': -> @getModel().reopenItem()
   'core:close': -> @getModel().destroyActivePaneItemOrEmptyPane()
   'core:save': -> @getModel().saveActivePaneItem()

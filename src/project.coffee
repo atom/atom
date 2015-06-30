@@ -4,15 +4,14 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Q = require 'q'
-{deprecate} = require 'grim'
-{Model} = require 'theorist'
-{Subscriber} = require 'emissary'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 {Emitter} = require 'event-kit'
-DefaultDirectoryProvider = require './default-directory-provider'
 Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 Grim = require 'grim'
 
+DefaultDirectoryProvider = require './default-directory-provider'
+Model = require './model'
 TextEditor = require './text-editor'
 Task = require './task'
 GitRepositoryProvider = require './git-repository-provider'
@@ -24,12 +23,6 @@ module.exports =
 class Project extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
-
-  @pathForRepositoryUrl: (repoUrl) ->
-    deprecate '::pathForRepositoryUrl will be removed. Please remove from your code.'
-    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
-    repoName = repoName.replace(/\.git$/, '')
-    path.join(atom.config.get('core.projectHome'), repoName)
 
   ###
   Section: Construction and Destruction
@@ -53,7 +46,7 @@ class Project extends Model
     # to either a {Repository} or null. Ideally, the {Directory} would be used
     # as the key; however, there can be multiple {Directory} objects created for
     # the same real path, so it is not a good key.
-    @repositoryPromisesByPath = new Map();
+    @repositoryPromisesByPath = new Map()
 
     # Note that the GitRepositoryProvider is registered synchronously so that
     # it is available immediately on startup.
@@ -73,7 +66,9 @@ class Project extends Model
 
     @subscribeToBuffer(buffer) for buffer in @buffers
 
-    Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor") if path?
+    if Grim.includeDeprecatedAPIs and path?
+      Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor")
+
     paths ?= _.compact([path])
     @setPaths(paths)
 
@@ -83,6 +78,7 @@ class Project extends Model
 
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
+    return
 
   ###
   Section: Serialization
@@ -109,13 +105,17 @@ class Project extends Model
   Section: Event Subscription
   ###
 
+  # Public: Invoke the given callback when the project paths change.
+  #
+  # * `callback` {Function} to be called after the project paths change.
+  #    * `projectPaths` An {Array} of {String} project paths.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
 
-  on: (eventName) ->
-    if eventName is 'path-changed'
-      Grim.deprecate("Use Project::onDidChangePaths instead")
-    super
+  onDidAddBuffer: (callback) ->
+    @emitter.on 'did-add-buffer', callback
 
   ###
   Section: Accessing the git repository
@@ -128,13 +128,10 @@ class Project extends Model
   # Prefer the following, which evaluates to a {Promise} that resolves to an
   # {Array} of {Repository} objects:
   # ```
-  # Promise.all(project.getDirectories().map(
-  #     project.repositoryForDirectory.bind(project)))
+  # Promise.all(atom.project.getDirectories().map(
+  #     atom.project.repositoryForDirectory.bind(atom.project)))
   # ```
   getRepositories: -> @repositories
-  getRepo: ->
-    Grim.deprecate("Use ::getRepositories instead")
-    @getRepositories()[0]
 
   # Public: Get the repository for a given directory asynchronously.
   #
@@ -168,27 +165,22 @@ class Project extends Model
   # Public: Get an {Array} of {String}s containing the paths of the project's
   # directories.
   getPaths: -> rootDirectory.getPath() for rootDirectory in @rootDirectories
-  getPath: ->
-    Grim.deprecate("Use ::getPaths instead")
-    @getPaths()[0]
 
   # Public: Set the paths of the project's directories.
   #
   # * `projectPaths` {Array} of {String} paths.
   setPaths: (projectPaths) ->
-    rootDirectory.off() for rootDirectory in @rootDirectories
+    if includeDeprecatedAPIs
+      rootDirectory.off() for rootDirectory in @rootDirectories
+
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
-    @emit "path-changed"
+    @emit "path-changed" if includeDeprecatedAPIs
     @emitter.emit 'did-change-paths', projectPaths
-
-  setPath: (path) ->
-    Grim.deprecate("Use ::setPaths instead")
-    @setPaths([path])
 
   # Public: Add a path to the project's list of root paths
   #
@@ -214,14 +206,16 @@ class Project extends Model
     @repositories.push(repo ? null)
 
     unless options?.emitEvent is false
-      @emit "path-changed"
+      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-paths', @getPaths()
 
   # Public: remove a path from the project's list of root paths.
   #
   # * `projectPath` {String} The path to remove.
   removePath: (projectPath) ->
-    projectPath = path.normalize(projectPath)
+    # The projectPath may be a URI, in which case it should not be normalized.
+    unless projectPath in @getPaths()
+      projectPath = path.normalize(projectPath)
 
     indexToRemove = null
     for directory, i in @rootDirectories
@@ -232,9 +226,9 @@ class Project extends Model
     if indexToRemove?
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
-      removedDirectory.off()
+      removedDirectory.off() if includeDeprecatedAPIs
       removedRepository?.destroy() unless removedRepository in @repositories
-      @emit "path-changed"
+      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
@@ -243,13 +237,6 @@ class Project extends Model
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
     @rootDirectories
-  getRootDirectory: ->
-    Grim.deprecate("Use ::getDirectories instead")
-    @getDirectories()[0]
-
-  resolve: (uri) ->
-    Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
-    @resolvePath(uri)
 
   resolvePath: (uri) ->
     return unless uri
@@ -280,7 +267,6 @@ class Project extends Model
   # * `relativePath` {String} The relative path from the project directory to
   #   the given path.
   relativizePath: (fullPath) ->
-    return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
     for rootDirectory in @rootDirectories
       relativePath = rootDirectory.relativize(fullPath)
       return [rootDirectory.getPath(), relativePath] unless relativePath is fullPath
@@ -317,18 +303,6 @@ class Project extends Model
     @rootDirectories.some (dir) -> dir.contains(pathToCheck)
 
   ###
-  Section: Searching and Replacing
-  ###
-
-  scan: (regex, options={}, iterator) ->
-    Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
-    atom.workspace.scan(regex, options, iterator)
-
-  replace: (regex, replacementText, filePaths, iterator) ->
-    Grim.deprecate("Use atom.workspace.replace instead of atom.project.replace")
-    atom.workspace.replace(regex, replacementText, filePaths, iterator)
-
-  ###
   Section: Private
   ###
 
@@ -349,14 +323,22 @@ class Project extends Model
         # allow ENOENT errors to create an editor for paths that dont exist
         throw error unless error.code is 'ENOENT'
 
-    @bufferForPath(filePath).then (buffer) =>
-      @buildEditorForBuffer(buffer, options)
+    absoluteFilePath = @resolvePath(filePath)
 
-  # Deprecated
-  openSync: (filePath, options={}) ->
-    deprecate("Use Project::open instead")
-    filePath = @resolvePath(filePath)
-    @buildEditorForBuffer(@bufferForPathSync(filePath), options)
+    fileSize = fs.getSizeSync(absoluteFilePath)
+
+    if fileSize >= 20 * 1048576 # 20MB
+      choice = atom.confirm
+        message: 'Atom will be unresponsive during the loading of very large files.'
+        detailedMessage: "Do you still want to load this file?"
+        buttons: ["Proceed", "Cancel"]
+      if choice is 1
+        error = new Error
+        error.code = 'CANCELLED'
+        throw error
+
+    @bufferForPath(absoluteFilePath).then (buffer) =>
+      @buildEditorForBuffer(buffer, _.extend({fileSize}, options))
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -370,7 +352,7 @@ class Project extends Model
     @findBufferForPath(@resolvePath(filePath))?.isModified()
 
   findBufferForPath: (filePath) ->
-    _.find @buffers, (buffer) -> buffer.getPath() == filePath
+    _.find @buffers, (buffer) -> buffer.getPath() is filePath
 
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
@@ -386,8 +368,7 @@ class Project extends Model
   # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  bufferForPath: (filePath) ->
-    absoluteFilePath = @resolvePath(filePath)
+  bufferForPath: (absoluteFilePath) ->
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
     Q(existingBuffer ? @buildBuffer(absoluteFilePath))
 
@@ -408,11 +389,6 @@ class Project extends Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    if fs.getSizeSync(absoluteFilePath) >= 2 * 1048576 # 2MB
-      error = new Error("Atom can only handle files < 2MB for now.")
-      error.code = 'EFILETOOLARGE'
-      throw error
-
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.load()
@@ -426,7 +402,8 @@ class Project extends Model
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
     @subscribeToBuffer(buffer)
-    @emit 'buffer-created', buffer
+    @emit 'buffer-created', buffer if includeDeprecatedAPIs
+    @emitter.emit 'did-add-buffer', buffer
     buffer
 
   # Removes a {TextBuffer} association from the project.
@@ -441,7 +418,8 @@ class Project extends Model
     buffer?.destroy()
 
   buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new TextEditor(_.extend({buffer, registerEditor: true}, editorOptions))
+    largeFileMode = editorOptions.fileSize >= 2 * 1048576 # 2MB
+    editor = new TextEditor(_.extend({buffer, largeFileMode, registerEditor: true}, editorOptions))
     editor
 
   eachBuffer: (args...) ->
@@ -465,22 +443,65 @@ class Project extends Model
         detail: error.message
         dismissable: true
 
-  # Deprecated: delegate
-  registerOpener: (opener) ->
-    deprecate("Use Workspace::addOpener instead")
-    atom.workspace.registerOpener(opener)
+if includeDeprecatedAPIs
+  Project.pathForRepositoryUrl = (repoUrl) ->
+    deprecate '::pathForRepositoryUrl will be removed. Please remove from your code.'
+    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
+    repoName = repoName.replace(/\.git$/, '')
+    path.join(atom.config.get('core.projectHome'), repoName)
 
-  # Deprecated: delegate
-  unregisterOpener: (opener) ->
+  Project::registerOpener = (opener) ->
+    deprecate("Use Workspace::addOpener instead")
+    atom.workspace.addOpener(opener)
+
+  Project::unregisterOpener = (opener) ->
     deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
     atom.workspace.unregisterOpener(opener)
 
-  # Deprecated: delegate
-  eachEditor: (callback) ->
-    deprecate("Use Workspace::eachEditor instead")
-    atom.workspace.eachEditor(callback)
+  Project::eachEditor = (callback) ->
+    deprecate("Use Workspace::observeTextEditors instead")
+    atom.workspace.observeTextEditors(callback)
 
-  # Deprecated: delegate
-  getEditors: ->
-    deprecate("Use Workspace::getEditors instead")
-    atom.workspace.getEditors()
+  Project::getEditors = ->
+    deprecate("Use Workspace::getTextEditors instead")
+    atom.workspace.getTextEditors()
+
+  Project::on = (eventName) ->
+    if eventName is 'path-changed'
+      Grim.deprecate("Use Project::onDidChangePaths instead")
+    else
+      Grim.deprecate("Project::on is deprecated. Use documented event subscription methods instead.")
+    super
+
+  Project::getRepo = ->
+    Grim.deprecate("Use ::getRepositories instead")
+    @getRepositories()[0]
+
+  Project::getPath = ->
+    Grim.deprecate("Use ::getPaths instead")
+    @getPaths()[0]
+
+  Project::setPath = (path) ->
+    Grim.deprecate("Use ::setPaths instead")
+    @setPaths([path])
+
+  Project::getRootDirectory = ->
+    Grim.deprecate("Use ::getDirectories instead")
+    @getDirectories()[0]
+
+  Project::resolve = (uri) ->
+    Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
+    @resolvePath(uri)
+
+  Project::scan = (regex, options={}, iterator) ->
+    Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
+    atom.workspace.scan(regex, options, iterator)
+
+  Project::replace = (regex, replacementText, filePaths, iterator) ->
+    Grim.deprecate("Use atom.workspace.replace instead of atom.project.replace")
+    atom.workspace.replace(regex, replacementText, filePaths, iterator)
+
+  Project::openSync = (filePath, options={}) ->
+    deprecate("Use Project::open instead")
+    filePath = @resolvePath(filePath)
+    @buildEditorForBuffer(@bufferForPathSync(filePath), options)

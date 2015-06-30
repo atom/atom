@@ -16,6 +16,7 @@ describe "GitRepositoryProvider", ->
             expect(result).toBeInstanceOf GitRepository
             expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
             expect(result.statusTask).toBeTruthy()
+            expect(result.getType()).toBe 'git'
 
       it "returns the same GitRepository for different Directory objects in the same repo", ->
         provider = new GitRepositoryProvider atom.project

@@ -287,7 +287,7 @@ describe "TokenizedBuffer", ->
       describe "when there is an insertion that is larger than the chunk size", ->
         it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
           commentBlock = _.multiplyString("// a comment\n", tokenizedBuffer.chunkSize + 2)
-          buffer.insert([0,0], commentBlock)
+          buffer.insert([0, 0], commentBlock)
           expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
@@ -295,14 +295,6 @@ describe "TokenizedBuffer", ->
           advanceClock()
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeTruthy()
-
-      describe ".findOpeningBracket(closingBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
-
-      describe ".findClosingBracket(startBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
 
       it "tokenizes leading whitespace based on the new tab length", ->
         expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].isAtomic).toBeTruthy()
@@ -330,6 +322,22 @@ describe "TokenizedBuffer", ->
         expect(tokens[2].value).toBe " \u030b"
         expect(tokens[2].hasLeadingWhitespace()).toBe false
 
+      it "does not break out soft tabs across a scope boundary", ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-gfm')
+
+        runs ->
+          tokenizedBuffer.setTabLength(4)
+          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
+          buffer.setText('    <![]()\n    ')
+          fullyTokenize(tokenizedBuffer)
+
+          length = 0
+          for tag in tokenizedBuffer.tokenizedLines[1].tags
+            length += tag if tag > 0
+
+          expect(length).toBe 4
+
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
       waitsForPromise ->
@@ -352,7 +360,7 @@ describe "TokenizedBuffer", ->
         tabAsSpaces = _.multiplyString(' ', tokenizedBuffer.getTabLength())
         screenLine0 = tokenizedBuffer.tokenizedLineForRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
-        { tokens } = screenLine0
+        {tokens} = screenLine0
 
         expect(tokens.length).toBe 4
         expect(tokens[0].value).toBe "#"
@@ -452,7 +460,7 @@ describe "TokenizedBuffer", ->
     it "renders each UTF-8 surrogate pair as its own atomic token", ->
       screenLine0 = tokenizedBuffer.tokenizedLineForRow(0)
       expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
-      { tokens } = screenLine0
+      {tokens} = screenLine0
 
       expect(tokens.length).toBe 5
       expect(tokens[0].value).toBe "'"
@@ -464,7 +472,7 @@ describe "TokenizedBuffer", ->
 
       screenLine1 = tokenizedBuffer.tokenizedLineForRow(1)
       expect(screenLine1.text).toBe "//\uD835\uDF97xyz"
-      { tokens } = screenLine1
+      {tokens} = screenLine1
 
       expect(tokens.length).toBe 4
       expect(tokens[0].value).toBe '//'
@@ -549,7 +557,7 @@ describe "TokenizedBuffer", ->
       runs ->
         fullyTokenize(tokenizedBuffer)
         {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
-        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
 
   describe ".tokenForPosition(position)", ->
     afterEach ->
@@ -560,9 +568,9 @@ describe "TokenizedBuffer", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
-      expect(tokenizedBuffer.tokenForPosition([1,1]).scopes).toEqual ["source.js"]
-      expect(tokenizedBuffer.tokenForPosition([1,2]).scopes).toEqual ["source.js", "storage.modifier.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 2]).scopes).toEqual ["source.js", "storage.modifier.js"]
 
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
@@ -588,20 +596,20 @@ describe "TokenizedBuffer", ->
       buffer.setText('\ttest')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 6)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '      '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '      '
 
     it "does not allow the tab length to be less than 1", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 1)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe ' '
       atom.config.set('editor.tabLength', 0)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe ' '
 
   describe "when the invisibles value changes", ->
     beforeEach ->
@@ -611,7 +619,8 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = new TokenizedBuffer({buffer})
       fullyTokenize(tokenizedBuffer)
 
-      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      atom.config.set("editor.showInvisibles", true)
+      atom.config.set("editor.invisibles", space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
       expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
@@ -623,7 +632,7 @@ describe "TokenizedBuffer", ->
       tokenizedBuffer = new TokenizedBuffer({buffer})
 
       atom.config.set('editor.showInvisibles', true)
-      tokenizedBuffer.setInvisibles(cr: 'R', eol: 'N')
+      atom.config.set("editor.invisibles", cr: 'R', eol: 'N')
       fullyTokenize(tokenizedBuffer)
 
       expect(tokenizedBuffer.tokenizedLineForRow(0).endOfLineInvisibles).toEqual ['R', 'N']
@@ -634,7 +643,7 @@ describe "TokenizedBuffer", ->
       expect(left.endOfLineInvisibles).toBe null
       expect(right.endOfLineInvisibles).toEqual ['R', 'N']
 
-      tokenizedBuffer.setInvisibles(cr: 'R', eol: false)
+      atom.config.set("editor.invisibles", cr: 'R', eol: false)
       expect(tokenizedBuffer.tokenizedLineForRow(0).endOfLineInvisibles).toEqual ['R']
       expect(tokenizedBuffer.tokenizedLineForRow(1).endOfLineInvisibles).toEqual []
 
@@ -688,27 +697,13 @@ describe "TokenizedBuffer", ->
     it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
       buffer.setText("  \t a line with tabs\tand \tspaces \t ")
 
-      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      atom.config.set("editor.showInvisibles", true)
+      atom.config.set("editor.invisibles", space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
       line = tokenizedBuffer.tokenizedLineForRow(0).copy()
       expect(line.tokens[0].firstNonWhitespaceIndex).toBe 2
       expect(line.tokens[line.tokens.length - 1].firstTrailingWhitespaceIndex).toBe 0
-
-    it "sets the ::firstNonWhitespaceIndex and ::firstTrailingWhitespaceIndex correctly when tokens are split for soft-wrapping", ->
-      tokenizedBuffer.setInvisibles(space: 'S')
-      buffer.setText(" token ")
-      fullyTokenize(tokenizedBuffer)
-      token = tokenizedBuffer.tokenizedLines[0].tokens[0]
-
-      [leftToken, rightToken] = token.splitAt(1)
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(leftToken.firstNonWhitespaceIndex).toBe 1
-      expect(leftToken.firstTrailingWhitespaceIndex).toBe null
-
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(rightToken.firstNonWhitespaceIndex).toBe null
-      expect(rightToken.firstTrailingWhitespaceIndex).toBe 5
 
   describe ".indentLevel on tokenized lines", ->
     beforeEach ->
@@ -749,7 +744,7 @@ describe "TokenizedBuffer", ->
       it "updates empty line indent guides when the empty line is the last line", ->
         buffer.insert([12, 2], '\n')
 
-        # The newline and he tab need to be in two different operations to surface the bug
+        # The newline and the tab need to be in two different operations to surface the bug
         buffer.insert([12, 0], '  ')
         expect(tokenizedBuffer.tokenizedLineForRow(13).indentLevel).toBe 1
 
@@ -878,3 +873,25 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenizedLineForRow(6).foldable).toBe true
       expect(tokenizedBuffer.tokenizedLineForRow(7).foldable).toBe false
       expect(tokenizedBuffer.tokenizedLineForRow(8).foldable).toBe false
+
+  describe "when the buffer is configured with the null grammar", ->
+    it "uses the placeholder tokens and does not actually tokenize using the grammar", ->
+      spyOn(atom.grammars.nullGrammar, 'tokenizeLine').andCallThrough()
+      buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
+      buffer.setText('a\nb\nc')
+
+      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizeCallback = jasmine.createSpy('onDidTokenize')
+      tokenizedBuffer.onDidTokenize(tokenizeCallback)
+
+      fullyTokenize(tokenizedBuffer)
+
+      expect(tokenizeCallback.callCount).toBe 1
+      expect(atom.grammars.nullGrammar.tokenizeLine.callCount).toBe 0
+
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0].value).toBe 'a'
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].value).toBe 'b'
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].value).toBe 'c'

@@ -12,13 +12,11 @@ class HighlightsComponent
     @domNode = document.createElement('div')
     @domNode.classList.add('highlights')
 
-    if atom.config.get('editor.useShadowDOM')
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', '.underlayer')
-      @domNode.appendChild(insertionPoint)
+  getDomNode: ->
+    @domNode
 
   updateSync: (state) ->
-    newState = state.content.highlights
+    newState = state.highlights
     @oldState ?= {}
 
     # remove highlights
@@ -38,6 +36,8 @@ class HighlightsComponent
         @regionNodesByHighlightId[id] = {}
         @domNode.appendChild(highlightNode)
       @updateHighlightNode(id, highlightState)
+
+    return
 
   updateHighlightNode: (id, newHighlightState) ->
     highlightNode = @highlightNodesById[id]
@@ -91,6 +91,8 @@ class HighlightsComponent
             regionNode.style[property] = newRegionState[property] + 'px'
           else
             regionNode.style[property] = ''
+
+    return
 
   flashHighlightNodeIfRequested: (id, newHighlightState) ->
     oldHighlightState = @oldState[id]

@@ -12,6 +12,9 @@ class ScrollbarComponent
 
     @domNode.addEventListener 'scroll', @onScrollCallback
 
+  getDomNode: ->
+    @domNode
+
   updateSync: (state) ->
     @oldState ?= {}
     switch @orientation

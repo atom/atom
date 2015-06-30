@@ -119,6 +119,36 @@ describe "ViewRegistry", ->
       frameRequests[0]()
       expect(events).toEqual ['write 4', 'read 3']
 
+    it "performs writes requested from read callbacks in the same animation frame", ->
+      spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
+      spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
+      events = []
+
+      registry.pollDocument -> events.push('poll')
+      registry.pollAfterNextUpdate()
+      registry.updateDocument -> events.push('write 1')
+      registry.readDocument ->
+        registry.updateDocument -> events.push('write from read 1')
+        events.push('read 1')
+      registry.readDocument ->
+        registry.updateDocument -> events.push('write from read 2')
+        events.push('read 2')
+      registry.updateDocument -> events.push('write 2')
+
+      expect(frameRequests.length).toBe 1
+      frameRequests[0]()
+      expect(frameRequests.length).toBe 1
+
+      expect(events).toEqual [
+        'write 1'
+        'write 2'
+        'read 1'
+        'read 2'
+        'poll'
+        'write from read 1'
+        'write from read 2'
+      ]
+
     it "pauses DOM polling when reads or writes are pending", ->
       spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
       spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
@@ -136,6 +166,21 @@ describe "ViewRegistry", ->
 
       advanceClock(registry.documentPollingInterval)
       expect(events).toEqual ['write', 'read', 'poll', 'poll']
+
+    it "polls the document after updating when ::pollAfterNextUpdate() has been called", ->
+      events = []
+      registry.pollDocument -> events.push('poll')
+      registry.updateDocument -> events.push('write')
+      registry.readDocument -> events.push('read')
+      frameRequests.shift()()
+      expect(events).toEqual ['write', 'read']
+
+      events = []
+      registry.pollAfterNextUpdate()
+      registry.updateDocument -> events.push('write')
+      registry.readDocument -> events.push('read')
+      frameRequests.shift()()
+      expect(events).toEqual ['write', 'read', 'poll']
 
   describe "::pollDocument(fn)", ->
     it "calls all registered reader functions on an interval until they are disabled via a returned disposable", ->

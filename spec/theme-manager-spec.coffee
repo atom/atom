@@ -84,7 +84,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', [])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -92,7 +92,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', ['atom-dark-ui'])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -101,7 +101,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', ['atom-light-ui', 'atom-dark-ui'])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -111,7 +111,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', [])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         didChangeActiveThemesHandler.reset()
@@ -120,7 +120,7 @@ describe "ThemeManager", ->
         atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
 
       waitsFor ->
-        didChangeActiveThemesHandler.callCount == 1
+        didChangeActiveThemesHandler.callCount is 1
 
       runs ->
         expect($('style[priority=1]')).toHaveLength 2
@@ -129,6 +129,7 @@ describe "ThemeManager", ->
         expect(importPaths[0]).toContain 'atom-dark-ui'
 
     it 'adds theme-* classes to the workspace for each active theme', ->
+      atom.config.set('core.themes', ['atom-dark-ui', 'atom-dark-syntax'])
       workspaceElement = atom.views.getView(atom.workspace)
       themeManager.onDidChangeActiveThemes didChangeActiveThemesHandler = jasmine.createSpy()
 
@@ -388,6 +389,13 @@ describe "ThemeManager", ->
         note = addErrorHandler.mostRecentCall.args[0]
         expect(note.getType()).toBe 'error'
         expect(note.getMessage()).toContain 'Unable to watch path'
+
+    it "adds a notification when a theme's stylesheet is invalid", ->
+      addErrorHandler = jasmine.createSpy()
+      atom.notifications.onDidAddNotification(addErrorHandler)
+      expect(-> atom.packages.activatePackage('theme-with-invalid-styles')).not.toThrow()
+      expect(addErrorHandler.callCount).toBe 2
+      expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to activate the theme-with-invalid-styles theme")
 
   describe "when a non-existent theme is present in the config", ->
     beforeEach ->

@@ -4,7 +4,6 @@ Q = require 'q'
 _ = require 'underscore-plus'
 Delegator = require 'delegato'
 {deprecate, logDeprecationWarnings} = require 'grim'
-scrollbarStyle = require 'scrollbar-style'
 {$, $$, View} = require './space-pen-extensions'
 fs = require 'fs-plus'
 Workspace = require './workspace'
@@ -221,7 +220,6 @@ class WorkspaceView extends View
   getEditorViews: ->
     for editorElement in @panes.element.querySelectorAll('atom-pane > .item-views > atom-text-editor')
       $(editorElement).view()
-
 
   ###
   Section: Deprecated

@@ -251,9 +251,9 @@ describe "Config", ->
         it "removes all scoped and unscoped properties for that key-path", ->
           atom.config.setDefaults("foo.bar", baz: 100)
 
-          atom.config.set("foo.bar", { baz: 1, ok: 2 }, scopeSelector: ".a")
-          atom.config.set("foo.bar", { baz: 11, ok: 12 }, scopeSelector: ".b")
-          atom.config.set("foo.bar", { baz: 21, ok: 22 })
+          atom.config.set("foo.bar", {baz: 1, ok: 2}, scopeSelector: ".a")
+          atom.config.set("foo.bar", {baz: 11, ok: 12}, scopeSelector: ".b")
+          atom.config.set("foo.bar", {baz: 21, ok: 22})
 
           atom.config.unset("foo.bar.baz")
 
@@ -486,6 +486,7 @@ describe "Config", ->
 
       atom.config.set('foo.bar.baz', "value 1")
       expect(observeHandler).toHaveBeenCalledWith("value 1")
+      advanceClock(100) # complete pending save that was requested in ::set
 
       observeHandler.reset()
       atom.config.loadUserConfig()
@@ -789,6 +790,21 @@ describe "Config", ->
           expect(warnSpy).toHaveBeenCalled()
           expect(warnSpy.mostRecentCall.args[0]).toContain "foo.int"
 
+      describe "when there is a pending save", ->
+        it "does not change the config settings", ->
+          fs.writeFileSync atom.config.configFilePath, "'*': foo: bar: 'baz'"
+
+          atom.config.set("foo.bar", "quux")
+          atom.config.loadUserConfig()
+          expect(atom.config.get("foo.bar")).toBe "quux"
+
+          advanceClock(100)
+          expect(atom.config.save.callCount).toBe 1
+
+          expect(atom.config.get("foo.bar")).toBe "quux"
+          atom.config.loadUserConfig()
+          expect(atom.config.get("foo.bar")).toBe "baz"
+
     describe ".observeUserConfig()", ->
       updatedHandler = null
 
@@ -854,7 +870,7 @@ describe "Config", ->
             expect(atom.config.get('foo.bar')).toBe 'baz'
             expect(atom.config.get('foo.baz')).toBe 'ok'
 
-        describe 'when the default value is a complex value', ->
+        describe "when the default value is a complex value", ->
           beforeEach ->
             atom.config.setSchema 'foo.bar',
               type: 'array'
@@ -877,7 +893,7 @@ describe "Config", ->
               expect(atom.config.get('foo.bar')).toEqual ['baz', 'ok']
               expect(atom.config.get('foo.baz')).toBe 'another'
 
-        describe 'when scoped settings are used', ->
+        describe "when scoped settings are used", ->
           it "fires a change event for scoped settings that are removed", ->
             scopedSpy = jasmine.createSpy()
             atom.config.onDidChange('foo.scoped', scope: ['.source.ruby'], scopedSpy)
@@ -987,7 +1003,6 @@ describe "Config", ->
             expect(fs.existsSync(atom.config.configDirPath)).toBeTruthy()
             expect(fs.existsSync(path.join(atom.config.configDirPath, 'packages'))).toBeTruthy()
             expect(fs.isFileSync(path.join(atom.config.configDirPath, 'snippets.cson'))).toBeTruthy()
-            expect(fs.isFileSync(path.join(atom.config.configDirPath, 'config.cson'))).toBeTruthy()
             expect(fs.isFileSync(path.join(atom.config.configDirPath, 'init.coffee'))).toBeTruthy()
             expect(fs.isFileSync(path.join(atom.config.configDirPath, 'styles.less'))).toBeTruthy()
 
@@ -1364,6 +1379,16 @@ describe "Config", ->
 
           expect(atom.config.set('foo.bar.aString', nope: 'nope')).toBe false
           expect(atom.config.get('foo.bar.aString')).toBe 'ok'
+
+        describe 'when the schema has a "maximumLength" key', ->
+          it "trims the string to be no longer than the specified maximum", ->
+            schema =
+              type: 'string'
+              default: 'ok'
+              maximumLength: 3
+            atom.config.setSchema('foo.bar.aString', schema)
+            atom.config.set('foo.bar.aString', 'abcdefg')
+            expect(atom.config.get('foo.bar.aString')).toBe 'abc'
 
       describe 'when the value has an "object" type', ->
         beforeEach ->

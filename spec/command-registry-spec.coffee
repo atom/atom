@@ -148,6 +148,36 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
       expect(calls).toEqual []
 
+  describe "::add(selector, commandName, callback)", ->
+    it "throws an error when called with an invalid selector", ->
+      badSelector = '<>'
+      addError = null
+      try
+        registry.add badSelector, 'foo:bar', ->
+      catch error
+        addError = error
+      expect(addError.message).toContain(badSelector)
+
+    it "throws an error when called with a non-function callback and selector target", ->
+      badCallback = null
+      addError = null
+
+      try
+        registry.add '.selector', 'foo:bar', badCallback
+      catch error
+        addError = error
+      expect(addError.message).toContain("Can't register a command with non-function callback.")
+
+    it "throws an error when called with an non-function callback and object target", ->
+      badCallback = null
+      addError = null
+
+      try
+        registry.add document.body, 'foo:bar', badCallback
+      catch error
+        addError = error
+      expect(addError.message).toContain("Can't register a command with non-function callback.")
+
   describe "::findCommands({target})", ->
     it "returns commands that can be invoked on the target or its ancestors", ->
       registry.add '.parent', 'namespace:command-1', ->

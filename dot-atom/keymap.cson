@@ -17,8 +17,8 @@
 #   'ctrl-p': 'core:move-down'
 #
 # You can find more information about keymaps in these guides:
-# * https://atom.io/docs/latest/customizing-atom#customizing-key-bindings
-# * https://atom.io/docs/latest/advanced/keymaps
+# * https://atom.io/docs/latest/using-atom-basic-customization#customizing-key-bindings
+# * https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 #
 # This file uses CoffeeScript Object Notation (CSON).
 # If you are unfamiliar with CSON, you can read more about it here:

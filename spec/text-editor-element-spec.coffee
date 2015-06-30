@@ -23,7 +23,7 @@ describe "TextEditorElement", ->
     it "honors the 'gutter-hidden' attribute", ->
       jasmineContent.innerHTML = "<atom-text-editor gutter-hidden>"
       element = jasmineContent.firstChild
-      expect(element.getModel().isGutterVisible()).toBe false
+      expect(element.getModel().isLineNumberGutterVisible()).toBe false
 
     it "honors the text content", ->
       jasmineContent.innerHTML = "<atom-text-editor>testing</atom-text-editor>"
@@ -64,6 +64,35 @@ describe "TextEditorElement", ->
         expect(component.mounted).toBe true
         element.getModel().destroy()
         expect(component.mounted).toBe false
+
+  describe "when the editor is detached from the DOM and then reattached", ->
+    it "does not render duplicate line numbers", ->
+      editor = new TextEditor
+      editor.setText('1\n2\n3')
+      element = atom.views.getView(editor)
+
+      jasmine.attachToDOM(element)
+
+      initialCount = element.shadowRoot.querySelectorAll('.line-number').length
+
+      element.remove()
+      jasmine.attachToDOM(element)
+      expect(element.shadowRoot.querySelectorAll('.line-number').length).toBe initialCount
+
+    it "does not render duplicate decorations in custom gutters", ->
+      editor = new TextEditor
+      editor.setText('1\n2\n3')
+      editor.addGutter({name: 'test-gutter'})
+      marker = editor.markBufferRange([[0, 0], [2, 0]])
+      editor.decorateMarker(marker, {type: 'gutter', gutterName: 'test-gutter'})
+      element = atom.views.getView(editor)
+
+      jasmine.attachToDOM(element)
+      initialDecorationCount = element.shadowRoot.querySelectorAll('.decoration').length
+
+      element.remove()
+      jasmine.attachToDOM(element)
+      expect(element.shadowRoot.querySelectorAll('.decoration').length).toBe initialDecorationCount
 
   describe "focus and blur handling", ->
     describe "when the editor.useShadowDOM config option is true", ->

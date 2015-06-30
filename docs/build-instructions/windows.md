@@ -24,14 +24,19 @@
 
 ## Instructions
 
-  ```bat
-  # Use the `Git Shell` app which was installed by GitHub for Windows. Also Make
-  # sure you have logged into the GitHub for Windows GUI App.
-  cd C:\
-  git clone https://github.com/atom/atom/
-  cd atom
-  script/build # Creates application in the `Program Files` directory
-  ```
+```bash
+# Use the `Git Shell` program which was installed by GitHub for Windows.
+# Also make sure that you are logged into GitHub for Windows.
+cd C:\
+git clone https://github.com/atom/atom/
+cd atom
+script/build # Creates application in the `Program Files` directory
+```
+
+### `script/build` Options
+  * `--install-dir` - Creates the final built application in this directory.
+  * `--build-dir` - Build the application in this directory.
+  * `--verbose` - Verbose mode. A lot more information output.
 
 ## Why do I have to use GitHub for Windows?
 
@@ -78,6 +83,7 @@ If none of this works, do install Github for Windows and use its Git shell. Make
     ```
     $env:GYP_MSVS_VERSION=2013
     ```
+  * If you are using Visual Studio 2013 and the build fails with some other error message this environment variable might still be required.
 
 * Other `node-gyp` errors on first build attempt, even though the right node and python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.

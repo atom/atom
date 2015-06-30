@@ -1,10 +1,9 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-{specificity} = require 'clear-cut'
+{calculateSpecificity, validateSelector} = require 'clear-cut'
 _ = require 'underscore-plus'
 {$} = require './space-pen-extensions'
 
 SequenceCount = 0
-SpecificityCache = {}
 
 # Public: Associates listener functions with commands in a
 # context-sensitive way using CSS selectors. You can access a global instance of
@@ -18,6 +17,12 @@ SpecificityCache = {}
 # listeners for command events directly to DOM nodes, you instead register
 # command event listeners globally on `atom.commands` and constrain them to
 # specific kinds of elements with CSS selectors.
+#
+# Command names must follow the `namespace:action` pattern, where `namespace`
+# will typically be the name of your package, and `action` describes the
+# behavior of your command. If either part consists of multiple words, these
+# must be separated by hyphens. E.g. `awesome-package:turn-it-up-to-eleven`.
+# All words should be lowercased.
 #
 # As the event bubbles upward through the DOM, all registered event listeners
 # with matching selectors are invoked in order of specificity. In the event of a
@@ -49,6 +54,7 @@ class CommandRegistry
   destroy: ->
     for commandName of @registeredCommands
       window.removeEventListener(commandName, @handleCommandEvent, true)
+    return
 
   # Public: Add one or more command listeners associated with a selector.
   #
@@ -86,7 +92,11 @@ class CommandRegistry
         disposable.add @add(target, commandName, callback)
       return disposable
 
+    if typeof callback isnt 'function'
+      throw new Error("Can't register a command with non-function callback.")
+
     if typeof target is 'string'
+      validateSelector(target)
       @addSelectorBasedListener(target, commandName, callback)
     else
       @addInlineListener(target, commandName, callback)
@@ -185,6 +195,7 @@ class CommandRegistry
     @selectorBasedListenersByCommandName = {}
     for commandName, listeners of snapshot
       @selectorBasedListenersByCommandName[commandName] = listeners.slice()
+    return
 
   handleCommandEvent: (originalEvent) =>
     propagationStopped = false
@@ -237,7 +248,7 @@ class CommandRegistry
 
 class SelectorBasedListener
   constructor: (@selector, @callback) ->
-    @specificity = (SpecificityCache[@selector] ?= specificity(@selector))
+    @specificity = calculateSpecificity(@selector)
     @sequenceNumber = SequenceCount++
 
   compare: (other) ->

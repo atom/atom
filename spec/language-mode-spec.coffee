@@ -101,6 +101,18 @@ describe "LanguageMode", ->
         expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
         expect(languageMode.suggestedIndentForBufferRow(1)).toBe 1
         expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2
+        expect(languageMode.suggestedIndentForBufferRow(5)).toBe 3
+        expect(languageMode.suggestedIndentForBufferRow(7)).toBe 2
+        expect(languageMode.suggestedIndentForBufferRow(9)).toBe 1
+        expect(languageMode.suggestedIndentForBufferRow(11)).toBe 1
+
+      it "does not take invisibles into account", ->
+        atom.config.set('editor.showInvisibles', true)
+        expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
+        expect(languageMode.suggestedIndentForBufferRow(1)).toBe 1
+        expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2
+        expect(languageMode.suggestedIndentForBufferRow(5)).toBe 3
+        expect(languageMode.suggestedIndentForBufferRow(7)).toBe 2
         expect(languageMode.suggestedIndentForBufferRow(9)).toBe 1
         expect(languageMode.suggestedIndentForBufferRow(11)).toBe 1
 
@@ -124,25 +136,33 @@ describe "LanguageMode", ->
               // lines
               var sort = function(items) {};
               // comment line after fn
+
+              var nosort = function(items) {
+                return item;
+              }
+
             };
           '''
 
         it "will limit paragraph range to comments", ->
           range = languageMode.rowRangeForParagraphAtBufferRow(0)
-          expect(range).toEqual [[0,0], [0,29]]
+          expect(range).toEqual [[0, 0], [0, 29]]
 
           range = languageMode.rowRangeForParagraphAtBufferRow(10)
-          expect(range).toEqual [[10,0], [10,14]]
+          expect(range).toEqual [[10, 0], [10, 14]]
           range = languageMode.rowRangeForParagraphAtBufferRow(11)
           expect(range).toBeFalsy()
           range = languageMode.rowRangeForParagraphAtBufferRow(12)
-          expect(range).toEqual [[12,0], [13,10]]
+          expect(range).toEqual [[12, 0], [13, 10]]
 
           range = languageMode.rowRangeForParagraphAtBufferRow(14)
-          expect(range).toEqual [[14,0], [14,32]]
+          expect(range).toEqual [[14, 0], [14, 32]]
 
           range = languageMode.rowRangeForParagraphAtBufferRow(15)
-          expect(range).toEqual [[15,0], [15,26]]
+          expect(range).toEqual [[15, 0], [15, 26]]
+
+          range = languageMode.rowRangeForParagraphAtBufferRow(18)
+          expect(range).toEqual [[17, 0], [19, 3]]
 
   describe "coffeescript", ->
     beforeEach ->
@@ -297,9 +317,9 @@ describe "LanguageMode", ->
       atom.packages.unloadPackages()
 
     it "maintains cursor buffer position when a folding/unfolding", ->
-      editor.setCursorBufferPosition([5,5])
+      editor.setCursorBufferPosition([5, 5])
       languageMode.foldAll()
-      expect(editor.getCursorBufferPosition()).toEqual([5,5])
+      expect(editor.getCursorBufferPosition()).toEqual([5, 5])
 
     describe ".unfoldAll()", ->
       it "unfolds every folded line", ->
@@ -351,7 +371,7 @@ describe "LanguageMode", ->
 
       describe "when the bufferRow is in a multi-line comment", ->
         it "searches upward and downward for surrounding comment lines and folds them as a single fold", ->
-          buffer.insert([1,0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
+          buffer.insert([1, 0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
           languageMode.foldBufferRow(1)
           fold = editor.tokenizedLineForScreenRow(1).fold
           expect(fold.getStartRow()).toBe 1
@@ -359,7 +379,7 @@ describe "LanguageMode", ->
 
       describe "when the bufferRow is a single-line comment", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
-          buffer.insert([1,0], "  //this is a single line comment\n")
+          buffer.insert([1, 0], "  //this is a single line comment\n")
           languageMode.foldBufferRow(1)
           fold = editor.tokenizedLineForScreenRow(0).fold
           expect(fold.getStartRow()).toBe 0

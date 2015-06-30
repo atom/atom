@@ -8,6 +8,8 @@ fs = require 'fs-plus'
 
 MenuHelpers = require './menu-helpers'
 
+platformMenu = require('../package.json')?._atomMenu?.menu
+
 # Extended: Provides a registry for menu items that you'd like to appear in the
 # application menu.
 #
@@ -61,6 +63,7 @@ class MenuManager
     @pendingUpdateOperation = null
     @template = []
     atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
+    atom.keymaps.onDidReloadKeymap => @update()
     atom.packages.onDidActivateInitialPackages => @sortPackagesMenu()
 
   # Public: Adds the given items to the application menu.
@@ -137,17 +140,29 @@ class MenuManager
   update: ->
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
     @pendingUpdateOperation = setImmediate =>
-      keystrokesByCommand = {}
+      includedBindings = []
+      unsetKeystrokes = new Set
+
       for binding in atom.keymaps.getKeyBindings() when @includeSelector(binding.selector)
+        includedBindings.push(binding)
+        if binding.command is 'unset!'
+          unsetKeystrokes.add(binding.keystrokes)
+
+      keystrokesByCommand = {}
+      for binding in includedBindings when not unsetKeystrokes.has(binding.keystrokes)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
+
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
   loadPlatformItems: ->
-    menusDirPath = path.join(@resourcePath, 'menus')
-    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
-    {menu} = CSON.readFileSync(platformMenuPath)
-    @add(menu)
+    if platformMenu?
+      @add(platformMenu)
+    else
+      menusDirPath = path.join(@resourcePath, 'menus')
+      platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+      {menu} = CSON.readFileSync(platformMenuPath)
+      @add(menu)
 
   # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
@@ -164,7 +179,7 @@ class MenuManager
     filtered = {}
     for key, bindings of keystrokesByCommand
       for binding in bindings
-        continue if binding.indexOf(' ') != -1
+        continue if binding.indexOf(' ') isnt -1
 
         filtered[key] ?= []
         filtered[key].push(binding)

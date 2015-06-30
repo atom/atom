@@ -28,20 +28,16 @@ defaultOptions =
     'useStrict'
   ]
 
-  # Includes support for es7 features listed at:
-  # http://babeljs.io/docs/usage/transformers/#es7-experimental-.
-  experimental: true
-
   optional: [
     # Target a version of the regenerator runtime that
     # supports yield so the transpiled code is cleaner/smaller.
     'asyncToGenerator'
-
-    # Because Atom is currently packaged with a fork of React v0.11,
-    # it makes sense to use the reactCompat transform so the React
-    # JSX transformer produces pre-v0.12 code.
-    'reactCompat'
   ]
+
+  # Includes support for es7 features listed at:
+  # http://babeljs.io/docs/usage/experimental/.
+  stage: 0
+
 
 ###
 shasum - Hash with an update() method.

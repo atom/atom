@@ -14,9 +14,9 @@ describe "PaneView", ->
     @content: ({id, text}) -> @div class: 'test-view', id: id, tabindex: -1, text
     initialize: ({@id, @text}) ->
       @emitter = new Emitter
-    serialize: -> { deserializer: 'TestView', @id, @text }
+    serialize: -> {deserializer: 'TestView', @id, @text}
     getURI: -> @id
-    isEqual: (other) -> other? and @id == other.id and @text == other.text
+    isEqual: (other) -> other? and @id is other.id and @text is other.text
     changeTitle: ->
       @emitter.emit 'did-change-title', 'title'
     onDidChangeTitle: (callback) ->
@@ -117,6 +117,33 @@ describe "PaneView", ->
         paneModel.activateItem(view1)
         paneModel.activateItem(view2)
         expect(pane.itemViews.find('#view-2').length).toBe 1
+
+    describe "when the new activeItem implements ::getPath", ->
+      beforeEach ->
+        paneModel.activateItem(editor1)
+
+      it "adds the file path as a data attribute to the pane", ->
+        expect(pane).toHaveAttr('data-active-item-path')
+
+      it "adds the file name as a data attribute to the pane", ->
+        expect(pane).toHaveAttr('data-active-item-name')
+
+      describe "when the activeItem is destroyed", ->
+        it "removes the data attributes", ->
+          pane.destroyItems()
+          expect(pane).not.toHaveAttr('data-active-item-path')
+          expect(pane).not.toHaveAttr('data-active-item-name')
+
+    describe "when the new activeItem does not implement ::getPath", ->
+      beforeEach ->
+        paneModel.activateItem(editor1)
+        paneModel.activateItem(document.createElement('div'))
+
+      it "does not add the file path as a data attribute to the pane", ->
+        expect(pane).not.toHaveAttr('data-active-item-path')
+
+      it "does not add the file name as data attribute to the pane", ->
+        expect(pane).not.toHaveAttr('data-active-item-name')
 
   describe "when an item is destroyed", ->
     it "triggers the 'pane:item-removed' event with the item and its former index", ->
@@ -222,7 +249,7 @@ describe "PaneView", ->
         fs.removeSync(filePath)
 
       waitsFor ->
-        pane.items.length == 4
+        pane.items.length is 4
 
   describe "when a pane is destroyed", ->
     [pane2, pane2Model] = []
@@ -333,3 +360,30 @@ describe "PaneView", ->
       pane3 = container3.getRoot()
       container3.attachToDom()
       expect(pane3).not.toMatchSelector(':has(:focus)')
+
+  describe "drag and drop", ->
+    buildDragEvent = (type, files) ->
+      dataTransfer =
+        files: files
+        data: {}
+        setData: (key, value) -> @data[key] = value
+        getData: (key) -> @data[key]
+
+      event = new CustomEvent("drop")
+      event.dataTransfer = dataTransfer
+      event
+
+    describe "when a file is dragged to window", ->
+      it "opens it", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [ {path: "/fake1"}, {path: "/fake2"} ])
+        pane[0].dispatchEvent(event)
+        expect(atom.open.callCount).toBe 1
+        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
+
+    describe "when a non-file is dragged to window", ->
+      it "does nothing", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [])
+        pane[0].dispatchEvent(event)
+        expect(atom.open).not.toHaveBeenCalled()

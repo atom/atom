@@ -1,34 +1,36 @@
 path = require 'path'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
-EmitterMixin = require('emissary').Emitter
 {Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
-{deprecate} = require 'grim'
+{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 
-try
-  packagesCache = require('../package.json')?._atomPackages ? {}
-catch error
-  packagesCache = {}
+packagesCache = require('../package.json')?._atomPackages ? {}
 
 # Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
-  EmitterMixin.includeInto(this)
-
   @isBundledPackagePath: (packagePath) ->
     if atom.packages.devMode
       return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
 
     @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
     packagePath?.startsWith(@resourcePathWithTrailingSlash)
+
+  @normalizeMetadata: (metadata) ->
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)
+      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
 
   @loadMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
@@ -38,16 +40,19 @@ class Package
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
           metadata = CSON.readFileSync(metadataPath)
+          @normalizeMetadata(metadata)
         catch error
           throw error unless ignoreErrors
-    metadata ?= {}
-    metadata.name = packageName
 
-    if metadata.stylesheetMain?
+    metadata ?= {}
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
+
+    if includeDeprecatedAPIs and metadata.stylesheetMain?
       deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
       metadata.mainStyleSheet = metadata.stylesheetMain
 
-    if metadata.stylesheets?
+    if includeDeprecatedAPIs and metadata.stylesheets?
       deprecate("Use the `styleSheets` key instead of `stylesheets` in the `package.json` of `#{packageName}`", {packageName})
       metadata.styleSheets = metadata.stylesheets
 
@@ -87,14 +92,6 @@ class Package
   onDidDeactivate: (callback) ->
     @emitter.on 'did-deactivate', callback
 
-  on: (eventName) ->
-    switch eventName
-      when 'deactivated'
-        deprecate 'Use Package::onDidDeactivate instead'
-      else
-        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
-
   ###
   Section: Instance Methods
   ###
@@ -126,9 +123,8 @@ class Package
         @loadStylesheets()
         @settingsPromise = @loadSettings()
         @requireMainModule() unless @hasActivationCommands()
-
       catch error
-        console.warn "Failed to load package named '#{@name}'", error.stack ? error
+        @handleError("Failed to load the #{@name} package", error)
     this
 
   reset: ->
@@ -144,11 +140,14 @@ class Package
     unless @activationDeferred?
       @activationDeferred = Q.defer()
       @measure 'activateTime', =>
-        @activateResources()
-        if @hasActivationCommands()
-          @subscribeToActivationCommands()
-        else
-          @activateNow()
+        try
+          @activateResources()
+          if @hasActivationCommands()
+            @subscribeToActivationCommands()
+          else
+            @activateNow()
+        catch error
+          @handleError("Failed to activate the #{@name} package", error)
 
     Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
 
@@ -160,8 +159,8 @@ class Package
         @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
-    catch e
-      console.warn "Failed to activate package named '#{@name}'", e.stack
+    catch error
+      @handleError("Failed to activate the #{@name} package", error)
 
     @activationDeferred?.resolve()
 
@@ -173,9 +172,9 @@ class Package
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
       else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
-        deprecate """Use a config schema instead. See the configuration section
-        of https://atom.io/docs/latest/creating-a-package and
-        https://atom.io/docs/api/latest/Config for more details"""
+        deprecate("""Use a config schema instead. See the configuration section
+        of https://atom.io/docs/latest/hacking-atom-package-word-count and
+        https://atom.io/docs/api/latest/Config for more details""", {packageName: @name})
         atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
@@ -200,7 +199,28 @@ class Package
   activateResources: ->
     @activationDisposables = new CompositeDisposable
     @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
-    @activationDisposables.add(atom.contextMenu.add(map['context-menu'])) for [menuPath, map] in @menus when map['context-menu']?
+
+    for [menuPath, map] in @menus when map['context-menu']?
+      try
+        itemsBySelector = map['context-menu']
+
+        # Detect deprecated format for items object
+        for key, value of itemsBySelector
+          unless _.isArray(value)
+            deprecate("""
+              The context menu CSON format has changed. Please see
+              https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format
+              for more info.
+            """, {packageName: @name})
+            itemsBySelector = atom.contextMenu.convertLegacyItemsBySelector(itemsBySelector)
+
+        @activationDisposables.add(atom.contextMenu.add(itemsBySelector))
+      catch error
+        if error.code is 'EBADSELECTOR'
+          error.message += " in #{menuPath}"
+          error.stack += "\n  at #{menuPath}:1:1"
+        throw error
+
     @activationDisposables.add(atom.menu.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
 
     unless @grammarsActivated
@@ -212,24 +232,31 @@ class Package
 
   activateServices: ->
     for name, {versions} of @metadata.providedServices
+      servicesByVersion = {}
       for version, methodName of versions
-        @activationDisposables.add atom.packages.serviceHub.provide(name, version, @mainModule[methodName]())
+        if typeof @mainModule[methodName] is 'function'
+          servicesByVersion[version] = @mainModule[methodName]()
+      @activationDisposables.add atom.packages.serviceHub.provide(name, servicesByVersion)
 
     for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
-        @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
+        if typeof @mainModule[methodName] is 'function'
+          @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
+    return
 
   loadKeymaps: ->
     if @bundledPackage and packagesCache[@name]?
       @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
+    return
 
   loadMenus: ->
     if @bundledPackage and packagesCache[@name]?
       @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
     else
       @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
+    return
 
   getKeymapPaths: ->
     keymapsDirPath = path.join(@path, 'keymaps')
@@ -276,6 +303,7 @@ class Package
       try
         grammar = atom.grammars.readGrammarSync(grammarPath)
         grammar.packageName = @name
+        grammar.bundledPackage = @bundledPackage
         @grammars.push(grammar)
         grammar.activate()
       catch error
@@ -290,17 +318,23 @@ class Package
     loadGrammar = (grammarPath, callback) =>
       atom.grammars.readGrammar grammarPath, (error, grammar) =>
         if error?
-          console.warn("Failed to load grammar: #{grammarPath}", error.stack ? error)
+          detail = "#{error.message} in #{grammarPath}"
+          stack = "#{error.stack}\n  at #{grammarPath}:1:1"
+          atom.notifications.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
         else
           grammar.packageName = @name
+          grammar.bundledPackage = @bundledPackage
           @grammars.push(grammar)
           grammar.activate() if @grammarsActivated
         callback()
 
     deferred = Q.defer()
     grammarsDirPath = path.join(@path, 'grammars')
-    fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
-      async.each grammarPaths, loadGrammar, -> deferred.resolve()
+    fs.exists grammarsDirPath, (grammarsDirExists) ->
+      return deferred.resolve() unless grammarsDirExists
+
+      fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
+        async.each grammarPaths, loadGrammar, -> deferred.resolve()
     deferred.promise
 
   loadSettings: ->
@@ -309,7 +343,9 @@ class Package
     loadSettingsFile = (settingsPath, callback) =>
       ScopedProperties.load settingsPath, (error, settings) =>
         if error?
-          console.warn("Failed to load package settings: #{settingsPath}", error.stack ? error)
+          detail = "#{error.message} in #{settingsPath}"
+          stack = "#{error.stack}\n  at #{settingsPath}:1:1"
+          atom.notifications.addFatalError("Failed to load the #{@name} package settings", {stack, detail, dismissable: true})
         else
           @settings.push(settings)
           settings.activate() if @settingsActivated
@@ -323,8 +359,11 @@ class Package
     else
       settingsDirPath = path.join(@path, 'settings')
 
-    fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
-      async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
+    fs.exists settingsDirPath, (settingsDirExists) ->
+      return deferred.resolve() unless settingsDirExists
+
+      fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
+        async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
     deferred.promise
 
   serialize: ->
@@ -345,7 +384,7 @@ class Package
         @mainModule?.deactivate?()
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
-    @emit 'deactivated'
+    @emit 'deactivated' if includeDeprecatedAPIs
     @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
@@ -363,14 +402,19 @@ class Package
 
   reloadStylesheets: ->
     oldSheets = _.clone(@stylesheets)
-    @loadStylesheets()
+
+    try
+      @loadStylesheets()
+    catch error
+      @handleError("Failed to reload the #{@name} package stylesheets", error)
+
     @stylesheetDisposables?.dispose()
     @stylesheetDisposables = new CompositeDisposable
     @stylesheetsActivated = false
     @activateStylesheets()
 
   requireMainModule: ->
-    return @mainModule if @mainModule?
+    return @mainModule if @mainModuleRequired
     unless @isCompatible()
       console.warn """
         Failed to require the main module of '#{@name}' because it requires an incompatible native module.
@@ -378,7 +422,9 @@ class Package
       """
       return
     mainModulePath = @getMainModulePath()
-    @mainModule = require(mainModulePath) if fs.isFileSync(mainModulePath)
+    if fs.isFileSync(mainModulePath)
+      @mainModuleRequired = true
+      @mainModule = require(mainModulePath)
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
@@ -409,7 +455,15 @@ class Package
         do (selector, command) =>
           # Add dummy command so it appears in menu.
           # The real command will be registered on package activation
-          @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          try
+            @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+          catch error
+            if error.code is 'EBADSELECTOR'
+              metadataPath = path.join(@path, 'package.json')
+              error.message += " in #{metadataPath}"
+              error.stack += "\n  at #{metadataPath}:1:1"
+            throw error
+
           @activationCommandSubscriptions.add atom.commands.onWillDispatch (event) =>
             return unless event.type is command
             currentTarget = event.target
@@ -419,6 +473,8 @@ class Package
                 @activateNow()
                 break
               currentTarget = currentTarget.parentElement
+            return
+    return
 
   getActivationCommands: ->
     return @activationCommands if @activationCommands?
@@ -434,7 +490,7 @@ class Package
           @activationCommands[selector].push(commands...)
 
     if @metadata.activationEvents?
-      deprecate """
+      deprecate("""
         Use `activationCommands` instead of `activationEvents` in your package.json
         Commands should be grouped by selector as follows:
         ```json
@@ -443,7 +499,7 @@ class Package
             "atom-text-editor": ["foo:quux"]
           }
         ```
-      """
+      """, {packageName: @name})
       if _.isArray(@metadata.activationEvents)
         for eventName in @metadata.activationEvents
           @activationCommands['atom-workspace'] ?= []
@@ -477,6 +533,7 @@ class Package
         for modulePath in fs.listSync(nodeModulesPath)
           nativeModulePaths.push(modulePath) if @isNativeModule(modulePath)
           traversePath(path.join(modulePath, 'node_modules'))
+      return
 
     traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths
@@ -528,3 +585,37 @@ class Package
       @compatible = @incompatibleModules.length is 0
     else
       @compatible = true
+
+  handleError: (message, error) ->
+    if error.filename and error.location and (error instanceof SyntaxError)
+      location = "#{error.filename}:#{error.location.first_line + 1}:#{error.location.first_column + 1}"
+      detail = "#{error.message} in #{location}"
+      stack = """
+        SyntaxError: #{error.message}
+          at #{location}
+      """
+    else if error.less and error.filename and error.column? and error.line?
+      # Less errors
+      location = "#{error.filename}:#{error.line}:#{error.column}"
+      detail = "#{error.message} in #{location}"
+      stack = """
+        LessError: #{error.message}
+          at #{location}
+      """
+    else
+      detail = error.message
+      stack = error.stack ? error
+
+    atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
+
+if includeDeprecatedAPIs
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(Package)
+
+  Package::on = (eventName) ->
+    switch eventName
+      when 'deactivated'
+        deprecate 'Use Package::onDidDeactivate instead'
+      else
+        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
+    EmitterMixin::on.apply(this, arguments)

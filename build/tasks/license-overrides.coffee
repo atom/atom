@@ -65,7 +65,7 @@ module.exports =
         IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       """
 
-  'jschardet@1.1.0':
+  'jschardet@1.1.1':
     license: 'LGPL'
     source: 'README.md in the repository'
     sourceText: """

@@ -60,7 +60,7 @@ class TextEditorView extends View
           placeholderText: placeholderText
 
       element = new TextEditorElement
-      element.lineOverdrawMargin = props?.lineOverdrawMargin
+      element.tileSize = props?.tileSize
       element.setAttribute(name, value) for name, value of attributes if attributes?
       element.setModel(model)
       return element.__spacePenView
@@ -120,14 +120,14 @@ class TextEditorView extends View
 
   getEditor: -> @model
 
-  Object.defineProperty @::, 'lineHeight', get: -> @model.getLineHeightInPixels()
-  Object.defineProperty @::, 'charWidth', get: -> @model.getDefaultCharWidth()
-  Object.defineProperty @::, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
-  Object.defineProperty @::, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
-  Object.defineProperty @::, 'active', get: -> @is(@getPaneView()?.activeView)
-  Object.defineProperty @::, 'isFocused', get: -> document.activeElement is @element or document.activeElement is @element.component?.hiddenInputComponent?.domNode
-  Object.defineProperty @::, 'mini', get: -> @model?.isMini()
-  Object.defineProperty @::, 'component', get: -> @element?.component
+  Object.defineProperty @prototype, 'lineHeight', get: -> @model.getLineHeightInPixels()
+  Object.defineProperty @prototype, 'charWidth', get: -> @model.getDefaultCharWidth()
+  Object.defineProperty @prototype, 'firstRenderedScreenRow', get: -> @component.getRenderedRowRange()[0]
+  Object.defineProperty @prototype, 'lastRenderedScreenRow', get: -> @component.getRenderedRowRange()[1]
+  Object.defineProperty @prototype, 'active', get: -> @is(@getPaneView()?.activeView)
+  Object.defineProperty @prototype, 'isFocused', get: -> document.activeElement is @element or document.activeElement is @element.component?.hiddenInputComponent?.getDomNode()
+  Object.defineProperty @prototype, 'mini', get: -> @model?.isMini()
+  Object.defineProperty @prototype, 'component', get: -> @element?.component
 
   afterAttach: (onDom) ->
     return unless onDom

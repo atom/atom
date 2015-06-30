@@ -1,8 +1,5 @@
-{Range} = require 'text-buffer'
 _ = require 'underscore-plus'
-{Subscriber} = require 'emissary'
-EmitterMixin = require('emissary').Emitter
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 Grim = require 'grim'
 
 # Essential: Represents a buffer annotation that remains logically stationary
@@ -45,16 +42,13 @@ Grim = require 'grim'
 # See {TextEditor::markBufferRange} for usage.
 module.exports =
 class Marker
-  EmitterMixin.includeInto(this)
-  Subscriber.includeInto(this)
-
   bufferMarkerSubscription: null
   oldHeadBufferPosition: null
   oldHeadScreenPosition: null
   oldTailBufferPosition: null
   oldTailScreenPosition: null
   wasValid: true
-  deferredChangeEvents: null
+  hasChangeObservers: false
 
   ###
   Section: Construction and Destruction
@@ -62,21 +56,16 @@ class Marker
 
   constructor: ({@bufferMarker, @displayBuffer}) ->
     @emitter = new Emitter
+    @disposables = new CompositeDisposable
     @id = @bufferMarker.id
-    @oldHeadBufferPosition = @getHeadBufferPosition()
-    @oldHeadScreenPosition = @getHeadScreenPosition()
-    @oldTailBufferPosition = @getTailBufferPosition()
-    @oldTailScreenPosition = @getTailScreenPosition()
-    @wasValid = @isValid()
 
-    @subscribe @bufferMarker.onDidDestroy => @destroyed()
-    @subscribe @bufferMarker.onDidChange (event) => @notifyObservers(event)
+    @disposables.add @bufferMarker.onDidDestroy => @destroyed()
 
   # Essential: Destroys the marker, causing it to emit the 'destroyed' event. Once
   # destroyed, a marker cannot be restored by undo/redo operations.
   destroy: ->
     @bufferMarker.destroy()
-    @unsubscribe()
+    @disposables.dispose()
 
   # Essential: Creates and returns a new {Marker} with the same properties as this
   # marker.
@@ -108,6 +97,14 @@ class Marker
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChange: (callback) ->
+    unless @hasChangeObservers
+      @oldHeadBufferPosition = @getHeadBufferPosition()
+      @oldHeadScreenPosition = @getHeadScreenPosition()
+      @oldTailBufferPosition = @getTailBufferPosition()
+      @oldTailScreenPosition = @getTailScreenPosition()
+      @wasValid = @isValid()
+      @disposables.add @bufferMarker.onDidChange (event) => @notifyObservers(event)
+      @hasChangeObservers = true
     @emitter.on 'did-change', callback
 
   # Essential: Invoke the given callback when the marker is destroyed.
@@ -117,15 +114,6 @@ class Marker
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
-
-  on: (eventName) ->
-    switch eventName
-      when 'changed'
-        Grim.deprecate("Use Marker::onDidChange instead")
-      when 'destroyed'
-        Grim.deprecate("Use Marker::onDidDestroy instead")
-
-    EmitterMixin::on.apply(this, arguments)
 
   ###
   Section: Marker Details
@@ -159,9 +147,6 @@ class Marker
   # the marker.
   getProperties: ->
     @bufferMarker.getProperties()
-  getAttributes: ->
-    Grim.deprecate 'Use Marker::getProperties instead'
-    @getProperties()
 
   # Essential: Merges an {Object} containing new properties into the marker's
   # existing properties.
@@ -169,16 +154,10 @@ class Marker
   # * `properties` {Object}
   setProperties: (properties) ->
     @bufferMarker.setProperties(properties)
-  setAttributes: (properties) ->
-    Grim.deprecate 'Use Marker::getProperties instead'
-    @setProperties(properties)
 
   matchesProperties: (attributes) ->
     attributes = @displayBuffer.translateToBufferMarkerParams(attributes)
     @bufferMarker.matchesParams(attributes)
-  matchesAttributes: (attributes) ->
-    Grim.deprecate 'Use Marker::matchesProperties instead'
-    @matchesProperties(attributes)
 
   ###
   Section: Comparing to other markers
@@ -284,7 +263,6 @@ class Marker
   # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setHeadScreenPosition: (screenPosition, properties) ->
-    screenPosition = @displayBuffer.clipScreenPosition(screenPosition, properties)
     @setHeadBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, properties))
 
   # Extended: Retrieves the buffer position of the marker's tail.
@@ -311,7 +289,6 @@ class Marker
   # * `screenPosition` The new {Point} to use
   # * `properties` (optional) {Object} properties to associate with the marker.
   setTailScreenPosition: (screenPosition, options) ->
-    screenPosition = @displayBuffer.clipScreenPosition(screenPosition, options)
     @setTailBufferPosition(@displayBuffer.bufferPositionForScreenPosition(screenPosition, options))
 
   # Extended: Returns a {Boolean} indicating whether the marker has a tail.
@@ -344,7 +321,7 @@ class Marker
 
   destroyed: ->
     delete @displayBuffer.markers[@id]
-    @emit 'destroyed'
+    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -357,11 +334,11 @@ class Marker
     newTailScreenPosition = @getTailScreenPosition()
     isValid = @isValid()
 
-    return if _.isEqual(isValid, @wasValid) and
-      _.isEqual(newHeadBufferPosition, @oldHeadBufferPosition) and
-      _.isEqual(newHeadScreenPosition, @oldHeadScreenPosition) and
-      _.isEqual(newTailBufferPosition, @oldTailBufferPosition) and
-      _.isEqual(newTailScreenPosition, @oldTailScreenPosition)
+    return if isValid is @wasValid and
+      newHeadBufferPosition.isEqual(@oldHeadBufferPosition) and
+      newHeadScreenPosition.isEqual(@oldHeadScreenPosition) and
+      newTailBufferPosition.isEqual(@oldTailBufferPosition) and
+      newTailScreenPosition.isEqual(@oldTailScreenPosition)
 
     changeEvent = {
       @oldHeadScreenPosition, newHeadScreenPosition,
@@ -372,28 +349,41 @@ class Marker
       isValid
     }
 
-    if @deferredChangeEvents?
-      @deferredChangeEvents.push(changeEvent)
-    else
-      @emit 'changed', changeEvent
-      @emitter.emit 'did-change', changeEvent
-
     @oldHeadBufferPosition = newHeadBufferPosition
     @oldHeadScreenPosition = newHeadScreenPosition
     @oldTailBufferPosition = newTailBufferPosition
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
 
-  pauseChangeEvents: ->
-    @deferredChangeEvents = []
-
-  resumeChangeEvents: ->
-    if deferredChangeEvents = @deferredChangeEvents
-      @deferredChangeEvents = null
-
-      for event in deferredChangeEvents
-        @emit 'changed', event
-        @emitter.emit 'did-change', event
+    @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change', changeEvent
 
   getPixelRange: ->
     @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
+
+if Grim.includeDeprecatedAPIs
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(Marker)
+
+  Marker::on = (eventName) ->
+    switch eventName
+      when 'changed'
+        Grim.deprecate("Use Marker::onDidChange instead")
+      when 'destroyed'
+        Grim.deprecate("Use Marker::onDidDestroy instead")
+      else
+        Grim.deprecate("Marker::on is deprecated. Use documented event subscription methods instead.")
+
+    EmitterMixin::on.apply(this, arguments)
+
+  Marker::getAttributes = ->
+    Grim.deprecate 'Use Marker::getProperties instead'
+    @getProperties()
+
+  Marker::setAttributes = (properties) ->
+    Grim.deprecate 'Use Marker::setProperties instead'
+    @setProperties(properties)
+
+  Marker::matchesAttributes = (attributes) ->
+    Grim.deprecate 'Use Marker::matchesProperties instead'
+    @matchesProperties(attributes)

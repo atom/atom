@@ -1,10 +1,16 @@
 _ = require 'underscore-plus'
-EmitterMixin = require('emissary').Emitter
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
 idCounter = 0
 nextId = -> idCounter++
+
+# Applies changes to a decorationsParam {Object} to make it possible to
+# differentiate decorations on custom gutters versus the line-number gutter.
+translateDecorationParamsOldToNew = (decorationParams) ->
+  if decorationParams.type is 'line-number'
+    decorationParams.gutterName = 'line-number'
+  decorationParams
 
 # Essential: Represents a decoration that follows a {Marker}. A decoration is
 # basically a visual representation of a marker. It allows you to add CSS
@@ -20,7 +26,7 @@ nextId = -> idCounter++
 # decoration = editor.decorateMarker(marker, {type: 'line', class: 'my-line-class'})
 # ```
 #
-# Best practice for destorying the decoration is by destroying the {Marker}.
+# Best practice for destroying the decoration is by destroying the {Marker}.
 #
 # ```coffee
 # marker.destroy()
@@ -30,7 +36,6 @@ nextId = -> idCounter++
 # the marker.
 module.exports =
 class Decoration
-  EmitterMixin.includeInto(this)
 
   # Private: Check if the `decorationProperties.type` matches `type`
   #
@@ -40,23 +45,32 @@ class Decoration
   #   type matches any in the array.
   #
   # Returns {Boolean}
+  # Note: 'line-number' is a special subtype of the 'gutter' type. I.e., a
+  # 'line-number' is a 'gutter', but a 'gutter' is not a 'line-number'.
   @isType: (decorationProperties, type) ->
+    # 'line-number' is a special case of 'gutter'.
     if _.isArray(decorationProperties.type)
-      type in decorationProperties.type
+      return true if type in decorationProperties.type
+      if type is 'gutter'
+        return true if 'line-number' in decorationProperties.type
+      return false
     else
-      type is decorationProperties.type
+      if type is 'gutter'
+        return true if decorationProperties.type in ['gutter', 'line-number']
+      else
+        type is decorationProperties.type
 
   ###
   Section: Construction and Destruction
   ###
 
-  constructor: (@marker, @displayBuffer, @properties) ->
+  constructor: (@marker, @displayBuffer, properties) ->
     @emitter = new Emitter
     @id = nextId()
+    @setProperties properties
     @properties.id = @id
     @flashQueue = null
     @destroyed = false
-
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
   # Essential: Destroy this marker.
@@ -68,7 +82,7 @@ class Decoration
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
-    @emit 'destroyed'
+    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -124,9 +138,6 @@ class Decoration
   # Essential: Returns the {Decoration}'s properties.
   getProperties: ->
     @properties
-  getParams: ->
-    Grim.deprecate 'Use Decoration::getProperties instead'
-    @getProperties()
 
   # Essential: Update the marker with new Properties. Allows you to change the decoration's class.
   #
@@ -140,13 +151,12 @@ class Decoration
   setProperties: (newProperties) ->
     return if @destroyed
     oldProperties = @properties
-    @properties = newProperties
+    @properties = translateDecorationParamsOldToNew(newProperties)
     @properties.id = @id
-    @emit 'updated', {oldParams: oldProperties, newParams: newProperties}
+    if newProperties.type?
+      @displayBuffer.decorationDidChangeType(this)
+    @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
-  update: (newProperties) ->
-    Grim.deprecate 'Use Decoration::setProperties instead'
-    @setProperties(newProperties)
 
   ###
   Section: Private methods
@@ -155,7 +165,7 @@ class Decoration
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?
     for key, value of decorationPattern
-      return false if @properties[key] != value
+      return false if @properties[key] isnt value
     true
 
   onDidFlash: (callback) ->
@@ -165,14 +175,18 @@ class Decoration
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
-    @emit 'flash'
+    @emit 'flash' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-flash'
 
   consumeNextFlash: ->
     return @flashQueue.shift() if @flashQueue?.length > 0
     null
 
-  on: (eventName) ->
+if Grim.includeDeprecatedAPIs
+  EmitterMixin = require('emissary').Emitter
+  EmitterMixin.includeInto(Decoration)
+
+  Decoration::on = (eventName) ->
     switch eventName
       when 'updated'
         Grim.deprecate 'Use Decoration::onDidChangeProperties instead'
@@ -184,3 +198,11 @@ class Decoration
         Grim.deprecate 'Decoration::on is deprecated. Use event subscription methods instead.'
 
     EmitterMixin::on.apply(this, arguments)
+
+  Decoration::getParams = ->
+    Grim.deprecate 'Use Decoration::getProperties instead'
+    @getProperties()
+
+  Decoration::update = (newProperties) ->
+    Grim.deprecate 'Use Decoration::setProperties instead'
+    @setProperties(newProperties)

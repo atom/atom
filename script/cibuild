@@ -31,17 +31,54 @@ function readEnvironmentVariables() {
 }
 
 function removeNodeModules() {
+  var fsPlus;
   try {
-    require('fs-plus').removeSync(path.resolve(__dirname, '..', 'node_modules'));
+    fsPlus = require('fs-plus');
+  } catch (error) {
+    return;
+  }
+
+  try {
+    fsPlus.removeSync(path.resolve(__dirname, '..', 'node_modules'));
   } catch (error) {
     console.error(error.message);
     process.exit(1);
   }
 }
 
+function removeTempFolders() {
+  var fsPlus;
+  try {
+    fsPlus = require('fs-plus');
+  } catch (error) {
+    return;
+  }
+
+  var temp = require('os').tmpdir();
+  if (!fsPlus.isDirectorySync(temp))
+    return;
+
+  var deletedFolders = 0;
+
+  fsPlus.readdirSync(temp).filter(function(folderName) {
+    return folderName.indexOf('npm-') === 0;
+  }).forEach(function(folderName) {
+    try {
+      fsPlus.removeSync(path.join(temp, folderName));
+      deletedFolders++;
+    } catch (error) {
+      console.error("Failed to delete npm temp folder: " + error.message);
+    }
+  });
+
+  if (deletedFolders > 0)
+    console.log("Deleted " + deletedFolders + " npm folders from temp directory");
+}
+
 readEnvironmentVariables();
 removeNodeModules();
-cp.safeExec.bind(global, 'npm install npm', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
+removeTempFolders();
+cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
   cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
     if (error)
       process.exit(1);

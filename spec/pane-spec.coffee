@@ -414,7 +414,7 @@ describe "Pane", ->
         pane.getActiveItem().path = __filename
         pane.getActiveItem().saveAs = jasmine.createSpy("saveAs")
         pane.saveActiveItemAs()
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(__filename)
+        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(defaultPath: __filename)
         expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
@@ -696,7 +696,10 @@ describe "Pane", ->
     pane = null
 
     beforeEach ->
-      pane = new Pane(items: [new Item("A", "a"), new Item("B", "b"), new Item("C", "c")])
+      params =
+        items: [new Item("A", "a"), new Item("B", "b"), new Item("C", "c")]
+        flexScale: 2
+      pane = new Pane(params)
 
     it "can serialize and deserialize the pane and all its items", ->
       newPane = pane.testSerialization()

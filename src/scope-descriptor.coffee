@@ -15,7 +15,7 @@
 #   specific position in the buffer.
 # * {Cursor::getScopeDescriptor} to get a cursor's descriptor based on position.
 #
-# See the [scopes and scope descriptor guide](https://atom.io/docs/latest/advanced/scopes-and-scope-descriptors)
+# See the [scopes and scope descriptor guide](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
 # for more information.
 module.exports =
 class ScopeDescriptor
@@ -44,3 +44,6 @@ class ScopeDescriptor
         scope = ".#{scope}" unless scope[0] is '.'
         scope
       .join(' ')
+
+  toString: ->
+    @getScopeChain()

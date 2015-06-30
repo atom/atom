@@ -1,6 +1,6 @@
 {Emitter} = require 'event-kit'
 
-# Experimental: This will likely change, do not use.
+# Public: A notification to the user containing a message and type.
 module.exports =
 class Notification
   constructor: (@type, @message, @options={}) ->
@@ -18,8 +18,10 @@ class Notification
 
   getOptions: -> @options
 
+  # Public: Retrieves the {String} type.
   getType: -> @type
 
+  # Public: Retrieves the {String} message.
   getMessage: -> @message
 
   getTimestamp: -> @timestamp
@@ -27,9 +29,9 @@ class Notification
   getDetail: -> @options.detail
 
   isEqual: (other) ->
-    @getMessage() == other.getMessage() \
-      and @getType() == other.getType() \
-      and @getDetail() == other.getDetail()
+    @getMessage() is other.getMessage() \
+      and @getType() is other.getType() \
+      and @getDetail() is other.getDetail()
 
   dismiss: ->
     return unless @isDismissable() and not @isDismissed()

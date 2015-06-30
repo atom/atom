@@ -1,0 +1,10 @@
+{
+  "context-menu": {
+    "<>": [
+      {
+        "label": "Hello",
+        "command:": "world"
+      }
+    ]
+  }
+}

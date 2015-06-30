@@ -1,5 +1,5 @@
-clipboard = require 'clipboard'
 crypto = require 'crypto'
+clipboard = require './safe-clipboard'
 
 # Extended: Represents the clipboard used for copying and pasting in Atom.
 #
@@ -31,7 +31,7 @@ class Clipboard
   # {::readWithMetadata}.
   #
   # * `text` The {String} to store.
-  # * `metadata` The additional info to associate with the text.
+  # * `metadata` (optional) The additional info to associate with the text.
   write: (text, metadata) ->
     @signatureForMetadata = @md5(text)
     @metadata = metadata

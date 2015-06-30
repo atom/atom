@@ -1,4 +1,5 @@
 path = require "path"
+http = require "http"
 temp = require("temp").track()
 remote = require "remote"
 async = require "async"
@@ -9,8 +10,29 @@ webdriverio = require "../../../build/node_modules/webdriverio"
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
 ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'atom-shell', 'chromedriver', 'chromedriver')
-SocketPath = path.join(temp.mkdirSync("socket-dir"), "atom.sock")
+SocketPath = path.join(temp.mkdirSync("socket-dir"), "atom-#{process.env.USER}.sock")
 ChromedriverPort = 9515
+ChromedriverURLBase = "/wd/hub"
+ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
+
+chromeDriverUp = (done) ->
+  checkStatus = ->
+    http
+      .get ChromedriverStatusURL, (response) ->
+        if response.statusCode is 200
+          done()
+        else
+          chromeDriverUp(done)
+      .on("error", -> chromeDriverUp(done))
+  setTimeout(checkStatus, 100)
+
+chromeDriverDown = (done) ->
+  checkStatus = ->
+    http
+      .get ChromedriverStatusURL, (response) ->
+        chromeDriverDown(done)
+      .on("error", done)
+  setTimeout(checkStatus, 100)
 
 buildAtomClient = (args, env) ->
   client = webdriverio.remote(
@@ -94,6 +116,15 @@ buildAtomClient = (args, env) ->
           ]), env: extend({}, process.env, env))
         done()
 
+    .addCommand "dispatchCommand", (command, done) ->
+      @execute "atom.commands.dispatch(document.activeElement, '#{command}')"
+      .call(done)
+
+    .addCommand "simulateQuit", (done) ->
+      @execute -> atom.unloadEditorWindow()
+      .execute -> require("remote").require("app").emit("before-quit")
+      .call(done)
+
 module.exports = (args, env, fn) ->
   [chromedriver, chromedriverLogs, chromedriverExit] = []
 
@@ -101,7 +132,7 @@ module.exports = (args, env, fn) ->
     chromedriver = spawn(ChromedriverPath, [
       "--verbose",
       "--port=#{ChromedriverPort}",
-      "--url-base=/wd/hub"
+      "--url-base=#{ChromedriverURLBase}"
     ])
 
     chromedriverLogs = []
@@ -114,11 +145,12 @@ module.exports = (args, env, fn) ->
       chromedriver.stderr.on "close", ->
         resolve(errorCode)
 
-  waits(100)
+  waitsFor("webdriver to start", chromeDriverUp, 15000)
 
-  waitsFor("webdriver to finish", (done) ->
+  waitsFor("tests to run", (done) ->
     finish = once ->
       client
+        .simulateQuit()
         .end()
         .then(-> chromedriver.kill())
         .then(chromedriverExit.then(
@@ -133,8 +165,10 @@ module.exports = (args, env, fn) ->
     client = buildAtomClient(args, env)
 
     client.on "error", (err) ->
-      jasmine.getEnv().currentSpec.fail(JSON.stringify(err))
+      jasmine.getEnv().currentSpec.fail(new Error(err.response?.body?.value?.message))
       finish()
 
     fn(client.init()).then(finish)
   , 30000)
+
+  waitsFor("webdriver to stop", chromeDriverDown, 15000)

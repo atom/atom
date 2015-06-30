@@ -15,7 +15,7 @@ module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
-  constructor: (@version) ->
+  constructor: (@version, @testMode) ->
     @state = IdleState
     if process.platform is 'win32'
       # Squirrel for Windows can't handle query params
@@ -33,6 +33,10 @@ class AutoUpdateManager
     else
       autoUpdater = require 'auto-updater'
 
+    autoUpdater.on 'error', (event, message) =>
+      @setState(ErrorState)
+      console.error "Error Downloading Update: #{message}"
+
     autoUpdater.setFeedUrl @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
@@ -44,16 +48,12 @@ class AutoUpdateManager
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
 
-    autoUpdater.on 'error', (event, message) =>
-      @setState(ErrorState)
-      console.error "Error Downloading Update: #{message}"
-
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
       @emitUpdateAvailableEvent(@getWindows()...)
 
     # Only released versions should check for updates.
-    @check(hidePopups: true) unless /\w{7}/.test(@version)
+    @scheduleUpdateCheck() unless /\w{7}/.test(@version)
 
     switch process.platform
       when 'win32'
@@ -65,6 +65,7 @@ class AutoUpdateManager
     return unless @releaseVersion?
     for atomWindow in windows
       atomWindow.sendMessage('update-available', {@releaseVersion})
+    return
 
   setState: (state) ->
     return if @state is state
@@ -74,15 +75,21 @@ class AutoUpdateManager
   getState: ->
     @state
 
+  scheduleUpdateCheck: ->
+    checkForUpdates = => @check(hidePopups: true)
+    fourHours = 1000 * 60 * 60 * 4
+    setInterval(checkForUpdates, fourHours)
+    checkForUpdates()
+
   check: ({hidePopups}={}) ->
     unless hidePopups
       autoUpdater.once 'update-not-available', @onUpdateNotAvailable
       autoUpdater.once 'error', @onUpdateError
 
-    autoUpdater.checkForUpdates()
+    autoUpdater.checkForUpdates() unless @testMode
 
   install: ->
-    autoUpdater.quitAndInstall()
+    autoUpdater.quitAndInstall() unless @testMode
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError

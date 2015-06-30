@@ -1,8 +1,12 @@
 TooltipManager = require '../src/tooltip-manager'
 {$} = require '../src/space-pen-extensions'
+_ = require "underscore-plus"
 
 describe "TooltipManager", ->
   [manager, element] = []
+
+  ctrlX = _.humanizeKeystroke("ctrl-x")
+  ctrlY = _.humanizeKeystroke("ctrl-y")
 
   beforeEach ->
     manager = new TooltipManager
@@ -35,7 +39,7 @@ describe "TooltipManager", ->
 
           hover element, ->
             tooltipElement = document.body.querySelector(".tooltip")
-            expect(tooltipElement).toHaveText "Title ⌃X ⌃Y"
+            expect(tooltipElement).toHaveText "Title #{ctrlX} #{ctrlY}"
 
       describe "when no title is specified", ->
         it "shows the key binding corresponding to the command alone", ->
@@ -45,7 +49,7 @@ describe "TooltipManager", ->
 
           hover element, ->
             tooltipElement = document.body.querySelector(".tooltip")
-            expect(tooltipElement).toHaveText "⌃X ⌃Y"
+            expect(tooltipElement).toHaveText "#{ctrlX} #{ctrlY}"
 
       describe "when a keyBindingTarget is specified", ->
         it "looks up the key binding relative to the target", ->
@@ -57,7 +61,7 @@ describe "TooltipManager", ->
 
           hover element, ->
             tooltipElement = document.body.querySelector(".tooltip")
-            expect(tooltipElement).toHaveText "⌃X ⌃Y"
+            expect(tooltipElement).toHaveText "#{ctrlX} #{ctrlY}"
 
         it "does not display the keybinding if there is nothing mapped to the specified keyBindingCommand", ->
           manager.add element, title: 'A Title', keyBindingCommand: 'test-command', keyBindingTarget: element

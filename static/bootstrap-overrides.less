@@ -21,3 +21,21 @@ h5,
 h6 {
   font-family: inherit; // inherit from themes
 }
+
+body {
+  font-family: inherit; // inherit from html
+  font-size: inherit; // inherit from html
+}
+
+// Latest Bootstrap specifies the font properties again instead of inheriting
+.tooltip {
+  font-family: @font-family;
+  font-size: @font-size;
+}
+
+// disable some <kbd> styling, will be styled in themes
+kbd {
+  color: inherit;
+  background-color: none;
+  box-shadow: none;
+}

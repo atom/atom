@@ -57,7 +57,7 @@ function verifyNpm(cb) {
     var npmMajorVersion = +versionArray[0] || 0;
     var npmMinorVersion = +versionArray[1] || 0;
     if (npmMajorVersion === 1 && npmMinorVersion < 4)
-      cb("npm v1.4+ is required to build Atom.");
+      cb("npm v1.4+ is required to build Atom. Version " + npmVersion + " was detected.");
     else
       cb(null, "npm: v" + npmVersion);
   });
