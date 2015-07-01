@@ -127,6 +127,39 @@ describe "the `atom` global", ->
           column: 3
           originalError: error
 
+  describe ".assert(condition, message, metadata)", ->
+    errors = null
+
+    beforeEach ->
+      errors = []
+      atom.onDidFailAssertion (error) -> errors.push(error)
+
+    describe "if the condition is false", ->
+      it "notifies onDidFailAssertion handlers with an error object based on the call site of the assertion", ->
+        result = atom.assert(false, "a == b")
+        expect(result).toBe false
+        expect(errors.length).toBe 1
+        expect(errors[0].message).toBe "Assertion failed: a == b"
+        expect(errors[0].stack).toContain('atom-spec')
+
+      describe "if metadata is an object", ->
+        it "assigns the object on the error as `metadata`", ->
+          metadata = {foo: 'bar'}
+          atom.assert(false, "a == b", metadata)
+          expect(errors[0].metadata).toBe metadata
+
+      describe "if metadata is a function", ->
+        it "assigns the function's return value on the error as `metadata`", ->
+          metadata = {foo: 'bar'}
+          atom.assert(false, "a == b", -> metadata)
+          expect(errors[0].metadata).toBe metadata
+
+    describe "if the condition is true", ->
+      it "does nothing", ->
+        result = atom.assert(true, "a == b")
+        expect(result).toBe true
+        expect(errors).toEqual []
+
   describe "saving and loading", ->
     afterEach -> atom.mode = "spec"
 

@@ -3707,11 +3707,12 @@ describe "TextEditor", ->
       expect(editor.indentLevelForLine("\t\thello")).toBe(2)
 
     it "returns the indent level based on the character starting the line when the leading whitespace contains both spaces and tabs", ->
-      expect(editor.indentLevelForLine("\t  hello")).toBe(1)
-      expect(editor.indentLevelForLine("  \thello")).toBe(1)
-      expect(editor.indentLevelForLine("  \t hello")).toBe(1)
-      expect(editor.indentLevelForLine("    \t \thello")).toBe(2)
-      expect(editor.indentLevelForLine("     \t \thello")).toBe(2.5)
+      expect(editor.indentLevelForLine("\t  hello")).toBe(2)
+      expect(editor.indentLevelForLine("  \thello")).toBe(2)
+      expect(editor.indentLevelForLine("  \t hello")).toBe(2.5)
+      expect(editor.indentLevelForLine("    \t \thello")).toBe(4)
+      expect(editor.indentLevelForLine("     \t \thello")).toBe(4)
+      expect(editor.indentLevelForLine("     \t \t hello")).toBe(4.5)
 
   describe "when the buffer is reloaded", ->
     it "preserves the current cursor position", ->
