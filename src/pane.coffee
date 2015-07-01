@@ -336,6 +336,8 @@ class Pane extends Model
   #
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1) ->
+    throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
+
     return if item in @items
 
     if typeof item.onDidDestroy is 'function'
