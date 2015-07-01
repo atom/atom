@@ -109,7 +109,7 @@ class Upgrade extends Command
     Packages.getRepository(pack)?
 
   getAvailableUpdates: (packages, callback) ->
-    async.map packages, @getLatestVersion.bind(this), (error, updates) =>
+    async.map packages, @getLatestVersion.bind(this), (error, updates) ->
       return callback(error) if error?
 
       updates = _.compact(updates)

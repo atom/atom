@@ -40,13 +40,13 @@ class Command
     packageNames = packageNames.map (packageName) -> packageName.trim()
     _.compact(_.uniq(packageNames))
 
-  logSuccess: =>
+  logSuccess: ->
     if process.platform is 'win32'
       process.stdout.write 'done\n'.green
     else
       process.stdout.write '\u2713\n'.green
 
-  logFailure: =>
+  logFailure: ->
     if process.platform is 'win32'
       process.stdout.write 'failed\n'.red
     else

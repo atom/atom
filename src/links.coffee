@@ -40,7 +40,7 @@ class Links extends Command
   logLinks: (directoryPath) ->
     links = @getSymlinks(directoryPath)
     console.log "#{directoryPath.cyan} (#{links.length})"
-    tree links, emptyMessage: '(no links)', (link) =>
+    tree links, emptyMessage: '(no links)', (link) ->
       try
         realpath = fs.realpathSync(link)
       catch error

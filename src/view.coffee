@@ -31,7 +31,7 @@ class View extends Command
       callback(installedAtomVersion)
 
   getLatestCompatibleVersion: (pack, options, callback) ->
-    @loadInstalledAtomVersion options, (installedAtomVersion) =>
+    @loadInstalledAtomVersion options, (installedAtomVersion) ->
       return callback(pack.releases.latest) unless installedAtomVersion
 
       latestVersion = null

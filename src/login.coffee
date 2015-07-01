@@ -61,7 +61,7 @@ class Login extends Command
 
     @prompt({prompt: "Press [Enter] to open your account page on Atom.io."})
 
-  openURL: (state) =>
+  openURL: (state) ->
     return Q(state) if state.token
 
     open('https://atom.io/account')

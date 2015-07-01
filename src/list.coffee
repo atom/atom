@@ -98,7 +98,7 @@ class List extends Command
     callback?(null, devPackages)
 
   listBundledPackages: (options, callback) ->
-    config.getResourcePath (resourcePath) =>
+    config.getResourcePath (resourcePath) ->
       try
         metadataPath = path.join(resourcePath, 'package.json')
         {_atomPackages} = JSON.parse(fs.readFileSync(metadataPath))
@@ -138,7 +138,7 @@ class List extends Command
       output.core = packages
       @listDevPackages options, (error, packages) =>
         output.dev = packages
-        @listUserPackages options, (error, packages) =>
+        @listUserPackages options, (error, packages) ->
           output.user = packages
           console.log JSON.stringify(output)
 
