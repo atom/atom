@@ -2861,7 +2861,6 @@ class TextEditor extends Model
 
   handleGrammarChange: ->
     @unfoldAll()
-    @emit 'grammar-changed' if includeDeprecatedAPIs
     @emitter.emit 'did-change-grammar', @getGrammar()
 
   handleMarkerCreated: (marker) =>
