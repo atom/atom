@@ -403,9 +403,6 @@ class Cursor extends Model
   moveToPreviousSubwordBoundary: ->
     options = {wordRegex: @subwordRegExp(backwards: true)}
     if position = @getPreviousWordBoundaryBufferPosition(options)
-      # HACK: to fix going left on first line
-      if position.isEqual(@getBufferPosition())
-        position = new Point(position.row, 0)
       @setBufferPosition(position)
 
   # Public: Moves the cursor to the next subword boundary.
@@ -448,7 +445,7 @@ class Cursor extends Model
   getPreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
-    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
+    scanRange = [[previousNonBlankRow ? 0, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
     @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
@@ -660,10 +657,14 @@ class Cursor extends Model
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
     nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
-    segments = ["^[\t ]*$"]
-    segments.push("[A-Z]?[a-z]+")
-    segments.push("[A-Z]+(?![a-z])")
-    segments.push("\\d+")
+    segments = [
+      "^[\t ]+",
+      "[\t ]+$",
+      "[A-Z]?[a-z]+",
+      "[A-Z]+(?![a-z])",
+      "\\d+",
+      "_+"
+    ]
     if options.backwards
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+\\s*")
     else

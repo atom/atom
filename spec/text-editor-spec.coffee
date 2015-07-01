@@ -4627,13 +4627,14 @@ describe "TextEditor", ->
       expect(cursor4.getBufferPosition()).toEqual([3,0])
 
       editor.deleteToEndOfSubword()
-      expect(buffer.lineForRow(0)).toBe('Word ')
-      expect(buffer.lineForRow(1)).toBe('e, ')
-      expect(buffer.lineForRow(2)).toBe('')
+      expect(buffer.lineForRow(0)).toBe('')
+      expect(buffer.lineForRow(1)).toBe('Word ')
+      expect(buffer.lineForRow(2)).toBe('e,')
+      expect(buffer.lineForRow(3)).toBe(' ')
       expect(cursor1.getBufferPosition()).toEqual([0,0])
-      expect(cursor2.getBufferPosition()).toEqual([0,0])
-      expect(cursor3.getBufferPosition()).toEqual([1,2])
-      expect(cursor4.getBufferPosition()).toEqual([1,2])
+      expect(cursor2.getBufferPosition()).toEqual([1,0])
+      expect(cursor3.getBufferPosition()).toEqual([2,2])
+      expect(cursor4.getBufferPosition()).toEqual([3,0])
 
   describe 'gutters', ->
     describe 'the TextEditor constructor', ->
