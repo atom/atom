@@ -58,7 +58,7 @@ class Unlink extends Command
       callback(error)
 
   unlinkPackage: (options, callback) ->
-    linkPath = path.resolve(process.cwd(), options.argv._[0] ? '.')
+    linkPath = path.resolve(process.cwd(), String(options.argv._[0]) ? '.')
     try
       packageName = CSON.readFileSync(CSON.resolve(path.join(linkPath, 'package'))).name
     packageName = path.basename(linkPath) unless packageName
