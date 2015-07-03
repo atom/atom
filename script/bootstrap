@@ -33,7 +33,7 @@ function bootstrap() {
   var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
 
-  var npmPath = path.resolve(__dirname, '..', 'usr', '.bin', 'npm');
+  var npmPath = path.resolve('usr', 'bin', 'npm');
   var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
   var npmFlags = ' --userconfig=' + path.resolve(__dirname, '..', 'build', '.npmrc') + ' ';
 
