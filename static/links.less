@@ -1,10 +1,13 @@
 @import "ui-variables";
 
 a {
-  cursor: pointer;
   color: @text-color-highlight;
   &:hover {
     color: @text-color-highlight;
     text-decoration: underline;
+  }
+
+  &[href^="http"], .link-external {
+    cursor: pointer;
   }
 }
