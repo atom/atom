@@ -77,6 +77,47 @@ describe "TextEditorComponent", ->
 
       expect(component.lineNodeForScreenRow(0).textContent).not.toBe("You shouldn't see this update.")
 
+  describe "measurements", ->
+    beforeEach ->
+      wrapperNode.style.height = 3 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+    it "guesses positions based on scoped character widths when no line is available", ->
+      spyOn(component.editor, "getScopedCharWidths").andReturn({
+        "c": 5, " ": 5, "}": 5, "r": 5, "u": 5, "e": 5
+      })
+
+      conversionTable = [
+        [[6, 8], 8 * 5],
+        [[7, 5], 5 * 5],
+        [[8, 6], 6 * 5],
+      ]
+
+      for [[row, column], leftPixelPosition] in conversionTable
+        expect(
+          component.leftPixelPositionForScreenPosition(row, column)
+        ).toEqual(leftPixelPosition)
+
+    it "measures DOM when lines are present on screen", ->
+      spyOn(component.editor, "getScopedCharWidths").andThrow(new Error)
+
+      expect(component.leftPixelPositionForScreenPosition(0, 0)).toEqual(0)
+      expect(component.leftPixelPositionForScreenPosition(0, 4)).toEqual(48)
+      expect(component.leftPixelPositionForScreenPosition(0, 6)).toEqual(72)
+      expect(component.leftPixelPositionForScreenPosition(0, 7)).toEqual(84)
+      expect(component.leftPixelPositionForScreenPosition(0, 18)).toEqual(216)
+
+    it "works nicely with paired characters", ->
+      editor.setText("he\u0301y")
+      nextAnimationFrame()
+
+      spyOn(component.editor, "getScopedCharWidths").andThrow(new Error)
+
+      expect(component.leftPixelPositionForScreenPosition(0, 0)).toEqual(0)
+      expect(component.leftPixelPositionForScreenPosition(0, 1)).toEqual(12)
+      expect(component.leftPixelPositionForScreenPosition(0, 3)).toEqual(24)
+
   describe "line rendering", ->
     expectTileContainsRow = (tileNode, screenRow, {top}) ->
       lineNode = tileNode.querySelector("[data-screen-row='#{screenRow}']")

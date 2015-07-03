@@ -31,6 +31,9 @@ class LinesTileComponent
   getDomNode: ->
     @domNode
 
+  lineNodeForLineId: (lineId) ->
+    @lineNodesByLineId[lineId]
+
   updateSync: (state) ->
     @newState = state
     unless @oldState

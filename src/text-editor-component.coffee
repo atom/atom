@@ -12,6 +12,8 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
+AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
+rangeForMeasurement = document.createRange()
 
 module.exports =
 class TextEditorComponent
@@ -51,6 +53,7 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
+      component: this
 
     @presenter.onDidUpdateState(@requestUpdate)
 
@@ -729,6 +732,12 @@ class TextEditorComponent
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @editor.consolidateSelections()
 
+  lineNodeForLineId: (lineId, screenRow) ->
+    tileRow = @presenter?.tileForRow(screenRow)
+    tileComponent = @linesComponent?.getComponentForTile(tileRow)
+
+    tileComponent?.lineNodeForLineId(lineId)
+
   lineNodeForScreenRow: (screenRow) ->
     tileRow = @presenter.tileForRow(screenRow)
     tileComponent = @linesComponent.getComponentForTile(tileRow)
@@ -777,6 +786,85 @@ class TextEditorComponent
   screenPositionForMouseEvent: (event) ->
     pixelPosition = @pixelPositionForMouseEvent(event)
     @editor.screenPositionForPixelPosition(pixelPosition)
+
+  guessLeftPixelPosition: (targetColumn, iterator) ->
+    baseCharacterWidth = @editor.getDefaultCharWidth()
+    left = 0
+    column = 0
+    while iterator.next()
+      characterWidths = @editor.getScopedCharWidths(iterator.getScopes())
+
+      valueIndex = 0
+      text = iterator.getText()
+      while valueIndex < text.length
+        if iterator.isPairedCharacter()
+          char = text
+          charLength = 2
+          valueIndex += 2
+        else
+          char = text[valueIndex]
+          charLength = 1
+          valueIndex++
+
+        break if column is targetColumn
+
+        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
+        column += charLength
+
+    left
+
+  measureLeftPixelPosition: (lineNode, targetColumn, iterator) ->
+    nodeIterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
+    charIndex = 0
+    leftPixelPosition = 0
+    while iterator.next()
+      text = iterator.getText()
+      textIndex = 0
+      while textIndex < text.length
+        if iterator.isPairedCharacter()
+          char = text
+          charLength = 2
+          textIndex += 2
+        else
+          char = text[textIndex]
+          charLength = 1
+          textIndex++
+
+        continue if char is '\0'
+
+        unless textNode?
+          textNode = nodeIterator.nextNode()
+          textNodeIndex = 0
+          nextTextNodeIndex = textNode.textContent.length
+
+        while nextTextNodeIndex <= charIndex
+          leftPixelPosition += @measureTextNode(textNode)
+          textNode = nodeIterator.nextNode()
+          textNodeIndex = nextTextNodeIndex
+          nextTextNodeIndex = textNodeIndex + textNode.textContent.length
+
+        if charIndex is targetColumn
+          indexWithinNode = charIndex - textNodeIndex
+          return leftPixelPosition + @measureTextNode(textNode, indexWithinNode)
+
+        charIndex += charLength
+
+    leftPixelPosition += @measureTextNode(textNode) if textNode?
+    leftPixelPosition
+
+  measureTextNode: (textNode, extent = textNode.textContent.length) ->
+    rangeForMeasurement.setStart(textNode, 0)
+    rangeForMeasurement.setEnd(textNode, extent)
+    rangeForMeasurement.getBoundingClientRect().width
+
+  leftPixelPositionForScreenPosition: (targetRow, targetColumn) ->
+    tokenizedLine = @editor.tokenizedLineForScreenRow(targetRow)
+    iterator = tokenizedLine.getTokenIterator()
+
+    if lineNode = @lineNodeForLineId(tokenizedLine.id, targetRow)
+      @measureLeftPixelPosition(lineNode, targetColumn, iterator)
+    else
+      @guessLeftPixelPosition(targetColumn, iterator)
 
   pixelPositionForMouseEvent: (event) ->
     {clientX, clientY} = event
