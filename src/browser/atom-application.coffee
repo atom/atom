@@ -576,7 +576,7 @@ class AtomApplication
       title: switch type
         when 'file' then 'Open File'
         when 'folder' then 'Open Folder'
-        when 'all' then 'Open'
+        else 'Open'
 
     if process.platform is 'linux'
       if projectPath = @lastFocusedWindow?.projectPath
