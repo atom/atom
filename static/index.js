@@ -32,7 +32,7 @@ window.onload = function() {
 
     fs.readFile(path.join(loadSettings.resourcePath, 'static', 'intro_ascii_art'), function(err, data) {
       if (err) {
-        throw(err);
+        throw err;
       }
       console.log(data.toString());
     });
