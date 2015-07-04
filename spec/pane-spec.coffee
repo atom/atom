@@ -671,6 +671,104 @@ describe "Pane", ->
       expect(item1.save).not.toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe false
 
+    it "does not destroy the pane if save fails and user clicks cancel", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+
+      item1.shouldPromptToSave = -> true
+      item1.getURI = -> "/test/path"
+
+      item1.save = jasmine.createSpy("save").andCallFake ->
+        error = new Error("EACCES, permission denied '/test/path'")
+        error.path = '/test/path'
+        error.code = 'EACCES'
+        throw error
+
+      confirmations = 0
+      spyOn(atom, 'confirm').andCallFake ->
+        confirmations++
+        if confirmations is 1
+          return 0
+        else
+          return 1
+
+      pane.close()
+
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(confirmations).toBe(2)
+      expect(item1.save).toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe false
+
+    it "does destroy the pane if the user saves the file under a new name", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+
+      item1.shouldPromptToSave = -> true
+      item1.getURI = -> "/test/path"
+
+      item1.save = jasmine.createSpy("save").andCallFake ->
+        error = new Error("EACCES, permission denied '/test/path'")
+        error.path = '/test/path'
+        error.code = 'EACCES'
+        throw error
+
+      item1.saveAs = jasmine.createSpy("saveAs").andReturn(true)
+
+      confirmations = 0
+      spyOn(atom, 'confirm').andCallFake ->
+        confirmations++
+        return 0
+
+      spyOn(atom, 'showSaveDialogSync').andReturn("new/path")
+
+      pane.close()
+
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(confirmations).toBe(2)
+      expect(atom.showSaveDialogSync).toHaveBeenCalled()
+      expect(item1.save).toHaveBeenCalled()
+      expect(item1.saveAs).toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe true
+
+    it "asks again if if the saveAs also fails", ->
+      pane = new Pane(items: [new Item("A"), new Item("B")])
+      [item1, item2] = pane.getItems()
+
+      item1.shouldPromptToSave = -> true
+      item1.getURI = -> "/test/path"
+
+      item1.save = jasmine.createSpy("save").andCallFake ->
+        error = new Error("EACCES, permission denied '/test/path'")
+        error.path = '/test/path'
+        error.code = 'EACCES'
+        throw error
+
+      item1.saveAs = jasmine.createSpy("saveAs").andCallFake ->
+        error = new Error("EACCES, permission denied '/test/path'")
+        error.path = '/test/path'
+        error.code = 'EACCES'
+        throw error
+
+
+      confirmations = 0
+      spyOn(atom, 'confirm').andCallFake ->
+        confirmations++
+        if confirmations < 3
+          return 0
+        return 1
+
+      spyOn(atom, 'showSaveDialogSync').andReturn("new/path")
+
+      pane.close()
+
+      expect(atom.confirm).toHaveBeenCalled()
+      expect(confirmations).toBe(3)
+      expect(atom.showSaveDialogSync).toHaveBeenCalled()
+      expect(item1.save).toHaveBeenCalled()
+      expect(item1.saveAs).toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe true
+
+
   describe "::destroy()", ->
     [container, pane1, pane2] = []
 

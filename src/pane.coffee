@@ -454,13 +454,26 @@ class Pane extends Model
     else
       return true
 
+    saveError = (error) =>
+      if error
+        chosen = atom.confirm
+          message: @getSaveErrorMessage(error)
+          detailedMessage: "Your changes will be lost if you close this item without saving."
+          buttons: ["Save as", "Cancel", "Don't save"]
+        switch chosen
+          when 0 then @saveItemAs item, saveError
+          when 1 then false
+          when 2 then true
+      else
+        true
+
     chosen = atom.confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
 
     switch chosen
-      when 0 then @saveItem(item, -> true)
+      when 0 then @saveItem(item, saveError)
       when 1 then false
       when 2 then true
 
@@ -479,8 +492,10 @@ class Pane extends Model
   # Public: Save the given item.
   #
   # * `item` The item to save.
-  # * `nextAction` (optional) {Function} which will be called after the item is
-  #   successfully saved.
+  # * `nextAction` (optional) {Function} which will be called with no argument
+  #   after the item is successfully saved, or with the error if it failed.
+  #   The return value will be that of `nextAction` or `undefined` if it was not
+  #   provided
   saveItem: (item, nextAction) ->
     if typeof item?.getURI is 'function'
       itemURI = item.getURI()
@@ -490,9 +505,9 @@ class Pane extends Model
     if itemURI?
       try
         item.save?()
+        nextAction?()
       catch error
-        @handleSaveError(error)
-      nextAction?()
+        (nextAction || @handleSaveError)(error)
     else
       @saveItemAs(item, nextAction)
 
@@ -500,8 +515,10 @@ class Pane extends Model
   # path they select.
   #
   # * `item` The item to save.
-  # * `nextAction` (optional) {Function} which will be called after the item is
-  #   successfully saved.
+  # * `nextAction` (optional) {Function} which will be called with no argument
+  #   after the item is successfully saved, or with the error if it failed.
+  #   The return value will be that of `nextAction` or `undefined` if it was not
+  #   provided
   saveItemAs: (item, nextAction) ->
     return unless item?.saveAs?
 
@@ -511,9 +528,9 @@ class Pane extends Model
     if newItemPath
       try
         item.saveAs(newItemPath)
+        nextAction?()
       catch error
-        @handleSaveError(error)
-      nextAction?()
+        (nextAction || @handleSaveError)(error)
 
   # Public: Save all items.
   saveItems: ->
@@ -676,22 +693,29 @@ class Pane extends Model
       return false unless @promptToSaveItem(item)
     true
 
-  handleSaveError: (error) ->
+  # Translate an error object to a human readable string
+  getSaveErrorMessage: (error) ->
     if error.code is 'EISDIR' or error.message.endsWith('is a directory')
-      atom.notifications.addWarning("Unable to save file: #{error.message}")
+      "Unable to save file: #{error.message}."
     else if error.code is 'EACCES' and error.path?
-      atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
+      "Unable to save file: Permission denied '#{error.path}'."
     else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST'] and error.path?
-      atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
+      "Unable to save file '#{error.path}': #{error.message}."
     else if error.code is 'EROFS' and error.path?
-      atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
+      "Unable to save file: Read-only file system '#{error.path}'."
     else if error.code is 'ENOSPC' and error.path?
-      atom.notifications.addWarning("Unable to save file: No space left on device '#{error.path}'")
+      "Unable to save file: No space left on device '#{error.path}'."
     else if error.code is 'ENXIO' and error.path?
-      atom.notifications.addWarning("Unable to save file: No such device or address '#{error.path}'")
+      "Unable to save file: No such device or address '#{error.path}'."
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
-      atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
+      "Unable to save file: A directory in the path '#{fileName}' could not be written to."
+
+  # Display a popup warning to the user
+  handleSaveError: (error) ->
+    errorMessage = Pane::getSaveErrorMessage(error)
+    if errorMessage?
+      atom.notifications.addWarning(errorMessage)
     else
       throw error
 
