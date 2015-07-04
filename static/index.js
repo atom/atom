@@ -30,17 +30,11 @@ window.onload = function() {
       setupDeprecatedPackages();
     }
 
-    fs.readFile(path.join(loadSettings.resourcePath, 'static', 'intro_ascii_art'), function(err, data) {
-      if (err) {
-        throw err;
-      }
-      console.log(data.toString());
-    });
-
     if (loadSettings.profileStartup) {
       profileStartup(loadSettings, Date.now() - startTime);
     } else {
       setupWindow(loadSettings);
+      printIntroArt();
       setLoadTime(Date.now() - startTime);
     }
   } catch (error) {
@@ -172,6 +166,7 @@ var profileStartup = function(loadSettings, initialTime) {
     try {
       var startTime = Date.now()
       setupWindow(loadSettings);
+      printIntroArt();
       setLoadTime(Date.now() - startTime + initialTime);
     } catch (error) {
       handleSetupError(error);
@@ -233,6 +228,15 @@ var isRunningCoreSpecs = function(loadSettings) {
     loadSettings.specDirectory &&
     loadSettings.resourcePath &&
     path.dirname(loadSettings.specDirectory) === loadSettings.resourcePath);
+}
+
+var printIntroArt = function() {
+  fs.readFile(path.join(loadSettings.resourcePath, 'static', 'intro_ascii_art'), function(err, data) {
+    if (err) {
+      throw err;
+    }
+    console.log(data.toString());
+  });
 }
 
 parseLoadSettings();
