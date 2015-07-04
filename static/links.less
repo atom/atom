@@ -7,8 +7,12 @@ a {
     text-decoration: underline;
   }
 
-  &.link-external,
   &[href^="http"] {
     cursor: pointer;
   }
+}
+
+// For non anchor elements that open external links
+.link-external {
+  cursor: pointer;
 }
