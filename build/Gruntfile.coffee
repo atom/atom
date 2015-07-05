@@ -203,6 +203,30 @@ module.exports = (grunt) ->
       src: [
         'static/**/*.less'
       ]
+      options:
+        csslint:
+          'adjoining-classes': false
+          'duplicate-background-images': false
+          'box-model': false
+          'box-sizing': false
+          'bulletproof-font-face': false
+          'compatible-vendor-prefixes': false
+          'display-property-grouping': false
+          'fallback-colors': false
+          'floats': false
+          'font-sizes': false
+          'gradients': false
+          'ids': false
+          'important': false
+          'known-properties': false
+          'outline-none': false
+          'overqualified-elements': false
+          'qualified-headings': false
+          'regex-selectors': false
+          'unique-headings': false
+          'universal-selector': false
+          'vendor-prefix': false
+
 
     'download-atom-shell':
       version: packageJson.atomShellVersion
