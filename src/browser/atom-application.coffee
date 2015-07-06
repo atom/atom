@@ -573,7 +573,10 @@ class AtomApplication
 
     openOptions =
       properties: properties.concat(['multiSelections', 'createDirectory'])
-      title: 'Open'
+      title: switch type
+        when 'file' then 'Open File'
+        when 'folder' then 'Open Folder'
+        else 'Open'
 
     if process.platform is 'linux'
       if projectPath = @lastFocusedWindow?.projectPath
