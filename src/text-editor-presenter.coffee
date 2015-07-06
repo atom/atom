@@ -897,6 +897,7 @@ class TextEditorPresenter
       oldContentFrameWidth = @contentFrameWidth
       @contentFrameWidth = contentFrameWidth
       @model.setWidth(contentFrameWidth)
+      @updateScrollbarDimensions()
       @updateClientWidth()
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
