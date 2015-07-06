@@ -242,6 +242,6 @@ module.exports = (grunt) ->
   ciTasks.push('publish-build') unless process.env.TRAVIS
   grunt.registerTask('ci', ciTasks)
 
-  defaultTasks = ['download-atom-shell', 'download-atom-shell-chromedriver', 'build', 'set-version', 'generate-asar']
+  defaultTasks = ['download-atom-shell', 'build', 'set-version', 'generate-asar']
   defaultTasks.push 'install' unless process.platform is 'linux'
   grunt.registerTask('default', defaultTasks)
