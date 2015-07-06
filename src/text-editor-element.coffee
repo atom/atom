@@ -206,6 +206,33 @@ class TextEditorElement extends HTMLElement
   getLastVisibleScreenRow: ->
     @getModel().getLastVisibleScreenRow(true)
 
+  # Extended: Returns whether the cursor is visible in the current viewport.
+  #
+  # * `cursor` (optional) A [Cursor] object. (default: {TextEditor::getLastCursor()})
+  # * `options` (optional) {Object} with key:
+  #   * `axis` If `'vertical'`, returns whether `cursor` is vertically visible
+  #     on the screen; if `horizontal`, returns whether `cursor` is horizontally
+  #     visible on the screen. If not specified, returns whether `cursor` is both
+  #     vertically *and* horizontally visible on the screen.
+  #
+  # Returns a {Boolean}.
+  isCursorOnScreen: (cursor=@getModel().getLastCursor(), options={}) ->
+    if options.axis is 'vertical' or not options.axis?
+      firstRow = @getFirstVisibleScreenRow()
+      lastRow = @getLastVisibleScreenRow()
+      cursorRow = cursor.getScreenRow()
+      isVerticallyOnScreen = firstRow <= cursorRow <= lastRow
+      return isVerticallyOnScreen if options.axis is 'vertical'
+
+    if options.axis is 'horizontal' or not options.axis?
+      cursorPixelPositionLeft = @pixelPositionForScreenPosition(cursor.getScreenPosition()).left
+      scrollLeft = @getModel().getScrollLeft()
+      clientWidth = @component.presenter.getClientWidth()
+      isHorizontallyOnScreen = scrollLeft <= cursorPixelPositionLeft <= clientWidth
+      return isHorizontallyOnScreen if options.axis is 'horizontal'
+
+    isVerticallyOnScreen and isHorizontallyOnScreen
+
   # Extended: call the given `callback` when the editor is attached to the DOM.
   #
   # * `callback` {Function}

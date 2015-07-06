@@ -682,6 +682,9 @@ class TextEditorPresenter
       @updateScrollWidth()
       @updateScrollLeft()
 
+  getClientWidth: ->
+    @clientWidth
+
   updateScrollTop: ->
     scrollTop = @constrainScrollTop(@scrollTop)
     unless @scrollTop is scrollTop
