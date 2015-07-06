@@ -16,7 +16,7 @@ class TextEditorPresenter
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused, @component} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused, @linesYardstick} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
@@ -1049,15 +1049,12 @@ class TextEditorPresenter
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
+    tileRow = @tileForRow(screenPosition.row)
 
-    top = targetRow * @lineHeight
-    left = @component.leftPixelPositionForScreenPosition(targetRow, targetColumn)
-    top -= @scrollTop
-    left -= @scrollLeft
-
-    {top, left}
+    position = @linesYardstick.pixelPositionForScreenPosition(tileRow, screenPosition)
+    position.top -= @scrollTop
+    position.left -= @scrollLeft
+    position
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?
