@@ -12,12 +12,9 @@ matrix:
       env: ATOM_SPECS_TASK=core
     - os: osx
       env: ATOM_SPECS_TASK=packages
-  exclude:
-    - os: osx
 
 os:
   - linux
-  - osx
 
 sudo: false
 
