@@ -19,9 +19,6 @@ class Notification
     unless _.isObject(@options) and not _.isArray(@options)
       throw new Error("Notification must be created with an options object: #{@options}")
 
-    if @options?.detail? and typeof @options.detail isnt 'string'
-      throw new Error("Notification must be created with string detail: #{@options.detail}")
-
   onDidDismiss: (callback) ->
     @emitter.on 'did-dismiss', callback
 
@@ -38,7 +35,6 @@ class Notification
 
   getTimestamp: -> @timestamp
 
-  # Public: Retrieves the {String} detail.
   getDetail: -> @options.detail
 
   isEqual: (other) ->

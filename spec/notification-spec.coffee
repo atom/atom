@@ -16,12 +16,6 @@ describe "Notification", ->
     expect(-> new Notification('error', 'message', false)).toThrow()
     expect(-> new Notification('error', 'message', [])).toThrow()
 
-  it "throws an error when created with a non-string detail", ->
-    expect(-> new Notification('error', 'message', detail: 3)).toThrow()
-    expect(-> new Notification('error', 'message', detail: false)).toThrow()
-    expect(-> new Notification('error', 'message', detail: {})).toThrow()
-    expect(-> new Notification('error', 'message', detail: [])).toThrow()
-
   describe "::getTimestamp()", ->
     it "returns a Date object", ->
       notification = new Notification('error', 'message!')
