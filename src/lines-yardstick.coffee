@@ -22,9 +22,7 @@ class LinesYardstick
     @domNode.appendChild(@htmlNode)
 
   measureLines: (positions) ->
-    unless @initialized
-      console.log "Not initialized yet"
-      return
+    return unless @initialized
 
     html = ""
     lines = []
