@@ -13,7 +13,38 @@ a {
   }
 }
 
-// For non anchor elements that open external links
+// For any elements that open external links
 .link-external {
   cursor: pointer;
+}
+
+// For any textual elements that are not styled like buttons but open something
+// "internally" in Atom
+.link-internal {
+  cursor: default !important;
+  text-decoration: none;
+  color: @text-color-info;
+  // transition: padding 0.5s;
+
+  &:active,
+  &:hover,
+  &:focus {
+    border-radius: 2px;
+    text-decoration: none;
+    // padding: 1px;
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: contrast(@text-color-info, darken(@text-color-info, 26%), lighten(@text-color-info, 26%), 43%);
+  }
+
+  &:hover, &:focus {
+    background-color: @text-color-info;
+  }
+
+  &:active {
+    background-color: lighten(@text-color-info, 4%);
+  }
 }
