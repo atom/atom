@@ -28,6 +28,7 @@ class LinesYardstick
 
     html = ""
     lines = []
+    @lineOffset = null
     for position in positions
       line = @editor.tokenizedLineForScreenRow(position.row)
       lineState = @presenter.buildLineState(0, position.row, line)
@@ -45,7 +46,7 @@ class LinesYardstick
     # tokenized line, so that here we can simply express how to measure stuff
     # and not do all the housekeeping of making TokenIterator and NodeIterator
     # match.
-    lineOffset = lineNode.getBoundingClientRect().left
+    @lineOffset ?= lineNode.getBoundingClientRect().left
     nodeIterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
     leftPixelPosition = 0
@@ -76,12 +77,12 @@ class LinesYardstick
 
         if charIndex is targetColumn
           indexWithinNode = charIndex - textNodeIndex
-          return @charOffsetLeft(textNode, indexWithinNode) - lineOffset
+          return @charOffsetLeft(textNode, indexWithinNode) - @lineOffset
 
         charIndex += charLength
 
     if textNode?
-      @charOffsetLeft(textNode, textNode.textContent.length) - lineOffset
+      @charOffsetLeft(textNode, textNode.textContent.length) - @lineOffset
     else
       0
 
