@@ -6,6 +6,8 @@ BrowserWindow = require 'browser-window'
 StorageFolder = require '../storage-folder'
 Menu = require 'menu'
 app = require 'app'
+dialog = require 'dialog'
+shell = require 'shell'
 fs = require 'fs-plus'
 ipc = require 'ipc'
 path = require 'path'
@@ -175,13 +177,13 @@ class AtomApplication
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
 
-    @on 'application:open-documentation', -> require('shell').openExternal('https://atom.io/docs/latest/?app')
-    @on 'application:open-discussions', -> require('shell').openExternal('https://discuss.atom.io')
-    @on 'application:open-roadmap', -> require('shell').openExternal('https://atom.io/roadmap?app')
-    @on 'application:open-faq', -> require('shell').openExternal('https://atom.io/faq')
-    @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
-    @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
-    @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
+    @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
+    @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
+    @on 'application:open-roadmap', -> shell.openExternal('https://atom.io/roadmap?app')
+    @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
+    @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
+    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
+    @on 'application:search-issues', -> shell.openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', =>
       @quitting = true
@@ -573,11 +575,13 @@ class AtomApplication
 
     openOptions =
       properties: properties.concat(['multiSelections', 'createDirectory'])
-      title: 'Open'
+      title: switch type
+        when 'file' then 'Open File'
+        when 'folder' then 'Open Folder'
+        else 'Open'
 
     if process.platform is 'linux'
       if projectPath = @lastFocusedWindow?.projectPath
         openOptions.defaultPath = projectPath
 
-    dialog = require 'dialog'
     dialog.showOpenDialog(parentWindow, openOptions, callback)

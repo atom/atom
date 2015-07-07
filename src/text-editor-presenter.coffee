@@ -71,6 +71,7 @@ class TextEditorPresenter
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
+    @updateCommonGutterState()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -112,7 +113,7 @@ class TextEditorPresenter
   observeModel: ->
     @disposables.add @model.onDidChange =>
       @updateContentDimensions()
-      @updateEndRow()
+
       @shouldUpdateHeightState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -149,14 +150,11 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
       @shouldUpdateCustomGutterDecorationState = true
-      @updateScrollbarDimensions()
-      @updateCommonGutterState()
       @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
-      @updateCommonGutterState()
       @emitDidUpdateState()
 
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
@@ -198,7 +196,6 @@ class TextEditorPresenter
       @showLineNumbers = newValue
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
-      @updateCommonGutterState()
 
       @emitDidUpdateState()
 
@@ -207,7 +204,6 @@ class TextEditorPresenter
     @shouldUpdateContentState = true
     @shouldUpdateLineNumberGutterState = true
     @shouldUpdateGutterOrderState = true
-    @updateCommonGutterState()
 
     @emitDidUpdateState()
 
@@ -792,8 +788,6 @@ class TextEditorPresenter
     unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
-      @updateStartRow()
-      @updateEndRow()
       @didStartScrolling()
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHiddenInputState = true
@@ -850,7 +844,6 @@ class TextEditorPresenter
       oldHorizontalScrollbarHeight = @measuredHorizontalScrollbarHeight
       @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
       @model.setHorizontalScrollbarHeight(horizontalScrollbarHeight)
-      @updateScrollbarDimensions()
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -863,7 +856,6 @@ class TextEditorPresenter
       oldVerticalScrollbarWidth = @measuredVerticalScrollbarWidth
       @measuredVerticalScrollbarWidth = verticalScrollbarWidth
       @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
-      @updateScrollbarDimensions()
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -946,7 +938,6 @@ class TextEditorPresenter
       @backgroundColor = backgroundColor
       @shouldUpdateContentState = true
       @shouldUpdateLineNumberGutterState = true
-      @updateCommonGutterState()
       @shouldUpdateGutterOrderState = true
 
       @emitDidUpdateState()
@@ -955,7 +946,6 @@ class TextEditorPresenter
     unless @gutterBackgroundColor is gutterBackgroundColor
       @gutterBackgroundColor = gutterBackgroundColor
       @shouldUpdateLineNumberGutterState = true
-      @updateCommonGutterState()
       @shouldUpdateGutterOrderState = true
 
       @emitDidUpdateState()
@@ -969,11 +959,6 @@ class TextEditorPresenter
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
       @model.setLineHeightInPixels(lineHeight)
-      @updateContentDimensions()
-      @updateScrollHeight()
-      @updateHeight()
-      @updateStartRow()
-      @updateEndRow()
       @shouldUpdateHeightState = true
       @shouldUpdateHorizontalScrollState = true
       @shouldUpdateVerticalScrollState = true
@@ -1024,8 +1009,6 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @updateContentDimensions()
-
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateScrollbarsState = true
