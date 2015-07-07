@@ -71,15 +71,16 @@ describe "Task", ->
     expect(stdout.listeners('data').length).toBe 0
     expect(stderr.listeners('data').length).toBe 0
 
+  it "does not throw an error for forked processes missing stdout/stderr", ->
+    spyOn(require('child_process'), 'fork').andCallFake ->
+      Events = require 'events'
+      fakeProcess = new Events()
+      fakeProcess.send = ->
+      fakeProcess.kill = ->
+      fakeProcess
+
     task = new Task(require.resolve('./fixtures/task-spec-handler'))
-    task.start()
-
-    # Sometimes process don't have stdout/stderr
-    task.childProcess.stdout = null
-    task.childProcess.stderr = null
-
-    task.terminate()
-
+    expect(-> task.start()).not.toThrow()
     expect(-> task.terminate()).not.toThrow()
 
   describe "::cancel()", ->
