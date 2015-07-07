@@ -9,6 +9,17 @@ class Notification
     @dismissed = true
     @dismissed = false if @isDismissable()
     @displayed = false
+    @validate()
+
+  validate: ->
+    if typeof @message isnt 'string'
+      throw new Error("Notification must be created with string message: #{@message}")
+
+    if typeof @options isnt 'object'
+      throw new Error("Notification must be created with an options object: #{@options}")
+
+    if @options?.detail? and typeof @options.details isnt 'string'
+      throw new Error("Notification must be created with string detail: #{@options.detail}")
 
   onDidDismiss: (callback) ->
     @emitter.on 'did-dismiss', callback
