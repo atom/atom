@@ -162,6 +162,8 @@ class PackageManager
 
   # Public: Enable the package with the given name.
   #
+  # * `name` - The {String} package name.
+  #
   # Returns the {Package} that was enabled or null if it isn't loaded.
   enablePackage: (name) ->
     pack = @loadPackage(name)
@@ -169,6 +171,8 @@ class PackageManager
     pack
 
   # Public: Disable the package with the given name.
+  #
+  # * `name` - The {String} package name.
   #
   # Returns the {Package} that was disabled or null if it isn't loaded.
   disablePackage: (name) ->
