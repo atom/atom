@@ -26,12 +26,13 @@ class LinesYardstick
       console.log "Not initialized yet"
       return
 
-    console.profile("yardstick")
+    t0 = window.performance.now()
     line = @editor.tokenizedLineForScreenRow(position.row)
     lineState = @presenter.buildLineState(0, position.row, line)
     @htmlNode.innerHTML = @linesBuilder.buildLineHTML(true, 1000, lineState)
     @measureLeftPixelPosition(@htmlNode.children[0], position.column, line.getTokenIterator())
-    console.profileEnd("yardstick")
+    t1 = window.performance.now()
+    console.log t1 - t0
 
   measureLeftPixelPosition: (lineNode, targetColumn, iterator) ->
     # TODO: Maybe we could have a LineIterator, which takes a line node and a
