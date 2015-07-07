@@ -13,9 +13,9 @@ a {
   }
 }
 
-// For any elements that open external links
+// For any non-button elements that open external links
 .link-external {
-  cursor: pointer;
+  cursor: pointer !important;
 }
 
 // For any textual elements that are not styled like buttons but open something
@@ -24,14 +24,12 @@ a {
   cursor: default !important;
   text-decoration: none;
   color: @text-color-info;
-  // transition: padding 0.5s;
 
   &:active,
   &:hover,
   &:focus {
     border-radius: 2px;
     text-decoration: none;
-    // padding: 1px;
   }
 
   &:hover,
