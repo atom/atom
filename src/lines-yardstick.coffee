@@ -6,7 +6,7 @@ module.exports =
 class LinesYardstick
   constructor: (@editor, @presenter, hostElement) ->
     @initialized = false
-    @linesBuilder = new LineHtmlBuilder
+    @linesBuilder = new LineHtmlBuilder(true)
     @htmlNode = document.createElement("div")
     @stylesNode = document.createElement("style")
     @stylesNode.innerHTML = "body { font-size: 16px; }"

@@ -4,7 +4,7 @@ MaxTokenLength = 20000
 
 module.exports =
 class LineHtmlBuilder
-  constructor: ->
+  constructor: (@noSpans = false) ->
     @tokenIterator = new TokenIterator
 
   buildLineHTML: (indentGuidesVisible, width, lineState) ->
@@ -57,11 +57,12 @@ class LineHtmlBuilder
     @tokenIterator.reset(lineState)
 
     while @tokenIterator.next()
-      for scope in @tokenIterator.getScopeEnds()
-        innerHTML += "</span>"
+      unless @noSpans
+        for scope in @tokenIterator.getScopeEnds()
+          innerHTML += "</span>"
 
-      for scope in @tokenIterator.getScopeStarts()
-        innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+        for scope in @tokenIterator.getScopeStarts()
+          innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
       tokenStart = @tokenIterator.getScreenStart()
       tokenEnd = @tokenIterator.getScreenEnd()
@@ -88,11 +89,12 @@ class LineHtmlBuilder
 
       innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
 
-    for scope in @tokenIterator.getScopeEnds()
-      innerHTML += "</span>"
+    unless @noSpans
+      for scope in @tokenIterator.getScopeEnds()
+        innerHTML += "</span>"
 
-    for scope in @tokenIterator.getScopes()
-      innerHTML += "</span>"
+      for scope in @tokenIterator.getScopes()
+        innerHTML += "</span>"
 
     innerHTML += @buildEndOfLineHTML(lineState)
     innerHTML
