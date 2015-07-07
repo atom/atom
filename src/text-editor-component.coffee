@@ -119,7 +119,11 @@ class TextEditorComponent
     @oldState ?= {}
     @newState = @presenter.getState()
 
-    @linesYardstick.measureLine({row: 1, column: 15})
+    positions = []
+    for i in [0..30] by 1
+      positions.push({row: i, column: 30})
+
+    @linesYardstick.measureLines(positions)
 
     cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged

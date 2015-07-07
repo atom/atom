@@ -21,24 +21,31 @@ class LinesYardstick
     @domNode.appendChild(@stylesNode)
     @domNode.appendChild(@htmlNode)
 
-  measureLine: (position) ->
+  measureLines: (positions) ->
     unless @initialized
       console.log "Not initialized yet"
       return
 
-    t0 = window.performance.now()
-    line = @editor.tokenizedLineForScreenRow(position.row)
-    lineState = @presenter.buildLineState(0, position.row, line)
-    @htmlNode.innerHTML = @linesBuilder.buildLineHTML(true, 1000, lineState)
-    @measureLeftPixelPosition(@htmlNode.children[0], position.column, line.getTokenIterator())
-    t1 = window.performance.now()
-    console.log t1 - t0
+    html = ""
+    lines = []
+    for position in positions
+      line = @editor.tokenizedLineForScreenRow(position.row)
+      lineState = @presenter.buildLineState(0, position.row, line)
+      html += @linesBuilder.buildLineHTML(true, 1000, lineState)
+
+      lines.push({line, position})
+
+    @htmlNode.innerHTML = html
+
+    for {line, position}, i in lines
+      @measureLeftPixelPosition(@htmlNode.children[i], position.column, line.getTokenIterator())
 
   measureLeftPixelPosition: (lineNode, targetColumn, iterator) ->
     # TODO: Maybe we could have a LineIterator, which takes a line node and a
     # tokenized line, so that here we can simply express how to measure stuff
     # and not do all the housekeeping of making TokenIterator and NodeIterator
     # match.
+    lineOffset = lineNode.getBoundingClientRect().left
     nodeIterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
     leftPixelPosition = 0
@@ -63,21 +70,30 @@ class LinesYardstick
           nextTextNodeIndex = textNode.textContent.length
 
         while nextTextNodeIndex <= charIndex
-          leftPixelPosition += @measureTextNode(textNode)
           textNode = nodeIterator.nextNode()
           textNodeIndex = nextTextNodeIndex
           nextTextNodeIndex = textNodeIndex + textNode.textContent.length
 
         if charIndex is targetColumn
           indexWithinNode = charIndex - textNodeIndex
-          return leftPixelPosition + @measureTextNode(textNode, indexWithinNode)
+          return @charOffsetLeft(textNode, indexWithinNode) - lineOffset
 
         charIndex += charLength
 
-    leftPixelPosition += @measureTextNode(textNode) if textNode?
-    leftPixelPosition
+    if textNode?
+      @charOffsetLeft(textNode, textNode.textContent.length) - lineOffset
+    else
+      0
 
-  measureTextNode: (textNode, extent = textNode.textContent.length) ->
-    rangeForMeasurement.setStart(textNode, 0)
-    rangeForMeasurement.setEnd(textNode, extent)
-    rangeForMeasurement.getBoundingClientRect().width
+  charOffsetLeft: (textNode, charIndex) ->
+    rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
+
+    if charIndex is 0
+      rangeForMeasurement.setStart(textNode, 0)
+      rangeForMeasurement.getBoundingClientRect().left
+    else if charIndex is textNode.textContent.length
+      rangeForMeasurement.setStart(textNode, 0)
+      rangeForMeasurement.getBoundingClientRect().right
+    else
+      rangeForMeasurement.setStart(textNode, charIndex)
+      rangeForMeasurement.getBoundingClientRect().left
