@@ -112,6 +112,8 @@ class TextEditorPresenter
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
+      @updateContentDimensions()
+
       @shouldUpdateHeightState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
