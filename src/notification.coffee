@@ -37,6 +37,7 @@ class Notification
 
   getTimestamp: -> @timestamp
 
+  # Public: Retrieves the {String} detail.
   getDetail: -> @options.detail
 
   isEqual: (other) ->
