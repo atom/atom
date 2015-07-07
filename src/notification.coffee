@@ -1,4 +1,5 @@
 {Emitter} = require 'event-kit'
+_ = require 'underscore-plus'
 
 # Public: A notification to the user containing a message and type.
 module.exports =
@@ -15,7 +16,7 @@ class Notification
     if typeof @message isnt 'string'
       throw new Error("Notification must be created with string message: #{@message}")
 
-    if typeof @options isnt 'object'
+    unless _.isObject(@options) and not _.isArray(@options)
       throw new Error("Notification must be created with an options object: #{@options}")
 
     if @options?.detail? and typeof @options.details isnt 'string'
