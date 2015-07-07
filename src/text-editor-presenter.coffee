@@ -376,27 +376,32 @@ class TextEditorPresenter
         lineState.top = (row - startRow) * @lineHeight
         lineState.decorationClasses = @lineDecorationClassesForRow(row)
       else
-        tileState.lines[line.id] =
-          screenRow: row
-          text: line.text
-          openScopes: line.openScopes
-          tags: line.tags
-          specialTokens: line.specialTokens
-          firstNonWhitespaceIndex: line.firstNonWhitespaceIndex
-          firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
-          invisibles: line.invisibles
-          endOfLineInvisibles: line.endOfLineInvisibles
-          isOnlyWhitespace: line.isOnlyWhitespace()
-          indentLevel: line.indentLevel
-          tabLength: line.tabLength
-          fold: line.fold
-          top: (row - startRow) * @lineHeight
-          decorationClasses: @lineDecorationClassesForRow(row)
+        tileState.lines[line.id] = @buildLineState(startRow, row, line)
+
       row++
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
     return
+
+  buildLineState: (startRow, row, line) ->
+    {
+      screenRow: row
+      text: line.text
+      openScopes: line.openScopes
+      tags: line.tags
+      specialTokens: line.specialTokens
+      firstNonWhitespaceIndex: line.firstNonWhitespaceIndex
+      firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
+      invisibles: line.invisibles
+      endOfLineInvisibles: line.endOfLineInvisibles
+      isOnlyWhitespace: line.isOnlyWhitespace()
+      indentLevel: line.indentLevel
+      tabLength: line.tabLength
+      fold: line.fold
+      top: (row - startRow) * @lineHeight
+      decorationClasses: @lineDecorationClassesForRow(row)
+    }
 
   updateCursorsState: ->
     @state.content.cursors = {}

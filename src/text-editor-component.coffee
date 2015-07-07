@@ -12,6 +12,7 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
+LinesYardstick = require './lines-yardstick'
 
 module.exports =
 class TextEditorComponent
@@ -53,6 +54,8 @@ class TextEditorComponent
       stoppedScrollingDelay: 200
 
     @presenter.onDidUpdateState(@requestUpdate)
+
+    @linesYardstick = new LinesYardstick(@editor, @presenter, @hostElement)
 
     @domNode = document.createElement('div')
     if @useShadowDOM
@@ -115,6 +118,8 @@ class TextEditorComponent
   updateSync: ->
     @oldState ?= {}
     @newState = @presenter.getState()
+
+    @linesYardstick.measureLine({row: 1, column: 15})
 
     cursorMoved = @cursorMoved
     selectionChanged = @selectionChanged
