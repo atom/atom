@@ -19,7 +19,7 @@ class Notification
     unless _.isObject(@options) and not _.isArray(@options)
       throw new Error("Notification must be created with an options object: #{@options}")
 
-    if @options?.detail? and typeof @options.details isnt 'string'
+    if @options?.detail? and typeof @options.detail isnt 'string'
       throw new Error("Notification must be created with string detail: #{@options.detail}")
 
   onDidDismiss: (callback) ->
