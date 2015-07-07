@@ -153,7 +153,6 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[8]).toBeDefined()
         expect(stateFn(presenter).tiles[10]).toBeUndefined()
 
-
       it "updates when ::lineHeight changes", ->
         presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
 
@@ -660,6 +659,16 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.getState().content.scrollTop).toBe 50
+
+        it "scrolls down automatically when the model is changed", ->
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
+
+          editor.setText("")
+          editor.insertNewline()
+          expect(presenter.getState().content.scrollTop).toBe(0)
+
+          editor.insertNewline()
+          expect(presenter.getState().content.scrollTop).toBe(10)
 
         it "never exceeds the computed scroll height minus the computed client height", ->
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
