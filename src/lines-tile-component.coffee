@@ -1,11 +1,10 @@
 _ = require 'underscore-plus'
 
 HighlightsComponent = require './highlights-component'
-TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
-TokenTextEscapeRegex = /[&"'<>]/g
-MaxTokenLength = 20000
+LineHtmlBuilder = require './line-html-builder'
+TokenIterator = require './token-iterator'
 
 cloneObject = (object) ->
   clone = {}
@@ -15,6 +14,7 @@ cloneObject = (object) ->
 module.exports =
 class LinesTileComponent
   constructor: ({@presenter, @id}) ->
+    @lineHtmlBuilder = new LineHtmlBuilder
     @tokenIterator = new TokenIterator
     @measuredLines = new Set
     @lineNodesByLineId = {}
@@ -94,7 +94,11 @@ class LinesTileComponent
         newLineIds ?= []
         newLinesHTML ?= ""
         newLineIds.push(id)
-        newLinesHTML += @buildLineHTML(id)
+        newLinesHTML += @lineHtmlBuilder.buildLineHTML(
+          @newState.indentGuidesVisible,
+          @newState.width,
+          lineState
+        )
         @screenRowsByLineId[id] = lineState.screenRow
         @lineIdsByScreenRow[lineState.screenRow] = id
         @oldTileState.lines[id] = cloneObject(lineState)
@@ -109,170 +113,6 @@ class LinesTileComponent
       @domNode.appendChild(lineNode)
 
     return
-
-  buildLineHTML: (id) ->
-    {width} = @newState
-    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
-
-    classes = ''
-    if decorationClasses?
-      for decorationClass in decorationClasses
-        classes += decorationClass + ' '
-    classes += 'line'
-
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
-
-    if text is ""
-      lineHTML += @buildEmptyLineInnerHTML(id)
-    else
-      lineHTML += @buildLineInnerHTML(id)
-
-    lineHTML += '<span class="fold-marker"></span>' if fold
-    lineHTML += "</div>"
-    lineHTML
-
-  buildEmptyLineInnerHTML: (id) ->
-    {indentGuidesVisible} = @newState
-    {indentLevel, tabLength, endOfLineInvisibles} = @newTileState.lines[id]
-
-    if indentGuidesVisible and indentLevel > 0
-      invisibleIndex = 0
-      lineHTML = ''
-      for i in [0...indentLevel]
-        lineHTML += "<span class='indent-guide'>"
-        for j in [0...tabLength]
-          if invisible = endOfLineInvisibles?[invisibleIndex++]
-            lineHTML += "<span class='invisible-character'>#{invisible}</span>"
-          else
-            lineHTML += ' '
-        lineHTML += "</span>"
-
-      while invisibleIndex < endOfLineInvisibles?.length
-        lineHTML += "<span class='invisible-character'>#{endOfLineInvisibles[invisibleIndex++]}</span>"
-
-      lineHTML
-    else
-      @buildEndOfLineHTML(id) or '&nbsp;'
-
-  buildLineInnerHTML: (id) ->
-    lineState = @newTileState.lines[id]
-    {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, invisibles} = lineState
-    lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
-
-    innerHTML = ""
-    @tokenIterator.reset(lineState)
-
-    while @tokenIterator.next()
-      for scope in @tokenIterator.getScopeEnds()
-        innerHTML += "</span>"
-
-      for scope in @tokenIterator.getScopeStarts()
-        innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
-
-      tokenStart = @tokenIterator.getScreenStart()
-      tokenEnd = @tokenIterator.getScreenEnd()
-      tokenText = @tokenIterator.getText()
-      isHardTab = @tokenIterator.isHardTab()
-
-      if hasLeadingWhitespace = tokenStart < firstNonWhitespaceIndex
-        tokenFirstNonWhitespaceIndex = firstNonWhitespaceIndex - tokenStart
-      else
-        tokenFirstNonWhitespaceIndex = null
-
-      if hasTrailingWhitespace = tokenEnd > firstTrailingWhitespaceIndex
-        tokenFirstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - tokenStart)
-      else
-        tokenFirstTrailingWhitespaceIndex = null
-
-      hasIndentGuide =
-        @newState.indentGuidesVisible and
-          (hasLeadingWhitespace or lineIsWhitespaceOnly)
-
-      hasInvisibleCharacters =
-        (invisibles?.tab and isHardTab) or
-          (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
-
-      innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
-
-    for scope in @tokenIterator.getScopeEnds()
-      innerHTML += "</span>"
-
-    for scope in @tokenIterator.getScopes()
-      innerHTML += "</span>"
-
-    innerHTML += @buildEndOfLineHTML(id)
-    innerHTML
-
-  buildTokenHTML: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters) ->
-    if isHardTab
-      classes = 'hard-tab'
-      classes += ' leading-whitespace' if firstNonWhitespaceIndex?
-      classes += ' trailing-whitespace' if firstTrailingWhitespaceIndex?
-      classes += ' indent-guide' if hasIndentGuide
-      classes += ' invisible-character' if hasInvisibleCharacters
-      return "<span class='#{classes}'>#{@escapeTokenText(tokenText)}</span>"
-    else
-      startIndex = 0
-      endIndex = tokenText.length
-
-      leadingHtml = ''
-      trailingHtml = ''
-
-      if firstNonWhitespaceIndex?
-        leadingWhitespace = tokenText.substring(0, firstNonWhitespaceIndex)
-
-        classes = 'leading-whitespace'
-        classes += ' indent-guide' if hasIndentGuide
-        classes += ' invisible-character' if hasInvisibleCharacters
-
-        leadingHtml = "<span class='#{classes}'>#{leadingWhitespace}</span>"
-        startIndex = firstNonWhitespaceIndex
-
-      if firstTrailingWhitespaceIndex?
-        tokenIsOnlyWhitespace = firstTrailingWhitespaceIndex is 0
-        trailingWhitespace = tokenText.substring(firstTrailingWhitespaceIndex)
-
-        classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
-        classes += ' invisible-character' if hasInvisibleCharacters
-
-        trailingHtml = "<span class='#{classes}'>#{trailingWhitespace}</span>"
-
-        endIndex = firstTrailingWhitespaceIndex
-
-      html = leadingHtml
-      if tokenText.length > MaxTokenLength
-        while startIndex < endIndex
-          html += "<span>" + @escapeTokenText(tokenText, startIndex, startIndex + MaxTokenLength) + "</span>"
-          startIndex += MaxTokenLength
-      else
-        html += @escapeTokenText(tokenText, startIndex, endIndex)
-
-      html += trailingHtml
-    html
-
-  escapeTokenText: (tokenText, startIndex, endIndex) ->
-    if startIndex? and endIndex? and startIndex > 0 or endIndex < tokenText.length
-      tokenText = tokenText.slice(startIndex, endIndex)
-    tokenText.replace(TokenTextEscapeRegex, @escapeTokenTextReplace)
-
-  escapeTokenTextReplace: (match) ->
-    switch match
-      when '&' then '&amp;'
-      when '"' then '&quot;'
-      when "'" then '&#39;'
-      when '<' then '&lt;'
-      when '>' then '&gt;'
-      else match
-
-  buildEndOfLineHTML: (id) ->
-    {endOfLineInvisibles} = @newTileState.lines[id]
-
-    html = ''
-    if endOfLineInvisibles?
-      for invisible in endOfLineInvisibles
-        html += "<span class='invisible-character'>#{invisible}</span>"
-    html
 
   updateLineNode: (id) ->
     oldLineState = @oldTileState.lines[id]
