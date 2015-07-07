@@ -71,6 +71,17 @@ describe "Task", ->
     expect(stdout.listeners('data').length).toBe 0
     expect(stderr.listeners('data').length).toBe 0
 
+    task = new Task(require.resolve('./fixtures/task-spec-handler'))
+    task.start()
+
+    # Sometimes process don't have stdout/stderr
+    task.childProcess.stdout = null
+    task.childProcess.stderr = null
+
+    task.terminate()
+
+    expect(-> task.terminate()).not.toThrow()
+
   describe "::cancel()", ->
     it "dispatches 'task:cancelled' when invoked on an active task", ->
       task = new Task(require.resolve('./fixtures/task-spec-handler'))
