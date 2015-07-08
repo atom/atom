@@ -890,6 +890,17 @@ class DisplayBuffer extends Model
       column = 0
 
     screenLine = @tokenizedLineForScreenRow(row)
+    unless screenLine?
+      error = new Error("Undefined screen line when clipping screen position")
+      Error.captureStackTrace(error)
+      error.metadata = {
+        screenRow: row
+        screenColumn: column
+        maxScreenRow: @getLastRow()
+        screenLinesDefined: @screenLines.map (sl) -> sl?
+      }
+      throw error
+
     maxScreenColumn = screenLine.getMaxScreenColumn()
 
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
