@@ -2226,12 +2226,56 @@ describe "TextEditor", ->
         expect(editor.lineTextForBufferRow(1)).toBe '  '
         expect(editor.lineTextForBufferRow(2)).toBe '}'
 
-    describe "when a new line is appended before a closing tag (e.g. by pressing enter before a selection)", ->
-      it "moves the line down and keeps the indentation level the same when editor.autoIndent is true", ->
-        atom.config.set('editor.autoIndent', true)
-        editor.setCursorBufferPosition([9, 2])
-        editor.insertNewline()
-        expect(editor.lineTextForBufferRow(10)).toBe '  };'
+    describe ".insertNewLine()", ->
+      describe "when a new line is appended before a closing tag (e.g. by pressing enter before a selection)", ->
+        it "moves the line down and keeps the indentation level the same when editor.autoIndent is true", ->
+          atom.config.set('editor.autoIndent', true)
+          editor.setCursorBufferPosition([9, 2])
+          editor.insertNewline()
+          expect(editor.lineTextForBufferRow(10)).toBe '  };'
+
+      describe "when a newline is appended with a trailing closing tag behind the cursor (e.g. by pressing enter in the middel of a line)", ->
+        it "indents the new line to the correct level when editor.autoIndent is true and using a curly-bracket language", ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            atom.config.set("editor.autoIndent", true)
+            editor.setGrammar(atom.grammars.selectGrammar("file.js"))
+            editor.setText('var test = function () {\n  return true;};')
+            editor.setCursorBufferPosition([1, 14])
+            editor.insertNewline()
+            expect(editor.indentationForBufferRow(1)).toBe 1
+            expect(editor.indentationForBufferRow(2)).toBe 0
+
+        it "indents the new line to the correct level when editor.autoIndent is true and using a off-side rule language", ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-coffee-script')
+
+          runs ->
+            atom.config.set("editor.autoIndent", true)
+            editor.setGrammar(atom.grammars.selectGrammar("file.coffee"))
+            editor.setText('if true\n  return trueelse\n  return false')
+            editor.setCursorBufferPosition([1, 13])
+            editor.insertNewline()
+            expect(editor.indentationForBufferRow(1)).toBe 1
+            expect(editor.indentationForBufferRow(2)).toBe 0
+            expect(editor.indentationForBufferRow(3)).toBe 1
+
+      describe "when a newline is appended on a line that matches the decreaseNextIndentRegex", ->
+        it "indents the new line to the correct level when editor.autoIndent is true", ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-go')
+
+          runs ->
+            atom.config.set("editor.autoIndent", true)
+            editor.setGrammar(atom.grammars.selectGrammar("file.go"))
+            editor.setText('fmt.Printf("some%s",\n	"thing")')
+            editor.setCursorBufferPosition([1, 10])
+            editor.insertNewline()
+            expect(editor.indentationForBufferRow(1)).toBe 1
+            expect(editor.indentationForBufferRow(2)).toBe 0
+
 
     describe ".backspace()", ->
       describe "when there is a single cursor", ->

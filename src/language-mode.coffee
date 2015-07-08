@@ -246,8 +246,12 @@ class LanguageMode
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
+    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
+
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    return currentIndentLevel unless increaseIndentRegex
 
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
@@ -256,13 +260,17 @@ class LanguageMode
       precedingRow = bufferRow - 1
       return currentIndentLevel if precedingRow < 0
 
-    precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
+    return desiredIndentLevel if @buffer.isRowBlank(precedingRow)
 
-    return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    line = @buffer.lineForRow(bufferRow)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(line)
+    unless @editor.isBufferRowCommented(precedingRow)
+      precedingLine = @buffer.lineForRow(precedingRow)
+      desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
+      desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
+
+    unless @editor.isBufferRowCommented(bufferRow)
+      bufferLine = @buffer.lineForRow(bufferRow)
+      desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(bufferLine)
 
     Math.max(desiredIndentLevel, 0)
 
@@ -298,21 +306,26 @@ class LanguageMode
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    return unless increaseIndentRegex and decreaseIndentRegex
+    return unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
     line = @buffer.lineForRow(bufferRow)
     return unless decreaseIndentRegex.testSync(line)
 
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     return if currentIndentLevel is 0
+
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
     return unless precedingRow?
-    precedingLine = @buffer.lineForRow(precedingRow)
 
+    precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
+
+    if increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+      desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
+
+    if decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
+      desiredIndentLevel -= 1 if decreaseNextIndentRegex.testSync(precedingLine)
+
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
@@ -325,6 +338,9 @@ class LanguageMode
 
   decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
+
+  decreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
