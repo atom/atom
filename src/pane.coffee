@@ -676,8 +676,8 @@ class Pane extends Model
       return false unless @promptToSaveItem(item)
     true
 
-  handleSaveError: (error, paneItem) ->
-    itemPath = error.path ? paneItem.getPath?()
+  handleSaveError: (error, item) ->
+    itemPath = error.path ? item.getPath?()
     addWarningWithPath = (message, options) ->
       message = "#{message} '#{itemPath}'" if itemPath
       atom.notifications.addWarning(message, options)
