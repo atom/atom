@@ -11,6 +11,9 @@ Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https:/
 Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
 
+This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to uphold this code.
+[code-of-conduct]: http://todogroup.org/opencodeofconduct/#Atom/opensource@github.com
+
 ## Documentation
 
 If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
