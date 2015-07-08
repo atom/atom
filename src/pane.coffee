@@ -694,6 +694,8 @@ class Pane extends Model
       addWarningWithPath('Unable to save file: No space left on device')
     else if error.code is 'ENXIO'
       addWarningWithPath('Unable to save file: No such device or address')
+    else if error.code is 'ENOTSUP'
+      addWarningWithPath('Unable to save file: Operation not supported on socket')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
