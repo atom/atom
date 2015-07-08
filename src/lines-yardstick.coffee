@@ -1,6 +1,7 @@
 LineHtmlBuilder = require './line-html-builder'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 rangeForMeasurement = document.createRange()
+WrapperDiv = document.createElement("div")
 
 module.exports =
 class LinesYardstick
@@ -19,7 +20,7 @@ class LinesYardstick
     @initialized = true
     @domNode = @iframe.contentDocument.body
     @domNode.appendChild(@stylesNode)
-    @domNode.appendChild(@htmlNode)
+    @domNode.appendChild(WrapperDiv)
 
   measureLines: (positions) ->
     return unless @initialized
@@ -33,12 +34,15 @@ class LinesYardstick
 
       lines.push({line, position})
 
-    @htmlNode.innerHTML = html
+    WrapperDiv.remove()
+    WrapperDiv.innerHTML = html
+    @domNode.appendChild(WrapperDiv)
 
     for {line, position}, i in lines
-      @measureLeftPixelPosition(@htmlNode.children[i], position.column, line.getTokenIterator())
+      @measureLeftPixelPosition(WrapperDiv.children[i], position.column, line.getTokenIterator())
 
   measureLeftPixelPosition: (lineNode, targetColumn, iterator) ->
+    return lineNode.getBoundingClientRect().right
     # TODO: Maybe we could have a LineIterator, which takes a line node and a
     # tokenized line, so that here we can simply express how to measure stuff
     # and not do all the housekeeping of making TokenIterator and NodeIterator
