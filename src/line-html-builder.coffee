@@ -4,7 +4,7 @@ MaxTokenLength = 20000
 
 module.exports =
 class LineHtmlBuilder
-  constructor: (@noSpans = false) ->
+  constructor: (@fastVersion = false) ->
     @tokenIterator = new TokenIterator
 
   buildLineHTML: (indentGuidesVisible, width, lineState) ->
@@ -16,7 +16,10 @@ class LineHtmlBuilder
         classes += decorationClass + ' '
     classes += 'line'
 
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
+    if @fastVersion
+      lineHTML = "<div class=\"#{classes}\">"
+    else
+      lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(indentGuidesVisible, lineState)
@@ -57,7 +60,7 @@ class LineHtmlBuilder
     @tokenIterator.reset(lineState)
 
     while @tokenIterator.next()
-      unless @noSpans
+      unless @fastVersion
         for scope in @tokenIterator.getScopeEnds()
           innerHTML += "</span>"
 
@@ -89,7 +92,7 @@ class LineHtmlBuilder
 
       innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
 
-    unless @noSpans
+    unless @fastVersion
       for scope in @tokenIterator.getScopeEnds()
         innerHTML += "</span>"
 
