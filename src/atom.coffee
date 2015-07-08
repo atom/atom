@@ -721,17 +721,12 @@ class Atom extends Model
   Section: Private
   ###
 
-  assert: (condition, message, metadata) ->
+  assert: (condition, message, callback) ->
     return true if condition
 
     error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
-
-    if metadata?
-      if typeof metadata is 'function'
-        error.metadata = metadata()
-      else
-        error.metadata = metadata
+    callback?(error)
 
     @emitter.emit 'did-fail-assertion', error
 
