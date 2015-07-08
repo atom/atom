@@ -7,6 +7,9 @@ which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
 These are just guidelines, not rules, use your best judgment and feel free to
 propose changes to this document in a pull request.
 
+This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to uphold this code.
+[code-of-conduct]: http://todogroup.org/opencodeofconduct/#Atom/opensource@github.com
+
 ## Submitting Issues
 
 * You can create an issue [here](https://github.com/atom/atom/issues/new), but
