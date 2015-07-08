@@ -62,6 +62,7 @@ class TextEditorElement extends HTMLElement
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
+    atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
     @component.checkForVisibilityChange()
     if this is document.activeElement
