@@ -42,7 +42,6 @@ class LinesYardstick
       @measureLeftPixelPosition(WrapperDiv.children[i], position.column, line.getTokenIterator())
 
   measureLeftPixelPosition: (lineNode, targetColumn, iterator) ->
-    return lineNode.getBoundingClientRect().right
     # TODO: Maybe we could have a LineIterator, which takes a line node and a
     # tokenized line, so that here we can simply express how to measure stuff
     # and not do all the housekeeping of making TokenIterator and NodeIterator
