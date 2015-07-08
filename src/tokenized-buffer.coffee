@@ -446,7 +446,7 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    {row, column} = Point.fromObject(position)
+    {row, column} = @buffer.clipPosition(Point.fromObject(position))
 
     iterator = @tokenizedLines[row].getTokenIterator()
     while iterator.next()
