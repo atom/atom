@@ -163,6 +163,15 @@ class Pane extends Model
   onDidRemoveItem: (callback) ->
     @emitter.on 'did-remove-item', callback
 
+  # Public: Invoke the given callback before an item is removed from the pane.
+  #
+  # * `callback` {Function} to be called with when items are removed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The pane item to be removed.
+  #     * `index` {Number} indicating where the item is located.
+  onWillRemoveItem: (callback) ->
+    @emitter.on 'will-remove-item', callback
+
   # Public: Invoke the given callback when an item is moved within the pane.
   #
   # * `callback` {Function} to be called with when items are moved.
@@ -327,6 +336,8 @@ class Pane extends Model
   #
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1) ->
+    throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
+
     return if item in @items
 
     if typeof item.onDidDestroy is 'function'
@@ -357,6 +368,8 @@ class Pane extends Model
   removeItem: (item, destroyed=false) ->
     index = @items.indexOf(item)
     return if index is -1
+
+    @emitter.emit 'will-remove-item', {item, index, destroyed}
 
     if Grim.includeDeprecatedAPIs and typeof item.on is 'function'
       @unsubscribe item
@@ -664,7 +677,7 @@ class Pane extends Model
     true
 
   handleSaveError: (error) ->
-    if error.code is 'EISDIR' or error.message.endsWith('is a directory')
+    if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
       atom.notifications.addWarning("Unable to save file: #{error.message}")
     else if error.code is 'EACCES' and error.path?
       atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")

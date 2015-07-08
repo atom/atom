@@ -4,13 +4,13 @@
     submenu: [
       { label: 'New &Window', command: 'application:new-window' }
       { label: '&New File', command: 'application:new-file' }
-      { label: '&Open File...', command: 'application:open-file' }
-      { label: 'Open Folder...', command: 'application:open-folder' }
-      { label: 'Add Project Folder...', command: 'application:add-project-folder' }
+      { label: '&Open File…', command: 'application:open-file' }
+      { label: 'Open Folder…', command: 'application:open-folder' }
+      { label: 'Add Project Folder…', command: 'application:add-project-folder' }
       { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: '&Save', command: 'core:save' }
-      { label: 'Save &As...', command: 'core:save-as' }
+      { label: 'Save &As…', command: 'core:save-as' }
       { label: 'Save A&ll', command: 'window:save-all' }
       { type: 'separator' }
       { label: '&Close Tab', command: 'core:close' }
@@ -120,7 +120,7 @@
       {
         label: 'Developer'
         submenu: [
-          { label: 'Open In &Dev Mode...', command: 'application:open-dev' }
+          { label: 'Open In &Dev Mode…', command: 'application:open-dev' }
           { label: 'Run &Atom Specs', command: 'application:run-all-specs' }
           { label: 'Run Package &Specs', command: 'window:run-package-specs' }
           { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }

@@ -6,6 +6,8 @@ BrowserWindow = require 'browser-window'
 StorageFolder = require '../storage-folder'
 Menu = require 'menu'
 app = require 'app'
+dialog = require 'dialog'
+shell = require 'shell'
 fs = require 'fs-plus'
 ipc = require 'ipc'
 path = require 'path'
@@ -61,7 +63,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @version, @devMode, @safeMode, @includeDeprecatedAPIs, @socketPath} = options
+    {@resourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
     # Normalize to make sure drive letter case is consistent on Windows
     @resourcePath = path.normalize(@resourcePath) if @resourcePath
@@ -86,16 +88,16 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, includeDeprecatedAPIs, newWindow, specDirectory, logFile, profileStartup}) ->
+  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile, includeDeprecatedAPIs})
+      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup})
+      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
-      @openUrl({urlToOpen, devMode, safeMode, includeDeprecatedAPIs}) for urlToOpen in urlsToOpen
+      @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup})
+      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
@@ -160,7 +162,6 @@ class AtomApplication
     getLoadSettings = =>
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
-      includeDeprecatedAPIs: @focusedWindow()?.includeDeprecatedAPIs
 
     @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
@@ -172,19 +173,17 @@ class AtomApplication
     @on 'application:open-folder', -> @promptForPathToOpen('folder', getLoadSettings())
     @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
     @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
-    @on 'application:open-with-deprecated-apis', -> @promptForPathToOpen('all', includeDeprecatedAPIs: true)
-    @on 'application:open-dev-with-deprecated-apis', -> @promptForPathToOpen('all', {includeDeprecatedAPIs: true, devMode: true})
     @on 'application:inspect', ({x, y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
 
-    @on 'application:open-documentation', -> require('shell').openExternal('https://atom.io/docs/latest/?app')
-    @on 'application:open-discussions', -> require('shell').openExternal('https://discuss.atom.io')
-    @on 'application:open-roadmap', -> require('shell').openExternal('https://atom.io/roadmap?app')
-    @on 'application:open-faq', -> require('shell').openExternal('https://atom.io/faq')
-    @on 'application:open-terms-of-use', -> require('shell').openExternal('https://atom.io/terms')
-    @on 'application:report-issue', -> require('shell').openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
-    @on 'application:search-issues', -> require('shell').openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
+    @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
+    @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
+    @on 'application:open-roadmap', -> shell.openExternal('https://atom.io/roadmap?app')
+    @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
+    @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
+    @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
+    @on 'application:search-issues', -> shell.openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', =>
       @quitting = true
@@ -231,7 +230,7 @@ class AtomApplication
 
     app.on 'open-url', (event, urlToOpen) =>
       event.preventDefault()
-      @openUrl({urlToOpen, @devMode, @safeMode, @includeDeprecatedAPIs})
+      @openUrl({urlToOpen, @devMode, @safeMode})
 
     app.on 'activate-with-no-open-windows', (event) =>
       event.preventDefault()
@@ -276,9 +275,8 @@ class AtomApplication
     ipc.on 'cancel-window-close', =>
       @quitting = false
 
-    clipboard = null
+    clipboard = require '../safe-clipboard'
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
-      clipboard ?= require '../safe-clipboard'
       clipboard.writeText(selectedText, 'selection')
 
   # Public: Executes the given command.
@@ -358,11 +356,10 @@ class AtomApplication
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  #   :includeDeprecatedAPIs - Boolean to control the opened window's included deprecated APIs.
   #   :profileStartup - Boolean to control creating a profile of the startup time.
   #   :window - {AtomWindow} to open file paths in.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup, window}) ->
-    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, profileStartup, window})
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window}) ->
+    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window})
 
   # Public: Opens multiple paths, in existing windows if possible.
   #
@@ -372,10 +369,9 @@ class AtomApplication
   #   :newWindow - Boolean of whether this should be opened in a new window.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  #   :includeDeprecatedAPIs - Boolean to control the opened window's included deprecated APIs.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, includeDeprecatedAPIs, windowDimensions, profileStartup, window}={}) ->
+  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
     pathsToOpen = pathsToOpen.map (pathToOpen) ->
       if fs.existsSync(pathToOpen)
         fs.normalize(pathToOpen)
@@ -410,7 +406,7 @@ class AtomApplication
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({locationsToOpen, bootstrapScript, resourcePath, devMode, safeMode, includeDeprecatedAPIs, windowDimensions, profileStartup})
+      openedWindow = new AtomWindow({locationsToOpen, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -457,7 +453,6 @@ class AtomApplication
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode
-          includeDeprecatedAPIs: @includeDeprecatedAPIs
         })
       true
     else
@@ -503,7 +498,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode, includeDeprecatedAPIs}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -515,8 +510,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    includeDeprecatedAPIs ?= true
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode, includeDeprecatedAPIs})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
 
   runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try
@@ -559,9 +553,9 @@ class AtomApplication
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
   #   :window - An {AtomWindow} to use for opening a selected file path.
-  promptForPathToOpen: (type, {devMode, safeMode, includeDeprecatedAPIs, window}) ->
+  promptForPathToOpen: (type, {devMode, safeMode, window}) ->
     @promptForPath type, (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode, includeDeprecatedAPIs, window})
+      @openPaths({pathsToOpen, devMode, safeMode, window})
 
   promptForPath: (type, callback) ->
     properties =
@@ -581,11 +575,13 @@ class AtomApplication
 
     openOptions =
       properties: properties.concat(['multiSelections', 'createDirectory'])
-      title: 'Open'
+      title: switch type
+        when 'file' then 'Open File'
+        when 'folder' then 'Open Folder'
+        else 'Open'
 
     if process.platform is 'linux'
       if projectPath = @lastFocusedWindow?.projectPath
         openOptions.defaultPath = projectPath
 
-    dialog = require 'dialog'
     dialog.showOpenDialog(parentWindow, openOptions, callback)

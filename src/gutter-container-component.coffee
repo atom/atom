@@ -7,7 +7,6 @@ LineNumberGutterComponent = require './line-number-gutter-component'
 
 module.exports =
 class GutterContainerComponent
-
   constructor: ({@onLineNumberGutterMouseDown, @editor}) ->
     # An array of objects of the form: {name: {String}, component: {Object}}
     @gutterComponents = []

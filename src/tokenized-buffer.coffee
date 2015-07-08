@@ -292,7 +292,17 @@ class TokenizedBuffer extends Model
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
   isFoldableCodeAtRow: (row) ->
-    return false if @buffer.isRowBlank(row) or @tokenizedLineForRow(row).isComment()
+    # Investigating an exception that's occurring here due to the line being
+    # undefined. This should paper over the problem but we want to figure out
+    # what is happening:
+    tokenizedLine = @tokenizedLineForRow(row)
+    atom.assert tokenizedLine?, "TokenizedLine is defined", =>
+      metadata:
+        row: row
+        rowCount: @tokenizedLines.length
+    return false unless tokenizedLine?
+
+    return false if @buffer.isRowBlank(row) or tokenizedLine.isComment()
     nextRow = @buffer.nextNonBlankRow(row)
     return false unless nextRow?
 
@@ -381,7 +391,17 @@ class TokenizedBuffer extends Model
         expectedScope = tag + 1
         poppedScope = scopes.pop()
         unless poppedScope is expectedScope
-          throw new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
+          error = new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
+          error.metadata = {
+            grammarScopeName: @grammar.scopeName
+          }
+          path = require 'path'
+          error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
+          error.privateMetadata = {
+            filePath: @buffer.getPath()
+            fileContents: @buffer.getText()
+          }
+          throw error
     scopes
 
   indentLevelForRow: (bufferRow) ->
@@ -412,10 +432,14 @@ class TokenizedBuffer extends Model
 
   indentLevelForLine: (line) ->
     if match = line.match(/^[\t ]+/)
-      leadingWhitespace = match[0]
-      tabCount = leadingWhitespace.match(/\t/g)?.length ? 0
-      spaceCount = leadingWhitespace.match(/[ ]/g)?.length ? 0
-      tabCount + (spaceCount / @getTabLength())
+      indentLength = 0
+      for character in match[0]
+        if character is '\t'
+          indentLength += @getTabLength() - (indentLength % @getTabLength())
+        else
+          indentLength++
+
+      indentLength / @getTabLength()
     else
       0
 

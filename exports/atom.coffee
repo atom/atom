@@ -120,14 +120,6 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       """
       require '../src/select-list-view'
 
-    Object.defineProperty module.exports, 'React', get: ->
-      deprecate "Please require `react-atom-fork` instead: `React = require 'react-atom-fork'`. Add `\"react-atom-fork\": \"^0.11\"` to your package dependencies."
-      require 'react-atom-fork'
-
-    Object.defineProperty module.exports, 'Reactionary', get: ->
-      deprecate "Please require `reactionary-atom-fork` instead: `Reactionary = require 'reactionary-atom-fork'`. Add `\"reactionary-atom-fork\": \"^0.9\"` to your package dependencies."
-      require 'reactionary-atom-fork'
-
 if includeDeprecatedAPIs
   Object.defineProperty module.exports, 'Git', get: ->
     deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"

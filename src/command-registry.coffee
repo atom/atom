@@ -92,6 +92,9 @@ class CommandRegistry
         disposable.add @add(target, commandName, callback)
       return disposable
 
+    if typeof callback isnt 'function'
+      throw new Error("Can't register a command with non-function callback.")
+
     if typeof target is 'string'
       validateSelector(target)
       @addSelectorBasedListener(target, commandName, callback)

@@ -108,8 +108,8 @@ parseCommandLine = ->
                               Defaults to `~/.atom`.
   """
   # Deprecated 1.0 API preview flag
-  options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported. Atom now defaults to launching with the 1.0 API. Use --include-deprecated-apis to run Atom with deprecated APIs.')
-  options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'Include deprecated APIs.')
+  options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported.')
+  options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'This option is not currently supported.')
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
@@ -137,7 +137,6 @@ parseCommandLine = ->
   executedFrom = args['executed-from']
   devMode = args['dev']
   safeMode = args['safe']
-  includeDeprecatedAPIs = args['include-deprecated-apis']
   pathsToOpen = args._
   test = args['test']
   specDirectory = args['spec-directory']
@@ -171,7 +170,6 @@ parseCommandLine = ->
   process.env.PATH = args['path-environment'] if args['path-environment']
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
-   devMode, includeDeprecatedAPIs, safeMode, newWindow, specDirectory, logFile,
-   socketPath, profileStartup}
+   devMode, safeMode, newWindow, specDirectory, logFile, socketPath, profileStartup}
 
 start()
