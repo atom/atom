@@ -375,7 +375,7 @@ class TokenizedBuffer extends Model
       @tokenizedLineForRow(row)
 
   stackForRow: (bufferRow) ->
-    @tokenizedLineForRow(bufferRow)?.ruleStack
+    @tokenizedLines[bufferRow]?.ruleStack
 
   openScopesForRow: (bufferRow) ->
     if bufferRow > 0
