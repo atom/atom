@@ -2245,6 +2245,7 @@ class TextEditor extends Model
   # Remove the given selection.
   removeSelection: (selection) ->
     _.remove(@selections, selection)
+    atom.assert @selections.length > 0, "Removed last selection"
     @emit 'selection-removed', selection if includeDeprecatedAPIs
     @emitter.emit 'did-remove-selection', selection
 
