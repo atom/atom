@@ -135,6 +135,30 @@ describe "TextEditor", ->
         expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
         expect(editor.getLastCursor().getBufferPosition().column).toEqual 7
 
+  it "ignores non-numeric initialLine and initialColumn options", ->
+    [editor1, editor2, editor3] = []
+
+    waitsForPromise ->
+      atom.workspace.open('sample.less', initialColumn: 8, initialLine: NaN).then (o) -> editor1 = o
+
+    runs ->
+      expect(editor1.getLastCursor().getBufferPosition().row).toEqual 0
+      expect(editor1.getLastCursor().getBufferPosition().column).toEqual 8
+
+    waitsForPromise ->
+      atom.workspace.open('sample.less', initialColumn: NaN, initialLine: 3).then (o) -> editor2 = o
+
+    runs ->
+      expect(editor2.getLastCursor().getBufferPosition().row).toEqual 3
+      expect(editor2.getLastCursor().getBufferPosition().column).toEqual 0
+
+    waitsForPromise ->
+      atom.workspace.open('sample.less', initialColumn: NaN, initialLine: NaN).then (o) -> editor3 = o
+
+    runs ->
+      expect(editor3.getLastCursor().getBufferPosition().row).toEqual 3
+      expect(editor3.getLastCursor().getBufferPosition().column).toEqual 0
+
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])

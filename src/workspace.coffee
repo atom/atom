@@ -456,8 +456,15 @@ class Workspace extends Model
         @itemOpened(item)
         pane.activateItem(item)
         pane.activate() if activatePane
-        if options.initialLine? or options.initialColumn?
-          item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
+
+        initialLine = initialColumn = 0
+        if Number.isFinite(options.initialLine)
+          initialLine = options.initialLine
+        if Number.isFinite(options.initialColumn)
+          initialColumn = options.initialColumn
+        if initialLine > 0 or initialColumn > 0
+          item.setCursorBufferPosition?([initialLine, initialColumn])
+
         index = pane.getActiveItemIndex()
         @emit "uri-opened" if includeDeprecatedAPIs
         @emitter.emit 'did-open', {uri, pane, item, index}
