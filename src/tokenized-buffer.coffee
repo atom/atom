@@ -369,17 +369,20 @@ class TokenizedBuffer extends Model
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow < @tokenizedLines.length
       @tokenizedLines[bufferRow] ?= @buildPlaceholderTokenizedLineForRow(bufferRow)
+    else
+      atom.assert false, "Requested tokenized line with out of range buffer row", (error) =>
+        error.metadata = {bufferRow, maxBufferRow: @tokenizedLines.length}
 
   tokenizedLinesForRows: (startRow, endRow) ->
     for row in [startRow..endRow] by 1
       @tokenizedLineForRow(row)
 
   stackForRow: (bufferRow) ->
-    @tokenizedLines[bufferRow]?.ruleStack
+    @tokenizedLineForRow(bufferRow)?.ruleStack
 
   openScopesForRow: (bufferRow) ->
     if bufferRow > 0
-      precedingLine = @tokenizedLines[bufferRow - 1]
+      precedingLine = @tokenizedLineForRow(bufferRow - 1)
       @scopesFromTags(precedingLine.openScopes, precedingLine.tags)
     else
       []
@@ -448,7 +451,7 @@ class TokenizedBuffer extends Model
   scopeDescriptorForPosition: (position) ->
     {row, column} = @buffer.clipPosition(Point.fromObject(position))
 
-    iterator = @tokenizedLines[row].getTokenIterator()
+    iterator = @tokenizedLineForRow(row).getTokenIterator()
     while iterator.next()
       if iterator.getBufferEnd() > column
         scopes = iterator.getScopes()
