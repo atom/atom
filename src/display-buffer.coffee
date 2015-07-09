@@ -23,6 +23,7 @@ class DisplayBuffer extends Model
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
+  changeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
     super
@@ -800,6 +801,11 @@ class DisplayBuffer extends Model
           foldCount: @findFoldMarkers().length
           lastBufferRow: @buffer.getLastRow()
           lastScreenRow: @getLastRow()
+          bufferRow: row
+          screenRow: screenRow
+          displayBufferChangeCount: @changeCount
+          tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+          bufferChangeCount: @buffer.changeCount
 
       maxBufferColumn = screenLine.getMaxBufferColumn()
       if screenLine.isSoftWrapped() and column > maxBufferColumn
@@ -898,6 +904,9 @@ class DisplayBuffer extends Model
         screenColumn: column
         maxScreenRow: @getLastRow()
         screenLinesDefined: @screenLines.map (sl) -> sl?
+        displayBufferChangeCount: @changeCount
+        tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+        bufferChangeCount: @buffer.changeCount
       }
       throw error
 
@@ -1179,6 +1188,7 @@ class DisplayBuffer extends Model
     @tokenizedBuffer.rootScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
+    @changeCount = @tokenizedBuffer.changeCount
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
     @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0

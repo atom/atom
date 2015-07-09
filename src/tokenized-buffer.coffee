@@ -23,6 +23,7 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
   configSettings: null
+  changeCount: 0
 
   constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
@@ -229,6 +230,8 @@ class TokenizedBuffer extends Model
         row + delta
 
   handleBufferChange: (e) ->
+    @changeCount = @buffer.changeCount
+
     {oldRange, newRange} = e
     start = oldRange.start.row
     end = oldRange.end.row
@@ -296,10 +299,12 @@ class TokenizedBuffer extends Model
     # undefined. This should paper over the problem but we want to figure out
     # what is happening:
     tokenizedLine = @tokenizedLineForRow(row)
-    atom.assert tokenizedLine?, "TokenizedLine is defined", (error) =>
+    atom.assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
       error.metadata = {
         row: row
         rowCount: @tokenizedLines.length
+        tokenizedBufferChangeCount: @changeCount
+        bufferChangeCount: @buffer.changeCount
       }
 
     return false unless tokenizedLine?
