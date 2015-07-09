@@ -677,7 +677,7 @@ class Pane extends Model
     true
 
   handleSaveError: (error, item) ->
-    itemPath = error.path ? item.getPath?()
+    itemPath = error.path ? item?.getPath?()
     addWarningWithPath = (message, options) ->
       message = "#{message} '#{itemPath}'" if itemPath
       atom.notifications.addWarning(message, options)
