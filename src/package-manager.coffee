@@ -30,7 +30,7 @@ module.exports =
 class PackageManager
   constructor: ({configDirPath, @devMode, safeMode, @resourcePath}) ->
     @emitter = new Emitter
-    @hooks = new Emitter
+    @activationHookEmitter = new Emitter
     @packageDirPaths = []
     unless safeMode
       if @devMode
@@ -412,11 +412,11 @@ class PackageManager
 
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
-    @hooks.emit(hook)
+    @activationHookEmitter.emit(hook)
 
   onDidTriggerActivationHook: (hook, callback) ->
     return unless hook? and _.isString(hook) and hook.length > 0
-    @hooks.on(hook, callback)
+    @activationHookEmitter.on(hook, callback)
 
   # Deactivate all packages
   deactivatePackages: ->
