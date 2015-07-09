@@ -72,7 +72,7 @@ class TokenizedBuffer extends Model
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   setGrammar: (grammar, score) ->
-    return if grammar is @grammar
+    return unless grammar? and grammar isnt @grammar
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
@@ -103,8 +103,7 @@ class TokenizedBuffer extends Model
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
-
-    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
+    atom.packages.triggerActivationHook("#{grammar.packageName}:grammar-used")
     @emitter.emit 'did-change-grammar', grammar
 
   getGrammarSelectionContent: ->

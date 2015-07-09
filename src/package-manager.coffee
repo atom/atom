@@ -30,6 +30,7 @@ module.exports =
 class PackageManager
   constructor: ({configDirPath, @devMode, safeMode, @resourcePath}) ->
     @emitter = new Emitter
+    @activationHookEmitter = new Emitter
     @packageDirPaths = []
     unless safeMode
       if @devMode
@@ -408,6 +409,14 @@ class PackageManager
         pack
     else
       Q.reject(new Error("Failed to load package '#{name}'"))
+
+  triggerActivationHook: (hook) ->
+    return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
+    @activationHookEmitter.emit(hook)
+
+  onDidTriggerActivationHook: (hook, callback) ->
+    return unless hook? and _.isString(hook) and hook.length > 0
+    @activationHookEmitter.on(hook, callback)
 
   # Deactivate all packages
   deactivatePackages: ->

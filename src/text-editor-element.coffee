@@ -154,8 +154,7 @@ class TextEditorElement extends HTMLElement
     @component.focused() if event.relatedTarget is this
 
   addGrammarScopeAttribute: ->
-    grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
-    @dataset.grammar = grammarScope
+    @dataset.grammar = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
 
   addMiniAttribute: ->
     @setAttributeNode(document.createAttribute("mini"))
