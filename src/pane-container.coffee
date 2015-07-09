@@ -4,6 +4,7 @@ Grim = require 'grim'
 Serializable = require 'serializable'
 Gutter = require './gutter'
 Model = require './model'
+Pane = require './pane'
 ItemRegistry = require './item-registry'
 
 module.exports =
