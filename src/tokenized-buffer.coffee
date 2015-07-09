@@ -369,9 +369,6 @@ class TokenizedBuffer extends Model
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow < @tokenizedLines.length
       @tokenizedLines[bufferRow] ?= @buildPlaceholderTokenizedLineForRow(bufferRow)
-    else
-      atom.assert false, "Requested tokenized line with out of range buffer row", (error) =>
-        error.metadata = {bufferRow, maxBufferRow: @tokenizedLines.length}
 
   tokenizedLinesForRows: (startRow, endRow) ->
     for row in [startRow..endRow] by 1
