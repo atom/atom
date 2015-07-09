@@ -1194,6 +1194,9 @@ class DisplayBuffer extends Model
     screenDelta = screenLines.length - (endScreenRow - startScreenRow)
 
     _.spliceWithArray(@screenLines, startScreenRow, endScreenRow - startScreenRow, screenLines, 10000)
+
+    @checkScreenLinesInvariant()
+
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
 
@@ -1312,6 +1315,20 @@ class DisplayBuffer extends Model
       @overlayDecorationsById[decoration.id] = decoration
     else
       delete @overlayDecorationsById[decoration.id]
+
+  checkScreenLinesInvariant: ->
+    return if @isSoftWrapped()
+    return if _.size(@foldsByMarkerId) > 0
+
+    screenLinesCount = @screenLines.length
+    tokenizedLinesCount = @tokenizedBuffer.getLineCount()
+    bufferLinesCount = @buffer.getLineCount()
+
+    atom.assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
+      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
+
+    atom.assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
+      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
 
 if Grim.includeDeprecatedAPIs
   DisplayBuffer.properties
