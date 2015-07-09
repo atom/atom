@@ -346,15 +346,15 @@ class LinesTileComponent
             rangeForMeasurement ?= document.createRange()
             iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
             textNode = iterator.nextNode()
-            textNodeLength = textNode.length
+            textNodeLength = textNode.textContent.length
             textNodeIndex = 0
-            nextTextNodeIndex = textNode.textContent.length
+            nextTextNodeIndex = textNodeLength
 
           while nextTextNodeIndex <= charIndex
             textNode = iterator.nextNode()
-            textNodeLength = textNode.length
+            textNodeLength = textNode.textContent.length
             textNodeIndex = nextTextNodeIndex
-            nextTextNodeIndex = textNodeIndex + textNode.textContent.length
+            nextTextNodeIndex = textNodeIndex + textNodeLength
 
           i = charIndex - textNodeIndex
           rangeForMeasurement.setStart(textNode, i)
