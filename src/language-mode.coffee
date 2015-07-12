@@ -242,7 +242,7 @@ class LanguageMode
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
-  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options={}) ->
+  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->
     iterator = tokenizedLine.getTokenIterator()
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
@@ -254,7 +254,7 @@ class LanguageMode
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     return currentIndentLevel unless increaseIndentRegex
 
-    if options.skipBlankLines ? true
+    if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
     else

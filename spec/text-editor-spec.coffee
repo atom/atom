@@ -3023,7 +3023,6 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(9)).toBe "          c(x);"
               expect(editor.lineTextForBufferRow(10)).toBe "    }"
 
-
           describe "when pasting a line of text without line ending", ->
             it "does not auto-indent the text", ->
               atom.clipboard.write("a(x);", indentBasis: 0)
