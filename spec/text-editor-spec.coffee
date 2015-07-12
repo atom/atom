@@ -2262,7 +2262,7 @@ describe "TextEditor", ->
             expect(editor.indentationForBufferRow(2)).toBe 0
             expect(editor.indentationForBufferRow(3)).toBe 1
 
-      describe "when a newline is appended on a line that matches the decreaseNextIndentRegex", ->
+      describe "when a newline is appended on a line that matches the decreaseNextIndentPattern", ->
         it "indents the new line to the correct level when editor.autoIndent is true", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-go')
@@ -3012,7 +3012,19 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(7)).toBe("\t\t\t * indent")
               expect(editor.lineTextForBufferRow(8)).toBe("\t\t\t **/")
 
-          describe "when pasting a single line of text", ->
+          describe "when pasting line(s) above a line that matches the decreaseIndentPattern", ->
+            it "auto-indents based on the pasted line(s) only", ->
+              atom.clipboard.write("a(x);\n  b(x);\n    c(x);\n", indentBasis: 0)
+              editor.setCursorBufferPosition([7, 0])
+              editor.pasteText()
+
+              expect(editor.lineTextForBufferRow(7)).toBe "      a(x);"
+              expect(editor.lineTextForBufferRow(8)).toBe "        b(x);"
+              expect(editor.lineTextForBufferRow(9)).toBe "          c(x);"
+              expect(editor.lineTextForBufferRow(10)).toBe "    }"
+
+
+          describe "when pasting a line of text without line ending", ->
             it "does not auto-indent the text", ->
               atom.clipboard.write("a(x);", indentBasis: 0)
               editor.setCursorBufferPosition([5, 0])
