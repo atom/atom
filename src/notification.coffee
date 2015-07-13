@@ -64,8 +64,8 @@ class Notification
       and @getType() is other.getType() \
       and @getDetail() is other.getDetail()
 
-  # Extended: Dismisses the notification, removing it from the UI. This will call all callbacks
-  # added via `onDidDismiss`.
+  # Extended: Dismisses the notification, removing it from the UI. Calling this programmatically
+  # will call all callbacks added via `onDidDismiss`.
   dismiss: ->
     return unless @isDismissable() and not @isDismissed()
     @dismissed = true
