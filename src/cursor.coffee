@@ -657,11 +657,13 @@ class Cursor extends Model
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
     nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
-    snakeCamelSegment = "[A-Z]?[a-z]+"
+    lowercaseLetters = 'a-z\\u00DF-\\u00F6\\u00F8-\\u00FF'
+    uppercaseLetters = 'A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE'
+    snakeCamelSegment = "[#{uppercaseLetters}]?[#{lowercaseLetters}]+"
     segments = [
       "^[\t ]+",
       "[\t ]+$",
-      "[A-Z]+(?![a-z])",
+      "[#{uppercaseLetters}]+(?![#{lowercaseLetters}])",
       "\\d+"
     ]
     if options.backwards
