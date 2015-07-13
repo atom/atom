@@ -561,7 +561,7 @@ class Config
   # atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
   #
   # # Set ruby to 2
-  # atom.config.set('editor.tabLength', 2, scopeSelector: 'source.ruby') # => true
+  # atom.config.set('editor.tabLength', 2, scopeSelector: '.source.ruby') # => true
   #
   # # Notice it's only set to 2 in the case of ruby
   # atom.config.get('editor.tabLength') # => 4
