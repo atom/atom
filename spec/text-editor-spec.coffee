@@ -4461,13 +4461,16 @@ describe "TextEditor", ->
       expect(editor.getCursorBufferPosition()).toEqual([0, 0])
 
     it "stops at word and underscore boundaries", ->
-      editor.setText("_word \n")
-      editor.setCursorBufferPosition([0, 6])
+      editor.setText("sub_word \n")
+      editor.setCursorBufferPosition([0, 9])
       editor.moveToPreviousSubwordBoundary()
-      expect(editor.getCursorBufferPosition()).toEqual([0, 5])
+      expect(editor.getCursorBufferPosition()).toEqual([0, 8])
 
       editor.moveToPreviousSubwordBoundary()
-      expect(editor.getCursorBufferPosition()).toEqual([0, 1])
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+      editor.moveToPreviousSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 0])
 
       editor.setText(" word\n")
       editor.setCursorBufferPosition([0, 3])
@@ -4537,13 +4540,16 @@ describe "TextEditor", ->
       expect(editor.getCursorBufferPosition()).toEqual([0, 0])
 
     it "stops at word and underscore boundaries", ->
-      editor.setText(" word_ \n")
+      editor.setText(" sub_word \n")
       editor.setCursorBufferPosition([0, 0])
       editor.moveToNextSubwordBoundary()
       expect(editor.getCursorBufferPosition()).toEqual([0, 1])
 
       editor.moveToNextSubwordBoundary()
-      expect(editor.getCursorBufferPosition()).toEqual([0, 5])
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 9])
 
       editor.setText("word \n")
       editor.setCursorBufferPosition([0, 0])
