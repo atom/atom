@@ -23,6 +23,7 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
   configSettings: null
+  changeCount: 0
 
   constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
@@ -71,7 +72,7 @@ class TokenizedBuffer extends Model
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   setGrammar: (grammar, score) ->
-    return if grammar is @grammar
+    return unless grammar? and grammar isnt @grammar
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
@@ -102,8 +103,7 @@ class TokenizedBuffer extends Model
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
-
-    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
+    atom.packages.triggerActivationHook("#{grammar.packageName}:grammar-used")
     @emitter.emit 'did-change-grammar', grammar
 
   getGrammarSelectionContent: ->
@@ -229,6 +229,8 @@ class TokenizedBuffer extends Model
         row + delta
 
   handleBufferChange: (e) ->
+    @changeCount = @buffer.changeCount
+
     {oldRange, newRange} = e
     start = oldRange.start.row
     end = oldRange.end.row
@@ -296,10 +298,14 @@ class TokenizedBuffer extends Model
     # undefined. This should paper over the problem but we want to figure out
     # what is happening:
     tokenizedLine = @tokenizedLineForRow(row)
-    atom.assert tokenizedLine?, "TokenizedLine is defined", =>
-      metadata:
+    atom.assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
+      error.metadata = {
         row: row
         rowCount: @tokenizedLines.length
+        tokenizedBufferChangeCount: @changeCount
+        bufferChangeCount: @buffer.changeCount
+      }
+
     return false unless tokenizedLine?
 
     return false if @buffer.isRowBlank(row) or tokenizedLine.isComment()
@@ -377,7 +383,7 @@ class TokenizedBuffer extends Model
 
   openScopesForRow: (bufferRow) ->
     if bufferRow > 0
-      precedingLine = @tokenizedLines[bufferRow - 1]
+      precedingLine = @tokenizedLineForRow(bufferRow - 1)
       @scopesFromTags(precedingLine.openScopes, precedingLine.tags)
     else
       []
@@ -444,9 +450,9 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    {row, column} = Point.fromObject(position)
+    {row, column} = @buffer.clipPosition(Point.fromObject(position))
 
-    iterator = @tokenizedLines[row].getTokenIterator()
+    iterator = @tokenizedLineForRow(row).getTokenIterator()
     while iterator.next()
       if iterator.getBufferEnd() > column
         scopes = iterator.getScopes()

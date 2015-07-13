@@ -62,6 +62,7 @@ class TextEditorElement extends HTMLElement
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
+    atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
     @component.checkForVisibilityChange()
     if this is document.activeElement
@@ -153,8 +154,7 @@ class TextEditorElement extends HTMLElement
     @component.focused() if event.relatedTarget is this
 
   addGrammarScopeAttribute: ->
-    grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
-    @dataset.grammar = grammarScope
+    @dataset.grammar = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
 
   addMiniAttribute: ->
     @setAttributeNode(document.createAttribute("mini"))

@@ -189,7 +189,7 @@ describe "PackageManager", ->
             expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
 
       describe "when the package metadata includes `activationCommands`", ->
-        [mainModule, promise, workspaceCommandListener] = []
+        [mainModule, promise, workspaceCommandListener, registration] = []
 
         beforeEach ->
           jasmine.attachToDOM(workspaceElement)
@@ -200,9 +200,13 @@ describe "PackageManager", ->
           spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
           workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
-          atom.commands.add '.workspace', 'activation-command', workspaceCommandListener
+          registration = atom.commands.add '.workspace', 'activation-command', workspaceCommandListener
 
           promise = atom.packages.activatePackage('package-with-activation-commands')
+
+        afterEach ->
+          registration?.dispose()
+          mainModule = null
 
         it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
           expect(promise.isFulfilled()).not.toBeTruthy()
@@ -285,6 +289,41 @@ describe "PackageManager", ->
           runs ->
             expect(addErrorHandler.callCount).toBe 1
             expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-invalid-settings package settings")
+
+    describe "when the package metadata includes `activationHooks`", ->
+      [mainModule, promise] = []
+
+      beforeEach ->
+        mainModule = require './fixtures/packages/package-with-activation-hooks/index'
+        spyOn(mainModule, 'activate').andCallThrough()
+        spyOn(Package.prototype, 'requireMainModule').andCallThrough()
+
+        promise = atom.packages.activatePackage('package-with-activation-hooks')
+
+      it "defers requiring/activating the main module until an triggering of an activation hook occurs", ->
+        expect(promise.isFulfilled()).not.toBeTruthy()
+        expect(Package.prototype.requireMainModule.callCount).toBe 0
+        atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+
+        waitsForPromise ->
+          promise
+
+        runs ->
+          expect(Package.prototype.requireMainModule.callCount).toBe 1
+
+      it "activates the package immediately when activationHooks is empty", ->
+        mainModule = require './fixtures/packages/package-with-empty-activation-hooks/index'
+        spyOn(mainModule, 'activate').andCallThrough()
+
+        runs ->
+          expect(Package.prototype.requireMainModule.callCount).toBe 0
+
+        waitsForPromise ->
+          atom.packages.activatePackage('package-with-empty-activation-hooks')
+
+        runs ->
+          expect(mainModule.activate.callCount).toBe 1
+          expect(Package.prototype.requireMainModule.callCount).toBe 1
 
     describe "when the package has no main module", ->
       it "does not throw an exception", ->
@@ -750,8 +789,7 @@ describe "PackageManager", ->
       package1 = atom.packages.loadPackage('package-with-main')
       package2 = atom.packages.loadPackage('package-with-index')
       package3 = atom.packages.loadPackage('package-with-activation-commands')
-      spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2])
-
+      spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2, package3])
       activateSpy = jasmine.createSpy('activateSpy')
       atom.packages.onDidActivateInitialPackages(activateSpy)
 
