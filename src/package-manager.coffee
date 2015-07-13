@@ -373,6 +373,10 @@ class PackageManager
     else
       throw new Error("No loaded package for name '#{name}'")
 
+  ###
+  Section: Activating and deactivating packages
+  ###
+
   # Activate all the packages that should be activated.
   activate: ->
     promises = []
@@ -398,7 +402,13 @@ class PackageManager
     @observeDisabledPackages()
     promises
 
-  # Activate a single package by name
+  # Public: Activate a single package by name.
+  #
+  # * `name` - The {String} package name.
+  #
+  # Returns a `Promise` that completes when the package is activated. Note
+  # that, for packages that have activation commands, this promise will not
+  # resolve until at least one of those commands has been broadcast.
   activatePackage: (name) ->
     if pack = @getActivePackage(name)
       Q(pack)
@@ -425,7 +435,9 @@ class PackageManager
       return
     @unobserveDisabledPackages()
 
-  # Deactivate the package with the given name
+  # Public: Deactivate the package with the given name.
+  #
+  # * `name` - The {String} package name.
   deactivatePackage: (name) ->
     pack = @getLoadedPackage(name)
     if @isPackageActive(name)
