@@ -114,23 +114,22 @@ class WindowEventHandler
 
     @handleNativeKeybindings()
 
-  # Wire commands that should be handled by the native menu
-  # for elements with the `.native-key-bindings` class.
+  # Wire commands that should be handled by Chromium for elements with the
+  # `.native-key-bindings` class.
   handleNativeKeybindings: ->
     menu = null
     bindCommandToAction = (command, action) =>
       @subscribe $(document), command, (event) ->
         if event.target.webkitMatchesSelector('.native-key-bindings')
-          menu ?= require('remote').require('menu')
-          menu.sendActionToFirstResponder(action)
+          atom.getCurrentWindow().webContents[action]()
         true
 
-    bindCommandToAction('core:copy', 'copy:')
-    bindCommandToAction('core:paste', 'paste:')
-    bindCommandToAction('core:undo', 'undo:')
-    bindCommandToAction('core:redo', 'redo:')
-    bindCommandToAction('core:select-all', 'selectAll:')
-    bindCommandToAction('core:cut', 'cut:')
+    bindCommandToAction('core:copy', 'copy')
+    bindCommandToAction('core:paste', 'paste')
+    bindCommandToAction('core:undo', 'undo')
+    bindCommandToAction('core:redo', 'redo')
+    bindCommandToAction('core:select-all', 'selectAll')
+    bindCommandToAction('core:cut', 'cut')
 
   onKeydown: (event) ->
     atom.keymaps.handleKeyboardEvent(event)

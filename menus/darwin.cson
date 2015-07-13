@@ -10,7 +10,7 @@
       { label: 'Checking for Update', enabled: false, visible: false}
       { label: 'Downloading Update', enabled: false, visible: false}
       { type: 'separator' }
-      { label: 'Preferences...', command: 'application:show-settings' }
+      { label: 'Preferences…', command: 'application:show-settings' }
       { label: 'Open Your Config', command: 'application:open-your-config' }
       { label: 'Open Your Init Script', command: 'application:open-your-init-script' }
       { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
@@ -33,12 +33,12 @@
     submenu: [
       { label: 'New Window', command: 'application:new-window' }
       { label: 'New File', command: 'application:new-file' }
-      { label: 'Open...', command: 'application:open' }
-      { label: 'Add Project Folder...', command: 'application:add-project-folder' }
+      { label: 'Open…', command: 'application:open' }
+      { label: 'Add Project Folder…', command: 'application:add-project-folder' }
       { label: 'Reopen Last Item', command: 'pane:reopen-closed-item' }
       { type: 'separator' }
       { label: 'Save', command: 'core:save' }
-      { label: 'Save As...', command: 'core:save-as' }
+      { label: 'Save As…', command: 'core:save-as' }
       { label: 'Save All', command: 'window:save-all' }
       { type: 'separator' }
       { label: 'Close Tab', command: 'core:close' }
@@ -163,7 +163,7 @@
       {
         label: 'Developer'
         submenu: [
-          { label: 'Open In Dev Mode...', command: 'application:open-dev' }
+          { label: 'Open In Dev Mode…', command: 'application:open-dev' }
           { label: 'Run Atom Specs', command: 'application:run-all-specs' }
           { label: 'Run Package Specs', command: 'window:run-package-specs' }
           { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }

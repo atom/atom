@@ -108,6 +108,12 @@ describe "Pane", ->
       pane2 = pane1.splitRight()
       expect(-> pane2.addItem(item)).toThrow()
 
+    it "throws an exception if the item isn't an object", ->
+      pane = new Pane(items: [])
+      expect(-> pane.addItem(null)).toThrow()
+      expect(-> pane.addItem('foo')).toThrow()
+      expect(-> pane.addItem(1)).toThrow()
+
   describe "::activateItem(item)", ->
     pane = null
 
@@ -208,6 +214,12 @@ describe "Pane", ->
       pane.destroyItem(item2)
       expect(item2.isDestroyed()).toBe true
       expect(events).toEqual [{item: item2, index: 1}]
+
+    it "invokes ::onWillRemoveItem() observers", ->
+      events = []
+      pane.onWillRemoveItem (event) -> events.push(event)
+      pane.destroyItem(item2)
+      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
 
     it "invokes ::onDidRemoveItem() observers", ->
       events = []
@@ -495,6 +507,13 @@ describe "Pane", ->
       pane1.moveItemToPane(item2, pane2, 1)
       expect(pane1.getItems()).toEqual [item1, item3]
       expect(pane2.getItems()).toEqual [item4, item2, item5]
+
+    it "invokes ::onWillRemoveItem() observers", ->
+      events = []
+      pane1.onWillRemoveItem (event) -> events.push(event)
+      pane1.moveItemToPane(item2, pane2, 1)
+
+      expect(events).toEqual [{item: item2, index: 1, destroyed: false}]
 
     it "invokes ::onDidRemoveItem() observers", ->
       events = []

@@ -1,4 +1,5 @@
 {Emitter} = require 'event-kit'
+_ = require 'underscore-plus'
 
 # Public: A notification to the user containing a message and type.
 module.exports =
@@ -9,6 +10,14 @@ class Notification
     @dismissed = true
     @dismissed = false if @isDismissable()
     @displayed = false
+    @validate()
+
+  validate: ->
+    if typeof @message isnt 'string'
+      throw new Error("Notification must be created with string message: #{@message}")
+
+    unless _.isObject(@options) and not _.isArray(@options)
+      throw new Error("Notification must be created with an options object: #{@options}")
 
   onDidDismiss: (callback) ->
     @emitter.on 'did-dismiss', callback

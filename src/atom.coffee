@@ -265,6 +265,7 @@ class Atom extends Model
     @notifications = new NotificationManager
     @commands = new CommandRegistry
     @views = new ViewRegistry
+    @registerViewProviders()
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @styles = new StyleManager
     document.head.appendChild(new StylesElement)
@@ -290,6 +291,30 @@ class Atom extends Model
     TextEditor = require './text-editor'
 
     @windowEventHandler = new WindowEventHandler
+
+  # Register the core views as early as possible in case they are needed for
+  # package deserialization.
+  registerViewProviders: ->
+    Gutter = require './gutter'
+    Pane = require './pane'
+    PaneElement = require './pane-element'
+    PaneContainer = require './pane-container'
+    PaneContainerElement = require './pane-container-element'
+    PaneAxis = require './pane-axis'
+    PaneAxisElement = require './pane-axis-element'
+    TextEditor = require './text-editor'
+    TextEditorElement = require './text-editor-element'
+    {createGutterView} = require './gutter-component-helpers'
+
+    atom.views.addViewProvider PaneContainer, (model) ->
+      new PaneContainerElement().initialize(model)
+    atom.views.addViewProvider PaneAxis, (model) ->
+      new PaneAxisElement().initialize(model)
+    atom.views.addViewProvider Pane, (model) ->
+      new PaneElement().initialize(model)
+    atom.views.addViewProvider TextEditor, (model) ->
+      new TextEditorElement().initialize(model)
+    atom.views.addViewProvider(Gutter, createGutterView)
 
   ###
   Section: Event Subscription
@@ -332,6 +357,12 @@ class Atom extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidThrowError: (callback) ->
     @emitter.on 'did-throw-error', callback
+
+  # TODO: Make this part of the public API. We should make onDidThrowError
+  # match the interface by only yielding an exception object to the handler
+  # and deprecating the old behavior.
+  onDidFailAssertion: (callback) ->
+    @emitter.on 'did-fail-assertion', callback
 
   ###
   Section: Atom Details
@@ -714,6 +745,17 @@ class Atom extends Model
   ###
   Section: Private
   ###
+
+  assert: (condition, message, callback) ->
+    return true if condition
+
+    error = new Error("Assertion failed: #{message}")
+    Error.captureStackTrace(error, @assert)
+    callback?(error)
+
+    @emitter.emit 'did-fail-assertion', error
+
+    false
 
   deserializeProject: ->
     Project = require './project'

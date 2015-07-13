@@ -13,7 +13,7 @@ cloneObject = (object) ->
   clone
 
 module.exports =
-class TileComponent
+class LinesTileComponent
   constructor: ({@presenter, @id}) ->
     @tokenIterator = new TokenIterator
     @measuredLines = new Set
@@ -25,7 +25,7 @@ class TileComponent
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
 
-    @highlightsComponent = new HighlightsComponent(@presenter)
+    @highlightsComponent = new HighlightsComponent
     @domNode.appendChild(@highlightsComponent.getDomNode())
 
   getDomNode: ->
@@ -54,6 +54,7 @@ class TileComponent
 
     if @newState.width isnt @oldState.width
       @domNode.style.width = @newState.width + 'px'
+      @oldTileState.width = @newTileState.width
 
     if @newTileState.top isnt @oldTileState.top or @newTileState.left isnt @oldTileState.left
       @domNode.style['-webkit-transform'] = "translate3d(#{@newTileState.left}px, #{@newTileState.top}px, 0px)"
@@ -345,17 +346,44 @@ class TileComponent
             rangeForMeasurement ?= document.createRange()
             iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
             textNode = iterator.nextNode()
+            textNodeLength = textNode.textContent.length
             textNodeIndex = 0
-            nextTextNodeIndex = textNode.textContent.length
+            nextTextNodeIndex = textNodeLength
 
           while nextTextNodeIndex <= charIndex
             textNode = iterator.nextNode()
+            textNodeLength = textNode.textContent.length
             textNodeIndex = nextTextNodeIndex
-            nextTextNodeIndex = textNodeIndex + textNode.textContent.length
+            nextTextNodeIndex = textNodeIndex + textNodeLength
 
           i = charIndex - textNodeIndex
           rangeForMeasurement.setStart(textNode, i)
-          rangeForMeasurement.setEnd(textNode, i + charLength)
+
+          if i + charLength <= textNodeLength
+            rangeForMeasurement.setEnd(textNode, i + charLength)
+          else
+            rangeForMeasurement.setEnd(textNode, textNodeLength)
+            atom.assert false, "Expected index to be less than the length of text node while measuring", (error) =>
+              editor = @presenter.model
+              screenRow = tokenizedLine.screenRow
+              bufferRow = editor.bufferRowForScreenRow(screenRow)
+
+              error.metadata = {
+                grammarScopeName: editor.getGrammar().scopeName
+                screenRow: screenRow
+                bufferRow: bufferRow
+                softWrapped: editor.isSoftWrapped()
+                softTabs: editor.getSoftTabs()
+                i: i
+                charLength: charLength
+                textNodeLength: textNode.length
+              }
+              error.privateMetadataDescription = "The contents of line #{bufferRow + 1}."
+              error.privateMetadata = {
+                lineText: editor.lineTextForBufferRow(bufferRow)
+              }
+              error.privateMetadataRequestName = "measured-line-text"
+
           charWidth = rangeForMeasurement.getBoundingClientRect().width
           @presenter.setScopedCharacterWidth(scopes, char, charWidth)
 

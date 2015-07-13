@@ -1,5 +1,6 @@
 BrowserWindow = require 'browser-window'
 app = require 'app'
+dialog = require 'dialog'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -93,10 +94,9 @@ class AtomWindow
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
 
   setupContextMenu: ->
-    ContextMenu = null
+    ContextMenu = require './context-menu'
 
     @browserWindow.on 'context-menu', (menuTemplate) =>
-      ContextMenu ?= require './context-menu'
       new ContextMenu(menuTemplate, this)
 
   containsPaths: (paths) ->
@@ -126,7 +126,6 @@ class AtomWindow
     @browserWindow.on 'unresponsive', =>
       return if @isSpec
 
-      dialog = require 'dialog'
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
@@ -137,7 +136,6 @@ class AtomWindow
     @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @exitWhenDone
 
-      dialog = require 'dialog'
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']

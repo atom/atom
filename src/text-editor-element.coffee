@@ -62,6 +62,7 @@ class TextEditorElement extends HTMLElement
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
+    atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
     @component.checkForVisibilityChange()
     if this is document.activeElement
@@ -83,11 +84,12 @@ class TextEditorElement extends HTMLElement
     @model = model
     @mountComponent()
     @addGrammarScopeAttribute()
-    @addMiniAttributeIfNeeded()
+    @addMiniAttribute() if @model.isMini()
     @addEncodingAttribute()
     @model.onDidChangeGrammar => @addGrammarScopeAttribute()
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
+    @model.onDidChangeMini (mini) => if mini then @addMiniAttribute() else @removeMiniAttribute()
     @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
@@ -152,11 +154,13 @@ class TextEditorElement extends HTMLElement
     @component.focused() if event.relatedTarget is this
 
   addGrammarScopeAttribute: ->
-    grammarScope = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
-    @dataset.grammar = grammarScope
+    @dataset.grammar = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
 
-  addMiniAttributeIfNeeded: ->
-    @setAttributeNode(document.createAttribute("mini")) if @model.isMini()
+  addMiniAttribute: ->
+    @setAttributeNode(document.createAttribute("mini"))
+
+  removeMiniAttribute: ->
+    @removeAttribute("mini")
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()
@@ -262,6 +266,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagation(
   'editor:move-to-beginning-of-next-word': -> @moveToBeginningOfNextWord()
   'editor:move-to-previous-word-boundary': -> @moveToPreviousWordBoundary()
   'editor:move-to-next-word-boundary': -> @moveToNextWordBoundary()
+  'editor:move-to-previous-subword-boundary': -> @moveToPreviousSubwordBoundary()
+  'editor:move-to-next-subword-boundary': -> @moveToNextSubwordBoundary()
   'editor:select-to-beginning-of-next-paragraph': -> @selectToBeginningOfNextParagraph()
   'editor:select-to-beginning-of-previous-paragraph': -> @selectToBeginningOfPreviousParagraph()
   'editor:select-to-end-of-line': -> @selectToEndOfLine()
@@ -271,6 +277,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagation(
   'editor:select-to-beginning-of-next-word': -> @selectToBeginningOfNextWord()
   'editor:select-to-next-word-boundary': -> @selectToNextWordBoundary()
   'editor:select-to-previous-word-boundary': -> @selectToPreviousWordBoundary()
+  'editor:select-to-next-subword-boundary': -> @selectToNextSubwordBoundary()
+  'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
   'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
   'editor:select-line': -> @selectLinesContainingCursors()
 )
@@ -287,6 +295,8 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:delete-to-beginning-of-line': -> @deleteToBeginningOfLine()
   'editor:delete-to-end-of-line': -> @deleteToEndOfLine()
   'editor:delete-to-end-of-word': -> @deleteToEndOfWord()
+  'editor:delete-to-beginning-of-subword': -> @deleteToBeginningOfSubword()
+  'editor:delete-to-end-of-subword': -> @deleteToEndOfSubword()
   'editor:delete-line': -> @deleteLine()
   'editor:cut-to-end-of-line': -> @cutToEndOfLine()
   'editor:transpose': -> @transpose()

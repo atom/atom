@@ -1,0 +1,5 @@
+{
+  "name": "package-with-empty-activation-hooks",
+  "version": "0.1.0",
+  "activationHooks": []
+}

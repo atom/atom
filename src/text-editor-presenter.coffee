@@ -71,6 +71,7 @@ class TextEditorPresenter
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
+    @updateCommonGutterState()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -80,11 +81,10 @@ class TextEditorPresenter
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
-    @updateTilesState() if @shouldUpdateTilesState
+    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
-    @updateLineNumbersState() if @shouldUpdateLineNumbersState
     @updateGutterOrderState() if @shouldUpdateGutterOrderState
     @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
     @updating = false
@@ -102,7 +102,7 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = false
     @shouldUpdateContentState = false
     @shouldUpdateDecorations = false
-    @shouldUpdateTilesState = false
+    @shouldUpdateLinesState = false
     @shouldUpdateCursorsState = false
     @shouldUpdateOverlaysState = false
     @shouldUpdateLineNumberGutterState = false
@@ -113,7 +113,7 @@ class TextEditorPresenter
   observeModel: ->
     @disposables.add @model.onDidChange =>
       @updateContentDimensions()
-      @updateEndRow()
+
       @shouldUpdateHeightState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -121,7 +121,7 @@ class TextEditorPresenter
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
       @shouldUpdateCursorsState = true
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
@@ -129,7 +129,7 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
     @model.onDidUpdateMarkers =>
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateDecorations = true
       @shouldUpdateOverlaysState = true
@@ -145,19 +145,16 @@ class TextEditorPresenter
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
       @shouldUpdateCustomGutterDecorationState = true
-      @updateScrollbarDimensions()
-      @updateCommonGutterState()
       @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeLineNumberGutterVisible =>
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
-      @updateCommonGutterState()
       @emitDidUpdateState()
 
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
@@ -199,7 +196,6 @@ class TextEditorPresenter
       @showLineNumbers = newValue
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
-      @updateCommonGutterState()
 
       @emitDidUpdateState()
 
@@ -208,7 +204,6 @@ class TextEditorPresenter
     @shouldUpdateContentState = true
     @shouldUpdateLineNumberGutterState = true
     @shouldUpdateGutterOrderState = true
-    @updateCommonGutterState()
 
     @emitDidUpdateState()
 
@@ -228,11 +223,14 @@ class TextEditorPresenter
     @sharedGutterStyles = {}
     @customGutterDecorations = {}
     @lineNumberGutter =
-      lineNumbers: {}
+      tiles: {}
 
     @updateState()
 
   updateState: ->
+    @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
+
     @updateContentDimensions()
     @updateScrollbarDimensions()
     @updateStartRow()
@@ -250,7 +248,6 @@ class TextEditorPresenter
     @updateCursorsState()
     @updateOverlaysState()
     @updateLineNumberGutterState()
-    @updateLineNumbersState()
     @updateCommonGutterState()
     @updateGutterOrderState()
     @updateCustomGutterDecorationState()
@@ -339,7 +336,13 @@ class TextEditorPresenter
       tile.display = "block"
       tile.highlights ?= {}
 
-      @updateLinesState(tile, startRow, endRow)
+      gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
+      gutterTile.top = startRow * @lineHeight - @scrollTop
+      gutterTile.height = @tileSize * @lineHeight
+      gutterTile.display = "block"
+
+      @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
+      @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
 
       visibleTiles[startRow] = true
 
@@ -347,6 +350,7 @@ class TextEditorPresenter
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
 
       unless visibleTiles[mouseWheelTile]?
+        @lineNumberGutter.tiles[mouseWheelTile].display = "none"
         @state.content.tiles[mouseWheelTile].display = "none"
         visibleTiles[mouseWheelTile] = true
 
@@ -354,6 +358,7 @@ class TextEditorPresenter
       continue if visibleTiles.hasOwnProperty(id)
 
       delete @state.content.tiles[id]
+      delete @lineNumberGutter.tiles[id]
 
   updateLinesState: (tileState, startRow, endRow) ->
     tileState.lines ?= {}
@@ -562,21 +567,20 @@ class TextEditorPresenter
       isVisible = isVisible and @showLineNumbers
     isVisible
 
-  updateLineNumbersState: ->
-    return unless @startRow? and @endRow? and @lineHeight?
-
+  updateLineNumbersState: (tileState, startRow, endRow) ->
+    tileState.lineNumbers ?= {}
     visibleLineNumberIds = {}
 
-    if @startRow > 0
-      rowBeforeStartRow = @startRow - 1
+    if startRow > 0
+      rowBeforeStartRow = startRow - 1
       lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
       wrapCount = rowBeforeStartRow - @model.screenRowForBufferRow(lastBufferRow)
     else
       lastBufferRow = null
       wrapCount = 0
 
-    if @endRow > @startRow
-      for bufferRow, i in @model.bufferRowsForScreenRows(@startRow, @endRow - 1)
+    if endRow > startRow
+      for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
         if bufferRow is lastBufferRow
           wrapCount++
           id = bufferRow + '-' + wrapCount
@@ -587,23 +591,16 @@ class TextEditorPresenter
           lastBufferRow = bufferRow
           softWrapped = false
 
-        screenRow = @startRow + i
-        top = screenRow * @lineHeight
+        screenRow = startRow + i
+        top = (screenRow - startRow) * @lineHeight
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        @lineNumberGutter.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
 
-    if @mouseWheelScreenRow?
-      bufferRow = @model.bufferRowForScreenRow(@mouseWheelScreenRow)
-      wrapCount = @mouseWheelScreenRow - @model.screenRowForBufferRow(bufferRow)
-      id = bufferRow
-      id += '-' + wrapCount if wrapCount > 0
-      visibleLineNumberIds[id] = true
-
-    for id of @lineNumberGutter.lineNumbers
-      delete @lineNumberGutter.lineNumbers[id] unless visibleLineNumberIds[id]
+    for id of tileState.lineNumbers
+      delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
 
@@ -791,13 +788,11 @@ class TextEditorPresenter
     unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
       @model.setScrollTop(scrollTop)
-      @updateStartRow()
-      @updateEndRow()
       @didStartScrolling()
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHiddenInputState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateCursorsState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -820,7 +815,7 @@ class TextEditorPresenter
     @state.content.scrollingVertically = false
     if @mouseWheelScreenRow?
       @mouseWheelScreenRow = null
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
 
@@ -837,7 +832,7 @@ class TextEditorPresenter
       @shouldUpdateCursorsState = true
       @shouldUpdateOverlaysState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
 
       @emitDidUpdateState()
 
@@ -849,7 +844,6 @@ class TextEditorPresenter
       oldHorizontalScrollbarHeight = @measuredHorizontalScrollbarHeight
       @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
       @model.setHorizontalScrollbarHeight(horizontalScrollbarHeight)
-      @updateScrollbarDimensions()
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -862,7 +856,6 @@ class TextEditorPresenter
       oldVerticalScrollbarWidth = @measuredVerticalScrollbarWidth
       @measuredVerticalScrollbarWidth = verticalScrollbarWidth
       @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
-      @updateScrollbarDimensions()
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -885,7 +878,7 @@ class TextEditorPresenter
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateScrollbarsState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateCursorsState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -913,7 +906,7 @@ class TextEditorPresenter
       @shouldUpdateScrollbarsState = true
       @shouldUpdateContentState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateCursorsState = true unless oldContentFrameWidth?
 
       @emitDidUpdateState()
@@ -945,7 +938,6 @@ class TextEditorPresenter
       @backgroundColor = backgroundColor
       @shouldUpdateContentState = true
       @shouldUpdateLineNumberGutterState = true
-      @updateCommonGutterState()
       @shouldUpdateGutterOrderState = true
 
       @emitDidUpdateState()
@@ -954,7 +946,6 @@ class TextEditorPresenter
     unless @gutterBackgroundColor is gutterBackgroundColor
       @gutterBackgroundColor = gutterBackgroundColor
       @shouldUpdateLineNumberGutterState = true
-      @updateCommonGutterState()
       @shouldUpdateGutterOrderState = true
 
       @emitDidUpdateState()
@@ -968,18 +959,13 @@ class TextEditorPresenter
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
       @model.setLineHeightInPixels(lineHeight)
-      @updateContentDimensions()
-      @updateScrollHeight()
-      @updateHeight()
-      @updateStartRow()
-      @updateEndRow()
       @shouldUpdateHeightState = true
       @shouldUpdateHorizontalScrollState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateScrollbarsState = true
       @shouldUpdateHiddenInputState = true
       @shouldUpdateDecorations = true
-      @shouldUpdateTilesState = true
+      @shouldUpdateLinesState = true
       @shouldUpdateCursorsState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
@@ -1023,15 +1009,13 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @updateContentDimensions()
-
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateScrollbarsState = true
     @shouldUpdateHiddenInputState = true
     @shouldUpdateContentState = true
     @shouldUpdateDecorations = true
-    @shouldUpdateTilesState = true
+    @shouldUpdateLinesState = true
     @shouldUpdateCursorsState = true
     @shouldUpdateOverlaysState = true
 
@@ -1119,7 +1103,7 @@ class TextEditorPresenter
     @shouldUpdateDecorations = true
     if decoration.isType('line') or decoration.isType('gutter')
       if decoration.isType('line') or Decoration.isType(oldProperties, 'line')
-        @shouldUpdateTilesState = true
+        @shouldUpdateLinesState = true
       if decoration.isType('line-number') or Decoration.isType(oldProperties, 'line-number')
         @shouldUpdateLineNumbersState = true
       if (decoration.isType('gutter') and not decoration.isType('line-number')) or
@@ -1132,7 +1116,7 @@ class TextEditorPresenter
   didDestroyDecoration: (decoration) ->
     @shouldUpdateDecorations = true
     if decoration.isType('line') or decoration.isType('gutter')
-      @shouldUpdateTilesState = true if decoration.isType('line')
+      @shouldUpdateLinesState = true if decoration.isType('line')
       if decoration.isType('line-number')
         @shouldUpdateLineNumbersState = true
       else if decoration.isType('gutter')
@@ -1147,7 +1131,7 @@ class TextEditorPresenter
 
     if decoration.isType('line') or decoration.isType('gutter')
       @shouldUpdateDecorations = true
-      @shouldUpdateTilesState = true if decoration.isType('line')
+      @shouldUpdateLinesState = true if decoration.isType('line')
       if decoration.isType('line-number')
         @shouldUpdateLineNumbersState = true
       else if decoration.isType('gutter')

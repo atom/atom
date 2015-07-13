@@ -233,3 +233,13 @@ describe "TextEditorElement", ->
       element = new TextEditorElement
       jasmine.attachToDOM(element)
       expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
+
+  describe "on TextEditor::setMini", ->
+    it "changes the element's 'mini' attribute", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
+      expect(element.hasAttribute('mini')).toBe false
+      element.getModel().setMini(true)
+      expect(element.hasAttribute('mini')).toBe true
+      element.getModel().setMini(false)
+      expect(element.hasAttribute('mini')).toBe false

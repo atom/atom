@@ -163,6 +163,15 @@ class Pane extends Model
   onDidRemoveItem: (callback) ->
     @emitter.on 'did-remove-item', callback
 
+  # Public: Invoke the given callback before an item is removed from the pane.
+  #
+  # * `callback` {Function} to be called with when items are removed.
+  #   * `event` {Object} with the following keys:
+  #     * `item` The pane item to be removed.
+  #     * `index` {Number} indicating where the item is located.
+  onWillRemoveItem: (callback) ->
+    @emitter.on 'will-remove-item', callback
+
   # Public: Invoke the given callback when an item is moved within the pane.
   #
   # * `callback` {Function} to be called with when items are moved.
@@ -327,6 +336,8 @@ class Pane extends Model
   #
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1) ->
+    throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
+
     return if item in @items
 
     if typeof item.onDidDestroy is 'function'
@@ -357,6 +368,8 @@ class Pane extends Model
   removeItem: (item, destroyed=false) ->
     index = @items.indexOf(item)
     return if index is -1
+
+    @emitter.emit 'will-remove-item', {item, index, destroyed}
 
     if Grim.includeDeprecatedAPIs and typeof item.on is 'function'
       @unsubscribe item
@@ -478,7 +491,7 @@ class Pane extends Model
       try
         item.save?()
       catch error
-        @handleSaveError(error)
+        @handleSaveError(error, item)
       nextAction?()
     else
       @saveItemAs(item, nextAction)
@@ -499,7 +512,7 @@ class Pane extends Model
       try
         item.saveAs(newItemPath)
       catch error
-        @handleSaveError(error)
+        @handleSaveError(error, item)
       nextAction?()
 
   # Public: Save all items.
@@ -663,19 +676,32 @@ class Pane extends Model
       return false unless @promptToSaveItem(item)
     true
 
-  handleSaveError: (error) ->
-    if error.code is 'EISDIR' or error.message.endsWith('is a directory')
+  handleSaveError: (error, item) ->
+    itemPath = error.path ? item?.getPath?()
+    addWarningWithPath = (message, options) ->
+      message = "#{message} '#{itemPath}'" if itemPath
+      atom.notifications.addWarning(message, options)
+
+    if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
       atom.notifications.addWarning("Unable to save file: #{error.message}")
-    else if error.code is 'EACCES' and error.path?
-      atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
-    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST'] and error.path?
-      atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
-    else if error.code is 'EROFS' and error.path?
-      atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
-    else if error.code is 'ENOSPC' and error.path?
-      atom.notifications.addWarning("Unable to save file: No space left on device '#{error.path}'")
-    else if error.code is 'ENXIO' and error.path?
-      atom.notifications.addWarning("Unable to save file: No such device or address '#{error.path}'")
+    else if error.code is 'EACCES'
+      addWarningWithPath('Unable to save file: Permission denied')
+    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST']
+      addWarningWithPath('Unable to save file', detail: error.message)
+    else if error.code is 'EROFS'
+      addWarningWithPath('Unable to save file: Read-only file system')
+    else if error.code is 'ENOSPC'
+      addWarningWithPath('Unable to save file: No space left on device')
+    else if error.code is 'ENXIO'
+      addWarningWithPath('Unable to save file: No such device or address')
+    else if error.code is 'ENOTSUP'
+      addWarningWithPath('Unable to save file: Operation not supported on socket')
+    else if error.code is 'EIO'
+      addWarningWithPath('Unable to save file: I/O error writing file')
+    else if error.code is 'EINTR'
+      addWarningWithPath('Unable to save file: Interrupted system call')
+    else if error.code is 'ESPIPE'
+      addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
