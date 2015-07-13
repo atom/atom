@@ -4,7 +4,7 @@ MaxTokenLength = 20000
 
 module.exports =
 class LineHtmlBuilder
-  constructor: (@fastVersion = false) ->
+  constructor: ->
     @tokenIterator = new TokenIterator
 
   buildLineHTML: (indentGuidesVisible, width, lineState) ->
@@ -16,10 +16,7 @@ class LineHtmlBuilder
         classes += decorationClass + ' '
     classes += 'line'
 
-    if @fastVersion
-      lineHTML = "<div class=\"#{classes}\">"
-    else
-      lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(indentGuidesVisible, lineState)
@@ -60,12 +57,11 @@ class LineHtmlBuilder
     @tokenIterator.reset(lineState)
 
     while @tokenIterator.next()
-      unless @fastVersion
-        for scope in @tokenIterator.getScopeEnds()
-          innerHTML += "</span>"
+      for scope in @tokenIterator.getScopeEnds()
+        innerHTML += "</span>"
 
-        for scope in @tokenIterator.getScopeStarts()
-          innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+      for scope in @tokenIterator.getScopeStarts()
+        innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
       tokenStart = @tokenIterator.getScreenStart()
       tokenEnd = @tokenIterator.getScreenEnd()
@@ -92,12 +88,11 @@ class LineHtmlBuilder
 
       innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
 
-    unless @fastVersion
-      for scope in @tokenIterator.getScopeEnds()
-        innerHTML += "</span>"
+    for scope in @tokenIterator.getScopeEnds()
+      innerHTML += "</span>"
 
-      for scope in @tokenIterator.getScopes()
-        innerHTML += "</span>"
+    for scope in @tokenIterator.getScopes()
+      innerHTML += "</span>"
 
     innerHTML += @buildEndOfLineHTML(lineState)
     innerHTML
