@@ -14,7 +14,7 @@ ScopedProperties = require './scoped-properties'
 
 packagesCache = require('../package.json')?._atomPackages ? {}
 
-# Loads and activates a package's main module and resources such as
+# Extended: Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
