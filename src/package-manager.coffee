@@ -406,9 +406,10 @@ class PackageManager
   #
   # * `name` - The {String} package name.
   #
-  # Returns a `Promise` that completes when the package is activated. Note
-  # that, for packages that have activation commands, this promise will not
-  # resolve until at least one of those commands has been broadcast.
+  # Returns a `Promise` that resolves to a {Package} object when the package
+  # is activated. Note that, for packages that have activation commands, this
+  # promise will not resolve until at least one of those commands has been
+  # broadcast.
   activatePackage: (name) ->
     if pack = @getActivePackage(name)
       Q(pack)
