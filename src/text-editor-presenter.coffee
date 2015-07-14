@@ -1034,6 +1034,10 @@ class TextEditorPresenter
     @lineHeight? and @baseCharacterWidth?
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    # TODO: before measuring we need to build the following lines.
+    # 1. @getStartTileRow()..@getEndTileRow()
+    # 2. @model.getLongestScreenRow()
+    # 3. lastCursor.getScreenRow()
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
