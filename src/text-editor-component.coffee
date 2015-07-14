@@ -649,6 +649,7 @@ class TextEditorComponent
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
+      @linesYardstick.setFont(@fontFamily, @fontSize)
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
       @remeasureCharacterWidths()

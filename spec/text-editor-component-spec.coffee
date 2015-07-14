@@ -97,6 +97,22 @@ describe "TextEditorComponent", ->
 
           expect(expected).toEqual(actual)
 
+      component.setFontSize(14)
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      component.prepareScreenRowsForMeasurement(screenRows...)
+
+      for screenRow in screenRows
+        length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
+
+        for screenColumn in [0...length] by 1
+          point = [screenRow, screenColumn]
+          actual = component.pixelPositionForScreenPosition(point)
+          expected = component.presenter.pixelPositionForScreenPosition(point)
+
+          expect(expected).toEqual(actual)
+
   describe "line rendering", ->
     expectTileContainsRow = (tileNode, screenRow, {top}) ->
       lineNode = tileNode.querySelector("[data-screen-row='#{screenRow}']")

@@ -12,11 +12,13 @@ class LinesYardstick
     @linesBuilder = new LineHtmlBuilder(true)
     @htmlNode = document.createElement("div")
     @stylesNode = document.createElement("style")
-    @stylesNode.innerHTML = "body { margin: 0; padding: 0; font-size: 20px; font-family: monospace; white-space: pre; }"
     @iframe = document.createElement("iframe")
     @iframe.onload = @setupIframe
 
     hostElement.appendChild(@iframe)
+
+  setFont: (fontFamily, fontSize) ->
+    @stylesNode.innerHTML = "body { margin: 0; padding: 0; font-size: #{fontSize}; font-family: #{fontFamily}; white-space: pre; }"
 
   onDidInitialize: (callback) ->
     @emitter.on "did-initialize", callback
