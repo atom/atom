@@ -792,6 +792,21 @@ class TextEditorComponent
     left = clientX - linesClientRect.left + @presenter.scrollLeft
     {top, left}
 
+  prepareScreenRowsForMeasurement: ->
+    @linesYardstick.buildDomNodesForScreenRows(arguments...)
+
+  pixelPositionForScreenPosition: (screenPosition, clip = true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+
+    top = targetRow * @editor.getLineHeightInPixels()
+    left = @linesYardstick.leftPixelPositionForScreenPosition(screenPosition)
+
+    {top, left}
+
   getModel: ->
     @editor
 

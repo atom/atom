@@ -82,6 +82,21 @@ describe "TextEditorComponent", ->
 
       expect(component.lineNodeForScreenRow(0).textContent).not.toBe("You shouldn't see this update.")
 
+  fffdescribe "measurements", ->
+    it "is equivalent to TextEditorPresenter::pixelPositionForScreenPosition", ->
+      screenRows = [0...editor.getScreenLineCount()]
+      component.prepareScreenRowsForMeasurement(screenRows...)
+
+      for screenRow in screenRows
+        length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
+
+        for screenColumn in [0...length] by 1
+          point = [screenRow, screenColumn]
+          actual = component.pixelPositionForScreenPosition(point)
+          expected = component.presenter.pixelPositionForScreenPosition(point)
+
+          expect(expected).toEqual(actual)
+
   describe "line rendering", ->
     expectTileContainsRow = (tileNode, screenRow, {top}) ->
       lineNode = tileNode.querySelector("[data-screen-row='#{screenRow}']")

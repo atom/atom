@@ -12,7 +12,7 @@ class LinesYardstick
     @linesBuilder = new LineHtmlBuilder(true)
     @htmlNode = document.createElement("div")
     @stylesNode = document.createElement("style")
-    @stylesNode.innerHTML = "body { font-size: 16px; }"
+    @stylesNode.innerHTML = "body { margin: 0; padding: 0; font-size: 20px; font-family: monospace; white-space: pre; }"
     @iframe = document.createElement("iframe")
     @iframe.onload = @setupIframe
 
@@ -24,6 +24,11 @@ class LinesYardstick
   canMeasure: ->
     @initialized
 
+  ensureInitialized: ->
+    return if @canMeasure()
+
+    throw new Error("This instance of LinesYardstick hasn't been initialized!")
+
   setupIframe: =>
     @initialized = true
     @domNode = @iframe.contentDocument.body
@@ -32,68 +37,61 @@ class LinesYardstick
 
     @emitter.emit "did-initialize"
 
-  measureLines: (positions) ->
-    return unless @initialized
+  buildDomNodesForScreenRows: ->
+    @ensureInitialized()
 
+    @lineDomPositionByScreenRow = {}
     html = ""
-    lines = []
-    for position in positions
-      line = @editor.tokenizedLineForScreenRow(position.row)
-      lineState = @presenter.buildLineState(0, position.row, line)
-      html += @linesBuilder.buildLineHTML(true, 1000, lineState)
+    state = @presenter.getState().content
 
-      lines.push({line, position})
+    for screenRow, i in arguments
+      line = @editor.tokenizedLineForScreenRow(screenRow)
+      lineState = @presenter.buildLineState(0, screenRow, line)
+      html += @linesBuilder.buildLineHTML(
+        state.indentGuidesVisible,
+        state.width,
+        lineState
+      )
+
+      @lineDomPositionByScreenRow[screenRow] = i
 
     WrapperDiv.remove()
     WrapperDiv.innerHTML = html
     @domNode.appendChild(WrapperDiv)
 
-    for {line, position}, i in lines
-      @measureLeftPixelPosition(WrapperDiv.children[i], position.column, line.getTokenIterator())
+  lineNodeForScreenRow: (screenRow) ->
+    WrapperDiv.children[@lineDomPositionByScreenRow[screenRow]]
 
-  measureLeftPixelPosition: (lineNode, targetColumn, iterator) ->
-    # TODO: Maybe we could have a LineIterator, which takes a line node and a
-    # tokenized line, so that here we can simply express how to measure stuff
-    # and not do all the housekeeping of making TokenIterator and NodeIterator
-    # match.
-    nodeIterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
-    charIndex = 0
-    leftPixelPosition = 0
-    while iterator.next()
-      text = iterator.getText()
-      textIndex = 0
-      while textIndex < text.length
-        if iterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          textIndex += 2
-        else
-          char = text[textIndex]
-          charLength = 1
-          textIndex++
+  leftPixelPositionForScreenPosition: (screenPosition) ->
+    @ensureInitialized()
 
-        continue if char is '\0'
+    lineNode = @lineNodeForScreenRow(screenPosition.row)
+    tokens = lineNode.getElementsByClassName("token")
+    token = @findTokenByColumn(screenPosition.column, tokens)
+    positionWithinToken = screenPosition.column - parseInt(token.dataset.start)
 
-        unless textNode?
-          textNode = nodeIterator.nextNode()
-          textNodeIndex = 0
-          nextTextNodeIndex = textNode.textContent.length
+    # console.log "Found Token: #{token.dataset.start}-#{token.dataset.end}"
+    # console.log "#{positionWithinToken}"
+    # console.log "First Token: #{tokens[0].dataset.start}-#{tokens[0].dataset.end}"
+    # console.log "First Token: #{tokens[0].textContent}"
 
-        while nextTextNodeIndex <= charIndex
-          textNode = nodeIterator.nextNode()
-          textNodeIndex = nextTextNodeIndex
-          nextTextNodeIndex = textNodeIndex + textNode.textContent.length
+    @charOffsetLeft(token.childNodes[0], positionWithinToken)
 
-        if charIndex is targetColumn
-          indexWithinNode = charIndex - textNodeIndex
-          return @charOffsetLeft(textNode, indexWithinNode)
+  findTokenByColumn: (column, tokens, startIndex = 0, endIndex = tokens.length) ->
+    return null if startIndex > endIndex
 
-        charIndex += charLength
+    index = Math.round (startIndex + endIndex) / 2
+    element = tokens[index]
 
-    if textNode?
-      @charOffsetLeft(textNode, textNode.textContent.length)
+    rangeStart = parseInt(element.dataset.start)
+    rangeEnd = parseInt(element.dataset.end)
+
+    if rangeStart > column
+      @findTokenByColumn(column, tokens, startIndex, index - 1)
+    else if rangeEnd < column
+      @findTokenByColumn(column, tokens, index + 1, endIndex)
     else
-      0
+      element
 
   charOffsetLeft: (textNode, charIndex) ->
     rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
