@@ -40,6 +40,11 @@ describe "TextEditorComponent", ->
       wrapperNode.setUpdatedSynchronously(false)
 
       {component} = wrapperView
+
+    waitsFor ->
+      component.linesYardstick.canMeasure()
+
+    runs ->
       component.setFontFamily('monospace')
       component.setLineHeight(1.3)
       component.setFontSize(20)

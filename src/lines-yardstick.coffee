@@ -2,11 +2,13 @@ LineHtmlBuilder = require './line-html-builder'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 rangeForMeasurement = document.createRange()
 WrapperDiv = document.createElement("div")
+{Emitter} = require 'event-kit'
 
 module.exports =
 class LinesYardstick
   constructor: (@editor, @presenter, hostElement) ->
     @initialized = false
+    @emitter = new Emitter
     @linesBuilder = new LineHtmlBuilder(true)
     @htmlNode = document.createElement("div")
     @stylesNode = document.createElement("style")
@@ -16,11 +18,19 @@ class LinesYardstick
 
     hostElement.appendChild(@iframe)
 
+  onDidInitialize: (callback) ->
+    @emitter.on "did-initialize", callback
+
+  canMeasure: ->
+    @initialized
+
   setupIframe: =>
     @initialized = true
     @domNode = @iframe.contentDocument.body
     @domNode.appendChild(@stylesNode)
     @domNode.appendChild(WrapperDiv)
+
+    @emitter.emit "did-initialize"
 
   measureLines: (positions) ->
     return unless @initialized

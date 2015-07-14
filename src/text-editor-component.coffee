@@ -102,8 +102,9 @@ class TextEditorComponent
 
     @disposables.add atom.views.pollDocument(@pollDOM)
 
-    @updateSync()
-    @checkForVisibilityChange()
+    @disposables.add @linesYardstick.onDidInitialize =>
+      @updateSync()
+      @checkForVisibilityChange()
 
   destroy: ->
     @mounted = false
@@ -116,6 +117,8 @@ class TextEditorComponent
     @domNode
 
   updateSync: ->
+    return unless @linesYardstick.canMeasure()
+
     @oldState ?= {}
     @newState = @presenter.getState()
 
