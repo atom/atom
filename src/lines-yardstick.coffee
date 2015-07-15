@@ -14,6 +14,7 @@ class LinesYardstick
     @stylesNode = document.createElement("style")
     @iframe = document.createElement("iframe")
     @iframe.onload = @setupIframe
+    @lineNodesByScreenRow = {}
 
     hostElement.appendChild(@iframe)
 
@@ -42,28 +43,36 @@ class LinesYardstick
   buildDomNodesForScreenRows: (screenRows) ->
     @ensureInitialized()
 
-    @lineDomPositionByScreenRow = {}
-    html = ""
     state = @presenter.getState().content
-    index = 0
+
+    for screenRow, lineNode of @lineNodesByScreenRow
+      screenRow = parseInt(screenRow)
+
+      continue if screenRows.has(screenRow)
+
+      lineNode.remove()
+      delete @lineNodesByScreenRow[screenRow]
+
+    html = ""
 
     screenRows.forEach (screenRow) =>
-      line = @editor.tokenizedLineForScreenRow(screenRow)
-      lineState = @presenter.buildLineState(0, screenRow, line)
-      html += @linesBuilder.buildLineHTML(
-        state.indentGuidesVisible,
-        state.width,
-        lineState
-      )
+      unless @lineNodesByScreenRow.hasOwnProperty(screenRow)
+        line = @editor.tokenizedLineForScreenRow(screenRow)
+        lineState = @presenter.buildLineState(0, screenRow, line)
+        html += @linesBuilder.buildLineHTML(
+          state.indentGuidesVisible,
+          state.width,
+          lineState
+        )
 
-      @lineDomPositionByScreenRow[screenRow] = index++
+    WrapperDiv.insertAdjacentHTML("beforeend", html)
 
-    WrapperDiv.remove()
-    WrapperDiv.innerHTML = html
-    @domNode.appendChild(WrapperDiv)
+    for lineNode in WrapperDiv.children
+      screenRow = lineNode.dataset.screenRow
+      @lineNodesByScreenRow[screenRow] = lineNode
 
   lineNodeForScreenRow: (screenRow) ->
-    WrapperDiv.children[@lineDomPositionByScreenRow[screenRow]]
+    @lineNodesByScreenRow[screenRow]
 
   leftPixelPositionForScreenPosition: (screenPosition) ->
     @ensureInitialized()
