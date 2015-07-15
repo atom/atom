@@ -39,14 +39,15 @@ class LinesYardstick
 
     @emitter.emit "did-initialize"
 
-  buildDomNodesForScreenRows: ->
+  buildDomNodesForScreenRows: (screenRows) ->
     @ensureInitialized()
 
     @lineDomPositionByScreenRow = {}
     html = ""
     state = @presenter.getState().content
+    index = 0
 
-    for screenRow, i in arguments
+    screenRows.forEach (screenRow) =>
       line = @editor.tokenizedLineForScreenRow(screenRow)
       lineState = @presenter.buildLineState(0, screenRow, line)
       html += @linesBuilder.buildLineHTML(
@@ -55,7 +56,7 @@ class LinesYardstick
         lineState
       )
 
-      @lineDomPositionByScreenRow[screenRow] = i
+      @lineDomPositionByScreenRow[screenRow] = index++
 
     WrapperDiv.remove()
     WrapperDiv.innerHTML = html

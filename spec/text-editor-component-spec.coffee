@@ -84,10 +84,10 @@ fdescribe "TextEditorComponent", ->
 
   describe "measurements", ->
     it "is equivalent to TextEditorPresenter::pixelPositionForScreenPosition", ->
-      screenRows = [0...editor.getScreenLineCount()]
-      component.prepareScreenRowsForMeasurement(screenRows...)
+      screenRows = new Set([0...editor.getScreenLineCount()])
+      component.prepareScreenRowsForMeasurement(screenRows)
 
-      for screenRow in screenRows
+      screenRows.forEach (screenRow) ->
         length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
 
         for screenColumn in [0...length] by 1
@@ -101,9 +101,9 @@ fdescribe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      component.prepareScreenRowsForMeasurement(screenRows...)
+      component.prepareScreenRowsForMeasurement(screenRows)
 
-      for screenRow in screenRows
+      screenRows.forEach (screenRow) ->
         length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
 
         for screenColumn in [0...length] by 1

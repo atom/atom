@@ -793,8 +793,8 @@ class TextEditorComponent
     left = clientX - linesClientRect.left + @presenter.scrollLeft
     {top, left}
 
-  prepareScreenRowsForMeasurement: ->
-    @linesYardstick.buildDomNodesForScreenRows(arguments...)
+  prepareScreenRowsForMeasurement: (screenRows) ->
+    @linesYardstick.buildDomNodesForScreenRows(screenRows)
 
   pixelPositionForScreenPosition: (screenPosition, clip = true) ->
     screenPosition = Point.fromObject(screenPosition)
