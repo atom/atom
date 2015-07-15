@@ -90,7 +90,7 @@ fdescribe "TextEditorComponent", ->
       screenRows.forEach (screenRow) ->
         length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
 
-        for screenColumn in [0...length] by 1
+        for screenColumn in [0..length] by 1
           point = [screenRow, screenColumn]
           actual = component.pixelPositionForScreenPosition(point)
           expected = component.presenter.pixelPositionForScreenPosition(point)
@@ -106,7 +106,7 @@ fdescribe "TextEditorComponent", ->
       screenRows.forEach (screenRow) ->
         length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
 
-        for screenColumn in [0...length] by 1
+        for screenColumn in [0..length] by 1
           point = [screenRow, screenColumn]
           actual = component.pixelPositionForScreenPosition(point)
           expected = component.presenter.pixelPositionForScreenPosition(point)

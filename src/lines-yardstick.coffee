@@ -3,6 +3,7 @@ AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 rangeForMeasurement = document.createRange()
 WrapperDiv = document.createElement("div")
 {Emitter} = require 'event-kit'
+{last} = require 'underscore-plus'
 
 module.exports =
 class LinesYardstick
@@ -74,25 +75,28 @@ class LinesYardstick
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByScreenRow[screenRow]
 
-  leftPixelPositionForScreenPosition: (screenPosition) ->
+  leftPixelPositionForScreenPosition: (position) ->
     @ensureInitialized()
 
-    lineNode = @lineNodeForScreenRow(screenPosition.row)
+    lineNode = @lineNodeForScreenRow(position.row)
     tokens = lineNode.getElementsByClassName("token")
-    token = @findTokenByColumn(screenPosition.column, tokens)
-    positionWithinToken = screenPosition.column - parseInt(token.dataset.start)
 
-    # console.log "Found Token: #{token.dataset.start}-#{token.dataset.end}"
-    # console.log "#{positionWithinToken}"
-    # console.log "First Token: #{tokens[0].dataset.start}-#{tokens[0].dataset.end}"
-    # console.log "First Token: #{tokens[0].textContent}"
+    return 0 if tokens.length is 0
 
-    @charOffsetLeft(token.childNodes[0], positionWithinToken)
+    if foundToken = @findTokenByColumn(position.column, tokens)
+      textNode = foundToken.childNodes[0]
+      positionWithinToken = position.column - parseInt(foundToken.dataset.start)
+    else
+      textNode = last(tokens).childNodes[0]
+      positionWithinToken = textNode.textContent.length
+
+    @leftPixelPositionForCharInTextNode(textNode, positionWithinToken)
 
   findTokenByColumn: (column, tokens, startIndex = 0, endIndex = tokens.length) ->
-    return null if startIndex > endIndex
-
     index = Math.round (startIndex + endIndex) / 2
+
+    return if startIndex > endIndex or index is tokens.length
+
     element = tokens[index]
 
     rangeStart = parseInt(element.dataset.start)
@@ -105,7 +109,7 @@ class LinesYardstick
     else
       element
 
-  charOffsetLeft: (textNode, charIndex) ->
+  leftPixelPositionForCharInTextNode: (textNode, charIndex = textNode.textContent.length) ->
     rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
 
     if charIndex is 0
