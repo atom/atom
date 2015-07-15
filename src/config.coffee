@@ -235,9 +235,12 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # #### enum
 #
-# All types support an `enum` key. The enum key lets you specify all values
-# that the config setting can possibly be. `enum` _must_ be an array of values
-# of your specified type. Schema:
+# All types support an `enum` key. The enum key lets you specify all values that
+# the config setting can possibly be. `enum` _must_ be an array of either
+# allowed values (of the specified type), or pairs of such values with
+# descriptions of each value.
+#
+# In this example, the setting must be one of the 4 integers:
 #
 # ```coffee
 # config:
@@ -245,6 +248,20 @@ ScopeDescriptor = require './scope-descriptor'
 #     type: 'integer'
 #     default: 4
 #     enum: [2, 4, 6, 8]
+# ```
+#
+# In this example, the setting must be either 'foo' or 'bar', which are
+# presented using the provided descriptions in the settings pane:
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'string'
+#     default: 'foo'
+#     enum: [
+#       ['foo', 'Foo mode. You want this.']
+#       ['bar', 'Bar mode. Nobody wants that!']
+#     ]
 # ```
 #
 # Usage:
@@ -1124,6 +1141,11 @@ Config.addSchemaEnforcers
 
     validateEnum: (keyPath, value, schema) ->
       possibleValues = schema.enum
+
+      if Array.isArray(possibleValues)
+        possibleValues = possibleValues.map (value) ->
+          if Array.isArray(value) then value[0] else value
+
       return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
 
       for possibleValue in possibleValues

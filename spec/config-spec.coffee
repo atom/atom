@@ -1538,6 +1538,10 @@ describe "Config", ->
                 items:
                   type: 'string'
                   enum: ['one', 'two', 'three']
+              str_options:
+                type: 'string'
+                default: 'one'
+                enum: [['one', 'One'], 'two', ['three', 'Three']]
 
           atom.config.setSchema('foo.bar', schema)
 
@@ -1561,6 +1565,16 @@ describe "Config", ->
 
           expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
           expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
+
+        it 'will honor the enum when specified as an array', ->
+          expect(atom.config.set('foo.bar.str_options', 'one')).toBe true
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'one'
+
+          expect(atom.config.set('foo.bar.str_options', 'two')).toBe true
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
+
+          expect(atom.config.set('foo.bar.str_options', 'One')).toBe false
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
 
   describe "Deprecated Methods", ->
     describe ".getDefault(keyPath)", ->
