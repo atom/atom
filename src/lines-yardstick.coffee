@@ -78,6 +78,11 @@ class LinesYardstick
     @ensureInitialized()
 
     lineNode = @lineNodeForScreenRow(position.row)
+
+    unless lineNode?
+      console.log "#{position.row} not found. This wasn't expected."
+      return 0
+
     tokens = lineNode.getElementsByClassName("token")
 
     return 0 if tokens.length is 0
