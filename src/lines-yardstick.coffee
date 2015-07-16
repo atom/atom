@@ -16,6 +16,7 @@ class LinesYardstick
     @iframe = document.createElement("iframe")
     @iframe.onload = @setupIframe
     @lineNodesByScreenRow = {}
+    @screenRowsByLineId = {}
 
     hostElement.appendChild(@iframe)
 
@@ -44,27 +45,28 @@ class LinesYardstick
   buildDomNodesForScreenRows: (screenRows) ->
     @ensureInitialized()
 
-    state = @presenter.getState().content
-
-    for screenRow, lineNode of @lineNodesByScreenRow
-      screenRow = parseInt(screenRow)
-
-      continue if screenRows.has(screenRow)
-
-      lineNode.remove()
-      delete @lineNodesByScreenRow[screenRow]
-
+    visibleLines = {}
     html = ""
 
     screenRows.forEach (screenRow) =>
-      unless @lineNodesByScreenRow.hasOwnProperty(screenRow)
-        line = @editor.tokenizedLineForScreenRow(screenRow)
+      line = @editor.tokenizedLineForScreenRow(screenRow)
+      visibleLines[line.id] = true
+
+      unless @screenRowsByLineId.hasOwnProperty(line.id)
         lineState = @presenter.buildLineState(0, screenRow, line)
         html += @linesBuilder.buildLineHTML(
-          state.indentGuidesVisible,
-          state.width,
+          @presenter.showIndentGuide,
+          1000,
           lineState
         )
+        @screenRowsByLineId[line.id] = screenRow
+
+    for lineId, screenRow of @screenRowsByLineId
+      continue if visibleLines.hasOwnProperty(lineId)
+
+      @lineNodesByScreenRow[screenRow].remove()
+      delete @lineNodesByScreenRow[screenRow]
+      delete @screenRowsByLineId[lineId]
 
     WrapperDiv.insertAdjacentHTML("beforeend", html)
 
