@@ -65,11 +65,11 @@ class LinesYardstick
       continue if visibleLines.hasOwnProperty(lineId)
 
       @lineNodesByScreenRow[screenRow].remove()
-      delete @lineNodesByScreenRow[screenRow]
       delete @screenRowsByLineId[lineId]
 
     WrapperDiv.insertAdjacentHTML("beforeend", html)
 
+    @lineNodesByScreenRow = {}
     for lineNode in WrapperDiv.children
       screenRow = lineNode.dataset.screenRow
       @lineNodesByScreenRow[screenRow] = lineNode
