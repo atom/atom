@@ -87,10 +87,13 @@ class TextEditorPresenter
   getState: ->
     @updating = true
 
-    @updateContentDimensions()
-    @updateScrollbarDimensions()
+    @updateVerticalDimensions()
     @updateStartRow()
     @updateEndRow()
+    @component?.prepareScreenRowsForMeasurement(@getMeasurableScreenRows())
+
+    @updateHorizontalDimensions()
+    @updateScrollbarDimensions()
     @updateCommonGutterState()
 
     @updateFocusedState() if @shouldUpdateFocusedState
@@ -664,11 +667,17 @@ class TextEditorPresenter
       @scrollHeight = scrollHeight
       @updateScrollTop()
 
-  updateContentDimensions: ->
+  updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
       @contentHeight = @lineHeight * @model.getScreenLineCount()
 
+    if @contentHeight isnt oldContentHeight
+      @updateHeight()
+      @updateScrollbarDimensions()
+      @updateScrollHeight()
+
+  updateHorizontalDimensions: ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
       clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
@@ -676,14 +685,13 @@ class TextEditorPresenter
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
-    if @contentHeight isnt oldContentHeight
-      @updateHeight()
-      @updateScrollbarDimensions()
-      @updateScrollHeight()
-
     if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
       @updateScrollWidth()
+
+  updateContentDimensions: ->
+    @updateVerticalDimensions()
+    @updateHorizontalDimensions()
 
   updateClientHeight: ->
     return unless @height? and @horizontalScrollbarHeight?
