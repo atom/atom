@@ -4,7 +4,7 @@ MaxTokenLength = 20000
 
 module.exports =
 class LineHtmlBuilder
-  constructor: ->
+  constructor: (@fastVersion) ->
     @tokenIterator = new TokenIterator
 
   buildLineHTML: (indentGuidesVisible, width, lineState) ->
@@ -16,14 +16,19 @@ class LineHtmlBuilder
         classes += decorationClass + ' '
     classes += 'line'
 
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
+    if @fastVersion
+      lineHTML = "<div class=\"#{classes}\" data-screen-row=\"#{screenRow}\">"
+    else
+      lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(indentGuidesVisible, lineState)
     else
       lineHTML += @buildLineInnerHTML(indentGuidesVisible, lineState)
 
-    lineHTML += '<span class="fold-marker"></span>' if fold
+    unless @fastVersion
+      lineHTML += '<span class="fold-marker"></span>' if fold
+
     lineHTML += "</div>"
     lineHTML
 
