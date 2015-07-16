@@ -34,7 +34,10 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### Slackware
 
-* `sbopkg -k -i node -i atom`
+* `sbopkg -k -i iojs -i atom`
+OR
+* Clone and run this build, which will automatically compile the latest version (requires iojs or node):
+* https://github.com/ryanpcmcquen/ryanpc-slackbuilds/tree/master/unofficial/atom
 
 ### openSUSE
 
