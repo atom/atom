@@ -1,7 +1,6 @@
 LineHtmlBuilder = require './line-html-builder'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 rangeForMeasurement = document.createRange()
-WrapperDiv = document.createElement("div")
 {Emitter} = require 'event-kit'
 {last} = require 'underscore-plus'
 
@@ -12,8 +11,10 @@ class LinesYardstick
     @emitter = new Emitter
     @linesBuilder = new LineHtmlBuilder(true)
     @htmlNode = document.createElement("div")
+    @linesNode = document.createElement("div")
     @stylesNode = document.createElement("style")
     @iframe = document.createElement("iframe")
+    @iframe.style.display = "none"
     @iframe.onload = @setupIframe
     @lineNodesByScreenRow = {}
     @screenRowsByLineId = {}
@@ -38,7 +39,7 @@ class LinesYardstick
     @initialized = true
     @domNode = @iframe.contentDocument.body
     @domNode.appendChild(@stylesNode)
-    @domNode.appendChild(WrapperDiv)
+    @domNode.appendChild(@linesNode)
 
     @emitter.emit "did-initialize"
 
@@ -54,11 +55,7 @@ class LinesYardstick
 
       unless @screenRowsByLineId.hasOwnProperty(line.id)
         lineState = @presenter.buildLineState(0, screenRow, line)
-        html += @linesBuilder.buildLineHTML(
-          @presenter.showIndentGuide,
-          1000,
-          lineState
-        )
+        html += @linesBuilder.buildLineHTML(false, 1000, lineState)
         @screenRowsByLineId[line.id] = screenRow
 
     for lineId, screenRow of @screenRowsByLineId
@@ -67,10 +64,10 @@ class LinesYardstick
       @lineNodesByScreenRow[screenRow].remove()
       delete @screenRowsByLineId[lineId]
 
-    WrapperDiv.insertAdjacentHTML("beforeend", html)
+    @linesNode.insertAdjacentHTML("beforeend", html)
 
     @lineNodesByScreenRow = {}
-    for lineNode in WrapperDiv.children
+    for lineNode in @linesNode.children
       screenRow = lineNode.dataset.screenRow
       @lineNodesByScreenRow[screenRow] = lineNode
 

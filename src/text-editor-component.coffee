@@ -55,7 +55,6 @@ class TextEditorComponent
 
     @presenter.onDidUpdateState(@requestUpdate)
 
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @hostElement)
 
     @domNode = document.createElement('div')
     if @useShadowDOM
@@ -102,7 +101,10 @@ class TextEditorComponent
 
     @disposables.add atom.views.pollDocument(@pollDOM)
 
+    @linesYardstick = new LinesYardstick(@editor, @presenter, @domNode)
+
     @disposables.add @linesYardstick.onDidInitialize =>
+      @presenter.setComponent(this)
       @updateSync()
       @checkForVisibilityChange()
 

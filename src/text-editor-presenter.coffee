@@ -37,6 +37,8 @@ class TextEditorPresenter
     @startBlinkingCursors() if @focused
     @updating = false
 
+  setComponent: (@component) ->
+
   destroy: ->
     @disposables.dispose()
 
@@ -61,6 +63,24 @@ class TextEditorPresenter
   # Returns a {Boolean}, `true` if is collecting changes, `false` if is applying them.
   isBatching: ->
     @updating is false
+
+  getMeasurableScreenRows: ->
+    measurableRows = new Set
+
+    if @startRow? and @endRow?
+      startRow = @getStartTileRow()
+      endRow = Math.min(@endRow, @getEndTileRow() + @tileSize)
+
+      measurableRows.add(row) for row in [startRow...endRow]
+
+    if lastCursorRange = @model.getLastCursor()?.getScreenRange()
+      measurableRows.add(lastCursorRange.start.row)
+      measurableRows.add(lastCursorRange.end.row)
+
+    if longestScreenRow = @model.getLongestScreenRow()
+      measurableRows.add(longestScreenRow)
+
+    measurableRows
 
   # Public: Gets this presenter's state, updating it just in time before returning from this function.
   # Returns a state {Object}, useful for rendering to screen.
