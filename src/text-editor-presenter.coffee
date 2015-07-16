@@ -68,10 +68,7 @@ class TextEditorPresenter
     measurableRows = new Set
 
     if @startRow? and @endRow?
-      startRow = @getStartTileRow()
-      endRow = Math.min(@endRow, @getEndTileRow() + @tileSize)
-
-      measurableRows.add(row) for row in [startRow...endRow]
+      measurableRows.add(row) for row in [@startRow...@endRow]
 
     if lastCursorRange = @model.getLastCursor()?.getScreenRange()
       measurableRows.add(lastCursorRange.start.row)
@@ -1059,45 +1056,13 @@ class TextEditorPresenter
     @lineHeight? and @baseCharacterWidth?
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    # TODO: before measuring we need to build the following lines.
-    # 1. @getStartTileRow()..@getEndTileRow()
-    # 2. @model.getLongestScreenRow()
-    # 3. lastCursor.getScreenRow()
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @model.clipScreenPosition(screenPosition) if clip
+    return {left: 0, top: 0} unless @component?
 
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
-    baseCharacterWidth = @baseCharacterWidth
+    position = @component.pixelPositionForScreenPosition(screenPosition, clip)
+    position.top -= @scrollTop
+    position.left -= @scrollLeft
 
-    top = targetRow * @lineHeight
-    left = 0
-    column = 0
-
-    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
-
-      valueIndex = 0
-      text = iterator.getText()
-      while valueIndex < text.length
-        if iterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          valueIndex += 2
-        else
-          char = text[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        break if column is targetColumn
-
-        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
-        column += charLength
-
-    top -= @scrollTop
-    left -= @scrollLeft
-    {top, left}
+    return position
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?
