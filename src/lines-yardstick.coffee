@@ -97,7 +97,7 @@ class LinesYardstick
     @leftPixelPositionForCharInTextNode(textNode, positionWithinToken)
 
   findTokenByColumn: (column, tokens, startIndex = 0, endIndex = tokens.length) ->
-    index = Math.round (startIndex + endIndex) / 2
+    index = Math.floor((startIndex + endIndex) / 2)
 
     return if startIndex > endIndex or index is tokens.length
 
