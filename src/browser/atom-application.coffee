@@ -167,7 +167,7 @@ class AtomApplication
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
-    @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
+    @on 'application:new-file', -> @openPath()
     @on 'application:open', -> @promptForPathToOpen('all', getLoadSettings())
     @on 'application:open-file', -> @promptForPathToOpen('file', getLoadSettings())
     @on 'application:open-folder', -> @promptForPathToOpen('folder', getLoadSettings())
