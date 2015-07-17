@@ -10,8 +10,6 @@ class LinesYardstick
     @initialized = false
     @emitter = new Emitter
     @linesBuilder = new LineHtmlBuilder(true)
-    @htmlNode = document.createElement("div")
-    @linesNode = document.createElement("div")
     @stylesNode = document.createElement("style")
     @iframe = document.createElement("iframe")
     @iframe.style.display = "none"
@@ -38,8 +36,8 @@ class LinesYardstick
   setupIframe: =>
     @initialized = true
     @domNode = @iframe.contentDocument.body
-    @domNode.appendChild(@stylesNode)
-    @domNode.appendChild(@linesNode)
+    @headNode = @iframe.contentDocument.head
+    @headNode.appendChild(@stylesNode)
 
     @emitter.emit "did-initialize"
 
@@ -64,10 +62,10 @@ class LinesYardstick
       @lineNodesByScreenRow[screenRow].remove()
       delete @screenRowsByLineId[lineId]
 
-    @linesNode.insertAdjacentHTML("beforeend", html)
+    @domNode.insertAdjacentHTML("beforeend", html)
 
     @lineNodesByScreenRow = {}
-    for lineNode in @linesNode.children
+    for lineNode in @domNode.children
       screenRow = lineNode.dataset.screenRow
       @lineNodesByScreenRow[screenRow] = lineNode
 
