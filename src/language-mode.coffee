@@ -234,14 +234,15 @@ class LanguageMode
   #
   # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow, options) ->
+    line = @buffer.lineForRow(bufferRow)
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)
-    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
-    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
-  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
+  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->
     iterator = tokenizedLine.getTokenIterator()
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
@@ -268,10 +269,7 @@ class LanguageMode
       desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
       desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
 
-    unless @editor.isBufferRowCommented(bufferRow)
-      bufferLine = @buffer.lineForRow(bufferRow)
-      desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(bufferLine)
-
+    desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
     Math.max(desiredIndentLevel, 0)
 
   # Calculate a minimum indent level for a range of lines excluding empty lines.
