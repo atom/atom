@@ -6,7 +6,7 @@ rangeForMeasurement = document.createRange()
 
 module.exports =
 class LinesYardstick
-  constructor: (@editor, @presenter, hostElement) ->
+  constructor: (@editor, @presenter, hostElement, @syntaxStyleElement) ->
     @initialized = false
     @emitter = new Emitter
     @linesBuilder = new LineHtmlBuilder(true)
@@ -38,6 +38,7 @@ class LinesYardstick
     @domNode = @iframe.contentDocument.body
     @headNode = @iframe.contentDocument.head
     @headNode.appendChild(@stylesNode)
+    @headNode.appendChild(@syntaxStyleElement)
 
     @emitter.emit "did-initialize"
 
