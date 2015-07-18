@@ -45,14 +45,10 @@ class Notification
   Section: Methods
   ###
 
-  # Public: Retrieves the {String} type.
-  #
-  # Returns a {String}.
+  # Public: Returns the {String} type.
   getType: -> @type
 
-  # Public: Retrieves the {String} message.
-  #
-  # Returns a {String}.
+  # Public: Returns the {String} message.
   getMessage: -> @message
 
   getTimestamp: -> @timestamp
