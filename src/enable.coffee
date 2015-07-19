@@ -24,14 +24,14 @@ class Enable extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    configFilePath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
-    unless configFilePath
-      callback("Could not find config.cson")
-      return
-
     packageNames = @packageNamesFromArgv(options.argv)
     if packageNames.length is 0
       callback("Please specify a package to enable")
+      return
+
+    configFilePath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
+    unless configFilePath
+      callback("Could not find config.cson. Run Atom first?")
       return
 
     try

@@ -10,7 +10,7 @@ describe 'apm enable', ->
     silenceOutput()
     spyOnToken()
 
-  fit 'enables a disabled package', ->
+  it 'enables a disabled package', ->
     atomHome = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_HOME = atomHome
     callback = jasmine.createSpy('callback')
@@ -41,7 +41,59 @@ describe 'apm enable', ->
           ]
 
   it 'does nothing if a package is already enabled', ->
+    atomHome = temp.mkdirSync('apm-home-dir-')
+    process.env.ATOM_HOME = atomHome
+    callback = jasmine.createSpy('callback')
+    configFilePath = path.join(atomHome, 'config.cson')
+
+    CSON.writeFileSync configFilePath, '*':
+      core:
+        disabledPackages: [
+          "metrics"
+          "exception-reporting"
+        ]
+
+    runs ->
+      apm.run(['enable', 'vim-mode'], callback)
+
+    waitsFor 'waiting for enable to complete', ->
+      callback.callCount > 0
+
+    runs ->
+      config = CSON.readFileSync(configFilePath)
+      expect(config).toEqual '*':
+        core:
+          disabledPackages: [
+            "metrics"
+            "exception-reporting"
+          ]
 
   it 'produces an error if config.cson doesn\'t exist', ->
+    atomHome = temp.mkdirSync('apm-home-dir-')
+    process.env.ATOM_HOME = atomHome
+    callback = jasmine.createSpy('callback')
+
+    runs ->
+      apm.run(['enable', 'vim-mode'], callback)
+
+    waitsFor 'waiting for enable to complete', ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.error).toHaveBeenCalled()
+      expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
 
   it 'complains if user supplies no packages', ->
+    atomHome = temp.mkdirSync('apm-home-dir-')
+    process.env.ATOM_HOME = atomHome
+    callback = jasmine.createSpy('callback')
+
+    runs ->
+      apm.run(['enable'], callback)
+
+    waitsFor 'waiting for enable to complete', ->
+      callback.callCount > 0
+
+    runs ->
+      expect(console.error).toHaveBeenCalled()
+      expect(console.error.argsForCall[0][0].length).toBeGreaterThan 0
