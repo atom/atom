@@ -31,6 +31,7 @@ commandClasses = [
   require './config'
   require './dedupe'
   require './develop'
+  require './disable'
   require './docs'
   require './enable'
   require './featured'

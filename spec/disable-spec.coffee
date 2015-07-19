@@ -5,12 +5,12 @@ CSON = require 'season'
 
 apm = require '../lib/apm-cli'
 
-describe 'apm enable', ->
+describe 'apm disable', ->
   beforeEach ->
     silenceOutput()
     spyOnToken()
 
-  it 'enables a disabled package', ->
+  it 'disables an enabled package', ->
     atomHome = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_HOME = atomHome
     callback = jasmine.createSpy('callback')
@@ -19,16 +19,14 @@ describe 'apm enable', ->
     CSON.writeFileSync configFilePath, '*':
       core:
         disabledPackages: [
-          "metrics"
           "vim-mode"
-          "exception-reporting"
           "file-icons"
         ]
 
     runs ->
-      apm.run(['enable', 'vim-mode', 'file-icons'], callback)
+      apm.run(['disable', 'metrics', 'exception-reporting'], callback)
 
-    waitsFor 'waiting for enable to complete', ->
+    waitsFor 'waiting for disable to complete', ->
       callback.callCount > 0
 
     runs ->
@@ -36,11 +34,13 @@ describe 'apm enable', ->
       expect(config).toEqual '*':
         core:
           disabledPackages: [
+            "vim-mode"
+            "file-icons"
             "metrics"
             "exception-reporting"
           ]
 
-  it 'does nothing if a package is already enabled', ->
+  it 'does nothing if a package is already disabled', ->
     atomHome = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_HOME = atomHome
     callback = jasmine.createSpy('callback')
@@ -49,14 +49,16 @@ describe 'apm enable', ->
     CSON.writeFileSync configFilePath, '*':
       core:
         disabledPackages: [
+          "vim-mode"
+          "file-icons"
           "metrics"
           "exception-reporting"
         ]
 
     runs ->
-      apm.run(['enable', 'vim-mode'], callback)
+      apm.run(['disable', 'vim-mode', 'metrics'], callback)
 
-    waitsFor 'waiting for enable to complete', ->
+    waitsFor 'waiting for disable to complete', ->
       callback.callCount > 0
 
     runs ->
@@ -64,6 +66,8 @@ describe 'apm enable', ->
       expect(config).toEqual '*':
         core:
           disabledPackages: [
+            "vim-mode"
+            "file-icons"
             "metrics"
             "exception-reporting"
           ]
@@ -74,9 +78,9 @@ describe 'apm enable', ->
     callback = jasmine.createSpy('callback')
 
     runs ->
-      apm.run(['enable', 'vim-mode'], callback)
+      apm.run(['disable', 'vim-mode'], callback)
 
-    waitsFor 'waiting for enable to complete', ->
+    waitsFor 'waiting for disable to complete', ->
       callback.callCount > 0
 
     runs ->
@@ -89,9 +93,9 @@ describe 'apm enable', ->
     callback = jasmine.createSpy('callback')
 
     runs ->
-      apm.run(['enable'], callback)
+      apm.run(['disable'], callback)
 
-    waitsFor 'waiting for enable to complete', ->
+    waitsFor 'waiting for disable to complete', ->
       callback.callCount > 0
 
     runs ->
