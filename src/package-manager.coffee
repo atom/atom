@@ -275,6 +275,35 @@ class PackageManager
       packages.push(metadata)
     packages
 
+  # Public: Activate the named package.
+  #
+  # * `name` - The {String} package name.
+  #
+  # Returns a promise that is fulfilled when the package has been loaded. If the
+  # package is already loaded, it is fulfilled immediately. If an error was
+  # encountered loading the package, the promise is rejected.
+  activatePackage: (name) ->
+    if pack = @getActivePackage(name)
+      Q(pack)
+    else if pack = @loadPackage(name)
+      pack.activate().then =>
+        @activePackages[pack.name] = pack
+        @emitter.emit 'did-activate-package', pack
+        pack
+    else
+      Q.reject(new Error("Failed to load package '#{name}'"))
+
+  # Public: Deactivate the named package.
+  #
+  # * `name` - The {String} package name.
+  deactivatePackage: (name) ->
+    pack = @getLoadedPackage(name)
+    if @isPackageActive(name)
+      @setPackageState(pack.name, state) if state = pack.serialize?()
+    pack.deactivate()
+    delete @activePackages[pack.name]
+    @emitter.emit 'did-deactivate-package', pack
+
   ###
   Section: Private
   ###
@@ -398,18 +427,6 @@ class PackageManager
     @observeDisabledPackages()
     promises
 
-  # Activate a single package by name
-  activatePackage: (name) ->
-    if pack = @getActivePackage(name)
-      Q(pack)
-    else if pack = @loadPackage(name)
-      pack.activate().then =>
-        @activePackages[pack.name] = pack
-        @emitter.emit 'did-activate-package', pack
-        pack
-    else
-      Q.reject(new Error("Failed to load package '#{name}'"))
-
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
     @activationHookEmitter.emit(hook)
@@ -424,15 +441,6 @@ class PackageManager
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
-
-  # Deactivate the package with the given name
-  deactivatePackage: (name) ->
-    pack = @getLoadedPackage(name)
-    if @isPackageActive(name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
-    pack.deactivate()
-    delete @activePackages[pack.name]
-    @emitter.emit 'did-deactivate-package', pack
 
   handleMetadataError: (error, packagePath) ->
     metadataPath = path.join(packagePath, 'package.json')
