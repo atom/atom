@@ -32,6 +32,7 @@ commandClasses = [
   require './dedupe'
   require './develop'
   require './docs'
+  require './enable'
   require './featured'
   require './init'
   require './install'
