@@ -62,6 +62,9 @@ class LinesYardstick
 
     [index, @contexts[index]]
 
+  lineNodesForContextIndex: (contextIndex) ->
+    @lineNodesByContextIndex[contextIndex] ? []
+
   buildDomNodesForScreenRows: (screenRows) ->
     @ensureInitialized()
 
@@ -78,28 +81,26 @@ class LinesYardstick
         html += @linesBuilder.buildLineHTML(false, 1000, lineState)
         @screenRowsByLineId[line.id] = screenRow
 
-    if @lineNodesByContextIndex[contextIndex]?
-      for lineNode in @lineNodesByContextIndex[contextIndex]
-        screenRow = lineNode.dataset.screenRow
-        lineId = @editor.tokenizedLineForScreenRow(screenRow)?.id
+    for lineNode in @lineNodesForContextIndex(contextIndex)
+      screenRow = lineNode.dataset.screenRow
+      lineId = @editor.tokenizedLineForScreenRow(screenRow)?.id
 
-        continue if visibleLines.hasOwnProperty(lineId)
+      continue if visibleLines.hasOwnProperty(lineId)
 
-        delete @screenRowsByLineId[lineId]
-        lineNode.remove()
+      delete @screenRowsByLineId[lineId]
+      lineNode.remove()
 
     contextNode.insertAdjacentHTML("beforeend", html)
 
     @lineNodesByContextIndex = {}
     @lineNodesByScreenRow = {}
-    for domNode, i in @contexts
-      continue if domNode is contextNode
+    for domNode, i in @contexts when domNode isnt contextNode
+      @storeLineNodesInContextIndex(i)
 
-      for lineNode in domNode.getElementsByClassName("line")
-        screenRow = lineNode.dataset.screenRow
-        @lineNodesByScreenRow[screenRow] = lineNode
-        @lineNodesByContextIndex[i] ?= []
-        @lineNodesByContextIndex[i].push(lineNode)
+    @storeLineNodesInContextIndex(contextIndex)
+
+  storeLineNodesInContextIndex: (contextIndex) ->
+    contextNode = @contexts[contextIndex]
 
     for lineNode in contextNode.getElementsByClassName("line")
       screenRow = lineNode.dataset.screenRow
