@@ -15,6 +15,7 @@ class LinesYardstick
     @iframe.style.display = "none"
     @iframe.onload = @setupIframe
     @lineNodesByScreenRow = {}
+    @lineNodesByContextIndex = {}
     @screenRowsByLineId = {}
 
     hostElement.appendChild(@iframe)
@@ -33,6 +34,14 @@ class LinesYardstick
 
     throw new Error("This instance of LinesYardstick hasn't been initialized!")
 
+  createMeasurementContext: ->
+    context = document.createElement("div")
+    context.style.overflow = "hidden"
+    context.style.width = "600px"
+    context.style.height = "600px"
+    context.style.display = "block"
+    context
+
   setupIframe: =>
     @initialized = true
     @domNode = @iframe.contentDocument.body
@@ -40,13 +49,25 @@ class LinesYardstick
     @headNode.appendChild(@stylesNode)
     @headNode.appendChild(@syntaxStyleElement)
 
+    @contexts = []
+    @contexts.push(@createMeasurementContext()) for i in [0..8] by 1
+    @domNode.appendChild(context) for context in @contexts
+
     @emitter.emit "did-initialize"
+
+  getRandomContextNode: ->
+    index = Math.round(Math.random() * 10)
+    index = Math.max(index, 0)
+    index = Math.min(index, @contexts.length - 1)
+
+    [index, @contexts[index]]
 
   buildDomNodesForScreenRows: (screenRows) ->
     @ensureInitialized()
 
     visibleLines = {}
     html = ""
+    [contextIndex, contextNode] = @getRandomContextNode()
 
     screenRows.forEach (screenRow) =>
       line = @editor.tokenizedLineForScreenRow(screenRow)
@@ -57,18 +78,34 @@ class LinesYardstick
         html += @linesBuilder.buildLineHTML(false, 1000, lineState)
         @screenRowsByLineId[line.id] = screenRow
 
-    for lineId, screenRow of @screenRowsByLineId
-      continue if visibleLines.hasOwnProperty(lineId)
+    if @lineNodesByContextIndex[contextIndex]?
+      for lineNode in @lineNodesByContextIndex[contextIndex]
+        screenRow = lineNode.dataset.screenRow
+        lineId = @editor.tokenizedLineForScreenRow(screenRow)?.id
 
-      @lineNodesByScreenRow[screenRow].remove()
-      delete @screenRowsByLineId[lineId]
+        continue if visibleLines.hasOwnProperty(lineId)
 
-    @domNode.insertAdjacentHTML("beforeend", html)
+        delete @screenRowsByLineId[lineId]
+        lineNode.remove()
 
+    contextNode.insertAdjacentHTML("beforeend", html)
+
+    @lineNodesByContextIndex = {}
     @lineNodesByScreenRow = {}
-    for lineNode in @domNode.children
+    for domNode, i in @contexts
+      continue if domNode is contextNode
+
+      for lineNode in domNode.getElementsByClassName("line")
+        screenRow = lineNode.dataset.screenRow
+        @lineNodesByScreenRow[screenRow] = lineNode
+        @lineNodesByContextIndex[i] ?= []
+        @lineNodesByContextIndex[i].push(lineNode)
+
+    for lineNode in contextNode.getElementsByClassName("line")
       screenRow = lineNode.dataset.screenRow
       @lineNodesByScreenRow[screenRow] = lineNode
+      @lineNodesByContextIndex[contextIndex] ?= []
+      @lineNodesByContextIndex[contextIndex].push(lineNode)
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByScreenRow[screenRow]
@@ -79,7 +116,7 @@ class LinesYardstick
     lineNode = @lineNodeForScreenRow(position.row)
 
     unless lineNode?
-      console.log "#{position.row} not found. This wasn't expected."
+      # console.log "#{position.row} not found. This wasn't expected."
       return 0
 
     tokens = lineNode.getElementsByClassName("token")
