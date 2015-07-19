@@ -51,4 +51,6 @@ class Enable extends Command
       callback "Failed to save `#{configFilePath}`: #{error.message}"
       return
 
+    process.stdout.write "Enabled: #{packageNames.join(', ')} "
+    @logSuccess()
     callback()
