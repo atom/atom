@@ -392,7 +392,11 @@ class TextEditorComponent
         if shiftKey
           @editor.selectToScreenPosition(screenPosition)
         else if metaKey or (ctrlKey and process.platform isnt 'darwin')
-          @editor.addCursorAtScreenPosition(screenPosition)
+          cursorAtScreenPosition = @editor.getCursorAtScreenPosition(screenPosition)
+          if cursorAtScreenPosition and @editor.hasMultipleCursors()
+            cursorAtScreenPosition.destroy()
+          else
+            @editor.addCursorAtScreenPosition(screenPosition)
         else
           @editor.setCursorScreenPosition(screenPosition)
       when 2
