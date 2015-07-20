@@ -405,7 +405,7 @@ class TokenizedBuffer extends Model
 
     iterator = @tokenizedLines[row].getTokenIterator()
     while iterator.next()
-      if iterator.getScreenEnd() > column
+      if iterator.getBufferEnd() > column
         scopes = iterator.getScopes()
         break
 
