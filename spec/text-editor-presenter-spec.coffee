@@ -1327,6 +1327,10 @@ describe "TextEditorPresenter", ->
           marker8 = editor.markBufferRange([[2, 2], [2, 2]])
           highlight8 = editor.decorateMarker(marker8, type: 'highlight', class: 'h')
 
+          # partially off-screen above, empty
+          marker9 = editor.markBufferRange([[0, 0], [2, 0]], invalidate: 'touch')
+          highlight9 = editor.decorateMarker(marker9, type: 'highlight', class: 'h')
+
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20, tileSize: 2)
 
           expectUndefinedStateForHighlight(presenter, highlight1)
@@ -1388,6 +1392,7 @@ describe "TextEditorPresenter", ->
 
           expectUndefinedStateForHighlight(presenter, highlight7)
           expectUndefinedStateForHighlight(presenter, highlight8)
+          expectUndefinedStateForHighlight(presenter, highlight9)
 
         it "is empty until all of the required measurements are assigned", ->
           editor.setSelectedBufferRanges([

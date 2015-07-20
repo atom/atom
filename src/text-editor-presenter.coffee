@@ -1253,13 +1253,6 @@ class TextEditorPresenter
     range = marker.getScreenRange()
 
     if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
-      tileStartRow = @tileForRow(range.start.row)
-      tileEndRow = @tileForRow(range.end.row)
-
-      for tile in [tileStartRow..tileEndRow] by @tileSize
-        delete @state.content.tiles[tile]?.highlights[decoration.id]
-
-      @emitDidUpdateState()
       return
 
     if range.start.row < @startRow
@@ -1269,11 +1262,7 @@ class TextEditorPresenter
       range.end.row = @endRow
       range.end.column = 0
 
-    if range.isEmpty()
-      tileState = @state.content.tiles[@tileForRow(range.start.row)]
-      delete tileState.highlights[decoration.id]
-      @emitDidUpdateState()
-      return
+    return if range.isEmpty()
 
     flash = decoration.consumeNextFlash()
 
@@ -1306,8 +1295,6 @@ class TextEditorPresenter
 
       @visibleHighlights[tileStartRow] ?= {}
       @visibleHighlights[tileStartRow][decoration.id] = true
-
-    @emitDidUpdateState()
 
     true
 
