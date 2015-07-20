@@ -2929,34 +2929,45 @@ describe "TextEditor", ->
           beforeEach ->
             atom.config.set("editor.autoIndentOnPaste", true)
 
-          describe "when only whitespace precedes the cursor", ->
+          describe "when pasting multiple lines before any non-whitespace characters", ->
             it "auto-indents the lines spanned by the pasted text, based on the first pasted line", ->
-              expect(editor.indentationForBufferRow(5)).toBe(3)
-
               atom.clipboard.write("a(x);\n  b(x);\n    c(x);\n", indentBasis: 0)
               editor.setCursorBufferPosition([5, 0])
               editor.pasteText()
 
-              # Adjust the indentation of the pasted block
-              expect(editor.indentationForBufferRow(5)).toBe(3)
-              expect(editor.indentationForBufferRow(6)).toBe(4)
-              expect(editor.indentationForBufferRow(7)).toBe(5)
+              # Adjust the indentation of the pasted lines while preserving
+              # their indentation relative to each other. Also preserve the
+              # indentation of the following line.
+              expect(editor.lineTextForBufferRow(5)).toBe "      a(x);"
+              expect(editor.lineTextForBufferRow(6)).toBe "        b(x);"
+              expect(editor.lineTextForBufferRow(7)).toBe "          c(x);"
+              expect(editor.lineTextForBufferRow(8)).toBe "      current = items.shift();"
 
-              # Preserve the indentation of the next row
-              expect(editor.indentationForBufferRow(8)).toBe(3)
+          describe "when pasting a single line of text", ->
+            it "does not auto-indent the text", ->
+              atom.clipboard.write("a(x);", indentBasis: 0)
+              editor.setCursorBufferPosition([5, 0])
+              editor.pasteText()
 
-          describe "when non-whitespace characters precede the cursor", ->
-            it "does not auto-indent the first line being pasted", ->
+              expect(editor.lineTextForBufferRow(5)).toBe "a(x);      current = items.shift();"
+              expect(editor.lineTextForBufferRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+
+          describe "when pasting on a line after non-whitespace characters", ->
+            it "does not auto-indent the affected line", ->
+              # Before the paste, the indentation is non-standard.
               editor.setText """
-              if (x) {
-                  y();
-              }
+                if (x) {
+                    y();
+                }
               """
 
-              atom.clipboard.write(" z();")
+              atom.clipboard.write(" z();\n h();")
               editor.setCursorBufferPosition([1, Infinity])
+
+              # The indentation of the non-standard line is unchanged.
               editor.pasteText()
               expect(editor.lineTextForBufferRow(1)).toBe("    y(); z();")
+              expect(editor.lineTextForBufferRow(2)).toBe(" h();")
 
         describe "when `autoIndentOnPaste` is false", ->
           beforeEach ->
