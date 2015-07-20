@@ -120,6 +120,10 @@ class GitRepository
 
   # Public: Invoke the given callback when this GitRepository's destroy() method
   # is invoked.
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
@@ -273,14 +277,24 @@ class GitRepository
   ###
 
   # Public: Returns true if the given path is modified.
+  #
+  # * `path` The {String} path to check.
+  #
+  # Returns a {Boolean} that's true if the `path` is modified.
   isPathModified: (path) -> @isStatusModified(@getPathStatus(path))
 
   # Public: Returns true if the given path is new.
+  #
+  # * `path` The {String} path to check.
+  #
+  # Returns a {Boolean} that's true if the `path` is new.
   isPathNew: (path) -> @isStatusNew(@getPathStatus(path))
 
   # Public: Is the given path ignored?
   #
-  # Returns a {Boolean}.
+  # * `path` The {String} path to check.
+  #
+  # Returns a {Boolean} that's true if the `path` is ignored.
   isPathIgnored: (path) -> @getRepo().isIgnored(@relativize(path))
 
   # Public: Get the status of a directory in the repository's working directory.
@@ -327,9 +341,17 @@ class GitRepository
     @statuses[@relativize(path)]
 
   # Public: Returns true if the given status indicates modification.
+  #
+  # * `status` A {Number} representing the status.
+  #
+  # Returns a {Boolean} that's true if the `status` indicates modification.
   isStatusModified: (status) -> @getRepo().isStatusModified(status)
 
   # Public: Returns true if the given status indicates a new path.
+  #
+  # * `status` A {Number} representing the status.
+  #
+  # Returns a {Boolean} that's true if the `status` indicates a new path.
   isStatusNew: (status) -> @getRepo().isStatusNew(status)
 
   ###
