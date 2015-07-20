@@ -55,6 +55,8 @@ class ViewRegistry
     @documentReaders = []
     @documentPollers = []
 
+    @observer = new MutationObserver(@performDocumentPoll)
+
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
   #
@@ -208,10 +210,10 @@ class ViewRegistry
     writer() while writer = @documentWriters.shift()
 
   startPollingDocument: ->
-    @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
+    @observer.observe(document, {subtree: true, childList: true, attributes: true})
 
   stopPollingDocument: ->
-    window.clearInterval(@pollIntervalHandle)
+    @observer.disconnect()
 
   performDocumentPoll: =>
     if @documentUpdateRequested
