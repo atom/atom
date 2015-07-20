@@ -391,9 +391,15 @@ class TokenizedBuffer extends Model
         expectedScope = tag + 1
         poppedScope = scopes.pop()
         unless poppedScope is expectedScope
-          error = new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.\nPlease report the grammar and contents of this file so we can fix this.")
+          error = new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
           error.metadata = {
             grammarScopeName: @grammar.scopeName
+          }
+          path = require 'path'
+          error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
+          error.privateMetadata = {
+            filePath: @buffer.getPath()
+            fileContents: @buffer.getText()
           }
           throw error
     scopes
