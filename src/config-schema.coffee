@@ -103,12 +103,12 @@ module.exports =
         default: ''
       fontSize:
         type: 'integer'
-        default: 16
+        default: 14
         minimum: 1
         maximum: 100
       lineHeight:
         type: ['string', 'number']
-        default: 1.3
+        default: 1.5
       showInvisibles:
         type: 'boolean'
         default: false
