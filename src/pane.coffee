@@ -700,6 +700,8 @@ class Pane extends Model
       addWarningWithPath('Unable to save file: I/O error writing file')
     else if error.code is 'EINTR'
       addWarningWithPath('Unable to save file: Interrupted system call')
+    else if error.code is 'ECONNRESET'
+      addWarningWithPath('Unable to save file: Connection reset')
     else if error.code is 'ESPIPE'
       addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
