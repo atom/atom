@@ -391,7 +391,11 @@ class TokenizedBuffer extends Model
         expectedScope = tag + 1
         poppedScope = scopes.pop()
         unless poppedScope is expectedScope
-          throw new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
+          error = new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.\nPlease report the grammar and contents of this file so we can fix this.")
+          error.metadata = {
+            grammarScopeName: @grammar.scopeName
+          }
+          throw error
     scopes
 
   indentLevelForRow: (bufferRow) ->
