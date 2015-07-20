@@ -2925,6 +2925,17 @@ describe "TextEditor", ->
           expect(editor.lineTextForBufferRow(0)).toBe "var first = function () {"
           expect(editor.lineTextForBufferRow(1)).toBe "  var first = function(items) {"
 
+        it "notifies ::onWillInsertText observers", ->
+          insertedStrings = []
+          editor.onWillInsertText ({text, cancel}) ->
+            insertedStrings.push(text)
+            cancel()
+
+          atom.clipboard.write("hello")
+          editor.pasteText()
+
+          expect(insertedStrings).toEqual ["hello"]
+
         describe "when `autoIndentOnPaste` is true", ->
           beforeEach ->
             atom.config.set("editor.autoIndentOnPaste", true)
