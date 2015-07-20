@@ -976,13 +976,13 @@ class TextEditor extends Model
         range = selection.getBufferRange()
         continue if range.isSingleLine()
 
-        selection.destroy()
         {start, end} = range
         @addSelectionForBufferRange([start, [start.row, Infinity]])
         {row} = start
         while ++row < end.row
           @addSelectionForBufferRange([[row, 0], [row, Infinity]])
         @addSelectionForBufferRange([[end.row, 0], [end.row, end.column]]) unless end.column is 0
+        selection.destroy()
       return
 
   # Extended: For each selection, transpose the selected text.

@@ -394,20 +394,21 @@ class TokenizedBuffer extends Model
       if (tag % 2) is -1
         scopes.push(tag)
       else
-        expectedScope = tag + 1
-        poppedScope = scopes.pop()
-        unless poppedScope is expectedScope
-          error = new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
-          error.metadata = {
-            grammarScopeName: @grammar.scopeName
-          }
-          path = require 'path'
-          error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
-          error.privateMetadata = {
-            filePath: @buffer.getPath()
-            fileContents: @buffer.getText()
-          }
-          throw error
+        matchingStartTag = tag + 1
+        loop
+          break if scopes.pop() is matchingStartTag
+          if scopes.length is 0
+            atom.assert false, "Encountered an unmatched scope end tag.", (error) =>
+              error.metadata = {
+                grammarScopeName: @grammar.scopeName
+                unmatchedEndTag: @grammar.scopeForId(tag)
+              }
+              path = require 'path'
+              error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
+              error.privateMetadata = {
+                filePath: @buffer.getPath()
+                fileContents: @buffer.getText()
+              }
     scopes
 
   indentLevelForRow: (bufferRow) ->
