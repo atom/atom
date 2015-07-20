@@ -183,7 +183,10 @@ describe "ViewRegistry", ->
       expect(events).toEqual ['write', 'read', 'poll']
 
   describe "::pollDocument(fn)", ->
-    it "calls all registered reader functions on an interval until they are disabled via a returned disposable", ->
+    it "calls all registered polling functions after document changes until they are disabled via a returned disposable", ->
+      testElement = document.createElement('div')
+      document.getElementById('jasmine-content').appendChild(testElement)
+
       spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
 
       events = []
@@ -192,16 +195,18 @@ describe "ViewRegistry", ->
 
       expect(events).toEqual []
 
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2']
+      testElement.style.height = '400px'
 
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2']
+      waitsFor "events to occur", -> events.length > 0
 
-      disposable1.dispose()
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']
+      runs ->
+        expect(events).toEqual ['poll 1', 'poll 2']
+        events.length = 0
 
-      disposable2.dispose()
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']
+        disposable1.dispose()
+        testElement.style.color = '#fff'
+
+      waitsFor "more events to occur", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 2']
