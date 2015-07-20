@@ -122,6 +122,10 @@ module.exports =
         type: 'boolean'
         default: true
         description: 'Automatically indent the cursor when inserting a newline'
+      autoChangeIndent:
+        type: 'boolean'
+        default: true
+        description: 'Automatically increase the indent when inserting a newline after opening braces'
       autoIndentOnPaste:
         type: 'boolean'
         default: true
