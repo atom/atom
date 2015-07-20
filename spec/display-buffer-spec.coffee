@@ -44,7 +44,7 @@ describe "DisplayBuffer", ->
     it "renders line numbers correctly", ->
       originalLineCount = displayBuffer.getLineCount()
       oneHundredLines = [0..100].join("\n")
-      buffer.insert([0,0], oneHundredLines)
+      buffer.insert([0, 0], oneHundredLines)
       expect(displayBuffer.getLineCount()).toBe 100 + originalLineCount
 
     it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
@@ -382,10 +382,10 @@ describe "DisplayBuffer", ->
 
       describe "when creating a fold where one already exists", ->
         it "returns existing fold and does't create new fold", ->
-          fold = displayBuffer.createFold(0,10)
+          fold = displayBuffer.createFold(0, 10)
           expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
 
-          newFold = displayBuffer.createFold(0,10)
+          newFold = displayBuffer.createFold(0, 10)
           expect(newFold).toBe fold
           expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
 

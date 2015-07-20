@@ -2227,11 +2227,11 @@ describe "TextEditorPresenter", ->
               gutterName: 'test-gutter'
               class: 'test-class'
               item: decorationItem
-            marker1 = editor.markBufferRange([[0,0],[1,0]])
+            marker1 = editor.markBufferRange([[0, 0], [1, 0]])
             decoration1 = editor.decorateMarker(marker1, decorationParams)
-            marker2 = editor.markBufferRange([[9,0],[12,0]])
+            marker2 = editor.markBufferRange([[9, 0], [12, 0]])
             decoration2 = editor.decorateMarker(marker2, decorationParams)
-            marker3 = editor.markBufferRange([[13,0],[14,0]])
+            marker3 = editor.markBufferRange([[13, 0], [14, 0]])
             decoration3 = editor.decorateMarker(marker3, decorationParams)
 
             # Clear any batched state updates.
@@ -2280,7 +2280,7 @@ describe "TextEditorPresenter", ->
 
           it "updates when the editor's content changes", ->
             # This update will add enough lines to push decoration2 out of view.
-            expectStateUpdate presenter, -> editor.setTextInBufferRange([[8,0],[9,0]],'\n\n\n\n\n')
+            expectStateUpdate presenter, -> editor.setTextInBufferRange([[8, 0], [9, 0]], '\n\n\n\n\n')
 
             decorationState = getContentForGutterWithName(presenter, 'test-gutter')
             expect(decorationState[decoration1.id].top).toBeDefined()
@@ -2290,7 +2290,7 @@ describe "TextEditorPresenter", ->
           it "updates when a decoration's marker is modified", ->
             # This update will move decoration1 out of view.
             expectStateUpdate presenter, ->
-              newRange = new Range([13,0],[14,0])
+              newRange = new Range([13, 0], [14, 0])
               marker1.setBufferRange(newRange)
 
             decorationState = getContentForGutterWithName(presenter, 'test-gutter')
@@ -2401,7 +2401,7 @@ describe "TextEditorPresenter", ->
               type: 'gutter'
               gutterName: 'test-gutter-2'
               class: 'test-class'
-            marker4 = editor.markBufferRange([[0,0],[1,0]])
+            marker4 = editor.markBufferRange([[0, 0], [1, 0]])
             decoration4 = editor.decorateMarker(marker4, decorationParams)
             expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
 

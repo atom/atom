@@ -1027,7 +1027,7 @@ describe "Workspace", ->
           atom.project.open('sample.js').then (o) -> editor = o
 
         runs ->
-          editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
+          editor.buffer.setTextInRange([[0, 0], [0, 0]], 'omg')
           expect(editor.isModified()).toBeTruthy()
 
         waitsForPromise ->
