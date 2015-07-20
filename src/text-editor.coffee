@@ -749,6 +749,8 @@ class TextEditor extends Model
   ###
 
   # Essential: Replaces the entire contents of the buffer with the given {String}.
+  #
+  # * `text` A {String} to replace with
   setText: (text) -> @buffer.setText(text)
 
   # Essential: Set the text in the given {Range} in buffer coordinates.
