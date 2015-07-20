@@ -24,7 +24,7 @@ class TokenizedBuffer extends Model
   visible: false
   configSettings: null
 
-  constructor: ({@buffer, @tabLength, @ignoreInvisibles}) ->
+  constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator
@@ -44,6 +44,7 @@ class TokenizedBuffer extends Model
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
     ignoreInvisibles: @ignoreInvisibles
+    largeFileMode: @largeFileMode
 
   deserializeParams: (params) ->
     params.buffer = atom.project.bufferForPathSync(params.bufferPath)
@@ -66,7 +67,7 @@ class TokenizedBuffer extends Model
     if grammar.injectionSelector?
       @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
     else
-      newScore = grammar.getScore(@buffer.getPath(), @buffer.getText())
+      newScore = grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   setGrammar: (grammar, score) ->
@@ -74,7 +75,7 @@ class TokenizedBuffer extends Model
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @buffer.getText())
+    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
 
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
@@ -105,21 +106,24 @@ class TokenizedBuffer extends Model
     @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-grammar', grammar
 
+  getGrammarSelectionContent: ->
+    @buffer.getTextInRange([[0, 0], [10, 0]])
+
   reloadGrammar: ->
-    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @buffer.getText())
+    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar)
     else
       throw new Error("No grammar found for path: #{path}")
 
   hasTokenForSelector: (selector) ->
-    for {tokens} in @tokenizedLines
-      for token in tokens
+    for tokenizedLine in @tokenizedLines when tokenizedLine?
+      for token in tokenizedLine.tokens
         return true if selector.matches(token.scopes)
     false
 
   retokenizeLines: ->
     lastRow = @buffer.getLastRow()
-    @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, lastRow)
+    @tokenizedLines = new Array(lastRow + 1)
     @invalidRows = []
     @invalidateRow(0)
     @fullyTokenized = false
@@ -209,6 +213,8 @@ class TokenizedBuffer extends Model
     return
 
   invalidateRow: (row) ->
+    return if @largeFileMode
+
     @invalidRows.push(row)
     @invalidRows.sort (a, b) -> a - b
     @tokenizeInBackground()
@@ -230,7 +236,10 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
+    if @largeFileMode
+      newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
+    else
+      newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
 
     start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)
@@ -248,16 +257,18 @@ class TokenizedBuffer extends Model
     @emitter.emit 'did-change', event
 
   retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
-    line = @tokenizedLines[row]
+    line = @tokenizedLineForRow(row)
     if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
       while line?.isOnlyWhitespace()
         @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1), @openScopesForRow(row))
         row += increment
-        line = @tokenizedLines[row]
+        line = @tokenizedLineForRow(row)
 
     row - increment
 
   updateFoldableStatus: (startRow, endRow) ->
+    return [startRow, endRow] if @largeFileMode
+
     scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
     scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
     scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
@@ -273,7 +284,10 @@ class TokenizedBuffer extends Model
     [startRow, endRow]
 
   isFoldableAtRow: (row) ->
-    @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
+    if @largeFileMode
+      false
+    else
+      @isFoldableCodeAtRow(row) or @isFoldableCommentAtRow(row)
 
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
@@ -313,7 +327,7 @@ class TokenizedBuffer extends Model
     tokenizedLines
 
   buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
-    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow]
+    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow] by 1
 
   buildPlaceholderTokenizedLineForRow: (row) ->
     openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
@@ -341,7 +355,12 @@ class TokenizedBuffer extends Model
       null
 
   tokenizedLineForRow: (bufferRow) ->
-    @tokenizedLines[bufferRow]
+    if 0 <= bufferRow < @tokenizedLines.length
+      @tokenizedLines[bufferRow] ?= @buildPlaceholderTokenizedLineForRow(bufferRow)
+
+  tokenizedLinesForRows: (startRow, endRow) ->
+    for row in [startRow..endRow] by 1
+      @tokenizedLineForRow(row)
 
   stackForRow: (bufferRow) ->
     @tokenizedLines[bufferRow]?.ruleStack
@@ -418,17 +437,17 @@ class TokenizedBuffer extends Model
 
   tokenForPosition: (position) ->
     {row, column} = Point.fromObject(position)
-    @tokenizedLines[row].tokenAtBufferColumn(column)
+    @tokenizedLineForRow(row).tokenAtBufferColumn(column)
 
   tokenStartPositionForPosition: (position) ->
     {row, column} = Point.fromObject(position)
-    column = @tokenizedLines[row].tokenStartColumnForBufferColumn(column)
+    column = @tokenizedLineForRow(row).tokenStartColumnForBufferColumn(column)
     new Point(row, column)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
     position = Point.fromObject(position)
 
-    {openScopes, tags} = @tokenizedLines[position.row]
+    {openScopes, tags} = @tokenizedLineForRow(position.row)
     scopes = openScopes.map (tag) -> atom.grammars.scopeForId(tag)
 
     startColumn = 0
