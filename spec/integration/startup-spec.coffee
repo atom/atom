@@ -227,3 +227,13 @@ describe "Starting Atom", ->
                 [tempDirPath]
                 [otherTempDirPath]
               ].sort()
+
+  describe "opening a remote directory", ->
+    it "opens the parent directory and creates an empty text editor", ->
+      remoteDirectory = 'remote://server:3437/some/directory/path'
+      runAtom [remoteDirectory], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForWindowCount(1, 1000)
+          .waitForExist("atom-workspace", 5000)
+          .treeViewRootDirectories()
+          .then ({value}) -> expect(value).toEqual([remoteDirectory])
