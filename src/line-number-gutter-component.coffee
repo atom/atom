@@ -18,6 +18,10 @@ class LineNumberGutterComponent
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
 
+  destroy: ->
+    @domNode.removeEventListener 'click', @onClick
+    @domNode.removeEventListener 'mousedown', @onMouseDown
+
   getDomNode: ->
     @domNode
 

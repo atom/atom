@@ -743,6 +743,16 @@ describe "TextEditorComponent", ->
         beforeEach ->
           gutterNode = componentNode.querySelector('.gutter')
 
+        describe "when the component is destroyed", ->
+          it "stops listening for folding events", ->
+            component.destroy()
+
+            lineNumber = component.lineNumberNodeForScreenRow(1)
+            target = lineNumber.querySelector('.icon-right')
+            target.dispatchEvent(buildClickEvent(target))
+
+            expect(nextAnimationFrame).toBe(noAnimationFrame)
+
         it "folds and unfolds the block represented by the fold indicator when clicked", ->
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
@@ -1726,6 +1736,14 @@ describe "TextEditorComponent", ->
 
     beforeEach ->
       gutterNode = componentNode.querySelector('.gutter')
+
+    describe "when the component is destroyed", ->
+      it "stops listening for selection events", ->
+        component.destroy()
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1)))
+
+        expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [0, 0]]
 
     describe "when the gutter is clicked", ->
       it "selects the clicked row", ->
