@@ -127,6 +127,7 @@ class WindowEventHandler
     bindCommandToAction('core:undo', 'undo:')
     bindCommandToAction('core:redo', 'redo:')
     bindCommandToAction('core:select-all', 'selectAll:')
+    bindCommandToAction('core:cut', 'cut:')
 
   onKeydown: (event) ->
     atom.keymaps.handleKeyboardEvent(event)
