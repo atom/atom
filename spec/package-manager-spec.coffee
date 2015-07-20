@@ -1,3 +1,4 @@
+path = require 'path'
 {$, $$} = require '../src/space-pen-extensions'
 Package = require '../src/package'
 {Disposable} = require 'atom'
@@ -55,6 +56,24 @@ describe "PackageManager", ->
       expect(atom.packages.loadPackage("this-package-cannot-be-found")).toBeNull()
       expect(console.warn.callCount).toBe(1)
       expect(console.warn.argsForCall[0][0]).toContain("Could not resolve")
+
+    describe "when the package is deprecated", ->
+      grim = require 'grim'
+      includeDeprecatedAPIs = null
+
+      beforeEach ->
+        {includeDeprecatedAPIs} = grim
+
+      afterEach ->
+        grim.includeDeprecatedAPIs = includeDeprecatedAPIs
+
+      it "returns null", ->
+        grim.includeDeprecatedAPIs = false
+        expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.0.9')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.0')).toBe true
+        expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.1')).toBe false
+        expect(atom.packages.getDeprecatedPackageMetadata('wordcount').version).toBe '<=2.1.0'
 
     it "invokes ::onDidLoadPackage listeners with the loaded package", ->
       loadedPackage = null

@@ -3,6 +3,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
 normalizePackageData = require 'normalize-package-data'
+semver = require 'semver'
 
 OtherPlatforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32'].filter (platform) -> platform isnt process.platform
 
@@ -86,6 +87,12 @@ module.exports = (grunt) ->
     metadata._atomPackages = packages
     metadata._atomMenu = getMenu(appDir)
     metadata._atomKeymaps = getKeymaps(appDir)
+    metadata._deprecatedPackages = require('../deprecated-packages')
+
+    for name, {version} of metadata._deprecatedPackages
+      if version and not semver.validRange(version)
+        invalidPackages = true
+        grunt.log.error("Invalid range: #{version} (#{name})")
 
     grunt.file.write(path.join(appDir, 'package.json'), JSON.stringify(metadata))
     not invalidPackages
