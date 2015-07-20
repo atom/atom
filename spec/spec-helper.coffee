@@ -167,6 +167,7 @@ afterEach ->
   atom.packages.deactivatePackages()
   atom.menu.template = []
   atom.contextMenu.clear()
+  atom.notifications.clear()
 
   atom.workspace?.destroy()
   atom.workspace = null
