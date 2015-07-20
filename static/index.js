@@ -153,7 +153,7 @@ var setupDeprecatedPackages = function() {
     try {
       metadata._deprecatedPackages = require('../build/deprecated-packages.json');
     } catch(requireError) {
-      // Ignored
+      console.error('Failed to setup deprecated packages list', requireError.stack);
     }
   }
 }
