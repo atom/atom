@@ -46,7 +46,7 @@ module.exports = (grunt) ->
         desktopInstallFile = path.join(installDir, 'share', 'applications', 'atom.desktop')
 
         {description} = grunt.file.readJSON('package.json')
-        iconName = path.join(shareDir, 'resources', 'app', 'resources', 'atom.png')
+        iconName = path.join(shareDir, 'resources', 'app.asar.unpacked', 'resources', 'atom.png')
         executable = path.join(shareDir, 'atom')
         template = _.template(String(fs.readFileSync(desktopFile)))
         filled = template({description, iconName, executable})
