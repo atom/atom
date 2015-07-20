@@ -296,10 +296,12 @@ class TokenizedBuffer extends Model
     # undefined. This should paper over the problem but we want to figure out
     # what is happening:
     tokenizedLine = @tokenizedLineForRow(row)
-    atom.assert tokenizedLine?, "TokenizedLine is defined", =>
-      metadata:
+    atom.assert tokenizedLine?, "TokenizedLine is defined", (error) =>
+      error.metadata = {
         row: row
         rowCount: @tokenizedLines.length
+      }
+
     return false unless tokenizedLine?
 
     return false if @buffer.isRowBlank(row) or tokenizedLine.isComment()
