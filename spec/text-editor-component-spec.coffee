@@ -2340,10 +2340,10 @@ describe "TextEditorComponent", ->
       editor.setText("")
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
 
-      currentTime += 100
+      currentTime += 99
       componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
 
-      currentTime += 100
+      currentTime += 99
       componentNode.dispatchEvent(new CustomEvent('editor:duplicate-lines', bubbles: true, cancelable: true))
 
       currentTime += 101
