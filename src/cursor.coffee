@@ -399,6 +399,18 @@ class Cursor extends Model
     if position = @getNextWordBoundaryBufferPosition()
       @setBufferPosition(position)
 
+  # Public: Moves the cursor to the previous subword boundary.
+  moveToPreviousSubwordBoundary: ->
+    options = {wordRegex: @subwordRegExp(backwards: true)}
+    if position = @getPreviousWordBoundaryBufferPosition(options)
+      @setBufferPosition(position)
+
+  # Public: Moves the cursor to the next subword boundary.
+  moveToNextSubwordBoundary: ->
+    options = {wordRegex: @subwordRegExp()}
+    if position = @getNextWordBoundaryBufferPosition(options)
+      @setBufferPosition(position)
+
   # Public: Moves the cursor to the beginning of the buffer line, skipping all
   # whitespace.
   skipLeadingWhitespace: ->
@@ -433,7 +445,7 @@ class Cursor extends Model
   getPreviousWordBoundaryBufferPosition: (options = {}) ->
     currentBufferPosition = @getBufferPosition()
     previousNonBlankRow = @editor.buffer.previousNonBlankRow(currentBufferPosition.row)
-    scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
+    scanRange = [[previousNonBlankRow ? 0, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
     @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp()), scanRange, ({range, stop}) ->
@@ -634,6 +646,29 @@ class Cursor extends Model
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
     if includeNonWordCharacters
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
+    new RegExp(segments.join("|"), "g")
+
+  # Public: Get the RegExp used by the cursor to determine what a "subword" is.
+  #
+  # * `options` (optional) {Object} with the following keys:
+  #   * `backwards` A {Boolean} indicating whether to look forwards or backwards
+  #     for the next subword. (default: false)
+  #
+  # Returns a {RegExp}.
+  subwordRegExp: (options={}) ->
+    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    segments = [
+      "^[\t ]+",
+      "[\t ]+$",
+      "[A-Z]?[a-z]+",
+      "[A-Z]+(?![a-z])",
+      "\\d+",
+      "_+"
+    ]
+    if options.backwards
+      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+\\s*")
+    else
+      segments.push("\\s*[#{_.escapeRegExp(nonWordCharacters)}]+")
     new RegExp(segments.join("|"), "g")
 
   ###
