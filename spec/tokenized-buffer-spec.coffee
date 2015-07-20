@@ -322,6 +322,22 @@ describe "TokenizedBuffer", ->
         expect(tokens[2].value).toBe " \u030b"
         expect(tokens[2].hasLeadingWhitespace()).toBe false
 
+      it "does not break out soft tabs across a scope boundary", ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-gfm')
+
+        runs ->
+          tokenizedBuffer.setTabLength(4)
+          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
+          buffer.setText('    <![]()\n    ')
+          fullyTokenize(tokenizedBuffer)
+
+          length = 0
+          for tag in tokenizedBuffer.tokenizedLines[1].tags
+            length += tag if tag > 0
+
+          expect(length).toBe 4
+
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
       waitsForPromise ->
