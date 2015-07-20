@@ -128,7 +128,15 @@ class TextEditor extends Model
     displayBuffer: @displayBuffer.serialize()
 
   deserializeParams: (params) ->
-    params.displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
+    try
+      displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
+    catch error
+      if error.syscall is 'read'
+        return # Error reading the file, don't deserialize an editor for it
+      else
+        throw error
+
+    params.displayBuffer = displayBuffer
     params.registerEditor = true
     params
 
