@@ -449,9 +449,6 @@ class AtomApplication
     if states.length > 0 or allowEmpty
       @storageFolder.store('application.json', states)
 
-  hasEditorWindows: ->
-    @windows.some (window) -> not window.isSpec
-
   loadState: ->
     if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
