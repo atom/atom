@@ -1,6 +1,3 @@
-# Ensure deprecated packages are populated
-require('../package.json')._deprecatedPackages = require('../build/deprecated-packages')
-
 require '../src/window'
 atom.initialize()
 atom.restoreWindowDimensions()
