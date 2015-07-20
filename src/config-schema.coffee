@@ -143,7 +143,7 @@ module.exports =
       softWrap:
         type: 'boolean'
         default: false
-        description: 'Wraps lines that exceeed the width of the window. When `Soft Wrap At Preferred Line Length` is set, it will wrap to the number of characters defined by the `Preferred Line Length` setting.'
+        description: 'Wraps lines that exceed the width of the window. When `Soft Wrap At Preferred Line Length` is set, it will wrap to the number of characters defined by the `Preferred Line Length` setting.'
       softTabs:
         type: 'boolean'
         default: true
