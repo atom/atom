@@ -18,7 +18,7 @@ class TextEditorComponent
   scrollSensitivity: 0.4
   cursorBlinkPeriod: 800
   cursorBlinkResumeDelay: 100
-  lineOverdrawMargin: 15
+  tileSize: 12
 
   pendingScrollTop: null
   pendingScrollLeft: null
@@ -36,8 +36,8 @@ class TextEditorComponent
   gutterComponent: null
   mounted: true
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, lineOverdrawMargin}) ->
-    @lineOverdrawMargin = lineOverdrawMargin if lineOverdrawMargin?
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize}) ->
+    @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
     @observeConfig()
@@ -47,7 +47,7 @@ class TextEditorComponent
       model: @editor
       scrollTop: @editor.getScrollTop()
       scrollLeft: @editor.getScrollLeft()
-      lineOverdrawMargin: lineOverdrawMargin
+      tileSize: tileSize
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
@@ -768,8 +768,8 @@ class TextEditorComponent
     {clientX, clientY} = event
 
     linesClientRect = @linesComponent.getDomNode().getBoundingClientRect()
-    top = clientY - linesClientRect.top
-    left = clientX - linesClientRect.left
+    top = clientY - linesClientRect.top + @presenter.scrollTop
+    left = clientX - linesClientRect.left + @presenter.scrollLeft
     {top, left}
 
   getModel: ->
