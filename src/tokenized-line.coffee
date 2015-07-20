@@ -220,17 +220,20 @@ class TokenizedLine
   copy: ->
     copy = new TokenizedLine
     copy.tokenIterator = @tokenIterator
-    copy.indentLevel = @indentLevel
     copy.openScopes = @openScopes
     copy.text = @text
     copy.tags = @tags
     copy.specialTokens = @specialTokens
+    copy.startBufferColumn = @startBufferColumn
+    copy.bufferDelta = @bufferDelta
+    copy.ruleStack = @ruleStack
+    copy.lineEnding = @lineEnding
+    copy.invisibles = @invisibles
+    copy.endOfLineInvisibles = @endOfLineInvisibles
+    copy.indentLevel = @indentLevel
+    copy.tabLength = @tabLength
     copy.firstNonWhitespaceIndex = @firstNonWhitespaceIndex
     copy.firstTrailingWhitespaceIndex = @firstTrailingWhitespaceIndex
-    copy.lineEnding = @lineEnding
-    copy.endOfLineInvisibles = @endOfLineInvisibles
-    copy.ruleStack = @ruleStack
-    copy.startBufferColumn = @startBufferColumn
     copy.fold = @fold
     copy
 
