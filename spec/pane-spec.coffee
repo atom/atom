@@ -108,6 +108,12 @@ describe "Pane", ->
       pane2 = pane1.splitRight()
       expect(-> pane2.addItem(item)).toThrow()
 
+    it "throws an exception if the item isn't an object", ->
+      pane = new Pane(items: [])
+      expect(-> pane.addItem(null)).toThrow()
+      expect(-> pane.addItem('foo')).toThrow()
+      expect(-> pane.addItem(1)).toThrow()
+
   describe "::activateItem(item)", ->
     pane = null
 
