@@ -48,6 +48,7 @@ class Marker
   oldTailBufferPosition: null
   oldTailScreenPosition: null
   wasValid: true
+  hasChangeObservers: false
 
   ###
   Section: Construction and Destruction
@@ -57,14 +58,8 @@ class Marker
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @id = @bufferMarker.id
-    @oldHeadBufferPosition = @getHeadBufferPosition()
-    @oldHeadScreenPosition = @getHeadScreenPosition()
-    @oldTailBufferPosition = @getTailBufferPosition()
-    @oldTailScreenPosition = @getTailScreenPosition()
-    @wasValid = @isValid()
 
     @disposables.add @bufferMarker.onDidDestroy => @destroyed()
-    @disposables.add @bufferMarker.onDidChange (event) => @notifyObservers(event)
 
   # Essential: Destroys the marker, causing it to emit the 'destroyed' event. Once
   # destroyed, a marker cannot be restored by undo/redo operations.
@@ -102,6 +97,14 @@ class Marker
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChange: (callback) ->
+    unless @hasChangeObservers
+      @oldHeadBufferPosition = @getHeadBufferPosition()
+      @oldHeadScreenPosition = @getHeadScreenPosition()
+      @oldTailBufferPosition = @getTailBufferPosition()
+      @oldTailScreenPosition = @getTailScreenPosition()
+      @wasValid = @isValid()
+      @disposables.add @bufferMarker.onDidChange (event) => @notifyObservers(event)
+      @hasChangeObservers = true
     @emitter.on 'did-change', callback
 
   # Essential: Invoke the given callback when the marker is destroyed.
