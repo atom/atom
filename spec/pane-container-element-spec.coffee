@@ -154,3 +154,9 @@ describe "PaneContainerElement", ->
         container.destroy()
         expect(element.resizeStopped.callCount).toBe 1
         expect(document.removeEventListener.callCount).toBe 2
+
+    it "does not throw an error when resized to fit content in a detached state", ->
+      container.getActivePane().splitRight()
+      element = getResizeElement(0)
+      element.remove()
+      expect(-> element.resizeToFitContent()).not.toThrow()
