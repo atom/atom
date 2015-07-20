@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 
+HighlightsComponent = require './highlights-component'
 TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 WrapperDiv = document.createElement('div')
@@ -13,8 +14,6 @@ cloneObject = (object) ->
 
 module.exports =
 class TileComponent
-  placeholderTextDiv: null
-
   constructor: ({@presenter, @id}) ->
     @tokenIterator = new TokenIterator
     @measuredLines = new Set
@@ -25,6 +24,9 @@ class TileComponent
     @domNode.classList.add("tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
+
+    @highlightsComponent = new HighlightsComponent(@presenter)
+    @domNode.appendChild(@highlightsComponent.getDomNode())
 
   getDomNode: ->
     @domNode
@@ -38,6 +40,10 @@ class TileComponent
     @newTileState = @newState.tiles[@id]
     @oldTileState = @oldState.tiles[@id]
 
+    if @newState.backgroundColor isnt @oldState.backgroundColor
+      @domNode.style.backgroundColor = @newState.backgroundColor
+      @oldState.backgroundColor = @newState.backgroundColor
+
     if @newTileState.display isnt @oldTileState.display
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display
@@ -45,6 +51,9 @@ class TileComponent
     if @newTileState.height isnt @oldTileState.height
       @domNode.style.height = @newTileState.height + 'px'
       @oldTileState.height = @newTileState.height
+
+    if @newState.width isnt @oldState.width
+      @domNode.style.width = @newState.width + 'px'
 
     if @newTileState.top isnt @oldTileState.top or @newTileState.left isnt @oldTileState.left
       @domNode.style['-webkit-transform'] = "translate3d(#{@newTileState.left}px, #{@newTileState.top}px, 0px)"
@@ -54,12 +63,9 @@ class TileComponent
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
 
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      @domNode.style.width = @newState.scrollWidth + 'px'
-      @oldState.scrollWidth = @newState.scrollWidth
+    @highlightsComponent.updateSync(@newTileState)
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
-    @oldState.scrollWidth = @newState.scrollWidth
 
   removeLineNodes: ->
     @removeLineNode(id) for id of @oldTileState.lines
@@ -104,7 +110,7 @@ class TileComponent
     return
 
   buildLineHTML: (id) ->
-    {scrollWidth} = @newState
+    {width} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
 
     classes = ''
@@ -113,7 +119,7 @@ class TileComponent
         classes += decorationClass + ' '
     classes += 'line'
 
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{scrollWidth}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(id)
@@ -273,8 +279,8 @@ class TileComponent
 
     lineNode = @lineNodesByLineId[id]
 
-    if @newState.scrollWidth isnt @oldState.scrollWidth
-      lineNode.style.width = @newState.scrollWidth + 'px'
+    if @newState.width isnt @oldState.width
+      lineNode.style.width = @newState.width + 'px'
 
     newDecorationClasses = newLineState.decorationClasses
     oldDecorationClasses = oldLineState.decorationClasses
