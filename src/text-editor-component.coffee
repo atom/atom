@@ -195,7 +195,7 @@ class TextEditorComponent
       @updateRequested = true
       atom.views.updateDocument =>
         @updateRequested = false
-        @updateSync() if @editor.isAlive()
+        @updateSync() if @canUpdate()
       atom.views.readDocument(@readAfterUpdateSync)
 
   canUpdate: ->

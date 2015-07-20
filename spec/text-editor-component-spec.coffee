@@ -67,6 +67,15 @@ describe "TextEditorComponent", ->
 
       expect(nextAnimationFrame).not.toThrow()
 
+    it "doesn't update when an animation frame was requested but the component got destroyed before its delivery", ->
+      editor.setText("You shouldn't see this update.")
+      expect(nextAnimationFrame).not.toBe(noAnimationFrame)
+
+      component.destroy()
+      nextAnimationFrame()
+
+      expect(component.lineNodeForScreenRow(0).textContent).not.toBe("You shouldn't see this update.")
+
   describe "line rendering", ->
     expectTileContainsRow = (tileNode, screenRow, {top}) ->
       lineNode = tileNode.querySelector("[data-screen-row='#{screenRow}']")
