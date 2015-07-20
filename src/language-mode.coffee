@@ -242,8 +242,9 @@ class LanguageMode
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
 
   suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
-    scopes = tokenizedLine.tokens[0].scopes
-    scopeDescriptor = new ScopeDescriptor({scopes})
+    iterator = tokenizedLine.getTokenIterator()
+    iterator.next()
+    scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
