@@ -4,10 +4,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "agda-mode": {
-    "version": "<=0.2.17",
+  "angularjs-helper": {
+    "version": "<=0.9.2",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "latestHasDeprecations": true
   },
   "apex-ui-personalize": {
     "version": "<=0.1.0",
@@ -15,7 +15,7 @@
     "latestHasDeprecations": true
   },
   "api-blueprint-preview": {
-    "version": "<=0.3.2",
+    "version": "<=0.3.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -34,6 +34,11 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "asteroids": {
+    "version": "<=0.2.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "atom-2048": {
     "version": "<=1.2.3",
     "hasDeprecations": true,
@@ -49,7 +54,7 @@
     "latestHasDeprecations": true
   },
   "atom-beautify": {
-    "version": "<=0.27.7",
+    "version": "<=0.27.6",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -76,12 +81,7 @@
   "atom-ctags": {
     "version": "<=3.2.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
-  "atom-deconsole": {
-    "version": "<=0.0.1",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "atom-faker": {
     "version": "<=0.2.0",
@@ -89,9 +89,8 @@
     "latestHasDeprecations": true
   },
   "atom-flake8": {
-    "version": "<=0.1.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "hasAlternative": true,
+    "alternative": "linter"
   },
   "atom-grunt-configs": {
     "version": "<=0.1.0",
@@ -99,9 +98,9 @@
     "latestHasDeprecations": true
   },
   "atom-html-preview": {
-    "version": "<=0.1.4",
+    "version": "<=0.1.6",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "latestHasDeprecations": true
   },
   "atom-html5-boilerplate": {
     "version": "<=0.2.0",
@@ -143,9 +142,9 @@
     "latestHasDeprecations": true
   },
   "atom-python-debugger": {
-    "version": "<=0.2.2",
+    "version": "<=0.3.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "latestHasDeprecations": true
   },
   "atom-rails": {
     "version": "<=0.4.0",
@@ -177,30 +176,35 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "atom-typescript": {
+    "version": "<=4.1.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": false
+  },
+  "atom-ungit": {
+    "version": "<=0.4.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "atom-yeoman": {
     "version": "<=0.2.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
   "atomatigit": {
-    "version": "<=1.5.1",
+    "version": "<=1.3.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
   "atomic-emacs": {
     "version": "<=0.5.1",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "atomic-rest": {
     "version": "<=0.2.1",
     "hasDeprecations": true,
     "latestHasDeprecations": true
-  },
-  "auto-copyright": {
-    "version": "<=0.3.1",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
   },
   "auto-detect-indentation": {
     "version": "<=0.3.0",
@@ -236,11 +240,6 @@
     "hasAlternative": true,
     "alternative": "autocomplete-plus-python-jedi"
   },
-  "autocomplete-modules": {
-    "version": "<=0.3.2",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
   "autocomplete-paths": {
     "version": "<=1.0.1",
     "hasDeprecations": true,
@@ -271,13 +270,13 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "block-comment": {
-    "version": "<=0.4.1",
+  "big-cursor": {
+    "version": "<=0.1.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "block-travel": {
-    "version": "<=0.10.0",
+  "block-comment": {
+    "version": "<=0.4.1",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -286,18 +285,8 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "build-systems": {
-    "version": "<=0.5.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "cabal": {
     "version": "<=0.0.13",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
-  "caniuse": {
-    "version": "<=0.1.1",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -312,7 +301,7 @@
     "latestHasDeprecations": false
   },
   "clang-format": {
-    "version": "<=1.5.0",
+    "version": "<=1.8.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -321,8 +310,8 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "close-after-last-tab": {
-    "version": "<=0.1.5",
+  "clone-cursor": {
+    "version": "<=1.0.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -331,25 +320,24 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "code-links": {
+    "version": "<=0.3.8",
+    "hasDeprecations": true,
+    "latestHasDeprecations": false
+  },
   "codeship-status": {
     "version": "<=0.1.1",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
   "coffee-compile": {
-    "version": "<=0.4.0",
+    "version": "<=0.5.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
   "coffee-lint": {
-    "version": "<=0.7.3",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
-  "coffee-navigator": {
-    "version": "<=0.0.16",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "hasAlternative": true,
+    "alternative": "linter"
   },
   "coffee-trace": {
     "version": "<=0.2.2",
@@ -429,13 +417,8 @@
     "hasAlternative": true,
     "alternative": "core"
   },
-  "dart-tools": {
-    "version": "<=0.9.11",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "dash": {
-    "version": "<=1.0.0",
+    "version": "<=1.0.3",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -502,11 +485,6 @@
   "emp-template-management": {
     "version": "<=0.1.13",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
-  "enhanced-package-list": {
-    "version": "<=1.0.3",
-    "hasDeprecations": true,
     "latestHasDeprecations": true
   },
   "enhanced-tabs": {
@@ -531,11 +509,6 @@
   },
   "eval": {
     "version": "<=0.2.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
-  "ever-notedown": {
-    "version": "<=0.1.1",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -565,7 +538,12 @@
     "latestHasDeprecations": true
   },
   "file-icon-supplement": {
-    "version": "<=0.7.10",
+    "version": "<=0.7.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": false
+  },
+  "file-icons": {
+    "version": "<=0.3.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -599,19 +577,14 @@
     "latestHasDeprecations": true
   },
   "fuzzy-finder": {
-    "version": "<=0.54.0",
+    "version": "<=0.60.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
-  },
-  "fuzzy-finder-plus": {
-    "version": "<=1.4.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
   },
   "get-routes": {
-    "version": "<=0.1.0",
+    "version": "<=0.2.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "latestHasDeprecations": true
   },
   "gist-it": {
     "version": "<=0.6.10",
@@ -621,10 +594,15 @@
   "git-blame": {
     "version": "<=0.4.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "git-control": {
     "version": "<=0.2.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": false
+  },
+  "git-diff": {
+    "version": "<=0.43.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -632,11 +610,6 @@
     "version": "<=0.8.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
-  },
-  "git-grep": {
-    "version": "<=0.9.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
   },
   "git-log": {
     "version": "<=0.3.0",
@@ -648,8 +621,8 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "git-projects": {
-    "version": "<=1.14.1",
+  "git-review": {
+    "version": "<=0.2.1",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -663,13 +636,23 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "gitignore-snippets": {
+    "version": "<=0.2.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "gitter": {
+    "version": "<=0.6.2",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "go-oracle": {
     "version": "<=0.2.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
   "go-plus": {
-    "version": "<=3.0.9",
+    "version": "<=2.0.8",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -678,15 +661,15 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "gocode": {
+    "version": "<=0.2.1",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "gradle-ci": {
     "version": "<=0.2.3",
     "hasDeprecations": true,
     "latestHasDeprecations": true
-  },
-  "grammar-selector": {
-    "version": "<=0.35.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
   },
   "grunt-runner": {
     "version": "<=0.8.2",
@@ -701,7 +684,7 @@
   "gutter-shadow": {
     "version": "<=0.1.1",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "hiera-eyaml": {
     "version": "<=0.4.7",
@@ -764,7 +747,7 @@
     "latestHasDeprecations": true
   },
   "htmlhint": {
-    "version": "<=1.0.2",
+    "version": "<=0.4.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -779,9 +762,14 @@
     "latestHasDeprecations": false
   },
   "ide-haskell": {
-    "version": "<=0.1.1",
+    "version": "<=0.3.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "import": {
+    "version": "<=1.3.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
   },
   "inc-dec-value": {
     "version": "<=0.0.7",
@@ -792,11 +780,6 @@
     "version": "<=0.1.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
-  },
-  "indent-guide-improved": {
-    "version": "<=1.1.1",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
   },
   "indent-helper": {
     "version": "<=0.1.1",
@@ -818,20 +801,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "ionic-preview": {
-    "version": "<=0.3.1",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
   "japanese-zen-han-convert": {
     "version": "<=0.3.2",
     "hasDeprecations": true,
     "latestHasDeprecations": false
-  },
-  "jekyll": {
-    "version": "<=0.4.3",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
   },
   "jsdoc": {
     "version": "<=0.9.0",
@@ -841,10 +814,10 @@
   "jsformat": {
     "version": "<=0.8.1",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "jslint": {
-    "version": "<=0.10.2",
+    "version": "<=1.2.1",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -854,12 +827,17 @@
     "latestHasDeprecations": false
   },
   "jsonpp": {
-    "version": "<=0.0.7",
+    "version": "<=0.0.6",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
   "keycodes": {
     "version": "<=0.1.2",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "kinetic": {
+    "version": "<=0.2.5",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -871,7 +849,7 @@
   "language-jsoniq": {
     "version": "<=1.4.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "language-rspec": {
     "version": "<=0.2.1",
@@ -902,15 +880,15 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "less-than-slash": {
-    "version": "<=0.4.1",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
   "letter-spacing": {
     "version": "<=0.2.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "line-count": {
+    "version": "<=0.3.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
   },
   "line-jumper": {
     "version": "<=0.13.0",
@@ -952,11 +930,6 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "localeapp": {
-    "version": "<=0.1.3",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "localization": {
     "version": "<=1.16.1",
     "hasDeprecations": true,
@@ -965,10 +938,10 @@
   "log-console": {
     "version": "<=0.1.2",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "lorem-ipsum": {
-    "version": "<=0.4.0",
+    "version": "<=0.5.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -992,15 +965,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "markdown-preview-pandoc": {
-    "version": "<=0.0.13",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "markdown-preview-plus": {
     "version": "<=1.4.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "markdown-stream": {
     "version": "<=0.6.0",
@@ -1008,9 +976,9 @@
     "latestHasDeprecations": true
   },
   "markdown-writer": {
-    "version": "<=1.3.0",
+    "version": "<=1.3.2",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "latestHasDeprecations": true
   },
   "marked": {
     "version": "<=0.1.8",
@@ -1020,7 +988,7 @@
   "mate-subword-navigation": {
     "version": "<=3.0.1",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "MavensMate-Atom": {
     "version": "<=0.0.20",
@@ -1034,6 +1002,11 @@
   },
   "maximize-panes": {
     "version": "<=0.1.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "mdurl": {
+    "version": "<=0.2.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1072,40 +1045,15 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "move-panes": {
-    "version": "<=0.1.2",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "node-debugger": {
     "version": "<=0.2.3",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "node-resolver": {
-    "version": "<=1.0.1",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "npm-autocomplete": {
     "version": "<=0.1.2",
     "hasDeprecations": true,
     "latestHasDeprecations": true
-  },
-  "npm-docs": {
-    "version": "<=0.2.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
-  "npm-install": {
-    "version": "<=3.0.1",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
-  "nrepl": {
-    "version": "<=0.0.6",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
   },
   "omni-ruler": {
     "version": "<=0.3.1",
@@ -1117,8 +1065,8 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "open-in": {
-    "version": "<=3.1.0",
+  "open-git-modified-files": {
+    "version": "<=0.1.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1127,47 +1075,57 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "open-in-gitx": {
+    "version": "<=0.1.1",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "open-in-sourcetree": {
+    "version": "<=0.1.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "open-last-project": {
     "hasAlternative": true,
     "alternative": "core"
-  },
-  "open-plus": {
-    "version": "<=0.3.2",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
   },
   "open-recent": {
     "version": "<=2.2.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "open-sesame": {
-    "version": "<=0.3.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
   "package-cop": {
     "version": "<=0.2.5",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "package-list-downloader": {
     "version": "<=0.2.1",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "pain-split": {
-    "version": "<=1.1.2",
+  "pair-programming": {
+    "version": "<=0.7.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "latestHasDeprecations": true
   },
   "pane-layout-switcher": {
     "version": "<=0.0.3",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "paredit": {
+    "version": "<=1.0.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "party-hard": {
     "version": "<=0.3.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "path": {
+    "version": "<=0.4.1",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1180,11 +1138,6 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "perltidy": {
-    "version": "<=2.1.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
   "permute": {
     "version": "<=0.1.0",
     "hasDeprecations": true,
@@ -1196,7 +1149,12 @@
     "latestHasDeprecations": true
   },
   "php-getters-setters": {
-    "version": "<=0.3.0",
+    "version": "<=0.5.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "php-server": {
+    "version": "<=0.4.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1211,7 +1169,7 @@
     "latestHasDeprecations": true
   },
   "pretty-json": {
-    "version": "<=0.3.1",
+    "version": "<=0.3.2",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -1221,24 +1179,29 @@
     "latestHasDeprecations": false
   },
   "preview-plus": {
-    "version": "<=1.1.19",
+    "version": "<=1.1.42",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "project-colorize": {
+    "version": "<=0.1.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
   "project-manager": {
-    "version": "<=1.15.5",
+    "version": "<=1.11.1",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
   "project-palette-finder": {
-    "version": "<=2.4.17",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
-  "project-ring": {
-    "version": "<=0.19.6",
+    "version": "<=2.4.7",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "project-ring": {
+    "version": "<=0.20.5",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
   },
   "python": {
     "hasAlternative": true,
@@ -1252,7 +1215,7 @@
   "python-isort": {
     "version": "<=0.0.6",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "python-jedi": {
     "version": "<=0.1.7",
@@ -1264,20 +1227,20 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "r-exec": {
+    "version": "<=0.1.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "rails-navigation": {
     "version": "<=0.1.1",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
   "react": {
-    "version": "<=0.7.8",
+    "version": "<=0.5.3",
     "hasDeprecations": true,
     "latestHasDeprecations": false
-  },
-  "recent-files": {
-    "version": "<=0.3.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
   },
   "recent-projects": {
     "version": "<=0.3.0",
@@ -1295,7 +1258,7 @@
     "latestHasDeprecations": true
   },
   "remote-atom": {
-    "version": "<=1.1.10",
+    "version": "<=1.2.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -1307,7 +1270,7 @@
   "remote-sync": {
     "version": "<=3.1.1",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "resize-panes": {
     "hasAlternative": true,
@@ -1320,11 +1283,6 @@
   },
   "revert-buffer": {
     "version": "<=0.4.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
-  "rhino-python": {
-    "version": "<=0.6.1",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -1353,11 +1311,6 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "ruby-quick-test": {
-    "version": "<=0.3.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "ruby-strftime-reference": {
     "version": "<=0.3.0",
     "hasDeprecations": true,
@@ -1368,8 +1321,18 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "ruler": {
+    "version": "<=0.2.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "run-command": {
     "version": "<=0.1.1",
+    "hasDeprecations": true,
+    "latestHasDeprecations": false
+  },
+  "run-file": {
+    "version": "<=0.9.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1418,6 +1381,11 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "select-scope": {
+    "version": "<=0.2.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "selection-count": {
     "hasAlternative": true,
     "alternative": "core"
@@ -1435,7 +1403,7 @@
   "smarter-delete-line": {
     "version": "<=1.0.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "space-block-jumper": {
     "version": "<=0.4.3",
@@ -1445,7 +1413,7 @@
   "space-tab": {
     "version": "<=0.1.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "spark-dfu-util": {
     "version": "<=0.4.0",
@@ -1458,17 +1426,22 @@
     "latestHasDeprecations": true
   },
   "sublime-tabs": {
-    "version": "<=0.5.6",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "hasAlternative": true,
+    "message": "`sublime-tabs` has been replaced by the 'Use Preview Tabs' option in the `tabs` package settings.",
+    "alternative": "core"
   },
   "supercollider": {
     "version": "<=0.4.2",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "supercopair": {
     "version": "<=0.9.34",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
+  "support-gbk": {
+    "version": "<=1.1.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1492,11 +1465,6 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "tab-move-key": {
-    "version": "<=0.1.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "tab-switcher": {
     "version": "<=0.2.0",
     "hasDeprecations": true,
@@ -1512,15 +1480,15 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "task-list": {
-    "version": "<=0.7.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
-  },
   "tasks": {
     "version": "<=1.0.1",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "term": {
+    "version": "<=0.2.2",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
   },
   "terminal-panel": {
     "version": "<=1.11.0",
@@ -1528,7 +1496,7 @@
     "latestHasDeprecations": false
   },
   "terminal-status": {
-    "version": "<=1.6.0",
+    "version": "<=1.6.4",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
@@ -1537,10 +1505,15 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "ti-alloy-related": {
-    "version": "<=0.6.0",
+  "the-closer": {
+    "version": "<=0.1.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "ti-alloy-related": {
+    "version": "<=0.8.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
   },
   "tidal": {
     "version": "<=0.6.6",
@@ -1552,8 +1525,13 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "todo-list": {
-    "version": "<=1.0.0",
+  "timecop": {
+    "version": "<=0.23.0",
+    "hasDeprecations": true,
+    "latestHasDeprecations": false
+  },
+  "timekeeper": {
+    "version": "<=0.4.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1572,40 +1550,34 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "tree-view-breadcrumb": {
-    "version": "<=0.2.1",
+  "true-color": {
+    "version": "<=0.4.1",
     "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "latestHasDeprecations": true
   },
   "turbo-javascript": {
     "version": "<=0.0.10",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
   "turnip-step": {
     "version": "<=1.0.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
-  "unity-dark-ui": {
-    "version": "<=1.1.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
-  },
   "unity-ui": {
     "version": "<=1.0.5",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "update-packages": {
-    "version": "<=0.1.0",
+  "update-package-dependencies": {
+    "version": "<=0.6.0",
     "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "latestHasDeprecations": false
   },
-  "url-encode": {
-    "version": "<=0.4.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+  "update-packages": {
+    "hasAlternative": true,
+    "alternative": "core"
   },
   "vertical-align": {
     "version": "<=0.6.1",
@@ -1613,7 +1585,7 @@
     "latestHasDeprecations": false
   },
   "view-tail-large-files": {
-    "version": "<=0.1.16",
+    "version": "<=0.1.17",
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
@@ -1631,6 +1603,11 @@
     "version": "<=0.11.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "vnc": {
+    "version": "<=0.1.3",
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
   },
   "voicecode": {
     "version": "<=0.9.0",
@@ -1667,6 +1644,11 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "white-cursor": {
+    "version": "<=0.5.1",
+    "hasDeprecations": true,
+    "latestHasDeprecations": false
+  },
   "whitespace": {
     "version": "<=0.24.0",
     "hasDeprecations": true,
@@ -1683,7 +1665,7 @@
     "latestHasDeprecations": false
   },
   "wordcount": {
-    "version": "<=2.1.0",
+    "version": "<=2.2.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
