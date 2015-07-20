@@ -105,3 +105,13 @@ describe "Package", ->
         theme.onDidDeactivate spy = jasmine.createSpy()
         theme.deactivate()
         expect(spy).toHaveBeenCalled()
+
+  describe ".loadMetadata()", ->
+    [packagePath, pack, metadata] = []
+
+    beforeEach ->
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-different-directory-name')
+      metadata = Package.loadMetadata(packagePath, true)
+
+    it "uses the package name defined in package.json", ->
+      expect(metadata.name).toBe 'package-with-a-totally-different-name'
