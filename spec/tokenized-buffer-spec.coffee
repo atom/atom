@@ -572,7 +572,7 @@ describe "TokenizedBuffer", ->
 
     describe "when the selector matches a run of multiple tokens at the position", ->
       it "returns the range covered by all contigous tokens (within a single line)", ->
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.meta.function', [1, 18])).toEqual [[1, 6], [1, 28]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.function', [1, 18])).toEqual [[1, 6], [1, 28]]
 
   describe "when the editor.tabLength config value changes", ->
     it "updates the tab length of the tokenized lines", ->
