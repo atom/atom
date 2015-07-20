@@ -7,7 +7,7 @@ URL:            https://atom.io/
 AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
-Requires: redhat-lsb-core
+Requires: lsb
 
 %description
 <%= description %>
