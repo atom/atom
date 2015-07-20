@@ -121,8 +121,7 @@ class WindowEventHandler
     bindCommandToAction = (command, action) =>
       @subscribe $(document), command, (event) ->
         if event.target.webkitMatchesSelector('.native-key-bindings')
-          webContents = require('remote').getCurrentWindow().webContents
-          webContents[action]()
+          atom.getCurrentWindow().webContents[action]()
         true
 
     bindCommandToAction('core:copy', 'copy')
