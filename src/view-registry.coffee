@@ -210,9 +210,11 @@ class ViewRegistry
     writer() while writer = @documentWriters.shift()
 
   startPollingDocument: ->
+    window.addEventListener('resize', @performDocumentPoll)
     @observer.observe(document, {subtree: true, childList: true, attributes: true})
 
   stopPollingDocument: ->
+    window.removeEventListener('resize', @performDocumentPoll)
     @observer.disconnect()
 
   performDocumentPoll: =>

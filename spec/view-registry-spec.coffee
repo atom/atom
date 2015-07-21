@@ -186,7 +186,9 @@ describe "ViewRegistry", ->
       expect(events).toEqual ['write', 'read', 'poll']
 
   describe "::pollDocument(fn)", ->
-    it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
+    [testElement, testStyleSheet, disposable1, disposable2, events] = []
+
+    beforeEach ->
       testElement = document.createElement('div')
       testStyleSheet = document.createElement('style')
       testStyleSheet.textContent = 'body {}'
@@ -198,6 +200,7 @@ describe "ViewRegistry", ->
       disposable1 = registry.pollDocument -> events.push('poll 1')
       disposable2 = registry.pollDocument -> events.push('poll 2')
 
+    it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
       expect(events).toEqual []
 
       testElement.style.height = '400px'
@@ -223,3 +226,10 @@ describe "ViewRegistry", ->
 
       runs ->
         expect(events).toEqual ['poll 2']
+
+    it "calls all registered polling functions when the window resizes", ->
+      expect(events).toEqual []
+
+      window.dispatchEvent(new UIEvent('resize'))
+
+      expect(events).toEqual ['poll 1', 'poll 2']
