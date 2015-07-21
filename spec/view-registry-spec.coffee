@@ -191,8 +191,6 @@ describe "ViewRegistry", ->
       jasmineContent.appendChild(testElement)
       jasmineContent.appendChild(testStyleSheet)
 
-      spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
-
       events = []
       disposable1 = registry.pollDocument -> events.push('poll 1')
       disposable2 = registry.pollDocument -> events.push('poll 2')
