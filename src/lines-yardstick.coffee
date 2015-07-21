@@ -70,6 +70,7 @@ class LinesYardstick
     html = ""
     [contextIndex, contextNode] = @getNextContextNode()
 
+    newLinesIds = []
     screenRows.forEach (screenRow) =>
       line = @editor.tokenizedLineForScreenRow(screenRow)
       return unless line?
@@ -78,6 +79,7 @@ class LinesYardstick
       unless @lineNodesByLineId.hasOwnProperty(line.id)
         lineState = @presenter.buildLineState(0, screenRow, line)
         html += @linesBuilder.buildLineHTML(false, 1000, lineState)
+        newLinesIds.push(line.id)
 
     for lineId, lineNode of @lineNodesByContextIndexAndLineId[contextIndex]
       continue if visibleLines.hasOwnProperty(lineId)
@@ -89,17 +91,12 @@ class LinesYardstick
 
     contextNode.insertAdjacentHTML("beforeend", html)
 
-    @storeLineNodesInContextIndex(contextIndex)
-
-  storeLineNodesInContextIndex: (contextIndex) ->
-    contextNode = @contexts[contextIndex]
     @lineNodesByContextIndexAndLineId[contextIndex] ?= {}
-
-    for lineNode in contextNode.querySelectorAll("div.line")
-      screenRow = lineNode.dataset.screenRow
-      line = @editor.tokenizedLineForScreenRow(screenRow)
-      @lineNodesByLineId[line.id] = lineNode
-      @lineNodesByContextIndexAndLineId[contextIndex][line.id] = lineNode
+    index = contextNode.children.length - 1
+    while lineId = newLinesIds.pop()
+      lineNode = contextNode.children[index--]
+      @lineNodesByLineId[lineId] = lineNode
+      @lineNodesByContextIndexAndLineId[contextIndex][lineId] = lineNode
 
   lineNodeForScreenRow: (screenRow) ->
     line = @editor.tokenizedLineForScreenRow(screenRow)
