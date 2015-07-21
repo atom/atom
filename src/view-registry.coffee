@@ -42,11 +42,9 @@ Grim = require 'grim'
 # ```
 module.exports =
 class ViewRegistry
-  documentPollingInterval: 200
   documentUpdateRequested: false
   documentReadInProgress: false
   performDocumentPollAfterUpdate: false
-  pollIntervalHandle: null
 
   constructor: ->
     @views = new WeakMap
