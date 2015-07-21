@@ -9,6 +9,8 @@ class LinesYardstick
   constructor: (@editor, @presenter, hostElement, @syntaxStyleElement) ->
     @initialized = false
     @emitter = new Emitter
+    @scopesCache = {}
+    @fontSelectors = []
     @linesBuilder = new LineHtmlBuilder(true)
     @defaultStyleNode = document.createElement("style")
     @skinnyStyleNode = document.createElement("style")
@@ -52,6 +54,19 @@ class LinesYardstick
     @headNode.appendChild(@defaultStyleNode)
     @headNode.appendChild(@skinnyStyleNode)
 
+    @linesBuilder.setScopeFilterFn (scope) =>
+      return @scopesCache[scope] if @scopesCache.hasOwnProperty(scope)
+
+      cssClasses = scope.split(".")
+      for fontSelector in @fontSelectors
+        for cssClass in cssClasses
+          if fontSelector.indexOf(".#{cssClass}")
+            @scopesCache[scope] = true
+            return true
+
+      @scopesCache[scope] = false
+      return false
+
     @contexts = []
     @contexts.push(@createMeasurementContext()) for i in [0..8] by 1
     @domNode.appendChild(context) for context in @contexts
@@ -60,9 +75,12 @@ class LinesYardstick
 
   rebuildSkinnyStyleNode: ->
     skinnyCss = ""
+    @scopesCache = {}
+    @fontSelectors.length = 0
 
     for style in @syntaxStyleElement.children
       for cssRule in style.sheet.cssRules when @hasFontStyling(cssRule)
+        @fontSelectors.push(cssRule.selectorText)
         skinnyCss += cssRule.cssText
 
     @skinnyStyleNode.innerHTML = skinnyCss

@@ -6,6 +6,10 @@ module.exports =
 class LineHtmlBuilder
   constructor: (@fastVersion) ->
     @tokenIterator = new TokenIterator
+    # By default we want to accept all the tokens
+    @scopeFilterFn = -> true
+
+  setScopeFilterFn: (@scopeFilterFn) ->
 
   buildLineHTML: (indentGuidesVisible, width, lineState) ->
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = lineState
@@ -62,10 +66,10 @@ class LineHtmlBuilder
     @tokenIterator.reset(lineState)
 
     while @tokenIterator.next()
-      for scope in @tokenIterator.getScopeEnds()
+      for scope in @tokenIterator.getScopeEnds() when @scopeFilterFn(scope)
         innerHTML += "</span>"
 
-      for scope in @tokenIterator.getScopeStarts()
+      for scope in @tokenIterator.getScopeStarts() when @scopeFilterFn(scope)
         innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
       tokenStart = @tokenIterator.getScreenStart()
@@ -93,10 +97,10 @@ class LineHtmlBuilder
 
       innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, tokenStart, tokenEnd)
 
-    for scope in @tokenIterator.getScopeEnds()
+    for scope in @tokenIterator.getScopeEnds() when @scopeFilterFn(scope)
       innerHTML += "</span>"
 
-    for scope in @tokenIterator.getScopes()
+    for scope in @tokenIterator.getScopes() when @scopeFilterFn(scope)
       innerHTML += "</span>"
 
     innerHTML += @buildEndOfLineHTML(lineState)
