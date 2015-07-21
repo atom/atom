@@ -1,7 +1,7 @@
 ViewRegistry = require '../src/view-registry'
 {View} = require '../src/space-pen-extensions'
 
-describe "ViewRegistry", ->
+fdescribe "ViewRegistry", ->
   registry = null
 
   beforeEach ->
@@ -161,13 +161,13 @@ describe "ViewRegistry", ->
       registry.updateDocument -> events.push('write')
       registry.readDocument -> events.push('read')
 
-      advanceClock(registry.documentPollingInterval)
+      window.dispatchEvent(new UIEvent('resize'))
       expect(events).toEqual []
 
       frameRequests[0]()
       expect(events).toEqual ['write', 'read', 'poll']
 
-      advanceClock(registry.documentPollingInterval)
+      window.dispatchEvent(new UIEvent('resize'))
       expect(events).toEqual ['write', 'read', 'poll', 'poll']
 
     it "polls the document after updating when ::pollAfterNextUpdate() has been called", ->
