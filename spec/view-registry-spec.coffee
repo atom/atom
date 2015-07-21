@@ -183,9 +183,13 @@ describe "ViewRegistry", ->
       expect(events).toEqual ['write', 'read', 'poll']
 
   describe "::pollDocument(fn)", ->
-    it "calls all registered polling functions after document changes until they are disabled via a returned disposable", ->
+    it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
       testElement = document.createElement('div')
-      document.getElementById('jasmine-content').appendChild(testElement)
+      testStyleSheet = document.createElement('style')
+      testStyleSheet.textContent = 'body {}'
+      jasmineContent = document.getElementById('jasmine-content')
+      jasmineContent.appendChild(testElement)
+      jasmineContent.appendChild(testStyleSheet)
 
       spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
 
@@ -197,7 +201,15 @@ describe "ViewRegistry", ->
 
       testElement.style.height = '400px'
 
-      waitsFor "events to occur", -> events.length > 0
+      waitsFor "events to occur in response to DOM mutation", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 1', 'poll 2']
+        events.length = 0
+
+        testStyleSheet.textContent = 'body {color: #333;}'
+
+      waitsFor "events to occur in reponse to style mutation", -> events.length > 0
 
       runs ->
         expect(events).toEqual ['poll 1', 'poll 2']
@@ -206,7 +218,7 @@ describe "ViewRegistry", ->
         disposable1.dispose()
         testElement.style.color = '#fff'
 
-      waitsFor "more events to occur", -> events.length > 0
+      waitsFor "more events to occur in response to DOM mutation", -> events.length > 0
 
       runs ->
         expect(events).toEqual ['poll 2']
