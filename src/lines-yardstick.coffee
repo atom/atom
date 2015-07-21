@@ -14,9 +14,9 @@ class LinesYardstick
     @iframe = document.createElement("iframe")
     @iframe.style.display = "none"
     @iframe.onload = @setupIframe
-    @lineNodesByScreenRow = {}
-    @lineNodesByContextIndex = {}
-    @screenRowsByLineId = {}
+    @lineNodesByLineId = {}
+    @lineNodesByContextIndexAndLineId = {}
+    @activeContextIndex = -1
 
     hostElement.appendChild(@iframe)
 
@@ -55,12 +55,10 @@ class LinesYardstick
 
     @emitter.emit "did-initialize"
 
-  getRandomContextNode: ->
-    index = Math.round(Math.random() * 10)
-    index = Math.max(index, 0)
-    index = Math.min(index, @contexts.length - 1)
+  getNextContextNode: ->
+    @activeContextIndex = (@activeContextIndex + 1) % @contexts.length
 
-    [index, @contexts[index]]
+    [@activeContextIndex, @contexts[@activeContextIndex]]
 
   lineNodesForContextIndex: (contextIndex) ->
     @lineNodesByContextIndex[contextIndex] ? []
@@ -70,46 +68,43 @@ class LinesYardstick
 
     visibleLines = {}
     html = ""
-    [contextIndex, contextNode] = @getRandomContextNode()
+    [contextIndex, contextNode] = @getNextContextNode()
 
     screenRows.forEach (screenRow) =>
       line = @editor.tokenizedLineForScreenRow(screenRow)
+      return unless line?
       visibleLines[line.id] = true
 
-      unless @screenRowsByLineId.hasOwnProperty(line.id)
+      unless @lineNodesByLineId.hasOwnProperty(line.id)
         lineState = @presenter.buildLineState(0, screenRow, line)
         html += @linesBuilder.buildLineHTML(false, 1000, lineState)
-        @screenRowsByLineId[line.id] = screenRow
 
-    for lineNode in @lineNodesForContextIndex(contextIndex)
-      screenRow = lineNode.dataset.screenRow
-      lineId = @editor.tokenizedLineForScreenRow(screenRow)?.id
-
+    for lineId, lineNode of @lineNodesByContextIndexAndLineId[contextIndex]
       continue if visibleLines.hasOwnProperty(lineId)
 
-      delete @screenRowsByLineId[lineId]
       lineNode.remove()
 
-    contextNode.insertAdjacentHTML("beforeend", html)
+      delete @lineNodesByLineId[lineId]
+      delete @lineNodesByContextIndexAndLineId[contextIndex][lineId]
 
-    @lineNodesByContextIndex = {}
-    @lineNodesByScreenRow = {}
-    for domNode, i in @contexts when domNode isnt contextNode
-      @storeLineNodesInContextIndex(i)
+    contextNode.insertAdjacentHTML("beforeend", html)
 
     @storeLineNodesInContextIndex(contextIndex)
 
   storeLineNodesInContextIndex: (contextIndex) ->
     contextNode = @contexts[contextIndex]
+    @lineNodesByContextIndexAndLineId[contextIndex] ?= {}
 
-    for lineNode in contextNode.getElementsByClassName("line")
+    for lineNode in contextNode.querySelectorAll("div.line")
       screenRow = lineNode.dataset.screenRow
-      @lineNodesByScreenRow[screenRow] = lineNode
-      @lineNodesByContextIndex[contextIndex] ?= []
-      @lineNodesByContextIndex[contextIndex].push(lineNode)
+      line = @editor.tokenizedLineForScreenRow(screenRow)
+      @lineNodesByLineId[line.id] = lineNode
+      @lineNodesByContextIndexAndLineId[contextIndex][line.id] = lineNode
 
   lineNodeForScreenRow: (screenRow) ->
-    @lineNodesByScreenRow[screenRow]
+    line = @editor.tokenizedLineForScreenRow(screenRow)
+    lineNode = @lineNodesByLineId[line.id]
+    lineNode
 
   leftPixelPositionForScreenPosition: (position) ->
     @ensureInitialized()
