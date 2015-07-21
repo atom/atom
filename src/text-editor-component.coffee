@@ -99,7 +99,7 @@ class TextEditorComponent
 
     @disposables.add atom.views.pollDocument(@pollDOM)
 
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @domNode, @stylesElement.cloneNode())
+    @linesYardstick = new LinesYardstick(@editor, @presenter, @domNode, @stylesElement)
 
     @disposables.add @linesYardstick.onDidInitialize =>
       @presenter.setComponent(this)

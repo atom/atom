@@ -10,7 +10,8 @@ class LinesYardstick
     @initialized = false
     @emitter = new Emitter
     @linesBuilder = new LineHtmlBuilder(true)
-    @stylesNode = document.createElement("style")
+    @defaultStyleNode = document.createElement("style")
+    @skinnyStyleNode = document.createElement("style")
     @iframe = document.createElement("iframe")
     @iframe.style.display = "none"
     @iframe.onload = @setupIframe
@@ -21,7 +22,7 @@ class LinesYardstick
     hostElement.appendChild(@iframe)
 
   setFont: (fontFamily, fontSize) ->
-    @stylesNode.innerHTML = "body { margin: 0; padding: 0; font-size: #{fontSize}; font-family: #{fontFamily}; white-space: pre; }"
+    @defaultStyleNode.innerHTML = "body { margin: 0; padding: 0; font-size: #{fontSize}; font-family: #{fontFamily}; white-space: pre; }"
 
   onDidInitialize: (callback) ->
     @emitter.on "did-initialize", callback
@@ -46,14 +47,31 @@ class LinesYardstick
     @initialized = true
     @domNode = @iframe.contentDocument.body
     @headNode = @iframe.contentDocument.head
-    @headNode.appendChild(@stylesNode)
-    @headNode.appendChild(@syntaxStyleElement)
+
+    @rebuildSkinnyStyleNode()
+    @headNode.appendChild(@defaultStyleNode)
+    @headNode.appendChild(@skinnyStyleNode)
 
     @contexts = []
     @contexts.push(@createMeasurementContext()) for i in [0..8] by 1
     @domNode.appendChild(context) for context in @contexts
 
     @emitter.emit "did-initialize"
+
+  rebuildSkinnyStyleNode: ->
+    skinnyCss = ""
+
+    for style in @syntaxStyleElement.children
+      for cssRule in style.sheet.cssRules when @hasFontStyling(cssRule)
+        skinnyCss += cssRule.cssText
+
+    @skinnyStyleNode.innerHTML = skinnyCss
+
+  hasFontStyling: (cssRule) ->
+    for styleProperty in cssRule.style
+      return true if styleProperty.indexOf("font") isnt -1
+
+    return false
 
   getNextContextNode: ->
     @activeContextIndex = (@activeContextIndex + 1) % @contexts.length
