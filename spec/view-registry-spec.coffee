@@ -7,6 +7,9 @@ describe "ViewRegistry", ->
   beforeEach ->
     registry = new ViewRegistry
 
+  afterEach ->
+    registry.clearDocumentRequests()
+
   describe "::getView(object)", ->
     describe "when passed a DOM node", ->
       it "returns the given DOM node", ->
