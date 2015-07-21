@@ -780,10 +780,10 @@ describe "PackageManager", ->
       expect(themeActivator).toHaveBeenCalled()
 
       packages = packageActivator.mostRecentCall.args[0]
-      expect(['atom', 'textmate']).toContain(pack.getType()) for pack in packages
+      expect(['package', 'theme']).toContain(pack.type) for pack in packages
 
       themes = themeActivator.mostRecentCall.args[0]
-      expect(['theme']).toContain(theme.getType()) for theme in themes
+      expect(['theme']).toContain(theme.type) for theme in themes
 
     it "calls callbacks registered with ::onDidActivateInitialPackages", ->
       package1 = atom.packages.loadPackage('package-with-main')

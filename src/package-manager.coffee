@@ -8,7 +8,9 @@ Grim = require 'grim'
 
 ServiceHub = require 'service-hub'
 Package = require './package'
+PackageSet = require './package-set'
 ThemePackage = require './theme-package'
+{isTheme, isPackageSet, isPackage, packageType} = require './metadata-helpers'
 {isDeprecatedPackage, getDeprecatedPackageMetadata} = require './deprecated-packages'
 
 # Extended: Package manager for coordinating the lifecycle of Atom packages.
@@ -43,7 +45,7 @@ class PackageManager
     @serviceHub = new ServiceHub
 
     @packageActivators = []
-    @registerPackageActivator(this, ['atom', 'textmate'])
+    @registerPackageActivator(this, ['package', 'package-set'])
 
   ###
   Section: Event Subscription
@@ -223,9 +225,9 @@ class PackageManager
 
   # Get packages for a certain package type
   #
-  # * `types` an {Array} of {String}s like ['atom', 'textmate'].
+  # * `types` an {Array} of {String}s like ['package', 'package-set', 'theme'].
   getLoadedPackagesForTypes: (types) ->
-    pack for pack in @getLoadedPackages() when pack.getType() in types
+    pack for pack in @getLoadedPackages() when pack.type in types
 
   # Public: Get the loaded {Package} with the given name.
   #
@@ -347,8 +349,10 @@ class PackageManager
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
 
-      if metadata.theme
+      if isTheme(metadata)
         pack = new ThemePackage(packagePath, metadata)
+      else if isPackageSet(metadata)
+        pack = new PackageSet(packagePath, metadata)
       else
         pack = new Package(packagePath, metadata)
       pack.load()

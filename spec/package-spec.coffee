@@ -106,6 +106,38 @@ describe "Package", ->
         theme.deactivate()
         expect(spy).toHaveBeenCalled()
 
+  describe "package-set", ->
+    describe "when the metadata specifies a main module path˜", ->
+      it "does not require the module at the specified path and activate it", ->
+        mainModule = require('./fixtures/packages/package-set-with-main/main-module')
+        spyOn(mainModule, 'activate')
+        pack = null
+        waitsForPromise ->
+          atom.packages.activatePackage('package-set-with-main').then (p) -> pack = p
+
+        runs ->
+          expect(mainModule.activate).not.toHaveBeenCalled()
+          expect(pack.mainModule).toBeNull()
+
+      it "deactivates correctly", ->
+        mainModule = require('./fixtures/packages/package-set-with-main/main-module')
+        spyOn(mainModule, 'activate')
+        spyOn(mainModule, 'deactivate')
+        pack = null
+        waitsForPromise ->
+          atom.packages.activatePackage('package-set-with-main').then (p) -> pack = p
+
+        runs ->
+          expect(mainModule.activate).not.toHaveBeenCalled()
+          expect(mainModule.deactivate).not.toHaveBeenCalled()
+          expect(pack.mainModule).toBeNull()
+
+        runs ->
+          atom.packages.deactivatePackage('package-set-with-main')
+          expect(mainModule.activate).not.toHaveBeenCalled()
+          expect(mainModule.deactivate).not.toHaveBeenCalled()
+          expect(pack.mainModule).toBeNull()
+
   describe ".loadMetadata()", ->
     [packagePath, pack, metadata] = []
 

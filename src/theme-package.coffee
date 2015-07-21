@@ -3,8 +3,6 @@ Package = require './package'
 
 module.exports =
 class ThemePackage extends Package
-  getType: -> 'theme'
-
   getStyleSheetPriority: -> 1
 
   enable: ->

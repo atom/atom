@@ -6,6 +6,7 @@ async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
+{isTheme, isPackageSet, isPackage, packageType} = require './metadata-helpers'
 Q = require 'q'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
 
@@ -78,6 +79,7 @@ class Package
     @metadata ?= Package.loadMetadata(@path)
     @bundledPackage = Package.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
+    @type = packageType(metadata)
     ModuleCache.add(@path, @metadata)
     @reset()
 
@@ -104,7 +106,7 @@ class Package
     atom.config.pushAtKeyPath('core.disabledPackages', @name)
 
   isTheme: ->
-    @metadata?.theme?
+    isTheme(@metadata)
 
   measure: (key, fn) ->
     startTime = Date.now()
@@ -112,7 +114,7 @@ class Package
     @[key] = Date.now() - startTime
     value
 
-  getType: -> 'atom'
+  getType: -> @type
 
   getStyleSheetPriority: -> 0
 

@@ -802,7 +802,7 @@ class Atom extends Model
   watchThemes: ->
     @themes.onDidChangeActiveThemes =>
       # Only reload stylesheets from non-theme packages
-      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
+      for pack in @packages.getActivePackages() when pack.type isnt 'theme'
         pack.reloadStylesheets?()
       return
 
