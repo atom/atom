@@ -54,7 +54,7 @@ If none of this works, do install Github for Windows and use its Git shell. Make
 ### Common Errors
 * `node is not recognized`
 
-  * If you just installed node you need to restart your computer before node is
+  * If you just installed node, you'll need to restart your computer before node is
   available on your Path.
 
 
