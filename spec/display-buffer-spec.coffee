@@ -854,7 +854,7 @@ describe "DisplayBuffer", ->
       [markerChangedHandler, marker] = []
 
       beforeEach ->
-        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]])
+        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]], maintainHistory: true)
         marker.onDidChange markerChangedHandler = jasmine.createSpy("markerChangedHandler")
 
       it "triggers the 'changed' event whenever the markers head's screen position changes in the buffer or on screen", ->
@@ -991,7 +991,7 @@ describe "DisplayBuffer", ->
         expect(markerChangedHandler).not.toHaveBeenCalled()
 
       it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
-        marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]])
+        marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]], maintainHistory: true)
         marker2.onDidChange marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
         displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
 
@@ -1018,7 +1018,7 @@ describe "DisplayBuffer", ->
         markerChangedHandler.reset()
         marker2ChangedHandler.reset()
 
-        marker3 = displayBuffer.markBufferRange([[8, 1], [8, 2]])
+        marker3 = displayBuffer.markBufferRange([[8, 1], [8, 2]], maintainHistory: true)
         marker3.onDidChange marker3ChangedHandler = jasmine.createSpy("marker3ChangedHandler")
 
         onDisplayBufferChange = ->
