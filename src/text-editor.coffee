@@ -2587,6 +2587,18 @@ class TextEditor extends Model
       maintainClipboard = true
     return
 
+
+  # Essential: For each selection, only copy hightlighted text. Line is coptied if no selected text and cursor is at the beginning of the line
+  copyOnlySelectedText: ->
+    maintainClipboard = false
+    for selection in @getSelectionsOrderedByBufferPosition()
+      if not selection.isEmpty()
+        selection.copy(maintainClipboard, true)
+      else if selection.isEmpty() and selection.cursor.isAtBeginningOfLine()
+        @copySelectedText()
+      maintainClipboard = true
+    return
+
   # Essential: For each selection, cut the selected text.
   cutSelectedText: ->
     maintainClipboard = false
