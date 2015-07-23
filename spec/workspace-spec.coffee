@@ -15,6 +15,7 @@ describe "Workspace", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     atom.workspace = workspace = new Workspace
+    waits(1)
 
   describe "::open(uri, options)", ->
     openEvents = null
