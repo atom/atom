@@ -358,15 +358,15 @@ fdescribe "TextEditorComponent", ->
       nextAnimationFrame()
 
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[1].classList.contains('trailing-whitespace')).toBe true
-      expect(leafNodes[1].classList.contains('leading-whitespace')).toBe false
+      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
+      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
 
       editor.setText('a\t')
       nextAnimationFrame()
 
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[1].classList.contains('trailing-whitespace')).toBe true
-      expect(leafNodes[1].classList.contains('leading-whitespace')).toBe false
+      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
+      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
 
     describe "when showInvisibles is enabled", ->
       invisibles = null
@@ -407,7 +407,7 @@ fdescribe "TextEditorComponent", ->
       it "displays newlines as their own token outside of the other tokens' scopeDescriptor", ->
         editor.setText "var\n"
         nextAnimationFrame()
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\"><span data-start=\"0\" data-end=\"3\" class=\"token\">var</span></span></span><span class=\"invisible-character\">E</span>"
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "displays trailing carriage returns using a visible, non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
@@ -527,8 +527,8 @@ fdescribe "TextEditorComponent", ->
         line0LeafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
         expect(line0LeafNodes[0].textContent).toBe '  '
         expect(line0LeafNodes[0].classList.contains('indent-guide')).toBe true
-        expect(line0LeafNodes[2].textContent).toBe '  '
-        expect(line0LeafNodes[2].classList.contains('indent-guide')).toBe false
+        expect(line0LeafNodes[1].textContent).toBe '  '
+        expect(line0LeafNodes[1].classList.contains('indent-guide')).toBe false
 
       it "updates the indent guides on empty lines preceding an indentation change", ->
         editor.getBuffer().insert([12, 0], '\n')
@@ -924,7 +924,7 @@ fdescribe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js .token').firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -942,11 +942,14 @@ fdescribe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      lastTokenNode = last component.lineNodeForScreenRow(0).querySelectorAll('.source.js .token')
-      tokenRect = lastTokenNode.getBoundingClientRect()
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').firstChild
+      range = document.createRange()
+      range.setStart(cursorLocationTextNode, 3)
+      range.setEnd(cursorLocationTextNode, 4)
+      rangeRect = range.getBoundingClientRect()
 
-      expect(cursorRect.left).toBe tokenRect.left
-      expect(cursorRect.width).toBe tokenRect.width
+      expect(cursorRect.left).toBe rangeRect.left
+      expect(cursorRect.width).toBe rangeRect.width
 
     it "positions cursors correctly after character widths are changed via a stylesheet change", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
@@ -963,7 +966,7 @@ fdescribe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js .token').firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
       range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
